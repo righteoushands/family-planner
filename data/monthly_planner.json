@@ -1,0 +1,293 @@
+{
+  "every_month": {
+    "links": [
+      {
+        "name": "Kenmore & Ferry Farm Events",
+        "url": "https://kenmore.org/events/"
+      },
+      {
+        "name": "Play FXBRG",
+        "url": "https://fxbg.com/events"
+      },
+      {
+        "name": "Caledon State Park",
+        "url": "https://www.dcr.virginia.gov/state-parks/caledon"
+      },
+      {
+        "name": "Braehead Farm",
+        "url": ""
+      },
+      {
+        "name": "Shining Light Dolls printables",
+        "url": ""
+      },
+      {
+        "name": "Feast days of the month",
+        "url": "https://www.thesaintmaker.com/winter-feasts-and-devotions"
+      },
+      {
+        "name": "Read Aloud Revival booklists",
+        "url": ""
+      }
+    ],
+    "tasks": [
+      "Check local events pages",
+      "Check Shining Light Dolls free monthly printables",
+      "Place seasonal books on hold at the library",
+      "Change air filters",
+      "Review family events (anniversaries, birthdays, name days)",
+      "Schedule date nights (at least one this month)"
+    ]
+  },
+  "months": {
+    "January": {
+      "marian_antiphon": "Alma Redemptoris Mater (Advent to Candlemas)",
+      "von_trapp": "January 6 to Ash Wednesday",
+      "liturgical_notes": "",
+      "tasks": [
+        "Hot tea for cold days",
+        "Plan garden",
+        "Pay David",
+        "Ceiling fan maintenance",
+        "Fertilize Siberian Elm (once in the winter)",
+        "CEUs: sign up for AudiogyOnline if odd year \u2014 complete 10 CEU hours Jan\u2013Jun"
+      ],
+      "garden": [
+        "Plan garden layout for the year",
+        "Fertilize Siberian Elm (once in winter)"
+      ]
+    },
+    "February": {
+      "marian_antiphon": "Alma Redemptoris Mater until Feb 2 (Candlemas), then Ave Regina Caelorum",
+      "von_trapp": "Pre-Lent to Ash Wednesday",
+      "liturgical_notes": "Candlemas Feb 2 \u2014 antiphon changes day after",
+      "tasks": [
+        "Order garden seeds",
+        "Declutter the kitchen",
+        "Pay David",
+        "Order King Cake for Mardi Gras from Paul's Bakery (order two if guests)",
+        "See penance time chores (Lent begins)"
+      ],
+      "garden": [
+        "Order garden seeds"
+      ]
+    },
+    "March": {
+      "marian_antiphon": "Ave Regina Caelorum until Easter, then Regina Caeli from Easter through Pentecost",
+      "von_trapp": "Passion Sunday to Holy Saturday",
+      "liturgical_notes": "Easter this month some years \u2014 antiphon changes on Easter day",
+      "tasks": [
+        "Start indoor seeds",
+        "Declutter the closets (coat, linen)",
+        "Make WCC for Joe",
+        "Pay David",
+        "Fertilize yard",
+        "Prune China Rose (1/3 of its length)",
+        "Clean out the fridge with bleach"
+      ],
+      "garden": [
+        "Start indoor seeds",
+        "Fertilize yard",
+        "Prune China Rose (remove 1/3 of its length)"
+      ]
+    },
+    "April": {
+      "marian_antiphon": "Ave Regina Caelorum until Easter, then Regina Caeli through Pentecost",
+      "von_trapp": "Easter Vigil to the Saturday after Pentecost",
+      "liturgical_notes": "Easter this month most years \u2014 antiphon changes on Easter day",
+      "tasks": [
+        "Go through winter/summer clothes for boys \u2014 check fit and plan purchasing",
+        "Declutter boys' room",
+        "Pay David",
+        "Put up hummingbird feeder",
+        "Fertilize roses (before leaf development)"
+      ],
+      "garden": [
+        "Put up hummingbird feeder",
+        "Fertilize roses (before leaf development)"
+      ]
+    },
+    "May": {
+      "marian_antiphon": "Regina Caeli through Pentecost, then Salve Regina from Pentecost until Advent",
+      "von_trapp": "The Green Meadow",
+      "liturgical_notes": "Pentecost this month some years \u2014 antiphon changes",
+      "tasks": [
+        "Declutter master bathroom",
+        "Pay David",
+        "Strawberry picking",
+        "Teacher appreciation gifts",
+        "Order caterpillars",
+        "Direct sow creeping thyme outdoors when temps in 60s or above"
+      ],
+      "garden": [
+        "Direct sow creeping thyme (blue, red) outdoors when temps are in 60s+",
+        "Strawberry picking"
+      ]
+    },
+    "June": {
+      "marian_antiphon": "Regina Caeli through Pentecost, then Salve Regina from Pentecost until Advent",
+      "von_trapp": "",
+      "liturgical_notes": "Pentecost this month most years",
+      "tasks": [
+        "Declutter master bedroom",
+        "Fertilize yard",
+        "Blackberry and raspberry picking",
+        "Fertilize roses",
+        "Submit end of year homeschool paperwork",
+        "HVAC: close basement vents, open upstairs vents (hot weather)"
+      ],
+      "garden": [
+        "Fertilize yard",
+        "Blackberry and raspberry picking",
+        "Fertilize roses"
+      ]
+    },
+    "July": {
+      "marian_antiphon": "Salve Regina from Pentecost until Advent begins",
+      "von_trapp": "",
+      "liturgical_notes": "",
+      "tasks": [
+        "Declutter living room",
+        "Blueberry picking",
+        "4th of July books",
+        "Homeschooling prep (arrange piano lessons, declutter tower, prep scheduling sheets)",
+        "Start school year",
+        "CEUs: sign up for AudiogyOnline if odd year \u2014 complete 10 CEU hours Jul\u2013Dec",
+        "Christmas shopping: start picking up things for boys to stay in budget"
+      ],
+      "garden": [
+        "Blueberry picking"
+      ]
+    },
+    "August": {
+      "marian_antiphon": "Salve Regina from Pentecost until Advent begins",
+      "von_trapp": "",
+      "liturgical_notes": "",
+      "tasks": [
+        "Make WCC for Michael",
+        "Pay David",
+        "Homeschooling: proof of academic progress due on the 1st",
+        "Homeschooling: NOI due on the 15th",
+        "Prep for Hilton Head trip?"
+      ],
+      "garden": []
+    },
+    "September": {
+      "marian_antiphon": "Salve Regina from Pentecost until Advent begins",
+      "von_trapp": "",
+      "liturgical_notes": "",
+      "tasks": [
+        "Declutter toy storage",
+        "Pay David",
+        "Yard: aerate, overseed, fertilize",
+        "Fertilize roses (one month before frost)",
+        "Start saving romaine cuttings for garden",
+        "Braehead Farm passes start over \u2014 check new passes",
+        "Trip to Hilton Head?",
+        "Plant bulbs in yard"
+      ],
+      "garden": [
+        "Aerate, overseed, and fertilize yard",
+        "Fertilize roses (one month before frost)",
+        "Start saving romaine cuttings for garden",
+        "Plant bulbs in yard"
+      ]
+    },
+    "October": {
+      "marian_antiphon": "Salve Regina from Pentecost until Advent begins",
+      "von_trapp": "",
+      "liturgical_notes": "",
+      "tasks": [
+        "Declutter garage",
+        "Pay David",
+        "Take out Halloween books and DVDs",
+        "Have HVAC serviced",
+        "Spray for pests",
+        "Prune plants"
+      ],
+      "garden": [
+        "Spray for pests",
+        "Prune plants"
+      ]
+    },
+    "November": {
+      "marian_antiphon": "Salve Regina until Advent, then Alma Redemptoris Mater from Advent through Feb 2",
+      "von_trapp": "Advent",
+      "liturgical_notes": "Advent begins this month \u2014 antiphon changes at Advent",
+      "tasks": [
+        "Soul Cakes for Nov 2",
+        "Declutter cars (wash, wax, vacuum)",
+        "Pay David",
+        "Go through winter clothes for boys \u2014 check fit and plan purchasing",
+        "Thanksgiving food prep schedule",
+        "Service summer tools (lawnmower, pruning shears, hand tools)",
+        "Clean and put away summer toys",
+        "Pressure wash deck furniture and cushions",
+        "HVAC: open basement vents, close third floor vents (cold weather)"
+      ],
+      "garden": [
+        "Service summer tools (lawnmower, pruning shears, hand tools)",
+        "Clean and put away summer toys",
+        "Pressure wash deck furniture and cushions"
+      ]
+    },
+    "December": {
+      "marian_antiphon": "Alma Redemptoris Mater (Advent to Candlemas)",
+      "von_trapp": "Christmas Eve to Candlemas",
+      "liturgical_notes": "Christmas music from MODG",
+      "tasks": [
+        "Read Christmas Under the Bridge",
+        "Make WCC for JP",
+        "Prune China Rose after blooming",
+        "Winter Encampment prep: extra towels, washcloths, chapstick, lotion, toiletry bag, warm outer clothing (hat, heavy coat, double gloves, heated vest?)",
+        "HVAC: open basement vents, close third floor vents (cold weather)",
+        "Put summer/outdoor toys out of the weather"
+      ],
+      "garden": [
+        "Prune China Rose after blooming",
+        "Put summer/outdoor toys out of the weather"
+      ]
+    }
+  },
+  "penance_time_chores": [
+    "Sharpen knives",
+    "Oil knife handles, cutting board",
+    "Oil piano",
+    "Oil hutch",
+    "Oil coffee table",
+    "Shampoo carpets (in sections)",
+    "Wash cars",
+    "Shine shoes",
+    "Read Humility of Heart",
+    "De-scale the coffee maker",
+    "Shampoo the sofas",
+    "Wipe down the leather sofa",
+    "Dust under sofas, chairs, hutch",
+    "Clean under the oven, fridge, air fryer",
+    "Dust fan blades",
+    "Tidy up & organize cookbook",
+    "Wipe down fridges and freezers"
+  ],
+  "litany_to_begin_again": [
+    "That I may begin immediately,",
+    "That I may never fail to begin again,",
+    "That I may begin even without devotion,",
+    "That I may begin each day,",
+    "That I may begin every day,",
+    "That I may begin every hour of the day,",
+    "That I may say with boldness, \"Now I begin,\"",
+    "That I may begin humbly and with full confidence,",
+    "That I may begin with holy tenacity,",
+    "That I may begin with faith,",
+    "That I may begin with gentleness,",
+    "That I may begin with peace,",
+    "That I may decide always to begin,",
+    "That I may begin again, firmly convinced that God forgives me,",
+    "That I may rise immediately and begin again,",
+    "That I may always, and in every moment, begin again,",
+    "That I may begin again to trust,",
+    "That I may begin again to hope,",
+    "That I may begin again to love,",
+    "Venerable Bruno, pray for me. Amen."
+  ]
+}

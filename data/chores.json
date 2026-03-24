@@ -1,0 +1,92 @@
+{
+  "boys": {
+    "JP": {
+      "daily": [
+        "Check CAP email",
+        "Check Sea Cadet email",
+        "Daily Room Reset",
+        "Exercise (non-PE days)"
+      ],
+      "weekly": {
+        "Monday": [
+          "Trim nails",
+          "Sweep indoor stairs"
+        ],
+        "Tuesday": [
+          "Clean half bath (main level)",
+          "Clean basement full bath"
+        ],
+        "Wednesday": [
+          "Switch basement zone"
+        ],
+        "Thursday": [
+          "Tidy garage (10 minutes)",
+          "Collect trash (half bath, basement bathroom, laundry room)"
+        ],
+        "Friday": [
+          "Bring back trash can"
+        ],
+        "Saturday": [
+          "Clean room",
+          "Prepare Mass clothes"
+        ],
+        "Sunday": []
+      }
+    },
+    "Joseph": {
+      "daily": [
+        "Check Sea Cadet email",
+        "Daily Room Reset",
+        "Exercise (non-PE days)",
+        "Review irregular verbs"
+      ],
+      "weekly": {
+        "Monday": [
+          "Trim nails"
+        ],
+        "Tuesday": [
+          "Clean kids bathroom"
+        ],
+        "Wednesday": [
+          "Switch basement zone"
+        ],
+        "Thursday": [
+          "Tidy garage (10 minutes)",
+          "Collect trash (diaper pail, kids bathroom, parents bathroom)"
+        ],
+        "Friday": [
+          "Bring back recycling can"
+        ],
+        "Saturday": [
+          "Clean room",
+          "Prepare Mass clothes"
+        ],
+        "Sunday": []
+      }
+    },
+    "Michael": {
+      "daily": [],
+      "weekly": {
+        "Monday": [],
+        "Tuesday": [],
+        "Wednesday": [],
+        "Thursday": [],
+        "Friday": [],
+        "Saturday": [],
+        "Sunday": []
+      }
+    },
+    "James": {
+      "daily": [],
+      "weekly": {
+        "Monday": [],
+        "Tuesday": [],
+        "Wednesday": [],
+        "Thursday": [],
+        "Friday": [],
+        "Saturday": [],
+        "Sunday": []
+      }
+    }
+  }
+}

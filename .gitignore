@@ -1,0 +1,17 @@
+# Sensitive data files - never commit these
+data/calendar_config.json
+data/calendar_cache.json
+data/calendar_rules.json
+data/subscribed_calendars.json
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pythonlibs/
+
+# Replit files
+.replit
+replit.nix
+.upm/
+.config/
