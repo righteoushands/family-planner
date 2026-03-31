@@ -1130,10 +1130,16 @@ def render_dashboard() -> str:
          style="padding:6px 11px;background:var(--parchment);border:1px solid var(--brown);
                 border-radius:8px;text-decoration:none;font-size:0.8em;
                 font-weight:600;color:var(--brown);">✨ Tomorrow</a>
+      <a href="/lucy"
+         style="padding:6px 13px;background:linear-gradient(135deg,#8b5a3c,#c49020);
+                color:white;border-radius:8px;text-decoration:none;font-size:0.8em;font-weight:700;
+                margin-left:auto;white-space:nowrap;">
+        🌿 Talk to Lucy
+      </a>
       <a href="/mom"
          style="padding:6px 12px;background:var(--ink);color:var(--gold-light);
                 border-radius:8px;text-decoration:none;font-size:0.8em;font-weight:700;
-                margin-left:auto;">
+                white-space:nowrap;">
         Plan my day &rarr;
       </a>
     </div>
