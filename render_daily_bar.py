@@ -73,22 +73,38 @@ def fetch_weather(location: str) -> dict:
         high_f    = int(today.get("maxtempF", temp_f))
         low_f     = int(today.get("mintempF", temp_f))
 
-        # Pick a simple text icon based on condition keyword
-        cond_lower = condition.lower()
-        if any(w in cond_lower for w in ("thunder", "storm")):
-            icon = "⛈"
-        elif any(w in cond_lower for w in ("snow", "blizzard", "sleet")):
-            icon = "❄️"
-        elif any(w in cond_lower for w in ("rain", "drizzle", "shower")):
-            icon = "🌧"
-        elif any(w in cond_lower for w in ("cloud", "overcast", "fog", "mist")):
-            icon = "☁️"
-        elif any(w in cond_lower for w in ("sunny", "clear")):
-            icon = "☀️"
-        elif "partly" in cond_lower:
-            icon = "⛅"
-        else:
-            icon = "🌤"
+        def _icon_for(cond: str) -> str:
+            c = cond.lower()
+            if any(w in c for w in ("thunder", "storm")):   return "⛈"
+            if any(w in c for w in ("snow", "blizzard", "sleet")): return "❄️"
+            if any(w in c for w in ("rain", "drizzle", "shower")): return "🌧"
+            if any(w in c for w in ("cloud", "overcast", "fog", "mist")): return "☁️"
+            if any(w in c for w in ("sunny", "clear")):     return "☀️"
+            if "partly" in c:                                return "⛅"
+            return "🌤"
+
+        icon = _icon_for(condition)
+
+        # Build 3-day forecast list from API
+        forecast = []
+        import datetime as _dt
+        today_date = _dt.date.today()
+        for i, day_data in enumerate(data.get("weather", [])[:3]):
+            day_date = today_date + _dt.timedelta(days=i)
+            day_label = "Today" if i == 0 else day_date.strftime("%a")
+            day_high  = int(day_data.get("maxtempF", 0))
+            day_low   = int(day_data.get("mintempF", 0))
+            # Midday condition
+            hourly    = day_data.get("hourly", [{}])
+            mid_idx   = len(hourly) // 2
+            day_cond  = hourly[mid_idx].get("weatherDesc", [{}])[0].get("value", "") if hourly else ""
+            forecast.append({
+                "label":     day_label,
+                "high_f":    day_high,
+                "low_f":     day_low,
+                "condition": day_cond,
+                "icon":      _icon_for(day_cond),
+            })
 
         result = {
             "temp_f":       temp_f,
@@ -97,6 +113,7 @@ def fetch_weather(location: str) -> dict:
             "low_f":        low_f,
             "condition":    condition,
             "icon":         icon,
+            "forecast":     forecast,
         }
         _WEATHER_CACHE      = result
         _WEATHER_CACHE_TIME = _time.time()
@@ -258,16 +275,42 @@ def render_daily_bar(for_date: date = None, compact: bool = False) -> str:
         high      = weather["high_f"]
         low       = weather["low_f"]
         condition = weather["condition"]
+        forecast  = weather.get("forecast", [])
         if location:
             w_label = escape(location.split(",")[0].strip())
         else:
             w_label = ""
+
+        # 3-day forecast mini-strip
+        forecast_html = ""
+        if forecast:
+            day_pills = ""
+            for fc in forecast:
+                day_pills += (
+                    f'<div style="display:flex;flex-direction:column;align-items:center;'
+                    f'gap:1px;min-width:38px;">'
+                    f'<span style="font-size:0.72em;color:#aaa;font-weight:600;">'
+                    f'{escape(fc["label"])}</span>'
+                    f'<span style="font-size:0.95em;">{fc["icon"]}</span>'
+                    f'<span style="font-size:0.72em;color:#555;">'
+                    f'{fc["high_f"]}° <span style="color:#bbb">{fc["low_f"]}°</span></span>'
+                    f'</div>'
+                )
+            forecast_html = (
+                f'<div style="display:flex;gap:8px;align-items:flex-start;'
+                f'border-left:1px solid #e0d8d0;padding-left:10px;margin-left:4px;">'
+                f'{day_pills}</div>'
+            )
+
         weather_html = f"""
-        <div style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
-            <span style="font-size:1.1em;">{icon}</span>
-            <span style="font-weight:600;">{temp}°F</span>
-            <span style="color:#888;font-size:0.88em;">{escape(condition)} · H:{high} L:{low}</span>
-            {f'<span style="font-size:0.82em;color:#aaa;">({w_label})</span>' if w_label else ""}
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
+                <span style="font-size:1.1em;">{icon}</span>
+                <span style="font-weight:600;">{temp}°F</span>
+                <span style="color:#888;font-size:0.88em;">{escape(condition)} · H:{high} L:{low}</span>
+                {f'<span style="font-size:0.82em;color:#aaa;">({w_label})</span>' if w_label else ""}
+            </div>
+            {forecast_html}
         </div>"""
     elif location:
         weather_html = f'<span style="font-size:0.85em;color:#aaa;">Weather unavailable</span>'
@@ -290,9 +333,9 @@ def render_daily_bar(for_date: date = None, compact: bool = False) -> str:
 
     # ── Gospel pill ─────────────────────────────────────────────────────────
     gospel_html = f"""
-    <a href="{readings_url}" target="_blank"
+    <a href="/readings?date={for_date.isoformat()}"
        style="font-size:0.88em;font-weight:600;color:#4a6a9e;white-space:nowrap;">
-        📖 Mass Readings ↗
+        📖 Mass Readings
     </a>"""
 
     # ── Season pill ─────────────────────────────────────────────────────────

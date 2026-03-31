@@ -36,6 +36,7 @@ from render_schedule import render_child_schedule, render_today_all, render_week
 from render_schedule_support import render_family_schedule_page, generate_half_hour_times
 from render_calendar import render_calendar_page, refresh_calendar
 from render_liturgical import render_liturgical_page, render_liturgical_edit_page
+from render_readings import render_readings_page
 from render_chores import render_chores_page, render_van_roles_page, apply_laundry_defaults, apply_van_rotation
 from render_misc import (
     render_dashboard, render_mom_page, render_notes, render_tasks,
@@ -167,6 +168,7 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/family-schedule": body = render_family_schedule_page()
         elif path == "/calendar":        body = render_calendar_page()
         elif path == "/planner":         body = render_planner_page()
+        elif path == "/readings":         body = render_readings_page(date_str=query.get("date",[""])[0])
         elif path == "/liturgical":      body = render_liturgical_page()
         elif path == "/prayer":           body = render_liturgical_page()
         elif path == "/liturgical/edit": body = render_liturgical_edit_page(query.get("date",[""])[0])
