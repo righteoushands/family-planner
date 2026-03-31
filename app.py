@@ -2448,6 +2448,14 @@ if __name__ == "__main__":
         maybe_auto_fetch()
     except Exception:
         pass
+    # Free the port if another process is still holding it (handles rapid restarts)
+    try:
+        import subprocess as _sp, time as _t
+        _sp.run(["fuser", "-k", f"{PORT}/tcp"], capture_output=True)
+        _t.sleep(0.5)
+    except Exception:
+        pass
+
     class ReusableServer(HTTPServer):
         allow_reuse_address = True
 
