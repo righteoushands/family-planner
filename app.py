@@ -2378,5 +2378,8 @@ if __name__ == "__main__":
         maybe_auto_fetch()
     except Exception:
         pass
+    class ReusableServer(HTTPServer):
+        allow_reuse_address = True
+
     print(f"Running on http://{HOST}:{PORT}")
-    HTTPServer((HOST, PORT), Handler).serve_forever()
+    ReusableServer((HOST, PORT), Handler).serve_forever()
