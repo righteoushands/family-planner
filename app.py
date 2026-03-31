@@ -2448,16 +2448,31 @@ if __name__ == "__main__":
         maybe_auto_fetch()
     except Exception:
         pass
-    # Free the port if another process is still holding it (handles rapid restarts)
-    try:
-        import subprocess as _sp, time as _t
-        _sp.run(["fuser", "-k", f"{PORT}/tcp"], capture_output=True)
-        _t.sleep(0.5)
-    except Exception:
-        pass
+    import socket as _socket, time as _time2
 
     class ReusableServer(HTTPServer):
-        allow_reuse_address = True
+        allow_reuse_address  = True
+        allow_reuse_port     = True
+
+        def server_bind(self):
+            self.socket.setsockopt(_socket.SOL_SOCKET, _socket.SO_REUSEADDR, 1)
+            try:
+                self.socket.setsockopt(_socket.SOL_SOCKET, _socket.SO_REUSEPORT, 1)
+            except (AttributeError, OSError):
+                pass
+            super().server_bind()
+
+    # Retry binding — old process may still be releasing the port
+    _server = None
+    for _attempt in range(10):
+        try:
+            _server = ReusableServer((HOST, PORT), Handler)
+            break
+        except OSError:
+            if _attempt < 9:
+                _time2.sleep(1)
+    if _server is None:
+        raise RuntimeError(f"Could not bind to port {PORT} after 10 attempts")
 
     print(f"Running on http://{HOST}:{PORT}")
-    ReusableServer((HOST, PORT), Handler).serve_forever()
+    _server.serve_forever()
