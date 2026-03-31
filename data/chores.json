@@ -5,26 +5,69 @@
         "Check CAP email",
         "Check Sea Cadet email",
         "Daily Room Reset",
-        "Exercise (non-PE days)"
+        "Exercise (non-PE days)",
+        "Tidy the basement for 10 minutes.",
+        "KITCHEN (Morning — Role B):",
+        "→ Unload dishwasher",
+        "→ Load dishwasher",
+        "→ Clean sink",
+        "KITCHEN (Evening — Role B):",
+        "→ Put food away",
+        "→ Clear table + counters",
+        "→ Spray + wipe table and counters",
+        "→ Take out trash + recycling",
+        "→ Sweep kitchen / dining room / foyer"
       ],
       "weekly": {
         "Monday": [
+          "LAUNDRY — Mom's laundry",
+          "  → Start load after breakfast kitchen jobs",
+          "  → Switch load before lunch",
+          "  → Bring upstairs after lunch",
+          "  → Family fold block (audiobook/read-aloud)",
+          "  → Put away completely before evening",
+          "",
+          "→ Start load after breakfast kitchen jobs",
+          "→ Switch load before lunch",
+          "→ Bring upstairs after lunch",
+          "→ Family fold block (audiobook/read-aloud)",
+          "→ Put away completely before evening",
+          "VAN — Interior Reset Lead (Role A)",
+          "VAN — Shared (both boys)",
           "Trim nails",
-          "Sweep indoor stairs"
+          "Sweep indoor stairs",
+          "Tidy-up the van"
         ],
         "Tuesday": [
           "Clean half bath (main level)",
-          "Clean basement full bath"
+          "Clean basement full bath",
+          "Clean and dry your water bottle after HSPE"
         ],
         "Wednesday": [
           "Switch basement zone"
         ],
         "Thursday": [
+          "LAUNDRY — JP's own laundry",
+          "  → Start load after breakfast kitchen jobs",
+          "  → Switch load before lunch",
+          "  → Bring upstairs after lunch",
+          "  → Family fold block (audiobook/read-aloud)",
+          "  → Put away completely before evening",
+          "",
+          "→ Start load after breakfast kitchen jobs",
+          "→ Switch load before lunch",
+          "→ Bring upstairs after lunch",
+          "→ Family fold block (audiobook/read-aloud)",
+          "→ Put away completely before evening",
           "Tidy garage (10 minutes)",
-          "Collect trash (half bath, basement bathroom, laundry room)"
+          "Collect trash (half bath, basement bathroom, laundry room)",
+          "Clean and dry your water bottle after HSPE"
         ],
         "Friday": [
-          "Bring back trash can"
+          "Bring back trash can",
+          "Tidy your school shelf",
+          "Clean glass door to the deck.",
+          "Wipe a wall."
         ],
         "Saturday": [
           "Clean room",
@@ -38,23 +81,77 @@
         "Check Sea Cadet email",
         "Daily Room Reset",
         "Exercise (non-PE days)",
-        "Review irregular verbs"
+        "Tidy the basement for 10 minutes.",
+        "KITCHEN (Morning — Role A):",
+        "→ Put food away",
+        "→ Clear table + counters",
+        "→ Spray + wipe table and counters",
+        "→ Take out trash + recycling",
+        "→ Sweep kitchen / dining room / foyer",
+        "KITCHEN (Evening — Role A):",
+        "→ Unload dishwasher",
+        "→ Load dishwasher",
+        "→ Clean sink"
       ],
       "weekly": {
         "Monday": [
-          "Trim nails"
+          "VAN — Bin & Organization Lead (Role B)",
+          "→ Supervise all personal bins",
+          "→ Ensure each boy empties and resets his bin",
+          "→ Sort items: trash / return to house / keep in bin",
+          "→ Final placement of all items back into van",
+          "VAN — Shared (both boys)",
+          "→ Vacuum entire van",
+          "→ Wipe cup holders, arm rests, door handles",
+          "→ Final 'ready state' check — van meets travel condition",
+          "→ Supervise all personal bins",
+          "→ Ensure each boy empties and resets his bin",
+          "→ Sort items: trash / return to house / keep in bin",
+          "→ Wipe cup holders, arm rests, door handles",
+          "Trim nails",
+          "Tidy-up the van"
         ],
         "Tuesday": [
-          "Clean kids bathroom"
+          "Clean kids bathroom",
+          "Clean and dry your water bottle after HSPE"
         ],
         "Wednesday": [
+          "LAUNDRY — Joseph's own laundry (may be multiple loads)",
+          "  → Towels go to downstairs hamper first",
+          "  → Start load after breakfast kitchen jobs",
+          "  → Switch load before lunch",
+          "  → Bring upstairs after lunch",
+          "  → Family fold block (audiobook/read-aloud)",
+          "  → Put away completely before evening",
+          "",
+          "→ Towels go to downstairs hamper first",
+          "→ Start load after breakfast kitchen jobs",
+          "→ Switch load before lunch",
+          "→ Bring upstairs after lunch",
+          "→ Family fold block (audiobook/read-aloud)",
+          "→ Put away completely before evening",
           "Switch basement zone"
         ],
         "Thursday": [
           "Tidy garage (10 minutes)",
-          "Collect trash (diaper pail, kids bathroom, parents bathroom)"
+          "Collect trash (diaper pail, kids bathroom, parents bathroom)",
+          "Clean and dry your water bottle after HSPE"
         ],
         "Friday": [
+          "LAUNDRY — Assist Michael with his laundry",
+          "  → Start load after breakfast kitchen jobs",
+          "  → Switch load before lunch",
+          "  → Bring upstairs after lunch",
+          "  → Family fold block (audiobook/read-aloud)",
+          "  → Put away completely before evening",
+          "",
+          "Tidy your school shelf",
+          "Clean a wall.",
+          "→ Start load after breakfast kitchen jobs",
+          "→ Switch load before lunch",
+          "→ Bring upstairs after lunch",
+          "→ Family fold block (audiobook/read-aloud)",
+          "→ Put away completely before evening",
           "Bring back recycling can"
         ],
         "Saturday": [
@@ -71,7 +168,20 @@
         "Tuesday": [],
         "Wednesday": [],
         "Thursday": [],
-        "Friday": [],
+        "Friday": [
+          "LAUNDRY — Michael's laundry (Joseph assists)",
+          "  → Start load after breakfast kitchen jobs",
+          "  → Switch load before lunch",
+          "  → Bring upstairs after lunch",
+          "  → Family fold block (audiobook/read-aloud)",
+          "  → Put away completely before evening",
+          "",
+          "→ Start load after breakfast kitchen jobs",
+          "→ Switch load before lunch",
+          "→ Bring upstairs after lunch",
+          "→ Family fold block (audiobook/read-aloud)",
+          "→ Put away completely before evening"
+        ],
         "Saturday": [],
         "Sunday": []
       }

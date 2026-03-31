@@ -1,0 +1,29 @@
+{
+  "date": "2026-03-30",
+  "move": {
+    "done": false,
+    "activity": "Walk outside",
+    "minutes": 20,
+    "note": ""
+  },
+  "reflect": {
+    "done": false,
+    "lauds": false,
+    "rosary_intention": "",
+    "virtue_intention": "",
+    "gratitude": [
+      "",
+      "",
+      ""
+    ],
+    "journal": ""
+  },
+  "grow": {
+    "done": false,
+    "book_title": "",
+    "book_author": "",
+    "pages": "",
+    "topic": "",
+    "note": ""
+  }
+}

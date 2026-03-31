@@ -1,0 +1,344 @@
+"""
+render_daily_bar.py — Daily info bar: weather, saint of the day, gospel link, special events.
+Also provides child age helpers used on child pages and print pages.
+Data sources:
+  - Weather: wttr.in (free, no API key)
+  - Saint / gospel: render_liturgical + USCCB URL
+  - Special events: data/app_settings.json
+  - Child birthdays: data/app_settings.json
+"""
+from datetime import date, datetime, timedelta
+from html import escape
+
+from safe_utils import ensure_file, safe_save_json, debug_log
+from render_liturgical import get_day_info
+
+
+APP_SETTINGS_FILE = "data/app_settings.json"
+
+
+# ── App settings helpers ───────────────────────────────────────────────────────
+def _load() -> dict:
+    return ensure_file(APP_SETTINGS_FILE, {})
+
+
+def get_location() -> str:
+    return _load().get("location", "")
+
+
+def get_child_birthdays() -> dict:
+    """Return {child_name: 'YYYY-MM-DD'} for children with birthdays set."""
+    return _load().get("child_birthdays", {})
+
+
+def get_special_events() -> list:
+    """Return list of {label, date (YYYY-MM-DD or '')} dicts."""
+    return _load().get("special_events", [])
+
+
+# ── Weather ────────────────────────────────────────────────────────────────────
+# Module-level weather cache — refreshes at most once per 30 minutes
+_WEATHER_CACHE: dict = {}
+_WEATHER_CACHE_TIME: float = 0.0
+_WEATHER_CACHE_TTL: float = 30 * 60  # 30 minutes
+
+
+def fetch_weather(location: str) -> dict:
+    """
+    Fetch today's forecast from wttr.in JSON API.
+    Returns a dict with keys: temp_f, feels_like_f, condition, icon, high_f, low_f
+    or empty dict on failure. Cached for 30 minutes to avoid blocking page loads.
+    """
+    global _WEATHER_CACHE, _WEATHER_CACHE_TIME
+    import time as _time
+    if not location:
+        return {}
+    # Return cached value if fresh
+    if _WEATHER_CACHE and (_time.time() - _WEATHER_CACHE_TIME) < _WEATHER_CACHE_TTL:
+        return _WEATHER_CACHE
+    try:
+        import urllib.request, json
+        loc_enc = location.strip().replace(" ", "+")
+        url = f"https://wttr.in/{loc_enc}?format=j1"
+        req = urllib.request.Request(url, headers={"User-Agent": "FamilyPlanner/1.0"})
+        with urllib.request.urlopen(req, timeout=4) as resp:
+            data = json.loads(resp.read().decode())
+
+        cur   = data["current_condition"][0]
+        today = data["weather"][0]
+
+        condition = cur.get("weatherDesc", [{}])[0].get("value", "")
+        temp_f    = int(cur.get("temp_F", 0))
+        feels_f   = int(cur.get("FeelsLikeF", temp_f))
+        high_f    = int(today.get("maxtempF", temp_f))
+        low_f     = int(today.get("mintempF", temp_f))
+
+        # Pick a simple text icon based on condition keyword
+        cond_lower = condition.lower()
+        if any(w in cond_lower for w in ("thunder", "storm")):
+            icon = "⛈"
+        elif any(w in cond_lower for w in ("snow", "blizzard", "sleet")):
+            icon = "❄️"
+        elif any(w in cond_lower for w in ("rain", "drizzle", "shower")):
+            icon = "🌧"
+        elif any(w in cond_lower for w in ("cloud", "overcast", "fog", "mist")):
+            icon = "☁️"
+        elif any(w in cond_lower for w in ("sunny", "clear")):
+            icon = "☀️"
+        elif "partly" in cond_lower:
+            icon = "⛅"
+        else:
+            icon = "🌤"
+
+        result = {
+            "temp_f":       temp_f,
+            "feels_like_f": feels_f,
+            "high_f":       high_f,
+            "low_f":        low_f,
+            "condition":    condition,
+            "icon":         icon,
+        }
+        _WEATHER_CACHE      = result
+        _WEATHER_CACHE_TIME = _time.time()
+        return result
+    except Exception as e:
+        debug_log("Weather fetch failed:", str(e))
+        return _WEATHER_CACHE if _WEATHER_CACHE else {}
+
+
+# ── Child age helpers ──────────────────────────────────────────────────────────
+def get_child_age(child: str, as_of: date = None) -> dict:
+    """
+    Return age breakdown for a child.
+    Returns dict with months, weeks, days, hours, years, dob_str
+    or empty dict if no birthday set.
+    """
+    if as_of is None:
+        as_of = date.today()
+    birthdays = get_child_birthdays()
+    dob_str   = birthdays.get(child, "")
+    if not dob_str:
+        return {}
+    try:
+        dob = date.fromisoformat(dob_str)
+    except Exception:
+        return {}
+
+    delta       = as_of - dob
+    total_days  = delta.days
+    if total_days < 0:
+        return {}
+
+    total_weeks  = total_days // 7
+    total_months = 0
+    d = dob
+    while True:
+        # Advance one month
+        month = d.month + 1 if d.month < 12 else 1
+        year  = d.year if d.month < 12 else d.year + 1
+        try:
+            import calendar
+            max_day = calendar.monthrange(year, month)[1]
+            next_d  = d.replace(year=year, month=month, day=min(d.day, max_day))
+        except Exception:
+            break
+        if next_d > as_of:
+            break
+        total_months += 1
+        d = next_d
+
+    years         = total_months // 12
+    months_rem    = total_months % 12
+    total_hours   = total_days * 24
+    total_minutes = total_days * 24 * 60
+    total_seconds = total_days * 24 * 60 * 60
+
+    return {
+        "dob_str":      dob_str,
+        "years":        years,
+        "months":       total_months,
+        "months_rem":   months_rem,
+        "weeks":        total_weeks,
+        "days":         total_days,
+        "hours":        total_hours,
+        "minutes":      total_minutes,
+        "seconds":      total_seconds,
+    }
+
+
+def render_child_age_strip(child: str, as_of: date = None) -> str:
+    """Compact one-line age strip for child schedule pages and print."""
+    age = get_child_age(child, as_of)
+    if not age:
+        return ""
+    y  = age["years"]
+    m  = age["months"]
+    w  = age["weeks"]
+    d  = age["days"]
+    h  = age["hours"]
+    mn = age["minutes"]
+    sc = age["seconds"]
+    return (
+        f"<span style='font-size:0.82em;color:#888;'>"
+        f"{y}y {age['months_rem']}mo &nbsp;&middot;&nbsp; "
+        f"{m:,} months &nbsp;&middot;&nbsp; "
+        f"{w:,} weeks &nbsp;&middot;&nbsp; "
+        f"{d:,} days &nbsp;&middot;&nbsp; "
+        f"{h:,} hours &nbsp;&middot;&nbsp; "
+        f"{mn:,} minutes &nbsp;&middot;&nbsp; "
+        f"{sc:,} seconds"
+        f"</span>"
+    )
+
+
+# ── Special events ─────────────────────────────────────────────────────────────
+def get_todays_special_events(for_date: date = None) -> list:
+    """Return list of event labels that are today or have no date (always-show)."""
+    if for_date is None:
+        for_date = date.today()
+    iso = for_date.isoformat()
+    events = get_special_events()
+    result = []
+    for ev in events:
+        ev_date = ev.get("date", "").strip()
+        label   = ev.get("label", "").strip()
+        if not label:
+            continue
+        if not ev_date or ev_date == iso:
+            result.append(label)
+    return result
+
+
+# ── Daily bar ──────────────────────────────────────────────────────────────────
+def render_daily_bar(for_date: date = None, compact: bool = False) -> str:
+    """
+    Full-width daily info bar.
+    compact=True gives a denser single-row version for print pages.
+    """
+    if for_date is None:
+        for_date = date.today()
+
+    # Liturgical info
+    lit      = get_day_info(for_date)
+    feast    = lit.get("feast_name", "")
+    season   = lit.get("season", "")
+    vest_bg  = lit.get("season_color", "#6b7280")
+    vest_txt = lit.get("season_text_color", "white")
+
+    # Saint of day — use cached saint_data if available
+    saint_label = ""
+    saint_url   = "https://mycatholic.life/saints/saints-of-the-liturgical-year/"
+    _season_names_bar = {"lent","advent","christmas","easter","ordinary time","holy week"}
+    try:
+        from saint_data import fetch_saint_data as _fsd
+        _sd = _fsd(for_date)
+        _nm = _sd.get("name","")
+        if _nm and _nm.lower() not in _season_names_bar:
+            saint_label = _nm
+            saint_url   = _sd.get("bio_url", saint_url)
+    except Exception:
+        pass
+    if not saint_label:
+        saint_label = feast if (feast and feast.lower() not in _season_names_bar) else ""
+
+    # Gospel / mass readings
+    readings_url = f"https://bible.usccb.org/bible/readings/{for_date.strftime('%m%d%y')}.cfm"
+
+    # Weather
+    location = get_location()
+    weather  = fetch_weather(location) if location else {}
+
+    # Special events
+    events = get_todays_special_events(for_date)
+
+    # ── Weather pill ────────────────────────────────────────────────────────
+    if weather:
+        icon      = weather["icon"]
+        temp      = weather["temp_f"]
+        high      = weather["high_f"]
+        low       = weather["low_f"]
+        condition = weather["condition"]
+        if location:
+            w_label = escape(location.split(",")[0].strip())
+        else:
+            w_label = ""
+        weather_html = f"""
+        <div style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
+            <span style="font-size:1.1em;">{icon}</span>
+            <span style="font-weight:600;">{temp}°F</span>
+            <span style="color:#888;font-size:0.88em;">{escape(condition)} · H:{high} L:{low}</span>
+            {f'<span style="font-size:0.82em;color:#aaa;">({w_label})</span>' if w_label else ""}
+        </div>"""
+    elif location:
+        weather_html = f'<span style="font-size:0.85em;color:#aaa;">Weather unavailable</span>'
+    else:
+        weather_html = f'<a href="/settings#s-general" style="font-size:0.82em;color:#aaa;">Add location for weather →</a>'
+
+    # ── Saint pill ──────────────────────────────────────────────────────────
+    if saint_label:
+        saint_html = (
+            f'<div style="display:flex;align-items:center;gap:5px;white-space:nowrap;">'
+            f'<span style="font-size:0.88em;color:#888;">\u271d</span>'
+            f'<a href="{saint_url}" target="_blank"'
+            f' style="font-size:0.88em;font-weight:600;color:#7c4a2d;max-width:200px;'
+            f'overflow:hidden;text-overflow:ellipsis;display:inline-block;">'
+            f'{escape(saint_label)}</a>'
+            f'</div>'
+        )
+    else:
+        saint_html = f'<span style="font-size:0.82em;color:#aaa;">\u271d Feria</span>'
+
+    # ── Gospel pill ─────────────────────────────────────────────────────────
+    gospel_html = f"""
+    <a href="{readings_url}" target="_blank"
+       style="font-size:0.88em;font-weight:600;color:#4a6a9e;white-space:nowrap;">
+        📖 Mass Readings ↗
+    </a>"""
+
+    # ── Season pill ─────────────────────────────────────────────────────────
+    season_html = f"""
+    <span style="background:{vest_bg};color:{vest_txt};font-size:0.78em;font-weight:700;
+                 padding:2px 10px;border-radius:999px;white-space:nowrap;">
+        {escape(season)}
+    </span>"""
+
+    # ── Special events ──────────────────────────────────────────────────────
+    events_html = ""
+    for ev in events:
+        events_html += f"""
+        <span style="background:#fef9c3;border:1px solid #fde047;color:#713f12;
+                     font-size:0.82em;font-weight:700;padding:2px 10px;border-radius:999px;
+                     white-space:nowrap;">
+            ⭐ {escape(ev)}
+        </span>"""
+
+    if compact:
+        # Print-friendly single line — no weather, simpler layout
+        return f"""
+        <div style="border:1px solid #e0d8d0;border-radius:8px;padding:6px 12px;
+                    margin-bottom:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+                    font-family:Georgia,serif;font-size:10pt;">
+            {season_html}
+            {saint_html}
+            {gospel_html}
+            {events_html}
+        </div>"""
+
+    _settings_link_html = (
+        '<a href="/settings#s-daily" style="margin-left:auto;font-size:0.78em;color:#ccc;">&#9881;</a>'
+        if not location else ""
+    )
+    return f"""
+    <div style="background:white;border:1px solid #e4dbd2;border-radius:12px;
+                padding:10px 16px;margin-bottom:16px;
+                display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
+        {season_html}
+        {weather_html}
+        <div style="width:1px;height:20px;background:#e0d8d0;flex-shrink:0;"></div>
+        {saint_html}
+        {gospel_html}
+        {events_html}
+        <a href="/prayer" style="margin-left:auto;font-size:0.78em;font-weight:600;
+           color:var(--brown);text-decoration:none;white-space:nowrap;">Prayer &#8594;</a>
+        {_settings_link_html}
+    </div>"""

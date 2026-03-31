@@ -4,6 +4,50 @@
     "assigned_to": "",
     "due_date": "2026-03-24",
     "priority": "HIGH",
-    "status": "active"
+    "status": "done"
+  },
+  {
+    "text": "Change air filters",
+    "assigned_to": "Mom",
+    "due_date": "",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Make WCC for Joe",
+    "assigned_to": "Mom",
+    "due_date": "",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Sharpen knives",
+    "assigned_to": "Mom",
+    "due_date": "",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Re-take a Latin Quiz every school day until all quizes are an 85% or higher",
+    "assigned_to": "Joseph",
+    "due_date": "2026-03-27",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": true,
+    "interval_value": 1,
+    "interval_unit": "days"
+  },
+  {
+    "text": "Re-take a Latin Quiz every school day until all quizzes are an 85% or higher",
+    "assigned_to": "JP",
+    "due_date": "2026-03-27",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": true,
+    "interval_value": 1,
+    "interval_unit": "days"
   }
 ]

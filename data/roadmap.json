@@ -4,5 +4,29 @@
     "title": "Add Laundry jobs",
     "notes": "High",
     "status": "Ready"
+  },
+  {
+    "id": "04403ffd-b26d-4156-a4da-46dcf8df9d51",
+    "title": "AI scheduler",
+    "notes": "integrate chores, calendar, jobs, school into schedule blocks in such a way that follows particular rules and is adaptable based on the day's variables.",
+    "status": "Someday"
+  },
+  {
+    "id": "c80d9bc4-8e51-419e-b79d-e292c7deb4fc",
+    "title": "integrate Family OS with Family Quest",
+    "notes": "",
+    "status": "Someday"
+  },
+  {
+    "id": "a228bddd-7d48-46d0-9214-2ad45c5026f1",
+    "title": "add gardening section of the app",
+    "notes": "include seasonal jobs in the garden, charts to fill out that track planting days and seeds used and where i put them in the garden and how they grew. make suggestions.",
+    "status": "Someday"
+  },
+  {
+    "id": "cbf4bea1-711f-494d-92b2-1501862c0a80",
+    "title": "add bar at the top with: weather forecast, saint of the day (link), gospel (link) and any special event to highlight",
+    "notes": "",
+    "status": "Someday"
   }
 ]

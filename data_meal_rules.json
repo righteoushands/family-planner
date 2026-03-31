@@ -1,0 +1,156 @@
+{
+  "version": 1,
+  "last_updated": "2026-03-27",
+
+  "protein_framework": {
+    "red_meat_per_week": 1,
+    "poultry_per_week": 3,
+    "fish_per_week": 2,
+    "legume_per_week": 2,
+    "notes": [
+      "Fish fixed on Fridays",
+      "Legumes can overlap with other protein categories",
+      "Avoid clustering same proteins back-to-back"
+    ]
+  },
+
+  "friday_rule": {
+    "meatless": true,
+    "lent_strict": true,
+    "default_dinner": "Fish fry (fried flounder)",
+    "alternate_dinner": "Vegetarian (tomato soup + grilled cheese)",
+    "lunch_option": "Sardine tuna-style sandwiches"
+  },
+
+  "anchor_meals": [
+    { "meal": "Brined roast chicken", "frequency": "weekly" },
+    { "meal": "Roast beef", "frequency": "weekly" },
+    { "meal": "Fish fry", "day": "Friday", "frequency": "weekly" }
+  ],
+
+  "soup_system": {
+    "rule": "Keep batch-cooked soup available daily",
+    "purpose": ["Backup meal", "Easy lunch base", "Dinner side"],
+    "examples": ["Chicken chili", "Tomato soup", "Beef stew", "Lentil soup"]
+  },
+
+  "carb_cycling": {
+    "enabled": true,
+    "high_carb_days": ["Tuesday", "Thursday"],
+    "reason": "Dad lifting days",
+    "high_carb_examples": ["Rice", "Potatoes", "Bread"],
+    "low_carb_examples": ["Protein + vegetables"]
+  },
+
+  "busy_day_rules": {
+    "Tuesday": { "rule": "Leftovers day (locked)", "complexity": "low" },
+    "low_capacity_days": { "rule": "Leftovers or pre-made", "complexity": "minimal" }
+  },
+
+  "sunday_system": {
+    "dinner": "Ziplock Buffet (leftovers)",
+    "evening_reset": {
+      "enabled": true,
+      "steps": [
+        "Discard spoiled food",
+        "Consolidate leftovers",
+        "Identify use-soon items",
+        "Flag items for Monday shopping"
+      ]
+    }
+  },
+
+  "weekly_rhythm": {
+    "Friday": "Meal planning ritual",
+    "Saturday": "Grocery shopping",
+    "Monday": "Walmart delivery"
+  },
+
+  "friday_planning_ritual": {
+    "steps": [
+      "Review leftovers",
+      "Check pantry and freezer",
+      "Identify priority ingredients",
+      "Look ahead at schedule (busy days, events)",
+      "Adjust cooking complexity accordingly",
+      "Check cycle phase for nutrition priorities",
+      "Build menu using protein framework",
+      "Assign prep steps to morning anchor slots",
+      "Generate grocery list"
+    ]
+  },
+
+  "inventory_priority": [
+    "Fresh foods first",
+    "About-to-expire items second",
+    "Freezer third",
+    "Grocery list for gaps"
+  ],
+
+  "grocery_store_primary": "Wegmans",
+  "grocery_store_secondary": "Walmart (delivery, Monday)",
+
+  "meal_coverage": {
+    "breakfast_rotation": ["Eggs", "Cereal", "Toast", "Oatmeal", "Muesli", "Fruit"],
+    "lunch_default": "Leftovers",
+    "lunch_alternates": ["Soup + sides", "Simple sandwiches"],
+    "snacks": ["Fruit", "Cheese", "Toast + peanut butter", "Yogurt", "Cereal"]
+  },
+
+  "dad_packable_lunches": {
+    "enabled": true,
+    "days_per_week": 5,
+    "format": ["Leftovers", "Soup in thermos", "Protein + carb + fruit combo"]
+  },
+
+  "kid_modifications": {
+    "Michael": { "rule": "Simple, familiar versions of meals" },
+    "James":   { "rule": "Soft, easy-to-chew options" }
+  },
+
+  "capacity_scaling": {
+    "low":    { "complexity": "simple", "prep_steps": "minimal", "fallback": "leftovers or soup" },
+    "medium": { "complexity": "moderate", "prep_steps": "standard" },
+    "high":   { "complexity": "full", "prep_steps": "complete" }
+  },
+
+  "tea_rhythm": {
+    "morning":   "Green tea",
+    "afternoon": "Herbal tea",
+    "evening":   "Chamomile or rooibos"
+  },
+
+  "whole_foods_priority": true,
+  "avoid_ultra_processed": true,
+
+  "meal_fidelity": {
+    "rule": "Once menu is set, do not change casually",
+    "no_casual_substitutions": true,
+    "agenda_must_reflect_exact_meals": true
+  },
+
+  "prep_integration": {
+    "rule": "Every meal must include prep steps earlier in the day",
+    "examples": [
+      { "time": "Morning", "example": "Defrost meat" },
+      { "time": "Midday",  "example": "Chop vegetables" },
+      { "time": "Afternoon", "example": "Start rice / prep ingredients" }
+    ]
+  },
+
+  "cycle_phase_nutrition": {
+    "menstrual":    { "priority": ["Iron-rich foods", "Vitamin C for absorption"], "examples": ["Red meat", "Lentils", "Spinach"] },
+    "follicular":   { "priority": ["Lean proteins", "Fresh vegetables", "Lighter meals"] },
+    "ovulatory":    { "priority": ["Balanced meals", "Adequate protein and carbs"] },
+    "early_luteal": { "priority": ["Maintain structure", "Consistent meals"] },
+    "late_luteal":  { "priority": ["Magnesium-rich foods", "Complex carbs for mood"], "examples": ["Dark chocolate", "Nuts", "Seeds"] }
+  },
+
+  "outputs": {
+    "fridge_printable": true,
+    "grocery_list_by_section": true,
+    "daily_prep_schedule": true,
+    "dad_packable_lunch_list": true,
+    "cycle_nutrition_integration": true
+  }
+}
