@@ -437,9 +437,9 @@ function setCapacity(level) {{
         btn.style.fontWeight = (l === level) ? '700' : '600';
         btn.style.opacity    = (l === level) ? '1' : '0.5';
     }});
-    var notes = {{high:'Full energy — let\'s make the most of it.',
-                  medium:'Moderate energy — plan thoughtfully.',
-                  low:'Low energy — let\'s keep it simple.'}};
+    var notes = {{high:"Full energy \u2014 let\u2019s make the most of it.",
+                  medium:"Moderate energy \u2014 plan thoughtfully.",
+                  low:"Low energy \u2014 let\u2019s keep it simple."}};
     document.getElementById('cap-note').textContent = notes[level] || '';
 }}
 
