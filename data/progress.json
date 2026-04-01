@@ -181,5 +181,13 @@
   "2026-03-30::Joseph::SCHOOL::Math 87::Given to checker": true,
   "2026-03-30::JP::SCHOOL::Algebra 1/2::Assignment completed": true,
   "2026-03-30::JP::SCHOOL::Algebra 1/2::Given to checker": true,
-  "2026-03-30::Joseph::SCHOOL::Math 87::Fixed missed problems": true
+  "2026-03-30::Joseph::SCHOOL::Math 87::Fixed missed problems": true,
+  "2026-04-01::JP::SCHOOL::Religion 8::Done": true,
+  "2026-04-01::JP::CHORE::KITCHEN (Morning — Role B):": true,
+  "2026-04-01::JP::CHORE::→ Unload dishwasher": true,
+  "2026-04-01::JP::CHORE::→ Load dishwasher": true,
+  "2026-04-01::Joseph::CHORE::KITCHEN (Morning — Role A):": true,
+  "2026-04-01::Joseph::CHORE::→ Put food away": true,
+  "2026-04-01::Joseph::CHORE::→ Clear table + counters": true,
+  "2026-04-01::Joseph::CHORE::→ Spray + wipe table and counters": true
 }

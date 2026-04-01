@@ -47,8 +47,8 @@
     "meal_prep": "",
     "other_notes": "",
     "family_exercise": "",
-    "school_mode": "normal",
-    "core_subjects": "",
+    "school_mode": "light_week",
+    "core_subjects": "Math, religion, reading",
     "paused_subjects": ""
   },
   "show_liturgy_hours_widget": true,
