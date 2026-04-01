@@ -19,6 +19,36 @@
       "role": "assistant",
       "content": "Perfect. That's really helpful — I'll build the day to front-load the harder things while you have energy, then shift to easier, quieter work by late afternoon.\n\nHere's what I'm seeing for today:\n\nKEY THINGS HAPPENING:\n- Piano lessons at 9:30 (David) — JP and Joseph both go, I assume?\n- Date Night at 5:30 and Kids Movie Night at 5:30 — these overlap on your calendar, so I'm guessing one is a typo or they run back-to-back?\n- James naps 9-11am and 2-4pm (perfect windows for focused work)\n- John McAdams' birthday — is this someone you need to acknowledge today?\n- Holy Week context — any special prayers or rhythm you want to honor?\n\nTHE BOYS' FOCUS TODAY:\n- JP: 5 hours of school (Algebra, Religion, Latin, Science, History, Music, Reading, Editing, Spelling) — lots of heavy subjects\n- Joseph: 4 hours of school (Math, Religion, Latin, History, Science, Poetry, Reading, Spelling) — also solid load\n- Michael: no school today\n- Both boys have basement tidying and daily room reset\n\nQUICK QUESTION BEFORE I MAP IT OUT:\n\nAre JP and Joseph both heading to piano at 9:30, or is it just one of them?",
       "ts": "2026-04-01T14:45:44"
+    },
+    {
+      "role": "user",
+      "content": "There’s no piano lessons today John McAdams is my husband and yes, I want to make today’s special for him. I have a gift. James‘s nap is delayed today and will start around 11 and go until approximately one that will push his afternoon nap back till about three ending around 4:30. Date night is continuing the boys have an early dinner and then get to watch a movie with popcorn while John and I reconnect since it’s his birthday will do a little birthday party during the boys early dinner. School this week has been late due to illness. The boys have completed most of their math this week, some of their religion and sparingly of other things. I expect them to do their math today and we’ll wait and see about the rest. Just so you know, piano lessons occur here at the house so there’s no travel time. However, the teacher is often late and needs a reminder the day before via text message and the day of in the morning to help him remember us.",
+      "ts": "2026-04-01T14:48:57"
+    },
+    {
+      "role": "assistant",
+      "content": "Got it — thank you for the clarity. This is a birthday celebration day wrapped around catching up on schoolwork. Let me map this out:\n\nTHE DAY AT A GLANCE:\n- 6am-9am: Morning rhythm (prayer, breakfast, jobs) + you remind David about piano lessons this morning\n- 9am-11am: James awake, piano lessons happening here, JP and Joseph doing independent work or non-music subjects\n- 11am-1pm: James naps (YOUR POWER WINDOW — tackle the heavy stuff: Mom-required subjects, tests, discussions)\n- 1pm-3pm: Afternoon bridge (lunch, jobs, free time, lighter work)\n- 3pm-4:30pm: James naps again (smaller window, but still useful)\n- 5pm onward: Boys' early dinner, birthday acknowledgment, movie & popcorn, Date Night for you two\n\nMATH PRIORITY:\nBoth JP and Joseph need to finish math today since most other subjects have been sparse this week. Math first thing after morning jobs, before piano.\n\nHERE'S MY QUESTION:\n\nDuring that 11am-1pm window while James sleeps, do you want to tackle the Mom-required subjects (Religion discussions, Spelling tests, Editing checks) for both boys, or spread that across the week and use today mostly for them to work independently on non-discussion subjects?",
+      "ts": "2026-04-01T14:49:02"
+    },
+    {
+      "role": "user",
+      "content": "Please reread my response and see that the first thing I say is there no panel lesson today do not put that in the schedule",
+      "ts": "2026-04-01T14:49:36"
+    },
+    {
+      "role": "assistant",
+      "content": "You're absolutely right — I apologize for that mistake. Let me correct that.\n\nNo piano lessons today. That opens up your morning significantly.\n\nSo the day is:\n- 6am-9am: Morning rhythm (prayer, breakfast, jobs)\n- 9am-11am: James awake, open block for schoolwork\n- 11am-1pm: James naps (YOUR POWER WINDOW — tackle heavy stuff: Mom-required subjects, tests, discussions)\n- 1pm-3pm: Afternoon bridge (lunch, jobs, lighter work)\n- 3pm-4:30pm: James naps again\n- 5pm onward: Boys' early dinner, birthday celebration, movie & popcorn, Date Night\n\nBoth JP and Joseph need to finish math today. Everything else is flexible.\n\nHere's my question:\n\nDuring that 11am-1pm window while James sleeps, do you want to tackle the Mom-required subjects (Religion discussions, Spelling tests, Editing checks) for both boys, or would you rather use today mostly for them to work independently and save the discussion work for another day?",
+      "ts": "2026-04-01T14:49:38"
+    },
+    {
+      "role": "user",
+      "content": "The kids and I are going for a walk outside right now that will help James go to sleep. We’ll talk again when we get back.",
+      "ts": "2026-04-01T14:50:03"
+    },
+    {
+      "role": "assistant",
+      "content": "Perfect — enjoy the walk and the fresh air. See you when you're back!",
+      "ts": "2026-04-01T14:50:04"
     }
   ]
 }
