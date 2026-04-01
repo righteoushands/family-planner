@@ -38,6 +38,7 @@ from render_calendar import render_calendar_page, refresh_calendar
 from render_liturgical import render_liturgical_page, render_liturgical_edit_page
 from render_readings import render_readings_page
 from render_lucy import render_lucy_page, build_lucy_context
+from render_memory_book import render_memory_book_page, add_memory_entry, delete_memory_entry
 from render_chores import render_chores_page, render_van_roles_page, apply_laundry_defaults, apply_van_rotation
 from render_misc import (
     render_dashboard, render_mom_page, render_notes, render_tasks,
@@ -171,6 +172,7 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/planner":         body = render_planner_page()
         elif path == "/readings":         body = render_readings_page(date_str=query.get("date",[""])[0])
         elif path == "/lucy":             body = render_lucy_page(iso=query.get("date",[""])[0])
+        elif path == "/memory-book":      body = render_memory_book_page()
         elif path == "/liturgical":      body = render_liturgical_page()
         elif path == "/prayer":           body = render_liturgical_page()
         elif path == "/liturgical/edit": body = render_liturgical_edit_page(query.get("date",[""])[0])
@@ -788,6 +790,26 @@ class Handler(BaseHTTPRequestHandler):
                 self.end_headers()
                 try: self.wfile.write(text.encode("utf-8"))
                 except BrokenPipeError: pass
+                return
+
+            elif path == "/memory-book-save":
+                text     = clean_text(data.get("text",[""])[0])
+                date_iso = clean_text(data.get("date",[""])[0])
+                if text:
+                    add_memory_entry(text, date_iso)
+                self.send_response(200)
+                self.send_header("Content-Type","text/plain")
+                self.end_headers()
+                self.wfile.write(b"ok")
+                return
+
+            elif path == "/memory-book-delete":
+                entry_id = clean_text(data.get("id",[""])[0])
+                delete_memory_entry(entry_id)
+                self.send_response(200)
+                self.send_header("Content-Type","text/plain")
+                self.end_headers()
+                self.wfile.write(b"ok")
                 return
 
             elif path == "/lucy-chat":

@@ -83,6 +83,9 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
         "- For LOW capacity days: suggest trimming, not adding; protect margins; validate rest",
         "- For HIGH capacity days: encourage tackling harder or delayed tasks",
         "- Never be preachy or lecture; just help",
+        "- CRITICAL: Ask only ONE question at a time. Never stack multiple questions in one message.",
+        "  Say what you need to say, then ask the single most important question. Wait for the answer.",
+        "  If you have several things to ask, pick the most useful one and save the rest for later.",
         "",
         "== FAMILY ==",
     ]
@@ -268,7 +271,24 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
             "Acknowledge what was accomplished today.",
             "Look at tomorrow's calendar, meals, and school to help her prepare.",
             "Keep it gentle — the day is winding down.",
+            "At some natural point in the conversation, ask: 'Was there anything memorable that happened today",
+            " — something you'd want to remember?' If she shares something, let her know she can save it",
+            " to the Memory Book using the button that appears below your response.",
         ]
+
+    # Memory book entries
+    lines += ["", "== MEMORY BOOK (recent entries) =="]
+    try:
+        from render_memory_book import load_memory_book
+        book    = load_memory_book()
+        entries = book.get("entries", [])[:5]
+        if entries:
+            for e in entries:
+                lines.append(f"- [{e.get('date','')}] {e.get('text','')}")
+        else:
+            lines.append("(No memories saved yet)")
+    except Exception:
+        lines.append("(Memory book not available)")
 
     return "\n".join(lines)
 
@@ -355,7 +375,10 @@ def render_lucy_page(iso: str = "") -> str:
     <!-- Back + phase label -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
         <a href="/" style="font-size:0.82em;color:#aaa;text-decoration:none;">&larr; Dashboard</a>
-        <span style="font-size:0.78em;color:#aaa;">{phase_dot}{escape(phase_label)}</span>
+        <div style="display:flex;align-items:center;gap:14px;">
+            <a href="/memory-book" style="font-size:0.78em;color:#c49020;text-decoration:none;">📖 Memory Book</a>
+            <span style="font-size:0.78em;color:#aaa;">{phase_dot}{escape(phase_label)}</span>
+        </div>
     </div>
 
     <!-- Lucy header -->
@@ -518,10 +541,44 @@ function lucySend() {{
 
 function _renderBubble(role, text) {{
     var hist = document.getElementById('lucy-history');
+    var wrap = document.createElement('div');
     var div  = document.createElement('div');
     div.className = (role === 'user') ? 'lucy-bubble-user' : 'lucy-bubble-lucy';
     div.textContent = text;
-    hist.appendChild(div);
+    wrap.appendChild(div);
+
+    if (role === 'lucy') {{
+        var saveRow = document.createElement('div');
+        saveRow.style.cssText = 'display:flex;justify-content:flex-start;margin-top:4px;';
+        var saveBtn = document.createElement('button');
+        saveBtn.textContent = '📖 Save to memory book';
+        saveBtn.style.cssText = 'background:none;border:none;color:#c49020;font-size:0.72em;' +
+            'cursor:pointer;padding:2px 0;font-family:inherit;opacity:0.7;';
+        saveBtn.onmouseover = function() {{ this.style.opacity = '1'; }};
+        saveBtn.onmouseout  = function() {{ this.style.opacity = '0.7'; }};
+        saveBtn.onclick = function() {{
+            var lastUser = '';
+            for (var i = _lucyHistory.length - 1; i >= 0; i--) {{
+                if (_lucyHistory[i].role === 'user') {{ lastUser = _lucyHistory[i].content; break; }}
+            }}
+            var toSave = lastUser || text;
+            fetch('/memory-book-save', {{
+                method: 'POST',
+                headers: {{'Content-Type': 'application/x-www-form-urlencoded'}},
+                body: 'text=' + encodeURIComponent(toSave) + '&date=' + encodeURIComponent(_lucyIso)
+            }}).then(function(r) {{
+                if (r.ok) {{
+                    saveBtn.textContent = '✓ Saved to memory book';
+                    saveBtn.style.color = '#2d5016';
+                    saveBtn.disabled = true;
+                }}
+            }});
+        }};
+        saveRow.appendChild(saveBtn);
+        wrap.appendChild(saveRow);
+    }}
+
+    hist.appendChild(wrap);
     window.scrollTo(0, document.body.scrollHeight);
     return div;
 }}
