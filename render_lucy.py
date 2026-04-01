@@ -372,7 +372,7 @@ def render_lucy_page(iso: str = "") -> str:
 .lucy-bubble-wrap {{ display:flex;flex-direction:column;gap:12px; }}
 </style>
 
-<div style="max-width:760px;margin:0 auto;padding:20px 16px 120px;">
+<div style="max-width:760px;margin:0 auto;padding:20px 16px 180px;">
 
     <!-- Back + phase label -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
@@ -440,15 +440,17 @@ def render_lucy_page(iso: str = "") -> str:
         Lucy is thinking&hellip;
     </div>
 
-    <!-- Input bar (fixed at bottom) -->
-    <div style="position:fixed;bottom:0;left:0;right:0;background:white;
-                border-top:1px solid #e4dbd2;padding:12px 16px;z-index:200;
+    <!-- Input bar (fixed at bottom, keyboard-aware) -->
+    <div id="lucy-input-bar"
+         style="position:fixed;bottom:0;left:0;right:0;background:white;
+                border-top:1px solid #e4dbd2;padding:12px 16px
+                  env(safe-area-inset-bottom,0px) 12px;z-index:200;
                 display:flex;gap:8px;align-items:flex-end;">
         <textarea id="lucy-input" rows="1"
                   placeholder="Ask Lucy anything about today…"
                   onkeydown="if(event.key==='Enter'&&!event.shiftKey){{event.preventDefault();lucySend();}}"
                   oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';"
-                  style="flex:1;resize:none;overflow:hidden;font-family:inherit;font-size:0.92em;
+                  style="flex:1;resize:none;overflow:hidden;font-family:inherit;font-size:16px;
                          padding:10px 14px;border:1.5px solid #e4dbd2;border-radius:12px;
                          outline:none;line-height:1.5;max-height:120px;">
         </textarea>
@@ -596,6 +598,32 @@ window.addEventListener('load', function() {{
     input.style.height = 'auto';
     input.style.height = Math.min(input.scrollHeight, 120) + 'px';
 }});
+
+// Keep input bar above the iOS keyboard using Visual Viewport API
+(function() {{
+    var bar = document.getElementById('lucy-input-bar');
+    function adjustBar() {{
+        if (!window.visualViewport) return;
+        var vv = window.visualViewport;
+        // Distance from bottom of visual viewport to bottom of layout viewport
+        var offsetBottom = window.innerHeight - (vv.offsetTop + vv.height);
+        bar.style.bottom = Math.max(0, offsetBottom) + 'px';
+        // Scroll chat into view after keyboard opens
+        setTimeout(function() {{
+            window.scrollTo(0, document.body.scrollHeight);
+        }}, 50);
+    }}
+    if (window.visualViewport) {{
+        window.visualViewport.addEventListener('resize', adjustBar);
+        window.visualViewport.addEventListener('scroll', adjustBar);
+    }}
+    // Fallback: scroll input into view on focus
+    document.getElementById('lucy-input').addEventListener('focus', function() {{
+        setTimeout(function() {{
+            window.scrollTo(0, document.body.scrollHeight);
+        }}, 300);
+    }});
+}})();
 </script>"""
 
     from ui_helpers import html_page
