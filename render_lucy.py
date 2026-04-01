@@ -148,6 +148,19 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
             lines.append("Standing rules set by Lucy & Mom:")
             for i, rule in enumerate(lucy_rules, 1):
                 lines.append(f"  {i}. {rule}")
+
+        # School mode
+        school_mode = constraints.get("school_mode", "normal")
+        if school_mode == "light_week":
+            core = constraints.get("core_subjects", "Math, Religion, Reading")
+            lines.append("")
+            lines.append(f"SCHOOL MODE: Light week active. Only core subjects are scheduled: {core}.")
+            lines.append("All other subjects are paused for now.")
+        elif school_mode == "custom_pause":
+            paused = constraints.get("paused_subjects", "")
+            if paused:
+                lines.append("")
+                lines.append(f"SCHOOL MODE: These subjects are currently paused: {paused}.")
     except Exception:
         lines.append("(Could not load constraints)")
 

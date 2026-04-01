@@ -46,7 +46,8 @@
     "mom_supervision_subjects": "Any subject that requires discussion, spelling tests, checking tests, turning on music on listening days,",
     "meal_prep": "JP loves to bake and is often asking to bake desserts at the last minute. Unfortunately I often have to tell him no because of time constraints or ingredients needed",
     "other_notes": "Morning sun exposure is preferred.",
-    "family_exercise": "Walk in the neighborhood on all capacity days. High capacity days incline themselves to park play (walking from Kenmore Park to Old Mill Park), going to the farm."
+    "family_exercise": "Walk in the neighborhood on all capacity days. High capacity days incline themselves to park play (walking from Kenmore Park to Old Mill Park), going to the farm.",
+    "school_mode": "normal"
   },
   "show_liturgy_hours_widget": true,
   "auto_fetch_hours": true,

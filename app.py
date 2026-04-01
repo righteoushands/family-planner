@@ -74,6 +74,17 @@ class Handler(BaseHTTPRequestHandler):
 
         if   path == "/":                body = render_dashboard()
         elif path == "/today":           body = render_today_all(query.get("date",[""])[0])
+        elif path == "/set-school-mode":
+            # Quick toggle: /set-school-mode?mode=normal|light_week|custom_pause
+            _sm = clean_text(query.get("mode",["normal"])[0])
+            if _sm in ("normal","light_week","custom_pause"):
+                _ss = load_app_settings()
+                _ss.setdefault("family_constraints",{})["school_mode"] = _sm
+                save_app_settings(_ss)
+            self.send_response(302)
+            self.send_header("Location", query.get("next",["/today"])[0])
+            self.end_headers()
+            return
         elif path == "/now":             body = render_now_page()
         elif path == "/week":            body = render_week()
         elif path == "/school":          body = render_school_page()
@@ -1047,7 +1058,8 @@ class Handler(BaseHTTPRequestHandler):
                 _settings["child_colors"] = colors
                 fc_keys = ["anthropic_api_key","james_schedule","supervision_rules",
                            "independence_notes","school_durations","mom_supervision_subjects",
-                           "meal_prep","other_notes","family_exercise"]
+                           "meal_prep","other_notes","family_exercise",
+                           "school_mode","core_subjects","paused_subjects"]
                 constraints = _settings.get("family_constraints", {})
                 for k in fc_keys:
                     val = clean_text(data.get(f"fc_{k}", [""])[0])
@@ -1158,6 +1170,7 @@ class Handler(BaseHTTPRequestHandler):
                     "anthropic_api_key", "james_schedule", "supervision_rules",
                     "independence_notes", "school_durations", "mom_supervision_subjects",
                     "meal_prep", "other_notes", "family_exercise",
+                    "school_mode", "core_subjects", "paused_subjects",
                 ]
                 constraints = settings.get("family_constraints", {})
                 for k in fc_keys:

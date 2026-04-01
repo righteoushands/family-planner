@@ -841,6 +841,54 @@ def _lucy_knowledge_summary(settings: dict) -> str:
 </div>"""
 
 
+_DEFAULT_CORE = "Math, Religion, Reading"
+
+def _school_mode_section(c: dict) -> str:
+    """Render the school mode controls: dropdown + conditional fields."""
+    mode         = c.get("school_mode", "normal")
+    core_subs    = c.get("core_subjects", _DEFAULT_CORE)
+    paused_subs  = c.get("paused_subjects", "")
+    sel_normal   = 'selected' if mode == "normal"       else ''
+    sel_light    = 'selected' if mode == "light_week"   else ''
+    sel_custom   = 'selected' if mode == "custom_pause" else ''
+    show_light   = '' if mode == "light_week"   else 'display:none;'
+    show_custom  = '' if mode == "custom_pause" else 'display:none;'
+    return f"""
+<div style="margin-bottom:12px;">
+    <label style="font-size:.85em;font-weight:600;display:block;margin-bottom:6px;">Active mode</label>
+    <select name="fc_school_mode" id="school-mode-select"
+            style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;
+                   font-size:.9em;font-family:inherit;background:#fff;"
+            onchange="smToggle(this.value)">
+        <option value="normal"       {sel_normal} >Normal week — all subjects</option>
+        <option value="light_week"   {sel_light}  >Light week — core subjects only</option>
+        <option value="custom_pause" {sel_custom} >Custom — hide specific subjects</option>
+    </select>
+</div>
+<div id="sm-light-block" style="{show_light}margin-bottom:12px;">
+    <label style="font-size:.85em;font-weight:600;display:block;margin-bottom:4px;">Core subjects (shown during light week)</label>
+    <input type="text" name="fc_core_subjects" value="{escape(core_subs)}"
+           placeholder="{_DEFAULT_CORE}"
+           style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;
+                  font-size:.9em;font-family:inherit;box-sizing:border-box;">
+    <p class="small" style="margin-top:4px;">Separate with commas. Partial match is fine (e.g. "Math" matches "Algebra 1/2").</p>
+</div>
+<div id="sm-pause-block" style="{show_custom}margin-bottom:12px;">
+    <label style="font-size:.85em;font-weight:600;display:block;margin-bottom:4px;">Paused subjects (hidden from daily lists)</label>
+    <input type="text" name="fc_paused_subjects" value="{escape(paused_subs)}"
+           placeholder="e.g. Latin, Spelling, History, Science, Music"
+           style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;
+                  font-size:.9em;font-family:inherit;box-sizing:border-box;">
+    <p class="small" style="margin-top:4px;">Separate with commas. Partial match is fine.</p>
+</div>
+<script>
+function smToggle(v) {{
+    document.getElementById('sm-light-block').style.display  = v==='light_week'   ? '' : 'none';
+    document.getElementById('sm-pause-block').style.display  = v==='custom_pause' ? '' : 'none';
+}}
+</script>"""
+
+
 def _lucy_rules_section(rules: list) -> str:
     """Render the list of Lucy-set standing rules with delete buttons."""
     if not rules:
@@ -958,7 +1006,15 @@ def _section_constraints(settings: dict) -> str:
                "e.g. Co-op on Thursdays 9–12. No screens before school done. Quiet time 2–3pm.",
                "", rows=2)}
 
-        <h3 style="margin-top:16px;">Standing rules set with Lucy</h3>
+        <h3 style="margin-top:20px;">📚 School mode</h3>
+        <p class="small" style="margin-bottom:10px;">
+            Temporarily adjust which subjects appear in the boys' daily lists.
+            Use <strong>Light week</strong> when sick or traveling; use <strong>Custom pause</strong>
+            to hide specific subjects indefinitely.
+        </p>
+        {_school_mode_section(c)}
+
+        <h3 style="margin-top:20px;">Standing rules set with Lucy</h3>
         <p class="small" style="margin-bottom:10px;">
             Rules Lucy and you have agreed on during conversation. Lucy can add or remove these as you talk.
             You can also delete them here.

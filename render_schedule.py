@@ -486,11 +486,47 @@ def render_today_all(target_date_str: str = "") -> str:
         f'<a href="/now" style="font-size:.78em;color:var(--brown);">Family now →</a></div>'
     )
 
+    # School mode banner
+    school_banner = ""
+    try:
+        from render_settings import load_app_settings as _las
+        _fc   = _las().get("family_constraints", {})
+        _sm   = _fc.get("school_mode", "normal")
+        if _sm == "light_week":
+            _core = _fc.get("core_subjects", "Math, Religion, Reading")
+            school_banner = (
+                f'<div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;'
+                f'padding:9px 14px;margin-bottom:12px;display:flex;align-items:center;'
+                f'justify-content:space-between;gap:12px;">'
+                f'<span style="font-size:.85em;font-weight:600;color:#92400e;">'
+                f'📚 Light week — showing: {escape(_core)}</span>'
+                f'<a href="/set-school-mode?mode=normal" style="font-size:.75em;'
+                f'color:#b45309;font-weight:700;white-space:nowrap;text-decoration:none;">'
+                f'Back to normal ×</a>'
+                f'</div>'
+            )
+        elif _sm == "custom_pause":
+            _paused = _fc.get("paused_subjects", "")
+            school_banner = (
+                f'<div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;'
+                f'padding:9px 14px;margin-bottom:12px;display:flex;align-items:center;'
+                f'justify-content:space-between;gap:12px;">'
+                f'<span style="font-size:.85em;font-weight:600;color:#92400e;">'
+                f'⏸ Paused: {escape(_paused)}</span>'
+                f'<a href="/set-school-mode?mode=normal" style="font-size:.75em;'
+                f'color:#b45309;font-weight:700;white-space:nowrap;text-decoration:none;">'
+                f'Resume all ×</a>'
+                f'</div>'
+            )
+    except Exception:
+        pass
+
     body = (
         f'{page_header("Today")}'
         f'{bar}'
         f'{day_nav}'
         f'{now_strip}'
+        f'{school_banner}'
         f'{cards_html}'
         f'{_DASH_JS}'
     )

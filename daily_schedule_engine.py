@@ -401,6 +401,44 @@ def _render_schedule_text(child, weekday, date_label, school_tasks, chore_tasks,
 # PAYLOAD BUILDERS
 # -------------------------
 
+def _get_school_filter():
+    """
+    Return (mode, allowed_set) where:
+      mode = 'normal' | 'light_week' | 'custom_pause'
+      allowed_set = None (show all) or set of lowercase keyword strings to match against subject names
+      excluded_set = None (show all) or set of lowercase keywords to hide
+    """
+    try:
+        import json as _j
+        with open("data/app_settings.json") as _f:
+            _s = _j.load(_f)
+        fc   = _s.get("family_constraints", {})
+        mode = fc.get("school_mode", "normal")
+        if mode == "light_week":
+            core = fc.get("core_subjects", "Math, Religion, Reading")
+            allowed = {k.strip().lower() for k in core.split(",") if k.strip()}
+            return mode, allowed, None
+        elif mode == "custom_pause":
+            paused = fc.get("paused_subjects", "")
+            excluded = {k.strip().lower() for k in paused.split(",") if k.strip()}
+            return mode, None, excluded
+    except Exception:
+        pass
+    return "normal", None, None
+
+
+def _subject_visible(subject: str, mode: str, allowed: set, excluded: set) -> bool:
+    """Return True if a school subject should be shown given the current filter."""
+    if mode == "normal":
+        return True
+    subj_lower = subject.lower()
+    if mode == "light_week" and allowed:
+        return any(kw in subj_lower for kw in allowed)
+    if mode == "custom_pause" and excluded:
+        return not any(kw in subj_lower for kw in excluded)
+    return True
+
+
 def build_schedule_payload(child: str, weekday: str, date_label: str, iso: str):
     built = build_task_texts_for_day(child, weekday, iso)
     school_tasks = built["school_tasks"]
@@ -433,8 +471,13 @@ def build_schedule_payload(child: str, weekday: str, date_label: str, iso: str):
             "priority": task["priority"],
         })
 
+    _sm_mode, _sm_allowed, _sm_excluded = _get_school_filter()
+
     school_blocks = []
     for block in school_tasks:
+        # Apply school mode filter
+        if not _subject_visible(block["subject"], _sm_mode, _sm_allowed, _sm_excluded):
+            continue
         items = []
         for checklist_item in block["checklist"]:
             task_text = f"SCHOOL::{block['subject']}::{checklist_item}"
