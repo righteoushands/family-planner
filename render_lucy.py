@@ -372,7 +372,7 @@ def render_lucy_page(iso: str = "") -> str:
 .lucy-bubble-wrap {{ display:flex;flex-direction:column;gap:12px; }}
 </style>
 
-<div style="max-width:760px;margin:0 auto;padding:20px 16px 24px;">
+<div style="max-width:760px;margin:0 auto;padding:20px 16px 160px;">
 
     <!-- Back + phase label -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
@@ -440,29 +440,29 @@ def render_lucy_page(iso: str = "") -> str:
         Lucy is thinking&hellip;
     </div>
 
-    <!-- Input bar — inline (not fixed) so iOS keyboard doesn't cover it -->
-    <div id="lucy-input-bar"
-         style="background:white;border:1px solid #e4dbd2;border-radius:16px;
-                padding:10px 12px;display:flex;gap:8px;align-items:flex-end;
-                margin-top:16px;">
-        <textarea id="lucy-input" rows="1"
-                  placeholder="Ask Lucy anything about today…"
-                  onkeydown="if(event.key==='Enter'&&!event.shiftKey){{event.preventDefault();lucySend();}}"
-                  oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';"
-                  style="flex:1;resize:none;overflow:hidden;font-family:inherit;font-size:16px;
-                         padding:8px 12px;border:1.5px solid #e4dbd2;border-radius:10px;
-                         outline:none;line-height:1.5;max-height:120px;background:#fdfaf7;">
-        </textarea>
-        <button onclick="lucySend()"
-                style="padding:10px 16px;background:#3b2a1a;color:white;border:none;
-                       border-radius:10px;cursor:pointer;font-size:0.88em;font-weight:600;
-                       font-family:inherit;flex-shrink:0;align-self:flex-end;">
-            Send
-        </button>
-    </div>
-    <!-- Extra space so input clears the keyboard when scrolled into view -->
-    <div style="height:320px;"></div>
 
+</div>
+
+<!-- Input bar: fixed above the mobile bottom nav (64px) -->
+<div id="lucy-input-bar"
+     style="position:fixed;bottom:64px;left:0;right:0;
+            background:white;border-top:1px solid #e4dbd2;
+            padding:10px 14px;z-index:500;
+            display:flex;gap:8px;align-items:flex-end;">
+    <textarea id="lucy-input" rows="1"
+              placeholder="Ask Lucy anything about today…"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){{event.preventDefault();lucySend();}}"
+              oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';"
+              style="flex:1;resize:none;overflow:hidden;font-family:inherit;font-size:16px;
+                     padding:10px 14px;border:1.5px solid #e4dbd2;border-radius:12px;
+                     outline:none;line-height:1.5;max-height:120px;background:white;">
+    </textarea>
+    <button onclick="lucySend()"
+            style="padding:10px 18px;background:#3b2a1a;color:white;border:none;
+                   border-radius:12px;cursor:pointer;font-size:0.88em;font-weight:600;
+                   font-family:inherit;flex-shrink:0;align-self:flex-end;">
+        Send
+    </button>
 </div>
 
 <script>
@@ -504,7 +504,7 @@ function lucySend() {{
 
     // Show typing
     document.getElementById('lucy-typing').style.display = '';
-    _scrollToInput();
+    window.scrollTo(0, document.body.scrollHeight);
 
     fetch('/lucy-chat', {{
         method: 'POST',
@@ -527,11 +527,12 @@ function lucySend() {{
             return reader.read().then(function(res) {{
                 if (res.done) {{
                     _lucyHistory.push({{role:'assistant', content: full}});
-                    _scrollToInput();
+                    window.scrollTo(0, document.body.scrollHeight);
                     return;
                 }}
                 full += decoder.decode(res.value, {{stream: true}});
                 bubble.textContent = full;
+                window.scrollTo(0, document.body.scrollHeight);
                 return read();
             }});
         }}
@@ -596,14 +597,6 @@ window.addEventListener('load', function() {{
     input.style.height = Math.min(input.scrollHeight, 120) + 'px';
 }});
 
-// Scroll input into view whenever keyboard opens or after each message
-function _scrollToInput() {{
-    var bar = document.getElementById('lucy-input-bar');
-    if (bar) bar.scrollIntoView({{block: 'start', behavior: 'smooth'}});
-}}
-document.getElementById('lucy-input').addEventListener('focus', function() {{
-    setTimeout(_scrollToInput, 350);
-}});
 </script>"""
 
     from ui_helpers import html_page
