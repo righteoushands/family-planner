@@ -130,21 +130,32 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
     except Exception:
         lines.append("(Could not load constraints)")
 
-    lines += ["", "== TODAY'S CALENDAR EVENTS =="]
+    lines += ["", "== CALENDAR EVENTS (today + next 3 days) =="]
     try:
         from render_calendar import load_calendar_cache, events_for_date
         from data_helpers import load_subscribed_calendar_cache
-        # Merge main calendar + subscribed calendar
+        from datetime import date as _date, timedelta as _td
+        # Merge all calendar sources
         main_events = load_calendar_cache().get("events", [])
         sub_events  = load_subscribed_calendar_cache().get("events", [])
         all_events  = main_events + sub_events
-        today_events = events_for_date(all_events, iso)
-        if today_events:
-            for ev in today_events:
-                t = ev.get("start", "")[-5:] if "T" in ev.get("start", "") else "all day"
-                lines.append(f"- {ev.get('title','?')} at {t}")
-        else:
-            lines.append("No calendar events today.")
+        _base = _date.fromisoformat(iso)
+        any_events = False
+        for offset in range(4):
+            day = _base + _td(days=offset)
+            day_str = day.isoformat()
+            label = ("Today" if offset == 0
+                     else "Tomorrow" if offset == 1
+                     else day.strftime("%A"))
+            day_events = events_for_date(all_events, day_str)
+            if day_events:
+                any_events = True
+                lines.append(f"{label} ({day_str}):")
+                for ev in day_events:
+                    t = ev.get("start", "")[11:16] if "T" in ev.get("start", "") else "all day"
+                    lines.append(f"  - {ev.get('title','?')}" + (f" at {t}" if t != "all day" else ""))
+        if not any_events:
+            lines.append("No calendar events in the next 4 days.")
     except Exception as _ce:
         lines.append(f"(Calendar not available: {_ce})")
 
