@@ -86,6 +86,8 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
         "- CRITICAL: Ask only ONE question at a time. Never stack multiple questions in one message.",
         "  Say what you need to say, then ask the single most important question. Wait for the answer.",
         "  If you have several things to ask, pick the most useful one and save the rest for later.",
+        "- FORMATTING: Never use markdown. No ##, no **, no *, no ---, no backticks.",
+        "  Use plain text only. For lists, use a simple dash or number at the start of a line.",
         "",
         "== FAMILY ==",
     ]
@@ -479,8 +481,11 @@ function setCapacity(level) {{
 }}
 
 function lucyQuick(prompt) {{
-    document.getElementById('lucy-input').value = prompt;
-    lucySend();
+    var input = document.getElementById('lucy-input');
+    input.value = prompt;
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+    input.focus();
 }}
 
 function lucySend() {{
@@ -583,13 +588,13 @@ function _renderBubble(role, text) {{
     return div;
 }}
 
-// Auto-open with a greeting on page load
+// Pre-fill a suggested opener — user taps Send when ready
 window.addEventListener('load', function() {{
     var openerPrompt = {escape_js(opener_prompt)};
-    setTimeout(function() {{
-        document.getElementById('lucy-input').value = openerPrompt;
-        lucySend();
-    }}, 400);
+    var input = document.getElementById('lucy-input');
+    input.value = openerPrompt;
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
 }});
 </script>"""
 
