@@ -842,6 +842,7 @@ class Handler(BaseHTTPRequestHandler):
                     load_lucy_history, append_lucy_messages, LUCY_CONTEXT_MAX
                 )
                 from datetime import datetime as _dt
+                from web_fetch import extract_urls, fetch_urls, build_url_context
                 iso      = clean_text(data.get("iso",[""])[0]) or date.today().isoformat()
                 capacity = clean_text(data.get("capacity",[""])[0])
                 message  = clean_text(data.get("message",[""])[0])
@@ -862,6 +863,13 @@ class Handler(BaseHTTPRequestHandler):
                 except Exception:
                     weekday = date_label = iso
                 lucy_context = build_lucy_context(iso, weekday, date_label, capacity)
+                # ── Fetch any URLs in the user's message ──────────────────────
+                _urls = extract_urls(message)
+                if _urls:
+                    _fetched = fetch_urls(_urls)
+                    _web_ctx = build_url_context(_fetched)
+                    if _web_ctx:
+                        lucy_context += _web_ctx
                 # ── Save user message to server-side history ──────────────────
                 ts_now = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                 append_lucy_messages([{"role": "user", "content": message, "ts": ts_now}])
