@@ -278,14 +278,15 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
 
     cb_url = f"/today?date={escape(iso)}"
 
-    # ── Carryover rows (always visible) ─────────────────────────────────────
+    # ── Carryover rows (show up to 3; indicate extras) ───────────────────────
+    _CARRY_MAX = 3
     carry_html = ""
     if carryover:
         carry_html = (
             f'<div style="font-size:0.65em;font-weight:800;letter-spacing:.08em;'
             f'text-transform:uppercase;color:#a07040;margin:8px 0 3px;">↩ Carryover</div>'
         )
-        for item in carryover:
+        for item in carryover[:_CARRY_MAX]:
             tid      = escape(item.get("task_id", ""))
             is_done  = _item_done(item, progress)
             checked  = "checked" if is_done else ""
@@ -303,10 +304,18 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
                 f'cursor:pointer;{done_sty}">{escape(item.get("text",""))}</label>'
                 f'</div>'
             )
+        _carry_extra = len(carryover) - _CARRY_MAX
+        if _carry_extra > 0:
+            carry_html += (
+                f'<div style="font-size:.75em;color:#a07040;padding:3px 0 4px;">'
+                f'<a href="/schedule/{escape(child)}?date={escape(iso)}"'
+                f' style="color:#a07040;text-decoration:none;">+{_carry_extra} more carryover →</a>'
+                f'</div>'
+            )
 
-    # ── Queue rows (first unchecked visible; rest hidden until advanced) ─────
-    queue_html = ""
-    found_first = False
+    # ── Queue rows (next 2 unchecked visible; rest hidden until advanced) ──────
+    queue_html   = ""
+    pending_shown = 0
     for item in queue:
         tid      = escape(item.get("task_id", ""))
         is_done  = _item_done(item, progress)
@@ -315,12 +324,12 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
         section  = escape(item.get("_section", ""))
         done_sty = "opacity:.5;text-decoration:line-through;" if is_done else ""
         done_d   = "1" if is_done else "0"
-        # Visibility: hide completed; show only first pending
+        # Visibility: hide completed; show next 2 pending
         if is_done:
             vis = "display:none;"
-        elif not found_first:
+        elif pending_shown < 2:
             vis = ""
-            found_first = True
+            pending_shown += 1
         else:
             vis = "display:none;"
         queue_html += (

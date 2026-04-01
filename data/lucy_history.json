@@ -1,3 +1,24 @@
 {
-  "messages": []
+  "messages": [
+    {
+      "role": "user",
+      "content": "good morning Lucy your job is to plan my day based on all of the variables at your disposal. Without any more guidance from me what questions do you have?",
+      "ts": "2026-04-01T14:44:52"
+    },
+    {
+      "role": "assistant",
+      "content": "Good morning! Happy to dive in.\n\nBefore I build your full day, I need to know just one thing first:\n\n**How's your capacity feeling today — are you running on full steam, moderate energy, or are you stretched thin?**\n\nThat'll shape everything. If you're LOW capacity, I'll protect your margin and suggest what can shift or simplify. If you're HIGH capacity, I can help you tackle the harder stuff or clear some backlog. That one signal changes how I'd organize the whole day around school, the boys, James's routine, and tonight's date night + movie night.",
+      "ts": "2026-04-01T14:44:54"
+    },
+    {
+      "role": "user",
+      "content": "That is an excellent first question! My capacity is variable but right now it feels mid capacity, but I suspect that has the day goes. It will turn into low capacity by evening.",
+      "ts": "2026-04-01T14:45:39"
+    },
+    {
+      "role": "assistant",
+      "content": "Perfect. That's really helpful — I'll build the day to front-load the harder things while you have energy, then shift to easier, quieter work by late afternoon.\n\nHere's what I'm seeing for today:\n\nKEY THINGS HAPPENING:\n- Piano lessons at 9:30 (David) — JP and Joseph both go, I assume?\n- Date Night at 5:30 and Kids Movie Night at 5:30 — these overlap on your calendar, so I'm guessing one is a typo or they run back-to-back?\n- James naps 9-11am and 2-4pm (perfect windows for focused work)\n- John McAdams' birthday — is this someone you need to acknowledge today?\n- Holy Week context — any special prayers or rhythm you want to honor?\n\nTHE BOYS' FOCUS TODAY:\n- JP: 5 hours of school (Algebra, Religion, Latin, Science, History, Music, Reading, Editing, Spelling) — lots of heavy subjects\n- Joseph: 4 hours of school (Math, Religion, Latin, History, Science, Poetry, Reading, Spelling) — also solid load\n- Michael: no school today\n- Both boys have basement tidying and daily room reset\n\nQUICK QUESTION BEFORE I MAP IT OUT:\n\nAre JP and Joseph both heading to piano at 9:30, or is it just one of them?",
+      "ts": "2026-04-01T14:45:44"
+    }
+  ]
 }
