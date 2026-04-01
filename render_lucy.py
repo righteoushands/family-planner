@@ -133,8 +133,11 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
     lines += ["", "== TODAY'S CALENDAR EVENTS =="]
     try:
         from render_calendar import load_calendar_cache, events_for_date
-        cache = load_calendar_cache()
-        all_events = cache.get("events", [])
+        from data_helpers import load_subscribed_calendar_cache
+        # Merge main calendar + subscribed calendar
+        main_events = load_calendar_cache().get("events", [])
+        sub_events  = load_subscribed_calendar_cache().get("events", [])
+        all_events  = main_events + sub_events
         today_events = events_for_date(all_events, iso)
         if today_events:
             for ev in today_events:
@@ -142,8 +145,8 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
                 lines.append(f"- {ev.get('title','?')} at {t}")
         else:
             lines.append("No calendar events today.")
-    except Exception:
-        lines.append("(Calendar not available)")
+    except Exception as _ce:
+        lines.append(f"(Calendar not available: {_ce})")
 
     lines += ["", "== TODAY'S MEAL PLAN =="]
     try:
