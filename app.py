@@ -6,6 +6,7 @@ All data I/O lives in data_helpers.py.
 import os, uuid
 from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import socketserver
 from urllib.parse import parse_qs, urlparse
 
 from daily_schedule_engine import CHILDREN, set_task_done
@@ -2526,7 +2527,8 @@ if __name__ == "__main__":
         pass
     import socket as _socket, time as _time2
 
-    class ReusableServer(HTTPServer):
+    class ReusableServer(socketserver.ThreadingMixIn, HTTPServer):
+        daemon_threads       = True   # clean up threads automatically
         allow_reuse_address  = True
         allow_reuse_port     = True
 

@@ -401,13 +401,19 @@ def _render_schedule_text(child, weekday, date_label, school_tasks, chore_tasks,
 # PAYLOAD BUILDERS
 # -------------------------
 
+_SCHOOL_FILTER_CACHE = None
+_SCHOOL_FILTER_TIME  = 0.0
+_SCHOOL_FILTER_TTL   = 60.0  # seconds — short enough to pick up Settings changes quickly
+
 def _get_school_filter():
     """
-    Return (mode, allowed_set) where:
-      mode = 'normal' | 'light_week' | 'custom_pause'
-      allowed_set = None (show all) or set of lowercase keyword strings to match against subject names
-      excluded_set = None (show all) or set of lowercase keywords to hide
+    Return (mode, allowed_set, excluded_set). Cached for 60 seconds to avoid
+    reading app_settings.json on every child's build_schedule_payload() call.
     """
+    global _SCHOOL_FILTER_CACHE, _SCHOOL_FILTER_TIME
+    import time as _t
+    if _SCHOOL_FILTER_CACHE is not None and (_t.time() - _SCHOOL_FILTER_TIME) < _SCHOOL_FILTER_TTL:
+        return _SCHOOL_FILTER_CACHE
     try:
         import json as _j
         with open("data/app_settings.json") as _f:
@@ -417,14 +423,18 @@ def _get_school_filter():
         if mode == "light_week":
             core = fc.get("core_subjects", "Math, Religion, Reading")
             allowed = {k.strip().lower() for k in core.split(",") if k.strip()}
-            return mode, allowed, None
+            result = (mode, allowed, None)
         elif mode == "custom_pause":
             paused = fc.get("paused_subjects", "")
             excluded = {k.strip().lower() for k in paused.split(",") if k.strip()}
-            return mode, None, excluded
+            result = (mode, None, excluded)
+        else:
+            result = ("normal", None, None)
     except Exception:
-        pass
-    return "normal", None, None
+        result = ("normal", None, None)
+    _SCHOOL_FILTER_CACHE = result
+    _SCHOOL_FILTER_TIME  = _t.time()
+    return result
 
 
 def _subject_visible(subject: str, mode: str, allowed: set, excluded: set) -> bool:

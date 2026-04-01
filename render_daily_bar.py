@@ -41,86 +41,90 @@ def get_special_events() -> list:
 _WEATHER_CACHE: dict = {}
 _WEATHER_CACHE_TIME: float = 0.0
 _WEATHER_CACHE_TTL: float = 30 * 60  # 30 minutes
+_WEATHER_FETCHING: bool = False       # guard against duplicate background fetches
+
+
+def _fetch_weather_background(location: str) -> None:
+    """Fetch weather in a background thread and populate the cache."""
+    global _WEATHER_CACHE, _WEATHER_CACHE_TIME, _WEATHER_FETCHING
+    try:
+        import urllib.request as _ur, json as _json, time as _t
+        loc_enc = location.strip().replace(" ", "+")
+        url = f"https://wttr.in/{loc_enc}?format=j1"
+        req = _ur.Request(url, headers={"User-Agent": "FamilyPlanner/1.0"})
+        with _ur.urlopen(req, timeout=8) as resp:
+            data = _json.loads(resp.read().decode())
+        _populate_weather_cache(data)
+        _WEATHER_CACHE_TIME = _t.time()
+    except Exception:
+        pass
+    finally:
+        _WEATHER_FETCHING = False
+
+
+def _populate_weather_cache(data: dict) -> None:
+    global _WEATHER_CACHE
+    import datetime as _dt
+    cur   = data["current_condition"][0]
+    today_data = data["weather"][0]
+    condition = cur.get("weatherDesc", [{}])[0].get("value", "")
+    temp_f    = int(cur.get("temp_F", 0))
+    feels_f   = int(cur.get("FeelsLikeF", temp_f))
+    high_f    = int(today_data.get("maxtempF", temp_f))
+    low_f     = int(today_data.get("mintempF", temp_f))
+
+    def _icon_for(cond: str) -> str:
+        c = cond.lower()
+        if any(w in c for w in ("thunder", "storm")):        return "⛈"
+        if any(w in c for w in ("snow", "blizzard", "sleet")): return "❄️"
+        if any(w in c for w in ("rain", "drizzle", "shower")):  return "🌧"
+        if any(w in c for w in ("cloud", "overcast", "fog", "mist")): return "☁️"
+        if any(w in c for w in ("sunny", "clear")):          return "☀️"
+        if "partly" in c:                                     return "⛅"
+        return "🌤"
+
+    forecast = []
+    today_date = _dt.date.today()
+    for i, day_data in enumerate(data.get("weather", [])[:3]):
+        d_date = today_date + _dt.timedelta(days=i)
+        d_label = "Today" if i == 0 else d_date.strftime("%a")
+        hourly = day_data.get("hourly", [])
+        mid_idx = len(hourly) // 2
+        d_cond = hourly[mid_idx].get("weatherDesc", [{}])[0].get("value", "") if hourly else ""
+        forecast.append({
+            "label": d_label,
+            "high_f": int(day_data.get("maxtempF", 0)),
+            "low_f":  int(day_data.get("mintempF", 0)),
+            "icon":   _icon_for(d_cond),
+        })
+
+    _WEATHER_CACHE = {
+        "temp_f": temp_f, "feels_like_f": feels_f, "condition": condition,
+        "icon": _icon_for(condition), "high_f": high_f, "low_f": low_f,
+        "forecast": forecast,
+    }
 
 
 def fetch_weather(location: str) -> dict:
     """
-    Fetch today's forecast from wttr.in JSON API.
-    Returns a dict with keys: temp_f, feels_like_f, condition, icon, high_f, low_f
-    or empty dict on failure. Cached for 30 minutes to avoid blocking page loads.
+    Return cached weather immediately; kick off a background refresh if stale.
+    Never blocks a page load — worst case returns empty dict on very first call.
     """
-    global _WEATHER_CACHE, _WEATHER_CACHE_TIME
-    import time as _time
+    global _WEATHER_FETCHING
+    import time as _time, threading as _threading
     if not location:
         return {}
-    # Return cached value if fresh
-    if _WEATHER_CACHE and (_time.time() - _WEATHER_CACHE_TIME) < _WEATHER_CACHE_TTL:
+    now = _time.time()
+    # Return cached value if still fresh
+    if _WEATHER_CACHE and (now - _WEATHER_CACHE_TIME) < _WEATHER_CACHE_TTL:
         return _WEATHER_CACHE
-    try:
-        import urllib.request, json
-        loc_enc = location.strip().replace(" ", "+")
-        url = f"https://wttr.in/{loc_enc}?format=j1"
-        req = urllib.request.Request(url, headers={"User-Agent": "FamilyPlanner/1.0"})
-        with urllib.request.urlopen(req, timeout=4) as resp:
-            data = json.loads(resp.read().decode())
-
-        cur   = data["current_condition"][0]
-        today = data["weather"][0]
-
-        condition = cur.get("weatherDesc", [{}])[0].get("value", "")
-        temp_f    = int(cur.get("temp_F", 0))
-        feels_f   = int(cur.get("FeelsLikeF", temp_f))
-        high_f    = int(today.get("maxtempF", temp_f))
-        low_f     = int(today.get("mintempF", temp_f))
-
-        def _icon_for(cond: str) -> str:
-            c = cond.lower()
-            if any(w in c for w in ("thunder", "storm")):   return "⛈"
-            if any(w in c for w in ("snow", "blizzard", "sleet")): return "❄️"
-            if any(w in c for w in ("rain", "drizzle", "shower")): return "🌧"
-            if any(w in c for w in ("cloud", "overcast", "fog", "mist")): return "☁️"
-            if any(w in c for w in ("sunny", "clear")):     return "☀️"
-            if "partly" in c:                                return "⛅"
-            return "🌤"
-
-        icon = _icon_for(condition)
-
-        # Build 3-day forecast list from API
-        forecast = []
-        import datetime as _dt
-        today_date = _dt.date.today()
-        for i, day_data in enumerate(data.get("weather", [])[:3]):
-            day_date = today_date + _dt.timedelta(days=i)
-            day_label = "Today" if i == 0 else day_date.strftime("%a")
-            day_high  = int(day_data.get("maxtempF", 0))
-            day_low   = int(day_data.get("mintempF", 0))
-            # Midday condition
-            hourly    = day_data.get("hourly", [{}])
-            mid_idx   = len(hourly) // 2
-            day_cond  = hourly[mid_idx].get("weatherDesc", [{}])[0].get("value", "") if hourly else ""
-            forecast.append({
-                "label":     day_label,
-                "high_f":    day_high,
-                "low_f":     day_low,
-                "condition": day_cond,
-                "icon":      _icon_for(day_cond),
-            })
-
-        result = {
-            "temp_f":       temp_f,
-            "feels_like_f": feels_f,
-            "high_f":       high_f,
-            "low_f":        low_f,
-            "condition":    condition,
-            "icon":         icon,
-            "forecast":     forecast,
-        }
-        _WEATHER_CACHE      = result
-        _WEATHER_CACHE_TIME = _time.time()
-        return result
-    except Exception as e:
-        debug_log("Weather fetch failed:", str(e))
-        return _WEATHER_CACHE if _WEATHER_CACHE else {}
+    # Cache is stale (or empty) — start a background fetch if one isn't running
+    if not _WEATHER_FETCHING:
+        _WEATHER_FETCHING = True
+        _threading.Thread(target=_fetch_weather_background, args=(location,),
+                          daemon=True).start()
+    # Return whatever we have (may be empty on very first boot — shows "Weather unavailable")
+    return _WEATHER_CACHE
 
 
 # ── Child age helpers ──────────────────────────────────────────────────────────
