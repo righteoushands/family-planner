@@ -89,6 +89,16 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
         "- FORMATTING: Never use markdown. No ##, no **, no *, no ---, no backticks.",
         "  Use plain text only. For lists, use a simple dash or number at the start of a line.",
         "",
+        "== UPDATING SETTINGS RULES ==",
+        "When you and Mom agree on a new standing rule (e.g. 'plan a slow-cooker meal on Low Capacity days',",
+        "  'JP leads morning prayers on school days', 'no screens until all school is done'), you can save it",
+        "  directly to the family rules. At the END of your message, append the tag:",
+        "  [RULE:add]The rule, written as a clear instruction.[/RULE]",
+        "When Mom wants to remove a rule, match it exactly from the list and append:",
+        "  [RULE:remove]Exact text of the rule to remove.[/RULE]",
+        "Only use these tags when Mom explicitly agrees to set or remove a standing rule.",
+        "Never use these tags for one-off suggestions or reminders — only for persistent rules.",
+        "",
         "== FAMILY ==",
     ]
 
@@ -127,10 +137,18 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
                 any_found = True
         if not any_found:
             lines.append("(No constraints set yet — suggest Mom adds them in Settings)")
+
+        # Lucy-set rules (persistent rules added via conversation)
+        lucy_rules = constraints.get("lucy_rules", [])
+        if lucy_rules:
+            lines.append("")
+            lines.append("Standing rules set by Lucy & Mom:")
+            for i, rule in enumerate(lucy_rules, 1):
+                lines.append(f"  {i}. {rule}")
     except Exception:
         lines.append("(Could not load constraints)")
 
-    lines += ["", "== CALENDAR EVENTS (today + next 3 days) =="]
+    lines += ["", "== CALENDAR EVENTS (today + 14 days ahead) =="]
     try:
         from render_calendar import load_calendar_cache, events_for_date
         from data_helpers import load_subscribed_calendar_cache
@@ -141,12 +159,17 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
         all_events  = main_events + sub_events
         _base = _date.fromisoformat(iso)
         any_events = False
-        for offset in range(4):
+        for offset in range(15):
             day = _base + _td(days=offset)
             day_str = day.isoformat()
-            label = ("Today" if offset == 0
-                     else "Tomorrow" if offset == 1
-                     else day.strftime("%A"))
+            if offset == 0:
+                label = "Today"
+            elif offset == 1:
+                label = "Tomorrow"
+            elif offset < 7:
+                label = day.strftime("%A")
+            else:
+                label = day.strftime("%A %b %-d")
             day_events = events_for_date(all_events, day_str)
             if day_events:
                 any_events = True
@@ -155,7 +178,7 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
                     t = ev.get("start", "")[11:16] if "T" in ev.get("start", "") else "all day"
                     lines.append(f"  - {ev.get('title','?')}" + (f" at {t}" if t != "all day" else ""))
         if not any_events:
-            lines.append("No calendar events in the next 4 days.")
+            lines.append("No calendar events in the next 14 days.")
     except Exception as _ce:
         lines.append(f"(Calendar not available: {_ce})")
 
@@ -537,15 +560,52 @@ function lucySend() {{
         var full   = '';
         var reader = r.body.getReader();
         var decoder = new TextDecoder();
+        // Strip [RULE:...] tags from display text
+        function _stripRuleTags(text) {{
+            return text.replace(/\[RULE:(add|remove)\][\s\S]*?\[\/RULE\]/g, '').replace(/\s+$/, '');
+        }}
         function read() {{
             return reader.read().then(function(res) {{
                 if (res.done) {{
-                    _lucyHistory.push({{role:'assistant', content: full}});
+                    var clean = _stripRuleTags(full);
+                    bubble.textContent = clean;
+                    _lucyHistory.push({{role:'assistant', content: clean}});
+                    // Parse and show rule proposal buttons
+                    var ruleRx = /\[RULE:(add|remove)\]([\s\S]*?)\[\/RULE\]/g;
+                    var m;
+                    while ((m = ruleRx.exec(full)) !== null) {{
+                        (function(action, ruleText) {{
+                            ruleText = ruleText.trim();
+                            var ruleRow = document.createElement('div');
+                            ruleRow.style.cssText = 'display:flex;justify-content:flex-start;margin-top:6px;';
+                            var ruleBtn = document.createElement('button');
+                            var label = (action === 'add' ? '📋 Save rule' : '🗑 Remove rule');
+                            var preview = ruleText.length > 55 ? ruleText.substring(0,55)+'…' : ruleText;
+                            ruleBtn.textContent = label + ': ' + preview;
+                            ruleBtn.style.cssText = 'background:#f0f8e8;border:1px solid #8ab870;color:#2d5016;'
+                                + 'font-size:0.72em;cursor:pointer;padding:4px 10px;border-radius:5px;font-family:inherit;';
+                            ruleBtn.onclick = function() {{
+                                fetch('/lucy-rule-save', {{
+                                    method: 'POST',
+                                    headers: {{'Content-Type': 'application/x-www-form-urlencoded'}},
+                                    body: 'action=' + encodeURIComponent(action) + '&rule=' + encodeURIComponent(ruleText)
+                                }}).then(function(r) {{
+                                    if (r.ok) {{
+                                        ruleBtn.textContent = '✓ ' + (action === 'add' ? 'Rule saved to Settings' : 'Rule removed');
+                                        ruleBtn.style.background = '#e8f5e9';
+                                        ruleBtn.disabled = true;
+                                    }}
+                                }});
+                            }};
+                            ruleRow.appendChild(ruleBtn);
+                            bubble._wrap.appendChild(ruleRow);
+                        }})(m[1], m[2]);
+                    }}
                     window.scrollTo(0, document.body.scrollHeight);
                     return;
                 }}
                 full += decoder.decode(res.value, {{stream: true}});
-                bubble.textContent = full;
+                bubble.textContent = _stripRuleTags(full);
                 window.scrollTo(0, document.body.scrollHeight);
                 return read();
             }});
@@ -565,6 +625,7 @@ function _renderBubble(role, text) {{
     var div  = document.createElement('div');
     div.className = (role === 'user') ? 'lucy-bubble-user' : 'lucy-bubble-lucy';
     div.textContent = text;
+    div._wrap = wrap;
     wrap.appendChild(div);
 
     if (role === 'lucy') {{

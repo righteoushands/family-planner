@@ -757,6 +757,41 @@ def _section_integrations() -> str:
     </div>"""
 
 
+def _lucy_rules_section(rules: list) -> str:
+    """Render the list of Lucy-set standing rules with delete buttons."""
+    if not rules:
+        return '<p class="small" style="color:#aaa;font-style:italic;">No rules saved yet. Talk to Lucy to create them.</p>'
+    items = ""
+    for i, rule in enumerate(rules):
+        safe = escape(rule)
+        items += f"""
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;
+                    padding:8px 12px;background:#f9f9f4;border:1px solid #e0ddd0;border-radius:6px;">
+            <span style="flex:1;font-size:0.88em;line-height:1.4;">{safe}</span>
+            <button onclick="lucyDeleteRule({i}, this)"
+                    style="background:none;border:none;color:#c0392b;cursor:pointer;
+                           font-size:0.82em;padding:0 4px;white-space:nowrap;">✕ Delete</button>
+        </div>"""
+    return f"""
+        {items}
+        <script>
+        function lucyDeleteRule(idx, btn) {{
+            var rules = {rules!r};
+            var rule  = rules[idx];
+            if (!rule) return;
+            btn.disabled = true;
+            btn.textContent = '…';
+            fetch('/lucy-rule-save', {{
+                method: 'POST',
+                headers: {{'Content-Type': 'application/x-www-form-urlencoded'}},
+                body: 'action=remove&rule=' + encodeURIComponent(rule)
+            }}).then(function(r) {{
+                if (r.ok) {{ location.reload(); }}
+            }});
+        }}
+        </script>"""
+
+
 def _section_constraints(settings: dict) -> str:
     c = settings.get("family_constraints", {})
     def field(label, name, placeholder, value, rows=0):
@@ -841,6 +876,13 @@ def _section_constraints(settings: dict) -> str:
                "other_notes",
                "e.g. Co-op on Thursdays 9–12. No screens before school done. Quiet time 2–3pm.",
                "", rows=2)}
+
+        <h3 style="margin-top:16px;">Standing rules set with Lucy</h3>
+        <p class="small" style="margin-bottom:10px;">
+            Rules Lucy and you have agreed on during conversation. Lucy can add or remove these as you talk.
+            You can also delete them here.
+        </p>
+        {_lucy_rules_section(c.get("lucy_rules", []))}
     </div>"""
 
 

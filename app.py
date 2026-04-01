@@ -812,6 +812,29 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.write(b"ok")
                 return
 
+            elif path == "/lucy-rule-save":
+                import json as _json
+                action    = clean_text(data.get("action",[""])[0]).strip()
+                rule_text = clean_text(data.get("rule",[""])[0]).strip()
+                if rule_text and action in ("add", "remove"):
+                    _s = load_app_settings()
+                    fc = _s.setdefault("family_constraints", {})
+                    rules = fc.get("lucy_rules", [])
+                    if not isinstance(rules, list):
+                        rules = []
+                    if action == "add" and rule_text not in rules:
+                        rules.append(rule_text)
+                    elif action == "remove":
+                        rules = [r for r in rules if r != rule_text]
+                    fc["lucy_rules"] = rules
+                    _s["family_constraints"] = fc
+                    save_app_settings(_s)
+                self.send_response(200)
+                self.send_header("Content-Type","text/plain")
+                self.end_headers()
+                self.wfile.write(b"ok")
+                return
+
             elif path == "/lucy-chat":
                 import json as _json, urllib.request as _req
                 iso      = clean_text(data.get("iso",[""])[0]) or date.today().isoformat()
