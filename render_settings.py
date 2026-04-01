@@ -1006,14 +1006,6 @@ def _section_constraints(settings: dict) -> str:
                "e.g. Co-op on Thursdays 9–12. No screens before school done. Quiet time 2–3pm.",
                "", rows=2)}
 
-        <h3 style="margin-top:20px;">📚 School mode</h3>
-        <p class="small" style="margin-bottom:10px;">
-            Temporarily adjust which subjects appear in the boys' daily lists.
-            Use <strong>Light week</strong> when sick or traveling; use <strong>Custom pause</strong>
-            to hide specific subjects indefinitely.
-        </p>
-        {_school_mode_section(c)}
-
         <h3 style="margin-top:20px;">Standing rules set with Lucy</h3>
         <p class="small" style="margin-bottom:10px;">
             Rules Lucy and you have agreed on during conversation. Lucy can add or remove these as you talk.
@@ -1021,6 +1013,21 @@ def _section_constraints(settings: dict) -> str:
         </p>
         {_lucy_rules_section(c.get("lucy_rules", []))}
     </div>"""
+
+
+def _section_school(settings: dict) -> str:
+    """Render the School section: mode controls + PDF upload per child."""
+    c = settings.get("family_constraints", {})
+    return f"""
+<div style="padding:4px 0 8px;">
+    <h3 style="margin-top:4px;">📚 School mode</h3>
+    <p class="small" style="margin-bottom:10px;">
+        Temporarily adjust which subjects appear in the boys' daily lists.
+        Use <strong>Light week</strong> when sick or traveling; use <strong>Custom pause</strong>
+        to hide specific subjects indefinitely.
+    </p>
+    {_school_mode_section(c)}
+</div>"""
 
 
 def _accordion(
@@ -1145,7 +1152,18 @@ def render_settings_page(status_message: str = "") -> str:
   </div>
 </form>"""
 
-    # Group 5 — INTEGRATIONS (own forms inside)
+    # Group 5 — SCHOOL
+    grp_school = f"""
+<form method="POST" action="/settings-save" id="form-school">
+  <div style="padding:4px 0 16px;">
+    {_section_school(settings)}
+  </div>
+  <div style="padding:8px 0;border-top:1px solid var(--border-light);">
+    <button type="submit" style="padding:9px 22px;font-size:0.95em;">Save School Settings</button>
+  </div>
+</form>"""
+
+    # Group 6 — INTEGRATIONS (own forms inside)
     grp_integrations = f"""
 <div style="padding:4px 0 16px;">
   {_section_integrations()}
@@ -1282,10 +1300,31 @@ def render_settings_page(status_message: str = "") -> str:
     )
 
     panels += _panel(
+        "s-school",
+        _accordion(
+            section_id="s-school",
+            number="5",
+            title="School",
+            summary="School mode: normal week, light week, or pause specific subjects.",
+            detail=(
+                "<strong>School mode</strong> — controls which subjects appear in the boys' "
+                "daily task lists. Switch to <strong>Light week</strong> when you're sick, "
+                "traveling, or just need a lighter day — only your listed core subjects will "
+                "show. Use <strong>Custom pause</strong> to hide specific subjects indefinitely "
+                "(e.g. while waiting on curriculum). Switch back to Normal anytime; a banner "
+                "on the dashboard lets you tap once to restore the full schedule."
+            ),
+            color="#c0392b",
+        ),
+        content_open=False,
+        content_html=grp_school,
+    )
+
+    panels += _panel(
         "s-integrations",
         _accordion(
             section_id="s-integrations",
-            number="5",
+            number="6",
             title="Integrations",
             summary="iCloud Calendar connection and .ics feed subscriptions.",
             detail=(
@@ -1452,6 +1491,7 @@ function toggleDetail(id) {
     '#s-meals':        's-planning',
     '#s-cycle':        's-cycle',
     '#s-systems':      's-household',
+    '#s-school':       's-school',
     '#s-integrations': 's-integrations',
   };
   var target = map[hash];
@@ -1485,7 +1525,7 @@ function jumpSection(sid) {
 
 // ── Section ordering (up/down arrows, saved to localStorage) ─────────────────
 var SETTINGS_ORDER_KEY = 'sf-settings-order';
-var DEFAULT_ORDER = ['s-app','s-planning','s-cycle','s-household','s-integrations'];
+var DEFAULT_ORDER = ['s-app','s-planning','s-cycle','s-household','s-school','s-integrations'];
 
 function _getOrder() {
   try {
@@ -1629,6 +1669,10 @@ function applyPreset(ce, bg, light) {
      style="flex-shrink:0;padding:5px 12px;background:#edfaf3;
             border:1.5px solid #27ae60;border-radius:20px;font-size:.75em;
             font-weight:700;text-decoration:none;color:#27ae60;">🏠 Household</a>
+  <a href="#" onclick="jumpSection('s-school');return false;"
+     style="flex-shrink:0;padding:5px 12px;background:#fdf0ef;
+            border:1.5px solid #c0392b;border-radius:20px;font-size:.75em;
+            font-weight:700;text-decoration:none;color:#c0392b;">📚 School</a>
   <a href="#" onclick="jumpSection('s-integrations');return false;"
      style="flex-shrink:0;padding:5px 12px;background:#fef6ed;
             border:1.5px solid #e67e22;border-radius:20px;font-size:.75em;
