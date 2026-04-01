@@ -219,6 +219,32 @@ def save_family_schedule(data: dict):
     safe_save_json(FAMILY_SCHEDULE_FILE, data)
 
 
+# ── Lucy conversation history ─────────────────────────────────────────────────
+LUCY_HISTORY_FILE = "data/lucy_history.json"
+LUCY_HISTORY_MAX  = 60   # max messages stored (30 back-and-forth turns)
+LUCY_CONTEXT_MAX  = 30   # messages sent to Claude per request
+
+def load_lucy_history() -> list:
+    """Return list of {role, content, ts} dicts, oldest first."""
+    data = ensure_file(LUCY_HISTORY_FILE, {"messages": []})
+    return data.get("messages", [])
+
+def save_lucy_history(messages: list):
+    """Persist the full message list, capped to LUCY_HISTORY_MAX."""
+    trimmed = messages[-LUCY_HISTORY_MAX:]
+    safe_save_json(LUCY_HISTORY_FILE, {"messages": trimmed})
+
+def append_lucy_messages(new_msgs: list):
+    """Append one or more {role, content, ts} dicts and save."""
+    history = load_lucy_history()
+    history.extend(new_msgs)
+    save_lucy_history(history)
+
+def clear_lucy_history():
+    """Wipe the history file."""
+    safe_save_json(LUCY_HISTORY_FILE, {"messages": []})
+
+
 # ── Monthly planner ──────────────────────────────────────────────────────────
 def load_monthly_planner() -> dict:
     return ensure_file(MONTHLY_PLANNER_FILE, {})

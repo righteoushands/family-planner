@@ -336,12 +336,78 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
 # Lucy page renderer
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _load_lucy_history_safe() -> list:
+    """Load saved Lucy conversation history without crashing."""
+    try:
+        from data_helpers import load_lucy_history
+        return load_lucy_history()
+    except Exception:
+        return []
+
+
+def _render_history_html(messages: list) -> str:
+    """Render saved messages as HTML bubbles for pre-population on page load."""
+    if not messages:
+        return ""
+    parts = []
+    for msg in messages:
+        role    = msg.get("role", "user")
+        content = msg.get("content", "")
+        ts      = msg.get("ts", "")
+        if not content:
+            continue
+        if role == "user":
+            parts.append(
+                f'<div class="lucy-bubble-wrap" style="margin-bottom:0;">'
+                f'<div class="lucy-bubble-user">{escape(content)}</div>'
+                f'</div>'
+            )
+        else:
+            # Lucy response — strip rule tags from display
+            import re as _re
+            clean = _re.sub(r'\[RULE:(add|remove)\][\s\S]*?\[/RULE\]', '', content).strip()
+            ts_label = ""
+            if ts:
+                try:
+                    from datetime import datetime as _dt2
+                    _t = _dt2.fromisoformat(ts)
+                    ts_label = f'<div style="font-size:.65em;color:#ccc;margin-top:4px;">{_t.strftime("%-I:%M %p")}</div>'
+                except Exception:
+                    pass
+            parts.append(
+                f'<div class="lucy-bubble-wrap" style="margin-bottom:0;">'
+                f'<div class="lucy-bubble-lucy" style="white-space:pre-wrap;">{escape(clean)}{ts_label}</div>'
+                f'</div>'
+            )
+    if not parts:
+        return ""
+    # Wrap with a divider showing this is prior conversation
+    return (
+        f'<div style="border-bottom:1px solid #e4dbd2;margin-bottom:16px;padding-bottom:4px;">'
+        f'<div style="font-size:.68em;color:#bbb;text-align:center;margin-bottom:10px;'
+        f'font-style:italic;">— Continuing conversation —</div>'
+        f'<div class="lucy-bubble-wrap">{"".join(parts)}</div>'
+        f'</div>'
+    )
+
+
 def render_lucy_page(iso: str = "") -> str:
     today    = _today_eastern()
     iso      = iso or today.isoformat()
     weekday  = today.strftime("%A")
     date_label = today.strftime("%B %d, %Y")
     phase    = _get_phase()
+
+    # Load server-side history
+    import json as _json
+    _history = _load_lucy_history_safe()
+    _has_history = bool(_history)
+    # Pre-compute JS-safe history JSON for initializing _lucyHistory
+    _history_js = _json.dumps([
+        {"role": m["role"], "content": m.get("content", "")}
+        for m in _history
+        if m.get("role") in ("user", "assistant") and m.get("content", "")
+    ])
 
     # Greeting and subtitle by phase
     if phase == "morning":
@@ -415,6 +481,10 @@ def render_lucy_page(iso: str = "") -> str:
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
         <a href="/" style="font-size:0.82em;color:#aaa;text-decoration:none;">&larr; Dashboard</a>
         <div style="display:flex;align-items:center;gap:14px;">
+            {'<form method="POST" action="/lucy-clear-history" style="display:inline;">'
+             '<button type="submit" style="background:none;border:none;font-size:0.72em;'
+             'color:#bbb;cursor:pointer;font-family:inherit;padding:0;">✕ New conversation</button>'
+             '</form>' if _has_history else ''}
             <a href="/memory-book" style="font-size:0.78em;color:#c49020;text-decoration:none;">📖 Memory Book</a>
             <span style="font-size:0.78em;color:#aaa;">{phase_dot}{escape(phase_label)}</span>
         </div>
@@ -466,9 +536,10 @@ def render_lucy_page(iso: str = "") -> str:
         <span id="cap-note" style="font-size:0.78em;color:#aaa;font-style:italic;"></span>
     </div>
 
-    <!-- Chat history -->
+    <!-- Chat history (pre-rendered from server + new messages from JS) -->
+    {_render_history_html(_history)}
     <div id="lucy-history" class="lucy-bubble-wrap"
-         style="min-height:120px;margin-bottom:20px;">
+         style="min-height:40px;margin-bottom:20px;">
     </div>
 
     <!-- Typing indicator -->
@@ -505,7 +576,8 @@ def render_lucy_page(iso: str = "") -> str:
 <script>
 var _lucyIso      = '{escape(iso)}';
 var _lucyCapacity = '';
-var _lucyHistory  = []; // {{role, content}}
+// Pre-populated with server-side history so new messages continue the thread
+var _lucyHistory  = {_history_js};
 
 function setCapacity(level) {{
     _lucyCapacity = level;
@@ -663,13 +735,15 @@ function _renderBubble(role, text) {{
     return div;
 }}
 
-// Pre-fill a suggested opener — user taps Send when ready
 window.addEventListener('load', function() {{
-    var openerPrompt = {escape_js(opener_prompt)};
     var input = document.getElementById('lucy-input');
-    input.value = openerPrompt;
-    input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+    {'// Continuing conversation — scroll to bottom, leave input clear' if _has_history else '// Fresh start — pre-fill opener prompt'}
+    {'window.scrollTo(0, document.body.scrollHeight);' if _has_history else (
+        'var openerPrompt = ' + escape_js(opener_prompt) + ';'
+        + ' input.value = openerPrompt;'
+        + ' input.style.height = "auto";'
+        + ' input.style.height = Math.min(input.scrollHeight, 120) + "px";'
+    )}
 }});
 
 </script>"""

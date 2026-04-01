@@ -838,10 +838,13 @@ class Handler(BaseHTTPRequestHandler):
 
             elif path == "/lucy-chat":
                 import json as _json, urllib.request as _req
+                from data_helpers import (
+                    load_lucy_history, append_lucy_messages, LUCY_CONTEXT_MAX
+                )
+                from datetime import datetime as _dt
                 iso      = clean_text(data.get("iso",[""])[0]) or date.today().isoformat()
                 capacity = clean_text(data.get("capacity",[""])[0])
                 message  = clean_text(data.get("message",[""])[0])
-                history_raw = clean_text(data.get("history",["[]"])[0])
                 settings_data = load_app_settings()
                 api_key = (settings_data.get("family_constraints",{}).get("anthropic_api_key","")
                            or settings_data.get("anthropic_api_key","")).strip()
@@ -859,22 +862,20 @@ class Handler(BaseHTTPRequestHandler):
                 except Exception:
                     weekday = date_label = iso
                 lucy_context = build_lucy_context(iso, weekday, date_label, capacity)
-                # Build message history for multi-turn
-                try:
-                    history = _json.loads(history_raw)
-                except Exception:
-                    history = []
-                # Keep only the last 10 turns and ensure it ends with the current user message
+                # ── Save user message to server-side history ──────────────────
+                ts_now = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                append_lucy_messages([{"role": "user", "content": message, "ts": ts_now}])
+                # ── Build Claude message list from server history ─────────────
+                server_history = load_lucy_history()
                 messages = []
-                for h in history[-10:]:
+                for h in server_history[-LUCY_CONTEXT_MAX:]:
                     role    = h.get("role","user")
                     content = h.get("content","")
                     if role in ("user","assistant") and content:
                         messages.append({"role": role, "content": content})
-                # The last entry is the current message (already in history from client)
-                # Ensure it's there
+                # Ensure conversation ends with user message
                 if not messages or messages[-1].get("role") != "user":
-                    messages.append({"role":"user","content":message})
+                    messages.append({"role": "user", "content": message})
                 payload = _json.dumps({
                     "model":      "claude-haiku-4-5-20251001",
                     "max_tokens": 1500,
@@ -897,12 +898,20 @@ class Handler(BaseHTTPRequestHandler):
                     text = result.get("content",[{}])[0].get("text","(No response)")
                 except Exception as e:
                     text = f"I ran into an issue: {e}"
+                # ── Save assistant response to server-side history ────────────
+                ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                append_lucy_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
                 self.send_response(200)
                 self.send_header("Content-Type","text/plain; charset=utf-8")
                 self.end_headers()
                 try: self.wfile.write(text.encode("utf-8"))
                 except BrokenPipeError: pass
                 return
+
+            elif path == "/lucy-clear-history":
+                from data_helpers import clear_lucy_history
+                clear_lucy_history()
+                redirect = "/lucy"
 
             elif path in ("/calendar-config-save","/calendar-save-config"):
                 apple_id=clean_text(data.get("apple_id",[""])[0]); app_password=clean_text(data.get("app_password",[""])[0])
