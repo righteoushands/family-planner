@@ -15,6 +15,11 @@ from data_helpers import (
 )
 from ui_helpers import html_page, page_header, render_status_message
 
+# ── Background refresh guards ─────────────────────────────────────────────────
+# Prevents duplicate background fetches when multiple threads hit a stale cache.
+_CALDAV_REFRESHING   = False
+_SUBSCRIBED_REFRESHING = False
+
 
 # ── CalDAV ────────────────────────────────────────────────────────────────────
 def fetch_caldav_events(apple_id: str, app_password: str, days_ahead: int = 14) -> list:
@@ -95,7 +100,26 @@ def fetch_caldav_events(apple_id: str, app_password: str, days_ahead: int = 14) 
         return []
 
 
+def _do_refresh_calendar():
+    """Background worker: fetch CalDAV events and update cache."""
+    global _CALDAV_REFRESHING
+    try:
+        from datetime import datetime as _dt
+        cfg = load_calendar_config()
+        apple_id = cfg.get("apple_id", ""); app_password = cfg.get("app_password", "")
+        if apple_id and app_password:
+            events = fetch_caldav_events(apple_id, app_password)
+            save_calendar_cache({"events": events, "fetched_at": _dt.now().isoformat()})
+    except Exception as e:
+        debug_log("CalDAV background refresh failed:", str(e))
+    finally:
+        _CALDAV_REFRESHING = False
+
+
 def refresh_calendar(force: bool = False) -> list:
+    """Return cached CalDAV events immediately; refresh in background if stale."""
+    global _CALDAV_REFRESHING
+    import threading as _threading
     from datetime import datetime as _dt
     cache      = load_calendar_cache()
     fetched_at = cache.get("fetched_at", "")
@@ -106,12 +130,9 @@ def refresh_calendar(force: bool = False) -> list:
             stale = (_dt.now() - _dt.fromisoformat(fetched_at)).total_seconds() > 1800
         except Exception:
             stale = True
-    if stale:
-        cfg = load_calendar_config()
-        apple_id = cfg.get("apple_id",""); app_password = cfg.get("app_password","")
-        if apple_id and app_password:
-            events = fetch_caldav_events(apple_id, app_password)
-            save_calendar_cache({"events": events, "fetched_at": _dt.now().isoformat()})
+    if stale and not _CALDAV_REFRESHING:
+        _CALDAV_REFRESHING = True
+        _threading.Thread(target=_do_refresh_calendar, daemon=True).start()
     return events
 
 
@@ -359,7 +380,31 @@ def fetch_ics_events(url: str, name: str, color: str = "#9b59b6") -> list:
         return []
 
 
+def _do_refresh_subscribed():
+    """Background worker: fetch all subscribed ICS calendars and update cache."""
+    global _SUBSCRIBED_REFRESHING
+    try:
+        from datetime import datetime as _dt
+        cals = load_subscribed_calendars()
+        fresh = []
+        for cal in cals:
+            if not cal.get("url") or not cal.get("enabled", True):
+                continue
+            fresh.extend(fetch_ics_events(
+                cal["url"], cal.get("name", "Calendar"), cal.get("color", "#9b59b6")
+            ))
+        fresh.sort(key=lambda e: e["start"])
+        save_subscribed_calendar_cache({"events": fresh, "fetched_at": _dt.now().isoformat()})
+    except Exception as e:
+        debug_log("Subscribed calendar background refresh failed:", str(e))
+    finally:
+        _SUBSCRIBED_REFRESHING = False
+
+
 def refresh_subscribed_calendars(force: bool = False) -> list:
+    """Return cached subscribed calendar events immediately; refresh in background if stale."""
+    global _SUBSCRIBED_REFRESHING
+    import threading as _threading
     from datetime import datetime as _dt
     cache      = load_subscribed_calendar_cache()
     fetched_at = cache.get("fetched_at", "")
@@ -370,18 +415,9 @@ def refresh_subscribed_calendars(force: bool = False) -> list:
             stale = (_dt.now() - _dt.fromisoformat(fetched_at)).total_seconds() > 1800
         except Exception:
             stale = True
-    if stale:
-        cals = load_subscribed_calendars()
-        fresh = []
-        for cal in cals:
-            if not cal.get("url") or not cal.get("enabled", True):
-                continue
-            fresh.extend(fetch_ics_events(
-                cal["url"], cal.get("name","Calendar"), cal.get("color","#9b59b6")
-            ))
-        fresh.sort(key=lambda e: e["start"])
-        save_subscribed_calendar_cache({"events": fresh, "fetched_at": _dt.now().isoformat()})
-        return fresh
+    if stale and not _SUBSCRIBED_REFRESHING:
+        _SUBSCRIBED_REFRESHING = True
+        _threading.Thread(target=_do_refresh_subscribed, daemon=True).start()
     return events
 
 
@@ -424,30 +460,17 @@ def render_event_pill(event: dict) -> str:
 def render_calendar_today_strip(iso: str = "") -> str:
     if not iso: iso = date.today().isoformat()
     cfg      = load_calendar_config()
-    subs     = load_subscribed_calendars()
     apple_id = cfg.get("apple_id", "")
+    subs     = load_subscribed_calendars()
 
     # No credentials and no subscriptions — show setup link
     if not apple_id and not subs:
         return "<div style='color:#aaa;font-size:0.85em;padding:4px 0;'><a href='/settings#s-integrations' style='color:#7c4a2d;'>Set up calendars →</a></div>"
 
-    # Merge cached iCloud events + live subscribed calendar events
-    cache       = load_calendar_cache()
-    caldav_events = cache.get("events", [])
-
-    # Always include subscribed .ics calendars (fast fetch, lightweight files)
-    ics_events = []
-    for cal in subs:
-        if not cal.get("url") or not cal.get("enabled", True):
-            continue
-        try:
-            ics_events.extend(fetch_ics_events(
-                cal["url"], cal.get("name","Calendar"), cal.get("color","#9b59b6")
-            ))
-        except Exception:
-            pass
-
-    all_events   = sorted(caldav_events + ics_events, key=lambda e: e["start"])
+    # Merge cached iCloud + cached subscribed calendar events (both refresh in background)
+    caldav_events = refresh_calendar()
+    ics_events    = refresh_subscribed_calendars()
+    all_events    = sorted(caldav_events + ics_events, key=lambda e: e["start"])
     today_events = events_for_date(all_events, iso)
 
     if not today_events:
