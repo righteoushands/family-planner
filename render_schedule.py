@@ -238,15 +238,254 @@ def render_child_schedule(child: str, target_date_str: str = "") -> str:
     return html_page(child, body)
 
 
+def render_child_dash_card(child: str, target_date_str: str = "") -> str:
+    """Compact dashboard card: carryover + first unchecked task, auto-advance on check."""
+    normalized_date = normalize_date_query(target_date_str)
+    packet     = generate_day_packet(normalized_date)
+    iso        = packet["iso"]
+    weekday    = packet["weekday"]
+    date_label = packet["date_label"]
+
+    payload  = build_schedule_payload(child, weekday, date_label, iso)
+    progress = load_progress()
+
+    c_bg    = child_color(child, "bg")
+    c_light = child_color(child, "light")
+    c_id    = child.lower().replace(" ", "-")
+
+    # ── Gather tasks ────────────────────────────────────────────────────────
+    carryover = payload.get("carryover_items", [])
+
+    # Non-carryover tasks in order: manual → school items → chores
+    queue = []
+    for item in payload.get("manual_task_items", []):
+        queue.append(dict(item, _section="Task"))
+    for block in payload.get("school_blocks", []):
+        subj = block.get("subject", "School")
+        for item in block.get("items", []):
+            queue.append(dict(item, _section=subj))
+    for item in payload.get("chore_items", []):
+        queue.append(dict(item, _section="Chore"))
+
+    total     = len(carryover) + len(queue)
+    done_cnt  = (sum(1 for i in carryover if _item_done(i, progress)) +
+                 sum(1 for i in queue     if _item_done(i, progress)))
+    remaining = total - done_cnt
+    pct       = round(done_cnt / total * 100) if total else 0
+    all_done  = total > 0 and done_cnt == total
+
+    bar_col = "#22c55e" if all_done else ("#f59e0b" if pct >= 50 else c_bg)
+
+    cb_url = f"/today?date={escape(iso)}"
+
+    # ── Carryover rows (always visible) ─────────────────────────────────────
+    carry_html = ""
+    if carryover:
+        carry_html = (
+            f'<div style="font-size:0.65em;font-weight:800;letter-spacing:.08em;'
+            f'text-transform:uppercase;color:#a07040;margin:8px 0 3px;">↩ Carryover</div>'
+        )
+        for item in carryover:
+            tid      = escape(item.get("task_id", ""))
+            is_done  = _item_done(item, progress)
+            checked  = "checked" if is_done else ""
+            nv       = "false" if is_done else "true"
+            done_sty = "opacity:.5;text-decoration:line-through;" if is_done else ""
+            done_d   = "1" if is_done else "0"
+            carry_html += (
+                f'<div class="dash-task" data-dash-child="{c_id}" data-done="{done_d}"'
+                f' id="task-{tid}" style="display:flex;align-items:flex-start;gap:8px;'
+                f'padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);">'
+                f'<input type="checkbox" id="lbl-{tid}" {checked}'
+                f' style="margin-top:3px;width:18px;height:18px;flex-shrink:0;accent-color:{c_bg};"'
+                f' onchange="toggleDashTask(this,\'{tid}\',\'{nv}\',\'{c_id}\',\'{escape(iso)}\')">'
+                f'<label for="lbl-{tid}" style="font-size:.88em;line-height:1.3;'
+                f'cursor:pointer;{done_sty}">{escape(item.get("text",""))}</label>'
+                f'</div>'
+            )
+
+    # ── Queue rows (first unchecked visible; rest hidden until advanced) ─────
+    queue_html = ""
+    found_first = False
+    for item in queue:
+        tid      = escape(item.get("task_id", ""))
+        is_done  = _item_done(item, progress)
+        checked  = "checked" if is_done else ""
+        nv       = "false" if is_done else "true"
+        section  = escape(item.get("_section", ""))
+        done_sty = "opacity:.5;text-decoration:line-through;" if is_done else ""
+        done_d   = "1" if is_done else "0"
+        # Visibility: hide completed; show only first pending
+        if is_done:
+            vis = "display:none;"
+        elif not found_first:
+            vis = ""
+            found_first = True
+        else:
+            vis = "display:none;"
+        queue_html += (
+            f'<div class="dash-task" data-dash-child="{c_id}" data-done="{done_d}"'
+            f' id="task-{tid}" style="display:flex;align-items:flex-start;gap:8px;'
+            f'padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);{vis}">'
+            f'<input type="checkbox" id="lbl-{tid}" {checked}'
+            f' style="margin-top:3px;width:18px;height:18px;flex-shrink:0;accent-color:{c_bg};"'
+            f' onchange="toggleDashTask(this,\'{tid}\',\'{nv}\',\'{c_id}\',\'{escape(iso)}\')">'
+            f'<div style="flex:1;min-width:0;">'
+            f'<div style="font-size:.62em;font-weight:800;letter-spacing:.07em;'
+            f'text-transform:uppercase;color:{c_bg};margin-bottom:1px;">{section}</div>'
+            f'<label for="lbl-{tid}" style="font-size:.88em;line-height:1.3;'
+            f'cursor:pointer;{done_sty}">{escape(item.get("text",""))}</label>'
+            f'</div></div>'
+        )
+
+    all_done_badge = (
+        '<div style="color:#166534;font-weight:700;font-size:.85em;background:#dcfce7;'
+        'padding:6px 12px;border-radius:8px;margin:4px 0;">✓ All done today!</div>'
+        if all_done else ""
+    )
+
+    return (
+        f'<div class="card" id="dash-card-{c_id}"'
+        f' style="border-left:4px solid {c_bg};background:{c_light};'
+        f'margin-bottom:10px;padding:12px 14px;">'
+
+        # Header
+        f'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'
+        f'<a href="/schedule/{escape(child)}?date={escape(iso)}"'
+        f' style="font-weight:700;color:{c_bg};font-size:1.05em;text-decoration:none;">'
+        f'{escape(child)}</a>'
+        f'<div style="display:flex;align-items:center;gap:10px;">'
+        f'<span id="dash-count-{c_id}" style="font-size:.75em;color:#888;">'
+        f'{"✓ done" if all_done else str(remaining)+" left"}</span>'
+        f'<a href="/schedule/{escape(child)}?date={escape(iso)}"'
+        f' style="font-size:.72em;color:var(--brown);font-weight:600;white-space:nowrap;">'
+        f'Full list →</a>'
+        f'</div></div>'
+
+        # Progress bar
+        f'<div style="height:4px;background:#e0d8d0;border-radius:2px;margin-bottom:8px;">'
+        f'<div id="dash-bar-{c_id}" style="height:100%;width:{pct}%;'
+        f'background:{bar_col};border-radius:2px;transition:width .3s;"></div></div>'
+
+        f'{all_done_badge}'
+        f'{carry_html}'
+        f'<div id="dash-queue-{c_id}">{queue_html}</div>'
+        f'</div>'
+    )
+
+
+_DASH_JS = """
+<script>
+function toggleDashTask(cb, tid, newVal, childId, iso) {
+    var row     = document.getElementById('task-' + tid);
+    var isDone  = (newVal === 'true');
+    if (row) {
+        row.setAttribute('data-done', isDone ? '1' : '0');
+        cb.setAttribute('onchange',
+            "toggleDashTask(this,'" + tid + "','" + (isDone?'false':'true') +
+            "','" + childId + "','" + iso + "')");
+        var lbl = row.querySelector('label');
+        if (lbl) lbl.style.cssText += isDone
+            ? 'opacity:.5;text-decoration:line-through;'
+            : 'opacity:1;text-decoration:none;';
+        if (isDone) setTimeout(function(){ row.style.display='none'; }, 400);
+    }
+    fetch('/toggle-task', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'task_id=' + encodeURIComponent(tid) +
+              '&new_value=' + encodeURIComponent(newVal) +
+              '&return_url=' + encodeURIComponent('/today?date=' + iso)
+    }).then(function(r) {
+        if (!r.ok) {
+            cb.checked = !cb.checked;
+            if (row) { row.setAttribute('data-done', isDone?'0':'1'); row.style.display=''; }
+        } else {
+            if (isDone) {
+                setTimeout(function(){ _dashAdvance(childId); }, 420);
+                _dashUpdateProgress(childId);
+            }
+        }
+    }).catch(function() {
+        cb.checked = !cb.checked;
+        if (row) { row.setAttribute('data-done', isDone?'0':'1'); row.style.display=''; }
+    });
+}
+
+function _dashAdvance(childId) {
+    var queue = document.getElementById('dash-queue-' + childId);
+    if (!queue) return;
+    var tasks = queue.querySelectorAll('.dash-task[data-dash-child="' + childId + '"]');
+    for (var i = 0; i < tasks.length; i++) {
+        if (tasks[i].getAttribute('data-done') === '0' &&
+            tasks[i].style.display === 'none') {
+            tasks[i].style.display = '';
+            break;
+        }
+    }
+}
+
+function _dashUpdateProgress(childId) {
+    var card = document.getElementById('dash-card-' + childId);
+    if (!card) return;
+    var all  = card.querySelectorAll('.dash-task');
+    var tot  = all.length, done = 0;
+    for (var i = 0; i < all.length; i++) {
+        if (all[i].getAttribute('data-done') === '1') done++;
+    }
+    var pct = tot > 0 ? Math.round(done / tot * 100) : 0;
+    var bar = document.getElementById('dash-bar-' + childId);
+    if (bar) { bar.style.width = pct + '%';
+               bar.style.background = pct === 100 ? '#22c55e' : pct >= 50 ? '#f59e0b' : bar.style.background; }
+    var cnt = document.getElementById('dash-count-' + childId);
+    if (cnt) cnt.textContent = pct === 100 ? '✓ done' : (tot - done) + ' left';
+}
+</script>"""
+
+
 def render_today_all(target_date_str: str = "") -> str:
     normalized_date = normalize_date_query(target_date_str)
     try:
         target_iso = date.fromisoformat(normalized_date)
     except Exception:
         target_iso = date.today()
-    bar  = render_daily_bar(target_iso)
-    html = "".join(render_child_schedule_card(child, normalized_date) for child in CHILDREN)
-    return html_page("Today", f"{page_header('Today')}{bar}{html}")
+
+    bar       = render_daily_bar(target_iso)
+    day_nav   = render_day_nav("/today", normalized_date)
+    cards_html = "".join(
+        render_child_dash_card(child, normalized_date) for child in CHILDREN
+    )
+
+    # "What's happening now" quick strip
+    try:
+        from render_schedule_support import get_current_slot
+        from data_helpers import load_family_schedule
+        _sched = load_family_schedule()
+        _cur_label, _now_label, _next_label, _next_act = get_current_slot(_sched)
+    except Exception:
+        _now_label = ""
+
+    now_strip = (
+        f'<div style="background:var(--gold-light);border:1px solid var(--border);'
+        f'border-radius:10px;padding:8px 14px;margin-bottom:12px;'
+        f'font-size:.85em;font-weight:600;color:var(--ink);">'
+        f'🕐 Now: {escape(_now_label)}'
+        f'&nbsp;&nbsp;<a href="/now" style="font-size:.78em;font-weight:400;'
+        f'color:var(--brown);">Family view →</a></div>'
+        if _now_label else
+        f'<div style="text-align:right;margin-bottom:8px;">'
+        f'<a href="/now" style="font-size:.78em;color:var(--brown);">Family now →</a></div>'
+    )
+
+    body = (
+        f'{page_header("Today")}'
+        f'{bar}'
+        f'{day_nav}'
+        f'{now_strip}'
+        f'{cards_html}'
+        f'{_DASH_JS}'
+    )
+    return html_page("Today", body)
 
 
 def render_week() -> str:

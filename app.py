@@ -43,7 +43,7 @@ from render_chores import render_chores_page, render_van_roles_page, apply_laund
 from render_misc import (
     render_dashboard, render_mom_page, render_notes, render_tasks,
     render_roadmap_page, render_planner_page, render_history_page,
-    render_school_page, render_school_edit_page,
+    render_school_page, render_school_edit_page, render_now_page,
 )
 from render_settings import render_settings_page, load_app_settings, save_app_settings
 from render_signup import render_signup_page, render_waitlist_admin, save_signup
@@ -74,6 +74,7 @@ class Handler(BaseHTTPRequestHandler):
 
         if   path == "/":                body = render_dashboard()
         elif path == "/today":           body = render_today_all(query.get("date",[""])[0])
+        elif path == "/now":             body = render_now_page()
         elif path == "/week":            body = render_week()
         elif path == "/school":          body = render_school_page()
         elif path == "/kids-week":

@@ -757,6 +757,90 @@ def _section_integrations() -> str:
     </div>"""
 
 
+def _lucy_knowledge_summary(settings: dict) -> str:
+    """A quick-scan card showing what Lucy currently has access to."""
+    c = settings.get("family_constraints", {})
+    api_key = c.get("anthropic_api_key", "")
+
+    def _chip(label: str, value: str, color: str = "#27ae60") -> str:
+        has = bool(value.strip()) if isinstance(value, str) else bool(value)
+        col  = color if has else "#aaa"
+        icon = "✓" if has else "○"
+        bg   = "#dcfce7" if has else "#f3f4f6"
+        txt  = "#166534" if has else "#6b7280"
+        return (
+            f'<span style="display:inline-flex;align-items:center;gap:4px;'
+            f'background:{bg};color:{txt};border-radius:20px;padding:3px 10px;'
+            f'font-size:.72em;font-weight:700;margin:3px 3px 3px 0;white-space:nowrap;">'
+            f'{icon} {escape(label)}</span>'
+        )
+
+    # Build chips
+    fields = [
+        ("API Key",          api_key),
+        ("James schedule",   c.get("james_schedule", "")),
+        ("Supervision rules",c.get("supervision_rules", "")),
+        ("Independence",     c.get("independence_notes", "")),
+        ("School durations", c.get("school_durations", "")),
+        ("Mom subjects",     c.get("mom_supervision_subjects", "")),
+        ("Meal prep",        c.get("meal_prep", "")),
+        ("Exercise",         c.get("family_exercise", "")),
+        ("Other notes",      c.get("other_notes", "")),
+    ]
+    chips = "".join(_chip(label, val) for label, val in fields)
+
+    rules = c.get("lucy_rules", [])
+    rules_chip = (
+        f'<span style="display:inline-flex;align-items:center;gap:4px;'
+        f'background:#dbeafe;color:#1e40af;border-radius:20px;padding:3px 10px;'
+        f'font-size:.72em;font-weight:700;margin:3px 3px 3px 0;">'
+        f'📋 {len(rules)} standing rule{"s" if len(rules) != 1 else ""}</span>'
+    ) if rules else _chip("No Lucy rules yet", "")
+
+    # Build a plain-English "briefing" summary
+    summary_parts = []
+    if c.get("james_schedule"):
+        summary_parts.append(f"James: {c['james_schedule'][:60].rstrip()}")
+    if c.get("supervision_rules"):
+        summary_parts.append(f"Supervision: {c['supervision_rules'][:60].rstrip()}")
+    if c.get("other_notes"):
+        summary_parts.append(f"Notes: {c['other_notes'][:80].rstrip()}")
+    for rule in rules[:3]:
+        summary_parts.append(f"Rule: {rule[:70].rstrip()}")
+
+    preview_html = ""
+    if summary_parts:
+        items = "".join(
+            f'<li style="font-size:.78em;color:var(--ink-muted);line-height:1.5;margin-bottom:2px;">'
+            f'{escape(p)}</li>'
+            for p in summary_parts
+        )
+        more = f' <span style="color:#aaa;font-size:.72em;">(+{len(summary_parts)-3} more)</span>' if len(summary_parts) > 3 else ""
+        preview_html = f'<ul style="margin:6px 0 0 14px;padding:0;">{items}</ul>{more}'
+
+    key_status = (
+        '<span style="font-size:.72em;font-weight:700;color:#166534;background:#dcfce7;'
+        'padding:2px 10px;border-radius:10px;">✓ Connected</span>'
+        if api_key else
+        '<span style="font-size:.72em;font-weight:700;color:#92400e;background:#fef3c7;'
+        'padding:2px 10px;border-radius:10px;">⚠ No API key</span>'
+    )
+
+    return f"""
+<div style="background:var(--gold-light);border:1.5px solid var(--gold-mid);
+            border-radius:12px;padding:14px 16px;margin-bottom:18px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+    <div style="font-weight:700;font-size:.88em;color:var(--ink);">🤖 What Lucy knows right now</div>
+    {key_status}
+  </div>
+  <div style="margin-bottom:6px;">{chips} {rules_chip}</div>
+  {preview_html}
+  <div style="font-size:.7em;color:#aaa;margin-top:8px;">
+    Fill in any ○ fields below — Lucy reads these every time you chat.
+  </div>
+</div>"""
+
+
 def _lucy_rules_section(rules: list) -> str:
     """Render the list of Lucy-set standing rules with delete buttons."""
     if not rules:
@@ -810,10 +894,7 @@ def _section_constraints(settings: dict) -> str:
     return f"""
     <div class="settings-section" id="s-constraints">
         <h2>Family Constraints <span class="small" style="font-weight:400;">— used by the AI scheduling assistant</span></h2>
-        <p class="small" style="margin-bottom:20px;">
-            Fill these in once. The AI reads them every time you ask a scheduling question,
-            so it can make practical suggestions about who does what when.
-        </p>
+        {_lucy_knowledge_summary(settings)}
 
         <h3>Anthropic API Key</h3>
         <p class="small" style="margin-bottom:8px;">
@@ -1015,154 +1096,162 @@ def render_settings_page(status_message: str = "") -> str:
 </div>"""
 
     # ── Accordion panels ──────────────────────────────────────────────────────
+    # Each section is wrapped in a div.settings-panel-outer[data-sid] for ordering.
     panels = ""
 
-    panels += _accordion(
-        section_id="s-app",
-        number="1",
-        title="App & Display",
-        summary="Family name, timezone, location, and color theme.",
-        detail=(
-            "<strong>General</strong> sets the family name shown in page headers, your timezone "
-            "(which controls the Now/Next strip and schedule highlighting), and your city or zip "
-            "for weather on the daily bar.<br><br>"
-            "<strong>App Color Theme</strong> lets you choose how the app looks. The "
-            "<em>Liturgical Seasons</em> option automatically shifts colors with the Church calendar — "
-            "violet for Advent, gold for Christmas, purple for Lent, crimson for Holy Week, "
-            "bright gold for Easter, and green for Ordinary Time.<br><br>"
-            "<strong>Children &amp; Colors</strong> — assign each child a color used throughout "
-            "the app (schedules, chores, virtue tracker, school planner).<br><br>"
-            "<strong>Daily Bar</strong> — configure what each child's countdown clock tracks "
-            "(birthdays, milestones), and set schedule display hours.<br><br>"
-            "<strong>Liturgy of the Hours</strong> — enable the dashboard widget showing "
-            "which office is due now, and toggle auto-download on Sundays so the week's "
-            "prayers are ready offline."
-        ),
-        open_by_default=True,
-        color="var(--brown)",
-    )
-    panels += f"""
-<details id="s-app-wrap" open
-  style="border:1.5px solid var(--border);border-radius:0 0 14px 14px;margin-top:-10px;
-         margin-bottom:10px;overflow:hidden;border-top:none;">
-  <div style="padding:20px;">{grp_app}</div>
-</details>"""
+    def _panel(sid: str, acc_html: str, content_open: bool, content_html: str) -> str:
+        open_attr = "open" if content_open else ""
+        return (
+            f'<div class="settings-panel-outer" data-sid="{sid}">'
+            f'{acc_html}'
+            f'<details id="{sid}-wrap" {open_attr}'
+            f' style="border:1.5px solid var(--border);border-radius:0 0 14px 14px;'
+            f'margin-top:-10px;margin-bottom:10px;overflow:hidden;border-top:none;">'
+            f'<div style="padding:20px;">{content_html}</div>'
+            f'</details></div>'
+        )
 
-    panels += _accordion(
-        section_id="s-planning",
-        number="2",
-        title="AI & Planning",
-        summary="Anthropic API key, family constraints for AI scheduling, and meal planning rules.",
-        detail=(
-            "<strong>Anthropic API Key</strong> — required for all AI features: weekly briefings, "
-            "virtue content generation, goal step planning, journal prompts, and the 5AM Club AI. "
-            "Get a free key at <a href='https://console.anthropic.com' target='_blank' "
-            "style='color:var(--brown);'>console.anthropic.com</a> → API Keys. "
-            "The app uses Claude Haiku for most features (very low cost, typically &lt;$1/month "
-            "for daily use).<br><br>"
-            "<strong>Family Constraints</strong> — fill these in once. Every time you use the AI "
-            "scheduling assistant, it reads these fields to make practical suggestions: who can "
-            "supervise, how long each child works independently, which subjects need Mom, "
-            "meal prep times, and co-op schedules.<br><br>"
-            "<strong>Meal Planning Rules</strong> — standing rules the meal planner respects: "
-            "dietary restrictions, rotation preferences, prep constraints. The AI reads these "
-            "when suggesting weekly menus. See also: "
-            "<a href='/meals' style='color:var(--brown);'>Meal Planner</a> · "
-            "<a href='/recipes' style='color:var(--brown);'>Recipe Library</a>."
+    panels += _panel(
+        "s-app",
+        _accordion(
+            section_id="s-app",
+            number="1",
+            title="App & Display",
+            summary="Family name, timezone, location, and color theme.",
+            detail=(
+                "<strong>General</strong> sets the family name shown in page headers, your timezone "
+                "(which controls the Now/Next strip and schedule highlighting), and your city or zip "
+                "for weather on the daily bar.<br><br>"
+                "<strong>App Color Theme</strong> lets you choose how the app looks. The "
+                "<em>Liturgical Seasons</em> option automatically shifts colors with the Church calendar — "
+                "violet for Advent, gold for Christmas, purple for Lent, crimson for Holy Week, "
+                "bright gold for Easter, and green for Ordinary Time.<br><br>"
+                "<strong>Children &amp; Colors</strong> — assign each child a color used throughout "
+                "the app (schedules, chores, virtue tracker, school planner).<br><br>"
+                "<strong>Daily Bar</strong> — configure what each child's countdown clock tracks "
+                "(birthdays, milestones), and set schedule display hours.<br><br>"
+                "<strong>Liturgy of the Hours</strong> — enable the dashboard widget showing "
+                "which office is due now, and toggle auto-download on Sundays so the week's "
+                "prayers are ready offline."
+            ),
+            open_by_default=True,
+            color="var(--brown)",
         ),
-        color="#2980b9",
+        content_open=True,
+        content_html=grp_app,
     )
-    panels += f"""
-<details id="s-planning-wrap"
-  style="border:1.5px solid var(--border);border-radius:0 0 14px 14px;margin-top:-10px;
-         margin-bottom:10px;overflow:hidden;border-top:none;">
-  <div style="padding:20px;">{grp_ai}</div>
-</details>"""
 
-    panels += _accordion(
-        section_id="s-cycle",
-        number="3",
-        title="Cycle Tracking",
-        summary="Private cycle log, phase display, and detail field preferences.",
-        detail=(
-            "Cycle tracking is completely private — never visible to family members or on shared screens. "
-            "It powers the cycle phase overlays in the weekly planner, the dashboard prediction panel, "
-            "and the 5AM Club reflect section.<br><br>"
-            "<strong>Cycle log</strong> — record Day 1 dates to build a history. The app calculates "
-            "your average cycle length and predicts upcoming phases and fertile windows.<br><br>"
-            "<strong>Detail fields</strong> — toggle whether the full symptom/mood/energy fields "
-            "appear in the Plan My Day cycle step. Turn off for a simpler view.<br><br>"
-            "Learn more: "
-            "<a href='https://www.fertilitycare.org' target='_blank' style='color:var(--brown);'>"
-            "FertilityCare (NFP)</a> · "
-            "<a href='https://creightonmodel.com' target='_blank' style='color:var(--brown);'>"
-            "Creighton Model</a>"
+    panels += _panel(
+        "s-planning",
+        _accordion(
+            section_id="s-planning",
+            number="2",
+            title="AI & Planning",
+            summary="Anthropic API key, family constraints for AI scheduling, and meal planning rules.",
+            detail=(
+                "<strong>Anthropic API Key</strong> — required for all AI features: weekly briefings, "
+                "virtue content generation, goal step planning, journal prompts, and the 5AM Club AI. "
+                "Get a free key at <a href='https://console.anthropic.com' target='_blank' "
+                "style='color:var(--brown);'>console.anthropic.com</a> → API Keys. "
+                "The app uses Claude Haiku for most features (very low cost, typically &lt;$1/month "
+                "for daily use).<br><br>"
+                "<strong>Family Constraints</strong> — fill these in once. Every time you use the AI "
+                "scheduling assistant, it reads these fields to make practical suggestions: who can "
+                "supervise, how long each child works independently, which subjects need Mom, "
+                "meal prep times, and co-op schedules.<br><br>"
+                "<strong>Meal Planning Rules</strong> — standing rules the meal planner respects: "
+                "dietary restrictions, rotation preferences, prep constraints. The AI reads these "
+                "when suggesting weekly menus. See also: "
+                "<a href='/meals' style='color:var(--brown);'>Meal Planner</a> · "
+                "<a href='/recipes' style='color:var(--brown);'>Recipe Library</a>."
+            ),
+            color="#2980b9",
         ),
-        color="#8e44ad",
+        content_open=False,
+        content_html=grp_ai,
     )
-    panels += f"""
-<details id="s-cycle-wrap"
-  style="border:1.5px solid var(--border);border-radius:0 0 14px 14px;margin-top:-10px;
-         margin-bottom:10px;overflow:hidden;border-top:none;">
-  <div style="padding:20px;">{grp_cycle}</div>
-</details>"""
 
-    panels += _accordion(
-        section_id="s-household",
-        number="4",
-        title="Household Systems",
-        summary="Laundry rotation, van cleaning schedule, and the weekly family schedule grid.",
-        detail=(
-            "<strong>Laundry System</strong> — a locked weekly rotation assigns each day's laundry "
-            "to a specific person. This section is read-only reference; the rotation is built into "
-            "the app. See the chores page for daily assignments.<br><br>"
-            "<strong>Van Cleaning Rotation</strong> — a 3-week rotation with Role A (vacuum) and "
-            "Role B (wipe-down). Set the epoch date once and the app tracks which week you're in. "
-            "Current week and roles are shown live.<br><br>"
-            "<strong>Weekly Family Schedule Grid</strong> — a full Monday–Saturday, 30-minute "
-            "slot grid. Enter standing commitments: co-op, music lessons, sports, appointments. "
-            "The AI scheduling assistant reads this grid when planning your day. "
-            "The current time slot is highlighted orange.<br><br>"
-            "See also: <a href='/chores' style='color:var(--brown);'>Chores</a> · "
-            "<a href='/tasks' style='color:var(--brown);'>Tasks</a>"
+    panels += _panel(
+        "s-cycle",
+        _accordion(
+            section_id="s-cycle",
+            number="3",
+            title="Cycle Tracking",
+            summary="Private cycle log, phase display, and detail field preferences.",
+            detail=(
+                "Cycle tracking is completely private — never visible to family members or on shared screens. "
+                "It powers the cycle phase overlays in the weekly planner, the dashboard prediction panel, "
+                "and the 5AM Club reflect section.<br><br>"
+                "<strong>Cycle log</strong> — record Day 1 dates to build a history. The app calculates "
+                "your average cycle length and predicts upcoming phases and fertile windows.<br><br>"
+                "<strong>Detail fields</strong> — toggle whether the full symptom/mood/energy fields "
+                "appear in the Plan My Day cycle step. Turn off for a simpler view.<br><br>"
+                "Learn more: "
+                "<a href='https://www.fertilitycare.org' target='_blank' style='color:var(--brown);'>"
+                "FertilityCare (NFP)</a> · "
+                "<a href='https://creightonmodel.com' target='_blank' style='color:var(--brown);'>"
+                "Creighton Model</a>"
+            ),
+            color="#8e44ad",
         ),
-        color="#27ae60",
+        content_open=False,
+        content_html=grp_cycle,
     )
-    panels += f"""
-<details id="s-household-wrap"
-  style="border:1.5px solid var(--border);border-radius:0 0 14px 14px;margin-top:-10px;
-         margin-bottom:10px;overflow:hidden;border-top:none;">
-  <div style="padding:20px;">{grp_systems}</div>
-</details>"""
 
-    panels += _accordion(
-        section_id="s-integrations",
-        number="5",
-        title="Integrations",
-        summary="iCloud Calendar connection and .ics feed subscriptions.",
-        detail=(
-            "<strong>iCloud Calendar</strong> — connect with your Apple ID and an app-specific "
-            "password (not your regular Apple password). This pulls your iCloud calendar events "
-            "into the app's dashboard, weekly planner, and Plan My Day calendar step.<br><br>"
-            "To generate an app-specific password: go to "
-            "<a href='https://appleid.apple.com' target='_blank' style='color:var(--brown);'>"
-            "appleid.apple.com</a> → Sign-In &amp; Security → App-Specific Passwords → "
-            "Generate. Label it 'Sancta Familia' for easy reference.<br><br>"
-            "<strong>Subscribed Calendars (.ics)</strong> — paste any public .ics URL: school "
-            "calendars, parish events, sports leagues, Proton Calendar, or Google Calendar "
-            "(share link → copy ICS URL). No login required. Events appear in the same "
-            "calendar views as iCloud events, color-coded by calendar.<br><br>"
-            "Compatible sources: Apple Calendar · Google Calendar · Proton Calendar · "
-            "school/parish websites that publish .ics feeds."
+    panels += _panel(
+        "s-household",
+        _accordion(
+            section_id="s-household",
+            number="4",
+            title="Household Systems",
+            summary="Laundry rotation, van cleaning schedule, and the weekly family schedule grid.",
+            detail=(
+                "<strong>Laundry System</strong> — a locked weekly rotation assigns each day's laundry "
+                "to a specific person. This section is read-only reference; the rotation is built into "
+                "the app. See the chores page for daily assignments.<br><br>"
+                "<strong>Van Cleaning Rotation</strong> — a 3-week rotation with Role A (vacuum) and "
+                "Role B (wipe-down). Set the epoch date once and the app tracks which week you're in. "
+                "Current week and roles are shown live.<br><br>"
+                "<strong>Weekly Family Schedule Grid</strong> — a full Monday–Saturday, 30-minute "
+                "slot grid. Enter standing commitments: co-op, music lessons, sports, appointments. "
+                "The AI scheduling assistant reads this grid when planning your day. "
+                "The current time slot is highlighted orange.<br><br>"
+                "See also: <a href='/chores' style='color:var(--brown);'>Chores</a> · "
+                "<a href='/tasks' style='color:var(--brown);'>Tasks</a>"
+            ),
+            color="#27ae60",
         ),
-        color="#e67e22",
+        content_open=False,
+        content_html=grp_systems,
     )
-    panels += f"""
-<details id="s-integrations-wrap"
-  style="border:1.5px solid var(--border);border-radius:0 0 14px 14px;margin-top:-10px;
-         margin-bottom:10px;overflow:hidden;border-top:none;">
-  <div style="padding:20px;">{grp_integrations}</div>
-</details>"""
+
+    panels += _panel(
+        "s-integrations",
+        _accordion(
+            section_id="s-integrations",
+            number="5",
+            title="Integrations",
+            summary="iCloud Calendar connection and .ics feed subscriptions.",
+            detail=(
+                "<strong>iCloud Calendar</strong> — connect with your Apple ID and an app-specific "
+                "password (not your regular Apple password). This pulls your iCloud calendar events "
+                "into the app's dashboard, weekly planner, and Plan My Day calendar step.<br><br>"
+                "To generate an app-specific password: go to "
+                "<a href='https://appleid.apple.com' target='_blank' style='color:var(--brown);'>"
+                "appleid.apple.com</a> → Sign-In &amp; Security → App-Specific Passwords → "
+                "Generate. Label it 'Sancta Familia' for easy reference.<br><br>"
+                "<strong>Subscribed Calendars (.ics)</strong> — paste any public .ics URL: school "
+                "calendars, parish events, sports leagues, Proton Calendar, or Google Calendar "
+                "(share link → copy ICS URL). No login required. Events appear in the same "
+                "calendar views as iCloud events, color-coded by calendar.<br><br>"
+                "Compatible sources: Apple Calendar · Google Calendar · Proton Calendar · "
+                "school/parish websites that publish .ics feeds."
+            ),
+            color="#e67e22",
+        ),
+        content_open=False,
+        content_html=grp_integrations,
+    )
 
     # ── Quick links bar ───────────────────────────────────────────────────────
     quick_links = """
@@ -1326,6 +1415,82 @@ document.querySelectorAll('details[id$="-wrap"]').forEach(function(d) {
   var chevron = document.getElementById('chevron-' + id);
   if (chevron && d.open) chevron.style.transform = 'rotate(180deg)';
 });
+
+// ── Quick-jump nav ────────────────────────────────────────────────────────────
+function jumpSection(sid) {
+  var panel = document.querySelector('.settings-panel-outer[data-sid="' + sid + '"]');
+  if (!panel) return;
+  var wraps = panel.querySelectorAll('details');
+  wraps.forEach(function(d) { d.open = true; });
+  setTimeout(function() {
+    panel.scrollIntoView({behavior: 'smooth', block: 'start'});
+  }, 80);
+}
+
+// ── Section ordering (up/down arrows, saved to localStorage) ─────────────────
+var SETTINGS_ORDER_KEY = 'sf-settings-order';
+var DEFAULT_ORDER = ['s-app','s-planning','s-cycle','s-household','s-integrations'];
+
+function _getOrder() {
+  try {
+    var stored = JSON.parse(localStorage.getItem(SETTINGS_ORDER_KEY) || 'null');
+    if (Array.isArray(stored) && stored.length === DEFAULT_ORDER.length) return stored;
+  } catch(e) {}
+  return DEFAULT_ORDER.slice();
+}
+
+function _applyOrder(order) {
+  var container = document.getElementById('settings-panels');
+  if (!container) return;
+  order.forEach(function(sid) {
+    var el = container.querySelector('.settings-panel-outer[data-sid="' + sid + '"]');
+    if (el) container.appendChild(el);
+  });
+}
+
+function _moveSection(sid, dir) {
+  var order = _getOrder();
+  var idx   = order.indexOf(sid);
+  if (idx < 0) return;
+  var newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= order.length) return;
+  var tmp = order[idx]; order[idx] = order[newIdx]; order[newIdx] = tmp;
+  localStorage.setItem(SETTINGS_ORDER_KEY, JSON.stringify(order));
+  _applyOrder(order);
+  _injectOrderButtons();
+}
+
+function _injectOrderButtons() {
+  var order = _getOrder();
+  document.querySelectorAll('.settings-panel-outer').forEach(function(panel) {
+    var sid = panel.getAttribute('data-sid');
+    var existing = panel.querySelector('.section-order-btns');
+    if (existing) existing.remove();
+    var idx = order.indexOf(sid);
+    var len = order.length;
+    var upBtn = idx > 0
+      ? '<button onclick="_moveSection(\'' + sid + '\',-1)" title="Move up"'
+        + ' style="background:none;border:none;cursor:pointer;font-size:.82em;'
+        + 'color:var(--brown);padding:0 4px;">&#9650;</button>'
+      : '<span style="display:inline-block;width:22px;"></span>';
+    var dnBtn = idx < len - 1
+      ? '<button onclick="_moveSection(\'' + sid + '\',1)" title="Move down"'
+        + ' style="background:none;border:none;cursor:pointer;font-size:.82em;'
+        + 'color:var(--brown);padding:0 4px;">&#9660;</button>'
+      : '<span style="display:inline-block;width:22px;"></span>';
+    var btns = document.createElement('div');
+    btns.className = 'section-order-btns';
+    btns.style.cssText = 'display:inline-flex;align-items:center;gap:2px;margin-left:6px;';
+    btns.innerHTML = upBtn + dnBtn;
+    var summaryDiv = panel.querySelector('summary > div:first-of-type');
+    if (summaryDiv) summaryDiv.appendChild(btns);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  _applyOrder(_getOrder());
+  _injectOrderButtons();
+});
 </script>"""
 
     # ── Color picker JS (needed by _section_general) ──────────────────────────
@@ -1388,8 +1553,36 @@ function applyPreset(ce, bg, light) {
   </div>
 </div>
 
+<!-- Quick-jump nav -->
+<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;
+            display:flex;gap:6px;padding:0 0 12px;margin-bottom:4px;
+            scrollbar-width:none;">
+  <a href="#" onclick="jumpSection('s-app');return false;"
+     style="flex-shrink:0;padding:5px 12px;background:var(--parchment);
+            border:1.5px solid var(--border);border-radius:20px;font-size:.75em;
+            font-weight:700;text-decoration:none;color:var(--ink);">⚙ App</a>
+  <a href="#" onclick="jumpSection('s-planning');return false;"
+     style="flex-shrink:0;padding:5px 12px;background:#eaf4fb;
+            border:1.5px solid #2980b9;border-radius:20px;font-size:.75em;
+            font-weight:700;text-decoration:none;color:#2980b9;">🤖 AI</a>
+  <a href="#" onclick="jumpSection('s-cycle');return false;"
+     style="flex-shrink:0;padding:5px 12px;background:#f5eefa;
+            border:1.5px solid #8e44ad;border-radius:20px;font-size:.75em;
+            font-weight:700;text-decoration:none;color:#8e44ad;">🌙 Cycle</a>
+  <a href="#" onclick="jumpSection('s-household');return false;"
+     style="flex-shrink:0;padding:5px 12px;background:#edfaf3;
+            border:1.5px solid #27ae60;border-radius:20px;font-size:.75em;
+            font-weight:700;text-decoration:none;color:#27ae60;">🏠 Household</a>
+  <a href="#" onclick="jumpSection('s-integrations');return false;"
+     style="flex-shrink:0;padding:5px 12px;background:#fef6ed;
+            border:1.5px solid #e67e22;border-radius:20px;font-size:.75em;
+            font-weight:700;text-decoration:none;color:#e67e22;">📅 Calendars</a>
+</div>
+
 {quick_links}
+<div id="settings-panels">
 {panels}
+</div>
 {js}
 """
     return html_page("Settings", body)

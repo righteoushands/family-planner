@@ -1205,6 +1205,178 @@ def render_dashboard() -> str:
     return html_page("Dashboard", body)
 
 
+# ── Family Now page ──────────────────────────────────────────────────────────
+def render_now_page() -> str:
+    """
+    /now — Clean full-page view of what every family member is doing right now.
+    Shows the current schedule slot, next slot, and first unchecked task per person.
+    """
+    from datetime import datetime as _dt
+    from render_schedule_support import get_current_slot, get_eastern_now
+    from data_helpers import load_family_schedule, load_progress
+    from daily_schedule_engine import CHILDREN, build_schedule_payload
+    from render_schedule import _item_done
+    from config import child_color
+
+    now     = get_eastern_now()
+    weekday = now.strftime("%A")
+    time_str = now.strftime("%-I:%M %p")
+
+    schedule = load_family_schedule()
+    cur_slot, cur_act, nxt_slot, nxt_act = get_current_slot(schedule)
+    all_slots = schedule.get("days", {}).get(weekday, {})
+    progress  = load_progress()
+
+    iso = now.strftime("%Y-%m-%d")
+    date_label = now.strftime("%B %-d")
+
+    def _person_card(name: str, bg: str, light: str, link: str,
+                     now_activity: str, next_activity: str,
+                     first_task: str, task_section: str,
+                     done_cnt: int, total: int) -> str:
+        pct = round(done_cnt / total * 100) if total else 0
+        prog = (
+            f'<div style="height:3px;background:#e0d8d0;border-radius:2px;margin:6px 0 2px;">'
+            f'<div style="height:3px;background:{bg};border-radius:2px;width:{pct}%;transition:width .3s;"></div></div>'
+            f'<div style="font-size:.65em;color:#aaa;">{done_cnt}/{total} done</div>'
+        ) if total else ""
+
+        now_html = (
+            f'<div style="font-size:.82em;font-weight:600;color:{bg};">{escape(now_activity)}</div>'
+            if now_activity else
+            f'<div style="font-size:.82em;color:#aaa;font-style:italic;">No schedule entry</div>'
+        )
+        next_html = (
+            f'<div style="font-size:.72em;color:#888;margin-top:2px;">Next: {escape(next_activity)}</div>'
+            if next_activity else ""
+        )
+        task_html = (
+            f'<div style="margin-top:8px;padding:6px 8px;background:white;border-radius:6px;'
+            f'border:1px solid {bg}22;">'
+            f'<div style="font-size:.62em;font-weight:800;letter-spacing:.07em;'
+            f'text-transform:uppercase;color:{bg};margin-bottom:2px;">{escape(task_section)}</div>'
+            f'<div style="font-size:.82em;color:#333;line-height:1.3;">{escape(first_task)}</div>'
+            f'</div>'
+        ) if first_task else ""
+
+        return (
+            f'<a href="{link}" style="text-decoration:none;display:block;">'
+            f'<div style="background:{light};border-left:4px solid {bg};border-radius:0 10px 10px 0;'
+            f'padding:12px 14px;margin-bottom:10px;">'
+            f'<div style="font-weight:700;font-size:1em;color:{bg};margin-bottom:6px;">{escape(name)}</div>'
+            f'{now_html}{next_html}'
+            f'{prog}'
+            f'{task_html}'
+            f'</div></a>'
+        )
+
+    cards_html = ""
+
+    # Mom card
+    mom_bg    = "#7c5a38"
+    mom_light = "#fdf8f1"
+    try:
+        from render_daily_plan import load_daily_plan
+        _plan  = load_daily_plan(iso)
+        _items = _plan.get("items", [])
+        _undone = [i for i in _items if not i.get("done")]
+        mom_task = _undone[0].get("text", "") if _undone else ""
+        mom_task_sec = "Plan item" if mom_task else ""
+        mom_done = sum(1 for i in _items if i.get("done"))
+        mom_total = len(_items)
+    except Exception:
+        mom_task = mom_task_sec = ""
+        mom_done = mom_total = 0
+    cards_html += _person_card(
+        "Mom", mom_bg, mom_light, "/mom",
+        cur_act, nxt_act, mom_task, mom_task_sec, mom_done, mom_total
+    )
+
+    # Children cards
+    for child in CHILDREN:
+        c_bg    = child_color(child, "bg")
+        c_light = child_color(child, "light")
+        try:
+            payload = build_schedule_payload(child, weekday, date_label, iso)
+        except Exception:
+            payload = {}
+        # First unchecked task
+        first_task = first_sec = ""
+        for item in payload.get("carryover_items", []):
+            if not _item_done(item, progress):
+                first_task = item.get("text", "")
+                first_sec  = "Carryover"
+                break
+        if not first_task:
+            for item in payload.get("manual_task_items", []):
+                if not _item_done(item, progress):
+                    first_task = item.get("text", "")
+                    first_sec  = "Task"
+                    break
+        if not first_task:
+            for block in payload.get("school_blocks", []):
+                for item in block.get("items", []):
+                    if not _item_done(item, progress):
+                        first_task = item.get("text", "")
+                        first_sec  = block.get("subject", "School")
+                        break
+                if first_task:
+                    break
+        if not first_task:
+            for item in payload.get("chore_items", []):
+                if not _item_done(item, progress):
+                    first_task = item.get("text", "")
+                    first_sec  = "Chore"
+                    break
+        # Progress
+        all_items = list(payload.get("carryover_items", []))
+        all_items += payload.get("manual_task_items", [])
+        for block in payload.get("school_blocks", []):
+            all_items.extend(block.get("items", []))
+        all_items += payload.get("chore_items", [])
+        total     = len(all_items)
+        done_cnt  = sum(1 for i in all_items if _item_done(i, progress))
+        cards_html += _person_card(
+            child, c_bg, c_light, f"/schedule/{escape(child)}?date={iso}",
+            cur_act, nxt_act, first_task, first_sec, done_cnt, total
+        )
+
+    # James card
+    james_bg    = child_color("James", "bg")
+    james_light = child_color("James", "light")
+    try:
+        from render_settings import load_app_settings as _las
+        _james_sched = _las().get("family_constraints", {}).get("james_schedule", "")
+    except Exception:
+        _james_sched = ""
+    cards_html += _person_card(
+        "James", james_bg, james_light, "/settings",
+        cur_act, "", _james_sched[:80] if _james_sched else "", "Schedule", 0, 0
+    )
+
+    slot_row = (
+        f'<div style="background:var(--gold-light);border:1px solid var(--border);'
+        f'border-radius:10px;padding:8px 14px;margin-bottom:14px;'
+        f'font-size:.85em;font-weight:600;color:var(--ink);">'
+        f'🕐 {escape(cur_slot)} — {escape(cur_act) if cur_act else "—"}'
+        f'{"  ·  Next: " + escape(nxt_act) if nxt_act else ""}'
+        f'</div>'
+    ) if cur_slot else ""
+
+    body = (
+        f'{page_header("Family — Right Now")}'
+        f'<div style="font-size:.82em;color:#888;margin-bottom:12px;">'
+        f'{escape(weekday)}, {time_str}'
+        f'  <a href="/now" style="margin-left:10px;font-size:.9em;color:var(--brown);">↻ Refresh</a>'
+        f'</div>'
+        f'{slot_row}'
+        f'{cards_html}'
+        f'<div style="text-align:center;margin-top:16px;">'
+        f'<a href="/today" style="font-size:.82em;color:var(--brown);">← Back to Today</a>'
+        f'</div>'
+    )
+    return html_page("Right Now", body)
+
 
 # ── Mom page (step-by-step pages) ───────────────────────────────────────────
 def render_mom_page(status_message: str = "", target_date_str: str = "") -> str:
