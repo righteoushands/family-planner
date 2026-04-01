@@ -1242,6 +1242,33 @@ class Handler(BaseHTTPRequestHandler):
                     save_family_schedule(schedule)
                 redirect = "/settings?msg=Settings+saved#top"
 
+            elif path == "/school-settings-save":
+                import json as _json
+                _ss = load_app_settings()
+                _fc = _ss.setdefault("family_constraints", {})
+                mode   = clean_text(data.get("fc_school_mode",   ["normal"])[0])
+                core   = clean_text(data.get("fc_core_subjects",  [""])[0])
+                paused = clean_text(data.get("fc_paused_subjects",[""])[0])
+                if mode in ("normal", "light_week", "custom_pause"):
+                    _fc["school_mode"] = mode
+                _fc["core_subjects"]   = core
+                _fc["paused_subjects"] = paused
+                _ss["family_constraints"] = _fc
+                save_app_settings(_ss)
+                # Clear the school filter cache so schedule reflects change immediately
+                try:
+                    import daily_schedule_engine as _dse
+                    _dse._SCHOOL_FILTER_CACHE = None
+                    _dse._SCHOOL_FILTER_TIME  = 0.0
+                except Exception:
+                    pass
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                try: self.wfile.write(_json.dumps({"ok": True}).encode())
+                except BrokenPipeError: pass
+                return
+
             elif path == "/calendar-add-event":
                 import json as _json
                 ev_date  = clean_text(data.get("date",[""])[0]) or date.today().isoformat()

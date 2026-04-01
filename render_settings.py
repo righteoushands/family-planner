@@ -1154,14 +1154,47 @@ def render_settings_page(status_message: str = "") -> str:
 
     # Group 5 — SCHOOL
     grp_school = f"""
-<form method="POST" action="/settings-save" id="form-school">
-  <div style="padding:4px 0 16px;">
-    {_section_school(settings)}
-  </div>
-  <div style="padding:8px 0;border-top:1px solid var(--border-light);">
-    <button type="submit" style="padding:9px 22px;font-size:0.95em;">Save School Settings</button>
-  </div>
-</form>"""
+<div id="form-school" style="padding:4px 0 16px;">
+  {_section_school(settings)}
+</div>
+<div style="padding:8px 0;border-top:1px solid var(--border-light);">
+  <button type="button" onclick="saveSchoolSettings()" id="school-save-btn"
+          style="padding:9px 22px;font-size:0.95em;">Save School Settings</button>
+  <span id="school-save-status" style="font-size:0.82em;margin-left:12px;color:var(--ink-faint);"></span>
+</div>
+<script>
+function saveSchoolSettings() {{
+  var mode   = document.getElementById('school-mode-select').value;
+  var coreEl = document.querySelector('[name="fc_core_subjects"]');
+  var pausEl = document.querySelector('[name="fc_paused_subjects"]');
+  var btn    = document.getElementById('school-save-btn');
+  var status = document.getElementById('school-save-status');
+  btn.disabled = true;
+  status.style.color = 'var(--ink-faint)';
+  status.textContent = 'Saving\u2026';
+  fetch('/school-settings-save', {{
+    method: 'POST',
+    headers: {{'Content-Type': 'application/x-www-form-urlencoded'}},
+    body: 'fc_school_mode=' + encodeURIComponent(mode)
+        + '&fc_core_subjects=' + encodeURIComponent(coreEl ? coreEl.value : '')
+        + '&fc_paused_subjects=' + encodeURIComponent(pausEl ? pausEl.value : '')
+  }}).then(function(r) {{ return r.json(); }}).then(function(d) {{
+    btn.disabled = false;
+    if (d.ok) {{
+      status.textContent = 'Saved \u2713';
+      status.style.color = '#22c55e';
+    }} else {{
+      status.textContent = 'Save failed';
+      status.style.color = '#ef4444';
+    }}
+    setTimeout(function() {{ status.textContent = ''; }}, 3000);
+  }}).catch(function() {{
+    btn.disabled = false;
+    status.textContent = 'Save failed';
+    status.style.color = '#ef4444';
+  }});
+}}
+</script>"""
 
     # Group 6 — INTEGRATIONS (own forms inside)
     grp_integrations = f"""

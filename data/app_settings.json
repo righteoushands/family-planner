@@ -28,7 +28,7 @@
       "light": "#eaf4fb"
     }
   },
-  "location": "Richmond VA",
+  "location": "",
   "child_birthdays": {
     "JP": "2012-01-20",
     "Joseph": "2014-04-02",
@@ -47,7 +47,7 @@
     "meal_prep": "",
     "other_notes": "",
     "family_exercise": "",
-    "school_mode": "",
+    "school_mode": "normal",
     "core_subjects": "",
     "paused_subjects": ""
   },
