@@ -5,7 +5,7 @@
   "schedule_start_hour": 6,
   "schedule_end_hour": 22,
   "cycle_show_detail_fields": false,
-  "color_theme": "liturgical",
+  "color_theme": "ivory",
   "child_colors": {
     "JP": {
       "bg": "#c0392b",
@@ -28,7 +28,7 @@
       "light": "#eaf4fb"
     }
   },
-  "location": "22405",
+  "location": "Richmond VA",
   "child_birthdays": {
     "JP": "2012-01-20",
     "Joseph": "2014-04-02",
@@ -39,15 +39,17 @@
   "plan_columns": [],
   "family_constraints": {
     "anthropic_api_key": "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",
-    "james_schedule": "nap 9-11am and 2-4pm daily, he eats with the family and two snack between meals. during wake windows he needs to do physical therapy exercises for 10 minutes twice a day.",
-    "supervision_rules": "JP and Joseph can supervise James and / or Michael for short periods. JP can watch them both for an hour while Joseph is half an hour. Joseph can manage Michael by himself for an hour and James by himself for half an hour. JP can manage Michael and James individually fir 90 minutes at a time.",
-    "independence_notes": "JP: 90 minutes independent. Joseph: 45 minutes independent",
-    "school_durations": "JP about 5 hours. Joseph about 4 hours. Michael about 1 hour spread across 15 minute pockets. Prioritize difficult lessons first: typically Math then Latin, tests and assessments, writing assignments",
-    "mom_supervision_subjects": "Any subject that requires discussion, spelling tests, checking tests, turning on music on listening days,",
-    "meal_prep": "JP loves to bake and is often asking to bake desserts at the last minute. Unfortunately I often have to tell him no because of time constraints or ingredients needed",
-    "other_notes": "Morning sun exposure is preferred.",
-    "family_exercise": "Walk in the neighborhood on all capacity days. High capacity days incline themselves to park play (walking from Kenmore Park to Old Mill Park), going to the farm.",
-    "school_mode": "normal"
+    "james_schedule": "",
+    "supervision_rules": "",
+    "independence_notes": "",
+    "school_durations": "",
+    "mom_supervision_subjects": "",
+    "meal_prep": "",
+    "other_notes": "",
+    "family_exercise": "",
+    "school_mode": "",
+    "core_subjects": "",
+    "paused_subjects": ""
   },
   "show_liturgy_hours_widget": true,
   "auto_fetch_hours": true,

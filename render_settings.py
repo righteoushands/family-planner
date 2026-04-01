@@ -1565,12 +1565,12 @@ function _injectOrderButtons() {
     var idx = order.indexOf(sid);
     var len = order.length;
     var upBtn = idx > 0
-      ? '<button onclick="_moveSection(\'' + sid + '\',-1)" title="Move up"'
+      ? '<button onclick="_moveSection(\\'' + sid + '\\',-1)" title="Move up"'
         + ' style="background:none;border:none;cursor:pointer;font-size:.82em;'
         + 'color:var(--brown);padding:0 4px;">&#9650;</button>'
       : '<span style="display:inline-block;width:22px;"></span>';
     var dnBtn = idx < len - 1
-      ? '<button onclick="_moveSection(\'' + sid + '\',1)" title="Move down"'
+      ? '<button onclick="_moveSection(\\'' + sid + '\\',1)" title="Move down"'
         + ' style="background:none;border:none;cursor:pointer;font-size:.82em;'
         + 'color:var(--brown);padding:0 4px;">&#9660;</button>'
       : '<span style="display:inline-block;width:22px;"></span>';

@@ -1129,6 +1129,7 @@ class Handler(BaseHTTPRequestHandler):
 
             elif path == "/settings-save":
                 from daily_schedule_engine import CHILDREN as _CHILDREN
+                settings = load_app_settings()
                 # General
                 fn = clean_text(data.get("family_name",[""])[0])
                 if fn: settings["family_name"] = fn
