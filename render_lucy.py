@@ -13,6 +13,18 @@ API: POST /lucy-chat  → streams Claude response as plain text
 """
 from datetime import date, datetime
 from html import escape
+try:
+    from zoneinfo import ZoneInfo
+    _EASTERN = ZoneInfo("America/New_York")
+except ImportError:
+    import pytz
+    _EASTERN = pytz.timezone("America/New_York")
+
+def _now_eastern() -> datetime:
+    return datetime.now(_EASTERN)
+
+def _today_eastern() -> date:
+    return _now_eastern().date()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -20,8 +32,8 @@ from html import escape
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _get_phase() -> str:
-    """Return 'morning', 'midday', or 'evening' based on current hour."""
-    h = datetime.now().hour
+    """Return 'morning', 'midday', or 'evening' based on Eastern time."""
+    h = _now_eastern().hour
     if h < 11:
         return "morning"
     elif h < 17:
@@ -266,7 +278,7 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
 # ─────────────────────────────────────────────────────────────────────────────
 
 def render_lucy_page(iso: str = "") -> str:
-    today    = date.today()
+    today    = _today_eastern()
     iso      = iso or today.isoformat()
     weekday  = today.strftime("%A")
     date_label = today.strftime("%B %d, %Y")
