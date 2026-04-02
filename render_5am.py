@@ -77,9 +77,11 @@ def load_day(d: date = None) -> dict:
             "date": d.isoformat(),
             "move":    {"done": False, "activity": "", "minutes": 20, "note": ""},
             "reflect": {"done": False, "lauds": False, "rosary_intention": "",
-                        "virtue_intention": "", "gratitude": ["","",""], "journal": ""},
+                        "virtue_intention": "", "gratitude": ["","",""], "journal": "",
+                        "daily_cross": ""},
             "grow":    {"done": False, "book_title": "", "book_author": "",
                         "pages": "", "topic": "", "note": ""},
+            "devotions": {"fa": "", "fe": "", "ca": "", "pa": ""},
         }
 
 
@@ -340,6 +342,7 @@ def render_5am_page(date_str: str = None, status: str = "") -> str:
     r_virtue_int  = escape(reflect.get("virtue_intention", virtue))
     r_grat        = reflect.get("gratitude", ["","",""])
     r_journal     = escape(reflect.get("journal", ""))
+    r_cross       = escape(reflect.get("daily_cross", ""))
 
     virtue_hint = ""
     if virtue:
@@ -403,7 +406,57 @@ def render_5am_page(date_str: str = None, status: str = "") -> str:
             f'<textarea id="r-journal" rows="4" placeholder="Write freely..."'
             f' onchange="autoSave()" style="width:100%;font-size:0.85em;resize:vertical;">'
             f'{r_journal}</textarea>'
+            f'<!-- Daily Cross -->'
+            f'<label style="font-size:0.75em;margin-top:10px;display:block;">Daily Cross — What challenge can you offer to God today?</label>'
+            f'<input type="text" id="r-cross" value="{r_cross}"'
+            f' placeholder="Offer it up: fatigue, difficulty, frustration..." onchange="autoSave()"'
+            f' style="margin-top:4px;">'
         )
+    )
+
+    # ── Devotions section ──────────────────────────────────────────────────────
+    dev_data = rec.get("devotions", {})
+    dev_fa   = escape(dev_data.get("fa", ""))
+    dev_fe   = escape(dev_data.get("fe", ""))
+    dev_ca   = escape(dev_data.get("ca", ""))
+    dev_pa   = escape(dev_data.get("pa", ""))
+    devotions_card = (
+        '<div class="card" style="border-left:4px solid #1c1610;margin-bottom:12px;">'
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">'
+        '<div style="width:32px;height:32px;border-radius:50%;background:#1c1610;'
+        'color:#f0e8c8;display:flex;align-items:center;justify-content:center;'
+        'font-weight:800;font-size:0.85em;flex-shrink:0;">✦</div>'
+        '<div>'
+        '<div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:1.2rem;font-weight:600;color:var(--ink);">Devotions</div>'
+        '<div style="font-size:0.72em;color:var(--ink-faint);">Family &amp; Personal</div>'
+        '</div></div>'
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
+        '<div>'
+        '<div style="font-size:0.68em;font-weight:700;color:var(--brown);margin-bottom:4px;">FA — Family Activity</div>'
+        '<input type="text" id="dev-fa" value="' + dev_fa + '" '
+        'placeholder="A family activity for today..." onchange="autoSave()" '
+        'style="padding:6px 10px;font-size:0.82em;border-radius:8px;border:1.5px solid var(--border);font-family:inherit;width:100%;box-sizing:border-box;">'
+        '</div>'
+        '<div>'
+        '<div style="font-size:0.68em;font-weight:700;color:var(--brown);margin-bottom:4px;">FE — Family Evening</div>'
+        '<input type="text" id="dev-fe" value="' + dev_fe + '" '
+        'placeholder="Family evening intention..." onchange="autoSave()" '
+        'style="padding:6px 10px;font-size:0.82em;border-radius:8px;border:1.5px solid var(--border);font-family:inherit;width:100%;box-sizing:border-box;">'
+        '</div>'
+        '<div>'
+        '<div style="font-size:0.68em;font-weight:700;color:#1c1610;margin-bottom:4px;">CA — Catechesis Activity</div>'
+        '<input type="text" id="dev-ca" value="' + dev_ca + '" '
+        'placeholder="Catechesis or formation today..." onchange="autoSave()" '
+        'style="padding:6px 10px;font-size:0.82em;border-radius:8px;border:1.5px solid var(--border);font-family:inherit;width:100%;box-sizing:border-box;">'
+        '</div>'
+        '<div>'
+        '<div style="font-size:0.68em;font-weight:700;color:#1c1610;margin-bottom:4px;">PA — Prayer Activity</div>'
+        '<input type="text" id="dev-pa" value="' + dev_pa + '" '
+        'placeholder="Special prayer intention today..." onchange="autoSave()" '
+        'style="padding:6px 10px;font-size:0.82em;border-radius:8px;border:1.5px solid var(--border);font-family:inherit;width:100%;box-sizing:border-box;">'
+        '</div>'
+        '</div>'
+        '</div>'
     )
 
     # ── Grow section ──────────────────────────────────────────────────────────
@@ -512,6 +565,7 @@ def render_5am_page(date_str: str = None, status: str = "") -> str:
 {move_card}
 {reflect_card}
 {grow_card}
+{devotions_card}
 
 <!-- Navigation -->
 <div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 0;">
@@ -553,6 +607,7 @@ function saveAll() {{
     var el = document.getElementById('r-grat-' + i);
     return el ? el.value : '';
   }});
+  var rCross = document.getElementById('r-cross');
   _rec.reflect = {{
     done:              rDone    ? rDone.checked    : _rec.reflect.done,
     lauds:             rLauds   ? rLauds.checked   : false,
@@ -560,6 +615,18 @@ function saveAll() {{
     virtue_intention:  rVirtue  ? rVirtue.value    : '',
     gratitude:         grats,
     journal:           rJournal ? rJournal.value   : '',
+    daily_cross:       rCross   ? rCross.value     : '',
+  }};
+  // Gather devotions
+  var dFa = document.getElementById('dev-fa');
+  var dFe = document.getElementById('dev-fe');
+  var dCa = document.getElementById('dev-ca');
+  var dPa = document.getElementById('dev-pa');
+  _rec.devotions = {{
+    fa: dFa ? dFa.value : '',
+    fe: dFe ? dFe.value : '',
+    ca: dCa ? dCa.value : '',
+    pa: dPa ? dPa.value : '',
   }};
   // Gather grow
   var gTitle  = document.getElementById('g-title');

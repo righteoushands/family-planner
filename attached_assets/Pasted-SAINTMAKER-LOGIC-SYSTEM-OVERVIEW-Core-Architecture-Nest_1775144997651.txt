@@ -1,0 +1,27 @@
+SAINTMAKER LOGIC — SYSTEM OVERVIEW
+Core Architecture: Nested Review Cycles
+Four nested time horizons: Annual → Seasonal (13 weeks) → Monthly → Weekly → Daily. Each level has a review/plan pair. Logic flows: reflect on past → discern → plan forward.
+ANNUAL LEVEL
+Goal list with: Title, Description, Assigned Season. Master orientation list for the whole year.
+SEASONAL LEVEL (primary planning unit)
+SEASONAL JOURNAL (start of season):
+Goal Review: rate up to 5 goals by % done, keep or cancel. Reflection on main events/themes. Life Domains radar: 8 spokes rated 1-5 (Work, Finances, Health, Family & Friends, Intimacy, Spiritual Growth, Leisure, Environment). Blessings / Shortcomings. Discernment: Start / Stop / Change columns. Prayer Examination: checklist (Dry, Mechanistic, Tired, Infrequent, Distracted, Complicated, Slothful, Obligatory, Depressed, Clear, Fervent, Joyous, Expectant, Simple, Grateful, Humble, Continuous, Loving). Prayer Adjustments (free write).
+SEASONAL PLANNING (after review):
+Weekly Rule of Life: time-blocked grid, Sun-Sat x 6am-5am, canonical hours labeled (Prime, Terce, Sext, None, Vespers, Compline, Matins, Lauds). Goal Plans: up to 5 goals each with Summary, Life Domain category, Motivations x3, Milestones x3 with due dates, Task lists per milestone (3 tasks each). Seasonal Preview: 3-month calendar grid for big-picture event placement.
+MONTHLY LEVEL
+MONTH REVIEW:
+After Action Review: rate Feast Plan / Prayer Plan / Goal Plan (1-10). Blessings / Shortcomings / Lessons Learned / Discernment (what is God calling you to next month?). Month Checklist: Complete AAR, Describe Blessings/Shortcomings/Lessons/Discernment, Make Feast Plan, Make Prayer Plan, Create Goal Plan, Add dates/feasts to calendar, Add events/appointments to calendar, Set up Virtue Tracker (optional).
+MONTH PLAN:
+Feast Plan: up to 3 feasts with devotion notes and dates. Prayer Plan: Morning / Afternoon / Evening columns (free write). Goal Plan: progress on up to 5 seasonal goals (dot grid).
+WEEKLY LEVEL
+WEEKLY EXAMINATION / OVERVIEW:
+Stewardship: Were you a good steward of God’s gifts? God’s Will: Did you do God’s will or your own? Prayer: Did you say your prayers with care? Gratitude: Were you grateful to God for His gifts? Duties: Did you do your duties in work, family life, community life, and to God? Mass Intention: Set an intention for Sunday Mass.
+WEEKLY 3 + WEEK PLAN:
+Three priority items (Weekly 3). Four free-write quadrants: Domestic / Recreation / Vocation / Spiritual. Weeks remaining tracker: 13 down to 0. Blessings: In what ways did God bless your life and work this week? Improvements: Review Weekly 3 and goals. How could you improve next week?
+DAILY LEVEL
+LEFT PAGE (planning/doing):
+Date + Feast/Event header. Gratitude: What are you grateful to God for? Devotions: FA/FE column and CA/PA column, 3 slots each. Daily Cross: What challenge can you offer up to God? To-Do List: # priority, ABC ranking, Task, Status (checkmark=Completed, O=Delegated, arrow=Shifted to tomorrow, X=Canceled).
+RIGHT PAGE (appointments + reflection):
+Appointments: time-blocked 6am-11pm with canonical hours marked (Prime 6am, Terce 9am, Sext 12pm, None 2pm, Vespers 5pm, Compline 8pm, Matins midnight, Lauds 3am). Meditation Journal: Reflection (spend 10 min meditating on a holy subject), Resolution (spiritual resolution to keep). Evening Examen: Blessings x3 (how did God bless your life today?), Examen (was your heart with God today? why or why not?), Resolution (practical step to improve tomorrow). Notes (dot grid).
+KEY DESIGN PATTERNS
+Canonical hours appear at daily, weekly, and seasonal layers — structural anchors not decoration. “Offer up” framing and Mass intention are distinctly Catholic spiritual logic. Life Domains radar recurs seasonally as a balance check against goal tunnel vision. Week is the primary operational unit. 13-week season is the main planning container. Year is oriented around liturgical time, not calendar quarters. FA/FE = Family Activity / Family Evening (or Feast Activity / Feast Evening). CA/PA = likely Catechesis/Prayer Activity variants (personal devotions). Status symbols on tasks allow forward momentum without deletion: nothing is “failed,” only redirected.​​​​​​​​​​​​​​​​

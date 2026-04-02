@@ -5,7 +5,7 @@
   "schedule_start_hour": 6,
   "schedule_end_hour": 22,
   "cycle_show_detail_fields": false,
-  "color_theme": "ivory",
+  "color_theme": "liturgical",
   "child_colors": {
     "JP": {
       "bg": "#c0392b",
@@ -28,7 +28,7 @@
       "light": "#eaf4fb"
     }
   },
-  "location": "",
+  "location": "22405",
   "child_birthdays": {
     "JP": "2012-01-20",
     "Joseph": "2014-04-02",

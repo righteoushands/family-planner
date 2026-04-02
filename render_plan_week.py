@@ -40,6 +40,22 @@ def _week_dates(week_key):
     return [mon + timedelta(days=i) for i in range(7)]
 
 
+EXAM_QUESTIONS = [
+    ("stewardship", "Stewardship", "Were you a good steward of God's gifts?"),
+    ("gods_will",   "God's Will",  "Did you do God's will or your own?"),
+    ("prayer",      "Prayer",      "Did you say your prayers with care?"),
+    ("gratitude",   "Gratitude",   "Were you grateful to God for His gifts?"),
+    ("duties",      "Duties",      "Did you do your duties in work, family life, community, and to God?"),
+]
+
+QUADRANT_LABELS = [
+    ("domestic",    "Domestic",    "Home, hospitality, order, meals"),
+    ("vocation",    "Vocation",    "Marriage, motherhood, homeschool"),
+    ("spiritual",   "Spiritual",   "Prayer, formation, sacraments"),
+    ("recreation",  "Recreation",  "Rest, leisure, friendship, beauty"),
+]
+
+
 def load_intentions(week_key):
     os.makedirs(INTENTIONS_DIR, exist_ok=True)
     path = f"{INTENTIONS_DIR}/{week_key}.json"
@@ -50,6 +66,10 @@ def load_intentions(week_key):
         return {
             "week": week_key, "most_important": "", "protect": "",
             "let_go": "", "weekly_tasks": [], "ai_briefing": "", "plan_items": [],
+            "examination": {}, "mass_intention": "",
+            "weekly_3": ["", "", ""],
+            "quadrants": {"domestic": "", "vocation": "", "spiritual": "", "recreation": ""},
+            "blessings": "", "improvements": "",
         }
 
 
@@ -409,6 +429,149 @@ def render_plan_week_page(week_key=None, status=""):
         for g in active_goals
     ])
 
+    # ── SaintMaker: Weekly Examination ───────────────────────────────────────
+    exam_data = intentions.get("examination", {})
+    exam_rows = ""
+    for key, label, question in EXAM_QUESTIONS:
+        val  = escape(exam_data.get(key, ""))
+        opts = "".join(
+            '<option value="{v}"{s}>{v}</option>'.format(
+                v=v, s=' selected' if val == v else ''
+            ) for v in ["", "Yes", "Mostly", "Sometimes", "No"]
+        )
+        exam_rows += (
+            '<div style="padding:9px 0;border-bottom:1px solid var(--border-light);">'
+            '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+            '<div style="flex:1;min-width:160px;">'
+            '<div style="font-size:0.72em;font-weight:700;color:var(--brown);">' + escape(label) + '</div>'
+            '<div style="font-size:0.82em;color:var(--ink);margin-top:1px;">' + escape(question) + '</div>'
+            '</div>'
+            '<select onchange="saveExam(\'' + key + '\',this.value)" '
+            'style="padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;'
+            'font-size:0.82em;font-family:inherit;min-width:100px;">'
+            + opts + '</select></div></div>'
+        )
+    mass_int = escape(intentions.get("mass_intention", ""))
+    exam_html = (
+        '<div class="card" style="margin-bottom:14px;">'
+        '<div style="font-size:0.72em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;'
+        'color:var(--ink-faint);margin-bottom:4px;">✦ Weekly Examination</div>'
+        '<div style="font-size:0.75em;color:var(--ink-faint);font-style:italic;margin-bottom:10px;">'
+        'Stewardship of God\'s gifts this past week</div>'
+        + exam_rows +
+        '<div style="margin-top:12px;">'
+        '<label style="font-size:0.75em;font-weight:700;color:var(--brown);">Sunday Mass Intention</label>'
+        '<input type="text" id="mass-intention" value="' + mass_int + '" '
+        'placeholder="Whom or what will you offer this Mass for?" '
+        'onchange="autoSave()" '
+        'style="margin-top:4px;padding:7px 10px;font-size:0.85em;border-radius:8px;'
+        'border:1.5px solid var(--border);font-family:inherit;width:100%;box-sizing:border-box;">'
+        '</div></div>'
+    )
+
+    # ── SaintMaker: Weekly 3 ─────────────────────────────────────────────────
+    w3_data = intentions.get("weekly_3", ["", "", ""])
+    if not isinstance(w3_data, list) or len(w3_data) < 3:
+        w3_data = ["", "", ""]
+    w3_rows = ""
+    for i in range(3):
+        w3_rows += (
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'
+            '<div style="width:22px;height:22px;border-radius:50%;background:var(--ink);'
+            'color:var(--gold-light);display:flex;align-items:center;justify-content:center;'
+            'font-size:0.78em;font-weight:700;flex-shrink:0;">' + str(i + 1) + '</div>'
+            '<input type="text" id="w3-' + str(i) + '" value="' + escape(w3_data[i]) + '" '
+            'placeholder="Priority ' + str(i + 1) + '..." onchange="autoSave()" '
+            'style="flex:1;padding:7px 10px;font-size:0.85em;border-radius:8px;'
+            'border:1.5px solid var(--border);font-family:inherit;">'
+            '</div>'
+        )
+
+    # ── SaintMaker: Four Quadrants ───────────────────────────────────────────
+    quad_data = intentions.get("quadrants", {})
+    quad_html_inner = ""
+    for key, label, hint in QUADRANT_LABELS:
+        val = escape(quad_data.get(key, ""))
+        quad_html_inner += (
+            '<div>'
+            '<div style="font-size:0.72em;font-weight:700;color:var(--brown);margin-bottom:3px;">'
+            + escape(label) +
+            '<span style="font-weight:400;color:var(--ink-faint);margin-left:4px;">' + escape(hint) + '</span>'
+            '</div>'
+            '<textarea id="quad-' + key + '" rows="3" onchange="autoSave()" '
+            'placeholder="What matters here this week?" '
+            'style="width:100%;padding:7px 10px;font-size:0.82em;border-radius:8px;'
+            'border:1.5px solid var(--border);font-family:inherit;resize:vertical;box-sizing:border-box;">'
+            + val + '</textarea>'
+            '</div>'
+        )
+
+    weekly3_quadrants_html = (
+        '<div class="card" style="margin-bottom:14px;">'
+        '<div style="font-size:0.72em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;'
+        'color:var(--ink-faint);margin-bottom:10px;">✦ Weekly 3 — This Week\'s Priorities</div>'
+        + w3_rows +
+        '</div>'
+        '<div class="card" style="margin-bottom:14px;">'
+        '<div style="font-size:0.72em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;'
+        'color:var(--ink-faint);margin-bottom:10px;">✦ Four Quadrants</div>'
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
+        + quad_html_inner +
+        '</div></div>'
+    )
+
+    # ── SaintMaker: Blessings + Improvements ─────────────────────────────────
+    blessings_val    = escape(intentions.get("blessings", ""))
+    improvements_val = escape(intentions.get("improvements", ""))
+    blessings_html = (
+        '<div class="card" style="margin-bottom:14px;">'
+        '<div style="font-size:0.72em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;'
+        'color:var(--ink-faint);margin-bottom:10px;">✦ Blessings &amp; Improvements</div>'
+        '<label style="font-size:0.75em;">In what ways did God bless your life and work this week?</label>'
+        '<textarea id="week-blessings" rows="3" onchange="autoSave()" '
+        'style="width:100%;padding:7px 10px;font-size:0.85em;border-radius:8px;'
+        'border:1.5px solid var(--border);font-family:inherit;resize:vertical;box-sizing:border-box;margin-bottom:10px;">'
+        + blessings_val + '</textarea>'
+        '<label style="font-size:0.75em;">Improvements — How could you grow next week? (Review Weekly 3 and goals)</label>'
+        '<textarea id="week-improvements" rows="3" onchange="autoSave()" '
+        'style="width:100%;padding:7px 10px;font-size:0.85em;border-radius:8px;'
+        'border:1.5px solid var(--border);font-family:inherit;resize:vertical;box-sizing:border-box;">'
+        + improvements_val + '</textarea>'
+        '</div>'
+    )
+
+    # ── Pre-computed one-liners to avoid backslash-in-f-string issues ─────────
+    review_btn_html = (
+        '<button onclick="aiWeeklyReview(this)" style="padding:7px 14px;background:var(--parchment);'
+        'border:1.5px solid var(--border);border-radius:8px;font-size:0.82em;font-weight:600;'
+        'font-family:inherit;cursor:pointer;">\u2728 Weekly review</button>'
+        if api_key else ''
+    )
+    ai_review_div = (
+        '<div id="ai-review-result" style="display:none;margin-bottom:16px;padding:14px;'
+        'background:white;border-radius:12px;border:1px solid var(--border-light);"></div>'
+        if api_key else ''
+    )
+
+    # ── Weeks remaining in quarter ────────────────────────────────────────────
+    weeks_left = max(0, 13 - wk_num)
+    wk_color = "#22c55e" if weeks_left >= 8 else "#f59e0b" if weeks_left >= 4 else "#ef4444"
+    weeks_remaining_html = (
+        '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;'
+        'background:var(--parchment);border-radius:10px;margin-bottom:14px;">'
+        '<div style="font-size:1.8rem;font-weight:700;color:' + wk_color + ';">' + str(weeks_left) + '</div>'
+        '<div>'
+        '<div style="font-size:0.78em;font-weight:700;color:var(--ink);">Weeks remaining in this season</div>'
+        '<div style="font-size:0.7em;color:var(--ink-faint);">Week ' + str(wk_num) + ' of 13 · '
+        + ('Make them count.' if weeks_left <= 4 else 'Steady and faithful.') + '</div>'
+        '</div>'
+        '<div style="flex:1;height:6px;background:#e5e7eb;border-radius:3px;margin-left:8px;">'
+        '<div style="width:' + str(round(wk_num / 13 * 100)) + '%;height:100%;'
+        'background:' + wk_color + ';border-radius:3px;"></div>'
+        '</div>'
+        '</div>'
+    )
+
     body = top_nav() + render_status_message(status) + f"""
 <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;padding-top:4px;margin-bottom:16px;">
   <div>
@@ -420,16 +583,20 @@ def render_plan_week_page(week_key=None, status=""):
     <a href="/plan-week" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:0.82em;text-decoration:none;color:var(--ink);">This week</a>
     <a href="/plan-week?week={escape(next_key)}" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:0.82em;text-decoration:none;color:var(--ink);">&rarr;</a>
     <button onclick="saveAll()" style="padding:7px 16px;background:var(--ink);color:var(--gold-light);border:none;border-radius:8px;font-size:0.82em;font-weight:700;font-family:inherit;cursor:pointer;">Save</button>
-    {"" if not api_key else f'<button onclick="aiWeeklyReview(this)" style="padding:7px 14px;background:var(--parchment);border:1.5px solid var(--border);border-radius:8px;font-size:0.82em;font-weight:600;font-family:inherit;cursor:pointer;">\u2728 Weekly review</button>'}
+    {review_btn_html}
   </div>
 </div>
 <div id="save-status" style="font-size:0.82em;color:#22c55e;min-height:16px;margin-bottom:8px;"></div>
-{f'<div id="ai-review-result" style="display:none;margin-bottom:16px;padding:14px;background:white;border-radius:12px;border:1px solid var(--border-light);"></div>' if api_key else ''}
+{ai_review_div}
+
+{weeks_remaining_html}
 
 <div class="card" style="margin-bottom:14px;">
   <div style="font-size:0.72em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:8px;">Week at a Glance</div>
   <div style="display:flex;gap:6px;overflow-x:auto;">{day_cols}</div>
 </div>
+
+{exam_html}
 
 <div style="margin-bottom:14px;">
   <div style="font-size:0.72em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:10px;display:flex;justify-content:space-between;">
@@ -448,6 +615,8 @@ def render_plan_week_page(week_key=None, status=""):
   <label style="font-size:0.75em;">What I can let go</label>
   <input type="text" id="int-letgo" value="{lg}" placeholder="What doesn't have to be perfect..." onchange="autoSave()">
 </div>
+
+{weekly3_quadrants_html}
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
   <div class="card">
@@ -475,6 +644,8 @@ def render_plan_week_page(week_key=None, status=""):
     <button onclick="addWeekTask()" style="padding:7px 14px;background:var(--ink);color:var(--gold-light);border:none;border-radius:8px;font-size:0.82em;font-family:inherit;cursor:pointer;font-weight:600;">+ Add</button>
   </div>
 </div>
+
+{blessings_html}
 
 {ai_section}
 
@@ -521,15 +692,41 @@ var _intentions = {intentions_js};
 var _aGoals = {active_goals_js};
 var _saveTimer = null;
 var _recurTarget = null;
-if (!_intentions.weekly_tasks) _intentions.weekly_tasks = [];
-if (!_intentions.plan_items)   _intentions.plan_items   = [];
+if (!_intentions.weekly_tasks)  _intentions.weekly_tasks  = [];
+if (!_intentions.plan_items)    _intentions.plan_items    = [];
+if (!_intentions.examination)   _intentions.examination   = {{}};
+if (!_intentions.weekly_3)      _intentions.weekly_3      = ['','',''];
+if (!_intentions.quadrants)     _intentions.quadrants     = {{}};
+if (!_intentions.blessings)     _intentions.blessings     = '';
+if (!_intentions.improvements)  _intentions.improvements  = '';
+if (!_intentions.mass_intention) _intentions.mass_intention = '';
 
 function autoSave() {{ clearTimeout(_saveTimer); _saveTimer = setTimeout(saveAll, 1200); }}
 
+function saveExam(key, val) {{
+  _intentions.examination[key] = val;
+  autoSave();
+}}
+
 function saveAll() {{
-  _intentions.most_important = document.getElementById('int-important').value || '';
-  _intentions.protect        = document.getElementById('int-protect').value   || '';
-  _intentions.let_go         = document.getElementById('int-letgo').value     || '';
+  _intentions.most_important  = document.getElementById('int-important') ? document.getElementById('int-important').value || '' : _intentions.most_important;
+  _intentions.protect         = document.getElementById('int-protect')   ? document.getElementById('int-protect').value   || '' : _intentions.protect;
+  _intentions.let_go          = document.getElementById('int-letgo')     ? document.getElementById('int-letgo').value     || '' : _intentions.let_go;
+  _intentions.mass_intention  = document.getElementById('mass-intention') ? document.getElementById('mass-intention').value || '' : _intentions.mass_intention;
+  var w3 = [];
+  for (var i = 0; i < 3; i++) {{
+    var el = document.getElementById('w3-' + i);
+    w3.push(el ? el.value || '' : (_intentions.weekly_3[i] || ''));
+  }}
+  _intentions.weekly_3 = w3;
+  ['domestic','vocation','spiritual','recreation'].forEach(function(q) {{
+    var el = document.getElementById('quad-' + q);
+    if (el) _intentions.quadrants[q] = el.value || '';
+  }});
+  var bl = document.getElementById('week-blessings');
+  var im = document.getElementById('week-improvements');
+  if (bl) _intentions.blessings    = bl.value || '';
+  if (im) _intentions.improvements = im.value || '';
   fetch('/plan-week-save', {{
     method:'POST', headers:{{'Content-Type':'application/x-www-form-urlencoded'}},
     body:'week='+encodeURIComponent(_wk)+'&data='+encodeURIComponent(JSON.stringify(_intentions))

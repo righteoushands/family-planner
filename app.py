@@ -1846,6 +1846,33 @@ class Handler(BaseHTTPRequestHandler):
                 except BrokenPipeError: pass
                 return
 
+            elif path == "/quarter-journal-save":
+                import json as _json
+                qk_in  = clean_text(data.get("quarter",[""])[0])
+                try:
+                    if qk_in:
+                        from render_goals import load_quarter_plan, save_quarter_plan
+                        plan = load_quarter_plan(qk_in)
+                        ld_raw   = data.get("life_domains",   ["{}"])[0]
+                        pe_raw   = data.get("prayer_examination", ["{}"])[0]
+                        disc_raw = data.get("seasonal_discernment", ["{}"])[0]
+                        ld_in   = _json.loads(ld_raw)
+                        pe_in   = _json.loads(pe_raw)
+                        disc_in = _json.loads(disc_raw)
+                        if isinstance(ld_in, dict):
+                            plan["life_domains"] = ld_in
+                        if isinstance(pe_in, dict):
+                            plan["prayer_examination"] = pe_in
+                        if isinstance(disc_in, dict):
+                            plan["seasonal_discernment"] = disc_in
+                        save_quarter_plan(plan)
+                except Exception:
+                    pass
+                self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
+                try: self.wfile.write(b'{"ok":true}')
+                except BrokenPipeError: pass
+                return
+
             elif path == "/quarter-save-step":
                 qk_in   = clean_text(data.get("quarter",[""])[0])
                 gid_in  = clean_text(data.get("goal_id",[""])[0])

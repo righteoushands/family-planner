@@ -64,6 +64,15 @@ def render_plan_quarter_page(quarter_key: str = None, status: str = "") -> str:
                 f'Active Q</span>'
             )
 
+        gen_btn = (
+            '<button onclick="aiGenerateSteps(\'' + escape(gid) + '\')" '
+            'style="margin-top:10px;width:100%;padding:9px;'
+            'background:linear-gradient(135deg,#1c1610,#2a1e10);color:var(--gold-light);'
+            'border:none;border-radius:8px;font-size:0.85em;font-family:inherit;'
+            'cursor:pointer;font-weight:600;">&#10024; Generate 13-week plan with AI</button>'
+            if api_key else ''
+        )
+
         pct_bar = ""
         if is_active and wk_num > 1:
             pct_bar = (
@@ -122,7 +131,7 @@ def render_plan_quarter_page(quarter_key: str = None, status: str = "") -> str:
     <div id="steps-content-{escape(gid)}">
       {_render_step_grid(gid, plan, wk_num)}
     </div>
-    {('<button onclick="aiGenerateSteps(\'' + escape(gid) + '\')" style="margin-top:10px;width:100%;padding:9px;background:linear-gradient(135deg,#1c1610,#2a1e10);color:var(--gold-light);border:none;border-radius:8px;font-size:0.85em;font-family:inherit;cursor:pointer;font-weight:600;">\u2728 Generate 13-week plan with AI</button>') if api_key else ''}
+    {gen_btn}
   </div>
 </div>"""
 
@@ -166,6 +175,131 @@ def render_plan_quarter_page(quarter_key: str = None, status: str = "") -> str:
 
     plan_js = json.dumps(plan)
     master_js = json.dumps(master)
+
+    # ── SaintMaker: Life Domains radar ───────────────────────────────────────
+    LIFE_DOMAINS = [
+        ("work",       "Work / Calling",      "#7c3aed"),
+        ("finances",   "Finances",            "#0891b2"),
+        ("health",     "Health & Body",       "#16a34a"),
+        ("family",     "Family & Friends",    "#d97706"),
+        ("intimacy",   "Marriage & Intimacy", "#db2777"),
+        ("spiritual",  "Spiritual Life",      "#1c1610"),
+        ("leisure",    "Leisure & Rest",      "#65a30d"),
+        ("environment","Home & Environment",  "#92400e"),
+    ]
+    ld_data = plan.get("life_domains", {})
+    ld_rows = ""
+    for key, label, color in LIFE_DOMAINS:
+        score = int(ld_data.get(key, 0))
+        pct   = score * 20
+        ld_rows += (
+            '<div style="margin-bottom:10px;">'
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">'
+            '<span style="font-size:0.78em;font-weight:600;color:var(--ink);">' + escape(label) + '</span>'
+            '<span id="ld-val-' + key + '" style="font-size:0.75em;font-weight:700;color:' + color + ';">'
+            + (str(score) if score else '—') + '/5</span>'
+            '</div>'
+            '<div style="display:flex;align-items:center;gap:8px;">'
+            '<div style="flex:1;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">'
+            '<div id="ld-bar-' + key + '" style="height:100%;background:' + color + ';'
+            'border-radius:4px;width:' + str(pct) + '%;transition:width 0.2s;"></div>'
+            '</div>'
+            '<input type="range" min="0" max="5" value="' + str(score) + '" step="1" '
+            'id="ld-' + key + '" '
+            'oninput="updateLD(\'' + key + '\',this.value)" '
+            'onchange="saveLD(\'' + key + '\',this.value)" '
+            'style="width:80px;accent-color:' + color + ';">'
+            '</div></div>'
+        )
+    life_domains_html = (
+        '<div class="card" style="margin-bottom:14px;">'
+        '<div style="font-size:0.72em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;'
+        'color:var(--ink-faint);margin-bottom:4px;">✦ Life Domains</div>'
+        '<div style="font-size:0.75em;color:var(--ink-faint);font-style:italic;margin-bottom:12px;">'
+        'Rate each area 0–5 at the start of this season. Where do you want to grow?</div>'
+        + ld_rows + '</div>'
+    )
+
+    # ── SaintMaker: Prayer Examination checklist ─────────────────────────────
+    PRAYER_EXAM_ITEMS = [
+        ("exam_gratitude",    "Began with gratitude — counting blessings received"),
+        ("exam_light",        "Asked for light to see clearly and honestly"),
+        ("exam_review",       "Reviewed the day/week from morning to night"),
+        ("exam_sorrow",       "Felt sorrow for any failings or sins"),
+        ("exam_resolve",      "Made a resolution or asked for grace going forward"),
+        ("exam_mass",         "Attended Mass at least once this week"),
+        ("exam_rosary",       "Prayed the Rosary at least once"),
+        ("exam_office",       "Prayed a canonical hour (Lauds, Vespers, Compline)"),
+        ("exam_lectio",       "Prayed Lectio Divina or scripture meditation"),
+        ("exam_confession",   "Made an Act of Contrition or went to Confession"),
+    ]
+    pe_data = plan.get("prayer_examination", {})
+    pe_rows = ""
+    for key, label in PRAYER_EXAM_ITEMS:
+        checked = 'checked' if pe_data.get(key, False) else ''
+        pe_rows += (
+            '<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;'
+            'border-bottom:1px solid var(--border-light);">'
+            '<input type="checkbox" id="pe-' + key + '" ' + checked + ' '
+            'onchange="savePE(\'' + key + '\',this.checked)" '
+            'style="width:18px;height:18px;accent-color:var(--brown);flex-shrink:0;margin-top:1px;">'
+            '<label for="pe-' + key + '" style="font-size:0.82em;cursor:pointer;flex:1;">' + escape(label) + '</label>'
+            '</div>'
+        )
+    prayer_exam_html = (
+        '<div class="card" style="margin-bottom:14px;">'
+        '<div style="font-size:0.72em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;'
+        'color:var(--ink-faint);margin-bottom:4px;">✦ Prayer Examination</div>'
+        '<div style="font-size:0.75em;color:var(--ink-faint);font-style:italic;margin-bottom:10px;">'
+        'A quarterly checklist for your interior life</div>'
+        + pe_rows + '</div>'
+    )
+
+    # ── SaintMaker: Start / Stop / Change ────────────────────────────────────
+    disc_data  = plan.get("seasonal_discernment", {})
+    disc_start = escape(disc_data.get("start", ""))
+    disc_stop  = escape(disc_data.get("stop",  ""))
+    disc_change= escape(disc_data.get("change", ""))
+    disc_refl  = escape(disc_data.get("reflection", ""))
+    discernment_html = (
+        '<div class="card" style="margin-bottom:14px;">'
+        '<div style="font-size:0.72em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;'
+        'color:var(--ink-faint);margin-bottom:4px;">✦ Seasonal Discernment</div>'
+        '<div style="font-size:0.75em;color:var(--ink-faint);font-style:italic;margin-bottom:12px;">'
+        'Start / Stop / Change — What does this season call you to?</div>'
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;">'
+        '<div>'
+        '<div style="font-size:0.72em;font-weight:700;color:#16a34a;margin-bottom:4px;">▶ START</div>'
+        '<textarea id="disc-start" rows="4" onchange="saveDisc()" '
+        'placeholder="What should you begin?" '
+        'style="width:100%;padding:7px 8px;font-size:0.8em;border-radius:8px;'
+        'border:1.5px solid var(--border);font-family:inherit;resize:vertical;box-sizing:border-box;">'
+        + disc_start + '</textarea>'
+        '</div>'
+        '<div>'
+        '<div style="font-size:0.72em;font-weight:700;color:#ef4444;margin-bottom:4px;">■ STOP</div>'
+        '<textarea id="disc-stop" rows="4" onchange="saveDisc()" '
+        'placeholder="What should you let go?" '
+        'style="width:100%;padding:7px 8px;font-size:0.8em;border-radius:8px;'
+        'border:1.5px solid var(--border);font-family:inherit;resize:vertical;box-sizing:border-box;">'
+        + disc_stop + '</textarea>'
+        '</div>'
+        '<div>'
+        '<div style="font-size:0.72em;font-weight:700;color:#d97706;margin-bottom:4px;">◆ CHANGE</div>'
+        '<textarea id="disc-change" rows="4" onchange="saveDisc()" '
+        'placeholder="What needs adjusting?" '
+        'style="width:100%;padding:7px 8px;font-size:0.8em;border-radius:8px;'
+        'border:1.5px solid var(--border);font-family:inherit;resize:vertical;box-sizing:border-box;">'
+        + disc_change + '</textarea>'
+        '</div>'
+        '</div>'
+        '<label style="font-size:0.75em;">Seasonal reflection — What is God asking of you this season?</label>'
+        '<textarea id="disc-reflection" rows="3" onchange="saveDisc()" '
+        'style="width:100%;padding:7px 10px;font-size:0.85em;border-radius:8px;'
+        'border:1.5px solid var(--border);font-family:inherit;resize:vertical;box-sizing:border-box;">'
+        + disc_refl + '</textarea>'
+        '</div>'
+    )
 
     body = top_nav() + render_status_message(status) + f"""
 <div style="display:flex;align-items:flex-start;justify-content:space-between;
@@ -228,6 +362,12 @@ def render_plan_quarter_page(quarter_key: str = None, status: str = "") -> str:
                    cursor:pointer;font-weight:600;">Add goal</button>
   </form>
 </div>
+
+{life_domains_html}
+
+{prayer_exam_html}
+
+{discernment_html}
 
 <!-- Quarter navigation -->
 <div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 0;">
@@ -297,6 +437,54 @@ function saveActiveGoals() {{
     var el = document.getElementById('save-status');
     if (el) {{ el.textContent = 'Saved \u2713'; setTimeout(function(){{ el.textContent=''; }}, 2500); }}
   }});
+}}
+
+var _ldData  = {json.dumps(plan.get("life_domains", {}))};
+var _peData  = {json.dumps(plan.get("prayer_examination", {}))};
+var _discData = {json.dumps(plan.get("seasonal_discernment", {}))};
+
+function _journalSave() {{
+  fetch('/quarter-journal-save', {{
+    method: 'POST',
+    headers: {{'Content-Type': 'application/x-www-form-urlencoded'}},
+    body: 'quarter=' + encodeURIComponent(_quarter) +
+          '&life_domains=' + encodeURIComponent(JSON.stringify(_ldData)) +
+          '&prayer_examination=' + encodeURIComponent(JSON.stringify(_peData)) +
+          '&seasonal_discernment=' + encodeURIComponent(JSON.stringify(_discData))
+  }}).then(function() {{
+    var el = document.getElementById('save-status');
+    if (el) {{ el.textContent = 'Saved \u2713'; setTimeout(function(){{ el.textContent=''; }}, 2000); }}
+  }});
+}}
+
+function updateLD(key, val) {{
+  var bar = document.getElementById('ld-bar-' + key);
+  var lbl = document.getElementById('ld-val-' + key);
+  if (bar) bar.style.width = (parseInt(val)*20) + '%';
+  if (lbl) lbl.textContent = val + '/5';
+}}
+
+function saveLD(key, val) {{
+  _ldData[key] = parseInt(val);
+  updateLD(key, val);
+  _journalSave();
+}}
+
+function savePE(key, val) {{
+  _peData[key] = val;
+  _journalSave();
+}}
+
+function saveDisc() {{
+  var s = document.getElementById('disc-start'),
+      st = document.getElementById('disc-stop'),
+      ch = document.getElementById('disc-change'),
+      rf = document.getElementById('disc-reflection');
+  _discData.start      = s  ? s.value  : '';
+  _discData.stop       = st ? st.value : '';
+  _discData.change     = ch ? ch.value : '';
+  _discData.reflection = rf ? rf.value : '';
+  _journalSave();
 }}
 
 function aiSuggestGoals() {{
@@ -394,15 +582,18 @@ def _render_step_grid(goal_id: str, plan: dict, current_wk: int) -> str:
 
         status_btn = ""
         if past or is_now:
-            for s, label in [("done","\u2713 Done"),("partial","\u223c Partial"),("skip","\u2715 Skip")]:
+            for s, label in [("done", "\u2713 Done"), ("partial", "\u223c Partial"), ("skip", "\u2715 Skip")]:
                 active = status == s
+                btn_bg     = CHECK_COLORS[s] if active else "#f3f4f6"
+                btn_color  = "white" if active else "#6b7280"
+                btn_border = ("1.5px solid " + CHECK_COLORS[s]) if active else "1px solid #e5e7eb"
                 status_btn += (
                     f'<button onclick="recordCheckin(\'{gid}\',{w},\'{s}\')" '
                     f'style="padding:3px 8px;font-size:0.68em;border-radius:6px;'
                     f'font-family:inherit;cursor:pointer;margin-right:3px;'
-                    f'background:{"' + CHECK_COLORS[s] + '" if active else "#f3f4f6"};'
-                    f'color:{"white" if active else "#6b7280"};'
-                    f'border:{"1.5px solid ' + CHECK_COLORS[s] + '" if active else "1px solid #e5e7eb"};">'
+                    f'background:{btn_bg};'
+                    f'color:{btn_color};'
+                    f'border:{btn_border};">'
                     f'{label}</button>'
                 )
 

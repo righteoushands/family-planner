@@ -44,6 +44,21 @@ CHECK_COLORS = {
     "":        "#e5e7eb",
 }
 
+CHECK_LABELS = {
+    "done":    "\u2713 Done",
+    "partial": "\u223c Partial",
+    "skip":    "\u2715 Skip",
+    "":        "Not set",
+}
+
+STATUS_COLORS = {
+    "active":    "#22c55e",
+    "completed": "#3b82f6",
+    "paused":    "#f59e0b",
+    "dropped":   "#ef4444",
+    "":          "#e5e7eb",
+}
+
 
 def current_quarter(d=None):
     if d is None:

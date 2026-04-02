@@ -24,6 +24,24 @@ def _month_key(d=None):
     return d.strftime("%Y-%m")
 
 
+AAR_DIMENSIONS = [
+    ("prayer",    "Prayer Life",      "Daily prayer, Mass, devotions, Liturgy of the Hours"),
+    ("vocation",  "Vocation / Family","Marriage, motherhood, homeschool faithfulness"),
+    ("goals",     "Goals / Growth",   "Progress on your quarterly commitments"),
+    ("home",      "Home & Order",     "Domestic life, hospitality, rhythm, meals"),
+    ("spiritual", "Spiritual Depth",  "Formation, reading, spiritual direction, virtue"),
+]
+
+MONTH_CHECKLIST_ITEMS = [
+    ("confession",     "Went to Confession"),
+    ("first_friday",   "Observed First Friday"),
+    ("first_saturday", "Observed First Saturday"),
+    ("lectio",         "Prayed Lectio Divina at least once"),
+    ("adoration",      "Made a Holy Hour of Adoration"),
+    ("family_rosary",  "Led Family Rosary at least once"),
+]
+
+
 def load_month_plan(month_key):
     os.makedirs(MONTH_DIR, exist_ok=True)
     path = f"{MONTH_DIR}/{month_key}.json"
@@ -38,6 +56,14 @@ def load_month_plan(month_key):
             "theme": "",
             "goal_milestones": {},
             "ai_briefing": "",
+            "aar": {},
+            "prayer_plan": {"morning": "", "afternoon": "", "evening": ""},
+            "feast_plan": [{"name": "", "date": "", "devotion": ""} for _ in range(3)],
+            "discernment": "",
+            "blessings_month": "",
+            "shortcomings": "",
+            "lessons": "",
+            "month_checklist": {},
         }
 
 
@@ -285,6 +311,150 @@ def render_plan_month_page(month_key=None, status=""):
         for gid in active_ids
     ])
 
+    # ── SaintMaker: After Action Review ──────────────────────────────────────
+    aar_data = month_plan.get("aar", {})
+    aar_rows = ""
+    for key, label, hint in AAR_DIMENSIONS:
+        score = int(aar_data.get(key, 0))
+        stars = ""
+        for n in range(1, 11):
+            checked = "checked" if n <= score else ""
+            stars += (
+                '<input type="radio" name="aar-' + key + '" value="' + str(n) + '" '
+                + checked + ' onchange="saveAAR(\'' + key + '\',' + str(n) + ')" '
+                'style="display:none;" id="aar-' + key + '-' + str(n) + '">'
+                '<label for="aar-' + key + '-' + str(n) + '" style="cursor:pointer;'
+                'font-size:1.1em;color:' + ('#f59e0b' if n <= score else '#e5e7eb') + ';">&#9733;</label>'
+            )
+        aar_rows += (
+            '<div style="padding:8px 0;border-bottom:1px solid var(--border-light);">'
+            '<div style="font-size:0.78em;font-weight:700;color:var(--ink);margin-bottom:2px;">' + escape(label) + '</div>'
+            '<div style="font-size:0.7em;color:var(--ink-faint);margin-bottom:5px;">' + escape(hint) + '</div>'
+            '<div id="aar-stars-' + key + '" style="display:flex;gap:2px;">' + stars + '</div>'
+            '</div>'
+        )
+    aar_html = (
+        '<div class="card" style="margin-bottom:14px;">'
+        '<div style="font-size:0.72em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;'
+        'color:var(--ink-faint);margin-bottom:4px;">✦ After Action Review</div>'
+        '<div style="font-size:0.75em;color:var(--ink-faint);font-style:italic;margin-bottom:10px;">'
+        'How did this month go? Rate each area 1–10</div>'
+        + aar_rows + '</div>'
+    )
+
+    # ── SaintMaker: Prayer Plan ───────────────────────────────────────────────
+    pp_data = month_plan.get("prayer_plan", {})
+    pp_m = escape(pp_data.get("morning",   ""))
+    pp_a = escape(pp_data.get("afternoon", ""))
+    pp_e = escape(pp_data.get("evening",   ""))
+    prayer_plan_html = (
+        '<div class="card" style="margin-bottom:14px;">'
+        '<div style="font-size:0.72em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;'
+        'color:var(--ink-faint);margin-bottom:10px;">✦ Monthly Prayer Plan</div>'
+        '<label style="font-size:0.75em;">Morning prayer rhythm</label>'
+        '<input type="text" id="pp-morning" value="' + pp_m + '" '
+        'placeholder="Lauds, Rosary, meditation, Mass..." onchange="autoSave()" '
+        'style="margin-bottom:10px;padding:7px 10px;font-size:0.85em;border-radius:8px;'
+        'border:1.5px solid var(--border);font-family:inherit;width:100%;box-sizing:border-box;">'
+        '<label style="font-size:0.75em;">Afternoon / midday</label>'
+        '<input type="text" id="pp-afternoon" value="' + pp_a + '" '
+        'placeholder="Angelus, brief examen, intentions..." onchange="autoSave()" '
+        'style="margin-bottom:10px;padding:7px 10px;font-size:0.85em;border-radius:8px;'
+        'border:1.5px solid var(--border);font-family:inherit;width:100%;box-sizing:border-box;">'
+        '<label style="font-size:0.75em;">Evening prayer rhythm</label>'
+        '<input type="text" id="pp-evening" value="' + pp_e + '" '
+        'placeholder="Vespers, Examen, night prayers, Compline..." onchange="autoSave()" '
+        'style="padding:7px 10px;font-size:0.85em;border-radius:8px;'
+        'border:1.5px solid var(--border);font-family:inherit;width:100%;box-sizing:border-box;">'
+        '</div>'
+    )
+
+    # ── SaintMaker: Feast Plan ────────────────────────────────────────────────
+    fp_data = month_plan.get("feast_plan", [{} for _ in range(3)])
+    if not isinstance(fp_data, list) or len(fp_data) < 3:
+        fp_data = (fp_data + [{}, {}, {}])[:3]
+    fp_rows = ""
+    for i in range(3):
+        fp_name    = escape(fp_data[i].get("name",    ""))
+        fp_date    = escape(fp_data[i].get("date",    ""))
+        fp_dev     = escape(fp_data[i].get("devotion",""))
+        fp_rows += (
+            '<div style="border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;">'
+            '<div style="display:grid;grid-template-columns:1fr 120px;gap:8px;margin-bottom:6px;">'
+            '<input type="text" id="fp-name-' + str(i) + '" value="' + fp_name + '" '
+            'placeholder="Feast or celebration..." onchange="autoSave()" '
+            'style="padding:6px 10px;font-size:0.82em;border-radius:8px;border:1.5px solid var(--border);font-family:inherit;">'
+            '<input type="date" id="fp-date-' + str(i) + '" value="' + fp_date + '" '
+            'onchange="autoSave()" '
+            'style="padding:6px 8px;font-size:0.82em;border-radius:8px;border:1.5px solid var(--border);font-family:inherit;">'
+            '</div>'
+            '<input type="text" id="fp-devotion-' + str(i) + '" value="' + fp_dev + '" '
+            'placeholder="How will you celebrate or observe?" onchange="autoSave()" '
+            'style="width:100%;padding:6px 10px;font-size:0.82em;border-radius:8px;border:1.5px solid var(--border);font-family:inherit;box-sizing:border-box;">'
+            '</div>'
+        )
+    feast_plan_html = (
+        '<div class="card" style="margin-bottom:14px;">'
+        '<div style="font-size:0.72em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;'
+        'color:var(--ink-faint);margin-bottom:10px;">✦ Feast Plan</div>'
+        '<div style="font-size:0.75em;color:var(--ink-faint);font-style:italic;margin-bottom:10px;">'
+        'Plan how you\'ll mark three key feasts or celebrations this month</div>'
+        + fp_rows + '</div>'
+    )
+
+    # ── SaintMaker: Discernment + Reflection ─────────────────────────────────
+    disc_val  = escape(month_plan.get("discernment",     ""))
+    bless_val = escape(month_plan.get("blessings_month", ""))
+    short_val = escape(month_plan.get("shortcomings",    ""))
+    less_val  = escape(month_plan.get("lessons",         ""))
+    discernment_html = (
+        '<div class="card" style="margin-bottom:14px;">'
+        '<div style="font-size:0.72em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;'
+        'color:var(--ink-faint);margin-bottom:10px;">✦ Monthly Discernment &amp; Reflection</div>'
+        '<label style="font-size:0.75em;">Blessings — Where did God show up this month?</label>'
+        '<textarea id="m-blessings" rows="2" onchange="autoSave()" '
+        'style="width:100%;padding:7px 10px;font-size:0.85em;border-radius:8px;'
+        'border:1.5px solid var(--border);font-family:inherit;resize:vertical;box-sizing:border-box;margin-bottom:10px;">'
+        + bless_val + '</textarea>'
+        '<label style="font-size:0.75em;">Shortcomings — Where did you fall short?</label>'
+        '<textarea id="m-shortcomings" rows="2" onchange="autoSave()" '
+        'style="width:100%;padding:7px 10px;font-size:0.85em;border-radius:8px;'
+        'border:1.5px solid var(--border);font-family:inherit;resize:vertical;box-sizing:border-box;margin-bottom:10px;">'
+        + short_val + '</textarea>'
+        '<label style="font-size:0.75em;">Lessons — What is God teaching you?</label>'
+        '<textarea id="m-lessons" rows="2" onchange="autoSave()" '
+        'style="width:100%;padding:7px 10px;font-size:0.85em;border-radius:8px;'
+        'border:1.5px solid var(--border);font-family:inherit;resize:vertical;box-sizing:border-box;margin-bottom:10px;">'
+        + less_val + '</textarea>'
+        '<label style="font-size:0.75em;">Discernment — What is God calling you to next month?</label>'
+        '<textarea id="m-discernment" rows="3" onchange="autoSave()" '
+        'style="width:100%;padding:7px 10px;font-size:0.85em;border-radius:8px;'
+        'border:1.5px solid var(--border);font-family:inherit;resize:vertical;box-sizing:border-box;">'
+        + disc_val + '</textarea>'
+        '</div>'
+    )
+
+    # ── SaintMaker: Month Checklist ───────────────────────────────────────────
+    mc_data = month_plan.get("month_checklist", {})
+    mc_rows = ""
+    for key, label in MONTH_CHECKLIST_ITEMS:
+        checked = 'checked' if mc_data.get(key, False) else ''
+        mc_rows += (
+            '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;'
+            'border-bottom:1px solid var(--border-light);">'
+            '<input type="checkbox" id="mc-' + key + '" ' + checked + ' '
+            'onchange="saveMC(\'' + key + '\',this.checked)" '
+            'style="width:18px;height:18px;accent-color:var(--brown);flex-shrink:0;">'
+            '<label for="mc-' + key + '" style="font-size:0.85em;cursor:pointer;">' + escape(label) + '</label>'
+            '</div>'
+        )
+    checklist_html = (
+        '<div class="card" style="margin-bottom:14px;">'
+        '<div style="font-size:0.72em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;'
+        'color:var(--ink-faint);margin-bottom:10px;">✦ Month Checklist</div>'
+        + mc_rows + '</div>'
+    )
+
     body = top_nav() + render_status_message(status) + f"""
 <div style="display:flex;align-items:flex-start;justify-content:space-between;
             flex-wrap:wrap;gap:8px;padding-top:4px;margin-bottom:16px;">
@@ -354,6 +524,12 @@ def render_plan_month_page(month_key=None, status=""):
   {ai_btn}
 </div>
 
+{aar_html}
+
+{prayer_plan_html}
+
+{feast_plan_html}
+
 <!-- Goal milestones -->
 <div style="margin-bottom:14px;">
   <div style="font-size:0.72em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
@@ -365,6 +541,10 @@ def render_plan_month_page(month_key=None, status=""):
   </div>
   {goal_cards}
 </div>
+
+{discernment_html}
+
+{checklist_html}
 
 <!-- Navigation -->
 <div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 0;">
@@ -380,13 +560,58 @@ var _mk        = '{escape(month_key)}';
 var _mPlan     = {month_plan_js};
 var _aGoals    = {active_goals_js};
 var _saveTimer = null;
+if (!_mPlan.aar)             _mPlan.aar             = {{}};
+if (!_mPlan.prayer_plan)     _mPlan.prayer_plan     = {{}};
+if (!_mPlan.feast_plan)      _mPlan.feast_plan      = [{{name:'',date:'',devotion:''}},{{name:'',date:'',devotion:''}},{{name:'',date:'',devotion:''}}];
+if (!_mPlan.month_checklist) _mPlan.month_checklist = {{}};
 
 function autoSave() {{ clearTimeout(_saveTimer); _saveTimer = setTimeout(saveMonth, 1200); }}
 
+function saveAAR(key, val) {{
+  _mPlan.aar[key] = val;
+  var labels = document.querySelectorAll('label[for^="aar-' + key + '-"]');
+  labels.forEach(function(lbl) {{
+    var n = parseInt(lbl.getAttribute('for').split('-').pop());
+    lbl.style.color = n <= val ? '#f59e0b' : '#e5e7eb';
+  }});
+  autoSave();
+}}
+
+function saveMC(key, val) {{
+  if (!_mPlan.month_checklist) _mPlan.month_checklist = {{}};
+  _mPlan.month_checklist[key] = val;
+  autoSave();
+}}
+
 function saveMonth() {{
-  _mPlan.theme   = document.getElementById('m-theme').value   || '';
-  _mPlan.focus   = document.getElementById('m-focus').value   || '';
-  _mPlan.protect = document.getElementById('m-protect').value || '';
+  _mPlan.theme   = document.getElementById('m-theme')   ? document.getElementById('m-theme').value   || '' : _mPlan.theme;
+  _mPlan.focus   = document.getElementById('m-focus')   ? document.getElementById('m-focus').value   || '' : _mPlan.focus;
+  _mPlan.protect = document.getElementById('m-protect') ? document.getElementById('m-protect').value || '' : _mPlan.protect;
+  var ppM = document.getElementById('pp-morning'),
+      ppA = document.getElementById('pp-afternoon'),
+      ppE = document.getElementById('pp-evening');
+  if (ppM || ppA || ppE) {{
+    if (!_mPlan.prayer_plan) _mPlan.prayer_plan = {{}};
+    if (ppM) _mPlan.prayer_plan.morning   = ppM.value || '';
+    if (ppA) _mPlan.prayer_plan.afternoon = ppA.value || '';
+    if (ppE) _mPlan.prayer_plan.evening   = ppE.value || '';
+  }}
+  var fp = [];
+  for (var i = 0; i < 3; i++) {{
+    var fn = document.getElementById('fp-name-'    + i);
+    var fd = document.getElementById('fp-date-'    + i);
+    var fv = document.getElementById('fp-devotion-'+ i);
+    fp.push({{name: fn?fn.value:'', date: fd?fd.value:'', devotion: fv?fv.value:''}});
+  }}
+  _mPlan.feast_plan = fp;
+  var bl = document.getElementById('m-blessings'),
+      sh = document.getElementById('m-shortcomings'),
+      le = document.getElementById('m-lessons'),
+      di = document.getElementById('m-discernment');
+  if (bl) _mPlan.blessings_month = bl.value || '';
+  if (sh) _mPlan.shortcomings    = sh.value || '';
+  if (le) _mPlan.lessons         = le.value || '';
+  if (di) _mPlan.discernment     = di.value || '';
   fetch('/plan-month-save', {{
     method: 'POST', headers: {{'Content-Type': 'application/x-www-form-urlencoded'}},
     body: 'month=' + encodeURIComponent(_mk) + '&data=' + encodeURIComponent(JSON.stringify(_mPlan))
