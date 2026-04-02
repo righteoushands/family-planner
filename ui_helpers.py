@@ -996,7 +996,7 @@ document.addEventListener('click', function(e) {{
         <a href="/mom#grid" onclick="closeMobileMore()"
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
                   border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
-          &#128203;&#10003; Grid
+          &#128203;&#10003; Family Rule of Life
         </a>
         <a href="/family-schedule" onclick="closeMobileMore()"
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
