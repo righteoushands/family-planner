@@ -257,6 +257,40 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/calendar/refresh":
             refresh_calendar(force=True)
             self.send_response(303); self.send_header("Location","/calendar"); self.end_headers(); return
+        elif path.startswith("/lucy-child-brief/"):
+            import json as _json
+            child_slug = path[len("/lucy-child-brief/"):].strip().lower()
+            matched_child = next((c for c in CHILDREN if c.lower() == child_slug), None)
+            if not matched_child:
+                self.send_response(404); self.end_headers(); return
+            try:
+                from render_lucy import get_child_lucy_brief
+                from render_child_goals import load_child_goals
+                from daily_schedule_engine import build_schedule_payload, generate_day_packet
+                from datetime import date as _date2
+                _today = _date2.today()
+                _pkt = generate_day_packet(_today.isoformat())
+                _payload = build_schedule_payload(matched_child, _pkt["weekday"], _pkt["date_label"], _pkt["iso"])
+                _tasks = []
+                for _item in (_payload.get("manual_task_items", []) + _payload.get("chore_items", [])):
+                    _tasks.append(_item.get("label", _item.get("text", "")))
+                for _blk in _payload.get("school_blocks", []):
+                    for _si in _blk.get("items", []):
+                        _tasks.append(_si.get("label", _si.get("text", "")))
+                _goals = [g for g in load_child_goals(matched_child) if not g.get("archived")]
+                _brief = get_child_lucy_brief(matched_child, _tasks, _goals)
+                from html import escape as _esc
+                _html = _brief.replace("\n\n", "</p><p>").replace("\n", " ")
+                _html = f"<p>{_html}</p>" if _html else ""
+            except Exception as _e:
+                _html = ""
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            try: self.wfile.write(_json.dumps({"html": _html}).encode())
+            except BrokenPipeError: pass
+            return
         else:
             self.send_response(404); self.end_headers(); return
 
@@ -1264,6 +1298,85 @@ class Handler(BaseHTTPRequestHandler):
                     pass
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                try: self.wfile.write(_json.dumps({"ok": True}).encode())
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/child-goal-add":
+                import json as _json
+                from render_child_goals import add_child_goal
+                _child  = clean_text(data.get("child",[""])[0])
+                _title  = clean_text(data.get("title",[""])[0])
+                _cat    = clean_text(data.get("category",["Spiritual Formation"])[0])
+                _why    = clean_text(data.get("why",[""])[0])
+                _dl     = clean_text(data.get("deadline",[""])[0])
+                _rev    = clean_text(data.get("review_frequency",["weekly"])[0])
+                if _child and _title:
+                    add_child_goal(_child, _title, _cat, _why, _dl, _rev)
+                self.send_response(200)
+                self.send_header("Content-Type","application/json")
+                self.end_headers()
+                try: self.wfile.write(_json.dumps({"ok": True}).encode())
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/child-goal-archive":
+                import json as _json
+                from render_child_goals import update_child_goal
+                _child  = clean_text(data.get("child",[""])[0])
+                _gid    = clean_text(data.get("goal_id",[""])[0])
+                if _child and _gid:
+                    update_child_goal(_child, _gid, {"archived": True})
+                self.send_response(200)
+                self.send_header("Content-Type","application/json")
+                self.end_headers()
+                try: self.wfile.write(_json.dumps({"ok": True}).encode())
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/child-substep-add":
+                import json as _json
+                from render_child_goals import add_substep
+                _child  = clean_text(data.get("child",[""])[0])
+                _gid    = clean_text(data.get("goal_id",[""])[0])
+                _text   = clean_text(data.get("text",[""])[0])
+                step    = {}
+                if _child and _gid and _text:
+                    step = add_substep(_child, _gid, _text)
+                self.send_response(200)
+                self.send_header("Content-Type","application/json")
+                self.end_headers()
+                try: self.wfile.write(_json.dumps({"ok": bool(step), "step": step}).encode())
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/child-substep-toggle":
+                import json as _json
+                from render_child_goals import toggle_substep
+                _child  = clean_text(data.get("child",[""])[0])
+                _gid    = clean_text(data.get("goal_id",[""])[0])
+                _sid    = clean_text(data.get("step_id",[""])[0])
+                _done   = False
+                if _child and _gid and _sid:
+                    _done = toggle_substep(_child, _gid, _sid)
+                self.send_response(200)
+                self.send_header("Content-Type","application/json")
+                self.end_headers()
+                try: self.wfile.write(_json.dumps({"ok": True, "done": _done}).encode())
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/child-substep-delete":
+                import json as _json
+                from render_child_goals import delete_substep
+                _child  = clean_text(data.get("child",[""])[0])
+                _gid    = clean_text(data.get("goal_id",[""])[0])
+                _sid    = clean_text(data.get("step_id",[""])[0])
+                if _child and _gid and _sid:
+                    delete_substep(_child, _gid, _sid)
+                self.send_response(200)
+                self.send_header("Content-Type","application/json")
                 self.end_headers()
                 try: self.wfile.write(_json.dumps({"ok": True}).encode())
                 except BrokenPipeError: pass

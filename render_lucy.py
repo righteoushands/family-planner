@@ -953,3 +953,160 @@ window.addEventListener('load', function() {{
 def escape_js(s: str) -> str:
     """Escape a string for safe embedding in a JS string literal (single-quoted)."""
     return "'" + s.replace("\\", "\\\\").replace("'", "\\'").replace("\n", "\\n") + "'"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Child-specific Lucy brief (used on each boy's schedule page)
+# ─────────────────────────────────────────────────────────────────────────────
+
+_CHILD_PROFILES = {
+    "jp": {
+        "age": 14,
+        "stage": "teenager",
+        "formation_notes": (
+            "JP is 14 — old enough to reason about virtue, chastity, and Catholic manhood. "
+            "He is active in CAP/Civil Air Patrol and Sea Cadets. "
+            "Speak to him with the respect due a young man, not a child. "
+            "Challenge him toward excellence and sacrificial love. "
+            "He is old enough to understand the theology behind what you suggest. "
+            "Notice signs of pride or sloth and name them gently. Affirm any courage or service."
+        ),
+    },
+    "joseph": {
+        "age": 12,
+        "stage": "preteen",
+        "formation_notes": (
+            "Joseph is 12. He is at the threshold between boyhood and young manhood. "
+            "He is preparing (or should be) for Confirmation. "
+            "He needs encouragement around friendship, loyalty, and honesty. "
+            "Watch for social comparison with his older brother JP. "
+            "Help him find his own identity in Christ, not in comparison to others. "
+            "Speak warmly and with humor — he is not yet JP's age."
+        ),
+    },
+    "michael": {
+        "age": 5,
+        "stage": "kindergarten",
+        "formation_notes": (
+            "Michael is 5 — in his kindergarten years. "
+            "Formation at this age is through joy, story, and routine. "
+            "He learns prayer by doing it with others, not by reasoning about it. "
+            "Key virtues to encourage: obedience, kindness, sharing, and patience. "
+            "Stories of saints (especially action-oriented ones like St. George, St. Martin) delight him. "
+            "Keep language simple, warm, and playful. He is not learning doctrine — he is learning to love."
+        ),
+    },
+    "james": {
+        "age": 0,
+        "stage": "infant",
+        "formation_notes": (
+            "James is only a few weeks old — an infant. "
+            "He cannot be formed in the usual sense yet. "
+            "Your brief should be addressed to Mom, not to James. "
+            "Note developmental milestones appropriate for this age (feeding, sleep, attachment, tummy time). "
+            "Offer encouragement for Mom in the particular exhaustion of the newborn stage. "
+            "Remind her that holding James with love is already forming him in security and trust. "
+            "Suggest a simple blessing or prayer she can whisper over him."
+        ),
+    },
+}
+
+
+def get_child_lucy_brief(child: str, tasks_today: list, active_goals: list) -> str:
+    """
+    Call Claude to generate a short (3-5 sentence) formation brief for a specific child.
+    Returns plain text. Raises on API failure.
+    """
+    import json as _json
+    import urllib.request as _req
+
+    ck = child.lower().strip()
+    profile = _CHILD_PROFILES.get(ck, {})
+    age = profile.get("age", "unknown")
+    stage = profile.get("stage", "child")
+    formation_notes = profile.get("formation_notes", "")
+
+    # Load API key
+    try:
+        with open("data/app_settings.json") as f:
+            settings = _json.load(f)
+        api_key = (settings.get("family_constraints", {}).get("anthropic_api_key", "")
+                   or settings.get("anthropic_api_key", "")).strip()
+    except Exception:
+        api_key = ""
+
+    if not api_key:
+        return ""
+
+    # Load Lucy's standing rules for context
+    try:
+        from data_helpers import load_lucy_rules
+        rules = load_lucy_rules()
+        rules_text = "\n".join(f"- {r}" for r in rules) if rules else "None set."
+    except Exception:
+        rules_text = "None set."
+
+    today = _today_eastern()
+    weekday = today.strftime("%A")
+    date_label = today.strftime("%B %d, %Y")
+
+    tasks_text = ""
+    if tasks_today:
+        tasks_text = "\n".join(f"- {t}" for t in tasks_today[:10])
+    else:
+        tasks_text = "No specific tasks recorded for today."
+
+    goals_text = ""
+    if active_goals:
+        for g in active_goals[:5]:
+            substeps_done = sum(1 for s in g.get("substeps", []) if s.get("done"))
+            substeps_total = len(g.get("substeps", []))
+            progress = f"{substeps_done}/{substeps_total} steps done" if substeps_total else "no steps yet"
+            goals_text += f"- {g.get('title','')} [{g.get('category','')}] ({progress})\n"
+    else:
+        goals_text = "No goals set yet for this child."
+
+    system = (
+        "You are Lucy, a warm, faithful, deeply Catholic AI companion for the McAdams family. "
+        "You know every member of the family well. "
+        "You are writing a brief formation note that will appear at the top of a child's daily schedule page. "
+        "It is written FOR MOM (she reads the page), about the child. "
+        "Keep it to 3-5 sentences. Be warm, specific, and practical. "
+        "Reference what you know about this child's age, stage, and goals. "
+        "Do not be generic. Do not be preachy. Do not list things — write in flowing, personal prose. "
+        "If the child is an infant, address Mom directly with encouragement and a developmental note. "
+        "Always close with either a brief prayer intention, a virtue to notice today, or a specific encouragement. "
+        f"\n\nMom's standing rules and context:\n{rules_text}"
+    )
+
+    user = (
+        f"Today is {weekday}, {date_label}.\n\n"
+        f"Child: {child} (age {age}, {stage})\n"
+        f"Formation notes:\n{formation_notes}\n\n"
+        f"Today's tasks for {child}:\n{tasks_text}\n\n"
+        f"Active goals for {child}:\n{goals_text}\n\n"
+        f"Please write a brief, warm formation note for Mom about {child} for today."
+    )
+
+    payload = {
+        "model": "claude-haiku-4-5-20251001",
+        "max_tokens": 300,
+        "system": system,
+        "messages": [{"role": "user", "content": user}],
+    }
+
+    try:
+        req = _req.Request(
+            "https://api.anthropic.com/v1/messages",
+            data=_json.dumps(payload).encode(),
+            headers={
+                "Content-Type":      "application/json",
+                "x-api-key":         api_key,
+                "anthropic-version": "2023-06-01",
+            },
+        )
+        with _req.urlopen(req, timeout=15) as resp:
+            result = _json.loads(resp.read())
+        return result["content"][0]["text"].strip()
+    except Exception:
+        return ""

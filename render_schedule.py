@@ -216,6 +216,17 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
             <div style="margin-top:8px;">{render_calendar_today_strip(iso)}</div>
         </div>
         <div class="section-stack">
+            <div class="card card-tight no-print" id="lucy-child-panel-{child.lower()}"
+                 style="border-left:4px solid {c_bg};background:{c_light};">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                    <span style="font-size:1.1em;">✦</span>
+                    <h3 style="margin:0;font-size:.95em;color:{c_bg};">Lucy's Notes for {escape(child)}</h3>
+                </div>
+                <div id="lucy-child-brief-{child.lower()}"
+                     style="font-size:.88em;line-height:1.6;color:#444;min-height:40px;">
+                    <span style="color:#bbb;font-style:italic;">Loading…</span>
+                </div>
+            </div>
             <div class="card card-tight">
                 <h3>Carryover</h3>{render_task_list(child, iso, merged_carryover)}
             </div>
@@ -229,7 +240,31 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
                 <h3>Chores</h3>{render_task_list(child, iso, payload["chore_items"])}
             </div>
         </div>
-    </div>"""
+        {_render_child_goals_section(child)}
+    </div>
+<script>
+(function() {{
+    var el = document.getElementById('lucy-child-brief-{child.lower()}');
+    if (!el) return;
+    fetch('/lucy-child-brief/{child.lower()}')
+        .then(function(r) {{ return r.json(); }})
+        .then(function(d) {{
+            el.innerHTML = d.html || '<span style="color:#bbb;font-style:italic;">Not available right now.</span>';
+        }})
+        .catch(function() {{
+            el.innerHTML = '<span style="color:#bbb;font-style:italic;">Could not load Lucy\'s notes.</span>';
+        }});
+}})();
+</script>"""
+
+
+def _render_child_goals_section(child: str) -> str:
+    """Render the goals section for a child's page (imported here to avoid circular imports)."""
+    try:
+        from render_child_goals import render_child_goals_section
+        return render_child_goals_section(child)
+    except Exception:
+        return ""
 
 
 def render_child_schedule(child: str, target_date_str: str = "") -> str:
