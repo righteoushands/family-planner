@@ -1846,6 +1846,24 @@ class Handler(BaseHTTPRequestHandler):
                 except BrokenPipeError: pass
                 return
 
+            elif path == "/save-child-profile":
+                import json as _json
+                try:
+                    child_slug = str(data.get("child",[""])[0]).lower().strip()
+                    profile_raw = clean_text(data.get("profile",["{}"])[0])
+                    profile_in = _json.loads(profile_raw)
+                    if child_slug and isinstance(profile_in, dict):
+                        from render_child_profile import save_child_profile
+                        save_child_profile(child_slug, profile_in)
+                    self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(b'{"ok":true}')
+                    except BrokenPipeError: pass
+                except Exception:
+                    self.send_response(500); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(b'{"ok":false}')
+                    except BrokenPipeError: pass
+                return
+
             elif path == "/quarter-journal-save":
                 import json as _json
                 qk_in  = clean_text(data.get("quarter",[""])[0])

@@ -241,6 +241,7 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
             </div>
         </div>
         {_render_child_goals_section(child)}
+        {_render_child_profile_section(child, c_bg, c_light)}
     </div>
 <script>
 (function() {{
@@ -263,6 +264,15 @@ def _render_child_goals_section(child: str) -> str:
     try:
         from render_child_goals import render_child_goals_section
         return render_child_goals_section(child)
+    except Exception:
+        return ""
+
+
+def _render_child_profile_section(child: str, c_bg: str, c_light: str) -> str:
+    """Render the editable profile card for a child's page."""
+    try:
+        from render_child_profile import render_child_profile_section
+        return render_child_profile_section(child, c_bg, c_light)
     except Exception:
         return ""
 

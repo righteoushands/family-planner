@@ -1079,12 +1079,20 @@ def get_child_lucy_brief(child: str, tasks_today: list, active_goals: list) -> s
         f"\n\nMom's standing rules and context:\n{rules_text}"
     )
 
+    # Load the child's personal profile (sizes, preferences, wish lists, etc.)
+    try:
+        from render_child_profile import profile_summary_for_lucy
+        profile_text = profile_summary_for_lucy(child)
+    except Exception:
+        profile_text = "(Profile not available.)"
+
     user = (
         f"Today is {weekday}, {date_label}.\n\n"
         f"Child: {child} (age {age}, {stage})\n"
         f"Formation notes:\n{formation_notes}\n\n"
         f"Today's tasks for {child}:\n{tasks_text}\n\n"
         f"Active goals for {child}:\n{goals_text}\n\n"
+        f"Personal profile for {child} (preferences, wish lists, sizes, interests):\n{profile_text}\n\n"
         f"Please write a brief, warm formation note for Mom about {child} for today."
     )
 
