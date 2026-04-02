@@ -232,13 +232,17 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
 (function() {{
     var el = document.getElementById('lucy-lauren-brief');
     if (!el) return;
+    var fallback = '<span style="color:#bbb;font-style:italic;">Not available right now.</span>';
+    var timer = setTimeout(function() {{ el.innerHTML = fallback; }}, 18000);
     fetch('/lucy-child-brief/lauren')
         .then(function(r) {{ return r.json(); }})
         .then(function(d) {{
-            el.innerHTML = d.html || '<span style="color:#bbb;font-style:italic;">Not available right now.</span>';
+            clearTimeout(timer);
+            el.innerHTML = d.html || fallback;
         }})
         .catch(function() {{
-            el.innerHTML = '<span style="color:#bbb;font-style:italic;">Could not load Lucy\'s notes.</span>';
+            clearTimeout(timer);
+            el.innerHTML = fallback;
         }});
 }})();
 </script>"""

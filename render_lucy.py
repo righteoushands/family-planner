@@ -1012,6 +1012,85 @@ _CHILD_PROFILES = {
 }
 
 
+def get_mom_lucy_brief(tasks_today: list) -> str:
+    """
+    Generate a short daily encouragement note written for Lauren (Mom).
+    Returns plain text HTML. Returns empty string on failure.
+    """
+    import json as _json
+    import urllib.request as _req
+
+    try:
+        with open("data/app_settings.json") as f:
+            settings = _json.load(f)
+        api_key = (settings.get("family_constraints", {}).get("anthropic_api_key", "")
+                   or settings.get("anthropic_api_key", "")).strip()
+    except Exception:
+        api_key = ""
+
+    if not api_key:
+        return ""
+
+    try:
+        from data_helpers import load_lucy_rules
+        rules = load_lucy_rules()
+        rules_text = "\n".join(f"- {r}" for r in rules) if rules else "None set."
+    except Exception:
+        rules_text = "None set."
+
+    today = _today_eastern()
+    weekday = today.strftime("%A")
+    date_label = today.strftime("%B %d, %Y")
+
+    tasks_text = (
+        "\n".join(f"- {t}" for t in tasks_today[:10])
+        if tasks_today
+        else "No specific tasks recorded for today."
+    )
+
+    system = (
+        "You are Lucy, a warm, deeply Catholic AI companion for Lauren McAdams. "
+        "Lauren is a Catholic homeschooling mother of four boys: JP (14), Joseph (12), Michael (5), and James (newborn). "
+        "Her husband is John. She manages the household, educates the children at home, and carries the invisible weight of motherhood with faith. "
+        "She is devoted to Our Lady, values liturgical rhythm, and loves her family deeply. "
+        "Your job is to write a SHORT (3-5 sentence) morning note of encouragement written DIRECTLY to Lauren — "
+        "not about her children, not a to-do recap, but a warm personal word that sees her as a whole person. "
+        "Reference today's tasks lightly if helpful, but the focus is on Lauren's heart and interior life. "
+        "Close with a brief prayer intention or a virtue she might lean into today. "
+        "Do not be generic. Do not be preachy. Write in warm, personal prose — like a friend who knows her well. "
+        f"\n\nMom's standing rules and context:\n{rules_text}"
+    )
+
+    user = (
+        f"Today is {weekday}, {date_label}.\n\n"
+        f"Lauren's tasks and chores today:\n{tasks_text}\n\n"
+        "Please write a brief, warm morning encouragement note directly to Lauren for today."
+    )
+
+    payload = {
+        "model": "claude-haiku-4-5-20251001",
+        "max_tokens": 250,
+        "system": system,
+        "messages": [{"role": "user", "content": user}],
+    }
+
+    try:
+        req = _req.Request(
+            "https://api.anthropic.com/v1/messages",
+            data=_json.dumps(payload).encode(),
+            headers={
+                "Content-Type":      "application/json",
+                "x-api-key":         api_key,
+                "anthropic-version": "2023-06-01",
+            },
+        )
+        with _req.urlopen(req, timeout=15) as resp:
+            result = _json.loads(resp.read())
+        return result["content"][0]["text"].strip()
+    except Exception:
+        return ""
+
+
 def get_child_lucy_brief(child: str, tasks_today: list, active_goals: list) -> str:
     """
     Call Claude to generate a short (3-5 sentence) formation brief for a specific child.

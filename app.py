@@ -272,15 +272,14 @@ class Handler(BaseHTTPRequestHandler):
             # Support Lauren's schedule page
             if child_slug == "lauren":
                 try:
-                    from render_lucy import get_child_lucy_brief
+                    from render_lucy import get_mom_lucy_brief
                     from daily_schedule_engine import build_schedule_payload, generate_day_packet
                     from datetime import date as _date2
                     _today = _date2.today()
                     _pkt = generate_day_packet(_today.isoformat())
                     _payload = build_schedule_payload("Mom", _pkt["weekday"], _pkt["date_label"], _pkt["iso"])
                     _tasks = [i.get("text","") for i in (_payload.get("manual_task_items",[]) + _payload.get("chore_items",[]))]
-                    _brief = get_child_lucy_brief("Lauren", _tasks, [])
-                    from html import escape as _esc
+                    _brief = get_mom_lucy_brief(_tasks)
                     _html = _brief.replace("\n\n","</p><p>").replace("\n"," ")
                     _html = f"<p>{_html}</p>" if _html else ""
                 except Exception:
