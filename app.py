@@ -177,6 +177,12 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/notes":           body = render_notes()
         elif path == "/tasks":           body = render_tasks()
         elif path == "/mom":             body = render_mom_page(target_date_str=query.get("date",[""])[0])
+        elif path == "/john":
+            from render_john import render_john_page
+            body = render_john_page()
+        elif path == "/friends":
+            from render_friends import render_friends_page
+            body = render_friends_page()
         elif path == "/roadmap":         body = render_roadmap_page()
         elif path == "/signup":           body = render_signup_page()
         elif path == "/waitlist":         body = render_waitlist_admin(False)
@@ -1844,6 +1850,78 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
                 try: self.wfile.write(b'{"ok":true}')
                 except BrokenPipeError: pass
+                return
+
+            elif path == "/save-john-profile":
+                import json as _json
+                try:
+                    profile_raw = clean_text(data.get("profile",["{}"])[0])
+                    profile_in = _json.loads(profile_raw)
+                    if isinstance(profile_in, dict):
+                        from render_john import save_john_profile
+                        save_john_profile(profile_in)
+                    self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(b'{"ok":true}')
+                    except BrokenPipeError: pass
+                except Exception:
+                    self.send_response(500); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(b'{"ok":false}')
+                    except BrokenPipeError: pass
+                return
+
+            elif path == "/save-friend":
+                import json as _json, uuid as _uuid
+                try:
+                    family_raw = clean_text(data.get("family",["{}"])[0])
+                    family_in  = _json.loads(family_raw)
+                    if isinstance(family_in, dict):
+                        from render_friends import load_friends, save_friends
+                        friends = load_friends()
+                        fid = family_in.get("id","").strip()
+                        if fid:
+                            # Update existing
+                            found = False
+                            for i, f in enumerate(friends):
+                                if f.get("id") == fid:
+                                    family_in["id"] = fid
+                                    friends[i] = family_in
+                                    found = True
+                                    break
+                            if not found:
+                                friends.append(family_in)
+                        else:
+                            # New family
+                            fid = str(_uuid.uuid4())[:8]
+                            family_in["id"] = fid
+                            friends.append(family_in)
+                        save_friends(friends)
+                        out = _json.dumps({"ok": True, "id": fid}).encode()
+                    else:
+                        out = b'{"ok":false}'
+                    self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(out)
+                    except BrokenPipeError: pass
+                except Exception:
+                    self.send_response(500); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(b'{"ok":false}')
+                    except BrokenPipeError: pass
+                return
+
+            elif path == "/delete-friend":
+                import json as _json
+                try:
+                    fid = clean_text(data.get("id",[""])[0])
+                    if fid:
+                        from render_friends import load_friends, save_friends
+                        friends = [f for f in load_friends() if f.get("id") != fid]
+                        save_friends(friends)
+                    self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(b'{"ok":true}')
+                    except BrokenPipeError: pass
+                except Exception:
+                    self.send_response(500); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(b'{"ok":false}')
+                    except BrokenPipeError: pass
                 return
 
             elif path == "/save-child-profile":

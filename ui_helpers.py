@@ -985,6 +985,10 @@ def top_nav() -> str:
             <a href="/print/day?date=tomorrow">Print Tomorrow</a>
             <a href="/print/week">Print Week</a>
             <hr>
+            <div class="nav-drop-section">People</div>
+            <a href="/john">&#9788; John</a>
+            <a href="/friends">&#128106; Friends</a>
+            <hr>
             <div class="nav-drop-section">Admin</div>
             <a href="/roadmap">🗺 Roadmap</a>
             <a href="/history">📂 History</a>
