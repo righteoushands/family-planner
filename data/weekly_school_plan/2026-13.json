@@ -5,6 +5,86 @@
       "days": {
         "Monday": {
           "subjects": [
+            "English / Writing",
+            "Latin",
+            "Science",
+            "History",
+            "Reading",
+            "Art",
+            "Music",
+            "Physical Education",
+            "Religion / Faith Formation"
+          ],
+          "notes": ""
+        },
+        "Tuesday": {
+          "subjects": [
+            "Math",
+            "English / Writing",
+            "Latin",
+            "Science",
+            "History",
+            "Reading",
+            "Art",
+            "Music",
+            "Physical Education",
+            "Religion / Faith Formation"
+          ],
+          "notes": ""
+        },
+        "Wednesday": {
+          "subjects": [
+            "Math",
+            "English / Writing",
+            "Latin",
+            "Science",
+            "History",
+            "Reading",
+            "Art",
+            "Music",
+            "Physical Education",
+            "Religion / Faith Formation"
+          ],
+          "notes": ""
+        },
+        "Thursday": {
+          "subjects": [
+            "Math",
+            "English / Writing",
+            "Latin",
+            "Science",
+            "History",
+            "Reading",
+            "Art",
+            "Music",
+            "Physical Education",
+            "Religion / Faith Formation"
+          ],
+          "notes": ""
+        },
+        "Friday": {
+          "subjects": [
+            "Math",
+            "English / Writing",
+            "Latin",
+            "Science",
+            "History",
+            "Reading",
+            "Art",
+            "Music",
+            "Physical Education",
+            "Religion / Faith Formation"
+          ],
+          "notes": ""
+        }
+      },
+      "weekly_tasks": [],
+      "notes": ""
+    },
+    "Joseph": {
+      "days": {
+        "Monday": {
+          "subjects": [
             "Math",
             "English / Writing",
             "Latin",
