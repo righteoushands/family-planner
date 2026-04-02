@@ -2,36 +2,6 @@
   "messages": [
     {
       "role": "user",
-      "content": "JP promised to make it himself but he hasn’t talked to me about it at all so I’m assuming it won’t happen or he will try to make it happen tomorrow.",
-      "ts": "2026-04-02T00:14:28"
-    },
-    {
-      "role": "assistant",
-      "content": "Okay, so JP has made a promise but hasn't come to you with a plan. That's fair — he's 14 and might pull it together, or it might not happen.\n\nHere's what I'd suggest: **Have a quick conversation with JP tomorrow morning (after the Giant run, before things get busy) and ask him straight up: \"Do you want to make Joseph's Hylian Sword cake tomorrow, or should we plan something simpler?\" Give him the choice.** If he says yes, he owns it. If he hesitates or says no, you pivot to something you can actually do without stress — a sheet cake with frosting, a boxed cake doctored up, whatever feels doable.\n\nThat way Joseph still has a cake, JP's off the hook if he can't, and you're not carrying invisible pressure all day.\n\nDoes that feel right?",
-      "ts": "2026-04-02T00:14:31"
-    },
-    {
-      "role": "user",
-      "content": "Yes and let’s go ahead and get boxed cake and icing at Giant tomorrow.",
-      "ts": "2026-04-02T00:15:23"
-    },
-    {
-      "role": "assistant",
-      "content": "Done. Boxed cake and icing on the Giant list for tomorrow, along with flour, vegetable oil, bacon, and cheese for pizza.\n\nYou've got a manageable day: early run, beignets, leftover hamburgers, pizza with cheese, cake ready to go, and Joseph celebrated. The rest unfolds as it can.\n\nSleep well tonight.",
-      "ts": "2026-04-02T00:15:24"
-    },
-    {
-      "role": "user",
-      "content": "I’ve got all the Easter basket goodies today! I’ve also got some books to add. Yay",
-      "ts": "2026-04-02T00:15:45"
-    },
-    {
-      "role": "assistant",
-      "content": "That's wonderful! Easter baskets ready to go — one less thing to think about this week. And adding books is perfect; the kids will love that.\n\nYou're ahead on something, which feels good when everything else feels heavy.\n\nSleep well. Tomorrow's Joseph's day.",
-      "ts": "2026-04-02T00:15:46"
-    },
-    {
-      "role": "user",
       "content": "Thanks. Is there anything else on tomorrows schedule?",
       "ts": "2026-04-02T00:16:52"
     },
@@ -299,6 +269,36 @@
       "role": "assistant",
       "content": "What a treasure that article is. Kendra's approach to Holy Thursday is so practical and joyful — she gets it.\n\nI love what she does: the modified seder meal with bitter herbs, roasted lamb, unleavened bread, grape juice for the kids. It grounds the mystery of the Last Supper in something the children can *taste* and *experience*. And the Rice Krispie lamb cake instead of stressing over a \"perfect\" one — that's the Salesian spirit right there. Holiness in the real, imperfect, doable thing.\n\nThe foot-washing at home after dinner is beautiful too. It brings the Lord's humility and service into your own kitchen, your own family. That's the domestic church living out what Jesus taught.\n\nAnd her honesty about not keeping the kids up for the Seven Churches of Maundy Thursday because they'll all get sick anyway — that's wisdom. \"If you've got little kids and you're not willing to be flexible, then you're probably just not going to do much.\" So true.\n\nAre you thinking of doing something like this for your family tonight? You've got the Holy Thursday Mass at 7:30, and Joseph's birthday dinner earlier. What's your plan?",
       "ts": "2026-04-02T19:08:15"
+    },
+    {
+      "role": "user",
+      "content": "Not this year. Can you save it for next year?",
+      "ts": "2026-04-02T19:09:09"
+    },
+    {
+      "role": "assistant",
+      "content": "Absolutely. I'm saving this for next year's Holy Thursday planning.\n\nCatholic All Year's Holy Thursday Triduum practices — practical, joyful approach with modified seder meal, foot-washing at home, realistic with little ones.\n\nYou'll have it when April comes around next year.",
+      "ts": "2026-04-02T19:09:11"
+    },
+    {
+      "role": "user",
+      "content": "When Easter comes around. It might not be in April!",
+      "ts": "2026-04-02T19:09:45"
+    },
+    {
+      "role": "assistant",
+      "content": "You're absolutely right — Easter moves every year. I'll save it for whenever Easter season comes around next year, not just April.\n\nGot it: Catholic All Year's Holy Thursday Triduum practices — reference for Easter season planning (whenever that falls).",
+      "ts": "2026-04-02T19:09:46"
+    },
+    {
+      "role": "user",
+      "content": "Ty",
+      "ts": "2026-04-02T19:09:57"
+    },
+    {
+      "role": "assistant",
+      "content": "You're welcome.",
+      "ts": "2026-04-02T19:09:57"
     }
   ]
 }
