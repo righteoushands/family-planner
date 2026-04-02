@@ -908,10 +908,6 @@ document.addEventListener('click', function(e) {{
     <span class="mobile-nav-icon">&#128203;</span>
     <span class="mobile-nav-label">Plan</span>
   </a>
-  <a href="/mom#grid" class="mobile-nav-item">
-    <span class="mobile-nav-icon">&#128203;&#10003;</span>
-    <span class="mobile-nav-label">Grid</span>
-  </a>
   <a href="/prayer" class="mobile-nav-item">
     <span class="mobile-nav-icon">&#10011;</span>
     <span class="mobile-nav-label">Prayer</span>
@@ -920,7 +916,113 @@ document.addEventListener('click', function(e) {{
     <span class="mobile-nav-icon">&#9881;</span>
     <span class="mobile-nav-label">Settings</span>
   </a>
+  <button class="mobile-nav-item" onclick="toggleMobileMore()" id="mobile-more-btn"
+          style="background:none;border:none;cursor:pointer;font-family:inherit;width:100%;">
+    <span class="mobile-nav-icon" style="font-size:1.3em;">&#9776;</span>
+    <span class="mobile-nav-label">More</span>
+  </button>
 </nav>
+
+<!-- Mobile More slide-up sheet -->
+<div id="mobile-more-overlay"
+     onclick="if(event.target===this)closeMobileMore()"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9000;">
+  <div id="mobile-more-sheet"
+       style="position:absolute;bottom:0;left:0;right:0;background:white;
+              border-radius:20px 20px 0 0;padding:0 0 env(safe-area-inset-bottom,0) 0;
+              max-height:82vh;overflow-y:auto;
+              transform:translateY(100%);transition:transform 0.28s cubic-bezier(.4,0,.2,1);">
+    <!-- Handle -->
+    <div style="display:flex;justify-content:center;padding:12px 0 4px;">
+      <div style="width:40px;height:4px;border-radius:4px;background:#e5e7eb;"></div>
+    </div>
+    <!-- Sections -->
+    <div style="padding:4px 16px 20px;">
+
+      <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+                  color:#9ca3af;margin:10px 0 8px;">People</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+        <a href="/john" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f0f4fa;
+                  border-radius:12px;text-decoration:none;color:#1c3a5e;font-weight:600;font-size:0.9em;">
+          <span style="font-size:1.2em;">&#9788;</span> John
+        </a>
+        <a href="/friends" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f0faf4;
+                  border-radius:12px;text-decoration:none;color:#2d6a4f;font-weight:600;font-size:0.9em;">
+          <span style="font-size:1.2em;">&#128106;</span> Friends
+        </a>
+      </div>
+
+      <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+                  color:#9ca3af;margin:14px 0 8px;">Plan</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+        <a href="/calendar" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#128198; Calendar
+        </a>
+        <a href="/tasks" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#9989; Tasks
+        </a>
+        <a href="/notes" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#128221; Notes
+        </a>
+        <a href="/planner" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#128197; Planner
+        </a>
+        <a href="/mom#grid" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#128203;&#10003; Grid
+        </a>
+        <a href="/family-schedule" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#128197; Schedule
+        </a>
+      </div>
+
+      <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+                  color:#9ca3af;margin:14px 0 8px;">Kids</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+        <a href="/school" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#128218; School
+        </a>
+        <a href="/chores" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#129529; Chores
+        </a>
+      </div>
+
+      <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+                  color:#9ca3af;margin:14px 0 8px;">Meals</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+        <a href="/meals" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#127829; Meals
+        </a>
+        <a href="/recipes" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#128218; Recipes
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <script>
 (function() {{
   var path = window.location.pathname;
@@ -930,10 +1032,51 @@ document.addEventListener('click', function(e) {{
       if (!el.classList.contains('plan-item')) {{
         el.style.background = '#f5f0eb';
       }}
-      el.querySelector('.mobile-nav-label').style.color = '#8b5a3c';
+      var lbl = el.querySelector('.mobile-nav-label');
+      if (lbl) lbl.style.color = '#8b5a3c';
     }}
   }});
+  /* Highlight More btn if on a "more" page */
+  var morePaths = ['/john','/friends','/calendar','/tasks','/notes','/planner',
+                   '/school','/chores','/meals','/recipes','/family-schedule','/roadmap'];
+  if (morePaths.indexOf(path) > -1) {{
+    var btn = document.getElementById('mobile-more-btn');
+    if (btn) {{
+      btn.style.background = '#f5f0eb';
+      var lbl = btn.querySelector('.mobile-nav-label');
+      if (lbl) lbl.style.color = '#8b5a3c';
+    }}
+  }}
 }})();
+
+window.toggleMobileMore = function() {{
+  var overlay = document.getElementById('mobile-more-overlay');
+  var sheet   = document.getElementById('mobile-more-sheet');
+  if (!overlay || !sheet) return;
+  var isOpen = overlay.style.display === 'flex';
+  if (isOpen) {{
+    closeMobileMore();
+  }} else {{
+    overlay.style.display = 'flex';
+    requestAnimationFrame(function() {{
+      requestAnimationFrame(function() {{
+        sheet.style.transform = 'translateY(0)';
+      }});
+    }});
+    document.body.style.overflow = 'hidden';
+  }}
+}};
+
+window.closeMobileMore = function() {{
+  var overlay = document.getElementById('mobile-more-overlay');
+  var sheet   = document.getElementById('mobile-more-sheet');
+  if (!overlay || !sheet) return;
+  sheet.style.transform = 'translateY(100%)';
+  setTimeout(function() {{
+    overlay.style.display = 'none';
+    document.body.style.overflow = '';
+  }}, 280);
+}};
 </script>
 </body>
 </html>
