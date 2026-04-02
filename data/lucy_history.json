@@ -2,16 +2,6 @@
   "messages": [
     {
       "role": "user",
-      "content": "I probably won’t be doing the Thursday evening things. John might take the big boys.",
-      "ts": "2026-04-02T00:13:41"
-    },
-    {
-      "role": "assistant",
-      "content": "That's smart. Offloading Holy Thursday to John with the big boys gives you breathing room with Michael and James at home.\n\nNow back to the cake: **Did JP promise to make the Hylian Sword cake himself, or did he promise Joseph would have one without specifying who'd make it?**",
-      "ts": "2026-04-02T00:13:43"
-    },
-    {
-      "role": "user",
       "content": "JP promised to make it himself but he hasn’t talked to me about it at all so I’m assuming it won’t happen or he will try to make it happen tomorrow.",
       "ts": "2026-04-02T00:14:28"
     },
@@ -299,6 +289,16 @@
       "role": "assistant",
       "content": "Ah, got it — so Replit is your AI coding partner. That makes sense.\n\nHere's what you'd tell it:\n\n---\n\nI need each child to have an individual profile page that stores:\n\n- Current clothing sizes (shirt, pants, jacket, etc.)\n- Current shoe size\n- Birthday present ideas (a growing list of things they've mentioned or Mom has noticed)\n- Things they want to learn or skills they'd like to develop\n- Requested activities (outings, experiences, sports they want to try)\n- Favorite foods and meal requests\n- Desired trips or adventures\n- Any other relevant preferences or interests\n\nThese fields should be editable so Mom can update them as the boys grow or interests change. Lucy (the AI companion) should be able to reference this information when helping Mom plan birthdays, shop, suggest activities, or find ways to delight each child.\n\n---\n\nDoes that cover what you want Replit to build?",
       "ts": "2026-04-02T17:34:03"
+    },
+    {
+      "role": "user",
+      "content": "Perfect and done. Catholic All Year has some great liturgical living practices! https://catholicallyear.com/blog/how-we-do-triduum-holy-thursday/",
+      "ts": "2026-04-02T19:08:10"
+    },
+    {
+      "role": "assistant",
+      "content": "What a treasure that article is. Kendra's approach to Holy Thursday is so practical and joyful — she gets it.\n\nI love what she does: the modified seder meal with bitter herbs, roasted lamb, unleavened bread, grape juice for the kids. It grounds the mystery of the Last Supper in something the children can *taste* and *experience*. And the Rice Krispie lamb cake instead of stressing over a \"perfect\" one — that's the Salesian spirit right there. Holiness in the real, imperfect, doable thing.\n\nThe foot-washing at home after dinner is beautiful too. It brings the Lord's humility and service into your own kitchen, your own family. That's the domestic church living out what Jesus taught.\n\nAnd her honesty about not keeping the kids up for the Seven Churches of Maundy Thursday because they'll all get sick anyway — that's wisdom. \"If you've got little kids and you're not willing to be flexible, then you're probably just not going to do much.\" So true.\n\nAre you thinking of doing something like this for your family tonight? You've got the Holy Thursday Mass at 7:30, and Joseph's birthday dinner earlier. What's your plan?",
+      "ts": "2026-04-02T19:08:15"
     }
   ]
 }
