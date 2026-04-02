@@ -425,8 +425,35 @@ def render_van_roles_page() -> str:
 # ── Chores page ───────────────────────────────────────────────────────────────
 def render_chores_page(status_message: str = "") -> str:
     from daily_schedule_engine import CHILDREN
+    from config import parent_color
     chores = load_chores_data()
     boys   = chores.get("boys", {})
+
+    # ── Lauren's chores section ───────────────────────────────────────────────
+    lauren_data    = chores.get("lauren", {})
+    lauren_daily   = "\n".join(lauren_data.get("daily", []))
+    lauren_weekly  = lauren_data.get("weekly", {})
+    l_bg    = parent_color("Lauren", "bg")
+    l_light = parent_color("Lauren", "light")
+    lauren_weekday_fields = ""
+    for weekday in WEEKDAYS:
+        existing_lines = lauren_weekly.get(weekday, [])
+        value = "\n".join(existing_lines)
+        lauren_weekday_fields += f"""
+            <label>{escape(weekday)}</label>
+            <textarea name="weekly__Lauren__{escape(weekday)}" rows="3">{escape(value)}</textarea>"""
+    lauren_section = f"""
+        <div class="card" style="border-left:5px solid {l_bg};background:{l_light};margin-bottom:16px;">
+            <h2 style="color:{l_bg};">Lauren</h2>
+            <div style="font-size:0.8em;color:#9ca3af;margin-bottom:8px;font-style:italic;">
+                Tasks here appear on your profile page with checkboxes — just like the boys.
+            </div>
+            <label>Daily chores / tasks</label>
+            <textarea name="daily__Lauren" rows="4">{escape(lauren_daily)}</textarea>
+            <h3>Weekly chores / tasks</h3>
+            {lauren_weekday_fields}
+        </div>"""
+
     sections = ""
     for child in CHILDREN:
         child_data = boys.get(child, {})
@@ -563,6 +590,7 @@ def render_chores_page(status_message: str = "") -> str:
         </form>
     </div>
     <form method="POST" action="/save-chores">
+        {lauren_section}
         {sections}
         <button type="submit">Save Chores</button>
     </form>"""

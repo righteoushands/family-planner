@@ -189,5 +189,22 @@
   "2026-04-01::Joseph::CHORE::KITCHEN (Morning — Role A):": true,
   "2026-04-01::Joseph::CHORE::→ Put food away": true,
   "2026-04-01::Joseph::CHORE::→ Clear table + counters": true,
-  "2026-04-01::Joseph::CHORE::→ Spray + wipe table and counters": true
+  "2026-04-01::Joseph::CHORE::→ Spray + wipe table and counters": true,
+  "2026-04-02::Joseph::CHORE::Check Sea Cadet email": true,
+  "2026-04-02::Joseph::CHORE::Daily Room Reset": true,
+  "2026-04-02::Joseph::CHORE::Exercise (non-PE days)": true,
+  "2026-04-02::Joseph::CHORE::Tidy the basement for 10 minutes.": true,
+  "2026-04-02::Joseph::CHORE::KITCHEN (Morning — Role A):": true,
+  "2026-04-02::Joseph::CHORE::→ Put food away": true,
+  "2026-04-02::Joseph::CHORE::→ Clear table + counters": true,
+  "2026-04-02::Joseph::CHORE::→ Spray + wipe table and counters": true,
+  "2026-04-02::JP::CHORE::Check CAP email": true,
+  "2026-04-02::JP::CHORE::Check Sea Cadet email": true,
+  "2026-04-02::JP::CHORE::Daily Room Reset": true,
+  "2026-04-02::JP::CHORE::Exercise (non-PE days)": true,
+  "2026-04-02::JP::CHORE::Tidy the basement for 10 minutes.": true,
+  "2026-04-02::JP::CHORE::KITCHEN (Morning — Role B):": true,
+  "2026-04-02::JP::CHORE::→ Unload dishwasher": true,
+  "2026-04-02::JP::CHORE::→ Load dishwasher": true,
+  "2026-04-02::Mom::MANUAL::MEDIUM::Make WCC for Joe": true
 }

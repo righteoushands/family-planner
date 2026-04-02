@@ -114,9 +114,13 @@ def load_chores():
 
 def weekday_chores_for_child(child: str, weekday: str):
     chores = load_chores()
-    boy = chores.get("boys", {}).get(child, {})
-    daily = boy.get("daily", []) or []
-    weekly = (boy.get("weekly", {}) or {}).get(weekday, []) or []
+    # "Mom" / "Lauren" uses the top-level "lauren" section
+    if child in ("Mom", "Lauren"):
+        section = chores.get("lauren", {})
+    else:
+        section = chores.get("boys", {}).get(child, {})
+    daily  = section.get("daily", []) or []
+    weekly = (section.get("weekly", {}) or {}).get(weekday, []) or []
     return daily + weekly
 
 
