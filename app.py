@@ -179,7 +179,7 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/mom":             body = render_mom_page(target_date_str=query.get("date",[""])[0])
         elif path == "/mom-profile":
             from render_mom_profile import render_mom_profile_page
-            body = render_mom_profile_page()
+            body = render_mom_profile_page(target_date_str=query.get("date",[""])[0])
         elif path == "/john":
             from render_john import render_john_page
             body = render_john_page()
@@ -269,6 +269,29 @@ class Handler(BaseHTTPRequestHandler):
         elif path.startswith("/lucy-child-brief/"):
             import json as _json
             child_slug = path[len("/lucy-child-brief/"):].strip().lower()
+            # Support Lauren's schedule page
+            if child_slug == "lauren":
+                try:
+                    from render_lucy import get_child_lucy_brief
+                    from daily_schedule_engine import build_schedule_payload, generate_day_packet
+                    from datetime import date as _date2
+                    _today = _date2.today()
+                    _pkt = generate_day_packet(_today.isoformat())
+                    _payload = build_schedule_payload("Mom", _pkt["weekday"], _pkt["date_label"], _pkt["iso"])
+                    _tasks = [i.get("text","") for i in (_payload.get("manual_task_items",[]) + _payload.get("chore_items",[]))]
+                    _brief = get_child_lucy_brief("Lauren", _tasks, [])
+                    from html import escape as _esc
+                    _html = _brief.replace("\n\n","</p><p>").replace("\n"," ")
+                    _html = f"<p>{_html}</p>" if _html else ""
+                except Exception:
+                    _html = ""
+                self.send_response(200)
+                self.send_header("Content-Type","application/json")
+                self.send_header("Cache-Control","no-store")
+                self.end_headers()
+                try: self.wfile.write(_json.dumps({"html":_html}).encode())
+                except BrokenPipeError: pass
+                return
             matched_child = next((c for c in CHILDREN if c.lower() == child_slug), None)
             if not matched_child:
                 self.send_response(404); self.end_headers(); return

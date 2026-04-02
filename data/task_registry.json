@@ -148,6 +148,11 @@
       "SCHOOL::Spelling & Vocabulary 8::Test completed — given to Mom"
     ],
     "Michael": [],
-    "James": []
+    "James": [],
+    "Mom": [
+      "MANUAL::MEDIUM::Change air filters",
+      "MANUAL::MEDIUM::Make WCC for Joe",
+      "MANUAL::MEDIUM::Sharpen knives"
+    ]
   }
 }

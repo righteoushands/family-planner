@@ -112,7 +112,139 @@ def _list_section_html(key: str, label: str, hint: str, items: list) -> str:
 </div>"""
 
 
-def render_mom_profile_page() -> str:
+def render_lauren_schedule_card(target_date_str: str = "") -> str:
+    """
+    Full daily schedule card for Lauren — same structure as the boys' pages.
+    Task lookups use 'Mom' as the engine key (matching assigned_to in manual_tasks).
+    """
+    from datetime import date as _date
+    from html import escape as _e
+    from daily_schedule_engine import (
+        build_schedule_payload, generate_day_packet,
+        load_progress, get_task_done,
+    )
+    from data_helpers import normalize_date_query
+    from config import parent_color
+    from render_schedule import render_day_nav
+
+    normalized_date = normalize_date_query(target_date_str)
+    packet      = generate_day_packet(normalized_date)
+    iso         = packet["iso"]
+    weekday     = packet["weekday"]
+    date_label  = packet["date_label"]
+
+    payload      = build_schedule_payload("Mom", weekday, date_label, iso)
+    carryover    = payload.get("carryover_items", [])
+    manual_items = payload.get("manual_task_items", [])
+    chore_items  = payload.get("chore_items", [])
+
+    try:
+        target_iso = _date.fromisoformat(iso)
+    except Exception:
+        target_iso = _date.today()
+
+    carry_count  = len(carryover)
+    manual_count = len(manual_items)
+    chore_count  = len(chore_items)
+
+    c_bg    = parent_color("Lauren", "bg")
+    c_light = parent_color("Lauren", "light")
+
+    try:
+        from render_daily_bar import render_daily_bar
+        daily_bar = render_daily_bar(target_iso)
+    except Exception:
+        daily_bar = ""
+
+    day_nav = render_day_nav("/mom-profile", iso)
+
+    try:
+        from render_schedule_support import render_now_next_strip
+        from render_calendar import render_calendar_today_strip
+        now_next_html  = render_now_next_strip()
+        cal_strip_html = render_calendar_today_strip(iso)
+    except Exception:
+        now_next_html  = ""
+        cal_strip_html = ""
+
+    progress = load_progress()
+
+    def _task_row(item):
+        tid     = _e(item.get("task_id", ""))
+        done    = get_task_done(progress, item.get("task_id", ""))
+        checked = "checked" if done else ""
+        dc      = "done"    if done else ""
+        nv      = "false"   if done else "true"
+        return (
+            f'<div class="task {dc}" id="task-{tid}">'
+            f'<input type="checkbox" id="lbl-{tid}" {checked}'
+            f' onchange="toggleTask(this,\'{tid}\',\'{nv}\',\'/mom-profile?date={_e(iso)}\')">'
+            f'<label for="lbl-{tid}">{_e(item.get("text", ""))}</label>'
+            f'</div>'
+        )
+
+    carry_html  = ("".join(_task_row(i) for i in carryover)   if carryover   else "<p class='muted'>None.</p>")
+    manual_html = ("".join(_task_row(i) for i in manual_items) if manual_items else "<p class='muted'>None.</p>")
+    chore_html  = ("".join(_task_row(i) for i in chore_items)  if chore_items  else "<p class='muted'>None.</p>")
+
+    try:
+        from render_meals import render_meal_today_card
+        meal_html = render_meal_today_card(target_iso)
+    except Exception:
+        meal_html = ""
+
+    lucy_panel = (
+        f'<div class="card card-tight no-print"'
+        f' style="border-left:4px solid {c_bg};background:{c_light};">'
+        f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
+        f'<span style="font-size:1.1em;">✦</span>'
+        f'<h3 style="margin:0;font-size:.95em;color:{c_bg};">Lucy\'s Notes for Lauren</h3>'
+        f'</div>'
+        f'<div id="lucy-lauren-brief"'
+        f' style="font-size:.88em;line-height:1.6;color:#444;min-height:40px;">'
+        f'<span style="color:#bbb;font-style:italic;">Loading…</span>'
+        f'</div></div>'
+    )
+
+    return f"""
+<div class="card" style="border-left:5px solid {c_bg};background:{c_light};margin-bottom:18px;">
+    {daily_bar}
+    <div class="page-header">
+        <h2 style="color:{c_bg};margin:0 0 4px;">Lauren — {_e(date_label)}</h2>
+        <div class="no-print">{day_nav}</div>
+        <div class="summary-row">
+            <span class="badge">Carryover: {carry_count}</span>
+            <span class="badge">Tasks: {manual_count}</span>
+            <span class="badge">Chores: {chore_count}</span>
+        </div>
+        <div style="margin-top:8px;">{now_next_html}</div>
+        <div style="margin-top:8px;">{cal_strip_html}</div>
+    </div>
+    <div class="section-stack">
+        {lucy_panel}
+        <div class="card card-tight"><h3>Carryover</h3>{carry_html}</div>
+        <div class="card card-tight"><h3>Tasks</h3>{manual_html}</div>
+        <div class="card card-tight"><h3>Chores</h3>{chore_html}</div>
+    </div>
+    {meal_html}
+</div>
+<script>
+(function() {{
+    var el = document.getElementById('lucy-lauren-brief');
+    if (!el) return;
+    fetch('/lucy-child-brief/lauren')
+        .then(function(r) {{ return r.json(); }})
+        .then(function(d) {{
+            el.innerHTML = d.html || '<span style="color:#bbb;font-style:italic;">Not available right now.</span>';
+        }})
+        .catch(function() {{
+            el.innerHTML = '<span style="color:#bbb;font-style:italic;">Could not load Lucy\'s notes.</span>';
+        }});
+}})();
+</script>"""
+
+
+def render_mom_profile_page(target_date_str: str = "") -> str:
     p = load_mom_profile()
     clothing    = p.get("clothing_sizes", {})
     shoe        = escape(p.get("shoe_size", ""))
@@ -142,16 +274,20 @@ def render_mom_profile_page() -> str:
     clothing_keys_json = json.dumps([key for key, _ in CLOTHING_FIELDS])
     all_list_data      = {key: p.get(key, []) for key, _, __ in LIST_SECTIONS}
 
+    schedule_card = render_lauren_schedule_card(target_date_str)
+
     body = f"""
 {top_nav()}
 <div style="max-width:680px;margin:0 auto;padding:16px;">
 
-  <div style="margin-bottom:20px;">
+  <!-- Schedule card — same logic as the boys' pages -->
+  {schedule_card}
+
+  <div style="margin-bottom:16px;">
     <div style="font-size:0.7em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
                 color:{ACCENT};margin-bottom:2px;">Wife &amp; Mother</div>
-    <h1 style="margin:0;font-size:1.6em;color:var(--ink);">Lauren</h1>
-    <div style="font-size:0.82em;color:#9ca3af;margin-top:2px;">
-      Your own page — sizes, wishes, dreams &amp; everything that's just for you
+    <div style="font-size:0.82em;color:#9ca3af;">
+      Sizes, wishes, dreams &amp; everything that's just for you
     </div>
   </div>
 
