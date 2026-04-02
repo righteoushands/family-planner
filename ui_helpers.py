@@ -7,7 +7,7 @@ from html import escape
 from urllib.parse import parse_qs
 
 from daily_schedule_engine import CHILDREN
-from config import child_color
+from config import child_color, parent_color
 
 
 # ── HTML shell ───────────────────────────────────────────────────────────────
@@ -904,17 +904,17 @@ document.addEventListener('click', function(e) {{
     <span class="mobile-nav-icon">&#127968;</span>
     <span class="mobile-nav-label">Home</span>
   </a>
-  <a href="/mom" class="mobile-nav-item plan-item">
-    <span class="mobile-nav-icon">&#128203;</span>
-    <span class="mobile-nav-label">Plan</span>
+  <a href="/tasks" class="mobile-nav-item">
+    <span class="mobile-nav-icon">&#9989;</span>
+    <span class="mobile-nav-label">Tasks</span>
   </a>
   <a href="/prayer" class="mobile-nav-item">
     <span class="mobile-nav-icon">&#10011;</span>
     <span class="mobile-nav-label">Prayer</span>
   </a>
-  <a href="/settings" class="mobile-nav-item">
-    <span class="mobile-nav-icon">&#9881;</span>
-    <span class="mobile-nav-label">Settings</span>
+  <a href="/plan-tomorrow" class="mobile-nav-item">
+    <span class="mobile-nav-icon">&#10024;</span>
+    <span class="mobile-nav-label">Tomorrow</span>
   </a>
   <button class="mobile-nav-item" onclick="toggleMobileMore()" id="mobile-more-btn"
           style="background:none;border:none;cursor:pointer;font-family:inherit;width:100%;">
@@ -943,15 +943,25 @@ document.addEventListener('click', function(e) {{
                   color:#9ca3af;margin:10px 0 8px;">People</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
         <a href="/mom-profile" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fdf8f4;
-                  border-radius:12px;text-decoration:none;color:#8b5a3c;font-weight:600;font-size:0.9em;">
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:{parent_color('Lauren','light')};
+                  border-radius:12px;text-decoration:none;color:{parent_color('Lauren','bg')};font-weight:600;font-size:0.9em;">
           <span style="font-size:1.2em;">&#9825;</span> Mom
         </a>
         <a href="/john" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f0f4fa;
-                  border-radius:12px;text-decoration:none;color:#1c3a5e;font-weight:600;font-size:0.9em;">
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:{parent_color('John','light')};
+                  border-radius:12px;text-decoration:none;color:{parent_color('John','bg')};font-weight:600;font-size:0.9em;">
           <span style="font-size:1.2em;">&#9788;</span> John
         </a>
+        {''.join(
+          '<a href="/schedule/' + escape(c) + '" onclick="closeMobileMore()"'
+          ' style="display:flex;align-items:center;gap:8px;padding:12px 14px;background:#fafafa;'
+          'border-radius:12px;text-decoration:none;color:#374151;font-weight:600;font-size:0.9em;">'
+          '<span style="width:9px;height:9px;border-radius:50%;background:' + child_color(c,'bg') + ';flex-shrink:0;display:inline-block;"></span>'
+          + escape(c) + '</a>'
+          for c in CHILDREN
+        )}
         <a href="/friends" onclick="closeMobileMore()"
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f0faf4;
                   border-radius:12px;text-decoration:none;color:#2d6a4f;font-weight:600;font-size:0.9em;">
@@ -962,15 +972,16 @@ document.addEventListener('click', function(e) {{
       <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
                   color:#9ca3af;margin:14px 0 8px;">Plan</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+        <a href="/mom" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:{parent_color('Lauren','light')};
+                  border-radius:12px;text-decoration:none;color:{parent_color('Lauren','bg')};font-weight:600;font-size:0.9em;">
+          &#128203; Plan my day
+        </a>
         <a href="/calendar" onclick="closeMobileMore()"
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
                   border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
           &#128198; Calendar
-        </a>
-        <a href="/tasks" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
-                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
-          &#9989; Tasks
         </a>
         <a href="/notes" onclick="closeMobileMore()"
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
@@ -991,6 +1002,11 @@ document.addEventListener('click', function(e) {{
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
                   border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
           &#128197; Schedule
+        </a>
+        <a href="/settings" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#9881; Settings
         </a>
       </div>
 
@@ -1042,8 +1058,9 @@ document.addEventListener('click', function(e) {{
     }}
   }});
   /* Highlight More btn if on a "more" page */
-  var morePaths = ['/mom-profile','/john','/friends','/calendar','/tasks','/notes','/planner',
-                   '/school','/chores','/meals','/recipes','/family-schedule','/roadmap'];
+  var morePaths = ['/mom-profile','/john','/friends','/calendar','/notes','/planner',
+                   '/school','/chores','/meals','/recipes','/family-schedule','/roadmap',
+                   '/settings','/mom'];
   if (morePaths.indexOf(path) > -1) {{
     var btn = document.getElementById('mobile-more-btn');
     if (btn) {{

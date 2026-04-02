@@ -1123,44 +1123,13 @@ def render_dashboard() -> str:
         _lucy_msg = f'Blessed {escape(weekday)} to the McAdams family. Ready to make today count?'
 
     body = f"""
-    <!-- Control panel strip -->
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;padding-top:4px;
-                align-items:center;">
-      <a href="/settings"
-         style="padding:6px 12px;background:var(--parchment);border:1px solid var(--border);
-                border-radius:8px;text-decoration:none;font-size:0.8em;
-                font-weight:600;color:var(--ink-muted);">
-        &#9881;
-      </a>
-      {"".join(
-        '<a href="/schedule/' + escape(c) + '" '
-        'style="display:flex;align-items:center;gap:5px;padding:6px 11px;'
-        'background:var(--parchment);border:1px solid var(--border);'
-        'border-radius:8px;text-decoration:none;font-size:0.8em;font-weight:600;color:var(--ink);">'
-        '<span style="width:7px;height:7px;border-radius:50%;background:' + child_color(c,"bg") + ';flex-shrink:0;display:inline-block;"></span>'
-        + escape(c) +
-        '</a>'
-        for c in CHILDREN
-      )}
-      <a href="/tasks"
-         style="padding:6px 11px;background:var(--parchment);border:1px solid var(--border);
-                border-radius:8px;text-decoration:none;font-size:0.8em;
-                font-weight:600;color:var(--ink-muted);">Tasks</a>
-      <a href="/plan-tomorrow"
-         style="padding:6px 11px;background:var(--parchment);border:1px solid {parent_color('Lauren','bg')};
-                border-radius:8px;text-decoration:none;font-size:0.8em;
-                font-weight:600;color:{parent_color('Lauren','bg')};">✨ Tomorrow</a>
+    <!-- Control panel strip (Talk to Lucy only) -->
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;padding-top:4px;">
       <a href="/lucy"
-         style="padding:6px 13px;background:{parent_color('Lauren','bg')};
-                color:white;border-radius:8px;text-decoration:none;font-size:0.8em;font-weight:700;
-                margin-left:auto;white-space:nowrap;">
+         style="padding:7px 16px;background:{parent_color('Lauren','bg')};
+                color:white;border-radius:20px;text-decoration:none;font-size:0.82em;font-weight:700;
+                white-space:nowrap;letter-spacing:.01em;">
         🌿 Talk to Lucy
-      </a>
-      <a href="/mom"
-         style="padding:6px 12px;background:var(--ink);color:var(--gold-light);
-                border-radius:8px;text-decoration:none;font-size:0.8em;font-weight:700;
-                white-space:nowrap;">
-        Plan my day &rarr;
       </a>
     </div>
 
