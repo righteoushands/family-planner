@@ -1284,25 +1284,12 @@ function saveSchoolSettings() {{
             section_id="s-cycle",
             number="3",
             title="Cycle Tracking",
-            summary="Private cycle log, phase display, and detail field preferences.",
-            detail=(
-                "Cycle tracking is completely private — never visible to family members or on shared screens. "
-                "It powers the cycle phase overlays in the weekly planner, the dashboard prediction panel, "
-                "and the 5AM Club reflect section.<br><br>"
-                "<strong>Cycle log</strong> — record Day 1 dates to build a history. The app calculates "
-                "your average cycle length and predicts upcoming phases and fertile windows.<br><br>"
-                "<strong>Detail fields</strong> — toggle whether the full symptom/mood/energy fields "
-                "appear in the Plan My Day cycle step. Turn off for a simpler view.<br><br>"
-                "Learn more: "
-                "<a href='https://www.fertilitycare.org' target='_blank' style='color:var(--brown);'>"
-                "FertilityCare (NFP)</a> · "
-                "<a href='https://creightonmodel.com' target='_blank' style='color:var(--brown);'>"
-                "Creighton Model</a>"
-            ),
+            summary="Moved to Lauren\u2019s profile page.",
+            detail="Cycle tracking now lives on your personal profile page for easier access.",
             color="#8e44ad",
         ),
         content_open=False,
-        content_html=grp_cycle,
+        content_html='<div style="padding:16px;"><p style="color:#888;font-size:0.9em;">Cycle tracking has moved to your profile page.</p><a href="/mom-profile" style="display:inline-block;margin-top:8px;padding:8px 18px;background:#8e44ad;color:white;border-radius:8px;text-decoration:none;font-size:0.9em;font-weight:600;">Go to Lauren\u2019s Profile \u2192</a></div>',
     )
 
     panels += _panel(
@@ -1794,7 +1781,7 @@ def _section_liturgy_hours(settings: dict) -> str:
 
 
 # ── Cycle tracking settings section ──────────────────────────────────────────
-def _section_cycle(settings: dict = None) -> str:
+def _section_cycle(settings: dict = None, return_url: str = "/settings#s-cycle") -> str:
     """Cycle tracking settings — Day 1 log, cycle length history, predictions."""
     if settings is None:
         settings = load_app_settings()
@@ -1919,6 +1906,7 @@ def _section_cycle(settings: dict = None) -> str:
             if curr == entry.get("day1"):
                 cl_str = f"{cl} days"
                 break
+        _ret = return_url
         log_rows += (
             f'<tr>'
             f'<td style="padding:6px 10px;font-size:0.85em;">{d1}</td>'
@@ -1927,6 +1915,7 @@ def _section_cycle(settings: dict = None) -> str:
             f'<td style="padding:6px 10px;">'
             f'<form method="POST" action="/cycle-log-delete" style="display:inline;">'
             f'<input type="hidden" name="day1" value="{d1}">'
+            f'<input type="hidden" name="_return" value="{_ret}">'
             f'<button type="submit" style="font-size:0.75em;color:#c0392b;background:none;'
             f'border:none;cursor:pointer;padding:2px 6px;" '
             f'onclick="return confirm(\'Delete this entry?\')">&#10005;</button>'
@@ -1956,7 +1945,6 @@ def _section_cycle(settings: dict = None) -> str:
 
     return f"""
     <div class="settings-section" id="s-cycle">
-        <input type="hidden" name="cycle_fields_section" value="1">
         <h2>Cycle Tracking <span class="small" style="font-weight:400;">— private \u00b7 only visible to you</span></h2>
         <p class="small" style="margin-bottom:16px;">
             Log the first day of each cycle. The app uses this to predict your current phase,
@@ -1967,6 +1955,8 @@ def _section_cycle(settings: dict = None) -> str:
         <h3>Display Options</h3>
         <form method="POST" action="/settings-save" style="margin-bottom:20px;padding:14px;
               background:var(--parchment);border-radius:10px;border:1px solid var(--border);">
+            <input type="hidden" name="cycle_fields_section" value="1">
+            <input type="hidden" name="_return" value="{return_url}">
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
                 <input type="checkbox" name="cycle_show_detail_fields"
                        {_checked}
@@ -1988,6 +1978,7 @@ def _section_cycle(settings: dict = None) -> str:
 
         <h3>Log a Day 1</h3>
         <form method="POST" action="/cycle-log-add" style="margin-bottom:24px;">
+            <input type="hidden" name="_return" value="{return_url}">
             <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
                 <div>
                     <label>Day 1 date</label>

@@ -40,6 +40,7 @@ LIST_SECTIONS = [
 ]
 
 from config import parent_color as _parent_color
+from render_settings import _section_cycle
 ACCENT       = _parent_color("Lauren", "bg")
 ACCENT_LIGHT = _parent_color("Lauren", "light")
 
@@ -220,6 +221,16 @@ def render_mom_profile_page() -> str:
                      font-size:0.85em;font-family:inherit;resize:vertical;background:white;">{other_notes}</textarea>
   </div>
 
+</div>
+
+<!-- Cycle Tracking Section -->
+<div style="margin-top:24px;">
+  <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+              color:{ACCENT};margin-bottom:12px;">🌙 Cycle Tracking
+    <span style="font-weight:400;font-size:0.85em;letter-spacing:0;text-transform:none;
+                 color:#9ca3af;margin-left:6px;">private &middot; only visible to you</span>
+  </div>
+  {_section_cycle(return_url="/mom-profile")}
 </div>
 
 <script>

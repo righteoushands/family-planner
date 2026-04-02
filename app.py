@@ -1283,7 +1283,8 @@ class Handler(BaseHTTPRequestHandler):
                     schedule["days"]  = days_data
                     schedule["times"] = generate_half_hour_times()
                     save_family_schedule(schedule)
-                redirect = "/settings?msg=Settings+saved#top"
+                _ret_ss = clean_text(data.get("_return",[""])[0])
+                redirect = _ret_ss if _ret_ss else "/settings?msg=Settings+saved#top"
 
             elif path == "/school-settings-save":
                 import json as _json
@@ -1432,7 +1433,8 @@ class Handler(BaseHTTPRequestHandler):
                     log = [e for e in log if e.get("day1") != day1]
                     log.append({"day1": day1, "note": note, "logged": _date.today().isoformat()})
                     safe_save_json(CYCLE_LOG, log)
-                redirect = "/settings?msg=Cycle+Day+1+saved#s-cycle"
+                _ret = clean_text(data.get("_return",[""])[0]) or "/settings#s-cycle"
+                redirect = _ret + ("&" if "?" in _ret else "?") + "msg=saved"
 
             elif path == "/cycle-log-delete":
                 import json as _json
@@ -1445,7 +1447,8 @@ class Handler(BaseHTTPRequestHandler):
                     safe_save_json(CYCLE_LOG, log)
                 except Exception:
                     pass
-                redirect = "/settings?msg=Entry+deleted#s-cycle"
+                _ret2 = clean_text(data.get("_return",[""])[0]) or "/settings#s-cycle"
+                redirect = _ret2 + ("&" if "?" in _ret2 else "?") + "msg=deleted"
 
             elif path == "/add-to-plan-quick":
                 from datetime import date as _date
