@@ -39,8 +39,9 @@ LIST_SECTIONS = [
     ("bucket_list",         "Bucket List",           "Experiences and adventures you're hoping for"),
 ]
 
-ACCENT       = "#8b5a3c"
-ACCENT_LIGHT = "#fdf8f4"
+from config import parent_color as _parent_color
+ACCENT       = _parent_color("Lauren", "bg")
+ACCENT_LIGHT = _parent_color("Lauren", "light")
 
 
 def load_mom_profile() -> dict:

@@ -53,5 +53,15 @@
   },
   "show_liturgy_hours_widget": true,
   "auto_fetch_hours": true,
-  "universalis_country": "United States"
+  "universalis_country": "United States",
+  "parent_colors": {
+    "Lauren": {
+      "bg": "#7c3aed",
+      "light": "#f5f3ff"
+    },
+    "John": {
+      "bg": "#2563eb",
+      "light": "#eff6ff"
+    }
+  }
 }

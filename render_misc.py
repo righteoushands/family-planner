@@ -15,7 +15,7 @@ from school_pdf_engine import (
 )
 
 from config import (
-    child_color, ASSIGNABLE_TO, ROADMAP_STATUSES, WEEKDAYS, WEEKDAY_ORDER, MONTH_NAMES,
+    child_color, parent_color, ASSIGNABLE_TO, ROADMAP_STATUSES, WEEKDAYS, WEEKDAY_ORDER, MONTH_NAMES,
 )
 from data_helpers import (
     load_manual_tasks, save_manual_tasks, active_manual_tasks,
@@ -182,8 +182,8 @@ def _render_mom_now_block(iso: str, weekday: str) -> str:
     All compact, tap-through links to relevant pages.
     """
     from datetime import date as _date
-    c_bg    = "var(--brown)"
-    c_light = "var(--gold-light)"
+    c_bg    = parent_color("Lauren", "bg")
+    c_light = parent_color("Lauren", "light")
 
     # ── Family schedule: what's Mom doing right now ───────────────────────────
     family_now = ""
@@ -317,7 +317,7 @@ def _render_mom_now_block(iso: str, weekday: str) -> str:
                 is_done = eve_done
         except Exception:
             pass
-        bg  = "var(--brown)" if is_current else ("#dcfce7" if is_done else "var(--parchment)")
+        bg  = c_bg if is_current else ("#dcfce7" if is_done else "var(--parchment)")
         col = "white" if is_current else ("#166534" if is_done else "var(--ink-faint)")
         step_chips += (
             f'<a href="/mom#{escape(sid)}" '
@@ -419,7 +419,7 @@ def _render_mom_now_block(iso: str, weekday: str) -> str:
         f'margin-bottom:10px;">'
         f'<div style="display:flex;align-items:center;gap:8px;">'
         f'<div style="width:36px;height:36px;border-radius:50%;'
-        f'background:var(--brown);color:var(--gold-light);'
+        f'background:{c_bg};color:white;'
         f'display:flex;align-items:center;justify-content:center;'
         f'font-family:\'Cormorant Garamond\',Georgia,serif;'
         f'font-size:1.15rem;font-weight:600;flex-shrink:0;">L</div>'
@@ -477,9 +477,9 @@ def _render_mom_now_block(iso: str, weekday: str) -> str:
         + f'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
         f'<div style="display:flex;gap:4px;">{club_html}</div>'
         f'<div style="display:flex;gap:8px;">'
-        f'<a href="/prayer" style="font-size:0.7em;color:var(--brown);text-decoration:none;font-weight:600;">Prayer</a>'
-        f'<a href="/5am" style="font-size:0.7em;color:var(--brown);text-decoration:none;font-weight:600;">5AM</a>'
-        f'<a href="/virtues/me" style="font-size:0.7em;color:var(--brown);text-decoration:none;font-weight:600;">Virtue</a>'
+        f'<a href="/prayer" style="font-size:0.7em;color:{c_bg};text-decoration:none;font-weight:600;">Prayer</a>'
+        f'<a href="/5am" style="font-size:0.7em;color:{c_bg};text-decoration:none;font-weight:600;">5AM</a>'
+        f'<a href="/virtues/me" style="font-size:0.7em;color:{c_bg};text-decoration:none;font-weight:600;">Virtue</a>'
         f'</div></div>'
 
         # AI action buttons — 3-column tile grid
@@ -509,12 +509,12 @@ def _render_mom_now_block(iso: str, weekday: str) -> str:
 
         # Virtue footer strip (parchment background, only if virtue set)
         + (
-            f'<div style="padding:10px 14px;background:var(--parchment);'
+            f'<div style="padding:10px 14px;background:{c_light};'
             f'border-top:1px solid var(--border-light);display:flex;gap:8px;align-items:flex-start;">'
-            f'<span style="color:var(--brown);margin-top:1px;">&#8224;</span>'
+            f'<span style="color:{c_bg};margin-top:1px;">&#8224;</span>'
             f'<div>'
             f'<div style="font-size:0.65em;font-weight:800;text-transform:uppercase;'
-            f'letter-spacing:.08em;color:var(--brown);margin-bottom:2px;">{escape(virtue_text)}</div>'
+            f'letter-spacing:.08em;color:{c_bg};margin-bottom:2px;">{escape(virtue_text)}</div>'
             + (f'<div style="font-size:0.75em;color:var(--ink-muted);font-style:italic;line-height:1.4;">'
                + escape(intention_text[:90]) + ('\u2026' if len(intention_text) > 90 else '')
                + '</div>' if intention_text else '')
@@ -1147,11 +1147,11 @@ def render_dashboard() -> str:
                 border-radius:8px;text-decoration:none;font-size:0.8em;
                 font-weight:600;color:var(--ink-muted);">Tasks</a>
       <a href="/plan-tomorrow"
-         style="padding:6px 11px;background:var(--parchment);border:1px solid var(--brown);
+         style="padding:6px 11px;background:var(--parchment);border:1px solid {parent_color('Lauren','bg')};
                 border-radius:8px;text-decoration:none;font-size:0.8em;
-                font-weight:600;color:var(--brown);">✨ Tomorrow</a>
+                font-weight:600;color:{parent_color('Lauren','bg')};">✨ Tomorrow</a>
       <a href="/lucy"
-         style="padding:6px 13px;background:linear-gradient(135deg,#8b5a3c,#c49020);
+         style="padding:6px 13px;background:{parent_color('Lauren','bg')};
                 color:white;border-radius:8px;text-decoration:none;font-size:0.8em;font-weight:700;
                 margin-left:auto;white-space:nowrap;">
         🌿 Talk to Lucy
@@ -1170,17 +1170,17 @@ def render_dashboard() -> str:
                 margin:-4px -4px 14px;padding:18px 16px 16px;">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
         <div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;
-                    background:var(--brown);border:2px solid var(--gold,#c49020);
+                    background:{parent_color('Lauren','bg')};border:2px solid {parent_color('Lauren','bg')};
                     display:flex;align-items:center;justify-content:center;position:relative;">
           <span style="font-family:'Cormorant Garamond',Georgia,serif;
-                       font-size:1.25rem;font-weight:600;color:var(--gold-light);">L</span>
+                       font-size:1.25rem;font-weight:600;color:white;">L</span>
           <div style="position:absolute;bottom:-1px;right:-1px;width:13px;height:13px;
                       border-radius:50%;background:#22c55e;
                       border:2px solid var(--bg,#fff);"></div>
         </div>
         <div>
           <div style="font-size:0.63em;font-weight:800;letter-spacing:.13em;
-                      text-transform:uppercase;color:var(--brown);margin-bottom:2px;">
+                      text-transform:uppercase;color:{parent_color('Lauren','bg')};margin-bottom:2px;">
             Lucy &middot; AI Family Companion
           </div>
           <h1 style="margin:0;font-family:'Cormorant Garamond',Georgia,serif;

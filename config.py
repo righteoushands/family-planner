@@ -73,6 +73,24 @@ def child_color(child: str, key: str = "bg") -> str:
     colors = _load_child_colors()
     return colors.get(child, {}).get(key, "#888")
 
+_DEFAULT_PARENT_COLORS = {
+    "Lauren": {"bg": "#7c3aed", "light": "#f5f3ff"},
+    "John":   {"bg": "#2563eb", "light": "#eff6ff"},
+}
+
+def parent_color(name: str, key: str = "bg") -> str:
+    """Return Lauren's or John's accent color from settings (or defaults)."""
+    try:
+        import json
+        if os.path.exists(APP_SETTINGS_FILE):
+            data = json.load(open(APP_SETTINGS_FILE))
+            stored = data.get("parent_colors", {})
+            if name in stored:
+                return stored[name].get(key, _DEFAULT_PARENT_COLORS.get(name, {}).get(key, "#888"))
+    except Exception:
+        pass
+    return _DEFAULT_PARENT_COLORS.get(name, {}).get(key, "#888")
+
 # ── Van rotation ─────────────────────────────────────────────────────────────
 def _load_van_epoch() -> date:
     """Read van epoch from app_settings.json, fall back to default."""

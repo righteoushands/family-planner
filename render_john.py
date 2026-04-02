@@ -33,8 +33,9 @@ LIST_SECTIONS = [
     ("couple_bucket_list",  "Couple Bucket List",            "Things you want to do together"),
 ]
 
-ACCENT = "#1c3a5e"
-ACCENT_LIGHT = "#f0f4fa"
+from config import parent_color as _parent_color
+ACCENT       = _parent_color("John", "bg")
+ACCENT_LIGHT = _parent_color("John", "light")
 
 
 def load_john_profile() -> dict:
