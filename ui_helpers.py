@@ -946,7 +946,7 @@ document.addEventListener('click', function(e) {{
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;
                   background:{parent_color('Lauren','light')};
                   border-radius:12px;text-decoration:none;color:{parent_color('Lauren','bg')};font-weight:600;font-size:0.9em;">
-          <span style="font-size:1.2em;">&#9825;</span> Mom
+          <span style="font-size:1.2em;">&#9825;</span> Lauren
         </a>
         <a href="/john" onclick="closeMobileMore()"
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;

@@ -385,7 +385,7 @@ def render_daily_bar(for_date: date = None, compact: bool = False) -> str:
         {saint_html}
         {gospel_html}
         {events_html}
-        <a href="/prayer" style="margin-left:auto;font-size:0.78em;font-weight:600;
-           color:var(--brown);text-decoration:none;white-space:nowrap;">Prayer &#8594;</a>
+        <a href="/mom" style="margin-left:auto;font-size:0.78em;font-weight:600;
+           color:var(--brown);text-decoration:none;white-space:nowrap;">Plan my day &#8594;</a>
         {_settings_link_html}
     </div>"""

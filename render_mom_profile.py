@@ -148,7 +148,7 @@ def render_mom_profile_page() -> str:
   <div style="margin-bottom:20px;">
     <div style="font-size:0.7em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
                 color:{ACCENT};margin-bottom:2px;">Wife &amp; Mother</div>
-    <h1 style="margin:0;font-size:1.6em;color:var(--ink);">Mom</h1>
+    <h1 style="margin:0;font-size:1.6em;color:var(--ink);">Lauren</h1>
     <div style="font-size:0.82em;color:#9ca3af;margin-top:2px;">
       Your own page — sizes, wishes, dreams &amp; everything that's just for you
     </div>
@@ -326,4 +326,4 @@ def render_mom_profile_page() -> str:
 }})();
 </script>
 """
-    return html_page("Mom", body)
+    return html_page("Lauren", body)

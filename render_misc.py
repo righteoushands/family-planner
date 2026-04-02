@@ -1170,10 +1170,10 @@ def render_dashboard() -> str:
           {_lucy_msg}
         </div>
         <div style="display:flex;justify-content:flex-end;padding-left:10px;">
-          <a href="/mom" style="display:inline-flex;align-items:center;gap:4px;
+          <a href="/prayer" style="display:inline-flex;align-items:center;gap:4px;
              font-size:0.78em;font-weight:700;color:var(--brown);
              background:rgba(139,90,60,0.1);padding:5px 12px;border-radius:8px;
-             text-decoration:none;">Plan my day &rarr;</a>
+             text-decoration:none;">Prayer &rarr;</a>
         </div>
       </div>
     </div>
