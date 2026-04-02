@@ -942,6 +942,11 @@ document.addEventListener('click', function(e) {{
       <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
                   color:#9ca3af;margin:10px 0 8px;">People</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+        <a href="/mom-profile" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fdf8f4;
+                  border-radius:12px;text-decoration:none;color:#8b5a3c;font-weight:600;font-size:0.9em;">
+          <span style="font-size:1.2em;">&#9825;</span> Mom
+        </a>
         <a href="/john" onclick="closeMobileMore()"
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f0f4fa;
                   border-radius:12px;text-decoration:none;color:#1c3a5e;font-weight:600;font-size:0.9em;">
@@ -1037,7 +1042,7 @@ document.addEventListener('click', function(e) {{
     }}
   }});
   /* Highlight More btn if on a "more" page */
-  var morePaths = ['/john','/friends','/calendar','/tasks','/notes','/planner',
+  var morePaths = ['/mom-profile','/john','/friends','/calendar','/tasks','/notes','/planner',
                    '/school','/chores','/meals','/recipes','/family-schedule','/roadmap'];
   if (morePaths.indexOf(path) > -1) {{
     var btn = document.getElementById('mobile-more-btn');
@@ -1129,6 +1134,7 @@ def top_nav() -> str:
             <a href="/print/week">Print Week</a>
             <hr>
             <div class="nav-drop-section">People</div>
+            <a href="/mom-profile">&#9825; Mom</a>
             <a href="/john">&#9788; John</a>
             <a href="/friends">&#128106; Friends</a>
             <hr>

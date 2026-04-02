@@ -177,6 +177,9 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/notes":           body = render_notes()
         elif path == "/tasks":           body = render_tasks()
         elif path == "/mom":             body = render_mom_page(target_date_str=query.get("date",[""])[0])
+        elif path == "/mom-profile":
+            from render_mom_profile import render_mom_profile_page
+            body = render_mom_profile_page()
         elif path == "/john":
             from render_john import render_john_page
             body = render_john_page()
@@ -1850,6 +1853,23 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
                 try: self.wfile.write(b'{"ok":true}')
                 except BrokenPipeError: pass
+                return
+
+            elif path == "/save-mom-profile":
+                import json as _json
+                try:
+                    profile_raw = clean_text(data.get("profile",["{}"])[0])
+                    profile_in = _json.loads(profile_raw)
+                    if isinstance(profile_in, dict):
+                        from render_mom_profile import save_mom_profile
+                        save_mom_profile(profile_in)
+                    self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(b'{"ok":true}')
+                    except BrokenPipeError: pass
+                except Exception:
+                    self.send_response(500); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(b'{"ok":false}')
+                    except BrokenPipeError: pass
                 return
 
             elif path == "/save-john-profile":
