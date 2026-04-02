@@ -862,6 +862,14 @@ def _render_boys_now_blocks(iso: str, weekday: str) -> str:
     return f'<div style="margin-bottom:12px;">{cards}</div>'
 
 
+def __render_meal_card_safe(target_date=None) -> str:
+    try:
+        from render_meals import render_meal_today_card
+        return render_meal_today_card(target_date)
+    except Exception:
+        return ""
+
+
 def render_dashboard() -> str:
     from render_morning_anchor import (
         SEASON_QUOTES, _get_quote_for_day, fetch_this_day_in_history
@@ -1188,6 +1196,7 @@ def render_dashboard() -> str:
     </div>
     {_render_mom_now_block(iso, weekday)}
     {_render_boys_now_blocks(iso, weekday)}
+    {__render_meal_card_safe(today_d)}
 
     <!-- Calendar events -->
     <div class="section-cap">Today's events</div>

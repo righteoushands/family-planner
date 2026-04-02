@@ -173,6 +173,94 @@ And a "prep_notes" object with one prep note per day (what to defrost/start earl
 """
     return prompt
 
+
+# ---------------------------------------------------------------------------
+# Shared meal-day card (dashboard · child pages · printouts)
+# ---------------------------------------------------------------------------
+
+def render_meal_today_card(target_date=None, compact: bool = False) -> str:
+    """
+    Returns an HTML card showing today's meals, prep notes, and boys' help
+    ideas.  Returns "" when no meals are planned (safe to inline anywhere).
+    """
+    from html import escape as _e
+    from datetime import date as _date
+
+    td      = target_date if target_date is not None else _date.today()
+    weekday = td.strftime("%A")
+    try:
+        plan  = load_meal_plan(_week_key(td))
+        slots = plan.get("days", {}).get(weekday, {})
+        prep  = plan.get("prep_notes", {}).get(weekday, "").strip()
+    except Exception:
+        slots = {}
+        prep  = ""
+
+    meal_icons  = {"breakfast": "☀️", "lunch": "🥗", "dinner": "🍽️", "snacks": "🍎"}
+    meal_labels = {"breakfast": "Breakfast", "lunch": "Lunch",
+                   "dinner": "Dinner", "snacks": "Snacks"}
+    boys_help   = (slots.get("boys_help") or "").strip()
+
+    rows_html = ""
+    for slot in ["breakfast", "lunch", "dinner", "snacks"]:
+        val = (slots.get(slot) or "").strip()
+        if not val:
+            continue
+        icon  = meal_icons[slot]
+        label = meal_labels[slot]
+        fs    = "0.78em" if compact else "0.85em"
+        rows_html += (
+            f'<div style="display:flex;align-items:flex-start;gap:10px;'
+            f'padding:6px 0;border-bottom:1px solid var(--border-light);">'
+            f'<div style="width:80px;flex-shrink:0;font-size:0.68em;font-weight:700;'
+            f'color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;'
+            f'padding-top:3px;">{icon} {_e(label)}</div>'
+            f'<div style="flex:1;font-size:{fs};color:var(--ink);line-height:1.4;">'
+            f'{_e(val)}</div>'
+            f'</div>'
+        )
+
+    if not rows_html:
+        return ""
+
+    prep_html = ""
+    if prep:
+        prep_html = (
+            f'<div style="margin-top:10px;padding:8px 12px;background:#f0fdf4;'
+            f'border-radius:8px;border-left:3px solid #22c55e;">'
+            f'<div style="font-size:0.67em;font-weight:700;text-transform:uppercase;'
+            f'letter-spacing:.08em;color:#166534;margin-bottom:3px;">📋 Prep</div>'
+            f'<div style="font-size:0.82em;color:#15803d;line-height:1.4;">{_e(prep)}</div>'
+            f'</div>'
+        )
+
+    help_html = ""
+    if boys_help:
+        help_html = (
+            f'<div style="margin-top:8px;padding:8px 12px;background:#fefce8;'
+            f'border-radius:8px;border-left:3px solid #eab308;">'
+            f'<div style="font-size:0.67em;font-weight:700;text-transform:uppercase;'
+            f'letter-spacing:.08em;color:#92400e;margin-bottom:3px;">👦 Boys can help</div>'
+            f'<div style="font-size:0.82em;color:#78350f;line-height:1.4;">{_e(boys_help)}</div>'
+            f'</div>'
+        )
+
+    pad = "12px 14px" if compact else "14px 16px"
+    return (
+        f'<div class="card" style="padding:{pad};margin-bottom:12px;">'
+        f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'
+        f'<span style="font-size:0.68em;font-weight:800;letter-spacing:.1em;'
+        f'text-transform:uppercase;color:var(--ink-faint);">🍽️ Today\'s Meals</span>'
+        f'<a href="/meals" style="margin-left:auto;font-size:0.72em;color:var(--ink-faint);'
+        f'text-decoration:none;opacity:0.55;">edit →</a>'
+        f'</div>'
+        f'{rows_html}'
+        f'{prep_html}'
+        f'{help_html}'
+        f'</div>'
+    )
+
+
 # ---------------------------------------------------------------------------
 # Page renderers
 # ---------------------------------------------------------------------------
@@ -296,6 +384,29 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
                 f'</textarea></td>'
             )
         grid_rows += f'<tr>{cells}</tr>'
+
+    # Boys Help row (separate from MEAL_SLOTS — stores in days[day]["boys_help"])
+    help_cells = (
+        f'<td style="background:var(--parchment);padding:6px 8px;'
+        f'font-size:0.72em;font-weight:700;color:#92400e;'
+        f'white-space:nowrap;border-right:2px solid var(--border);">'
+        f'👦 Boys Help</td>'
+    )
+    for day in DAYS:
+        val = days_data.get(day, {}).get("boys_help", "")
+        safe_day = day.replace("'", "")
+        help_cells += (
+            f'<td style="padding:3px;background:#fefce8;border-bottom:1px solid var(--border-light);">'
+            f'<textarea data-day="{escape(safe_day)}" data-slot="boys_help"'
+            f' onchange="cellChanged(this)"'
+            f' style="width:100%;min-height:52px;border:none;outline:none;'
+            f'background:transparent;font-size:0.78em;font-family:inherit;'
+            f'resize:vertical;padding:4px;color:#78350f;"'
+            f' placeholder="e.g. JP: chop veg · Joseph: set table · Michael: fill water">'
+            f'{escape(val)}'
+            f'</textarea></td>'
+        )
+    grid_rows += f'<tr>{help_cells}</tr>'
 
     grocery_raw    = json.dumps(plan.get("grocery_gaps", []))
     prep_notes_raw = json.dumps(plan.get("prep_notes", {}))

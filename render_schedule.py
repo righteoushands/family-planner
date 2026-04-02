@@ -240,6 +240,7 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
                 <h3>Chores</h3>{render_task_list(child, iso, payload["chore_items"])}
             </div>
         </div>
+        {_render_meal_card_for_child(target_iso)}
         {_render_child_goals_section(child)}
         {_render_child_profile_section(child, c_bg, c_light)}
     </div>
@@ -257,6 +258,14 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
         }});
 }})();
 </script>"""
+
+
+def _render_meal_card_for_child(target_date=None) -> str:
+    try:
+        from render_meals import render_meal_today_card
+        return render_meal_today_card(target_date)
+    except Exception:
+        return ""
 
 
 def _render_child_goals_section(child: str) -> str:
@@ -679,6 +688,10 @@ def render_print_child_page(child: str, weekday: str, date_label: str, iso: str)
     if chores:
         items = "".join(f'<div class="check-item"><span class="checkbox"></span>{escape(i["text"])}</div>' for i in chores)
         sections_html += f'<div class="section-title">Chores</div>{items}'
+
+    # Meals section for print
+    meal_print_html = _render_meal_print_section(target_iso, weekday)
+
     return f"""
     <div class="child-page" style="--child-color:{c_color};">
         {daily_bar}
@@ -688,8 +701,63 @@ def render_print_child_page(child: str, weekday: str, date_label: str, iso: str)
             {age_html}
         </div>
         {sections_html or '<p style="color:#aaa;font-style:italic;">Nothing scheduled today.</p>'}
+        {meal_print_html}
         <div class="page-footer">Family Planner · {escape(date_label)}</div>
     </div>"""
+
+
+def _render_meal_print_section(target_date, weekday: str) -> str:
+    """Compact print-friendly meal block for daily printouts."""
+    try:
+        from render_meals import load_meal_plan, _week_key
+        plan  = load_meal_plan(_week_key(target_date))
+        slots = plan.get("days", {}).get(weekday, {})
+        prep  = plan.get("prep_notes", {}).get(weekday, "").strip()
+    except Exception:
+        return ""
+
+    meal_icons  = {"breakfast": "☀", "lunch": "▸", "dinner": "●", "snacks": "◆"}
+    meal_labels = {"breakfast": "Breakfast", "lunch": "Lunch",
+                   "dinner": "Dinner", "snacks": "Snacks"}
+    boys_help   = (slots.get("boys_help") or "").strip()
+
+    rows = ""
+    for slot in ["breakfast", "lunch", "dinner", "snacks"]:
+        val = (slots.get(slot) or "").strip()
+        if not val:
+            continue
+        icon  = meal_icons[slot]
+        label = meal_labels[slot]
+        rows += (
+            f'<div style="display:flex;gap:6pt;padding:2pt 0;font-size:8pt;">'
+            f'<span style="font-weight:700;width:60pt;flex-shrink:0;color:#555;">'
+            f'{icon} {escape(label)}</span>'
+            f'<span>{escape(val)}</span>'
+            f'</div>'
+        )
+
+    if not rows:
+        return ""
+
+    extra = ""
+    if prep:
+        extra += (
+            f'<div style="margin-top:4pt;font-size:7.5pt;color:#166534;">'
+            f'<strong>Prep:</strong> {escape(prep)}</div>'
+        )
+    if boys_help:
+        extra += (
+            f'<div style="margin-top:3pt;font-size:7.5pt;color:#92400e;">'
+            f'<strong>Boys help:</strong> {escape(boys_help)}</div>'
+        )
+
+    return (
+        f'<div class="section-title">Today\'s Meals</div>'
+        f'<div style="padding:4pt 0;">'
+        f'{rows}'
+        f'{extra}'
+        f'</div>'
+    )
 
 
 def render_print_day(target_date_str: str = "") -> str:
