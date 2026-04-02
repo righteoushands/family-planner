@@ -391,10 +391,10 @@ def _render_mom_now_block(iso: str, weekday: str) -> str:
         cap_buttons += (
             f'<button onclick="momSetCap(\'{escape(cap)}\',\'{color}\')" '
             f'id="mom-cap-{escape(cap)}" '
-            f'style="padding:5px 12px;font-size:0.78em;font-weight:700;'
-            f'border:1.5px solid {brd};border-radius:8px;cursor:pointer;'
+            f'style="padding:4px 10px;font-size:0.72em;font-weight:700;'
+            f'border:none;border-radius:16px;cursor:pointer;white-space:nowrap;'
             f'font-family:inherit;background:{bg};color:{col};">'
-            f'{emoji} {escape(cap)}</button>'
+            f'{escape(cap)}</button>'
         )
 
     # Current capacity label for display
@@ -408,32 +408,29 @@ def _render_mom_now_block(iso: str, weekday: str) -> str:
         )
 
     return (
-        f'<div style="border-left:4px solid var(--brown);border-radius:0 12px 12px 0;'
-        f'padding:12px 14px;margin-bottom:10px;background:white;">'
+        f'<div style="border-radius:16px;border:1px solid var(--border);'
+        f'overflow:hidden;margin-bottom:10px;background:white;">'
+
+        # Card top section
+        f'<div style="padding:12px 14px;border-bottom:1px solid var(--border-light);">'
 
         # Header row
         f'<div style="display:flex;align-items:center;justify-content:space-between;'
         f'margin-bottom:10px;">'
         f'<div style="display:flex;align-items:center;gap:8px;">'
-        f'<div style="width:34px;height:34px;border-radius:50%;'
+        f'<div style="width:36px;height:36px;border-radius:50%;'
         f'background:var(--brown);color:var(--gold-light);'
         f'display:flex;align-items:center;justify-content:center;'
         f'font-family:\'Cormorant Garamond\',Georgia,serif;'
-        f'font-size:1.1rem;font-weight:600;flex-shrink:0;">M</div>'
-        f'<div>'
-        f'<div style="font-weight:700;font-size:0.9em;color:var(--ink);">Mom</div>'
-        f'<div style="font-size:0.68em;color:var(--ink-faint);">'
-        + (cap_display if cap_display else 'Right now')
-        + f'</div></div></div>'
-        f'<a href="/mom" style="font-size:0.72em;color:var(--brown);'
-        f'font-weight:700;text-decoration:none;">Plan my day &rarr;</a>'
+        f'font-size:1.15rem;font-weight:600;flex-shrink:0;">L</div>'
+        f'<span style="font-family:\'Cormorant Garamond\',Georgia,serif;'
+        f'font-size:1.1em;font-weight:600;color:var(--ink);">Lauren</span>'
         f'</div>'
-
-        # Capacity buttons
-        + f'<div style="display:flex;gap:6px;margin-bottom:10px;">'
-        f'<span style="font-size:0.72em;font-weight:700;color:var(--ink-faint);'
-        f'align-self:center;white-space:nowrap;">Capacity:</span>'
+        # Capacity pill selector (High / Med / Low)
+        f'<div style="display:flex;align-items:center;gap:2px;padding:3px;'
+        f'background:var(--parchment);border:1px solid var(--border);border-radius:20px;">'
         f'{cap_buttons}'
+        f'</div>'
         f'</div>'
 
         # AI confirmation popup (hidden)
@@ -474,43 +471,56 @@ def _render_mom_now_block(iso: str, weekday: str) -> str:
         )
 
         # Plan My Day step strip
-        + f'<div style="display:flex;gap:4px;margin-bottom:6px;">{step_chips}</div>'
-
-        # Virtue
-        + virtue_html
+        + f'<div style="display:flex;gap:4px;margin-bottom:8px;">{step_chips}</div>'
 
         # 5AM + quick links row
-        + f'<div style="display:flex;align-items:center;justify-content:space-between;'
-        f'margin-top:8px;">'
+        + f'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
         f'<div style="display:flex;gap:4px;">{club_html}</div>'
         f'<div style="display:flex;gap:8px;">'
-        f'<a href="/prayer" style="font-size:0.7em;color:var(--brown);'
-        f'text-decoration:none;font-weight:600;">Prayer</a>'
-        f'<a href="/5am" style="font-size:0.7em;color:var(--brown);'
-        f'text-decoration:none;font-weight:600;">5AM</a>'
-        f'<a href="/virtues/me" style="font-size:0.7em;color:var(--brown);'
-        f'text-decoration:none;font-weight:600;">Virtue</a>'
+        f'<a href="/prayer" style="font-size:0.7em;color:var(--brown);text-decoration:none;font-weight:600;">Prayer</a>'
+        f'<a href="/5am" style="font-size:0.7em;color:var(--brown);text-decoration:none;font-weight:600;">5AM</a>'
+        f'<a href="/virtues/me" style="font-size:0.7em;color:var(--brown);text-decoration:none;font-weight:600;">Virtue</a>'
         f'</div></div>'
 
-        # AI buttons row
-        + (f'<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'
+        # AI action buttons — 3-column tile grid
+        + (f'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:4px;">'
            f'<button onclick="momAiCall(\'schedule\',this)" '
-           f'style="padding:6px 12px;font-size:0.75em;font-weight:700;font-family:inherit;'
-           f'background:var(--ink);color:var(--gold-light);border:none;border-radius:8px;cursor:pointer;">'
-           f'\u2728 Plan my day</button>'
+           f'style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px;'
+           f'border:1px solid var(--border);border-radius:10px;background:var(--parchment);'
+           f'color:var(--ink);font-size:0.7em;font-weight:600;font-family:inherit;cursor:pointer;">'
+           f'<span style="font-size:1.4em;">📅</span>Plan my day</button>'
            f'<button onclick="momAiCall(\'school\',this)" '
-           f'style="padding:6px 12px;font-size:0.75em;font-weight:700;font-family:inherit;'
-           f'background:var(--ink);color:var(--gold-light);border:none;border-radius:8px;cursor:pointer;">'
-           f'\u2728 School plan</button>'
+           f'style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px;'
+           f'border:1px solid var(--border);border-radius:10px;background:var(--parchment);'
+           f'color:var(--ink);font-size:0.7em;font-weight:600;font-family:inherit;cursor:pointer;">'
+           f'<span style="font-size:1.4em;">📚</span>School</button>'
            f'<button onclick="momAiCall(\'examen\',this)" '
-           f'style="padding:6px 12px;font-size:0.75em;font-weight:700;font-family:inherit;'
-           f'background:var(--ink);color:var(--gold-light);border:none;border-radius:8px;cursor:pointer;">'
-           f'\u2728 Evening examen</button>'
+           f'style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px;'
+           f'border:1px solid var(--border);border-radius:10px;background:var(--parchment);'
+           f'color:var(--ink);font-size:0.7em;font-weight:600;font-family:inherit;cursor:pointer;">'
+           f'<span style="font-size:1.4em;">🌙</span>Examen</button>'
            f'</div>'
            f'<div id="mom-ai-result" style="display:none;margin-top:8px;padding:10px 12px;'
-           f'background:white;border-radius:10px;border:1px solid var(--border-light);">'
-           f'</div>'
+           f'background:white;border-radius:10px;border:1px solid var(--border-light);"></div>'
            if api_key else '')
+
+        # Close card-top section
+        + f'</div>'
+
+        # Virtue footer strip (parchment background, only if virtue set)
+        + (
+            f'<div style="padding:10px 14px;background:var(--parchment);'
+            f'border-top:1px solid var(--border-light);display:flex;gap:8px;align-items:flex-start;">'
+            f'<span style="color:var(--brown);margin-top:1px;">&#8224;</span>'
+            f'<div>'
+            f'<div style="font-size:0.65em;font-weight:800;text-transform:uppercase;'
+            f'letter-spacing:.08em;color:var(--brown);margin-bottom:2px;">{escape(virtue_text)}</div>'
+            + (f'<div style="font-size:0.75em;color:var(--ink-muted);font-style:italic;line-height:1.4;">'
+               + escape(intention_text[:90]) + ('\u2026' if len(intention_text) > 90 else '')
+               + '</div>' if intention_text else '')
+            + f'</div></div>'
+            if virtue_text else ''
+        )
 
         # Capacity JS
         + f'''<script>
@@ -826,10 +836,11 @@ def _render_boys_now_blocks(iso: str, weekday: str) -> str:
         ) if total > 0 else ""
 
         cards += (
-            f'<div style="border-left:4px solid {c_bg};border-radius:0 10px 10px 0;'
-            f'padding:10px 12px;background:white;margin-bottom:8px;">'
+            f'<div style="border-radius:12px;border:1px solid var(--border);'
+            f'border-left:3px solid {c_bg};padding:10px 14px;'
+            f'background:white;margin-bottom:8px;overflow:hidden;">'
             f'<div style="display:flex;align-items:center;'
-            f'justify-content:space-between;margin-bottom:4px;">'
+            f'justify-content:space-between;margin-bottom:6px;">'
             f'<div style="display:flex;align-items:center;gap:6px;">'
             f'<span style="width:8px;height:8px;border-radius:50%;background:{c_bg};'
             f'display:inline-block;flex-shrink:0;"></span>'
@@ -840,8 +851,8 @@ def _render_boys_now_blocks(iso: str, weekday: str) -> str:
             f'Full schedule &rarr;</a>'
             f'</div>'
             f'{family_line}'
-            f'{status_line}'
             f'{prog_bar}'
+            f'{status_line}'
             f'</div>'
         )
 
@@ -1102,6 +1113,15 @@ def render_dashboard() -> str:
     except Exception:
         pass
 
+    # Lucy banner greeting message (precomputed — no backslashes in f-string)
+    if quote and attrib:
+        _q80 = quote[:100] + ("\u2026" if len(quote) > 100 else "")
+        _lucy_msg = f'\u201c{escape(_q80)}\u201d \u2014 {escape(attrib)}'
+    elif _feast_is_real and feast:
+        _lucy_msg = f'Today is {escape(feast)}. May the Lord bless your day.'
+    else:
+        _lucy_msg = f'Blessed {escape(weekday)} to the McAdams family. Ready to make today count?'
+
     body = f"""
     <!-- Control panel strip -->
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;padding-top:4px;
@@ -1144,15 +1164,49 @@ def render_dashboard() -> str:
       </a>
     </div>
 
-    <!-- Greeting -->
-    <div style="margin-bottom:12px;">
-        <div style="font-family:'Cormorant Garamond',Georgia,serif;
-                    font-size:2.1rem;font-weight:600;color:var(--ink);line-height:1.1;">
+    <!-- Lucy Banner -->
+    <div style="background:linear-gradient(160deg,var(--parchment),var(--bg,#fff));
+                border-bottom:1px solid var(--border-light);
+                margin:-4px -4px 14px;padding:18px 16px 16px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;
+                    background:var(--brown);border:2px solid var(--gold,#c49020);
+                    display:flex;align-items:center;justify-content:center;position:relative;">
+          <span style="font-family:'Cormorant Garamond',Georgia,serif;
+                       font-size:1.25rem;font-weight:600;color:var(--gold-light);">L</span>
+          <div style="position:absolute;bottom:-1px;right:-1px;width:13px;height:13px;
+                      border-radius:50%;background:#22c55e;
+                      border:2px solid var(--bg,#fff);"></div>
+        </div>
+        <div>
+          <div style="font-size:0.63em;font-weight:800;letter-spacing:.13em;
+                      text-transform:uppercase;color:var(--brown);margin-bottom:2px;">
+            Lucy &middot; AI Family Companion
+          </div>
+          <h1 style="margin:0;font-family:'Cormorant Garamond',Georgia,serif;
+                     font-size:1.9rem;font-weight:600;color:var(--ink);line-height:1.1;">
             {_greeting}.
+          </h1>
+          <div style="font-size:0.82em;color:var(--ink-muted);margin-top:2px;">
+            {escape(weekday)} &middot; {escape(packet["date_label"])}
+          </div>
         </div>
-        <div style="font-size:0.85em;color:var(--ink-muted);margin-top:2px;">
-            {escape(weekday)}, {escape(packet["date_label"])}
+      </div>
+      <div style="background:white;border:1px solid var(--border);border-radius:12px;
+                  padding:12px 14px;position:relative;overflow:hidden;">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:3px;
+                    background:var(--brown);border-radius:3px 0 0 3px;"></div>
+        <div style="font-size:0.85em;color:var(--ink);line-height:1.6;
+                    padding-left:10px;margin-bottom:10px;">
+          {_lucy_msg}
         </div>
+        <div style="display:flex;justify-content:flex-end;padding-left:10px;">
+          <a href="/mom" style="display:inline-flex;align-items:center;gap:4px;
+             font-size:0.78em;font-weight:700;color:var(--brown);
+             background:rgba(139,90,60,0.1);padding:5px 12px;border-radius:8px;
+             text-decoration:none;">Plan my day &rarr;</a>
+        </div>
+      </div>
     </div>
 
     <!-- Daily bar (weather + liturgy + Prayer link) -->
