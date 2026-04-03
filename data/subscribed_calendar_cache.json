@@ -1,17 +1,6 @@
 {
   "events": [
     {
-      "title": "Easter at UJs",
-      "start": "2026-04-03",
-      "end": "2026-04-03",
-      "all_day": true,
-      "location": "",
-      "notes": "",
-      "calendar": "Apple Calendar",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
       "title": "Good Friday (The Passion of our Lord)",
       "start": "2026-04-03",
       "end": "2026-04-03",
@@ -60,6 +49,17 @@
       "start": "2026-04-03T18:30",
       "end": "2026-04-03T19:30",
       "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Easter at UJs",
+      "start": "2026-04-04",
+      "end": "2026-04-04",
+      "all_day": true,
       "location": "",
       "notes": "",
       "calendar": "Apple Calendar",
@@ -1772,5 +1772,5 @@
       "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-04-03T17:48:50.101895"
+  "fetched_at": "2026-04-03T18:30:52.587815"
 }

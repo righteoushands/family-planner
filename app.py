@@ -1137,10 +1137,53 @@ class Handler(BaseHTTPRequestHandler):
                         _carryover_markers += f"\n[CARRYOVER_UPDATED:{_cchild}:{_cdate}:{_n}]"
                     except Exception as _ce:
                         _carryover_markers += f"\n(Carryover update error: {_ce})"
+                # ── Parse and execute <schedule_update> action tags ──────────
+                _sched_rx = _re.compile(
+                    r'<schedule_update\b([^>]*)>([\s\S]*?)</schedule_update>',
+                    _re.IGNORECASE
+                )
+                _sched_markers = ""
+                for _sm in _sched_rx.finditer(text):
+                    _sattrs = _sm.group(1)
+                    _sbody  = _sm.group(2)
+                    _sdate_m = _re.search(r'date=["\']([^"\']+)["\']', _sattrs, _re.I)
+                    _sdate = _sdate_m.group(1).strip() if _sdate_m else iso
+                    # Parse lines like "2:00 PM: Activity text"
+                    _slots = {}
+                    for _line in _sbody.strip().splitlines():
+                        _lm = _re.match(
+                            r'^(\d+:\d+\s*(?:AM|PM))\s*:\s*(.+)$',
+                            _line.strip(), _re.IGNORECASE
+                        )
+                        if _lm:
+                            _slots[_lm.group(1).strip()] = _lm.group(2).strip()
+                    if not _slots:
+                        continue
+                    try:
+                        from render_daily_plan import get_or_seed_grid, save_day_grid
+                        from datetime import date as _date_cls2
+                        _sd = _date_cls2.fromisoformat(_sdate)
+                        _swd = _sd.strftime("%A")
+                        _speople = load_app_settings().get("plan_columns", [])
+                        if not _speople:
+                            from daily_schedule_engine import CHILDREN as _SC
+                            _speople = list(_SC)
+                        _speople_all = ["Mom"] + [p for p in _speople if p != "Mom"]
+                        _sgrid = get_or_seed_grid(_sdate, _swd, _speople_all)
+                        for _sp in _speople_all:
+                            if _sp not in _sgrid:
+                                _sgrid[_sp] = {}
+                            for _st, _sv in _slots.items():
+                                _sgrid[_sp][_st] = _sv
+                        save_day_grid(_sdate, _sgrid)
+                        _sched_markers += f"\n[SCHEDULE_UPDATED:{_sdate}:{len(_slots)}]"
+                    except Exception as _se:
+                        _sched_markers += f"\n(Schedule update error: {_se})"
                 # Strip action tags from display text, append markers
-                _all_markers = _plan_markers + _carryover_markers
+                _all_markers = _plan_markers + _carryover_markers + _sched_markers
                 _display_text = _plan_rx.sub("", text)
-                _display_text = _carryover_rx.sub("", _display_text).rstrip()
+                _display_text = _carryover_rx.sub("", _display_text)
+                _display_text = _sched_rx.sub("", _display_text).rstrip()
                 if _all_markers:
                     _display_text = _display_text + _all_markers
                 else:

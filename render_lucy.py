@@ -324,6 +324,31 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
         "- Date defaults to today if omitted",
         "- You can combine <plan_update> and <carryover_update> tags in the same message",
         "",
+        "== EDITING THE FAMILY SCHEDULE GRID ==",
+        "You can directly modify specific time slots in the visual family schedule grid for a single day.",
+        "This is useful when Mom asks you to adjust the day's schedule — e.g. removing screen time on",
+        "Good Friday, adding extra prayer slots, restructuring afternoon hours, etc.",
+        "Changes are day-specific and do NOT affect the template for other days.",
+        "",
+        "Use this tag at the END of your response (after your normal reply text):",
+        "",
+        '  <schedule_update date="YYYY-MM-DD">',
+        "  2:00 PM: Activity for this slot",
+        "  2:30 PM: Activity for this slot",
+        "  3:00 PM: Activity for this slot",
+        "  </schedule_update>",
+        "",
+        "Rules for schedule_update:",
+        "- Date is today unless Mom specifies otherwise",
+        "- Each line must be exactly: TIME: Activity text (e.g. '2:00 PM: Scripture reading')",
+        "- Time format: H:MM AM/PM (e.g. '2:00 PM', '10:30 AM')",
+        "- You only need to include the slots you are CHANGING — unlisted slots stay as-is",
+        "- To clear a slot, write an empty activity: '3:00 PM: '",
+        "- This updates ALL people's columns in the grid for those slots",
+        "- After saving, a confirmation badge will appear in chat with a link to the day grid",
+        "- Use this sparingly — only when Mom explicitly asks to adjust the schedule grid",
+        "- Do NOT use this for task lists (use plan_update) or carryover (use carryover_update)",
+        "",
         "== FAMILY ==",
     ]
 
@@ -648,9 +673,24 @@ def _render_history_html(messages: list) -> str:
                     f'color:white;text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;">'
                     f'\U0001f5a8 Print</a></div>'
                 )
+            for _sm2 in _re.finditer(r'\[SCHEDULE_UPDATED:([^\]:]+):(\d+)\]', content):
+                _sd2, _sn2 = _sm2.group(1), _sm2.group(2)
+                _snoun2 = "slot" if _sn2 == "1" else "slots"
+                _grid_url = f"/plan?date={_sd2}"
+                _plan_buttons += (
+                    f'<div style="display:flex;align-items:center;gap:8px;margin-top:6px;'
+                    f'padding:7px 10px;background:#f0f4ff;border:1px solid #a0b4e8;border-radius:8px;">'
+                    f'<span style="font-size:1em;">📅</span>'
+                    f'<span style="font-size:0.82em;color:#1e3a8a;flex:1;">'
+                    f'Schedule updated for {escape(_sd2)} ({escape(_sn2)} {_snoun2} changed).</span>'
+                    f'<a href="{_grid_url}" target="_blank" style="padding:4px 12px;background:#2563eb;'
+                    f'color:white;text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;">'
+                    f'📋 View Grid</a></div>'
+                )
             clean = _re.sub(r'\[RULE:(add|remove)\][\s\S]*?\[/RULE\]', '', content)
             clean = _re.sub(r'\[PLAN_UPDATED:[^\]]+\]', '', clean)
-            clean = _re.sub(r'\[CARRYOVER_UPDATED:[^\]]+\]', '', clean).strip()
+            clean = _re.sub(r'\[CARRYOVER_UPDATED:[^\]]+\]', '', clean)
+            clean = _re.sub(r'\[SCHEDULE_UPDATED:[^\]]+\]', '', clean).strip()
             parts.append(
                 f'<div class="lucy-bubble-wrap" style="margin-bottom:0;">'
                 f'<div class="lucy-bubble-lucy" style="white-space:pre-wrap;">{escape(clean)}</div>'
@@ -1077,6 +1117,7 @@ function lucySend() {{
                 .replace(/\[RULE:(add|remove)\][\s\S]*?\[\/RULE\]/g, '')
                 .replace(/\[PLAN_UPDATED:[^\]]+\]/g, '')
                 .replace(/\[CARRYOVER_UPDATED:[^\]]+\]/g, '')
+                .replace(/\[SCHEDULE_UPDATED:[^\]]+\]/g, '')
                 .replace(/\s+$/, '');
         }}
         function read() {{
@@ -1158,6 +1199,33 @@ function lucySend() {{
                             carryRow.appendChild(printBtn2);
                             bubble._wrap.appendChild(carryRow);
                         }})(m[1], m[2], m[3]);
+                    }}
+                    // Parse [SCHEDULE_UPDATED:date:n_slots] markers
+                    var schedRx = /\[SCHEDULE_UPDATED:([^\]:]+):(\d+)\]/g;
+                    while ((m = schedRx.exec(full)) !== null) {{
+                        (function(sDate, sCount) {{
+                            var schedRow = document.createElement('div');
+                            schedRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:6px;'
+                                + 'padding:7px 10px;background:#f0f4ff;border:1px solid #a0b4e8;border-radius:8px;';
+                            var calIcon = document.createElement('span');
+                            calIcon.textContent = '📅';
+                            calIcon.style.cssText = 'font-size:1em;flex-shrink:0;';
+                            var msg = document.createElement('span');
+                            var noun = sCount === '1' ? 'slot' : 'slots';
+                            msg.textContent = 'Schedule updated for ' + sDate + ' (' + sCount + ' ' + noun + ' changed).';
+                            msg.style.cssText = 'font-size:0.82em;color:#1e3a8a;flex:1;';
+                            var gridBtn = document.createElement('a');
+                            gridBtn.textContent = '📋 View Grid';
+                            gridBtn.href = '/plan?date=' + encodeURIComponent(sDate);
+                            gridBtn.target = '_blank';
+                            gridBtn.style.cssText = 'padding:4px 12px;background:#2563eb;color:white;'
+                                + 'text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;'
+                                + 'font-family:inherit;flex-shrink:0;';
+                            schedRow.appendChild(calIcon);
+                            schedRow.appendChild(msg);
+                            schedRow.appendChild(gridBtn);
+                            bubble._wrap.appendChild(schedRow);
+                        }})(m[1], m[2]);
                     }}
                     // Parse and show print buttons for [PLAN_UPDATED:child:date]
                     var planRx = /\[PLAN_UPDATED:([^\]:]+):([^\]]+)\]/g;
@@ -1613,6 +1681,7 @@ function _cleanForTts(text) {{
     return text
         .replace(/\[PLAN_UPDATED:[^\]]*\]/g, '')
         .replace(/\[CARRYOVER_UPDATED:[^\]]*\]/g, '')
+        .replace(/\[SCHEDULE_UPDATED:[^\]]*\]/g, '')
         .replace(/\*\*/g, '').replace(/\*/g, '')
         .replace(/\s+/g, ' ')
         .trim();
