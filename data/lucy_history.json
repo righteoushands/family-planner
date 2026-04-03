@@ -2,36 +2,6 @@
   "messages": [
     {
       "role": "user",
-      "content": "Got it all! The beignets were delicious! The recipe is excellent.",
-      "ts": "2026-04-02T16:15:13"
-    },
-    {
-      "role": "assistant",
-      "content": "That's wonderful! Sounds like Joseph's birthday started off perfect — homemade beignets are such a special touch. He must have felt celebrated.\n\nHow's the rest of the day going so far?",
-      "ts": "2026-04-02T16:15:15"
-    },
-    {
-      "role": "user",
-      "content": "He did. He just opened his presents and is enjoying his new Legend of Zelda Chess Set.",
-      "ts": "2026-04-02T16:15:47"
-    },
-    {
-      "role": "assistant",
-      "content": "That's perfect — a Zelda gift for a Zelda fan. He's having a good birthday.\n\nHow are you holding up? And have you had a chance to talk with JP about the Hylian Sword cake yet?",
-      "ts": "2026-04-02T16:15:50"
-    },
-    {
-      "role": "user",
-      "content": "James loves the beignets too! He’s so cute.",
-      "ts": "2026-04-02T16:17:23"
-    },
-    {
-      "role": "assistant",
-      "content": "He absolutely does — toddlers and fried dough are a winning combination. Those little moments of joy are the sweetest part of the day.\n\nYou've got pizza and cake still to come, and the big boys will be heading out with John this evening for Holy Thursday.\n\nHow are *you* doing? Still feeling foggy, or has the morning lifted you a bit?",
-      "ts": "2026-04-02T16:17:26"
-    },
-    {
-      "role": "user",
       "content": "The morning had a temporary lift. I got on the exercise bike for a few minutes and just got out of a long, thorough shower. I feel refreshed though tired body. I noticed the status says we are getting ready for Latin class. There’s no school today. Can you update the plan?",
       "ts": "2026-04-02T17:20:58"
     },
@@ -299,6 +269,36 @@
       "role": "assistant",
       "content": "Sleep well tonight. Tomorrow is a sacred day — Good Friday. You'll be present with your family through the Passion, the Veneration of the Cross, and the Stations. That's holy work.\n\nRest now.",
       "ts": "2026-04-03T01:30:36"
+    },
+    {
+      "role": "user",
+      "content": "What time do you think it is?",
+      "ts": "2026-04-03T01:35:32"
+    },
+    {
+      "role": "assistant",
+      "content": "You're right — it's evening and you're still awake talking with me. What time is it actually for you?",
+      "ts": "2026-04-03T01:35:33"
+    },
+    {
+      "role": "user",
+      "content": "9:35pm",
+      "ts": "2026-04-03T01:35:47"
+    },
+    {
+      "role": "assistant",
+      "content": "You should be heading to bed soon. You've got an early morning tomorrow with Good Friday observances starting at 10:30.\n\nGet some sleep. Tomorrow will be full and sacred. You're ready.",
+      "ts": "2026-04-03T01:35:49"
+    },
+    {
+      "role": "user",
+      "content": "Ok, I saw a timestamp for 1:30am on your message",
+      "ts": "2026-04-03T01:36:15"
+    },
+    {
+      "role": "assistant",
+      "content": "That's strange — I don't see a 1:30 AM timestamp on my end. Could you describe where you saw it? Was it on a specific message, or somewhere else in the app?\n\nThat might be another thing to mention to Replit if it's a display error.\n\nBut regardless — it's 9:35 PM now. You really do need to get to bed. Good night.",
+      "ts": "2026-04-03T01:36:16"
     }
   ]
 }

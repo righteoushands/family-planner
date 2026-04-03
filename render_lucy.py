@@ -564,17 +564,9 @@ def _render_history_html(messages: list) -> str:
             # Lucy response — strip rule tags from display
             import re as _re
             clean = _re.sub(r'\[RULE:(add|remove)\][\s\S]*?\[/RULE\]', '', content).strip()
-            ts_label = ""
-            if ts:
-                try:
-                    from datetime import datetime as _dt2
-                    _t = _dt2.fromisoformat(ts)
-                    ts_label = f'<div style="font-size:.65em;color:#ccc;margin-top:4px;">{_t.strftime("%-I:%M %p")}</div>'
-                except Exception:
-                    pass
             parts.append(
                 f'<div class="lucy-bubble-wrap" style="margin-bottom:0;">'
-                f'<div class="lucy-bubble-lucy" style="white-space:pre-wrap;">{escape(clean)}{ts_label}</div>'
+                f'<div class="lucy-bubble-lucy" style="white-space:pre-wrap;">{escape(clean)}</div>'
                 f'</div>'
             )
     if not parts:
