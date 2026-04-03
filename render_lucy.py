@@ -1433,22 +1433,35 @@ function lucySpeak(text) {{
     utt.rate   = 0.92;
     utt.pitch  = 1.05;
     utt.volume = 1.0;
-    // Pick a natural female voice when available
-    var preferred = ['Samantha','Karen','Victoria','Ava','Moira','Allison','Google US English'];
-    function _doSpeak() {{
+    // Pick a voice if available — try preferred list, fall back to any en-US voice,
+    // then default (iOS often returns [] from getVoices() so we speak regardless).
+    function _pickVoiceAndSpeak() {{
         var voices = window.speechSynthesis.getVoices();
+        var preferred = ['Samantha','Karen','Victoria','Ava','Moira','Allison','Google US English'];
         for (var i = 0; i < preferred.length; i++) {{
-            var match = preferred[i];
-            var v = null;
             for (var j = 0; j < voices.length; j++) {{
-                if (voices[j].name.indexOf(match) >= 0) {{ v = voices[j]; break; }}
+                if (voices[j].name.indexOf(preferred[i]) >= 0) {{
+                    utt.voice = voices[j];
+                    break;
+                }}
             }}
-            if (v) {{ utt.voice = v; break; }}
+            if (utt.voice) break;
+        }}
+        // If still no match, try any en-US voice
+        if (!utt.voice) {{
+            for (var k = 0; k < voices.length; k++) {{
+                if (voices[k].lang && voices[k].lang.indexOf('en') >= 0) {{
+                    utt.voice = voices[k];
+                    break;
+                }}
+            }}
         }}
         window.speechSynthesis.speak(utt);
     }}
-    if (window.speechSynthesis.getVoices().length > 0) {{ _doSpeak(); }}
-    else {{ window.speechSynthesis.addEventListener('voiceschanged', _doSpeak, {{once: true}}); }}
+    // Always speak immediately — on iOS, getVoices() returns [] and voiceschanged
+    // never fires, so waiting for it means Lucy never speaks. iOS picks its own
+    // default voice when utt.voice is not set, which works fine.
+    _pickVoiceAndSpeak();
 }}
 
 </script>"""
