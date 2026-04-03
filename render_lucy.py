@@ -1217,7 +1217,8 @@ window.addEventListener('load', function() {{
 // ── Voice mode ────────────────────────────────────────────────────
 var _voiceEnabled = localStorage.getItem('lucy_voice') === 'true';
 var _wakeEnabled  = localStorage.getItem('lucy_wake')  === 'true';
-var _isRecording  = false;
+var _isRecording      = false;
+var _lastSendWasVoice = false;  // speak reply automatically when mic was used
 var _mainRecog    = null;
 var _wakeRecog    = null;
 
@@ -1317,6 +1318,7 @@ function startListening() {{
             _sentFromResult = true;
             _setMicState(false);
             if (_wakeEnabled) setTimeout(startWakeWord, 1200);
+            _lastSendWasVoice = true;
             lucySend();
         }}
     }};
@@ -1331,6 +1333,7 @@ function startListening() {{
             _setMicState(false);
             var pending = document.getElementById('lucy-input');
             if (pending && pending.value.trim()) {{
+                _lastSendWasVoice = true;
                 lucySend();
                 return;
             }}
@@ -1401,7 +1404,9 @@ function _playActivationBeep() {{
 
 // ── Text-to-speech ────────────────────────────────────────────────
 function lucySpeak(text) {{
-    if (!_voiceEnabled) return;
+    var shouldSpeak = _voiceEnabled || _lastSendWasVoice;
+    _lastSendWasVoice = false;  // consume the flag
+    if (!shouldSpeak) return;
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
     // Strip action markers, markdown, and non-speech characters
