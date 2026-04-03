@@ -1396,9 +1396,7 @@ function lucySpeak(text) {{
         .replace(/\[PLAN_UPDATED:[^\]]*\]/g, '')
         .replace(/\[CARRYOVER_UPDATED:[^\]]*\]/g, '')
         .replace(/\*\*/g, '').replace(/\*/g, '')
-        .replace(/#{1,6} /g, '')
-        .replace(/[📎🖨✓✕📋🗑📅🎤🔊✔]/g, '')
-        .replace(/\n{{3,}}/g, '\n')
+        .replace(/\s+/g, ' ')
         .trim();
     if (!clean) return;
     var utt  = new SpeechSynthesisUtterance(clean);
