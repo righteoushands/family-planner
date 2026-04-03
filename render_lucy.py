@@ -1305,13 +1305,16 @@ function startListening() {{
     _mainRecog.lang           = 'en-US';
     _setMicState(true);
     var input = document.getElementById('lucy-input');
+    var _sentFromResult = false;   // guard against double-send
     _mainRecog.onresult = function(e) {{
         var transcript = '';
         for (var i = 0; i < e.results.length; i++) {{
             transcript += e.results[i][0].transcript;
         }}
         if (input) input.value = transcript;
+        // Send on isFinal — Chrome fires this reliably
         if (e.results[e.results.length - 1].isFinal) {{
+            _sentFromResult = true;
             _setMicState(false);
             if (_wakeEnabled) setTimeout(startWakeWord, 1200);
             lucySend();
@@ -1323,7 +1326,17 @@ function startListening() {{
         if (e.error !== 'no-speech' && e.error !== 'aborted') console.warn('Speech error:', e.error);
     }};
     _mainRecog.onend = function() {{
-        if (_isRecording) {{ _setMicState(false); }}
+        // iOS Safari often fires onend without ever setting isFinal — send whatever was captured
+        if (_isRecording && !_sentFromResult) {{
+            _setMicState(false);
+            var pending = document.getElementById('lucy-input');
+            if (pending && pending.value.trim()) {{
+                lucySend();
+                return;
+            }}
+        }} else if (_isRecording) {{
+            _setMicState(false);
+        }}
         if (_wakeEnabled && !_isRecording) setTimeout(startWakeWord, 1000);
     }};
     try {{ _mainRecog.start(); }} catch(err) {{ _setMicState(false); }}
