@@ -428,7 +428,13 @@ def events_for_date(events: list, iso: str) -> list:
 
 def get_all_events(iso: str = "") -> list:
     if not iso: iso = date.today().isoformat()
-    all_events = refresh_calendar() + refresh_subscribed_calendars()
+    try:
+        from render_liturgical import get_floating_liturgical_events
+        year = int(iso[:4])
+        floating = get_floating_liturgical_events([year - 1, year, year + 1])
+    except Exception:
+        floating = []
+    all_events = refresh_calendar() + refresh_subscribed_calendars() + floating
     all_events.sort(key=lambda e: e["start"])
     return events_for_date(all_events, iso)
 

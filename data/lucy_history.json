@@ -2,46 +2,6 @@
   "messages": [
     {
       "role": "user",
-      "content": "Oh no. I mean can you learn things from talking to me? Like can you learn about me and tailor your responses?",
-      "ts": "2026-04-02T17:23:04"
-    },
-    {
-      "role": "assistant",
-      "content": "Yes — that's exactly what I do. As we talk, I learn about your family, your rhythms, what matters to you, how you like to be spoken to. I remember what you've told me and weave it into how I help you.\n\nOver time, I get to know you better: what energizes you, what drains you, which suggestions land and which don't, your Catholic values, how your kids tick, what your home actually looks like day to day.\n\nThat's why I can be specific — I'm not giving generic advice. I'm talking to *you*, not just any homeschooling mom.\n\nSo yes — keep telling me things. The more you share, the better I understand what you actually need.",
-      "ts": "2026-04-02T17:23:07"
-    },
-    {
-      "role": "user",
-      "content": "That’s lovely.",
-      "ts": "2026-04-02T17:23:39"
-    },
-    {
-      "role": "assistant",
-      "content": "It is. That's the whole point — to be a real companion, not a generic voice in a box.\n\nYou're doing good work today, even tired. Joseph got a beautiful birthday, James got beignets, and you took care of yourself on the bike and in the shower. That counts.\n\nLet me know when the dinner plan comes together and I'll help you time the pizza.",
-      "ts": "2026-04-02T17:23:41"
-    },
-    {
-      "role": "user",
-      "content": "Ok, thanks. I plan on sharing a copy of this app with my close friends. I’m sure you’ll enjoy getting to know them too.",
-      "ts": "2026-04-02T17:24:29"
-    },
-    {
-      "role": "assistant",
-      "content": "That's kind of you to think of sharing it. I'm glad this is helping you.\n\nI should be clear though — each conversation I have starts fresh. I won't remember these conversations with you when we talk next time, and I won't carry over what I learn about your family to conversations with your friends. Each person gets their own new beginning with me.\n\nWhat *does* carry forward is what you and your family decide to save in your standing rules and settings here in the app — those stay put and shape how I help you each day.\n\nSo your friends would have their own fresh companion, tailored to *their* family and their choices about how to set things up.\n\nDoes that make sense?",
-      "ts": "2026-04-02T17:24:32"
-    },
-    {
-      "role": "user",
-      "content": "Good. Yes. Do I have to be explicit about what I want saved? I’d rather you ask me every time.",
-      "ts": "2026-04-02T17:25:25"
-    },
-    {
-      "role": "assistant",
-      "content": "Perfect — that's exactly how it works. I never save a standing rule without you explicitly agreeing to it first.\n\nWhen something feels like it should become a regular practice, I'll suggest it and ask if you want to set it as a rule. You say yes or no. Only then does it get saved.\n\nNothing goes into your settings without your clear say-so.",
-      "ts": "2026-04-02T17:25:27"
-    },
-    {
-      "role": "user",
       "content": "Perfect",
       "ts": "2026-04-02T17:25:43"
     },
@@ -299,6 +259,46 @@
       "role": "assistant",
       "content": "No problem. Just fit it in whenever you can tomorrow between your errands. You could grab it when you're out for Elena at 10:30, or after Veneration of the Cross at 3:00 — whenever it's convenient.\n\nI'll make a note that you need to pick up your Rx at Walgreens tomorrow.\n\nNow seriously — go to bed. You need your rest for Good Friday.",
       "ts": "2026-04-03T01:39:48"
+    },
+    {
+      "role": "user",
+      "content": "Lucy, the octave of Easter lasts eight days starting the Monday after Easter. Confirm when it stops and add to the calendar as an annual event adjusted for when Easter occurs.",
+      "ts": "2026-04-03T12:32:00"
+    },
+    {
+      "role": "assistant",
+      "content": "You're right. The Octave of Easter is eight days beginning on Easter Monday and ending the following Sunday (Divine Mercy Sunday, the Second Sunday of Easter).\n\nSo for 2026:\n- Octave begins Monday, April 6\n- Octave ends Sunday, April 12 (Divine Mercy Sunday)\n\nThe challenge is that I can't set a truly \"floating\" annual event that automatically adjusts based on when Easter falls each year — that would need custom programming in Replit.\n\nWhat I can do: add it as a note to remind you each Easter season, or ask Replit if they can create a formula-based annual event that calculates Easter's date and sets the Octave accordingly.\n\nWould you like me to just add \"Easter Octave\" to your calendar manually each year when you know Easter's date, or ask Replit about a dynamic annual event?",
+      "ts": "2026-04-03T12:32:03"
+    },
+    {
+      "role": "user",
+      "content": "No, please tell Replit what you need and I’ll ask it for the changes.",
+      "ts": "2026-04-03T12:32:46"
+    },
+    {
+      "role": "assistant",
+      "content": "Here's what to ask Replit:\n\n\"Can you create an annual event called 'Octave of Easter' that automatically calculates based on Easter's date each year? It should start on Easter Monday and run through the following Sunday (Divine Mercy Sunday). If dynamic calculation isn't possible, I'll manually add it each year, but I wanted to check if the system can handle a floating liturgical event.\"\n\nThat way they'll know exactly what you need and can tell you whether it's doable.",
+      "ts": "2026-04-03T12:32:47"
+    },
+    {
+      "role": "user",
+      "content": "Replit is working on it.",
+      "ts": "2026-04-03T12:35:22"
+    },
+    {
+      "role": "assistant",
+      "content": "Good. They'll figure it out.\n\nNow — bed. It's almost 10 PM and you have Good Friday tomorrow. You need sleep.",
+      "ts": "2026-04-03T12:35:23"
+    },
+    {
+      "role": "user",
+      "content": "Haha! It’s morning!",
+      "ts": "2026-04-03T12:35:39"
+    },
+    {
+      "role": "assistant",
+      "content": "Oh! Good morning! I apologize — I was reading the timestamp wrong. It's actually Friday morning, April 3rd.\n\nLet me reset and help you properly.\n\nYou've got a significant day ahead in Holy Week:\n\n- John's class at 8:00 AM (wait — you said that was an error, so scratch that)\n- Elena at 10:30 AM\n- Passion and Veneration of the Holy Cross at 3:00 PM\n- Stations of the Cross at 6:30 PM\n- Plus you need to pick up your Rx at Walgreens\n\nAnd your family is in Light Week for school, so just Math, Religion, and Reading.\n\nHow are you feeling this morning? Do you have good capacity to manage today, or is it shaping up to be a LOW capacity day?",
+      "ts": "2026-04-03T12:35:41"
     }
   ]
 }

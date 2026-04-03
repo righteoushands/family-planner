@@ -23,9 +23,20 @@
       "source": "subscribed"
     },
     {
+      "title": "John's class",
+      "start": "2026-04-03T08:00",
+      "end": "2026-04-03T17:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "Elena Sutphin",
-      "start": "2026-04-03T10:30",
-      "end": "2026-04-03T11:30",
+      "start": "2026-04-03T14:30",
+      "end": "2026-04-03T15:30",
       "all_day": false,
       "location": "1955 Emancipation Hwy Ste 100 Fredericksburg VA-22401-6226",
       "notes": "Appointment with Elena Sutphin at 1955 Emancipation Hwy Ste 1",
@@ -83,7 +94,7 @@
       "end": "2026-04-05",
       "all_day": true,
       "location": "",
-      "notes": "//thelittleroseshop.com/pages/vault\u200b\u200b\u200b    ------   Powered by addevent.com  Share your next event with us!  ",
+      "notes": "//thelittleroseshop.com/pages/vault​​​    ------   Powered by addevent.com  Share your next event with us!  ",
       "calendar": "Liturgical Calendar (Little Rose Shop)",
       "color": "#e91e8c",
       "source": "subscribed"
@@ -233,8 +244,8 @@
     },
     {
       "title": "Elena Sutphin",
-      "start": "2026-04-10T10:30",
-      "end": "2026-04-10T11:30",
+      "start": "2026-04-10T14:30",
+      "end": "2026-04-10T15:30",
       "all_day": false,
       "location": "1955 Emancipation Hwy Ste 100 Fredericksburg VA-22401-6226",
       "notes": "Appointment with Elena Sutphin at 1955 Emancipation Hwy Ste 1",
@@ -420,8 +431,8 @@
     },
     {
       "title": "Elena Sutphin",
-      "start": "2026-04-17T10:30",
-      "end": "2026-04-17T11:30",
+      "start": "2026-04-17T14:30",
+      "end": "2026-04-17T15:30",
       "all_day": false,
       "location": "1955 Emancipation Hwy Ste 100 Fredericksburg VA-22401-6226",
       "notes": "Appointment with Elena Sutphin at 1955 Emancipation Hwy Ste 1",
@@ -607,8 +618,8 @@
     },
     {
       "title": "Elena Sutphin",
-      "start": "2026-04-24T10:30",
-      "end": "2026-04-24T11:30",
+      "start": "2026-04-24T14:30",
+      "end": "2026-04-24T15:30",
       "all_day": false,
       "location": "1955 Emancipation Hwy Ste 100 Fredericksburg VA-22401-6226",
       "notes": "Appointment with Elena Sutphin at 1955 Emancipation Hwy Ste 1",
@@ -633,7 +644,7 @@
       "end": "2026-04-25",
       "all_day": true,
       "location": "",
-      "notes": "read a passage from the Gospel of Mark.\u00a0    ------   Powered by addevent.com  Share your next event with us!  ",
+      "notes": "read a passage from the Gospel of Mark.     ------   Powered by addevent.com  Share your next event with us!  ",
       "calendar": "Liturgical Calendar (Little Rose Shop)",
       "color": "#e91e8c",
       "source": "subscribed"
@@ -721,7 +732,7 @@
       "end": "2026-04-28",
       "all_day": true,
       "location": "",
-      "notes": "//thelittleroseshop.com/blogs/the-little-rose-shop-everyday-faith/what-i-love-about-and-can-learn-from-st-gianna\u200b\u200b\u200b    ------   Powered by addevent.com  Share your next event with us!  ",
+      "notes": "//thelittleroseshop.com/blogs/the-little-rose-shop-everyday-faith/what-i-love-about-and-can-learn-from-st-gianna​​​    ------   Powered by addevent.com  Share your next event with us!  ",
       "calendar": "Liturgical Calendar (Little Rose Shop)",
       "color": "#e91e8c",
       "source": "subscribed"
@@ -838,8 +849,8 @@
     },
     {
       "title": "Elena Sutphin",
-      "start": "2026-05-01T10:30",
-      "end": "2026-05-01T11:30",
+      "start": "2026-05-01T14:30",
+      "end": "2026-05-01T15:30",
       "all_day": false,
       "location": "1955 Emancipation Hwy Ste 100 Fredericksburg VA-22401-6226",
       "notes": "Appointment with Elena Sutphin at 1955 Emancipation Hwy Ste 1",
@@ -1025,8 +1036,8 @@
     },
     {
       "title": "Elena Sutphin",
-      "start": "2026-05-08T10:30",
-      "end": "2026-05-08T11:30",
+      "start": "2026-05-08T14:30",
+      "end": "2026-05-08T15:30",
       "all_day": false,
       "location": "1955 Emancipation Hwy Ste 100 Fredericksburg VA-22401-6226",
       "notes": "Appointment with Elena Sutphin at 1955 Emancipation Hwy Ste 1",
@@ -1139,7 +1150,7 @@
       "end": "2026-05-13",
       "all_day": true,
       "location": "",
-      "notes": "//thelittleroseshop.com/pages/coloringpages\u200b\u200b\u200b  ------   Powered by addevent.com  Share your next event with us!  ",
+      "notes": "//thelittleroseshop.com/pages/coloringpages​​​  ------   Powered by addevent.com  Share your next event with us!  ",
       "calendar": "Liturgical Calendar (Little Rose Shop)",
       "color": "#e91e8c",
       "source": "subscribed"
@@ -1289,8 +1300,8 @@
     },
     {
       "title": "Elena Sutphin",
-      "start": "2026-05-15T10:30",
-      "end": "2026-05-15T11:30",
+      "start": "2026-05-15T14:30",
+      "end": "2026-05-15T15:30",
       "all_day": false,
       "location": "1955 Emancipation Hwy Ste 100 Fredericksburg VA-22401-6226",
       "notes": "Appointment with Elena Sutphin at 1955 Emancipation Hwy Ste 1",
@@ -1299,7 +1310,7 @@
       "source": "subscribed"
     },
     {
-      "title": "JP\u2019s Sacrament of Confirmation (2026)",
+      "title": "JP’s Sacrament of Confirmation (2026)",
       "start": "2026-05-16",
       "end": "2026-05-16",
       "all_day": true,
@@ -1458,7 +1469,7 @@
       "end": "2026-05-19T17:00",
       "all_day": false,
       "location": "",
-      "notes": "\ufffc   Mercy Pastoral Service  2023 Early Infant Loss Buria",
+      "notes": "￼   Mercy Pastoral Service  2023 Early Infant Loss Buria",
       "calendar": "Lauren's Proton Mail",
       "color": "#9b59b6",
       "source": "subscribed"
@@ -1520,8 +1531,8 @@
     },
     {
       "title": "Elena Sutphin",
-      "start": "2026-05-22T10:30",
-      "end": "2026-05-22T11:30",
+      "start": "2026-05-22T14:30",
+      "end": "2026-05-22T15:30",
       "all_day": false,
       "location": "1955 Emancipation Hwy Ste 100 Fredericksburg VA-22401-6226",
       "notes": "Appointment with Elena Sutphin at 1955 Emancipation Hwy Ste 1",
@@ -1579,7 +1590,7 @@
       "end": "2026-05-26",
       "all_day": true,
       "location": "",
-      "notes": "//thelittleroseshop.com/search?q=philip+neri&options%5Bprefix%5D=last\u200b\u200b\u200b  ------   Powered by addevent.com  Share your next event with us!  ",
+      "notes": "//thelittleroseshop.com/search?q=philip+neri&options%5Bprefix%5D=last​​​  ------   Powered by addevent.com  Share your next event with us!  ",
       "calendar": "Liturgical Calendar (Little Rose Shop)",
       "color": "#e91e8c",
       "source": "subscribed"
@@ -1685,8 +1696,8 @@
     },
     {
       "title": "Elena Sutphin",
-      "start": "2026-05-29T10:30",
-      "end": "2026-05-29T11:30",
+      "start": "2026-05-29T14:30",
+      "end": "2026-05-29T15:30",
       "all_day": false,
       "location": "1955 Emancipation Hwy Ste 100 Fredericksburg VA-22401-6226",
       "notes": "Appointment with Elena Sutphin at 1955 Emancipation Hwy Ste 1",
@@ -1706,7 +1717,7 @@
       "source": "subscribed"
     },
     {
-      "title": "Josephine Marie Ketchum\u2019s birthday (2025)",
+      "title": "Josephine Marie Ketchum’s birthday (2025)",
       "start": "2026-05-31",
       "end": "2026-05-31",
       "all_day": true,
@@ -1733,7 +1744,7 @@
       "end": "2026-05-31",
       "all_day": true,
       "location": "",
-      "notes": "//thelittleroseshop.com/pages/coloringpages\u200b\u200b\u200b  ------   Powered by addevent.com  Share your next event with us!  ",
+      "notes": "//thelittleroseshop.com/pages/coloringpages​​​  ------   Powered by addevent.com  Share your next event with us!  ",
       "calendar": "Liturgical Calendar (Little Rose Shop)",
       "color": "#e91e8c",
       "source": "subscribed"
@@ -1761,5 +1772,5 @@
       "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-04-03T01:11:43.777835"
+  "fetched_at": "2026-04-03T12:28:36.482448"
 }

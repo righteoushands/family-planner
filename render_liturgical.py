@@ -169,6 +169,52 @@ def get_moveable_feasts(year: int) -> dict:
     return feasts
 
 
+def get_floating_liturgical_events(years: list = None) -> list:
+    """Return dynamically-calculated multi-day liturgical events as calendar event dicts.
+
+    Each entry spans multiple days so events_for_date() will include it on every
+    day within the range (start <= iso <= end, all_day=True).
+    """
+    if years is None:
+        today = date.today()
+        years = [today.year, today.year + 1]
+    events = []
+    for year in years:
+        easter = _easter(year)
+
+        # ── Octave of Easter ─────────────────────────────────────────────────
+        # Easter Monday → Divine Mercy Sunday (Easter+1 through Easter+7)
+        easter_monday = easter + timedelta(days=1)
+        divine_mercy  = easter + timedelta(days=7)
+        events.append({
+            "title":    "Octave of Easter",
+            "start":    easter_monday.isoformat(),
+            "end":      divine_mercy.isoformat(),
+            "all_day":  True,
+            "location": "",
+            "notes":    "Eight days of Eastertide from Easter Monday through Divine Mercy Sunday.",
+            "calendar": "Liturgical",
+            "color":    "#d4af37",
+        })
+
+        # ── Holy Week ────────────────────────────────────────────────────────
+        # Palm Sunday → Holy Saturday (Easter-7 through Easter-1)
+        palm_sunday    = easter - timedelta(days=7)
+        holy_saturday  = easter - timedelta(days=1)
+        events.append({
+            "title":    "Holy Week",
+            "start":    palm_sunday.isoformat(),
+            "end":      holy_saturday.isoformat(),
+            "all_day":  True,
+            "location": "",
+            "notes":    "The holiest week of the liturgical year, Palm Sunday through Holy Saturday.",
+            "calendar": "Liturgical",
+            "color":    "#7c3aed",
+        })
+
+    return events
+
+
 def get_liturgical_season(d: date) -> str:
     year = d.year
     easter        = _easter(year)
