@@ -814,23 +814,6 @@ def render_lucy_page(iso: str = "") -> str:
         <span id="cap-note" style="font-size:0.78em;color:#aaa;font-style:italic;"></span>
     </div>
 
-    <!-- Voice controls row -->
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
-        <button id="lucy-voice-btn" onclick="toggleVoice()"
-                style="padding:5px 13px;border-radius:20px;font-size:0.78em;font-weight:600;
-                       border:1.5px solid #e4dbd2;background:white;color:#888;cursor:pointer;
-                       font-family:inherit;transition:all 0.2s;">
-            🔊 Read aloud: OFF
-        </button>
-        <button id="lucy-wake-btn" onclick="toggleWake()"
-                style="padding:5px 13px;border-radius:20px;font-size:0.78em;font-weight:600;
-                       border:1.5px solid #e4dbd2;background:white;color:#888;cursor:pointer;
-                       font-family:inherit;transition:all 0.2s;">
-            🎤 Hey Lucy: OFF
-        </button>
-        <span style="font-size:0.72em;color:#ccc;font-style:italic;">Say "Hey Lucy" to talk hands-free</span>
-    </div>
-
     <!-- Chat history (pre-rendered from server + new messages from JS) -->
     {_render_history_html(_history)}
     <div id="lucy-history" class="lucy-bubble-wrap"
@@ -848,7 +831,7 @@ def render_lucy_page(iso: str = "") -> str:
 
 <!-- Attachment preview strip (visible when an image is ready) -->
 <div id="lucy-attach-preview"
-     style="display:none;position:fixed;bottom:116px;left:0;right:0;
+     style="display:none;position:fixed;bottom:152px;left:0;right:0;
             background:#fffbf5;border-top:1px solid #e4dbd2;
             padding:8px 14px;z-index:498;">
     <div style="display:flex;align-items:center;gap:10px;">
@@ -865,7 +848,7 @@ def render_lucy_page(iso: str = "") -> str:
 
 <!-- Listening overlay: shown while mic is active -->
 <div id="lucy-listening-overlay"
-     style="display:none;position:fixed;bottom:134px;left:0;right:0;z-index:499;
+     style="display:none;position:fixed;bottom:170px;left:0;right:0;z-index:499;
             flex-direction:column;align-items:center;justify-content:center;gap:4px;
             background:rgba(255,255,255,0.97);border-top:1px solid #f0ebe4;padding:10px 0;">
     <div style="width:52px;height:52px;border-radius:50%;background:#ef4444;
@@ -887,36 +870,54 @@ def render_lucy_page(iso: str = "") -> str:
 <div id="lucy-input-bar"
      style="position:fixed;bottom:64px;left:0;right:0;
             background:white;border-top:1px solid #e4dbd2;
-            padding:10px 14px;z-index:500;
-            display:flex;gap:8px;align-items:flex-end;">
-    <input type="file" id="lucy-file-input" accept="image/*"
-           style="display:none;" onchange="attachChange(this)">
-    <button onclick="openAttach()" title="Attach a photo"
-            style="padding:9px 11px;background:#faf8f5;border:1.5px solid #e4dbd2;
-                   border-radius:12px;cursor:pointer;font-size:1.05em;flex-shrink:0;
-                   align-self:flex-end;line-height:1;">
-        📎
-    </button>
-    <button onclick="lucyMicToggle()" title="Voice input — tap to speak" id="lucy-mic-btn"
-            style="padding:9px 11px;background:#faf8f5;border:1.5px solid #e4dbd2;
-                   border-radius:12px;cursor:pointer;font-size:1.05em;flex-shrink:0;
-                   align-self:flex-end;line-height:1;transition:all 0.2s;">
-        🎤
-    </button>
-    <textarea id="lucy-input" rows="1"
-              placeholder="Ask Lucy anything about today…"
-              onkeydown="if(event.key==='Enter'&&!event.shiftKey){{event.preventDefault();lucySend();}}"
-              oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';"
-              style="flex:1;resize:none;overflow:hidden;font-family:inherit;font-size:16px;
-                     padding:10px 14px;border:1.5px solid #e4dbd2;border-radius:12px;
-                     outline:none;line-height:1.5;max-height:120px;background:white;">
-    </textarea>
-    <button onclick="lucySend()"
-            style="padding:10px 18px;background:#3b2a1a;color:white;border:none;
-                   border-radius:12px;cursor:pointer;font-size:0.88em;font-weight:600;
-                   font-family:inherit;flex-shrink:0;align-self:flex-end;">
-        Send
-    </button>
+            padding:6px 14px 10px;z-index:500;
+            display:flex;flex-direction:column;gap:6px;">
+    <!-- Voice toggle strip — always visible -->
+    <div style="display:flex;gap:8px;align-items:center;">
+        <button id="lucy-voice-btn" onclick="toggleVoice()" title="Toggle read-aloud"
+                style="padding:4px 12px;border-radius:20px;font-size:0.76em;font-weight:600;
+                       border:1.5px solid #e4dbd2;background:white;color:#888;cursor:pointer;
+                       font-family:inherit;transition:all 0.2s;white-space:nowrap;">
+            🔊 Read aloud: OFF
+        </button>
+        <button id="lucy-wake-btn" onclick="toggleWake()" title="Toggle Hey Lucy wake word"
+                style="padding:4px 12px;border-radius:20px;font-size:0.76em;font-weight:600;
+                       border:1.5px solid #e4dbd2;background:white;color:#888;cursor:pointer;
+                       font-family:inherit;transition:all 0.2s;white-space:nowrap;">
+            🎤 Hey Lucy: OFF
+        </button>
+    </div>
+    <!-- Text / mic / send row -->
+    <div style="display:flex;gap:8px;align-items:flex-end;">
+        <input type="file" id="lucy-file-input" accept="image/*"
+               style="display:none;" onchange="attachChange(this)">
+        <button onclick="openAttach()" title="Attach a photo"
+                style="padding:9px 11px;background:#faf8f5;border:1.5px solid #e4dbd2;
+                       border-radius:12px;cursor:pointer;font-size:1.05em;flex-shrink:0;
+                       align-self:flex-end;line-height:1;">
+            📎
+        </button>
+        <button onclick="lucyMicToggle()" title="Voice input — tap to speak" id="lucy-mic-btn"
+                style="padding:9px 11px;background:#faf8f5;border:1.5px solid #e4dbd2;
+                       border-radius:12px;cursor:pointer;font-size:1.05em;flex-shrink:0;
+                       align-self:flex-end;line-height:1;transition:all 0.2s;">
+            🎤
+        </button>
+        <textarea id="lucy-input" rows="1"
+                  placeholder="Ask Lucy anything about today…"
+                  onkeydown="if(event.key==='Enter'&&!event.shiftKey){{event.preventDefault();lucySend();}}"
+                  oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';"
+                  style="flex:1;resize:none;overflow:hidden;font-family:inherit;font-size:16px;
+                         padding:10px 14px;border:1.5px solid #e4dbd2;border-radius:12px;
+                         outline:none;line-height:1.5;max-height:120px;background:white;">
+        </textarea>
+        <button onclick="lucySend()"
+                style="padding:10px 18px;background:#3b2a1a;color:white;border:none;
+                       border-radius:12px;cursor:pointer;font-size:0.88em;font-weight:600;
+                       font-family:inherit;flex-shrink:0;align-self:flex-end;">
+            Send
+        </button>
+    </div>
 </div>
 
 <script>
