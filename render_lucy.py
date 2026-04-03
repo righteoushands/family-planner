@@ -349,6 +349,98 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
         "- Use this sparingly — only when Mom explicitly asks to adjust the schedule grid",
         "- Do NOT use this for task lists (use plan_update) or carryover (use carryover_update)",
         "",
+        "== CYCLE TRACKER ==",
+        "You can log or remove menstrual cycle Day 1 entries in Mom's cycle tracker.",
+        "When Mom tells you her period started today, or gives you a past start date, log it immediately.",
+        "When she gives you multiple historical dates, log them all in one message using multiple tags.",
+        "",
+        "  To add (or backfill) a cycle Day 1:",
+        '  <cycle_log action="add" date="YYYY-MM-DD" note="Optional note"/>',
+        "",
+        "  To remove an incorrect entry:",
+        '  <cycle_log action="remove" date="YYYY-MM-DD"/>',
+        "",
+        "Rules for cycle_log:",
+        "- Date defaults to today if not specified",
+        "- Adding a date that already exists will update (replace) it — safe to use freely",
+        "- Dates should be ISO format: YYYY-MM-DD",
+        "- You may include a note (e.g. symptoms, context); keep it private and clinical",
+        "- No confirmation needed — this is personal health data Mom is logging with you",
+        "- After saving, a confirmation badge will appear in chat",
+        "",
+        "== SETTINGS & CONSTRAINTS ==",
+        "You can permanently update family settings and constraints. These changes persist across all",
+        "sessions and affect planning, scheduling, and Lucy's own context.",
+        "IMPORTANT: Because these are permanent, you MUST first confirm with Mom what you'll change",
+        "before emitting the tag. Only use the tag AFTER she explicitly confirms.",
+        "",
+        "Updatable fields (use dot notation for nested fields):",
+        "  family_constraints.supervision_rules   — Who needs Mom present and when",
+        "  family_constraints.james_schedule      — Baby/toddler care schedule",
+        "  family_constraints.school_durations    — How long school takes per child",
+        "  family_constraints.independence_notes  — What each child can do independently",
+        "  family_constraints.mom_supervision_subjects — Subjects requiring Mom directly",
+        "  family_constraints.meal_prep           — Meal prep constraints and notes",
+        "  family_constraints.other_notes         — Miscellaneous family notes",
+        "  family_constraints.family_exercise     — Exercise routine or goals",
+        "  family_constraints.core_subjects       — Core school subjects",
+        "  family_constraints.paused_subjects     — Subjects currently paused",
+        "  location                               — City, State (affects weather)",
+        "  schedule_start_hour                    — Day start hour (0-23 integer)",
+        "  schedule_end_hour                      — Day end hour (0-23 integer)",
+        "",
+        "  <settings_update field=\"family_constraints.supervision_rules\">",
+        "  New value here — can be multi-line",
+        "  </settings_update>",
+        "",
+        "Rules for settings_update:",
+        "- Always ask for explicit confirmation before emitting this tag",
+        "- The body becomes the new value for that field (multi-line is fine)",
+        "- After saving, a badge appears in chat with the field name",
+        "",
+        "== ADDING CALENDAR EVENTS ==",
+        "You can add one-time events directly to the family calendar.",
+        "Use this when Mom mentions an appointment, commitment, or event she wants tracked.",
+        "For recurring events, add the first occurrence and note the recurrence in the notes field.",
+        "Because this is permanent, confirm the details before emitting the tag.",
+        "",
+        '  <event_add title="Event title" date="YYYY-MM-DD" time="HH:MM" end_time="HH:MM"',
+        '             who="Mom" note="Optional details"/>',
+        "",
+        "Rules for event_add:",
+        "- title is required; date defaults to today",
+        "- time/end_time optional (24h format: 14:30); who can be comma-separated: 'Mom, JP'",
+        "- note becomes the event's notes field",
+        "- After saving, a badge with the event title and date appears in chat",
+        "",
+        "== QUICK NOTES ==",
+        "You can capture quick notes or action items to Mom's notes list when she mentions something",
+        "she wants to remember but hasn't asked you to add to a specific place.",
+        "No confirmation needed — notes are soft captures.",
+        "",
+        "  <note_add>",
+        "  The note text, as a single clear sentence or action item.",
+        "  </note_add>",
+        "",
+        "Rules for note_add:",
+        "- Use when Mom says 'remind me to...', 'don't let me forget...', or mentions a to-do",
+        "- Keep the note text clear and actionable",
+        "- After saving, a small badge confirms it was captured",
+        "",
+        "== MEMORY BOOK ==",
+        "You can add entries to the family memory book — meaningful moments, milestones, funny quotes,",
+        "or anything Mom wants to remember. Use this when she shares a sweet story or family moment.",
+        "No confirmation needed — memories are always welcome.",
+        "",
+        '  <memory_add date="YYYY-MM-DD" person="Joseph">',
+        "  The memory, written warmly in 1-3 sentences as Mom described it.",
+        "  </memory_add>",
+        "",
+        "Rules for memory_add:",
+        "- date defaults to today; person is optional (who the memory is about)",
+        "- Write the memory in first-person or third-person as Mom told it — preserve her voice",
+        "- After saving, a green badge confirms the memory was logged",
+        "",
         "== FAMILY ==",
     ]
 
@@ -687,10 +779,74 @@ def _render_history_html(messages: list) -> str:
                     f'color:white;text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;">'
                     f'📋 View Grid</a></div>'
                 )
+            for _cy2 in _re.finditer(r'\[CYCLE_LOGGED:([^\]:]+):([^\]]+)\]', content):
+                _cydate2, _cyact2 = _cy2.group(1), _cy2.group(2)
+                _cy_lbl = "removed" if _cyact2 == "remove" else "logged"
+                _cy_icon = "🗑" if _cyact2 == "remove" else "🌸"
+                _plan_buttons += (
+                    f'<div style="display:flex;align-items:center;gap:8px;margin-top:6px;'
+                    f'padding:7px 10px;background:#fdf0f8;border:1px solid #d8a0c8;border-radius:8px;">'
+                    f'<span style="font-size:1em;">{_cy_icon}</span>'
+                    f'<span style="font-size:0.82em;color:#7c2d6a;flex:1;">'
+                    f'Cycle Day 1 {_cy_lbl} for {escape(_cydate2)}.</span>'
+                    f'<a href="/settings#s-cycle" target="_blank" style="padding:4px 12px;background:#9b3a7e;'
+                    f'color:white;text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;">'
+                    f'📊 View</a></div>'
+                )
+            for _su2 in _re.finditer(r'\[SETTINGS_UPDATED:([^\]]+)\]', content):
+                _sufield2 = _su2.group(1)
+                _sulabel2 = _sufield2.replace("family_constraints.", "").replace("_", " ")
+                _plan_buttons += (
+                    f'<div style="display:flex;align-items:center;gap:8px;margin-top:6px;'
+                    f'padding:7px 10px;background:#f5f0ff;border:1px solid #b89ee0;border-radius:8px;">'
+                    f'<span style="font-size:1em;">⚙️</span>'
+                    f'<span style="font-size:0.82em;color:#5b21b6;flex:1;">'
+                    f'Setting updated: {escape(_sulabel2)}.</span>'
+                    f'<a href="/settings" target="_blank" style="padding:4px 12px;background:#7c3aed;'
+                    f'color:white;text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;">'
+                    f'⚙ Settings</a></div>'
+                )
+            for _ev2 in _re.finditer(r'\[EVENT_ADDED:([^\]:]+):([^\]]+)\]', content):
+                _evtitle2, _evdate2 = _ev2.group(1), _ev2.group(2)
+                _plan_buttons += (
+                    f'<div style="display:flex;align-items:center;gap:8px;margin-top:6px;'
+                    f'padding:7px 10px;background:#f0f8ff;border:1px solid #90c0e8;border-radius:8px;">'
+                    f'<span style="font-size:1em;">🗓</span>'
+                    f'<span style="font-size:0.82em;color:#1a4a7a;flex:1;">'
+                    f'Event added: {escape(_evtitle2)} on {escape(_evdate2)}.</span>'
+                    f'<a href="/calendar" target="_blank" style="padding:4px 12px;background:#1d6fa4;'
+                    f'color:white;text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;">'
+                    f'📆 Calendar</a></div>'
+                )
+            for _na2 in _re.finditer(r'\[NOTE_ADDED:([^\]]+)\]', content):
+                _plan_buttons += (
+                    f'<div style="display:flex;align-items:center;gap:8px;margin-top:6px;'
+                    f'padding:7px 10px;background:#fffbf0;border:1px solid #e0cc80;border-radius:8px;">'
+                    f'<span style="font-size:1em;">📝</span>'
+                    f'<span style="font-size:0.82em;color:#7a5800;flex:1;">Note captured.</span>'
+                    f'</div>'
+                )
+            for _ma2 in _re.finditer(r'\[MEMORY_ADDED:([^\]]+)\]', content):
+                _madate2 = _ma2.group(1)
+                _plan_buttons += (
+                    f'<div style="display:flex;align-items:center;gap:8px;margin-top:6px;'
+                    f'padding:7px 10px;background:#f0fff4;border:1px solid #88d4a0;border-radius:8px;">'
+                    f'<span style="font-size:1em;">💚</span>'
+                    f'<span style="font-size:0.82em;color:#1a5c30;flex:1;">'
+                    f'Memory logged for {escape(_madate2)}.</span>'
+                    f'<a href="/memory" target="_blank" style="padding:4px 12px;background:#2d7a4a;'
+                    f'color:white;text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;">'
+                    f'📖 Memory Book</a></div>'
+                )
             clean = _re.sub(r'\[RULE:(add|remove)\][\s\S]*?\[/RULE\]', '', content)
             clean = _re.sub(r'\[PLAN_UPDATED:[^\]]+\]', '', clean)
             clean = _re.sub(r'\[CARRYOVER_UPDATED:[^\]]+\]', '', clean)
-            clean = _re.sub(r'\[SCHEDULE_UPDATED:[^\]]+\]', '', clean).strip()
+            clean = _re.sub(r'\[SCHEDULE_UPDATED:[^\]]+\]', '', clean)
+            clean = _re.sub(r'\[CYCLE_LOGGED:[^\]]+\]', '', clean)
+            clean = _re.sub(r'\[SETTINGS_UPDATED:[^\]]+\]', '', clean)
+            clean = _re.sub(r'\[EVENT_ADDED:[^\]]+\]', '', clean)
+            clean = _re.sub(r'\[NOTE_ADDED:[^\]]+\]', '', clean)
+            clean = _re.sub(r'\[MEMORY_ADDED:[^\]]+\]', '', clean).strip()
             parts.append(
                 f'<div class="lucy-bubble-wrap" style="margin-bottom:0;">'
                 f'<div class="lucy-bubble-lucy" style="white-space:pre-wrap;">{escape(clean)}</div>'
@@ -1118,6 +1274,11 @@ function lucySend() {{
                 .replace(/\[PLAN_UPDATED:[^\]]+\]/g, '')
                 .replace(/\[CARRYOVER_UPDATED:[^\]]+\]/g, '')
                 .replace(/\[SCHEDULE_UPDATED:[^\]]+\]/g, '')
+                .replace(/\[CYCLE_LOGGED:[^\]]+\]/g, '')
+                .replace(/\[SETTINGS_UPDATED:[^\]]+\]/g, '')
+                .replace(/\[EVENT_ADDED:[^\]]+\]/g, '')
+                .replace(/\[NOTE_ADDED:[^\]]+\]/g, '')
+                .replace(/\[MEMORY_ADDED:[^\]]+\]/g, '')
                 .replace(/\s+$/, '');
         }}
         function read() {{
@@ -1226,6 +1387,130 @@ function lucySend() {{
                             schedRow.appendChild(gridBtn);
                             bubble._wrap.appendChild(schedRow);
                         }})(m[1], m[2]);
+                    }}
+                    // Parse [CYCLE_LOGGED:date:action] markers
+                    var cyclRx = /\[CYCLE_LOGGED:([^\]:]+):([^\]]+)\]/g;
+                    while ((m = cyclRx.exec(full)) !== null) {{
+                        (function(cDate, cAction) {{
+                            var cyclRow = document.createElement('div');
+                            cyclRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:6px;'
+                                + 'padding:7px 10px;background:#fdf0f8;border:1px solid #d8a0c8;border-radius:8px;';
+                            var cyclIcon = document.createElement('span');
+                            cyclIcon.textContent = cAction === 'remove' ? '🗑' : '🌸';
+                            cyclIcon.style.cssText = 'font-size:1em;flex-shrink:0;';
+                            var cyclMsg = document.createElement('span');
+                            cyclMsg.textContent = cAction === 'remove'
+                                ? 'Cycle entry removed for ' + cDate + '.'
+                                : 'Cycle Day 1 logged for ' + cDate + '.';
+                            cyclMsg.style.cssText = 'font-size:0.82em;color:#7c2d6a;flex:1;';
+                            var cyclBtn = document.createElement('a');
+                            cyclBtn.textContent = '📊 View';
+                            cyclBtn.href = '/settings#s-cycle';
+                            cyclBtn.target = '_blank';
+                            cyclBtn.style.cssText = 'padding:4px 12px;background:#9b3a7e;color:white;'
+                                + 'text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;'
+                                + 'font-family:inherit;flex-shrink:0;';
+                            cyclRow.appendChild(cyclIcon);
+                            cyclRow.appendChild(cyclMsg);
+                            cyclRow.appendChild(cyclBtn);
+                            bubble._wrap.appendChild(cyclRow);
+                        }})(m[1], m[2]);
+                    }}
+                    // Parse [SETTINGS_UPDATED:field] markers
+                    var settRx = /\[SETTINGS_UPDATED:([^\]]+)\]/g;
+                    while ((m = settRx.exec(full)) !== null) {{
+                        (function(sField) {{
+                            var settRow = document.createElement('div');
+                            settRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:6px;'
+                                + 'padding:7px 10px;background:#f5f0ff;border:1px solid #b89ee0;border-radius:8px;';
+                            var settIcon = document.createElement('span');
+                            settIcon.textContent = '⚙️';
+                            settIcon.style.cssText = 'font-size:1em;flex-shrink:0;';
+                            var settMsg = document.createElement('span');
+                            settMsg.textContent = 'Setting updated: ' + sField.replace('family_constraints.', '').replace(/_/g, ' ') + '.';
+                            settMsg.style.cssText = 'font-size:0.82em;color:#5b21b6;flex:1;';
+                            var settBtn = document.createElement('a');
+                            settBtn.textContent = '⚙ Settings';
+                            settBtn.href = '/settings';
+                            settBtn.target = '_blank';
+                            settBtn.style.cssText = 'padding:4px 12px;background:#7c3aed;color:white;'
+                                + 'text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;'
+                                + 'font-family:inherit;flex-shrink:0;';
+                            settRow.appendChild(settIcon);
+                            settRow.appendChild(settMsg);
+                            settRow.appendChild(settBtn);
+                            bubble._wrap.appendChild(settRow);
+                        }})(m[1]);
+                    }}
+                    // Parse [EVENT_ADDED:title:date] markers
+                    var evtRx = /\[EVENT_ADDED:([^\]:]+):([^\]]+)\]/g;
+                    while ((m = evtRx.exec(full)) !== null) {{
+                        (function(evTitle, evDate) {{
+                            var evtRow = document.createElement('div');
+                            evtRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:6px;'
+                                + 'padding:7px 10px;background:#f0f8ff;border:1px solid #90c0e8;border-radius:8px;';
+                            var evtIcon = document.createElement('span');
+                            evtIcon.textContent = '🗓';
+                            evtIcon.style.cssText = 'font-size:1em;flex-shrink:0;';
+                            var evtMsg = document.createElement('span');
+                            evtMsg.textContent = 'Event added: ' + evTitle + ' on ' + evDate + '.';
+                            evtMsg.style.cssText = 'font-size:0.82em;color:#1a4a7a;flex:1;';
+                            var evtBtn = document.createElement('a');
+                            evtBtn.textContent = '📆 Calendar';
+                            evtBtn.href = '/calendar';
+                            evtBtn.target = '_blank';
+                            evtBtn.style.cssText = 'padding:4px 12px;background:#1d6fa4;color:white;'
+                                + 'text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;'
+                                + 'font-family:inherit;flex-shrink:0;';
+                            evtRow.appendChild(evtIcon);
+                            evtRow.appendChild(evtMsg);
+                            evtRow.appendChild(evtBtn);
+                            bubble._wrap.appendChild(evtRow);
+                        }})(m[1], m[2]);
+                    }}
+                    // Parse [NOTE_ADDED:date] markers
+                    var noteRx = /\[NOTE_ADDED:([^\]]+)\]/g;
+                    while ((m = noteRx.exec(full)) !== null) {{
+                        (function(nDate) {{
+                            var noteRow = document.createElement('div');
+                            noteRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:6px;'
+                                + 'padding:7px 10px;background:#fffbf0;border:1px solid #e0cc80;border-radius:8px;';
+                            var noteIcon = document.createElement('span');
+                            noteIcon.textContent = '📝';
+                            noteIcon.style.cssText = 'font-size:1em;flex-shrink:0;';
+                            var noteMsg = document.createElement('span');
+                            noteMsg.textContent = 'Note captured.';
+                            noteMsg.style.cssText = 'font-size:0.82em;color:#7a5800;flex:1;';
+                            noteRow.appendChild(noteIcon);
+                            noteRow.appendChild(noteMsg);
+                            bubble._wrap.appendChild(noteRow);
+                        }})(m[1]);
+                    }}
+                    // Parse [MEMORY_ADDED:date] markers
+                    var memRx = /\[MEMORY_ADDED:([^\]]+)\]/g;
+                    while ((m = memRx.exec(full)) !== null) {{
+                        (function(mDate) {{
+                            var memRow = document.createElement('div');
+                            memRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:6px;'
+                                + 'padding:7px 10px;background:#f0fff4;border:1px solid #88d4a0;border-radius:8px;';
+                            var memIcon = document.createElement('span');
+                            memIcon.textContent = '💚';
+                            memIcon.style.cssText = 'font-size:1em;flex-shrink:0;';
+                            var memMsg = document.createElement('span');
+                            memMsg.textContent = 'Memory logged for ' + mDate + '.';
+                            memMsg.style.cssText = 'font-size:0.82em;color:#1a5c30;flex:1;';
+                            var memBtn = document.createElement('a');
+                            memBtn.textContent = '📖 Memory Book';
+                            memBtn.href = '/memory';
+                            memBtn.target = '_blank';
+                            memBtn.style.cssText = 'padding:4px 12px;background:#2d7a4a;color:white;'
+                                + 'text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;'
+                                + 'font-family:inherit;flex-shrink:0;';
+                            memRow.appendChild(memIcon);
+                            memRow.appendChild(memMsg);
+                            memRow.appendChild(memBtn);
+                            bubble._wrap.appendChild(memRow);
+                        }})(m[1]);
                     }}
                     // Parse and show print buttons for [PLAN_UPDATED:child:date]
                     var planRx = /\[PLAN_UPDATED:([^\]:]+):([^\]]+)\]/g;
@@ -1682,6 +1967,11 @@ function _cleanForTts(text) {{
         .replace(/\[PLAN_UPDATED:[^\]]*\]/g, '')
         .replace(/\[CARRYOVER_UPDATED:[^\]]*\]/g, '')
         .replace(/\[SCHEDULE_UPDATED:[^\]]*\]/g, '')
+        .replace(/\[CYCLE_LOGGED:[^\]]*\]/g, '')
+        .replace(/\[SETTINGS_UPDATED:[^\]]*\]/g, '')
+        .replace(/\[EVENT_ADDED:[^\]]*\]/g, '')
+        .replace(/\[NOTE_ADDED:[^\]]*\]/g, '')
+        .replace(/\[MEMORY_ADDED:[^\]]*\]/g, '')
         .replace(/\*\*/g, '').replace(/\*/g, '')
         .replace(/\s+/g, ' ')
         .trim();

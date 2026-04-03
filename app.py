@@ -1179,11 +1179,194 @@ class Handler(BaseHTTPRequestHandler):
                         _sched_markers += f"\n[SCHEDULE_UPDATED:{_sdate}:{len(_slots)}]"
                     except Exception as _se:
                         _sched_markers += f"\n(Schedule update error: {_se})"
+                # ── Parse <cycle_log> action tags ────────────────────────────
+                _cycl_rx = _re.compile(
+                    r'<cycle_log\b([^>]*)(?:/>|>([\s\S]*?)</cycle_log>)',
+                    _re.IGNORECASE
+                )
+                _cycl_markers = ""
+                for _cyc in _cycl_rx.finditer(text):
+                    _cycattrs = _cyc.group(1) or ""
+                    _caction  = _attr(_cycattrs, "action").lower() or "add"
+                    _cycdate  = _attr(_cycattrs, "date") or iso
+                    _cycnote  = _attr(_cycattrs, "note")
+                    try:
+                        from datetime import date as _date_cls3
+                        _date_cls3.fromisoformat(_cycdate)
+                        import json as _json2
+                        _CYCLE_LOG = "data/cycle_log.json"
+                        try:
+                            with open(_CYCLE_LOG) as _clf:
+                                _clog = _json2.load(_clf)
+                        except Exception:
+                            _clog = []
+                        if _caction == "remove":
+                            _clog = [e for e in _clog if e.get("day1") != _cycdate]
+                        else:
+                            _clog = [e for e in _clog if e.get("day1") != _cycdate]
+                            _clog.append({"day1": _cycdate, "note": _cycnote, "logged": iso})
+                        _clog.sort(key=lambda e: e.get("day1", ""))
+                        safe_save_json(_CYCLE_LOG, _clog)
+                        _cycl_markers += f"\n[CYCLE_LOGGED:{_cycdate}:{_caction}]"
+                    except Exception as _cyce:
+                        _cycl_markers += f"\n(Cycle log error: {_cyce})"
+                # ── Parse <settings_update> action tags ───────────────────────
+                _su_rx = _re.compile(
+                    r'<settings_update\b([^>]*)>([\s\S]*?)</settings_update>',
+                    _re.IGNORECASE
+                )
+                _su_markers = ""
+                for _su in _su_rx.finditer(text):
+                    _suattrs = _su.group(1) or ""
+                    _sufield = _attr(_suattrs, "field").strip()
+                    _suval   = _su.group(2).strip()
+                    if not _sufield:
+                        continue
+                    try:
+                        _susettings = load_app_settings()
+                        _suparts = _sufield.split(".", 1)
+                        if (len(_suparts) == 2 and _suparts[0] in _susettings
+                                and isinstance(_susettings[_suparts[0]], dict)):
+                            _susettings[_suparts[0]][_suparts[1]] = _suval
+                        elif _sufield in _susettings:
+                            _susettings[_sufield] = _suval
+                        else:
+                            _su_markers += f"\n(Settings update: unknown field '{_sufield}')"
+                            continue
+                        from render_settings import save_app_settings as _sas
+                        _sas(_susettings)
+                        _su_markers += f"\n[SETTINGS_UPDATED:{_sufield}]"
+                    except Exception as _sue:
+                        _su_markers += f"\n(Settings error: {_sue})"
+                # ── Parse <event_add> action tags ─────────────────────────────
+                _ev_rx = _re.compile(
+                    r'<event_add\b([^>]*)(?:/>|>([\s\S]*?)</event_add>)',
+                    _re.IGNORECASE
+                )
+                _ev_markers = ""
+                for _ev in _ev_rx.finditer(text):
+                    _evattrs = _ev.group(1) or ""
+                    _evbody  = (_ev.group(2) or "").strip()
+                    _evtitle = _attr(_evattrs, "title")
+                    _evdate  = _attr(_evattrs, "date") or iso
+                    _evtime  = _attr(_evattrs, "time") or ""
+                    _evend   = _attr(_evattrs, "end_time") or ""
+                    _evwho   = _attr(_evattrs, "who") or "Mom"
+                    _evnote  = _attr(_evattrs, "note") or _evbody
+                    _evrec   = _attr(_evattrs, "recurring") or "none"
+                    if not _evtitle:
+                        continue
+                    try:
+                        import uuid as _uuid2, json as _json3
+                        _EVENTS_FILE = "data/events.json"
+                        try:
+                            with open(_EVENTS_FILE) as _ef:
+                                _edata = _json3.load(_ef)
+                        except Exception:
+                            _edata = {"version": 1, "updated_at": iso, "data": []}
+                        _who_list = [w.strip() for w in _evwho.split(",") if w.strip()]
+                        _rec_type = "none" if _evrec in ("no", "none", "") else _evrec
+                        _new_ev = {
+                            "id": "evt_" + _uuid2.uuid4().hex[:8],
+                            "title": _evtitle,
+                            "assigned_to": _who_list,
+                            "start_date": _evdate,
+                            "end_date": _evdate,
+                            "start_time": _evtime,
+                            "end_time": _evend,
+                            "recurrence": {"type": _rec_type},
+                            "notifications": {
+                                "show_on_dashboard": True,
+                                "show_on_daily_page": True,
+                                "show_in_looking_ahead": True,
+                                "lead_days": 1,
+                            },
+                            "prep": {"lead_days": 0},
+                            "notes": _evnote,
+                            "subtasks": [],
+                            "archived": False,
+                        }
+                        _edata.setdefault("data", []).append(_new_ev)
+                        _edata["updated_at"] = iso
+                        safe_save_json(_EVENTS_FILE, _edata)
+                        _ev_markers += f"\n[EVENT_ADDED:{_evtitle}:{_evdate}]"
+                    except Exception as _eve:
+                        _ev_markers += f"\n(Event add error: {_eve})"
+                # ── Parse <note_add> action tags ──────────────────────────────
+                _note_rx = _re.compile(
+                    r'<note_add\b[^>]*>([\s\S]*?)</note_add>',
+                    _re.IGNORECASE
+                )
+                _note_markers = ""
+                for _na in _note_rx.finditer(text):
+                    _natext = _na.group(1).strip()
+                    if not _natext:
+                        continue
+                    try:
+                        from data_helpers import load_mom_notes, save_mom_notes
+                        import uuid as _uuid3
+                        _notes = load_mom_notes()
+                        if isinstance(_notes, dict):
+                            _notes = _notes.get("data", [])
+                        _notes.append({
+                            "id": "note_" + _uuid3.uuid4().hex[:6],
+                            "text": _natext,
+                            "created_at": iso,
+                            "status": "active",
+                            "tags": [],
+                            "source": "lucy",
+                            "archived_at": None,
+                        })
+                        save_mom_notes(_notes)
+                        _note_markers += f"\n[NOTE_ADDED:{iso}]"
+                    except Exception as _nae:
+                        _note_markers += f"\n(Note add error: {_nae})"
+                # ── Parse <memory_add> action tags ────────────────────────────
+                _mem_rx = _re.compile(
+                    r'<memory_add\b([^>]*)>([\s\S]*?)</memory_add>',
+                    _re.IGNORECASE
+                )
+                _mem_markers = ""
+                for _ma in _mem_rx.finditer(text):
+                    _maattrs  = _ma.group(1) or ""
+                    _matext   = _ma.group(2).strip()
+                    _madate   = _attr(_maattrs, "date") or iso
+                    _maperson = _attr(_maattrs, "person") or ""
+                    if not _matext:
+                        continue
+                    try:
+                        import uuid as _uuid4, json as _json4
+                        _MB_FILE = "data/memory_book.json"
+                        try:
+                            with open(_MB_FILE) as _mbf:
+                                _mbdata = _json4.load(_mbf)
+                        except Exception:
+                            _mbdata = {"entries": []}
+                        _mbdata.setdefault("entries", [])
+                        _mbdata["entries"].append({
+                            "id": _uuid4.uuid4().hex[:8],
+                            "date": _madate,
+                            "text": _matext,
+                            "person": _maperson,
+                            "source": "lucy",
+                            "created_at": iso,
+                        })
+                        safe_save_json(_MB_FILE, _mbdata)
+                        _mem_markers += f"\n[MEMORY_ADDED:{_madate}]"
+                    except Exception as _mae:
+                        _mem_markers += f"\n(Memory add error: {_mae})"
                 # Strip action tags from display text, append markers
-                _all_markers = _plan_markers + _carryover_markers + _sched_markers
+                _all_markers = (_plan_markers + _carryover_markers + _sched_markers
+                                + _cycl_markers + _su_markers + _ev_markers
+                                + _note_markers + _mem_markers)
                 _display_text = _plan_rx.sub("", text)
                 _display_text = _carryover_rx.sub("", _display_text)
-                _display_text = _sched_rx.sub("", _display_text).rstrip()
+                _display_text = _sched_rx.sub("", _display_text)
+                _display_text = _cycl_rx.sub("", _display_text)
+                _display_text = _su_rx.sub("", _display_text)
+                _display_text = _ev_rx.sub("", _display_text)
+                _display_text = _note_rx.sub("", _display_text)
+                _display_text = _mem_rx.sub("", _display_text).rstrip()
                 if _all_markers:
                     _display_text = _display_text + _all_markers
                 else:
