@@ -441,6 +441,90 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
         "- Write the memory in first-person or third-person as Mom told it — preserve her voice",
         "- After saving, a green badge confirms the memory was logged",
         "",
+        "== FRIENDS & FAMILIES ==",
+        "You can add or update families in the family directory. Use <friend_add> when Mom mentions",
+        "a family they know, met, or want to remember. ALWAYS ask proactive follow-up questions first",
+        "to gather as much detail as possible (names, ages, address, common interests, allergies, plans).",
+        "",
+        "Tag format (everything inside the body is optional, add what you know):",
+        '  <friend_add family_name="Smith" address="123 Oak Lane, Fredericksburg VA" note="Met at Bible study">',
+        "  member: John | Dad | 1982-04-15",
+        "  member: Mary | Mom | 1984-09-03",
+        "  member: Sophia | age 10 |",
+        "  member: Thomas | age 8 |",
+        "  food_allergy: Tree nuts",
+        "  favorite: Hiking",
+        "  favorite: Catholic homeschoolers",
+        "  plan: Have them over for dinner this month",
+        "  </friend_add>",
+        "",
+        "Rules for friend_add:",
+        '- family_name is required; address and note are attributes (in the opening tag)',
+        "- If the family already exists by name, it is UPDATED (members/favorites/plans merged in)",
+        "- member format: name | role | birthday (role can be 'Dad', 'Mom', 'age 10', etc.)",
+        "- Ask at minimum: full family name, parents' names, kids' names and ages, how they met",
+        "- A green badge confirms the family was saved; they appear in the Friends directory",
+        "",
+        "== MEAL PLANNING ==",
+        "You can fill in the weekly meal plan. Use <meal_plan_update> when Mom mentions what she's",
+        "planning to cook or asks for help with meals. Default to the current week if none specified.",
+        "",
+        '  <meal_plan_update week="2026-W14">',
+        "  Monday dinner: Brined roast chicken with roasted vegetables",
+        "  Tuesday dinner: Pasta e Fagioli",
+        "  Wednesday lunch: Tuna salad sandwiches",
+        "  Thursday dinner: Beef tacos",
+        "  Friday dinner: Fish and chips",
+        "  </meal_plan_update>",
+        "",
+        "Rules for meal_plan_update:",
+        "- week format: YYYY-WXX (ISO week). Defaults to current week.",
+        "- Line format: [Weekday] [meal_type]: [description]",
+        "- Valid meal_types: breakfast, lunch, dinner, snacks, dad_lunch",
+        "- You can update one or many meals in a single tag",
+        "- Ask what she has in mind or suggest meals from the recipe list if she wants ideas",
+        "- A blue badge confirms how many meal slots were updated",
+        "",
+        "== PRAYER INTENTIONS ==",
+        "You can add new prayer intentions. Use <prayer_add> when Mom mentions something or someone",
+        "she wants to pray for, or wants to add to the family's active intentions.",
+        "",
+        '  <prayer_add title="Recovery for Mrs. Johnson" description="Surgery next Tuesday — pray for healing and peace."/>',
+        "",
+        "Rules for prayer_add:",
+        "- title is required; description is optional but helpful",
+        "- You can also use a body instead of description attribute:",
+        '  <prayer_add title="Safe travels for Grandpa">Full prayer intention details here.</prayer_add>',
+        "- A purple badge confirms the intention was saved",
+        "",
+        "== RECIPES ==",
+        "You can add new recipes. Use <recipe_add> when Mom shares a recipe or wants to save one.",
+        "Ask for the name, ingredients, and instructions before saving.",
+        "",
+        '  <recipe_add name="Lemon Herb Chicken" tags="chicken, easy" ingredients="Chicken breasts, lemon, garlic, olive oil, herbs">',
+        "  1. Marinate chicken in lemon juice, garlic, and herbs for 30 minutes.",
+        "  2. Pan-sear over medium-high heat, 6 minutes per side.",
+        "  3. Finish in 400°F oven for 10 minutes.",
+        "  </recipe_add>",
+        "",
+        "Rules for recipe_add:",
+        "- name is required; tags and ingredients are attributes in the opening tag",
+        "- The tag body contains the instructions / recipe text",
+        "- If Mom only has partial info, save what you have and offer to fill in more later",
+        "- A green badge confirms the recipe was saved",
+        "",
+        "== PROACTIVE DATA CAPTURE ==",
+        "When Mom mentions anything that should be recorded — a family friend, a meal plan, a prayer",
+        "need, an event, a recipe — PROACTIVELY ask follow-up questions to gather complete info",
+        "BEFORE writing to the data store. Examples:",
+        "- Mentions a friend → ask: full family name, parents' and kids' names/ages, how they met,",
+        "  address or area, any food allergies, common interests, plans to get together",
+        "- Mentions cooking something → offer to add it to the meal plan; ask which day",
+        "- Mentions praying for someone → confirm you'll add it; ask for a description if helpful",
+        "- Mentions a recipe → ask for ingredients and steps before saving",
+        "You may ask 2-3 follow-up questions at once. Once you have enough, save and confirm with a",
+        "badge. You can always save a partial entry and offer to fill in more later.",
+        "",
         "== FAMILY ==",
     ]
 
@@ -556,6 +640,47 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
             lines.append(f"- Prep note: {prep_notes}")
     except Exception:
         lines.append("(Meal plan not available)")
+
+    lines += ["", "== THIS WEEK'S FULL MEAL PLAN =="]
+    try:
+        from render_meals import load_meal_plan, _week_key
+        _wplan = load_meal_plan(_week_key())
+        _wdays = _wplan.get("days", {})
+        _any_w = False
+        for _wd in ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]:
+            _wd_meals = _wdays.get(_wd, {})
+            _wd_items = [f"{sl.capitalize()}: {_wd_meals[sl]}" for sl in
+                         ["breakfast","lunch","dinner","snacks","dad_lunch"]
+                         if _wd_meals.get(sl)]
+            if _wd_items:
+                lines.append(f"- {_wd}: " + " | ".join(_wd_items))
+                _any_w = True
+        if not _any_w:
+            lines.append("(No meals planned this week yet)")
+    except Exception:
+        lines.append("(Week meal plan not available)")
+
+    lines += ["", "== FRIENDS & FAMILIES DIRECTORY =="]
+    try:
+        from render_friends import load_friends
+        _frds = load_friends()
+        if _frds:
+            for _frd in _frds:
+                _frdname = _frd.get("family_name","")
+                _frdmembers = _frd.get("members",[])
+                _frdaddr = _frd.get("address","")
+                _frdsummary = f"The {_frdname} family"
+                if _frdaddr:
+                    _frdsummary += f" ({_frdaddr})"
+                if _frdmembers:
+                    _frdsummary += ": " + ", ".join(
+                        f"{m.get('name','')} ({m.get('role','')})" for m in _frdmembers if m.get("name")
+                    )
+                lines.append(f"- {_frdsummary}")
+        else:
+            lines.append("(No families in the directory yet)")
+    except Exception:
+        lines.append("(Friends directory not available)")
 
     lines += ["", "== FAMILY SCHEDULE GRID =="]
     try:
@@ -838,6 +963,55 @@ def _render_history_html(messages: list) -> str:
                     f'color:white;text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;">'
                     f'📖 Memory Book</a></div>'
                 )
+            for _fr2 in _re.finditer(r'\[FRIEND_ADDED:([^\]]+)\]', content):
+                _frname2 = _fr2.group(1)
+                _plan_buttons += (
+                    f'<div style="display:flex;align-items:center;gap:8px;margin-top:6px;'
+                    f'padding:7px 10px;background:#f0faf4;border:1px solid #6fbf8a;border-radius:8px;">'
+                    f'<span style="font-size:1em;">👨\u200d👩\u200d👧\u200d👦</span>'
+                    f'<span style="font-size:0.82em;color:#1a5c30;flex:1;">'
+                    f'The {escape(_frname2)} family saved to Friends directory.</span>'
+                    f'<a href="/friends" target="_blank" style="padding:4px 12px;background:#2d7a4a;'
+                    f'color:white;text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;">'
+                    f'👥 Friends</a></div>'
+                )
+            for _ml2 in _re.finditer(r'\[MEAL_UPDATED:([^\]:]+):(\d+)\]', content):
+                _mlweek2, _mlct2 = _ml2.group(1), _ml2.group(2)
+                _mln2 = "meal" if _mlct2 == "1" else "meals"
+                _plan_buttons += (
+                    f'<div style="display:flex;align-items:center;gap:8px;margin-top:6px;'
+                    f'padding:7px 10px;background:#fffbea;border:1px solid #e6c84a;border-radius:8px;">'
+                    f'<span style="font-size:1em;">🍽️</span>'
+                    f'<span style="font-size:0.82em;color:#7a5a00;flex:1;">'
+                    f'Meal plan updated — {escape(_mlct2)} {_mln2} saved for week {escape(_mlweek2)}.</span>'
+                    f'<a href="/meals" target="_blank" style="padding:4px 12px;background:#b07d10;'
+                    f'color:white;text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;">'
+                    f'🥘 Meal Plan</a></div>'
+                )
+            for _pr2 in _re.finditer(r'\[PRAYER_ADDED:([^\]]+)\]', content):
+                _prtitle2 = _pr2.group(1)
+                _plan_buttons += (
+                    f'<div style="display:flex;align-items:center;gap:8px;margin-top:6px;'
+                    f'padding:7px 10px;background:#fdf5ff;border:1px solid #c4a0d8;border-radius:8px;">'
+                    f'<span style="font-size:1em;">🙏</span>'
+                    f'<span style="font-size:0.82em;color:#5b1a8a;flex:1;">'
+                    f'Prayer intention added: \u201c{escape(_prtitle2)}\u201d.</span>'
+                    f'<a href="/prayer" target="_blank" style="padding:4px 12px;background:#7c2fa8;'
+                    f'color:white;text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;">'
+                    f'🕊 Intentions</a></div>'
+                )
+            for _rx2 in _re.finditer(r'\[RECIPE_ADDED:([^\]]+)\]', content):
+                _rxname2 = _rx2.group(1)
+                _plan_buttons += (
+                    f'<div style="display:flex;align-items:center;gap:8px;margin-top:6px;'
+                    f'padding:7px 10px;background:#fff8f0;border:1px solid #e8a86a;border-radius:8px;">'
+                    f'<span style="font-size:1em;">📖</span>'
+                    f'<span style="font-size:0.82em;color:#7a3a00;flex:1;">'
+                    f'Recipe saved: \u201c{escape(_rxname2)}\u201d.</span>'
+                    f'<a href="/recipes" target="_blank" style="padding:4px 12px;background:#c05800;'
+                    f'color:white;text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;">'
+                    f'🍳 Recipes</a></div>'
+                )
             clean = _re.sub(r'\[RULE:(add|remove)\][\s\S]*?\[/RULE\]', '', content)
             clean = _re.sub(r'\[PLAN_UPDATED:[^\]]+\]', '', clean)
             clean = _re.sub(r'\[CARRYOVER_UPDATED:[^\]]+\]', '', clean)
@@ -846,7 +1020,11 @@ def _render_history_html(messages: list) -> str:
             clean = _re.sub(r'\[SETTINGS_UPDATED:[^\]]+\]', '', clean)
             clean = _re.sub(r'\[EVENT_ADDED:[^\]]+\]', '', clean)
             clean = _re.sub(r'\[NOTE_ADDED:[^\]]+\]', '', clean)
-            clean = _re.sub(r'\[MEMORY_ADDED:[^\]]+\]', '', clean).strip()
+            clean = _re.sub(r'\[MEMORY_ADDED:[^\]]+\]', '', clean)
+            clean = _re.sub(r'\[FRIEND_ADDED:[^\]]+\]', '', clean)
+            clean = _re.sub(r'\[MEAL_UPDATED:[^\]]+\]', '', clean)
+            clean = _re.sub(r'\[PRAYER_ADDED:[^\]]+\]', '', clean)
+            clean = _re.sub(r'\[RECIPE_ADDED:[^\]]+\]', '', clean).strip()
             parts.append(
                 f'<div class="lucy-bubble-wrap" style="margin-bottom:0;">'
                 f'<div class="lucy-bubble-lucy" style="white-space:pre-wrap;">{escape(clean)}</div>'
@@ -1291,6 +1469,10 @@ function lucySend() {{
                 .replace(/\[EVENT_ADDED:[^\]]+\]/g, '')
                 .replace(/\[NOTE_ADDED:[^\]]+\]/g, '')
                 .replace(/\[MEMORY_ADDED:[^\]]+\]/g, '')
+                .replace(/\[FRIEND_ADDED:[^\]]+\]/g, '')
+                .replace(/\[MEAL_UPDATED:[^\]]+\]/g, '')
+                .replace(/\[PRAYER_ADDED:[^\]]+\]/g, '')
+                .replace(/\[RECIPE_ADDED:[^\]]+\]/g, '')
                 .replace(/\s+$/, '');
         }}
         function read() {{
@@ -1380,10 +1562,10 @@ function lucySend() {{
                             bubble._wrap.appendChild(carryRow);
                         }})(m[1], m[2], m[3]);
                     }}
-                    // Parse [SCHEDULE_UPDATED:date:n_slots] markers
-                    var schedRx = /\[SCHEDULE_UPDATED:([^\]:]+):(\d+)\]/g;
+                    // Parse [SCHEDULE_UPDATED:date:n_slots:person] markers
+                    var schedRx = /\[SCHEDULE_UPDATED:([^\]:]+):(\d+)(?::([^\]]+))?\]/g;
                     while ((m = schedRx.exec(full)) !== null) {{
-                        (function(sDate, sCount) {{
+                        (function(sDate, sCount, sWho) {{
                             var schedRow = document.createElement('div');
                             schedRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:6px;'
                                 + 'padding:7px 10px;background:#f0f4ff;border:1px solid #a0b4e8;border-radius:8px;';
@@ -1392,7 +1574,8 @@ function lucySend() {{
                             calIcon.style.cssText = 'font-size:1em;flex-shrink:0;';
                             var msg = document.createElement('span');
                             var noun = sCount === '1' ? 'slot' : 'slots';
-                            msg.textContent = 'Schedule updated for ' + sDate + ' (' + sCount + ' ' + noun + ' changed).';
+                            var whoTxt = (sWho && sWho !== 'all') ? ' for ' + sWho : '';
+                            msg.textContent = 'Schedule updated' + whoTxt + ' on ' + sDate + ' (' + sCount + ' ' + noun + ' changed).';
                             msg.style.cssText = 'font-size:0.82em;color:#1e3a8a;flex:1;';
                             var gridBtn = document.createElement('a');
                             gridBtn.textContent = '📋 View Grid';
@@ -1405,7 +1588,7 @@ function lucySend() {{
                             schedRow.appendChild(msg);
                             schedRow.appendChild(gridBtn);
                             bubble._wrap.appendChild(schedRow);
-                        }})(m[1], m[2]);
+                        }})(m[1], m[2], m[3] || 'all');
                     }}
                     // Parse [CYCLE_LOGGED:date:action] markers
                     var cyclRx = /\[CYCLE_LOGGED:([^\]:]+):([^\]]+)\]/g;
@@ -1556,6 +1739,111 @@ function lucySend() {{
                             planRow.appendChild(printBtn);
                             bubble._wrap.appendChild(planRow);
                         }})(m[1], m[2]);
+                    }}
+                    // Parse [FRIEND_ADDED:family_name] markers
+                    var frRx = /\[FRIEND_ADDED:([^\]]+)\]/g;
+                    while ((m = frRx.exec(full)) !== null) {{
+                        (function(frName) {{
+                            var frRow = document.createElement('div');
+                            frRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:6px;'
+                                + 'padding:7px 10px;background:#f0faf4;border:1px solid #6fbf8a;border-radius:8px;';
+                            var frIcon = document.createElement('span');
+                            frIcon.textContent = '👨‍👩‍👧‍👦';
+                            frIcon.style.cssText = 'font-size:1em;flex-shrink:0;';
+                            var frMsg = document.createElement('span');
+                            frMsg.textContent = 'The ' + frName + ' family saved to Friends directory.';
+                            frMsg.style.cssText = 'font-size:0.82em;color:#1a5c30;flex:1;';
+                            var frBtn = document.createElement('a');
+                            frBtn.textContent = '👥 Friends';
+                            frBtn.href = '/friends';
+                            frBtn.target = '_blank';
+                            frBtn.style.cssText = 'padding:4px 12px;background:#2d7a4a;color:white;'
+                                + 'text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;'
+                                + 'font-family:inherit;flex-shrink:0;';
+                            frRow.appendChild(frIcon);
+                            frRow.appendChild(frMsg);
+                            frRow.appendChild(frBtn);
+                            bubble._wrap.appendChild(frRow);
+                        }})(m[1]);
+                    }}
+                    // Parse [MEAL_UPDATED:week:count] markers
+                    var mealRx = /\[MEAL_UPDATED:([^\]:]+):(\d+)\]/g;
+                    while ((m = mealRx.exec(full)) !== null) {{
+                        (function(mWeek, mCount) {{
+                            var mealRow = document.createElement('div');
+                            mealRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:6px;'
+                                + 'padding:7px 10px;background:#fffbea;border:1px solid #e6c84a;border-radius:8px;';
+                            var mealIcon = document.createElement('span');
+                            mealIcon.textContent = '🍽️';
+                            mealIcon.style.cssText = 'font-size:1em;flex-shrink:0;';
+                            var mealMsg = document.createElement('span');
+                            var mNoun = mCount === '1' ? 'meal' : 'meals';
+                            mealMsg.textContent = 'Meal plan updated — ' + mCount + ' ' + mNoun + ' saved for week ' + mWeek + '.';
+                            mealMsg.style.cssText = 'font-size:0.82em;color:#7a5a00;flex:1;';
+                            var mealBtn = document.createElement('a');
+                            mealBtn.textContent = '🥘 Meal Plan';
+                            mealBtn.href = '/meals';
+                            mealBtn.target = '_blank';
+                            mealBtn.style.cssText = 'padding:4px 12px;background:#b07d10;color:white;'
+                                + 'text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;'
+                                + 'font-family:inherit;flex-shrink:0;';
+                            mealRow.appendChild(mealIcon);
+                            mealRow.appendChild(mealMsg);
+                            mealRow.appendChild(mealBtn);
+                            bubble._wrap.appendChild(mealRow);
+                        }})(m[1], m[2]);
+                    }}
+                    // Parse [PRAYER_ADDED:title] markers
+                    var prayRx = /\[PRAYER_ADDED:([^\]]+)\]/g;
+                    while ((m = prayRx.exec(full)) !== null) {{
+                        (function(pTitle) {{
+                            var prayRow = document.createElement('div');
+                            prayRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:6px;'
+                                + 'padding:7px 10px;background:#fdf5ff;border:1px solid #c4a0d8;border-radius:8px;';
+                            var prayIcon = document.createElement('span');
+                            prayIcon.textContent = '🙏';
+                            prayIcon.style.cssText = 'font-size:1em;flex-shrink:0;';
+                            var prayMsg = document.createElement('span');
+                            prayMsg.textContent = 'Prayer intention added: \u201c' + pTitle + '\u201d.';
+                            prayMsg.style.cssText = 'font-size:0.82em;color:#5b1a8a;flex:1;';
+                            var prayBtn = document.createElement('a');
+                            prayBtn.textContent = '🕊 Intentions';
+                            prayBtn.href = '/prayer';
+                            prayBtn.target = '_blank';
+                            prayBtn.style.cssText = 'padding:4px 12px;background:#7c2fa8;color:white;'
+                                + 'text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;'
+                                + 'font-family:inherit;flex-shrink:0;';
+                            prayRow.appendChild(prayIcon);
+                            prayRow.appendChild(prayMsg);
+                            prayRow.appendChild(prayBtn);
+                            bubble._wrap.appendChild(prayRow);
+                        }})(m[1]);
+                    }}
+                    // Parse [RECIPE_ADDED:name] markers
+                    var recipeRx = /\[RECIPE_ADDED:([^\]]+)\]/g;
+                    while ((m = recipeRx.exec(full)) !== null) {{
+                        (function(rName) {{
+                            var recipeRow = document.createElement('div');
+                            recipeRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:6px;'
+                                + 'padding:7px 10px;background:#fff8f0;border:1px solid #e8a86a;border-radius:8px;';
+                            var recipeIcon = document.createElement('span');
+                            recipeIcon.textContent = '📖';
+                            recipeIcon.style.cssText = 'font-size:1em;flex-shrink:0;';
+                            var recipeMsg = document.createElement('span');
+                            recipeMsg.textContent = 'Recipe saved: \u201c' + rName + '\u201d.';
+                            recipeMsg.style.cssText = 'font-size:0.82em;color:#7a3a00;flex:1;';
+                            var recipeBtn = document.createElement('a');
+                            recipeBtn.textContent = '🍳 Recipes';
+                            recipeBtn.href = '/recipes';
+                            recipeBtn.target = '_blank';
+                            recipeBtn.style.cssText = 'padding:4px 12px;background:#c05800;color:white;'
+                                + 'text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;'
+                                + 'font-family:inherit;flex-shrink:0;';
+                            recipeRow.appendChild(recipeIcon);
+                            recipeRow.appendChild(recipeMsg);
+                            recipeRow.appendChild(recipeBtn);
+                            bubble._wrap.appendChild(recipeRow);
+                        }})(m[1]);
                     }}
                     window.scrollTo(0, document.body.scrollHeight);
                     return;

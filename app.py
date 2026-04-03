@@ -1170,13 +1170,17 @@ class Handler(BaseHTTPRequestHandler):
                             _speople = list(_SC)
                         _speople_all = ["Mom"] + [p for p in _speople if p != "Mom"]
                         _sgrid = get_or_seed_grid(_sdate, _swd, _speople_all)
-                        for _sp in _speople_all:
+                        _sperson_attr = _attr(_sattrs, "person").strip()
+                        _stargets = ([_sperson_attr] if _sperson_attr and _sperson_attr in _speople_all
+                                     else _speople_all)
+                        for _sp in _stargets:
                             if _sp not in _sgrid:
                                 _sgrid[_sp] = {}
                             for _st, _sv in _slots.items():
                                 _sgrid[_sp][_st] = _sv
                         save_day_grid(_sdate, _sgrid)
-                        _sched_markers += f"\n[SCHEDULE_UPDATED:{_sdate}:{len(_slots)}]"
+                        _who_label = _sperson_attr or "all"
+                        _sched_markers += f"\n[SCHEDULE_UPDATED:{_sdate}:{len(_slots)}:{_who_label}]"
                     except Exception as _se:
                         _sched_markers += f"\n(Schedule update error: {_se})"
                 # ── Parse <cycle_log> action tags ────────────────────────────
@@ -1355,10 +1359,201 @@ class Handler(BaseHTTPRequestHandler):
                         _mem_markers += f"\n[MEMORY_ADDED:{_madate}]"
                     except Exception as _mae:
                         _mem_markers += f"\n(Memory add error: {_mae})"
+                # ── Parse <friend_add> action tags ────────────────────────
+                _fr_rx = _re.compile(
+                    r'<friend_add\b([^>]*)>([\s\S]*?)</friend_add>',
+                    _re.IGNORECASE
+                )
+                _fr_markers = ""
+                for _fr in _fr_rx.finditer(text):
+                    _frattrs = _fr.group(1) or ""
+                    _frbody  = _fr.group(2)
+                    _frname  = _attr(_frattrs, "family_name") or _attr(_frattrs, "name")
+                    if not _frname:
+                        continue
+                    try:
+                        from render_friends import load_friends, save_friends
+                        import uuid as _uuid5
+                        _frnds = load_friends()
+                        _fr_members = []
+                        _fr_allergies = []
+                        _fr_favorites = []
+                        _fr_plans = []
+                        for _fl in _frbody.strip().splitlines():
+                            _fl = _fl.strip()
+                            if not _fl:
+                                continue
+                            _fll = _fl.lower()
+                            if _fll.startswith("member:"):
+                                _fparts = _fl.split(":", 1)[1].split("|")
+                                _fparts = [p.strip() for p in _fparts]
+                                _fmn = _fparts[0] if _fparts else ""
+                                _fmr = _fparts[1] if len(_fparts) > 1 else ""
+                                _fmb = _fparts[2] if len(_fparts) > 2 else ""
+                                if _fmn:
+                                    _fr_members.append({"name": _fmn, "role": _fmr, "birthday": _fmb})
+                            elif _fll.startswith(("food_allergy:", "allergy:")):
+                                _fr_allergies.append(_fl.split(":", 1)[1].strip())
+                            elif _fll.startswith("favorite:"):
+                                _fr_favorites.append(_fl.split(":", 1)[1].strip())
+                            elif _fll.startswith("plan:"):
+                                _fr_plans.append({"text": _fl.split(":", 1)[1].strip(), "done": False})
+                        _fr_updated = False
+                        for _fe in _frnds:
+                            if _fe.get("family_name", "").lower() == _frname.lower():
+                                if _fr_members:
+                                    _fe.setdefault("members", []).extend(_fr_members)
+                                if _fr_allergies:
+                                    _fe.setdefault("food_allergies", []).extend(_fr_allergies)
+                                if _fr_favorites:
+                                    _fe.setdefault("favorite_things", []).extend(_fr_favorites)
+                                if _fr_plans:
+                                    _fe.setdefault("plans", []).extend(_fr_plans)
+                                if _attr(_frattrs, "address"):
+                                    _fe["address"] = _attr(_frattrs, "address")
+                                if _attr(_frattrs, "note"):
+                                    _fe["notes"] = _attr(_frattrs, "note")
+                                _fr_updated = True
+                                break
+                        if not _fr_updated:
+                            _frnds.append({
+                                "id": "fam_" + _uuid5.uuid4().hex[:8],
+                                "family_name": _frname,
+                                "address": _attr(_frattrs, "address") or "",
+                                "notes": _attr(_frattrs, "note") or "",
+                                "members": _fr_members,
+                                "gift_ideas": [],
+                                "food_allergies": _fr_allergies,
+                                "favorite_things": _fr_favorites,
+                                "plans": _fr_plans,
+                            })
+                        save_friends(_frnds)
+                        _fr_markers += f"\n[FRIEND_ADDED:{_frname}]"
+                    except Exception as _fre2:
+                        _fr_markers += f"\n(Friend error: {_fre2})"
+                # ── Parse <meal_plan_update> action tags ───────────────────────
+                _mp_rx = _re.compile(
+                    r'<meal_plan_update\b([^>]*)>([\s\S]*?)</meal_plan_update>',
+                    _re.IGNORECASE
+                )
+                _mp_markers = ""
+                _MP_DAYS  = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
+                _MP_MEALS = ["breakfast","lunch","dinner","snacks","dad_lunch"]
+                for _mp in _mp_rx.finditer(text):
+                    _mpattrs = _mp.group(1) or ""
+                    _mpbody  = _mp.group(2)
+                    _mpweek  = _attr(_mpattrs, "week").strip()
+                    if not _mpweek:
+                        from datetime import date as _dc4
+                        _today2 = _dc4.fromisoformat(iso)
+                        _mpweek = _today2.strftime("%Y-W%W")
+                    try:
+                        import json as _json5, os as _os5
+                        _MP_DIR  = "data/meal_plan"
+                        _os5.makedirs(_MP_DIR, exist_ok=True)
+                        _MP_FILE = f"{_MP_DIR}/{_mpweek}.json"
+                        try:
+                            with open(_MP_FILE) as _mpf:
+                                _mpdata = _json5.load(_mpf)
+                        except Exception:
+                            _mpdata = {"week": _mpweek, "generated": False, "days": {
+                                d: {"breakfast":"","lunch":"","dinner":"","snacks":"","dad_lunch":""}
+                                for d in _MP_DAYS
+                            }}
+                        _mpdata.setdefault("days", {})
+                        _mp_n = 0
+                        for _ml in _mpbody.strip().splitlines():
+                            _ml = _ml.strip()
+                            _mp_m = _re.match(
+                                r'^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)'
+                                r'\s+(\w+)\s*:\s*(.+)$', _ml, _re.IGNORECASE
+                            )
+                            if _mp_m:
+                                _mpday  = _mp_m.group(1).capitalize()
+                                _mpmeal = _mp_m.group(2).lower()
+                                _mpval  = _mp_m.group(3).strip()
+                                if _mpmeal in _MP_MEALS:
+                                    _mpdata["days"].setdefault(_mpday, {})
+                                    _mpdata["days"][_mpday][_mpmeal] = _mpval
+                                    _mp_n += 1
+                        if _mp_n > 0:
+                            safe_save_json(_MP_FILE, _mpdata)
+                            _mp_markers += f"\n[MEAL_UPDATED:{_mpweek}:{_mp_n}]"
+                    except Exception as _mpe:
+                        _mp_markers += f"\n(Meal plan error: {_mpe})"
+                # ── Parse <prayer_add> action tags ─────────────────────────────
+                _pr_rx = _re.compile(
+                    r'<prayer_add\b([^>]*)(?:/>|>([\s\S]*?)</prayer_add>)',
+                    _re.IGNORECASE
+                )
+                _pr_markers = ""
+                for _pr in _pr_rx.finditer(text):
+                    _prattrs = _pr.group(1) or ""
+                    _prbody  = (_pr.group(2) or "").strip()
+                    _prtitle = _attr(_prattrs, "title")
+                    _prdesc  = _attr(_prattrs, "description") or _prbody
+                    if not _prtitle:
+                        continue
+                    try:
+                        import uuid as _uuid6, json as _json6
+                        _PRAYER_FILE = "data/prayer/intentions.json"
+                        try:
+                            with open(_PRAYER_FILE) as _prf:
+                                _prdata = _json6.load(_prf)
+                        except Exception:
+                            _prdata = []
+                        _prdata.append({
+                            "id": _uuid6.uuid4().hex[:8],
+                            "title": _prtitle,
+                            "description": _prdesc,
+                            "photo": "",
+                            "created": iso,
+                            "active": True,
+                            "answered": False,
+                            "prayer_log": [],
+                        })
+                        safe_save_json(_PRAYER_FILE, _prdata)
+                        _pr_markers += f"\n[PRAYER_ADDED:{_prtitle}]"
+                    except Exception as _pre:
+                        _pr_markers += f"\n(Prayer error: {_pre})"
+                # ── Parse <recipe_add> action tags ─────────────────────────────
+                _recx_rx = _re.compile(
+                    r'<recipe_add\b([^>]*)>([\s\S]*?)</recipe_add>',
+                    _re.IGNORECASE
+                )
+                _recx_markers = ""
+                for _recx in _recx_rx.finditer(text):
+                    _rxattrs = _recx.group(1) or ""
+                    _rxbody  = _recx.group(2).strip()
+                    _rxname  = _attr(_rxattrs, "name")
+                    if not _rxname:
+                        continue
+                    try:
+                        import uuid as _uuid7, json as _json7
+                        _REC_FILE = "data/recipes.json"
+                        try:
+                            with open(_REC_FILE) as _recf:
+                                _rxdata = _json7.load(_recf)
+                        except Exception:
+                            _rxdata = []
+                        _rxdata.append({
+                            "id": "r" + _uuid7.uuid4().hex[:6],
+                            "name": _rxname,
+                            "ingredients": _attr(_rxattrs, "ingredients") or "",
+                            "instructions": _rxbody,
+                            "tags": [t.strip() for t in (_attr(_rxattrs, "tags") or "").split(",") if t.strip()],
+                            "source": "lucy",
+                            "notes": _attr(_rxattrs, "notes") or "",
+                        })
+                        safe_save_json(_REC_FILE, _rxdata)
+                        _recx_markers += f"\n[RECIPE_ADDED:{_rxname}]"
+                    except Exception as _rxe:
+                        _recx_markers += f"\n(Recipe error: {_rxe})"
                 # Strip action tags from display text, append markers
                 _all_markers = (_plan_markers + _carryover_markers + _sched_markers
                                 + _cycl_markers + _su_markers + _ev_markers
-                                + _note_markers + _mem_markers)
+                                + _note_markers + _mem_markers
+                                + _fr_markers + _mp_markers + _pr_markers + _recx_markers)
                 _display_text = _plan_rx.sub("", text)
                 _display_text = _carryover_rx.sub("", _display_text)
                 _display_text = _sched_rx.sub("", _display_text)
@@ -1366,7 +1561,11 @@ class Handler(BaseHTTPRequestHandler):
                 _display_text = _su_rx.sub("", _display_text)
                 _display_text = _ev_rx.sub("", _display_text)
                 _display_text = _note_rx.sub("", _display_text)
-                _display_text = _mem_rx.sub("", _display_text).rstrip()
+                _display_text = _mem_rx.sub("", _display_text)
+                _display_text = _fr_rx.sub("", _display_text)
+                _display_text = _mp_rx.sub("", _display_text)
+                _display_text = _pr_rx.sub("", _display_text)
+                _display_text = _recx_rx.sub("", _display_text).rstrip()
                 if _all_markers:
                     _display_text = _display_text + _all_markers
                 else:
