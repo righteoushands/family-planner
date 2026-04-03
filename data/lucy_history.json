@@ -2,16 +2,6 @@
   "messages": [
     {
       "role": "user",
-      "content": "Haha! It’s morning!",
-      "ts": "2026-04-03T12:35:39"
-    },
-    {
-      "role": "assistant",
-      "content": "Oh! Good morning! I apologize — I was reading the timestamp wrong. It's actually Friday morning, April 3rd.\n\nLet me reset and help you properly.\n\nYou've got a significant day ahead in Holy Week:\n\n- John's class at 8:00 AM (wait — you said that was an error, so scratch that)\n- Elena at 10:30 AM\n- Passion and Veneration of the Holy Cross at 3:00 PM\n- Stations of the Cross at 6:30 PM\n- Plus you need to pick up your Rx at Walgreens\n\nAnd your family is in Light Week for school, so just Math, Religion, and Reading.\n\nHow are you feeling this morning? Do you have good capacity to manage today, or is it shaping up to be a LOW capacity day?",
-      "ts": "2026-04-03T12:35:41"
-    },
-    {
-      "role": "user",
       "content": "I think today is good capacity. You ought to remind me it’s a fasting and abstinence day. Also the boys are fasting from screens today.",
       "ts": "2026-04-03T12:36:50"
     },
@@ -299,6 +289,16 @@
       "role": "assistant",
       "content": "Our Father, who art in heaven, hallowed be thy name. Thy kingdom come, thy will be done, on earth as it is in heaven. Give us this day our daily bread, and forgive us our trespasses, as we forgive those who trespass against us. And lead us not into temptation, but deliver us from evil. Amen.",
       "ts": "2026-04-03T17:52:58"
+    },
+    {
+      "role": "user",
+      "content": "Again please",
+      "ts": "2026-04-03T18:11:44"
+    },
+    {
+      "role": "assistant",
+      "content": "Our Father, who art in heaven, hallowed be thy name. Thy kingdom come, thy will be done, on earth as it is in heaven. Give us this day our daily bread, and forgive us our trespasses, as we forgive those who trespass against us. And lead us not into temptation, but deliver us from evil. Amen.",
+      "ts": "2026-04-03T18:11:45"
     }
   ]
 }

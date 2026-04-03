@@ -1039,6 +1039,7 @@ function lucySend() {{
     var msg   = input.value.trim();
     var img   = _attachedImage;
     if (!msg && !img) return;
+    _unlockAudio();  // unlock during this user gesture so auto-play works later on iOS
     input.value = '';
     input.style.height = 'auto';
 
@@ -1330,10 +1331,15 @@ function toggleWake() {{
 // ── Mic button ────────────────────────────────────────────────────
 function lucyMicToggle() {{
     // If Lucy is speaking, stop her first
+    if (!_lucyAudioEl.paused) {{
+        _lucyAudioEl.pause();
+        return;
+    }}
     if (window.speechSynthesis && window.speechSynthesis.speaking) {{
         window.speechSynthesis.cancel();
         return;
     }}
+    _unlockAudio();  // unlock during this user gesture for later async play
     // iOS Safari blocks speechSynthesis from async callbacks unless it was first
     // triggered inside a user gesture. Speak a silent utterance NOW (while we're
     // inside the tap handler) to unlock it for Lucy's later async reply.
@@ -1587,7 +1593,21 @@ function closeVoicePanel() {{
 }}
 
 // ── OpenAI TTS helpers ────────────────────────────────────────────
-var _lucyAudio = null;  // currently playing Audio object
+// One persistent Audio element — must be "unlocked" once via a user gesture
+// on iOS before async .play() calls will work.
+var _lucyAudioEl = new Audio();
+_lucyAudioEl.preload = 'none';
+var _lucyAudioUnlocked = false;
+
+function _unlockAudio() {{
+    // Call during a synchronous user gesture to satisfy iOS autoplay policy.
+    if (_lucyAudioUnlocked) return;
+    var p = _lucyAudioEl.play();
+    if (p && p.then) {{
+        p.then(function() {{ _lucyAudioEl.pause(); }}).catch(function() {{}});
+    }}
+    _lucyAudioUnlocked = true;
+}}
 
 function _cleanForTts(text) {{
     return text
@@ -1598,78 +1618,60 @@ function _cleanForTts(text) {{
         .trim();
 }}
 
-// lucySpeakTap — called from the "🔊 Hear Lucy" button (real user gesture on iOS).
-// Uses OpenAI TTS when available, falls back to browser speech synthesis.
+function _playTtsBlob(blob, btn, onEnd) {{
+    var url = URL.createObjectURL(blob);
+    _lucyAudioEl.pause();
+    _lucyAudioEl.src = url;
+    _lucyAudioEl.load();
+    var p = _lucyAudioEl.play();
+    if (p && p.catch) p.catch(function(e) {{ console.warn('Audio play blocked:', e); if (btn) btn.textContent = '🔊 Hear Lucy'; }});
+    if (btn) btn.textContent = '⏹ Stop';
+    _lucyAudioEl.onended = function() {{ if (btn) btn.textContent = '🔊 Hear Lucy'; if (onEnd) onEnd(); }};
+    _lucyAudioEl.onerror = function() {{ if (btn) btn.textContent = '🔊 Hear Lucy'; }};
+}}
+
+function _fetchAndPlay(clean, btn, onEnd) {{
+    var voice = _lucyVoiceName || 'nova';
+    var params = new URLSearchParams();
+    params.append('text', clean.substring(0, 4096));
+    params.append('voice', voice);
+    fetch('/lucy-tts', {{method:'POST', body: params}})
+    .then(function(r) {{
+        if (!r.ok) throw new Error('TTS ' + r.status);
+        return r.blob();
+    }})
+    .then(function(blob) {{ _playTtsBlob(blob, btn, onEnd); }})
+    .catch(function(err) {{
+        console.warn('OpenAI TTS failed:', err);
+        if (btn) btn.textContent = '🔊 Hear Lucy';
+    }});
+}}
+
+// lucySpeakTap — called directly from the "🔊 Hear Lucy" button onclick (user gesture).
+// Unlocks audio synchronously first, then fetches TTS asynchronously.
 function lucySpeakTap(text, btn) {{
-    // Stop if already playing
-    if (_lucyAudio && !_lucyAudio.paused) {{
-        _lucyAudio.pause();
-        _lucyAudio = null;
+    if (!_lucyAudioEl.paused) {{
+        _lucyAudioEl.pause();
         if (btn) btn.textContent = '🔊 Hear Lucy';
         return;
     }}
     var clean = _cleanForTts(text);
     if (!clean) return;
-    if (btn) btn.textContent = '⏳ Speaking…';
-    var voice = _lucyVoiceName || 'nova';
-    var fd = new FormData();
-    fd.append('text', clean.substring(0, 4096));
-    fd.append('voice', voice);
-    fetch('/lucy-tts', {{method:'POST', body: new URLSearchParams(fd)}})
-    .then(function(r) {{
-        if (!r.ok) throw new Error('TTS failed');
-        return r.blob();
-    }})
-    .then(function(blob) {{
-        var url = URL.createObjectURL(blob);
-        _lucyAudio = new Audio(url);
-        _lucyAudio.play();
-        if (btn) {{
-            btn.textContent = '⏹ Stop';
-            _lucyAudio.onended  = function() {{ btn.textContent = '🔊 Hear Lucy'; _lucyAudio = null; }};
-            _lucyAudio.onerror  = function() {{ btn.textContent = '🔊 Hear Lucy'; _lucyAudio = null; }};
-        }}
-    }})
-    .catch(function(err) {{
-        console.warn('OpenAI TTS failed, falling back to browser speech:', err);
-        if (btn) btn.textContent = '🔊 Hear Lucy';
-        // Browser fallback
-        if ('speechSynthesis' in window) {{
-            var utt = new SpeechSynthesisUtterance(clean);
-            utt.lang = 'en-US'; utt.rate = 0.92; utt.pitch = 1.05;
-            window.speechSynthesis.speak(utt);
-        }}
-    }});
+    if (btn) btn.textContent = '⏳ Loading…';
+    _unlockAudio();  // ← synchronous, satisfies iOS user-gesture requirement
+    _fetchAndPlay(clean, btn, null);
 }}
 
-// lucySpeak — called automatically after streaming finishes.
-// Only fires if "Read aloud: ON" or the mic was used.
-// Uses OpenAI TTS (server-side, doesn't need user gesture for fetch+Audio).
+// lucySpeak — auto-plays after streaming response (Read aloud ON or mic used).
+// The send button tap already called _unlockAudio(), so async play works on iOS.
 function lucySpeak(text) {{
     var shouldSpeak = _voiceEnabled || _lastSendWasVoice;
     _lastSendWasVoice = false;
     if (!shouldSpeak) return;
     var clean = _cleanForTts(text);
     if (!clean) return;
-    var voice = _lucyVoiceName || 'nova';
-    var fd = new FormData();
-    fd.append('text', clean.substring(0, 4096));
-    fd.append('voice', voice);
-    if (_lucyAudio) {{ _lucyAudio.pause(); _lucyAudio = null; }}
-    fetch('/lucy-tts', {{method:'POST', body: new URLSearchParams(fd)}})
-    .then(function(r) {{
-        if (!r.ok) throw new Error('TTS error');
-        return r.blob();
-    }})
-    .then(function(blob) {{
-        var url = URL.createObjectURL(blob);
-        _lucyAudio = new Audio(url);
-        _lucyAudio.play();
-        _lucyAudio.onended = function() {{ _lucyAudio = null; }};
-    }})
-    .catch(function(err) {{
-        console.warn('OpenAI TTS failed:', err);
-    }});
+    _lucyAudioEl.pause();
+    _fetchAndPlay(clean, null, null);
 }}
 
 </script>"""
