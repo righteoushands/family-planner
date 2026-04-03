@@ -886,6 +886,39 @@ def render_lucy_page(iso: str = "") -> str:
                        font-family:inherit;transition:all 0.2s;white-space:nowrap;">
             🎤 Hey Lucy: OFF
         </button>
+        <button id="lucy-voice-pick-btn" onclick="openVoicePanel()" title="Choose Lucy's voice"
+                style="padding:4px 12px;border-radius:20px;font-size:0.76em;font-weight:600;
+                       border:1.5px solid #e4dbd2;background:white;color:#888;cursor:pointer;
+                       font-family:inherit;transition:all 0.2s;white-space:nowrap;">
+            🎙 Voice
+        </button>
+    </div>
+    <!-- Voice picker panel (slide-up sheet) -->
+    <div id="lucy-voice-panel"
+         style="display:none;position:fixed;inset:0;z-index:900;
+                flex-direction:column;justify-content:flex-end;
+                background:rgba(0,0,0,0.45);"
+         onclick="if(event.target===this)closeVoicePanel()">
+        <div style="background:white;border-radius:18px 18px 0 0;
+                    max-height:72vh;display:flex;flex-direction:column;
+                    padding:0 0 env(safe-area-inset-bottom) 0;">
+            <div style="display:flex;align-items:center;justify-content:space-between;
+                        padding:14px 18px 10px;border-bottom:1px solid #f0ebe4;">
+                <span style="font-weight:700;font-size:1em;color:#3d2b1f;">Choose Lucy's Voice</span>
+                <button onclick="closeVoicePanel()"
+                        style="background:none;border:none;font-size:1.4em;cursor:pointer;
+                               color:#888;line-height:1;padding:0 4px;">✕</button>
+            </div>
+            <p style="font-size:0.75em;color:#999;margin:6px 18px 2px;line-height:1.3;">
+                ☁ = requires internet &nbsp;|&nbsp; Enhanced voices (downloaded in iOS Settings → Accessibility → Spoken Content → Voices) sound best.
+            </p>
+            <div id="lucy-voice-list"
+                 style="overflow-y:auto;padding:4px 18px 20px;flex:1;">
+                <p style="color:#aaa;text-align:center;padding:24px 0;font-size:0.85em;">
+                    Loading voices…
+                </p>
+            </div>
+        </div>
     </div>
     <!-- Text / mic / send row -->
     <div style="display:flex;gap:8px;align-items:flex-end;">
@@ -1228,6 +1261,11 @@ window.addEventListener('load', function() {{
     _updateVoiceBtn();
     _updateWakeBtn();
     if (_wakeEnabled) {{ startWakeWord(); }}
+    // Show saved voice name on the picker button
+    if (_lucyVoiceName) {{
+        var pb = document.getElementById('lucy-voice-pick-btn');
+        if (pb) pb.textContent = '🎙 ' + _lucyVoiceName.split(' ')[0];
+    }}
 }});
 
 // ── Voice mode ────────────────────────────────────────────────────
@@ -1428,6 +1466,114 @@ function _playActivationBeep() {{
     }} catch(e) {{}}
 }}
 
+// ── Voice picker ─────────────────────────────────────────────────
+var _lucyVoiceName = localStorage.getItem('lucyVoiceName') || '';
+
+function _getSelectedVoice() {{
+    if (!_lucyVoiceName) return null;
+    var voices = window.speechSynthesis.getVoices();
+    for (var i = 0; i < voices.length; i++) {{
+        if (voices[i].name === _lucyVoiceName) return voices[i];
+    }}
+    return null;
+}}
+
+function openVoicePanel() {{
+    var panel = document.getElementById('lucy-voice-panel');
+    var list  = document.getElementById('lucy-voice-list');
+    panel.style.display = 'flex';
+    list.innerHTML = '';
+
+    var voices = window.speechSynthesis.getVoices();
+    // English voices first; fall back to all voices if none found
+    var enVoices = voices.filter(function(v) {{
+        return v.lang && (v.lang.indexOf('en') === 0 || v.lang.indexOf('en') > 0);
+    }});
+    if (enVoices.length === 0) enVoices = voices;
+    enVoices.sort(function(a, b) {{ return a.name.localeCompare(b.name); }});
+
+    if (enVoices.length === 0) {{
+        list.innerHTML = '<p style="color:#aaa;text-align:center;padding:28px 0;font-size:0.85em;">' +
+            'No voices found on this device.<br>Check Settings → Accessibility → Spoken Content → Voices.</p>';
+        return;
+    }}
+
+    enVoices.forEach(function(v) {{
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:9px 0;' +
+            'border-bottom:1px solid #f5f0ea;';
+
+        var nameCol = document.createElement('div');
+        nameCol.style.cssText = 'flex:1;min-width:0;';
+        var nameSpan = document.createElement('div');
+        nameSpan.style.cssText = 'font-size:0.88em;color:#3d2b1f;font-weight:500;' +
+            'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+        nameSpan.textContent = v.name + (v.localService ? '' : ' ☁');
+        var langSpan = document.createElement('div');
+        langSpan.style.cssText = 'font-size:0.72em;color:#aaa;margin-top:1px;';
+        langSpan.textContent = v.lang;
+        nameCol.appendChild(nameSpan);
+        nameCol.appendChild(langSpan);
+
+        var sampleBtn = document.createElement('button');
+        sampleBtn.textContent = '▶ Sample';
+        sampleBtn.style.cssText = 'background:#f5f0fb;border:1px solid #d8c8ef;border-radius:8px;' +
+            'padding:5px 10px;font-size:0.78em;cursor:pointer;color:#7c3aed;white-space:nowrap;' +
+            'font-family:inherit;flex-shrink:0;';
+        (function(voice, btn) {{
+            btn.onclick = function() {{
+                window.speechSynthesis.cancel();
+                var utt = new SpeechSynthesisUtterance("Hi, I'm Lucy, your family companion.");
+                utt.voice  = voice;
+                utt.lang   = voice.lang;
+                utt.rate   = 0.92;
+                utt.pitch  = 1.05;
+                utt.volume = 1.0;
+                btn.textContent = '⏹ Stop';
+                utt.onend = utt.onerror = function() {{ btn.textContent = '▶ Sample'; }};
+                window.speechSynthesis.speak(utt);
+            }};
+        }})(v, sampleBtn);
+
+        var isSelected = (_lucyVoiceName === v.name);
+        var useBtn = document.createElement('button');
+        useBtn.textContent  = isSelected ? '✓ Selected' : 'Use';
+        useBtn.setAttribute('data-vname', v.name);
+        useBtn.style.cssText = 'border-radius:8px;padding:5px 12px;font-size:0.78em;' +
+            'cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap;' +
+            'border:1.5px solid #7c3aed;' +
+            'background:' + (isSelected ? '#7c3aed' : 'white') + ';' +
+            'color:'       + (isSelected ? 'white'   : '#7c3aed') + ';';
+        (function(voice, btn) {{
+            btn.onclick = function() {{
+                _lucyVoiceName = voice.name;
+                localStorage.setItem('lucyVoiceName', voice.name);
+                // Update all Use buttons
+                var all = list.querySelectorAll('[data-vname]');
+                for (var i = 0; i < all.length; i++) {{
+                    var match = all[i].getAttribute('data-vname') === voice.name;
+                    all[i].textContent   = match ? '✓ Selected' : 'Use';
+                    all[i].style.background = match ? '#7c3aed' : 'white';
+                    all[i].style.color      = match ? 'white'   : '#7c3aed';
+                }}
+                // Update the picker button label
+                var pb = document.getElementById('lucy-voice-pick-btn');
+                if (pb) pb.textContent = '🎙 ' + voice.name.split(' ')[0];
+            }};
+        }})(v, useBtn);
+
+        row.appendChild(nameCol);
+        row.appendChild(sampleBtn);
+        row.appendChild(useBtn);
+        list.appendChild(row);
+    }});
+}}
+
+function closeVoicePanel() {{
+    window.speechSynthesis.cancel();
+    document.getElementById('lucy-voice-panel').style.display = 'none';
+}}
+
 // ── Tap-to-hear (iOS reliable) ────────────────────────────────────
 // Called directly from a button onclick — counts as a user gesture on iOS.
 function lucySpeakTap(text, btn) {{
@@ -1450,6 +1596,8 @@ function lucySpeakTap(text, btn) {{
     utt.rate   = 0.92;
     utt.pitch  = 1.05;
     utt.volume = 1.0;
+    var sv = _getSelectedVoice();
+    if (sv) {{ utt.voice = sv; utt.lang = sv.lang; }}
     if (btn) {{
         btn.textContent = '⏹ Stop';
         utt.onend    = function() {{ btn.textContent = '🔊 Hear Lucy'; }};
@@ -1478,29 +1626,33 @@ function lucySpeak(text) {{
     utt.rate   = 0.92;
     utt.pitch  = 1.05;
     utt.volume = 1.0;
-    // Pick a voice if available — try preferred list, fall back to any en-US voice,
-    // then default (iOS often returns [] from getVoices() so we speak regardless).
+    // Pick a voice: 1) user-selected, 2) preferred list, 3) any en-US, 4) device default
     function _pickVoiceAndSpeak() {{
         var voices = window.speechSynthesis.getVoices();
-        var preferred = ['Samantha','Karen','Victoria','Ava','Moira','Allison','Google US English'];
-        for (var i = 0; i < preferred.length; i++) {{
-            for (var j = 0; j < voices.length; j++) {{
-                if (voices[j].name.indexOf(preferred[i]) >= 0) {{
-                    utt.voice = voices[j];
-                    break;
+        // 1. User's saved choice
+        var sv = _getSelectedVoice();
+        if (sv) {{ utt.voice = sv; utt.lang = sv.lang; }}
+        // 2. Preferred built-ins
+        if (!utt.voice) {{
+            var preferred = ['Samantha','Karen','Victoria','Ava','Moira','Allison','Google US English'];
+            for (var i = 0; i < preferred.length; i++) {{
+                for (var j = 0; j < voices.length; j++) {{
+                    if (voices[j].name.indexOf(preferred[i]) >= 0) {{
+                        utt.voice = voices[j]; break;
+                    }}
                 }}
+                if (utt.voice) break;
             }}
-            if (utt.voice) break;
         }}
-        // If still no match, try any en-US voice
+        // 3. Any English voice
         if (!utt.voice) {{
             for (var k = 0; k < voices.length; k++) {{
                 if (voices[k].lang && voices[k].lang.indexOf('en') >= 0) {{
-                    utt.voice = voices[k];
-                    break;
+                    utt.voice = voices[k]; break;
                 }}
             }}
         }}
+        // 4. Device default (utt.voice stays null — iOS picks its own)
         window.speechSynthesis.speak(utt);
     }}
     // Always speak immediately — on iOS, getVoices() returns [] and voiceschanged
