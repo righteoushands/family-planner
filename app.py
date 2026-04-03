@@ -997,13 +997,59 @@ class Handler(BaseHTTPRequestHandler):
                     text = result.get("content",[{}])[0].get("text","(No response)")
                 except Exception as e:
                     text = f"I ran into an issue: {e}"
+                # ── Parse and execute <plan_update> action tags ──────────────
+                import re as _re
+                _plan_markers = ""
+                _plan_rx = _re.compile(
+                    r'<plan_update\b([^>]+)>([\s\S]*?)</plan_update>',
+                    _re.IGNORECASE
+                )
+                def _attr(attrs, name):
+                    m2 = _re.search(r'\b' + name + r'\s*=\s*["\']([^"\']*)["\']', attrs, _re.I)
+                    return m2.group(1).strip() if m2 else ""
+                for _m in _plan_rx.finditer(text):
+                    _child = _attr(_m.group(1), "child")
+                    _date  = _attr(_m.group(1), "date")
+                    _body  = _m.group(2)
+                    _new_tasks = [ln.strip() for ln in _body.splitlines() if ln.strip()]
+                    if _child and _date and _new_tasks:
+                        try:
+                            from data_helpers import load_manual_tasks, save_manual_tasks
+                            _all = load_manual_tasks()
+                            # Deactivate existing lucy-sourced tasks for this child+date
+                            for _t in _all:
+                                if (_t.get("source") == "lucy"
+                                        and _t.get("assigned_to") == _child
+                                        and _t.get("due_date") == _date):
+                                    _t["status"] = "inactive"
+                            # Append new tasks
+                            for _task_text in _new_tasks:
+                                _all.append({
+                                    "text": _task_text,
+                                    "assigned_to": _child,
+                                    "due_date": _date,
+                                    "priority": "MEDIUM",
+                                    "status": "active",
+                                    "source": "lucy",
+                                    "recurring": False,
+                                })
+                            save_manual_tasks(_all)
+                            _plan_markers += f"\n[PLAN_UPDATED:{_child}:{_date}]"
+                        except Exception as _pe:
+                            _plan_markers += f"\n(Plan save error: {_pe})"
+                # Strip action tags from display text, append markers
+                _display_text = _plan_rx.sub("", text).rstrip()
+                if _plan_markers:
+                    _display_text = _display_text + _plan_markers
+                else:
+                    _display_text = text
                 # ── Save assistant response to server-side history ────────────
                 ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
-                append_lucy_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
+                append_lucy_messages([{"role": "assistant", "content": _display_text, "ts": ts_reply}])
                 self.send_response(200)
                 self.send_header("Content-Type","text/plain; charset=utf-8")
                 self.end_headers()
-                try: self.wfile.write(text.encode("utf-8"))
+                try: self.wfile.write(_display_text.encode("utf-8"))
                 except BrokenPipeError: pass
                 return
 

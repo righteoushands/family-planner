@@ -284,6 +284,28 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
         "Only use these tags when Mom explicitly agrees to set or remove a standing rule.",
         "Never use these tags for one-off suggestions or reminders — only for persistent rules.",
         "",
+        "== EDITING THE BOYS' PRINTABLE TASK LIST ==",
+        "You can directly write to each boy's printable daily list — the 'Tasks' section that appears",
+        "on their printed sheet (separate from school subjects, chores, and carryover items).",
+        "When Mom asks you to create, build, or revise a boy's daily task list, use this action tag",
+        "at the END of your response, after your normal reply text:",
+        "",
+        '  <plan_update child="CHILDNAME" date="YYYY-MM-DD">',
+        "  Task description one",
+        "  Task description two",
+        "  </plan_update>",
+        "",
+        "Rules for plan_update:",
+        "- Use the child's exact name: JP, Joseph, or Michael",
+        "- Date is today unless Mom says otherwise",
+        "- Each non-blank line becomes one task item on the printed sheet",
+        "- This REPLACES the entire manual task list for that child+date — include everything",
+        "- Do NOT include school subjects, chores, or carryover items — those are tracked elsewhere",
+        "- You may include multiple <plan_update> blocks in one message to update several children at once",
+        "- After saving, a Print button will appear in the chat so Mom can print immediately",
+        "- Keep task text short and actionable — they appear as checkbox items on the physical printout",
+        "- Draw on your conversation with Mom to craft the list; include anything she mentioned",
+        "",
         "== FAMILY ==",
     ]
 
@@ -418,11 +440,12 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
 
     lines += ["", "== EACH CHILD'S SCHOOL & CHORES TODAY =="]
     try:
-        from daily_schedule_engine import CHILDREN, build_schedule_payload
+        from daily_schedule_engine import CHILDREN, build_schedule_payload, get_manual_tasks_for_child_and_date
         for child in CHILDREN:
             payload = build_schedule_payload(child, weekday, date_label, iso)
             school_blocks = payload.get("school_blocks", [])
             chore_items   = payload.get("chore_items", [])
+            manual_items  = get_manual_tasks_for_child_and_date(child, iso)
             lines.append(f"\n{child}:")
             if school_blocks:
                 subjects = [b.get("subject", "?") for b in school_blocks]
@@ -432,6 +455,11 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
             if chore_items:
                 chores = [c.get("text", "?") for c in chore_items[:5]]
                 lines.append(f"  Chores: {', '.join(chores)}")
+            if manual_items:
+                task_texts = [t.get("text", "") for t in manual_items]
+                lines.append(f"  Printable tasks (you can edit): {'; '.join(task_texts)}")
+            else:
+                lines.append(f"  Printable tasks: (none yet — you can add them)")
     except Exception:
         lines.append("(Could not load child schedules)")
 
@@ -907,9 +935,12 @@ function lucySend() {{
         var full   = '';
         var reader = r.body.getReader();
         var decoder = new TextDecoder();
-        // Strip [RULE:...] tags from display text
+        // Strip [RULE:...] and [PLAN_UPDATED:...] tags from display text
         function _stripRuleTags(text) {{
-            return text.replace(/\[RULE:(add|remove)\][\s\S]*?\[\/RULE\]/g, '').replace(/\s+$/, '');
+            return text
+                .replace(/\[RULE:(add|remove)\][\s\S]*?\[\/RULE\]/g, '')
+                .replace(/\[PLAN_UPDATED:[^\]]+\]/g, '')
+                .replace(/\s+$/, '');
         }}
         function read() {{
             return reader.read().then(function(res) {{
@@ -946,6 +977,32 @@ function lucySend() {{
                             }};
                             ruleRow.appendChild(ruleBtn);
                             bubble._wrap.appendChild(ruleRow);
+                        }})(m[1], m[2]);
+                    }}
+                    // Parse and show print buttons for [PLAN_UPDATED:child:date]
+                    var planRx = /\[PLAN_UPDATED:([^\]:]+):([^\]]+)\]/g;
+                    while ((m = planRx.exec(full)) !== null) {{
+                        (function(pChild, pDate) {{
+                            var planRow = document.createElement('div');
+                            planRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:8px;'
+                                + 'padding:8px 10px;background:#f5f8f0;border:1px solid #b8d498;border-radius:8px;';
+                            var checkIcon = document.createElement('span');
+                            checkIcon.textContent = '✓';
+                            checkIcon.style.cssText = 'color:#3a7d1e;font-weight:700;font-size:1em;flex-shrink:0;';
+                            var msg = document.createElement('span');
+                            msg.textContent = pChild + "'s task list updated for " + pDate + ".";
+                            msg.style.cssText = 'font-size:0.82em;color:#2d5016;flex:1;';
+                            var printBtn = document.createElement('a');
+                            printBtn.textContent = '🖨 Print';
+                            printBtn.href = '/print/day?date=' + encodeURIComponent(pDate);
+                            printBtn.target = '_blank';
+                            printBtn.style.cssText = 'padding:4px 12px;background:#3a7d1e;color:white;'
+                                + 'text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;'
+                                + 'font-family:inherit;flex-shrink:0;';
+                            planRow.appendChild(checkIcon);
+                            planRow.appendChild(msg);
+                            planRow.appendChild(printBtn);
+                            bubble._wrap.appendChild(planRow);
                         }})(m[1], m[2]);
                     }}
                     window.scrollTo(0, document.body.scrollHeight);
