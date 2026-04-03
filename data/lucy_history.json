@@ -2,26 +2,6 @@
   "messages": [
     {
       "role": "user",
-      "content": "Lucy, the octave of Easter lasts eight days starting the Monday after Easter. Confirm when it stops and add to the calendar as an annual event adjusted for when Easter occurs.",
-      "ts": "2026-04-03T12:32:00"
-    },
-    {
-      "role": "assistant",
-      "content": "You're right. The Octave of Easter is eight days beginning on Easter Monday and ending the following Sunday (Divine Mercy Sunday, the Second Sunday of Easter).\n\nSo for 2026:\n- Octave begins Monday, April 6\n- Octave ends Sunday, April 12 (Divine Mercy Sunday)\n\nThe challenge is that I can't set a truly \"floating\" annual event that automatically adjusts based on when Easter falls each year — that would need custom programming in Replit.\n\nWhat I can do: add it as a note to remind you each Easter season, or ask Replit if they can create a formula-based annual event that calculates Easter's date and sets the Octave accordingly.\n\nWould you like me to just add \"Easter Octave\" to your calendar manually each year when you know Easter's date, or ask Replit about a dynamic annual event?",
-      "ts": "2026-04-03T12:32:03"
-    },
-    {
-      "role": "user",
-      "content": "No, please tell Replit what you need and I’ll ask it for the changes.",
-      "ts": "2026-04-03T12:32:46"
-    },
-    {
-      "role": "assistant",
-      "content": "Here's what to ask Replit:\n\n\"Can you create an annual event called 'Octave of Easter' that automatically calculates based on Easter's date each year? It should start on Easter Monday and run through the following Sunday (Divine Mercy Sunday). If dynamic calculation isn't possible, I'll manually add it each year, but I wanted to check if the system can handle a floating liturgical event.\"\n\nThat way they'll know exactly what you need and can tell you whether it's doable.",
-      "ts": "2026-04-03T12:32:47"
-    },
-    {
-      "role": "user",
       "content": "Replit is working on it.",
       "ts": "2026-04-03T12:35:22"
     },
@@ -299,6 +279,26 @@
       "role": "assistant",
       "content": "Remember, O most gracious Virgin Mary, that never was it known that anyone who fled to thy protection, implored thy help, or sought thine intercession was left unaided. Inspired by this confidence, I fly unto thee, O Virgin of virgins, my Mother. To thee do I come, before thee I stand, sinful and sorrowful. O Mother of the Word Incarnate, despise not my petitions, but in thy mercy hear and answer me. Amen.",
       "ts": "2026-04-03T17:17:09"
+    },
+    {
+      "role": "user",
+      "content": "Again please",
+      "ts": "2026-04-03T17:35:12"
+    },
+    {
+      "role": "assistant",
+      "content": "Remember, O most gracious Virgin Mary, that never was it known that anyone who fled to thy protection, implored thy help, or sought thine intercession was left unaided. Inspired by this confidence, I fly unto thee, O Virgin of virgins, my Mother. To thee do I come, before thee I stand, sinful and sorrowful. O Mother of the Word Incarnate, despise not my petitions, but in thy mercy hear and answer me. Amen.",
+      "ts": "2026-04-03T17:35:14"
+    },
+    {
+      "role": "user",
+      "content": "Ok that works!",
+      "ts": "2026-04-03T17:35:48"
+    },
+    {
+      "role": "assistant",
+      "content": "I'm so glad, Lauren. That's beautiful. The Memorare is such a powerful prayer — especially when you're driving and need to entrust things to Mary's care.\n\nYou're doing well. How are you feeling now?",
+      "ts": "2026-04-03T17:35:49"
     }
   ]
 }
