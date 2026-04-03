@@ -741,12 +741,37 @@ def render_lucy_page(iso: str = "") -> str:
 
 </div>
 
+<!-- Attachment preview strip (visible when an image is ready) -->
+<div id="lucy-attach-preview"
+     style="display:none;position:fixed;bottom:116px;left:0;right:0;
+            background:#fffbf5;border-top:1px solid #e4dbd2;
+            padding:8px 14px;z-index:498;">
+    <div style="display:flex;align-items:center;gap:10px;">
+        <img id="lucy-attach-img" src="" alt="attachment"
+             style="max-height:60px;max-width:72px;border-radius:8px;object-fit:cover;border:1px solid #e4dbd2;">
+        <span style="font-size:0.82em;color:#888;flex:1;">Image ready to send</span>
+        <button onclick="clearAttach()"
+                style="background:#fee2e2;border:none;color:#ef4444;border-radius:8px;
+                       padding:4px 10px;cursor:pointer;font-size:0.8em;font-family:inherit;">
+            ✕ Remove
+        </button>
+    </div>
+</div>
+
 <!-- Input bar: fixed above the mobile bottom nav (64px) -->
 <div id="lucy-input-bar"
      style="position:fixed;bottom:64px;left:0;right:0;
             background:white;border-top:1px solid #e4dbd2;
             padding:10px 14px;z-index:500;
             display:flex;gap:8px;align-items:flex-end;">
+    <input type="file" id="lucy-file-input" accept="image/*"
+           style="display:none;" onchange="attachChange(this)">
+    <button onclick="openAttach()" title="Attach a photo"
+            style="padding:9px 11px;background:#faf8f5;border:1.5px solid #e4dbd2;
+                   border-radius:12px;cursor:pointer;font-size:1.05em;flex-shrink:0;
+                   align-self:flex-end;line-height:1;">
+        📎
+    </button>
     <textarea id="lucy-input" rows="1"
               placeholder="Ask Lucy anything about today…"
               onkeydown="if(event.key==='Enter'&&!event.shiftKey){{event.preventDefault();lucySend();}}"
@@ -766,8 +791,64 @@ def render_lucy_page(iso: str = "") -> str:
 <script>
 var _lucyIso      = '{escape(iso)}';
 var _lucyCapacity = '';
-// Pre-populated with server-side history so new messages continue the thread
 var _lucyHistory  = {_history_js};
+var _attachedImage = null;
+
+function openAttach() {{
+    document.getElementById('lucy-file-input').click();
+}}
+
+function attachChange(input) {{
+    if (!input.files || !input.files[0]) return;
+    var file = input.files[0];
+    var reader = new FileReader();
+    reader.onload = function(e) {{
+        var img = new Image();
+        img.onload = function() {{
+            var MAX = 1024;
+            var w = img.width, h = img.height;
+            if (w > MAX || h > MAX) {{
+                if (w > h) {{ h = Math.round(h * MAX / w); w = MAX; }}
+                else {{ w = Math.round(w * MAX / h); h = MAX; }}
+            }}
+            var canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            var dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+            _attachedImage = {{ b64: dataUrl.split(',')[1], mediaType: 'image/jpeg', dataUrl: dataUrl }};
+            document.getElementById('lucy-attach-img').src = dataUrl;
+            document.getElementById('lucy-attach-preview').style.display = '';
+            input.value = '';
+        }};
+        img.src = e.target.result;
+    }};
+    reader.readAsDataURL(file);
+}}
+
+function clearAttach() {{
+    _attachedImage = null;
+    document.getElementById('lucy-attach-preview').style.display = 'none';
+    document.getElementById('lucy-attach-img').src = '';
+}}
+
+function _renderUserBubble(text, imageDataUrl) {{
+    var hist = document.getElementById('lucy-history');
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;margin-bottom:0;';
+    if (imageDataUrl) {{
+        var imgEl = document.createElement('img');
+        imgEl.src = imageDataUrl;
+        imgEl.style.cssText = 'max-width:200px;max-height:140px;border-radius:10px;margin-bottom:4px;border:1px solid #ddd;';
+        wrap.appendChild(imgEl);
+    }}
+    if (text) {{
+        var div = document.createElement('div');
+        div.className = 'lucy-bubble-user';
+        div.textContent = text;
+        wrap.appendChild(div);
+    }}
+    hist.appendChild(wrap);
+}}
 
 function setCapacity(level) {{
     _lucyCapacity = level;
@@ -793,13 +874,15 @@ function lucyQuick(prompt) {{
 function lucySend() {{
     var input = document.getElementById('lucy-input');
     var msg   = input.value.trim();
-    if (!msg) return;
+    var img   = _attachedImage;
+    if (!msg && !img) return;
     input.value = '';
     input.style.height = 'auto';
 
-    // Add user bubble
-    _lucyHistory.push({{role:'user', content: msg}});
-    _renderBubble('user', msg);
+    // Add user bubble (with image thumbnail if attached)
+    _lucyHistory.push({{role:'user', content: msg || '(image)'}});
+    _renderUserBubble(msg, img ? img.dataUrl : null);
+    clearAttach();
 
     // Show typing
     document.getElementById('lucy-typing').style.display = '';
@@ -808,10 +891,12 @@ function lucySend() {{
     fetch('/lucy-chat', {{
         method: 'POST',
         headers: {{'Content-Type': 'application/x-www-form-urlencoded'}},
-        body: 'iso='       + encodeURIComponent(_lucyIso)
-            + '&capacity=' + encodeURIComponent(_lucyCapacity)
-            + '&message='  + encodeURIComponent(msg)
-            + '&history='  + encodeURIComponent(JSON.stringify(_lucyHistory.slice(-10)))
+        body: 'iso='          + encodeURIComponent(_lucyIso)
+            + '&capacity='    + encodeURIComponent(_lucyCapacity)
+            + '&message='     + encodeURIComponent(msg)
+            + '&history='     + encodeURIComponent(JSON.stringify(_lucyHistory.slice(-10)))
+            + '&image_b64='   + encodeURIComponent(img ? img.b64 : '')
+            + '&image_type='  + encodeURIComponent(img ? img.mediaType : '')
     }}).then(function(r) {{
         document.getElementById('lucy-typing').style.display = 'none';
         if (!r.ok) {{

@@ -2,26 +2,6 @@
   "messages": [
     {
       "role": "user",
-      "content": "The morning had a temporary lift. I got on the exercise bike for a few minutes and just got out of a long, thorough shower. I feel refreshed though tired body. I noticed the status says we are getting ready for Latin class. There’s no school today. Can you update the plan?",
-      "ts": "2026-04-02T17:20:58"
-    },
-    {
-      "role": "assistant",
-      "content": "You're right — there's no Latin class today because it's a light week. Let me clear that out.\n\nYou've got:\n\n- Beignets done ✓\n- Joseph's presents open ✓\n- Pizza to make (whenever you're ready)\n- Cake (boxed, ready when needed)\n- Holy Thursday at 7:30pm (John takes the big boys)\n\nThat's it for today. Light, manageable.\n\nYou got yourself on that exercise bike and took a real shower — that matters. Your body needed that reset, and you gave it to yourself. That's good tending.\n\n**Right now, what does the afternoon need from you most — do you want to rest a bit before pizza, or tackle it while you have some energy?**",
-      "ts": "2026-04-02T17:21:01"
-    },
-    {
-      "role": "user",
-      "content": "We are going out to eat at some point. Once that’s scheduled I’ll know when to make the pizza. Can you learn?",
-      "ts": "2026-04-02T17:22:24"
-    },
-    {
-      "role": "assistant",
-      "content": "Absolutely. Once you know when you're eating out, just tell me and I'll adjust the pizza timing around it.\n\nFor now, the pizza is flexible — whenever works once your outing is locked in.",
-      "ts": "2026-04-02T17:22:25"
-    },
-    {
-      "role": "user",
       "content": "Oh no. I mean can you learn things from talking to me? Like can you learn about me and tailor your responses?",
       "ts": "2026-04-02T17:23:04"
     },
@@ -299,6 +279,26 @@
       "role": "assistant",
       "content": "That's strange — I don't see a 1:30 AM timestamp on my end. Could you describe where you saw it? Was it on a specific message, or somewhere else in the app?\n\nThat might be another thing to mention to Replit if it's a display error.\n\nBut regardless — it's 9:35 PM now. You really do need to get to bed. Good night.",
       "ts": "2026-04-03T01:36:16"
+    },
+    {
+      "role": "user",
+      "content": "Help me remember to pickup my Rx at Walgreens tomorrow",
+      "ts": "2026-04-03T01:39:29"
+    },
+    {
+      "role": "assistant",
+      "content": "I'd add that to your task list for tomorrow, but I want to make sure — what time works best for you to pick it up?",
+      "ts": "2026-04-03T01:39:30"
+    },
+    {
+      "role": "user",
+      "content": "Donno",
+      "ts": "2026-04-03T01:39:46"
+    },
+    {
+      "role": "assistant",
+      "content": "No problem. Just fit it in whenever you can tomorrow between your errands. You could grab it when you're out for Elena at 10:30, or after Veneration of the Cross at 3:00 — whenever it's convenient.\n\nI'll make a note that you need to pick up your Rx at Walgreens tomorrow.\n\nNow seriously — go to bed. You need your rest for Good Friday.",
+      "ts": "2026-04-03T01:39:48"
     }
   ]
 }

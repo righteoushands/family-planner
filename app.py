@@ -921,9 +921,11 @@ class Handler(BaseHTTPRequestHandler):
                 )
                 from datetime import datetime as _dt
                 from web_fetch import extract_urls, fetch_urls, build_url_context
-                iso      = clean_text(data.get("iso",[""])[0]) or date.today().isoformat()
-                capacity = clean_text(data.get("capacity",[""])[0])
-                message  = clean_text(data.get("message",[""])[0])
+                iso        = clean_text(data.get("iso",[""])[0]) or date.today().isoformat()
+                capacity   = clean_text(data.get("capacity",[""])[0])
+                message    = clean_text(data.get("message",[""])[0])
+                image_b64  = data.get("image_b64",[""])[0].strip()
+                image_type = clean_text(data.get("image_type",["image/jpeg"])[0]) or "image/jpeg"
                 settings_data = load_app_settings()
                 api_key = (settings_data.get("family_constraints",{}).get("anthropic_api_key","")
                            or settings_data.get("anthropic_api_key","")).strip()
@@ -961,7 +963,18 @@ class Handler(BaseHTTPRequestHandler):
                         messages.append({"role": role, "content": content})
                 # Ensure conversation ends with user message
                 if not messages or messages[-1].get("role") != "user":
-                    messages.append({"role": "user", "content": message})
+                    messages.append({"role": "user", "content": message or "(image attached)"})
+                # If an image was attached, convert the last user message to a vision block
+                if image_b64 and len(image_b64) > 10:
+                    last_text = messages[-1].get("content","") if messages else (message or "")
+                    messages[-1] = {"role": "user", "content": [
+                        {"type": "image", "source": {
+                            "type": "base64",
+                            "media_type": image_type,
+                            "data": image_b64
+                        }},
+                        {"type": "text", "text": last_text or "What do you see in this image?"}
+                    ]}
                 payload = _json.dumps({
                     "model":      "claude-haiku-4-5-20251001",
                     "max_tokens": 1500,
