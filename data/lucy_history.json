@@ -2,46 +2,6 @@
   "messages": [
     {
       "role": "user",
-      "content": "I’m looking for suggestions. I’ve heard that today is called Spy Wednesday but I don’t know exactly where it comes from or what it means.",
-      "ts": "2026-04-02T00:20:45"
-    },
-    {
-      "role": "assistant",
-      "content": "Spy Wednesday comes from the Gospel we read today — Matthew 26:14-25, which tells the story of Judas going to the chief priests and asking what they'd pay him to betray Jesus. It's called \"Spy Wednesday\" because Judas is essentially spying on Jesus, plotting his betrayal.\n\nIt marks the moment the plan to arrest Jesus is set in motion. The name highlights Judas's role as the traitor who \"spies\" on Jesus's movements.\n\nFor a Catholic family, Spy Wednesday is a good day to reflect on betrayal, temptation, and staying faithful — especially as you move into the final days before Easter. Some families use it as a moment to examine their own hearts: Where are we tempted to turn away? Where do we need to recommit?\n\nSince you're in Holy Week already with Holy Thursday coming tomorrow and Good Friday on the 3rd, you're moving through the most sacred part of the liturgical year.\n\n**Are you looking to add any particular Holy Week practices or traditions to your family's rhythm — like special prayers, readings, or ways to mark each day?**",
-      "ts": "2026-04-02T00:20:49"
-    },
-    {
-      "role": "user",
-      "content": "That would be nice. Can you make suggestions?",
-      "ts": "2026-04-02T00:21:43"
-    },
-    {
-      "role": "assistant",
-      "content": "Absolutely. Here are some Holy Week practices that fit a busy family:\n\n- **Stations of the Cross** — You already have this on Friday at 6:30pm. Walking through Christ's passion is powerful for kids.\n\n- **Daily Gospel reading at dinner** — Read the day's Gospel together (short, 5 minutes). Holy Week Gospels tell the Passion story; kids follow along naturally.\n\n- **Daily examination** — Each evening, ask the kids: \"Where did you see Jesus today? Where did you struggle?\" Simple, no pressure.\n\n- **Palm branches** — If you have palms from Palm Sunday, keep them visible or even burned for Ash Wednesday next year. Reminds kids of the week's meaning.\n\n- **Night prayer together** — Even 10 minutes of a simple night prayer (like from a missal or app) centers the day on Christ.\n\n- **Fasting or abstinence** — The kids might give up one small thing (sweets, screens) for the three days before Easter as a way to participate in the Passion.\n\n- **Holy Thursday foot-washing ritual** — If your parish does this, attending is meaningful. Or at home, you could read about it and talk about service.\n\nMost of these don't add stress — they're *replacing* ordinary moments with sacred ones.\n\n**Which of these resonates most with your family, or feels doable this week without adding to your plate?**",
-      "ts": "2026-04-02T00:21:47"
-    },
-    {
-      "role": "user",
-      "content": "Ok, yeah I know about those",
-      "ts": "2026-04-02T00:46:55"
-    },
-    {
-      "role": "assistant",
-      "content": "Got it — you're already familiar with the main practices.\n\nWhat I'm hearing is: you want something *specific* or *different* for this Holy Week that might fit your family's rhythm better, or maybe something the kids haven't experienced yet?\n\n**What kind of tradition or practice are you actually looking for?**",
-      "ts": "2026-04-02T00:46:57"
-    },
-    {
-      "role": "user",
-      "content": "Good morning! I’m going to the store (Giant) shortly. What do I need again?",
-      "ts": "2026-04-02T11:44:46"
-    },
-    {
-      "role": "assistant",
-      "content": "Morning! Here's your Giant list:\n\n- Boxed cake and icing\n- Flour\n- Vegetable oil\n- Bacon\n- Cheese (for pizza)\n\nYou're also getting beignet supplies while you're there for Joseph's birthday breakfast.\n\nHave a good run!",
-      "ts": "2026-04-02T11:44:48"
-    },
-    {
-      "role": "user",
       "content": "Got it all! The beignets were delicious! The recipe is excellent.",
       "ts": "2026-04-02T16:15:13"
     },
@@ -299,6 +259,46 @@
       "role": "assistant",
       "content": "You're welcome. Enjoy the rest of your day — you've got Joseph's birthday celebration and Holy Thursday Mass tonight. What a full, grace-filled day.",
       "ts": "2026-04-02T20:03:10"
+    },
+    {
+      "role": "user",
+      "content": "We went out to eat for dinner: Vinny’s! They made Joseph feel special by letting him order a dessert from the menu on the house! He was so pleased the staff came out to sing to him. He said it was too good to be true. He felt so special. The waitress said that in the five years she’s worked there she’s never seen such good and polite boys. Another couple nearby echoed her compliments. Love them so!",
+      "ts": "2026-04-03T01:28:13"
+    },
+    {
+      "role": "assistant",
+      "content": "Oh, what a beautiful memory. Joseph felt truly seen and celebrated — and not just by you, but by strangers who took the time to notice. That's a gift.\n\nAnd the waitress's comment after five years of watching families come through those doors — that she's never seen such good and polite boys — that's telling you something real about how you're raising them. The compliments from the other couple too. People notice virtue when they see it lived out, especially in young men.\n\nJoseph's words — \"It was too good to be true\" — he was overcome with joy. That's the kind of moment that stays with a child. Not because of the free dessert, but because he felt genuinely valued and delighted in.\n\nYou should save this to your Memory Book. This is exactly the kind of moment worth keeping.",
+      "ts": "2026-04-03T01:28:16"
+    },
+    {
+      "role": "user",
+      "content": "Absolutely! Thanks for the suggestion.",
+      "ts": "2026-04-03T01:29:09"
+    },
+    {
+      "role": "assistant",
+      "content": "You're so welcome. Those are the moments that matter most — when your boys are kind and present, and the world notices. Hold onto them.\n\nYou've had a full, blessed day. Tomorrow is Good Friday — the day moves into the solemn heart of Holy Week. You've got John's class at 8:00, Elena at 2:30, Passion and Veneration of the Holy Cross at 3:00, and Stations of the Cross at 6:30.\n\nGet some rest tonight. You've earned it.",
+      "ts": "2026-04-03T01:29:12"
+    },
+    {
+      "role": "user",
+      "content": "John doesn’t have a class. That’s an error I can’t figure out how to fix. Elena is at 10:30 am",
+      "ts": "2026-04-03T01:30:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Got it — I'll note those corrections:\n\n- Remove John's class at 08:00 tomorrow\n- Elena Sutphin is at 10:30 AM, not 14:30\n\nYou'll want to tell Replit about that calendar entry error so it can be deleted or corrected in the system.",
+      "ts": "2026-04-03T01:30:02"
+    },
+    {
+      "role": "user",
+      "content": "Good idea",
+      "ts": "2026-04-03T01:30:34"
+    },
+    {
+      "role": "assistant",
+      "content": "Sleep well tonight. Tomorrow is a sacred day — Good Friday. You'll be present with your family through the Passion, the Veneration of the Cross, and the Stations. That's holy work.\n\nRest now.",
+      "ts": "2026-04-03T01:30:36"
     }
   ]
 }
