@@ -814,6 +814,23 @@ def render_lucy_page(iso: str = "") -> str:
         <span id="cap-note" style="font-size:0.78em;color:#aaa;font-style:italic;"></span>
     </div>
 
+    <!-- Voice controls row -->
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+        <button id="lucy-voice-btn" onclick="toggleVoice()"
+                style="padding:5px 13px;border-radius:20px;font-size:0.78em;font-weight:600;
+                       border:1.5px solid #e4dbd2;background:white;color:#888;cursor:pointer;
+                       font-family:inherit;transition:all 0.2s;">
+            🔊 Read aloud: OFF
+        </button>
+        <button id="lucy-wake-btn" onclick="toggleWake()"
+                style="padding:5px 13px;border-radius:20px;font-size:0.78em;font-weight:600;
+                       border:1.5px solid #e4dbd2;background:white;color:#888;cursor:pointer;
+                       font-family:inherit;transition:all 0.2s;">
+            🎤 Hey Lucy: OFF
+        </button>
+        <span style="font-size:0.72em;color:#ccc;font-style:italic;">Say "Hey Lucy" to talk hands-free</span>
+    </div>
+
     <!-- Chat history (pre-rendered from server + new messages from JS) -->
     {_render_history_html(_history)}
     <div id="lucy-history" class="lucy-bubble-wrap"
@@ -846,6 +863,26 @@ def render_lucy_page(iso: str = "") -> str:
     </div>
 </div>
 
+<!-- Listening overlay: shown while mic is active -->
+<div id="lucy-listening-overlay"
+     style="display:none;position:fixed;bottom:134px;left:0;right:0;z-index:499;
+            flex-direction:column;align-items:center;justify-content:center;gap:4px;
+            background:rgba(255,255,255,0.97);border-top:1px solid #f0ebe4;padding:10px 0;">
+    <div style="width:52px;height:52px;border-radius:50%;background:#ef4444;
+                display:flex;align-items:center;justify-content:center;
+                font-size:1.5em;animation:lucy-pulse 1.2s ease-in-out infinite;">
+        🎤
+    </div>
+    <div style="font-size:0.82em;color:#ef4444;font-weight:600;">Listening…</div>
+    <div style="font-size:0.72em;color:#aaa;">Tap 🎤 to stop</div>
+</div>
+<style>
+@keyframes lucy-pulse {{
+  0%,100% {{ transform:scale(1); opacity:1; }}
+  50%      {{ transform:scale(1.18); opacity:0.8; }}
+}}
+</style>
+
 <!-- Input bar: fixed above the mobile bottom nav (64px) -->
 <div id="lucy-input-bar"
      style="position:fixed;bottom:64px;left:0;right:0;
@@ -859,6 +896,12 @@ def render_lucy_page(iso: str = "") -> str:
                    border-radius:12px;cursor:pointer;font-size:1.05em;flex-shrink:0;
                    align-self:flex-end;line-height:1;">
         📎
+    </button>
+    <button onclick="lucyMicToggle()" title="Voice input — tap to speak" id="lucy-mic-btn"
+            style="padding:9px 11px;background:#faf8f5;border:1.5px solid #e4dbd2;
+                   border-radius:12px;cursor:pointer;font-size:1.05em;flex-shrink:0;
+                   align-self:flex-end;line-height:1;transition:all 0.2s;">
+        🎤
     </button>
     <textarea id="lucy-input" rows="1"
               placeholder="Ask Lucy anything about today…"
@@ -1009,6 +1052,7 @@ function lucySend() {{
                     var clean = _stripRuleTags(full);
                     bubble.textContent = clean;
                     _lucyHistory.push({{role:'assistant', content: clean}});
+                    lucySpeak(clean);
                     // Parse and show rule proposal buttons
                     var ruleRx = /\[RULE:(add|remove)\]([\s\S]*?)\[\/RULE\]/g;
                     var m;
@@ -1164,7 +1208,221 @@ window.addEventListener('load', function() {{
         + ' input.style.height = "auto";'
         + ' input.style.height = Math.min(input.scrollHeight, 120) + "px";'
     )}
+    // Init voice UI state
+    _updateVoiceBtn();
+    _updateWakeBtn();
+    if (_wakeEnabled) {{ startWakeWord(); }}
 }});
+
+// ── Voice mode ────────────────────────────────────────────────────
+var _voiceEnabled = localStorage.getItem('lucy_voice') === 'true';
+var _wakeEnabled  = localStorage.getItem('lucy_wake')  === 'true';
+var _isRecording  = false;
+var _mainRecog    = null;
+var _wakeRecog    = null;
+
+function _updateVoiceBtn() {{
+    var btn = document.getElementById('lucy-voice-btn');
+    if (!btn) return;
+    if (_voiceEnabled) {{
+        btn.textContent  = '🔊 Read aloud: ON';
+        btn.style.background  = '#f0f8e8';
+        btn.style.borderColor = '#8ab870';
+        btn.style.color       = '#2d5016';
+    }} else {{
+        btn.textContent  = '🔊 Read aloud: OFF';
+        btn.style.background  = 'white';
+        btn.style.borderColor = '#e4dbd2';
+        btn.style.color       = '#888';
+    }}
+}}
+
+function _updateWakeBtn() {{
+    var btn = document.getElementById('lucy-wake-btn');
+    if (!btn) return;
+    if (_wakeEnabled) {{
+        btn.textContent  = '🎤 Hey Lucy: ON';
+        btn.style.background  = '#fef9e8';
+        btn.style.borderColor = '#d4af37';
+        btn.style.color       = '#7a5c00';
+    }} else {{
+        btn.textContent  = '🎤 Hey Lucy: OFF';
+        btn.style.background  = 'white';
+        btn.style.borderColor = '#e4dbd2';
+        btn.style.color       = '#888';
+    }}
+}}
+
+function toggleVoice() {{
+    _voiceEnabled = !_voiceEnabled;
+    localStorage.setItem('lucy_voice', _voiceEnabled);
+    _updateVoiceBtn();
+}}
+
+function toggleWake() {{
+    _wakeEnabled = !_wakeEnabled;
+    localStorage.setItem('lucy_wake', _wakeEnabled);
+    _updateWakeBtn();
+    if (_wakeEnabled) {{ startWakeWord(); }}
+    else {{ stopWakeWord(); }}
+}}
+
+// ── Mic button ────────────────────────────────────────────────────
+function lucyMicToggle() {{
+    // If Lucy is speaking, stop her first
+    if (window.speechSynthesis && window.speechSynthesis.speaking) {{
+        window.speechSynthesis.cancel();
+        return;
+    }}
+    if (_isRecording) {{ stopListening(); }}
+    else {{ startListening(); }}
+}}
+
+function _setMicState(active) {{
+    _isRecording = active;
+    var btn = document.getElementById('lucy-mic-btn');
+    var ol  = document.getElementById('lucy-listening-overlay');
+    if (btn) {{
+        btn.textContent       = active ? '⏹' : '🎤';
+        btn.style.background  = active ? '#fee2e2' : '#faf8f5';
+        btn.style.borderColor = active ? '#ef4444' : '#e4dbd2';
+        btn.style.color       = active ? '#ef4444' : 'inherit';
+    }}
+    if (ol) ol.style.display = active ? 'flex' : 'none';
+}}
+
+function startListening() {{
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {{
+        alert('Voice input is not supported on this browser. Try Chrome or Safari (iOS 14.5+).');
+        return;
+    }}
+    stopWakeWord();
+    if (_mainRecog) {{ try {{ _mainRecog.stop(); }} catch(e) {{}} _mainRecog = null; }}
+    _mainRecog = new SR();
+    _mainRecog.continuous     = false;
+    _mainRecog.interimResults = true;
+    _mainRecog.lang           = 'en-US';
+    _setMicState(true);
+    var input = document.getElementById('lucy-input');
+    _mainRecog.onresult = function(e) {{
+        var transcript = '';
+        for (var i = 0; i < e.results.length; i++) {{
+            transcript += e.results[i][0].transcript;
+        }}
+        if (input) input.value = transcript;
+        if (e.results[e.results.length - 1].isFinal) {{
+            _setMicState(false);
+            if (_wakeEnabled) setTimeout(startWakeWord, 1200);
+            lucySend();
+        }}
+    }};
+    _mainRecog.onerror = function(e) {{
+        _setMicState(false);
+        if (_wakeEnabled && !_isRecording) setTimeout(startWakeWord, 1500);
+        if (e.error !== 'no-speech' && e.error !== 'aborted') console.warn('Speech error:', e.error);
+    }};
+    _mainRecog.onend = function() {{
+        if (_isRecording) {{ _setMicState(false); }}
+        if (_wakeEnabled && !_isRecording) setTimeout(startWakeWord, 1000);
+    }};
+    try {{ _mainRecog.start(); }} catch(err) {{ _setMicState(false); }}
+}}
+
+function stopListening() {{
+    if (_mainRecog) {{ try {{ _mainRecog.stop(); }} catch(e) {{}} _mainRecog = null; }}
+    _setMicState(false);
+    if (_wakeEnabled) setTimeout(startWakeWord, 800);
+}}
+
+// ── Wake word "Hey Lucy" ──────────────────────────────────────────
+function startWakeWord() {{
+    if (!_wakeEnabled || _isRecording) return;
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return;
+    stopWakeWord();
+    _wakeRecog = new SR();
+    _wakeRecog.continuous     = false;
+    _wakeRecog.interimResults = false;
+    _wakeRecog.lang           = 'en-US';
+    _wakeRecog.onresult = function(e) {{
+        var raw = e.results[0][0].transcript.toLowerCase().replace(/[^a-z ]/g, ' ');
+        var detected = (raw.indexOf('hey lucy') >= 0 || raw.indexOf('hey lucie') >= 0 ||
+                        raw.indexOf('hey lusy')  >= 0 || raw.indexOf('hey lousy') >= 0 ||
+                        raw.indexOf('a lucy')     >= 0);
+        if (detected) {{
+            _playActivationBeep();
+            setTimeout(startListening, 450);
+        }} else {{
+            if (_wakeEnabled && !_isRecording) setTimeout(startWakeWord, 250);
+        }}
+    }};
+    _wakeRecog.onerror = function() {{
+        if (_wakeEnabled && !_isRecording) setTimeout(startWakeWord, 2000);
+    }};
+    _wakeRecog.onend = function() {{
+        if (_wakeEnabled && !_isRecording) setTimeout(startWakeWord, 350);
+    }};
+    try {{ _wakeRecog.start(); }} catch(e) {{}}
+}}
+
+function stopWakeWord() {{
+    if (_wakeRecog) {{ try {{ _wakeRecog.stop(); }} catch(e) {{}} _wakeRecog = null; }}
+}}
+
+function _playActivationBeep() {{
+    try {{
+        var ctx  = new (window.AudioContext || window.webkitAudioContext)();
+        var osc  = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 660;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.3);
+    }} catch(e) {{}}
+}}
+
+// ── Text-to-speech ────────────────────────────────────────────────
+function lucySpeak(text) {{
+    if (!_voiceEnabled) return;
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    // Strip action markers, markdown, and non-speech characters
+    var clean = text
+        .replace(/\[PLAN_UPDATED:[^\]]*\]/g, '')
+        .replace(/\[CARRYOVER_UPDATED:[^\]]*\]/g, '')
+        .replace(/\*\*/g, '').replace(/\*/g, '')
+        .replace(/#{1,6} /g, '')
+        .replace(/[📎🖨✓✕📋🗑📅🎤🔊✔]/g, '')
+        .replace(/\n{{3,}}/g, '\n')
+        .trim();
+    if (!clean) return;
+    var utt  = new SpeechSynthesisUtterance(clean);
+    utt.lang   = 'en-US';
+    utt.rate   = 0.92;
+    utt.pitch  = 1.05;
+    utt.volume = 1.0;
+    // Pick a natural female voice when available
+    var preferred = ['Samantha','Karen','Victoria','Ava','Moira','Allison','Google US English'];
+    function _doSpeak() {{
+        var voices = window.speechSynthesis.getVoices();
+        for (var i = 0; i < preferred.length; i++) {{
+            var match = preferred[i];
+            var v = null;
+            for (var j = 0; j < voices.length; j++) {{
+                if (voices[j].name.indexOf(match) >= 0) {{ v = voices[j]; break; }}
+            }}
+            if (v) {{ utt.voice = v; break; }}
+        }}
+        window.speechSynthesis.speak(utt);
+    }}
+    if (window.speechSynthesis.getVoices().length > 0) {{ _doSpeak(); }}
+    else {{ window.speechSynthesis.addEventListener('voiceschanged', _doSpeak, {{once: true}}); }}
+}}
 
 </script>"""
 
