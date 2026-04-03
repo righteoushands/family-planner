@@ -1276,6 +1276,16 @@ function lucyMicToggle() {{
         window.speechSynthesis.cancel();
         return;
     }}
+    // iOS Safari blocks speechSynthesis from async callbacks unless it was first
+    // triggered inside a user gesture. Speak a silent utterance NOW (while we're
+    // inside the tap handler) to unlock it for Lucy's later async reply.
+    if ('speechSynthesis' in window && !_isRecording) {{
+        var unlock = new SpeechSynthesisUtterance(' ');
+        unlock.volume = 0;
+        unlock.rate   = 10;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(unlock);
+    }}
     if (_isRecording) {{ stopListening(); }}
     else {{ startListening(); }}
 }}
