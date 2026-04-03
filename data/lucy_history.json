@@ -2,16 +2,6 @@
   "messages": [
     {
       "role": "user",
-      "content": "Replit is working on it.",
-      "ts": "2026-04-03T12:35:22"
-    },
-    {
-      "role": "assistant",
-      "content": "Good. They'll figure it out.\n\nNow — bed. It's almost 10 PM and you have Good Friday tomorrow. You need sleep.",
-      "ts": "2026-04-03T12:35:23"
-    },
-    {
-      "role": "user",
       "content": "Haha! It’s morning!",
       "ts": "2026-04-03T12:35:39"
     },
@@ -299,6 +289,16 @@
       "role": "assistant",
       "content": "I'm so glad, Lauren. That's beautiful. The Memorare is such a powerful prayer — especially when you're driving and need to entrust things to Mary's care.\n\nYou're doing well. How are you feeling now?",
       "ts": "2026-04-03T17:35:49"
+    },
+    {
+      "role": "user",
+      "content": "New voice! Say another prayer please",
+      "ts": "2026-04-03T17:52:57"
+    },
+    {
+      "role": "assistant",
+      "content": "Our Father, who art in heaven, hallowed be thy name. Thy kingdom come, thy will be done, on earth as it is in heaven. Give us this day our daily bread, and forgive us our trespasses, as we forgive those who trespass against us. And lead us not into temptation, but deliver us from evil. Amen.",
+      "ts": "2026-04-03T17:52:58"
     }
   ]
 }
