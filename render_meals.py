@@ -376,7 +376,7 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
             cells += (
                 f'<td style="padding:3px;background:{slot_bg};border-bottom:1px solid var(--border-light);">'
                 f'<textarea data-day="{escape(safe_day)}" data-slot="{escape(safe_slot)}"'
-                f' onchange="cellChanged(this)"'
+                f' oninput="cellChanged(this)"'
                 f' style="width:100%;min-height:52px;border:none;outline:none;'
                 f'background:transparent;font-size:0.78em;font-family:inherit;'
                 f'resize:vertical;padding:4px;color:var(--ink);">'
@@ -398,7 +398,7 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
         help_cells += (
             f'<td style="padding:3px;background:#fefce8;border-bottom:1px solid var(--border-light);">'
             f'<textarea data-day="{escape(safe_day)}" data-slot="boys_help"'
-            f' onchange="cellChanged(this)"'
+            f' oninput="cellChanged(this)"'
             f' style="width:100%;min-height:52px;border:none;outline:none;'
             f'background:transparent;font-size:0.78em;font-family:inherit;'
             f'resize:vertical;padding:4px;color:#78350f;"'
@@ -511,9 +511,9 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
 
         # Auto save
         'function autoSavePlan() {'
-        '  if(!Object.keys(_mealChanges).length) return;'
         '  savePlan();'
         '}'
+        'window.addEventListener("beforeunload", function() { if(Object.keys(_mealChanges).length) savePlan(); });'
 
         # Save plan
         'function savePlan() {'
