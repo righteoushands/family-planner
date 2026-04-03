@@ -901,8 +901,8 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             elif path == "/lucy-tts":
-                # OpenAI TTS — streams MP3 audio back to the browser
-                import os as _os, json as _json, urllib.request as _ureq
+                # OpenAI TTS — fetches MP3 from OpenAI and streams it back
+                import os as _os, json as _json, ssl as _ssl, socket as _sock
                 text  = clean_text(data.get("text",[""])[0]).strip()
                 voice = clean_text(data.get("voice",["nova"])[0]).strip() or "nova"
                 if voice not in ("alloy","echo","fable","onyx","nova","shimmer","coral","sage","ash"):
@@ -915,14 +915,21 @@ class Handler(BaseHTTPRequestHandler):
                     try: self.wfile.write(b"Missing API key or text")
                     except BrokenPipeError: pass
                     return
-                # Truncate to 4096 chars (OpenAI TTS limit)
+                # Use http.client directly to avoid latin-1 header encoding issues
+                import http.client as _hc
                 text = text[:4096]
-                payload = _json.dumps({"model":"tts-1","voice":voice,"input":text,"response_format":"mp3"}).encode()
-                req = _ureq.Request("https://api.openai.com/v1/audio/speech",
-                    data=payload,
-                    headers={"Authorization":f"Bearer {oai_key}","Content-Type":"application/json"})
+                body = _json.dumps({"model":"tts-1","voice":voice,
+                                    "input":text,"response_format":"mp3"}).encode("utf-8")
+                ctx = _ssl.create_default_context()
                 try:
-                    with _ureq.urlopen(req, timeout=30) as resp:
+                    conn = _hc.HTTPSConnection("api.openai.com", context=ctx, timeout=30)
+                    conn.request("POST", "/v1/audio/speech", body=body, headers={
+                        "Authorization": "Bearer " + oai_key,
+                        "Content-Type": "application/json",
+                        "Content-Length": str(len(body)),
+                    })
+                    resp = conn.getresponse()
+                    if resp.status == 200:
                         self.send_response(200)
                         self.send_header("Content-Type","audio/mpeg")
                         self.send_header("Cache-Control","no-store")
@@ -932,12 +939,32 @@ class Handler(BaseHTTPRequestHandler):
                             if not chunk: break
                             try: self.wfile.write(chunk)
                             except BrokenPipeError: break
+                    else:
+                        err_body = resp.read(512)
+                        conn.close()
+                        status_code = resp.status
+                        if status_code == 429:
+                            msg = b"OpenAI quota exceeded. Add billing at platform.openai.com/account/billing."
+                        elif status_code == 401:
+                            msg = b"OpenAI API key is invalid. Check Settings."
+                        else:
+                            msg = b"OpenAI TTS error " + str(status_code).encode()
+                        try:
+                            self.send_response(502)
+                            self.send_header("Content-Type","text/plain")
+                            self.end_headers()
+                            self.wfile.write(msg)
+                        except BrokenPipeError: pass
+                        return
+                    conn.close()
+                except BrokenPipeError:
+                    pass
                 except Exception as e:
                     try:
                         self.send_response(500)
                         self.send_header("Content-Type","text/plain")
                         self.end_headers()
-                        self.wfile.write(str(e).encode())
+                        self.wfile.write(str(e).encode("utf-8","replace"))
                     except Exception: pass
                 return
 
