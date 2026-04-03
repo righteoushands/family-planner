@@ -193,7 +193,16 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/calendar":        body = render_calendar_page()
         elif path == "/planner":         body = render_planner_page()
         elif path == "/readings":         body = render_readings_page(date_str=query.get("date",[""])[0])
-        elif path == "/lucy":             body = render_lucy_page(iso=query.get("date",[""])[0])
+        elif path == "/lucy":
+            html = render_lucy_page(iso=query.get("date",[""])[0])
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header("Pragma","no-cache")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
         elif path == "/memory-book":      body = render_memory_book_page()
         elif path == "/liturgical":      body = render_liturgical_page()
         elif path == "/prayer":           body = render_liturgical_page()
