@@ -909,14 +909,12 @@ def render_lucy_page(iso: str = "") -> str:
                         style="background:none;border:none;font-size:1.4em;cursor:pointer;
                                color:#888;line-height:1;padding:0 4px;">✕</button>
             </div>
-            <p style="font-size:0.75em;color:#999;margin:6px 18px 2px;line-height:1.3;">
-                ☁ = requires internet &nbsp;|&nbsp; Enhanced voices (downloaded in iOS Settings → Accessibility → Spoken Content → Voices) sound best.
+            <p style="font-size:0.75em;color:#999;margin:6px 18px 4px;line-height:1.4;">
+                These are AI voices from OpenAI — much higher quality than device voices.
+                Hit <b>▶ Sample</b> to hear each one, then tap <b>Use</b> to select it.
             </p>
             <div id="lucy-voice-list"
                  style="overflow-y:auto;padding:4px 18px 20px;flex:1;">
-                <p style="color:#aaa;text-align:center;padding:24px 0;font-size:0.85em;">
-                    Loading voices…
-                </p>
             </div>
         </div>
     </div>
@@ -1262,10 +1260,17 @@ window.addEventListener('load', function() {{
     _updateWakeBtn();
     if (_wakeEnabled) {{ startWakeWord(); }}
     // Show saved voice name on the picker button
-    if (_lucyVoiceName) {{
+    (function() {{
         var pb = document.getElementById('lucy-voice-pick-btn');
-        if (pb) pb.textContent = '🎙 ' + _lucyVoiceName.split(' ')[0];
-    }}
+        if (!pb) return;
+        var saved = _lucyVoiceName || 'nova';
+        for (var i = 0; i < _OAI_VOICES.length; i++) {{
+            if (_OAI_VOICES[i].id === saved) {{
+                pb.textContent = '🎙 ' + _OAI_VOICES[i].label;
+                break;
+            }}
+        }}
+    }})();
 }});
 
 // ── Voice mode ────────────────────────────────────────────────────
@@ -1466,17 +1471,26 @@ function _playActivationBeep() {{
     }} catch(e) {{}}
 }}
 
-// ── Voice picker ─────────────────────────────────────────────────
-var _lucyVoiceName = localStorage.getItem('lucyVoiceName') || '';
+// ── OpenAI TTS voice picker ───────────────────────────────────────
+// Available OpenAI voices (tts-1 model)
+var _OAI_VOICES = [
+    {{id:'nova',    label:'Nova',    desc:'Warm & friendly — great for conversations'}},
+    {{id:'shimmer', label:'Shimmer', desc:'Soft & clear — calm female tone'}},
+    {{id:'coral',   label:'Coral',   desc:'Natural & expressive — newer model'}},
+    {{id:'sage',    label:'Sage',    desc:'Steady & thoughtful — professional female'}},
+    {{id:'alloy',   label:'Alloy',   desc:'Balanced & neutral — versatile'}},
+    {{id:'echo',    label:'Echo',    desc:'Clear & direct — slightly warmer male'}},
+    {{id:'fable',   label:'Fable',   desc:'Expressive & narrative — storytelling tone'}},
+    {{id:'onyx',    label:'Onyx',    desc:'Deep & resonant — authoritative male'}},
+    {{id:'ash',     label:'Ash',     desc:'Bright & conversational — upbeat male'}}
+];
 
-function _getSelectedVoice() {{
-    if (!_lucyVoiceName) return null;
-    var voices = window.speechSynthesis.getVoices();
-    for (var i = 0; i < voices.length; i++) {{
-        if (voices[i].name === _lucyVoiceName) return voices[i];
-    }}
-    return null;
-}}
+// _lucyVoiceName stores the selected OpenAI voice id (e.g. 'nova')
+var _lucyVoiceName = localStorage.getItem('lucyVoiceName') || 'nova';
+// Track current sample audio so we can stop it
+var _sampleAudio = null;
+
+function _getSelectedVoice() {{ return null; }} // not used for OpenAI TTS path
 
 function openVoicePanel() {{
     var panel = document.getElementById('lucy-voice-panel');
@@ -1484,81 +1498,79 @@ function openVoicePanel() {{
     panel.style.display = 'flex';
     list.innerHTML = '';
 
-    var voices = window.speechSynthesis.getVoices();
-    // English voices first; fall back to all voices if none found
-    var enVoices = voices.filter(function(v) {{
-        return v.lang && (v.lang.indexOf('en') === 0 || v.lang.indexOf('en') > 0);
-    }});
-    if (enVoices.length === 0) enVoices = voices;
-    enVoices.sort(function(a, b) {{ return a.name.localeCompare(b.name); }});
-
-    if (enVoices.length === 0) {{
-        list.innerHTML = '<p style="color:#aaa;text-align:center;padding:28px 0;font-size:0.85em;">' +
-            'No voices found on this device.<br>Check Settings → Accessibility → Spoken Content → Voices.</p>';
-        return;
-    }}
-
-    enVoices.forEach(function(v) {{
+    _OAI_VOICES.forEach(function(v) {{
         var row = document.createElement('div');
-        row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:9px 0;' +
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px 0;' +
             'border-bottom:1px solid #f5f0ea;';
 
         var nameCol = document.createElement('div');
         nameCol.style.cssText = 'flex:1;min-width:0;';
         var nameSpan = document.createElement('div');
-        nameSpan.style.cssText = 'font-size:0.88em;color:#3d2b1f;font-weight:500;' +
-            'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
-        nameSpan.textContent = v.name + (v.localService ? '' : ' ☁');
-        var langSpan = document.createElement('div');
-        langSpan.style.cssText = 'font-size:0.72em;color:#aaa;margin-top:1px;';
-        langSpan.textContent = v.lang;
+        nameSpan.style.cssText = 'font-size:0.9em;color:#3d2b1f;font-weight:600;';
+        nameSpan.textContent = v.label;
+        var descSpan = document.createElement('div');
+        descSpan.style.cssText = 'font-size:0.73em;color:#999;margin-top:2px;line-height:1.3;';
+        descSpan.textContent = v.desc;
         nameCol.appendChild(nameSpan);
-        nameCol.appendChild(langSpan);
+        nameCol.appendChild(descSpan);
 
         var sampleBtn = document.createElement('button');
         sampleBtn.textContent = '▶ Sample';
         sampleBtn.style.cssText = 'background:#f5f0fb;border:1px solid #d8c8ef;border-radius:8px;' +
-            'padding:5px 10px;font-size:0.78em;cursor:pointer;color:#7c3aed;white-space:nowrap;' +
+            'padding:6px 10px;font-size:0.78em;cursor:pointer;color:#7c3aed;white-space:nowrap;' +
             'font-family:inherit;flex-shrink:0;';
         (function(voice, btn) {{
             btn.onclick = function() {{
-                window.speechSynthesis.cancel();
-                var utt = new SpeechSynthesisUtterance("Hi, I'm Lucy, your family companion.");
-                utt.voice  = voice;
-                utt.lang   = voice.lang;
-                utt.rate   = 0.92;
-                utt.pitch  = 1.05;
-                utt.volume = 1.0;
-                btn.textContent = '⏹ Stop';
-                utt.onend = utt.onerror = function() {{ btn.textContent = '▶ Sample'; }};
-                window.speechSynthesis.speak(utt);
+                // Stop any playing sample
+                if (_sampleAudio) {{ _sampleAudio.pause(); _sampleAudio = null; }}
+                // Reset all sample buttons
+                var allBtns = list.querySelectorAll('[data-samplebtn]');
+                for (var i = 0; i < allBtns.length; i++) allBtns[i].textContent = '▶ Sample';
+                btn.textContent = '⏳ Loading…';
+                btn.disabled = true;
+                var fd = new FormData();
+                fd.append('text', "Hi! I'm Lucy, your family companion. How can I help today?");
+                fd.append('voice', voice.id);
+                fetch('/lucy-tts', {{method:'POST', body: new URLSearchParams(fd)}})
+                .then(function(r) {{
+                    if (!r.ok) throw new Error('TTS failed');
+                    return r.blob();
+                }})
+                .then(function(blob) {{
+                    var url = URL.createObjectURL(blob);
+                    _sampleAudio = new Audio(url);
+                    _sampleAudio.play();
+                    btn.textContent = '⏹ Stop';
+                    btn.disabled = false;
+                    _sampleAudio.onended = function() {{ btn.textContent = '▶ Sample'; _sampleAudio = null; }};
+                }})
+                .catch(function() {{ btn.textContent = '▶ Sample'; btn.disabled = false; }});
             }};
+            btn.setAttribute('data-samplebtn', '1');
         }})(v, sampleBtn);
 
-        var isSelected = (_lucyVoiceName === v.name);
+        var isSelected = (_lucyVoiceName === v.id);
         var useBtn = document.createElement('button');
-        useBtn.textContent  = isSelected ? '✓ Selected' : 'Use';
-        useBtn.setAttribute('data-vname', v.name);
-        useBtn.style.cssText = 'border-radius:8px;padding:5px 12px;font-size:0.78em;' +
+        useBtn.textContent = isSelected ? '✓ Using' : 'Use';
+        useBtn.setAttribute('data-vname', v.id);
+        useBtn.style.cssText = 'border-radius:8px;padding:6px 12px;font-size:0.78em;' +
             'cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap;' +
             'border:1.5px solid #7c3aed;' +
             'background:' + (isSelected ? '#7c3aed' : 'white') + ';' +
             'color:'       + (isSelected ? 'white'   : '#7c3aed') + ';';
         (function(voice, btn) {{
             btn.onclick = function() {{
-                _lucyVoiceName = voice.name;
-                localStorage.setItem('lucyVoiceName', voice.name);
-                // Update all Use buttons
+                _lucyVoiceName = voice.id;
+                localStorage.setItem('lucyVoiceName', voice.id);
                 var all = list.querySelectorAll('[data-vname]');
                 for (var i = 0; i < all.length; i++) {{
-                    var match = all[i].getAttribute('data-vname') === voice.name;
-                    all[i].textContent   = match ? '✓ Selected' : 'Use';
+                    var match = all[i].getAttribute('data-vname') === voice.id;
+                    all[i].textContent      = match ? '✓ Using' : 'Use';
                     all[i].style.background = match ? '#7c3aed' : 'white';
                     all[i].style.color      = match ? 'white'   : '#7c3aed';
                 }}
-                // Update the picker button label
                 var pb = document.getElementById('lucy-voice-pick-btn');
-                if (pb) pb.textContent = '🎙 ' + voice.name.split(' ')[0];
+                if (pb) pb.textContent = '🎙 ' + voice.label;
             }};
         }})(v, useBtn);
 
@@ -1570,95 +1582,94 @@ function openVoicePanel() {{
 }}
 
 function closeVoicePanel() {{
-    window.speechSynthesis.cancel();
+    if (_sampleAudio) {{ _sampleAudio.pause(); _sampleAudio = null; }}
     document.getElementById('lucy-voice-panel').style.display = 'none';
 }}
 
-// ── Tap-to-hear (iOS reliable) ────────────────────────────────────
-// Called directly from a button onclick — counts as a user gesture on iOS.
-function lucySpeakTap(text, btn) {{
-    if (!('speechSynthesis' in window)) return;
-    // If already speaking, stop
-    if (window.speechSynthesis.speaking) {{
-        window.speechSynthesis.cancel();
-        if (btn) {{ btn.textContent = '🔊 Hear Lucy'; }}
-        return;
-    }}
-    var clean = text
+// ── OpenAI TTS helpers ────────────────────────────────────────────
+var _lucyAudio = null;  // currently playing Audio object
+
+function _cleanForTts(text) {{
+    return text
         .replace(/\[PLAN_UPDATED:[^\]]*\]/g, '')
         .replace(/\[CARRYOVER_UPDATED:[^\]]*\]/g, '')
         .replace(/\*\*/g, '').replace(/\*/g, '')
         .replace(/\s+/g, ' ')
         .trim();
-    if (!clean) return;
-    var utt = new SpeechSynthesisUtterance(clean);
-    utt.lang   = 'en-US';
-    utt.rate   = 0.92;
-    utt.pitch  = 1.05;
-    utt.volume = 1.0;
-    var sv = _getSelectedVoice();
-    if (sv) {{ utt.voice = sv; utt.lang = sv.lang; }}
-    if (btn) {{
-        btn.textContent = '⏹ Stop';
-        utt.onend    = function() {{ btn.textContent = '🔊 Hear Lucy'; }};
-        utt.onerror  = function() {{ btn.textContent = '🔊 Hear Lucy'; }};
-    }}
-    window.speechSynthesis.speak(utt);
 }}
 
-// ── Text-to-speech (async — works on Chrome, may be silent on iOS) ──
+// lucySpeakTap — called from the "🔊 Hear Lucy" button (real user gesture on iOS).
+// Uses OpenAI TTS when available, falls back to browser speech synthesis.
+function lucySpeakTap(text, btn) {{
+    // Stop if already playing
+    if (_lucyAudio && !_lucyAudio.paused) {{
+        _lucyAudio.pause();
+        _lucyAudio = null;
+        if (btn) btn.textContent = '🔊 Hear Lucy';
+        return;
+    }}
+    var clean = _cleanForTts(text);
+    if (!clean) return;
+    if (btn) btn.textContent = '⏳ Speaking…';
+    var voice = _lucyVoiceName || 'nova';
+    var fd = new FormData();
+    fd.append('text', clean.substring(0, 4096));
+    fd.append('voice', voice);
+    fetch('/lucy-tts', {{method:'POST', body: new URLSearchParams(fd)}})
+    .then(function(r) {{
+        if (!r.ok) throw new Error('TTS failed');
+        return r.blob();
+    }})
+    .then(function(blob) {{
+        var url = URL.createObjectURL(blob);
+        _lucyAudio = new Audio(url);
+        _lucyAudio.play();
+        if (btn) {{
+            btn.textContent = '⏹ Stop';
+            _lucyAudio.onended  = function() {{ btn.textContent = '🔊 Hear Lucy'; _lucyAudio = null; }};
+            _lucyAudio.onerror  = function() {{ btn.textContent = '🔊 Hear Lucy'; _lucyAudio = null; }};
+        }}
+    }})
+    .catch(function(err) {{
+        console.warn('OpenAI TTS failed, falling back to browser speech:', err);
+        if (btn) btn.textContent = '🔊 Hear Lucy';
+        // Browser fallback
+        if ('speechSynthesis' in window) {{
+            var utt = new SpeechSynthesisUtterance(clean);
+            utt.lang = 'en-US'; utt.rate = 0.92; utt.pitch = 1.05;
+            window.speechSynthesis.speak(utt);
+        }}
+    }});
+}}
+
+// lucySpeak — called automatically after streaming finishes.
+// Only fires if "Read aloud: ON" or the mic was used.
+// Uses OpenAI TTS (server-side, doesn't need user gesture for fetch+Audio).
 function lucySpeak(text) {{
     var shouldSpeak = _voiceEnabled || _lastSendWasVoice;
-    _lastSendWasVoice = false;  // consume the flag
+    _lastSendWasVoice = false;
     if (!shouldSpeak) return;
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    // Strip action markers, markdown, and non-speech characters
-    var clean = text
-        .replace(/\[PLAN_UPDATED:[^\]]*\]/g, '')
-        .replace(/\[CARRYOVER_UPDATED:[^\]]*\]/g, '')
-        .replace(/\*\*/g, '').replace(/\*/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
+    var clean = _cleanForTts(text);
     if (!clean) return;
-    var utt  = new SpeechSynthesisUtterance(clean);
-    utt.lang   = 'en-US';
-    utt.rate   = 0.92;
-    utt.pitch  = 1.05;
-    utt.volume = 1.0;
-    // Pick a voice: 1) user-selected, 2) preferred list, 3) any en-US, 4) device default
-    function _pickVoiceAndSpeak() {{
-        var voices = window.speechSynthesis.getVoices();
-        // 1. User's saved choice
-        var sv = _getSelectedVoice();
-        if (sv) {{ utt.voice = sv; utt.lang = sv.lang; }}
-        // 2. Preferred built-ins
-        if (!utt.voice) {{
-            var preferred = ['Samantha','Karen','Victoria','Ava','Moira','Allison','Google US English'];
-            for (var i = 0; i < preferred.length; i++) {{
-                for (var j = 0; j < voices.length; j++) {{
-                    if (voices[j].name.indexOf(preferred[i]) >= 0) {{
-                        utt.voice = voices[j]; break;
-                    }}
-                }}
-                if (utt.voice) break;
-            }}
-        }}
-        // 3. Any English voice
-        if (!utt.voice) {{
-            for (var k = 0; k < voices.length; k++) {{
-                if (voices[k].lang && voices[k].lang.indexOf('en') >= 0) {{
-                    utt.voice = voices[k]; break;
-                }}
-            }}
-        }}
-        // 4. Device default (utt.voice stays null — iOS picks its own)
-        window.speechSynthesis.speak(utt);
-    }}
-    // Always speak immediately — on iOS, getVoices() returns [] and voiceschanged
-    // never fires, so waiting for it means Lucy never speaks. iOS picks its own
-    // default voice when utt.voice is not set, which works fine.
-    _pickVoiceAndSpeak();
+    var voice = _lucyVoiceName || 'nova';
+    var fd = new FormData();
+    fd.append('text', clean.substring(0, 4096));
+    fd.append('voice', voice);
+    if (_lucyAudio) {{ _lucyAudio.pause(); _lucyAudio = null; }}
+    fetch('/lucy-tts', {{method:'POST', body: new URLSearchParams(fd)}})
+    .then(function(r) {{
+        if (!r.ok) throw new Error('TTS error');
+        return r.blob();
+    }})
+    .then(function(blob) {{
+        var url = URL.createObjectURL(blob);
+        _lucyAudio = new Audio(url);
+        _lucyAudio.play();
+        _lucyAudio.onended = function() {{ _lucyAudio = null; }};
+    }})
+    .catch(function(err) {{
+        console.warn('OpenAI TTS failed:', err);
+    }});
 }}
 
 </script>"""

@@ -891,6 +891,47 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.write(b"ok")
                 return
 
+            elif path == "/lucy-tts":
+                # OpenAI TTS — streams MP3 audio back to the browser
+                import os as _os, json as _json, urllib.request as _ureq
+                text  = clean_text(data.get("text",[""])[0]).strip()
+                voice = clean_text(data.get("voice",["nova"])[0]).strip() or "nova"
+                if voice not in ("alloy","echo","fable","onyx","nova","shimmer","coral","sage","ash"):
+                    voice = "nova"
+                oai_key = _os.environ.get("OPENAI_API_KEY","").strip()
+                if not oai_key or not text:
+                    self.send_response(400)
+                    self.send_header("Content-Type","text/plain")
+                    self.end_headers()
+                    try: self.wfile.write(b"Missing API key or text")
+                    except BrokenPipeError: pass
+                    return
+                # Truncate to 4096 chars (OpenAI TTS limit)
+                text = text[:4096]
+                payload = _json.dumps({"model":"tts-1","voice":voice,"input":text,"response_format":"mp3"}).encode()
+                req = _ureq.Request("https://api.openai.com/v1/audio/speech",
+                    data=payload,
+                    headers={"Authorization":f"Bearer {oai_key}","Content-Type":"application/json"})
+                try:
+                    with _ureq.urlopen(req, timeout=30) as resp:
+                        self.send_response(200)
+                        self.send_header("Content-Type","audio/mpeg")
+                        self.send_header("Cache-Control","no-store")
+                        self.end_headers()
+                        while True:
+                            chunk = resp.read(4096)
+                            if not chunk: break
+                            try: self.wfile.write(chunk)
+                            except BrokenPipeError: break
+                except Exception as e:
+                    try:
+                        self.send_response(500)
+                        self.send_header("Content-Type","text/plain")
+                        self.end_headers()
+                        self.wfile.write(str(e).encode())
+                    except Exception: pass
+                return
+
             elif path == "/lucy-rule-save":
                 import json as _json
                 action    = clean_text(data.get("action",[""])[0]).strip()
