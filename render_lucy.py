@@ -1053,7 +1053,22 @@ function lucySend() {{
                     var clean = _stripRuleTags(full);
                     bubble.textContent = clean;
                     _lucyHistory.push({{role:'assistant', content: clean}});
-                    lucySpeak(clean);
+                    lucySpeak(clean);  // works on Chrome; silent on iOS (see button below)
+                    // Tap-to-hear button — works reliably on iOS by firing from a real tap
+                    if ('speechSynthesis' in window && bubble._wrap) {{
+                        var spkRow = document.createElement('div');
+                        spkRow.style.cssText = 'display:flex;justify-content:flex-start;margin-top:2px;';
+                        var spkBtn = document.createElement('button');
+                        spkBtn.textContent = '🔊 Hear Lucy';
+                        spkBtn.style.cssText = 'background:none;border:none;color:#b09060;' +
+                            'font-size:0.75em;cursor:pointer;padding:2px 0;font-family:inherit;' +
+                            'text-decoration:underline;text-underline-offset:2px;';
+                        (function(btn, txt) {{
+                            btn.onclick = function() {{ lucySpeakTap(txt, btn); }};
+                        }})(spkBtn, clean);
+                        spkRow.appendChild(spkBtn);
+                        bubble._wrap.insertBefore(spkRow, bubble._wrap.firstChild.nextSibling);
+                    }}
                     // Parse and show rule proposal buttons
                     var ruleRx = /\[RULE:(add|remove)\]([\s\S]*?)\[\/RULE\]/g;
                     var m;
@@ -1413,7 +1428,37 @@ function _playActivationBeep() {{
     }} catch(e) {{}}
 }}
 
-// ── Text-to-speech ────────────────────────────────────────────────
+// ── Tap-to-hear (iOS reliable) ────────────────────────────────────
+// Called directly from a button onclick — counts as a user gesture on iOS.
+function lucySpeakTap(text, btn) {{
+    if (!('speechSynthesis' in window)) return;
+    // If already speaking, stop
+    if (window.speechSynthesis.speaking) {{
+        window.speechSynthesis.cancel();
+        if (btn) {{ btn.textContent = '🔊 Hear Lucy'; }}
+        return;
+    }}
+    var clean = text
+        .replace(/\[PLAN_UPDATED:[^\]]*\]/g, '')
+        .replace(/\[CARRYOVER_UPDATED:[^\]]*\]/g, '')
+        .replace(/\*\*/g, '').replace(/\*/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    if (!clean) return;
+    var utt = new SpeechSynthesisUtterance(clean);
+    utt.lang   = 'en-US';
+    utt.rate   = 0.92;
+    utt.pitch  = 1.05;
+    utt.volume = 1.0;
+    if (btn) {{
+        btn.textContent = '⏹ Stop';
+        utt.onend    = function() {{ btn.textContent = '🔊 Hear Lucy'; }};
+        utt.onerror  = function() {{ btn.textContent = '🔊 Hear Lucy'; }};
+    }}
+    window.speechSynthesis.speak(utt);
+}}
+
+// ── Text-to-speech (async — works on Chrome, may be silent on iOS) ──
 function lucySpeak(text) {{
     var shouldSpeak = _voiceEnabled || _lastSendWasVoice;
     _lastSendWasVoice = false;  // consume the flag
