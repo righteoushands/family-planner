@@ -1127,8 +1127,14 @@ def render_lucy_page(iso: str = "") -> str:
         <button onclick="lucyMicToggle()" title="Voice input — tap to speak" id="lucy-mic-btn"
                 style="padding:9px 11px;background:#faf8f5;border:1.5px solid #e4dbd2;
                        border-radius:12px;cursor:pointer;font-size:1.05em;flex-shrink:0;
-                       align-self:flex-end;line-height:1;transition:all 0.2s;">
+                       align-self:flex-end;line-height:1;transition:all 0.15s;">
             🎤
+        </button>
+        <button id="lucy-stop-btn" onclick="lucyStop()" title="Stop Lucy talking"
+                style="display:none;padding:9px 13px;background:#fee2e2;border:1.5px solid #ef4444;
+                       border-radius:12px;cursor:pointer;font-size:1em;font-weight:700;flex-shrink:0;
+                       align-self:flex-end;line-height:1;color:#dc2626;">
+            ⏹
         </button>
         <textarea id="lucy-input" rows="1"
                   placeholder="Ask Lucy anything about today…"
@@ -1236,6 +1242,12 @@ function lucySend() {{
     var img   = _attachedImage;
     if (!msg && !img) return;
     _unlockAudio();  // unlock during this user gesture so auto-play works later on iOS
+    // Reset per-message TTS streaming state
+    _ttsFirstFired  = false;
+    _ttsFull        = null;
+    _ttsFirstEndPos = 0;
+    _lucyAudioEl.pause();
+    _updateStopBtn(false);
     input.value = '';
     input.style.height = 'auto';
 
@@ -1287,7 +1299,14 @@ function lucySend() {{
                     var clean = _stripRuleTags(full);
                     bubble.textContent = clean;
                     _lucyHistory.push({{role:'assistant', content: clean}});
-                    lucySpeak(clean);  // works on Chrome; silent on iOS (see button below)
+                    // Set full text so the chained _playRest() can proceed
+                    _ttsFull = clean;
+                    // Only auto-speak here if first-sentence TTS hasn't already fired
+                    if (!_ttsFirstFired) {{
+                        lucySpeak(clean);
+                    }} else {{
+                        _lastSendWasVoice = false;
+                    }}
                     // Tap-to-hear button — works reliably on iOS by firing from a real tap
                     if ('speechSynthesis' in window && bubble._wrap) {{
                         var spkRow = document.createElement('div');
@@ -1543,6 +1562,33 @@ function lucySend() {{
                 }}
                 full += decoder.decode(res.value, {{stream: true}});
                 bubble.textContent = _stripRuleTags(full);
+                // Early TTS: fire on first complete sentence while rest is still streaming
+                if (!_ttsFirstFired && (_voiceEnabled || _lastSendWasVoice)) {{
+                    var _s2 = _stripRuleTags(full);
+                    var _si = _s2.search(/[.!?](?:\s|$)/);
+                    if (_si > 40) {{
+                        _ttsFirstFired  = true;
+                        _ttsFirstEndPos = _si + 1;
+                        var _fc = _cleanForTts(_s2.substring(0, _si + 1));
+                        if (_fc.length > 20) {{
+                            _fetchAndPlay(_fc, null, function() {{
+                                // Chain: play remainder once stream is done
+                                function _playRest() {{
+                                    if (!_ttsFull) {{
+                                        setTimeout(_playRest, 150); return;
+                                    }}
+                                    if (_lucyAudioEl.paused) {{
+                                        var _rt = _cleanForTts(_ttsFull.substring(_ttsFirstEndPos));
+                                        if (_rt.length > 20) {{
+                                            _fetchAndPlay(_rt.substring(0, 3000), null, null);
+                                        }}
+                                    }}
+                                }}
+                                _playRest();
+                            }});
+                        }}
+                    }}
+                }}
                 window.scrollTo(0, document.body.scrollHeight);
                 return read();
             }});
@@ -1634,6 +1680,10 @@ var _isRecording      = false;
 var _lastSendWasVoice = false;  // speak reply automatically when mic was used
 var _mainRecog    = null;
 var _wakeRecog    = null;
+// Per-message TTS streaming state (reset in lucySend)
+var _ttsFirstFired  = false;  // true once first-sentence TTS request has fired
+var _ttsFull        = null;   // full clean text set when stream completes
+var _ttsFirstEndPos = 0;      // char position where first sentence ends in full text
 
 function _updateVoiceBtn() {{
     var btn = document.getElementById('lucy-voice-btn');
@@ -1682,20 +1732,42 @@ function toggleWake() {{
 }}
 
 // ── Mic button ────────────────────────────────────────────────────
+function lucyStop() {{
+    // Full stop — pause audio, hide stop button, start listening if in voice mode
+    _lucyAudioEl.pause();
+    _lucyAudioEl.src = '';
+    _updateStopBtn(false);
+    _ttsFull = null;  // cancel any pending chained TTS
+    if (_voiceEnabled || _lastSendWasVoice) {{
+        _lastSendWasVoice = false;
+        _unlockAudio();
+        startListening();
+    }}
+}}
+
+function _updateStopBtn(show) {{
+    var sb = document.getElementById('lucy-stop-btn');
+    if (sb) sb.style.display = show ? '' : 'none';
+}}
+
 function lucyMicToggle() {{
-    // If Lucy is speaking, stop her first
+    // If Lucy is speaking — one tap to stop AND immediately start listening
     if (!_lucyAudioEl.paused) {{
         _lucyAudioEl.pause();
+        _lucyAudioEl.src = '';
+        _ttsFull = null;  // cancel chained TTS
+        _updateStopBtn(false);
+        _unlockAudio();
+        startListening();
         return;
     }}
     if (window.speechSynthesis && window.speechSynthesis.speaking) {{
         window.speechSynthesis.cancel();
+        startListening();
         return;
     }}
     _unlockAudio();  // unlock during this user gesture for later async play
-    // iOS Safari blocks speechSynthesis from async callbacks unless it was first
-    // triggered inside a user gesture. Speak a silent utterance NOW (while we're
-    // inside the tap handler) to unlock it for Lucy's later async reply.
+    // iOS Safari: speak a silent utterance NOW to unlock speechSynthesis for async use
     if ('speechSynthesis' in window && !_isRecording) {{
         var unlock = new SpeechSynthesisUtterance(' ');
         unlock.volume = 0;
@@ -1983,10 +2055,22 @@ function _playTtsBlob(blob, btn, onEnd) {{
     _lucyAudioEl.src = url;
     _lucyAudioEl.load();
     var p = _lucyAudioEl.play();
-    if (p && p.catch) p.catch(function(e) {{ console.warn('Audio play blocked:', e); if (btn) btn.textContent = '🔊 Hear Lucy'; }});
+    if (p && p.catch) p.catch(function(e) {{
+        console.warn('Audio play blocked:', e);
+        if (btn) btn.textContent = '🔊 Hear Lucy';
+        _updateStopBtn(false);
+    }});
     if (btn) btn.textContent = '⏹ Stop';
-    _lucyAudioEl.onended = function() {{ if (btn) btn.textContent = '🔊 Hear Lucy'; if (onEnd) onEnd(); }};
-    _lucyAudioEl.onerror = function() {{ if (btn) btn.textContent = '🔊 Hear Lucy'; }};
+    _updateStopBtn(true);
+    _lucyAudioEl.onended = function() {{
+        if (btn) btn.textContent = '🔊 Hear Lucy';
+        _updateStopBtn(false);
+        if (onEnd) onEnd();
+    }};
+    _lucyAudioEl.onerror = function() {{
+        if (btn) btn.textContent = '🔊 Hear Lucy';
+        _updateStopBtn(false);
+    }};
 }}
 
 function _fetchAndPlay(clean, btn, onEnd) {{
