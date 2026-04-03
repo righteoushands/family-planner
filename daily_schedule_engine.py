@@ -280,6 +280,51 @@ def get_carryover_tasks(child: str, target_day: date):
     return [format_task_text(item) for item in carryover]
 
 
+def dismiss_carryover_items(child: str, target_day: date, items_to_keep: list = None) -> int:
+    """Mark carryover items as done so they stop carrying over.
+
+    items_to_keep: list of human-readable display strings to KEEP (leave as-is).
+                   Items whose display text is NOT in this list are marked done.
+                   Pass None (default) to dismiss ALL carryover items.
+    Returns the count of items dismissed.
+    """
+    # Find the source day (same logic as get_carryover_tasks)
+    prev_tasks_raw = []
+    prev_iso = ""
+    for days_back in range(1, 8):
+        check_day = target_day - timedelta(days=days_back)
+        check_iso = check_day.isoformat()
+        found = get_registered_tasks_for_day(child, check_iso)
+        if found:
+            prev_tasks_raw = found
+            prev_iso = check_iso
+            break
+
+    if not prev_tasks_raw or not prev_iso:
+        return 0
+
+    # Normalise keep-list for case-insensitive matching
+    keep_set = None
+    if items_to_keep is not None:
+        keep_set = {s.strip().lower() for s in items_to_keep if s.strip()}
+
+    progress = load_progress()
+    dismissed = 0
+    changed = False
+    for raw_text in prev_tasks_raw:
+        task_id = make_task_id(child, prev_iso, raw_text)
+        if get_task_done(progress, task_id):
+            continue  # already marked done
+        display = format_task_text(raw_text)
+        if keep_set is None or display.strip().lower() not in keep_set:
+            progress[task_id] = True
+            dismissed += 1
+            changed = True
+    if changed:
+        save_progress(progress)
+    return dismissed
+
+
 def carryover_sort_key(task_text: str):
     if task_text.startswith("MANUAL::"):
         parts = task_text.split("::", 2)

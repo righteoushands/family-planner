@@ -49,5 +49,1535 @@
     "recurring": true,
     "interval_value": 1,
     "interval_unit": "days"
+  },
+  {
+    "text": "Wake up",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Eat breakfast",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Clean up after breakfast",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Start a load of James's clothes",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Complete Sea Cadets Lesson 6 (recruit orientation)",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Mind Michael while Mom is at PT (10:00 AM–12:00 PM)",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: screen fast today — resist screens even if Michael watches TV",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Switch laundry around lunchtime",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Start a new load of laundry",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Lunch (meatless)",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Way of the Cross with Mom",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Review your weekly jobs — confirm all complete",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Explain to Mom the Battle Cats screen time from this week",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Assist Mom getting pizza dough started",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Dinner: Cheese pizza",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: No treats today — it is Good Friday",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Wake up",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Eat breakfast",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Clean up after breakfast",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Complete Sea Cadets Lesson 6 (recruit orientation)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Mind Michael while Mom is at PT (10:00 AM–12:00 PM)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: screen fast today — resist screens even if Michael watches TV",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Lunch (you may have meat if you wish; meatless option available)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Way of the Cross with Mom",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Review your weekly jobs — confirm all complete",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Dinner: Cheese pizza",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: No treats today — it is Good Friday",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Wake up",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Eat breakfast",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Clean up after breakfast",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Play while JP and Joseph mind you (10:00 AM–12:00 PM)",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Lunch (meatless)",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Way of the Cross with Mom",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "James naps 2:00–4:00 PM",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Dinner: Cheese pizza",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: No treats today — it is Good Friday",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Wake up",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Eat breakfast",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Clean up after breakfast",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Start a load of James's clothes",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Complete Sea Cadets Lesson 6 (recruit orientation)",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Mind Michael while Mom is at PT (10:00 AM–12:00 PM)",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: screen fast today — resist screens even if Michael watches TV",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Switch laundry around lunchtime",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Start a new load of laundry",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Way of the Cross with Mom",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Review your weekly jobs — confirm all complete",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Explain to Mom the Battle Cats screen time from this week",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Assist Mom getting pizza dough started",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Dinner: Cheese pizza",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: No treats today — it is Good Friday",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Wake up",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Eat breakfast",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Clean up after breakfast",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Complete Sea Cadets Lesson 6 (recruit orientation)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Mind Michael while Mom is at PT (10:00 AM–12:00 PM)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: screen fast today — resist screens even if Michael watches TV",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Lunch (you may have meat if you wish; meatless option available)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Way of the Cross with Mom",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Review your weekly jobs — confirm all complete",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Dinner: Cheese pizza",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: No treats today — it is Good Friday",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Wake up",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Eat breakfast",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Clean up after breakfast",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Play while JP and Joseph mind you (10:00 AM–12:00 PM)",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: screen fast today — no TV even if you want it",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Lunch (meatless)",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Way of the Cross with Mom",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "James naps 2:00–4:00 PM (Mom will try walking to help him sleep)",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Dinner: Cheese pizza",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: No treats today — it is Good Friday",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Wake up",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Eat breakfast",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Clean up after breakfast",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Start a load of James's clothes",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Complete Sea Cadets Lesson 6 (recruit orientation)",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Check CAP email",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Check Sea Cadet email",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Daily Room Reset",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Tidy the basement for 10 minutes",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Mind Michael while Mom is at PT (10:00 AM–12:00 PM)",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: screen fast today — resist screens even if Michael watches TV",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Switch laundry around lunchtime",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Start a new load of laundry",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Way of the Cross with Mom",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "James naps 2:00–4:00 PM (Mom will try walking to help him sleep)",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Review your weekly jobs — confirm all complete",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Explain to Mom the Battle Cats screen time from this week",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Assist Mom getting pizza dough started",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Dinner: Cheese pizza",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: No treats today — it is Good Friday",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Wake up",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Eat breakfast",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Clean up after breakfast",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Complete Sea Cadets Lesson 6 (recruit orientation)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Check Sea Cadet email",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Daily Room Reset",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Exercise (non-PE days)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Tidy the basement for 10 minutes",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Mind Michael while Mom is at PT (10:00 AM–12:00 PM)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: screen fast today — resist screens even if Michael watches TV",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Lunch (you may have meat if you wish; meatless option available)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Way of the Cross with Mom",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "James naps 2:00–4:00 PM (Mom will try walking to help him sleep)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Review your weekly jobs — confirm all complete",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Dinner: Cheese pizza",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: No treats today — it is Good Friday",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Wake up",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Eat breakfast",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Clean up after breakfast",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Daily Room Reset",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Exercise (non-PE days)",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Tidy the basement for 10 minutes",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Play while JP and Joseph mind you (10:00 AM–12:00 PM)",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: screen fast today — no TV even if you want it",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Lunch (meatless)",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Way of the Cross with Mom",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "James naps 2:00–4:00 PM (Mom will try walking to help him sleep)",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Dinner: Cheese pizza",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: No treats today — it is Good Friday",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Wake up",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Eat breakfast",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Clean up after breakfast",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Start a load of James's clothes",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Complete Sea Cadets Lesson 6 (recruit orientation)",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Mind Michael while Mom is at PT (10:00 AM–12:00 PM)",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: screen fast today — resist screens even if Michael watches TV",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Switch laundry around lunchtime",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Start a new load of laundry",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Way of the Cross with Mom",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Review your weekly jobs — confirm all complete",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Explain to Mom the Battle Cats screen time from this week",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Assist Mom getting pizza dough started",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Dinner: Cheese pizza",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: No treats today — it is Good Friday",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Check CAP email",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Check Sea Cadet email",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Daily Room Reset",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Exercise (non-PE days)",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Tidy the basement for 10 minutes",
+    "assigned_to": "JP",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Wake up",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Eat breakfast",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Clean up after breakfast",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Complete Sea Cadets Lesson 6 (recruit orientation)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Mind Michael while Mom is at PT (10:00 AM–12:00 PM)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: screen fast today — resist screens even if Michael watches TV",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Lunch (you may have meat if you wish; meatless option available)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Way of the Cross with Mom",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "James naps 2:00–4:00 PM (Mom will try walking to help him sleep)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Review your weekly jobs — confirm all complete",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Dinner: Cheese pizza",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: No treats today — it is Good Friday",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Check Sea Cadet email",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Daily Room Reset",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Exercise (non-PE days)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Tidy the basement for 10 minutes",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Wake up",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Eat breakfast",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Clean up after breakfast",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Play while JP and Joseph mind you (10:00 AM–12:00 PM)",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: screen fast today — no TV even if you want it",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Lunch (meatless)",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "James naps 2:00–4:00 PM (Mom will try walking to help him sleep)",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Way of the Cross with Mom",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Dinner: Cheese pizza",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Remember: No treats today — it is Good Friday",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Daily Room Reset",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Exercise (non-PE days)",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Tidy the basement for 10 minutes",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
   }
 ]

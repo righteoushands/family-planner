@@ -306,6 +306,24 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
         "- Keep task text short and actionable — they appear as checkbox items on the physical printout",
         "- Draw on your conversation with Mom to craft the list; include anything she mentioned",
         "",
+        "You can also edit CARRYOVER items — tasks that weren't completed on a previous day and",
+        "automatically roll forward. Use this tag to dismiss or trim carryover:",
+        "",
+        "  To dismiss ALL carryover for a child:",
+        '  <carryover_update child="CHILDNAME" date="YYYY-MM-DD"/>',
+        "",
+        "  To keep only SOME items (dismiss everything else):",
+        '  <carryover_update child="CHILDNAME" date="YYYY-MM-DD">',
+        "  Item to keep 1",
+        "  Item to keep 2",
+        "  </carryover_update>",
+        "",
+        "Rules for carryover_update:",
+        "- The body lists items to KEEP — anything not listed is marked done and removed from carryover",
+        "- Empty body (self-closing tag) dismisses ALL carryover for that child",
+        "- Date defaults to today if omitted",
+        "- You can combine <plan_update> and <carryover_update> tags in the same message",
+        "",
         "== FAMILY ==",
     ]
 
@@ -440,12 +458,18 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
 
     lines += ["", "== EACH CHILD'S SCHOOL & CHORES TODAY =="]
     try:
-        from daily_schedule_engine import CHILDREN, build_schedule_payload, get_manual_tasks_for_child_and_date
+        from daily_schedule_engine import (
+            CHILDREN, build_schedule_payload,
+            get_manual_tasks_for_child_and_date, get_carryover_tasks
+        )
+        from datetime import date as _dse_date
+        _today_d = _dse_date.fromisoformat(iso)
         for child in CHILDREN:
             payload = build_schedule_payload(child, weekday, date_label, iso)
-            school_blocks = payload.get("school_blocks", [])
-            chore_items   = payload.get("chore_items", [])
-            manual_items  = get_manual_tasks_for_child_and_date(child, iso)
+            school_blocks  = payload.get("school_blocks", [])
+            chore_items    = payload.get("chore_items", [])
+            manual_items   = get_manual_tasks_for_child_and_date(child, iso)
+            carryover_disp = get_carryover_tasks(child, _today_d)
             lines.append(f"\n{child}:")
             if school_blocks:
                 subjects = [b.get("subject", "?") for b in school_blocks]
@@ -455,6 +479,10 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
             if chore_items:
                 chores = [c.get("text", "?") for c in chore_items[:5]]
                 lines.append(f"  Chores: {', '.join(chores)}")
+            if carryover_disp:
+                lines.append(f"  Carryover (you can dismiss): {'; '.join(carryover_disp)}")
+            else:
+                lines.append("  Carryover: (none)")
             if manual_items:
                 task_texts = [t.get("text", "") for t in manual_items]
                 lines.append(f"  Printable tasks (you can edit): {'; '.join(task_texts)}")
@@ -589,12 +617,44 @@ def _render_history_html(messages: list) -> str:
                 f'</div>'
             )
         else:
-            # Lucy response — strip rule tags from display
+            # Lucy response — strip action tags from display and render buttons
             import re as _re
-            clean = _re.sub(r'\[RULE:(add|remove)\][\s\S]*?\[/RULE\]', '', content).strip()
+            # Collect plan/carryover update markers before stripping
+            _plan_buttons = ""
+            for _pm in _re.finditer(r'\[PLAN_UPDATED:([^\]:]+):([^\]]+)\]', content):
+                _pc, _pd = _pm.group(1), _pm.group(2)
+                _print_url = f"/print/day?date={_pd}"
+                _plan_buttons += (
+                    f'<div style="display:flex;align-items:center;gap:8px;margin-top:6px;'
+                    f'padding:7px 10px;background:#f5f8f0;border:1px solid #b8d498;border-radius:8px;">'
+                    f'<span style="color:#3a7d1e;font-weight:700;">✓</span>'
+                    f'<span style="font-size:0.82em;color:#2d5016;flex:1;">'
+                    f'{escape(_pc)}\u2019s task list updated for {escape(_pd)}.</span>'
+                    f'<a href="{_print_url}" target="_blank" style="padding:4px 12px;background:#3a7d1e;'
+                    f'color:white;text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;">'
+                    f'\U0001f5a8 Print</a></div>'
+                )
+            for _cm in _re.finditer(r'\[CARRYOVER_UPDATED:([^\]:]+):([^\]:]+):(\d+)\]', content):
+                _cc, _cd, _cn = _cm.group(1), _cm.group(2), _cm.group(3)
+                _noun = "carryover item" if _cn == "1" else "carryover items"
+                _print_url2 = f"/print/day?date={_cd}"
+                _plan_buttons += (
+                    f'<div style="display:flex;align-items:center;gap:8px;margin-top:6px;'
+                    f'padding:7px 10px;background:#fff8f0;border:1px solid #e0b87a;border-radius:8px;">'
+                    f'<span style="color:#b06000;font-weight:700;">✓</span>'
+                    f'<span style="font-size:0.82em;color:#7a4200;flex:1;">'
+                    f'{escape(_cn)} {_noun} removed from {escape(_cc)}\u2019s list.</span>'
+                    f'<a href="{_print_url2}" target="_blank" style="padding:4px 12px;background:#b06000;'
+                    f'color:white;text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;">'
+                    f'\U0001f5a8 Print</a></div>'
+                )
+            clean = _re.sub(r'\[RULE:(add|remove)\][\s\S]*?\[/RULE\]', '', content)
+            clean = _re.sub(r'\[PLAN_UPDATED:[^\]]+\]', '', clean)
+            clean = _re.sub(r'\[CARRYOVER_UPDATED:[^\]]+\]', '', clean).strip()
             parts.append(
                 f'<div class="lucy-bubble-wrap" style="margin-bottom:0;">'
                 f'<div class="lucy-bubble-lucy" style="white-space:pre-wrap;">{escape(clean)}</div>'
+                f'{_plan_buttons}'
                 f'</div>'
             )
     if not parts:
@@ -940,6 +1000,7 @@ function lucySend() {{
             return text
                 .replace(/\[RULE:(add|remove)\][\s\S]*?\[\/RULE\]/g, '')
                 .replace(/\[PLAN_UPDATED:[^\]]+\]/g, '')
+                .replace(/\[CARRYOVER_UPDATED:[^\]]+\]/g, '')
                 .replace(/\s+$/, '');
         }}
         function read() {{
@@ -978,6 +1039,33 @@ function lucySend() {{
                             ruleRow.appendChild(ruleBtn);
                             bubble._wrap.appendChild(ruleRow);
                         }})(m[1], m[2]);
+                    }}
+                    // Parse [CARRYOVER_UPDATED:child:date:count] markers
+                    var carryRx = /\[CARRYOVER_UPDATED:([^\]:]+):([^\]:]+):(\d+)\]/g;
+                    while ((m = carryRx.exec(full)) !== null) {{
+                        (function(cChild, cDate, cCount) {{
+                            var carryRow = document.createElement('div');
+                            carryRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:6px;'
+                                + 'padding:7px 10px;background:#fff8f0;border:1px solid #e0b87a;border-radius:8px;';
+                            var checkIcon = document.createElement('span');
+                            checkIcon.textContent = '✓';
+                            checkIcon.style.cssText = 'color:#b06000;font-weight:700;font-size:1em;flex-shrink:0;';
+                            var msg = document.createElement('span');
+                            var noun = cCount === '1' ? 'carryover item' : 'carryover items';
+                            msg.textContent = cCount + ' ' + noun + ' removed from ' + cChild + "'s list.";
+                            msg.style.cssText = 'font-size:0.82em;color:#7a4200;flex:1;';
+                            var printBtn2 = document.createElement('a');
+                            printBtn2.textContent = '🖨 Print';
+                            printBtn2.href = '/print/day?date=' + encodeURIComponent(cDate);
+                            printBtn2.target = '_blank';
+                            printBtn2.style.cssText = 'padding:4px 12px;background:#b06000;color:white;'
+                                + 'text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;'
+                                + 'font-family:inherit;flex-shrink:0;';
+                            carryRow.appendChild(checkIcon);
+                            carryRow.appendChild(msg);
+                            carryRow.appendChild(printBtn2);
+                            bubble._wrap.appendChild(carryRow);
+                        }})(m[1], m[2], m[3]);
                     }}
                     // Parse and show print buttons for [PLAN_UPDATED:child:date]
                     var planRx = /\[PLAN_UPDATED:([^\]:]+):([^\]]+)\]/g;

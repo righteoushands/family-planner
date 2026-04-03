@@ -1037,10 +1037,35 @@ class Handler(BaseHTTPRequestHandler):
                             _plan_markers += f"\n[PLAN_UPDATED:{_child}:{_date}]"
                         except Exception as _pe:
                             _plan_markers += f"\n(Plan save error: {_pe})"
+                # ── Parse and execute <carryover_update> action tags ─────────
+                _carryover_rx = _re.compile(
+                    r'<carryover_update\b([^>]*?)(?:/>|>([\s\S]*?)</carryover_update>)',
+                    _re.IGNORECASE
+                )
+                _carryover_markers = ""
+                for _cm in _carryover_rx.finditer(text):
+                    _cattrs = _cm.group(1) or ""
+                    _cbody  = (_cm.group(2) or "").strip()
+                    _cchild = _attr(_cattrs, "child")
+                    _cdate  = _attr(_cattrs, "date") or iso
+                    if not _cchild:
+                        continue
+                    try:
+                        from daily_schedule_engine import dismiss_carryover_items
+                        from datetime import date as _date_cls
+                        _target = _date_cls.fromisoformat(_cdate)
+                        # If body has items, those are the ones to KEEP; else dismiss all
+                        _keep = [ln.strip() for ln in _cbody.splitlines() if ln.strip()] if _cbody else None
+                        _n = dismiss_carryover_items(_cchild, _target, _keep)
+                        _carryover_markers += f"\n[CARRYOVER_UPDATED:{_cchild}:{_cdate}:{_n}]"
+                    except Exception as _ce:
+                        _carryover_markers += f"\n(Carryover update error: {_ce})"
                 # Strip action tags from display text, append markers
-                _display_text = _plan_rx.sub("", text).rstrip()
-                if _plan_markers:
-                    _display_text = _display_text + _plan_markers
+                _all_markers = _plan_markers + _carryover_markers
+                _display_text = _plan_rx.sub("", text)
+                _display_text = _carryover_rx.sub("", _display_text).rstrip()
+                if _all_markers:
+                    _display_text = _display_text + _all_markers
                 else:
                     _display_text = text
                 # ── Save assistant response to server-side history ────────────
