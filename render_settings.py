@@ -1099,6 +1099,72 @@ def _accordion(
 </details>"""
 
 
+def _section_pins() -> str:
+    """PIN management — admin only."""
+    try:
+        from auth import USERS, load_pins
+        pins = load_pins()
+    except Exception:
+        return ""
+    rows = ""
+    order = ["lauren", "john", "jp", "joseph", "michael", "james"]
+    for uid in order:
+        u = USERS.get(uid, {})
+        name  = u.get("name", uid.title())
+        color = u.get("color", "#374151")
+        no_pin = not u.get("pin_required", True)
+        if no_pin:
+            rows += (
+                f'<div style="display:flex;align-items:center;gap:12px;padding:8px 0;'
+                f'border-bottom:1px solid var(--border-light);">'
+                f'<div style="width:36px;height:36px;border-radius:50%;background:{color};'
+                f'display:flex;align-items:center;justify-content:center;color:white;'
+                f'font-weight:800;font-size:0.78em;">{escape(u.get("initials","?"))}</div>'
+                f'<div style="flex:1;font-weight:600;color:var(--ink);">{escape(name)}</div>'
+                f'<span style="font-size:0.8em;color:#9ca3af;">No PIN needed (tap avatar)</span>'
+                f'</div>'
+            )
+        else:
+            cur_pin = pins.get(uid, "0000")
+            masked  = "••••" if cur_pin != "0000" else "0000 (default)"
+            rows += (
+                f'<div style="display:flex;align-items:center;gap:12px;padding:8px 0;'
+                f'border-bottom:1px solid var(--border-light);">'
+                f'<div style="width:36px;height:36px;border-radius:50%;background:{color};'
+                f'display:flex;align-items:center;justify-content:center;color:white;'
+                f'font-weight:800;font-size:0.78em;">{escape(u.get("initials","?"))}</div>'
+                f'<div style="flex:1;font-weight:600;color:var(--ink);">{escape(name)}</div>'
+                f'<input type="text" name="pin_{uid}" inputmode="numeric" maxlength="4" '
+                f'pattern="[0-9]{{4}}" placeholder="{escape(masked)}" '
+                f'style="width:90px;padding:6px 10px;border:1px solid var(--border-light);'
+                f'border-radius:8px;font-family:inherit;font-size:0.9em;letter-spacing:.12em;'
+                f'text-align:center;" autocomplete="off">'
+                f'</div>'
+            )
+    return f"""
+<details>
+  <summary style="font-weight:700;cursor:pointer;padding:6px 0;list-style:none;
+    display:flex;align-items:center;gap:6px;">
+    &#128274; Login PINs
+    <span style="font-size:0.75em;font-weight:400;color:var(--ink-muted);margin-left:6px;">
+      4-digit codes (MMDD of birthday recommended)
+    </span>
+  </summary>
+  <div style="padding:12px 0 4px;">
+    <p class="small" style="margin-bottom:14px;color:var(--ink-muted);">
+      Enter a new 4-digit PIN to change it. Leave blank to keep the current PIN.
+      Michael and James have no PIN — they tap their avatar to log in.
+    </p>
+    <form method="POST" action="/save-pins">
+      {rows}
+      <div style="margin-top:14px;">
+        <button class="btn-primary" type="submit">Save PINs</button>
+      </div>
+    </form>
+  </div>
+</details>"""
+
+
 def render_settings_page(status_message: str = "") -> str:
     from daily_schedule_engine import CHILDREN
     settings = load_app_settings()
@@ -1120,6 +1186,9 @@ def render_settings_page(status_message: str = "") -> str:
   </div>
   <div style="padding:12px 0;border-top:1px solid var(--border-light);">
     {_section_liturgy_hours(settings)}
+  </div>
+  <div style="padding:12px 0;border-top:1px solid var(--border-light);">
+    {_section_pins()}
   </div>
 </div>"""
 

@@ -1,7 +1,7 @@
 # Sancta Familia — Family Management & Homeschooling Dashboard
 
 ## Overview
-A Python HTTP server (no framework) running on port 5000. A Catholic family dashboard for the McAdams family (JP, Joseph, Michael, James/toddler, Mom). Features Mass readings, weather, meal plans, calendar, and "Lucy" — a Claude-powered AI companion.
+A Python HTTP server (no framework) running on port 5000. A Catholic family dashboard for the McAdams family: Lauren (Mom), John (Dad), JP (14), Joseph (12), Michael (5), James (13 months). Features Mass readings, weather, meal plans, calendar, chores, and "Lucy" — a Claude-powered AI companion. Full authentication with per-user access control.
 
 ## Architecture
 - **Entry point**: `app.py` — single HTTP handler routing all GET/POST requests
@@ -9,18 +9,32 @@ A Python HTTP server (no framework) running on port 5000. A Catholic family dash
 - **Data**: `data/` directory — JSON files for settings, schedule, progress, meals, calendar cache
 - **Port**: 5000 (`PORT=5000 python app.py`)
 - **Timezone**: Eastern (`America/New_York`), helpers in `render_schedule_support.py`
+- **Auth**: `auth.py` — session-based, PIN login, per-user access tables, viewer context
+
+## Authentication System
+- **`auth.py`**: Session store (in-memory), PIN management (`data/auth/pins.json`), access control tables
+- **`render_login.py`**: Login page — avatar grid (all 6 members) + PIN pad modal
+- **Login rules**: Lauren/John/JP/Joseph → 4-digit PIN (default `0000`); Michael/James → tap avatar (no PIN)
+- **Sessions**: Browser-close sessions (no max-age cookie). `set_viewer()`/`get_viewer()` for single-threaded context
+- **Child access** — JP & Joseph: home `/`, `/today`, `/week`, `/schedule/{own}`, `/meals`, `/recipes`, `/chores`, `/prayer` (read-only); can POST to `/toggle-task` and `/message-mom`
+- **Michael**: Same but no `/recipes`; own schedule page only
+- **Admins** (Lauren/John): Full access to everything
+- **Message Mom**: Children send messages via modal (any page); Lauren sees inbox on home dashboard with unread count badge in nav
+- **PIN management**: Settings page → "Login PINs" section (admin only); `/save-pins` POST route
 
 ## Key Files
 | File | Purpose |
 |------|---------|
-| `app.py` | Route handler, all GET/POST paths |
-| `render_misc.py` | Dashboard, `/now` page, Mom's plan page, school, tasks, notes |
+| `app.py` | Route handler, all GET/POST paths + auth middleware |
+| `auth.py` | Session management, PIN verification, access control, message store |
+| `render_login.py` | Login page with avatar grid and PIN pad |
+| `render_misc.py` | Dashboard (with mom's message inbox), `/now` page, school, tasks, notes |
 | `render_schedule.py` | `/today` (child dash cards) and child schedule full page |
 | `render_lucy.py` | Lucy AI chat, rule parsing, memory book integration |
-| `render_settings.py` | All settings — general, AI/constraints, cycle, household, integrations |
+| `render_settings.py` | All settings including PIN management section |
 | `render_schedule_support.py` | `get_current_slot()`, `get_eastern_now()` helpers |
 | `data_helpers.py` | Load/save helpers for all JSON data files |
-| `ui_helpers.py` | `html_page()`, `page_header()`, nav bar (fixed bottom, 64px) |
+| `ui_helpers.py` | `html_page()`, `page_header()`, nav bar — child-aware (simplified nav for boys) |
 | `config.py` | `child_color(child, variant)` — per-child color lookup |
 | `daily_schedule_engine.py` | `CHILDREN` list, `build_schedule_payload()` |
 

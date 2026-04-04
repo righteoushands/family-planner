@@ -9,6 +9,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import socketserver
 from urllib.parse import parse_qs, urlparse
 
+import auth as _auth
+
 from daily_schedule_engine import CHILDREN, set_task_done
 from notes_router import add_note, archive_note, load_notes, save_notes
 from school_pdf_engine import (
@@ -67,11 +69,118 @@ from render_daily_plan import (
 
 class Handler(BaseHTTPRequestHandler):
 
+    # ── Auth helpers ──────────────────────────────────────────────────────────
+
+    def _parse_cookie(self) -> dict:
+        raw = self.headers.get("Cookie", "")
+        result = {}
+        for part in raw.split(";"):
+            part = part.strip()
+            if "=" in part:
+                k, v = part.split("=", 1)
+                result[k.strip()] = v.strip()
+        return result
+
+    def _get_viewer(self):
+        """Return the logged-in username or None."""
+        token = self._parse_cookie().get("session", "")
+        return _auth.get_session_user(token) if token else None
+
+    def _set_session_cookie(self, token: str):
+        """Set a session cookie (no max-age = browser-close expiry)."""
+        self.send_header("Set-Cookie", f"session={token}; Path=/; HttpOnly; SameSite=Strict")
+
+    def _clear_session_cookie(self):
+        self.send_header("Set-Cookie", "session=deleted; Path=/; HttpOnly; Max-Age=0")
+
+    def _redirect(self, location: str, code: int = 302):
+        self.send_response(code)
+        self.send_header("Location", location)
+        self.end_headers()
+
+    def _require_auth(self, path: str) -> str | None:
+        """
+        Check auth for a GET request.
+        Sets the viewer context and returns the username if allowed.
+        Returns None and sends the redirect itself if NOT allowed.
+        """
+        user = self._get_viewer()
+        _auth.set_viewer(user)
+
+        # Public paths that never need auth
+        if path in ("/login", "/logout") or path.startswith("/static/"):
+            return user  # pass through
+
+        if not user:
+            self._redirect(f"/login?next={path}")
+            return None
+
+        if not _auth.can_get(user, path):
+            self._redirect("/login?denied=1")
+            return None
+
+        return user
+
+    def _require_post_auth(self, path: str) -> str | None:
+        """
+        Check auth for a POST request.
+        Returns username if allowed, None (and 403) if not.
+        """
+        user = self._get_viewer()
+        _auth.set_viewer(user)
+
+        if not user:
+            self.send_response(403)
+            self.end_headers()
+            return None
+
+        if not _auth.can_post(user, path):
+            self.send_response(403)
+            self.end_headers()
+            return None
+
+        return user
+
     def do_GET(self):
         route = urlparse(self.path)
         path  = route.path
         query = parse_qs(route.query)
         body  = None
+
+        # ── Login page (public) ───────────────────────────────────────────────
+        if path == "/login":
+            from render_login import render_login_page
+            existing = self._get_viewer()
+            _auth.set_viewer(existing)
+            if existing:
+                dest = "/" if _auth.is_admin(existing) else f"/schedule/{existing}"
+                self._redirect(dest); return
+            denied = query.get("denied", [""])[0]
+            redir  = query.get("next", ["/"])[0]
+            err_msg = "You don't have permission to view that page." if denied == "1" else ""
+            pg = render_login_page(error=err_msg, redirect_to=redir)
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            try: self.wfile.write(pg.encode())
+            except BrokenPipeError: pass
+            return
+
+        # ── Logout ────────────────────────────────────────────────────────────
+        if path == "/logout":
+            token = self._parse_cookie().get("session", "")
+            if token: _auth.destroy_session(token)
+            _auth.set_viewer(None)
+            self.send_response(302)
+            self._clear_session_cookie()
+            self.send_header("Location", "/login")
+            self.end_headers()
+            return
+
+        # ── Auth gate ─────────────────────────────────────────────────────────
+        viewer = self._require_auth(path)
+        if viewer is None:
+            return  # _require_auth already sent the redirect
 
         if   path == "/":                body = render_dashboard()
         elif path == "/today":           body = render_today_all(query.get("date",[""])[0])
@@ -390,6 +499,87 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         path     = urlparse(self.path).path
         redirect = "/"
+
+        # ── Login POST (public) ───────────────────────────────────────────────
+        if path == "/login":
+            from render_login import render_login_page
+            cl   = int(self.headers.get("Content-Length", 0))
+            raw  = self.rfile.read(cl).decode("utf-8", errors="ignore")
+            form = dict(pair.split("=", 1) for pair in raw.split("&") if "=" in pair)
+            from urllib.parse import unquote_plus
+            uid  = unquote_plus(form.get("user", "")).lower().strip()
+            pin  = unquote_plus(form.get("pin",  "")).strip()
+            nxt  = unquote_plus(form.get("next", "/")).strip() or "/"
+
+            if _auth.check_pin(uid, pin):
+                token = _auth.create_session(uid)
+                # Where to land after login
+                if _auth.is_admin(uid):
+                    dest = nxt if nxt not in ("/login", "") else "/"
+                else:
+                    dest = f"/schedule/{uid}"
+                self.send_response(303)
+                self._set_session_cookie(token)
+                self.send_header("Location", dest)
+                self.end_headers()
+            else:
+                pg = render_login_page(
+                    error="Wrong PIN — try again.",
+                    redirect_to=nxt,
+                )
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.end_headers()
+                try: self.wfile.write(pg.encode())
+                except BrokenPipeError: pass
+            return
+
+        # ── Message Mom (children allowed) ───────────────────────────────────
+        if path == "/message-mom":
+            user = self._get_viewer()
+            _auth.set_viewer(user)
+            if not user:
+                self._redirect("/login"); return
+            cl  = int(self.headers.get("Content-Length", 0))
+            raw = self.rfile.read(cl).decode("utf-8", errors="ignore")
+            frm = dict(pair.split("=", 1) for pair in raw.split("&") if "=" in pair)
+            from urllib.parse import unquote_plus as _uqp
+            txt = _uqp(frm.get("text", "")).strip()
+            if txt:
+                _auth.save_message(user, txt)
+            self._redirect(f"/schedule/{user}" if not _auth.is_admin(user) else "/")
+            return
+
+        # ── Mark messages read ────────────────────────────────────────────────
+        if path == "/messages-read":
+            user = self._get_viewer()
+            if user and _auth.is_admin(user):
+                _auth.mark_messages_read()
+            self._redirect("/")
+            return
+
+        # ── Save PINs (admin only) ────────────────────────────────────────────
+        if path == "/save-pins":
+            user = self._get_viewer()
+            if user and _auth.is_admin(user):
+                cl  = int(self.headers.get("Content-Length", 0))
+                raw = self.rfile.read(cl).decode("utf-8", errors="ignore")
+                from urllib.parse import parse_qs as _pqs, unquote_plus as _uqp2
+                params = _pqs(raw)
+                new_pins = {}
+                for uid in ("lauren", "john", "jp", "joseph", "michael", "james"):
+                    val = _uqp2(params.get(f"pin_{uid}", [""])[0]).strip()
+                    if val and len(val) == 4 and val.isdigit():
+                        new_pins[uid] = val
+                if new_pins:
+                    _auth.save_pins(new_pins)
+            self._redirect("/settings#group-app")
+            return
+
+        # ── Auth gate for all other POST routes ───────────────────────────────
+        _post_user = self._require_post_auth(path)
+        if _post_user is None:
+            return
 
         if path in ("/school-upload", "/prayer-intention-add", "/recipe-import"):
             form = parse_multipart_form(self)

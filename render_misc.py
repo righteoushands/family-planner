@@ -870,6 +870,59 @@ def __render_meal_card_safe(target_date=None) -> str:
         return ""
 
 
+def _render_mom_messages_inbox() -> str:
+    """Show messages from the boys — only for admin users (Lauren/John)."""
+    try:
+        import auth as _a
+        viewer = _a.get_viewer()
+        if not viewer or not _a.is_admin(viewer):
+            return ""
+        msgs = _a.load_messages()
+        if not msgs:
+            return ""
+        msgs = list(reversed(msgs))  # newest first
+        unread = [m for m in msgs if not m.get("read", False)]
+        rows = ""
+        for m in msgs[:10]:
+            is_new = not m.get("read", False)
+            color  = _a.USERS.get(m.get("from", ""), {}).get("color", "#6b7280")
+            name   = escape(m.get("from_name", "?"))
+            text   = escape(m.get("text", ""))
+            ts     = m.get("timestamp", "")[:16].replace("T", " ")
+            dot    = f'<span style="width:8px;height:8px;border-radius:50%;background:{color};display:inline-block;margin-right:6px;flex-shrink:0;"></span>' if is_new else '<span style="width:8px;margin-right:6px;display:inline-block;"></span>'
+            rows += (
+                f'<div style="display:flex;align-items:flex-start;gap:0;padding:10px 14px;'
+                f'border-bottom:1px solid #f3f4f6;background:{"#fef9ff" if is_new else "white"};">'
+                f'{dot}'
+                f'<div style="flex:1;">'
+                f'<div style="font-size:0.82em;font-weight:700;color:{color};">{name}</div>'
+                f'<div style="font-size:0.88em;color:#374151;margin:2px 0 4px;">{text}</div>'
+                f'<div style="font-size:0.72em;color:#9ca3af;">{ts}</div>'
+                f'</div></div>'
+            )
+        mark_btn = ""
+        if unread:
+            mark_btn = (
+                f'<form method="POST" action="/messages-read" style="display:inline;">'
+                f'<button style="background:none;border:none;color:#7c3aed;font-size:0.8em;'
+                f'cursor:pointer;font-family:inherit;text-decoration:underline;">Mark all read</button>'
+                f'</form>'
+            )
+        cnt_label = f'{len(unread)} new · ' if unread else ''
+        return (
+            f'<div id="mom-messages" class="card" style="padding:0;overflow:hidden;margin-bottom:18px;">'
+            f'<div style="padding:12px 16px;background:#f9fafb;border-bottom:1px solid #e5e7eb;'
+            f'display:flex;align-items:center;justify-content:space-between;">'
+            f'<div style="font-size:0.82em;font-weight:700;color:#7c3aed;">&#128140; Messages from the boys</div>'
+            f'<span style="font-size:0.75em;color:#9ca3af;">{cnt_label}{len(msgs)} total &nbsp;{mark_btn}</span>'
+            f'</div>'
+            f'{rows}'
+            f'</div>'
+        )
+    except Exception:
+        return ""
+
+
 def render_dashboard() -> str:
     from render_morning_anchor import (
         SEASON_QUOTES, _get_quote_for_day, fetch_this_day_in_history
@@ -1230,6 +1283,8 @@ def render_dashboard() -> str:
     {plan_html}
 
     {render_litany_block()}
+
+    {_render_mom_messages_inbox()}
 
     <a class="link-button no-print" href="/more"
        style="font-size:0.82em;margin-bottom:8px;display:inline-block;">More &rarr;</a>

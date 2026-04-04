@@ -1107,14 +1107,76 @@ window.closeMobileMore = function() {{
 
 # ── Navigation ───────────────────────────────────────────────────────────────
 def top_nav() -> str:
+    try:
+        import auth as _auth_mod
+        viewer = _auth_mod.get_viewer()
+        is_admin = _auth_mod.is_admin(viewer) if viewer else False
+    except Exception:
+        viewer = None
+        is_admin = True
+
+    # ── Child nav (simplified) ────────────────────────────────────────────────
+    if viewer and not is_admin:
+        u = _auth_mod.USERS.get(viewer, {})
+        color = u.get("color", "#1f2937")
+        name  = u.get("name", viewer.title())
+        sched_link = f"/schedule/{viewer}"
+        return f"""
+    <nav class="nav-shell no-print">
+      <div class="nav-primary">
+        <a href="{sched_link}" style="color:{color};font-weight:800;">👤 {escape(name)}</a>
+        <div class="nav-divider"></div>
+        <a href="/today">Today</a>
+        <a href="/week">Week</a>
+        <div class="nav-divider"></div>
+        <a href="/meals">🍽 Meals</a>
+        <a href="/chores">🧹 Chores</a>
+        <a href="/prayer">✝ Prayer</a>
+        <div class="nav-divider"></div>
+        <button onclick="document.getElementById('msg-mom-modal').style.display='flex'"
+          style="background:#7c3aed;color:white;border:none;border-radius:20px;
+                 padding:6px 14px;font-size:0.82em;font-weight:700;cursor:pointer;
+                 font-family:inherit;">&#128140; Message Mom</button>
+        <div class="nav-divider"></div>
+        <a href="/logout" style="color:#9ca3af;font-size:0.8em;">Sign out</a>
+      </div>
+    </nav>
+    {_message_mom_modal()}
+    """
+
+    # ── Admin nav (full) ─────────────────────────────────────────────────────
     child_links = "".join(
         f'<a href="/schedule/{child}" style="color:{child_color(child,"bg")};font-weight:700;">{child}</a>'
         for child in CHILDREN
     )
+
+    # Unread message badge
+    badge = ""
+    try:
+        cnt = _auth_mod.unread_count()
+        if cnt:
+            badge = (f'<a href="/#mom-messages" style="background:#dc2626;color:white;'
+                     f'border-radius:20px;padding:4px 10px;font-size:0.78em;font-weight:800;'
+                     f'text-decoration:none;margin-left:4px;">&#128140; {cnt} new</a>')
+    except Exception:
+        pass
+
+    user_pill = ""
+    if viewer:
+        u = _auth_mod.USERS.get(viewer, {})
+        color = u.get("color", "#1f2937")
+        name  = u.get("name", viewer.title())
+        user_pill = (f'<span style="color:{color};font-weight:700;font-size:0.88em;">'
+                     f'{escape(name)}</span>'
+                     f'<a href="/logout" style="color:#9ca3af;font-size:0.75em;margin-left:6px;">sign out</a>'
+                     f'<div class="nav-divider"></div>')
+
     return f"""
     <nav class="nav-shell no-print">
       <div class="nav-primary">
+        {user_pill}
         <a href="/">🏠</a>
+        {badge}
         <div class="nav-divider"></div>
         <a href="/today">Today</a>
         <a href="/week">Week</a>
@@ -1164,6 +1226,41 @@ def top_nav() -> str:
       </div>
     </nav>
     """
+
+
+def _message_mom_modal() -> str:
+    """Floating modal for children to message Lauren."""
+    return """
+<div id="msg-mom-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+     backdrop-filter:blur(3px);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fdf8f0;border-radius:20px;padding:28px 24px;width:100%;max-width:380px;
+              box-shadow:0 20px 50px rgba(0,0,0,.4);">
+    <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:1.4em;font-weight:700;
+                color:#7c3aed;margin-bottom:6px;">&#128140; Message Mom</div>
+    <div style="font-size:0.82em;color:#6b7280;margin-bottom:16px;">
+      She'll see your message when she checks the dashboard.
+    </div>
+    <form method="POST" action="/message-mom">
+      <textarea name="text" rows="4" placeholder="Type your message..."
+        style="width:100%;padding:12px;border:1.5px solid #e5e7eb;border-radius:12px;
+               font-family:inherit;font-size:0.95em;resize:none;margin-bottom:12px;"
+        required></textarea>
+      <div style="display:flex;gap:10px;">
+        <button type="submit"
+          style="flex:1;background:#7c3aed;color:white;border:none;border-radius:12px;
+                 padding:12px;font-weight:700;font-size:0.95em;cursor:pointer;font-family:inherit;">
+          Send &#128140;
+        </button>
+        <button type="button"
+          onclick="document.getElementById('msg-mom-modal').style.display='none'"
+          style="flex:1;background:#f3f4f6;color:#374151;border:none;border-radius:12px;
+                 padding:12px;font-weight:700;font-size:0.95em;cursor:pointer;font-family:inherit;">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>"""
 
 
 def page_header(title: str, subtitle: str = "") -> str:
