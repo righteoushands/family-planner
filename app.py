@@ -2885,7 +2885,7 @@ class Handler(BaseHTTPRequestHandler):
                             "content-type": "application/json",
                         },
                         json={
-                            "model": "claude-opus-4-6",
+                            "model": "claude-sonnet-4-20250514",
                             "max_tokens": 4096,
                             "messages": [{"role":"user","content": prompt}],
                         },
@@ -2897,15 +2897,34 @@ class Handler(BaseHTTPRequestHandler):
                         b.get("text","") for b in resp_json.get("content",[])
                         if b.get("type") == "text"
                     )
-                    # Extract JSON from response
+                    # Extract JSON from response — multi-strategy robust parse
                     import re as _re
-                    json_match = _re.search(r'\{[\s\S]*\}', text)
-                    if json_match:
-                        parsed = _json.loads(json_match.group())
-                    else:
-                        parsed = {}
+                    parsed = {}
+                    # Strategy 1: JSON inside ```json ... ``` fences
+                    fence_m = _re.search(r'```json\s*([\s\S]*?)\s*```', text)
+                    candidates = []
+                    if fence_m:
+                        candidates.append(fence_m.group(1))
+                    # Strategy 2: outermost {...} block
+                    brace_m = _re.search(r'\{[\s\S]*\}', text)
+                    if brace_m:
+                        candidates.append(brace_m.group())
+                    for cand in candidates:
+                        try:
+                            parsed = _json.loads(cand)
+                            break
+                        except _json.JSONDecodeError:
+                            # Strategy 3: strip trailing commas before } or ]
+                            cleaned = _re.sub(r',\s*([}\]])', r'\1', cand)
+                            try:
+                                parsed = _json.loads(cleaned)
+                                break
+                            except Exception:
+                                pass
                     # Extract the day plan (7 day keys) vs metadata
                     from render_meals import DAYS as _DAYS
+                    if not parsed:
+                        raise ValueError("Claude response could not be parsed as JSON. Raw: " + text[:400])
                     days_out = {d: parsed.get(d,{}) for d in _DAYS}
                     grocery_gaps  = parsed.get("grocery_gaps", [])
                     prep_notes    = parsed.get("prep_notes", {})
