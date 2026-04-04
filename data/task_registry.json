@@ -298,5 +298,46 @@
       "MANUAL::MEDIUM::Way of the Cross with Mom"
     ],
     "James": []
+  },
+  "2026-04-04": {
+    "JP": [
+      "CHORE::Check CAP email",
+      "CHORE::Check Sea Cadet email",
+      "CHORE::Clean room",
+      "CHORE::Daily Room Reset",
+      "CHORE::Exercise (non-PE days)",
+      "CHORE::KITCHEN (Evening — Role B):",
+      "CHORE::KITCHEN (Morning — Role B):",
+      "CHORE::Prepare Mass clothes",
+      "CHORE::Tidy the basement for 10 minutes.",
+      "CHORE::→ Clean sink",
+      "CHORE::→ Clear table + counters",
+      "CHORE::→ Load dishwasher",
+      "CHORE::→ Put food away",
+      "CHORE::→ Spray + wipe table and counters",
+      "CHORE::→ Sweep kitchen / dining room / foyer",
+      "CHORE::→ Take out trash + recycling",
+      "CHORE::→ Unload dishwasher"
+    ],
+    "Joseph": [
+      "CHORE::Check Sea Cadet email",
+      "CHORE::Clean room",
+      "CHORE::Daily Room Reset",
+      "CHORE::Exercise (non-PE days)",
+      "CHORE::KITCHEN (Evening — Role A):",
+      "CHORE::KITCHEN (Morning — Role A):",
+      "CHORE::Prepare Mass clothes",
+      "CHORE::Tidy the basement for 10 minutes.",
+      "CHORE::→ Clean sink",
+      "CHORE::→ Clear table + counters",
+      "CHORE::→ Load dishwasher",
+      "CHORE::→ Put food away",
+      "CHORE::→ Spray + wipe table and counters",
+      "CHORE::→ Sweep kitchen / dining room / foyer",
+      "CHORE::→ Take out trash + recycling",
+      "CHORE::→ Unload dishwasher"
+    ],
+    "Michael": [],
+    "James": []
   }
 }

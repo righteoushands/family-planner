@@ -1549,11 +1549,120 @@ class Handler(BaseHTTPRequestHandler):
                         _recx_markers += f"\n[RECIPE_ADDED:{_rxname}]"
                     except Exception as _rxe:
                         _recx_markers += f"\n(Recipe error: {_rxe})"
+                # ── Parse <profile_update> action tags ────────────────────
+                _prof_rx = _re.compile(
+                    r'<profile_update\b([^>]*)>([\s\S]*?)</profile_update>',
+                    _re.IGNORECASE
+                )
+                _prof_markers = ""
+                # Mapping person name → (profile_type, slug, profile_url, display_name)
+                _PROF_MAP = {
+                    "jp":        ("child", "jp",      "/schedule/JP",      "JP"),
+                    "john paul": ("child", "jp",      "/schedule/JP",      "JP"),
+                    "joseph":    ("child", "joseph",  "/schedule/Joseph",  "Joseph"),
+                    "michael":   ("child", "michael", "/schedule/Michael", "Michael"),
+                    "james":     ("child", "james",   "/schedule/James",   "James"),
+                    "mom":       ("mom",   "mom",     "/mom-profile",      "Mom"),
+                    "lauren":    ("mom",   "mom",     "/mom-profile",      "Mom"),
+                    "john":      ("john",  "john",    "/john",             "John"),
+                    "dad":       ("john",  "john",    "/john",             "Dad"),
+                }
+                _CHILD_LIST_FIELDS = {
+                    "interests", "gift_ideas", "skills_to_learn",
+                    "activities_requested", "favorite_foods",
+                    "meal_requests", "dream_trips",
+                }
+                _CHILD_STR_FIELDS  = {"other_notes", "shoe_size"}
+                _JOHN_LIST_FIELDS  = {
+                    "gift_ideas", "favorite_foods", "favorite_restaurants",
+                    "hobbies_interests", "couple_bucket_list",
+                }
+                _JOHN_STR_FIELDS   = {"love_notes", "other_notes"}
+                _MOM_LIST_FIELDS   = {
+                    "gift_ideas", "favorite_foods", "favorite_restaurants",
+                    "just_for_me", "dream_trips", "bucket_list",
+                }
+                _MOM_STR_FIELDS    = {"notes_for_john", "other_notes"}
+                for _pf in _prof_rx.finditer(text):
+                    _pfattrs  = _pf.group(1) or ""
+                    _pfval    = _pf.group(2).strip()
+                    _pfperson = _attr(_pfattrs, "person").strip().lower()
+                    _pffield  = _attr(_pfattrs, "field").strip().lower()
+                    _pfaction = _attr(_pfattrs, "action").strip().lower() or "add"
+                    if not _pfperson or not _pffield or not _pfval:
+                        continue
+                    _pft = _PROF_MAP.get(_pfperson)
+                    if not _pft:
+                        continue
+                    _pf_type, _pf_slug, _pf_url, _pf_display = _pft
+                    try:
+                        if _pf_type == "child":
+                            from render_child_profile import load_child_profile, save_child_profile
+                            _pfdata = load_child_profile(_pf_slug)
+                            if _pffield in _CHILD_LIST_FIELDS:
+                                _pflist = _pfdata.get(_pffield, [])
+                                if _pfaction == "remove":
+                                    _pflist = [x for x in _pflist if x.lower() != _pfval.lower()]
+                                elif _pfval not in _pflist:
+                                    _pflist.append(_pfval)
+                                _pfdata[_pffield] = _pflist
+                            elif _pffield in _CHILD_STR_FIELDS:
+                                if _pfaction == "set":
+                                    _pfdata[_pffield] = _pfval
+                                else:
+                                    _existing = _pfdata.get(_pffield, "").strip()
+                                    _pfdata[_pffield] = (_existing + "\n" + _pfval).strip()
+                            else:
+                                continue
+                            save_child_profile(_pf_slug, _pfdata)
+                        elif _pf_type == "john":
+                            from render_john import load_john_profile, save_john_profile
+                            _pfdata = load_john_profile()
+                            if _pffield in _JOHN_LIST_FIELDS:
+                                _pflist = _pfdata.get(_pffield, [])
+                                if _pfaction == "remove":
+                                    _pflist = [x for x in _pflist if x.lower() != _pfval.lower()]
+                                elif _pfval not in _pflist:
+                                    _pflist.append(_pfval)
+                                _pfdata[_pffield] = _pflist
+                            elif _pffield in _JOHN_STR_FIELDS:
+                                if _pfaction == "set":
+                                    _pfdata[_pffield] = _pfval
+                                else:
+                                    _existing = _pfdata.get(_pffield, "").strip()
+                                    _pfdata[_pffield] = (_existing + "\n" + _pfval).strip()
+                            else:
+                                continue
+                            save_john_profile(_pfdata)
+                        elif _pf_type == "mom":
+                            from render_mom_profile import load_mom_profile, save_mom_profile
+                            _pfdata = load_mom_profile()
+                            if _pffield in _MOM_LIST_FIELDS:
+                                _pflist = _pfdata.get(_pffield, [])
+                                if _pfaction == "remove":
+                                    _pflist = [x for x in _pflist if x.lower() != _pfval.lower()]
+                                elif _pfval not in _pflist:
+                                    _pflist.append(_pfval)
+                                _pfdata[_pffield] = _pflist
+                            elif _pffield in _MOM_STR_FIELDS:
+                                if _pfaction == "set":
+                                    _pfdata[_pffield] = _pfval
+                                else:
+                                    _existing = _pfdata.get(_pffield, "").strip()
+                                    _pfdata[_pffield] = (_existing + "\n" + _pfval).strip()
+                            else:
+                                continue
+                            save_mom_profile(_pfdata)
+                        _prof_label = _pffield.replace("_", " ").title()
+                        _prof_markers += f"\n[PROFILE_UPDATED:{_pf_display}:{_pf_url}:{_pf_label}]"
+                    except Exception as _pfe:
+                        _prof_markers += f"\n(Profile error: {_pfe})"
                 # Strip action tags from display text, append markers
                 _all_markers = (_plan_markers + _carryover_markers + _sched_markers
                                 + _cycl_markers + _su_markers + _ev_markers
                                 + _note_markers + _mem_markers
-                                + _fr_markers + _mp_markers + _pr_markers + _recx_markers)
+                                + _fr_markers + _mp_markers + _pr_markers + _recx_markers
+                                + _prof_markers)
                 _display_text = _plan_rx.sub("", text)
                 _display_text = _carryover_rx.sub("", _display_text)
                 _display_text = _sched_rx.sub("", _display_text)
@@ -1565,7 +1674,8 @@ class Handler(BaseHTTPRequestHandler):
                 _display_text = _fr_rx.sub("", _display_text)
                 _display_text = _mp_rx.sub("", _display_text)
                 _display_text = _pr_rx.sub("", _display_text)
-                _display_text = _recx_rx.sub("", _display_text).rstrip()
+                _display_text = _recx_rx.sub("", _display_text)
+                _display_text = _prof_rx.sub("", _display_text).rstrip()
                 if _all_markers:
                     _display_text = _display_text + _all_markers
                 else:

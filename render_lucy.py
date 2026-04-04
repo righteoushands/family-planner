@@ -513,15 +513,47 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
         "- If Mom only has partial info, save what you have and offer to fill in more later",
         "- A green badge confirms the recipe was saved",
         "",
+        "== PROFILE UPDATES ==",
+        "You can add to any family member's profile — interests, gift ideas, favorite foods,",
+        "skills they want to learn, dream trips, activities they've asked about, and more.",
+        "When Mom mentions something about a family member, offer to add it to their profile.",
+        "",
+        '  <profile_update person="JP" field="interests" action="add">',
+        "  Astronomy — loves star-gazing and wants a telescope",
+        "  </profile_update>",
+        "",
+        "  Multiple updates can be sent in one response:",
+        '  <profile_update person="Joseph" field="favorite_foods" action="add">Pasta carbonara</profile_update>',
+        '  <profile_update person="Joseph" field="gift_ideas" action="add">Lego Technic set</profile_update>',
+        "",
+        "Rules for profile_update:",
+        "- person: JP (or John Paul), Joseph, Michael, James, Mom (or Lauren), John (or Dad)",
+        "- action: 'add' (default) appends to a list or appends to a text field; 'remove' removes from list; 'set' overwrites text field",
+        "- Valid fields per person:",
+        "  Children (JP, Joseph, Michael, James):",
+        "    interests, gift_ideas, skills_to_learn, activities_requested,",
+        "    favorite_foods, meal_requests, dream_trips, other_notes",
+        "  John (Dad): gift_ideas, favorite_foods, favorite_restaurants,",
+        "    hobbies_interests, couple_bucket_list, love_notes, other_notes",
+        "  Mom: gift_ideas, favorite_foods, favorite_restaurants, just_for_me,",
+        "    dream_trips, bucket_list, notes_for_john, other_notes",
+        "- A blue badge confirms the update; it links directly to the person's profile page",
+        "- When Mom mentions a child wants something, learned something, loves something, or",
+        "  has been asking for something — offer to add it. Don't wait to be explicitly asked.",
+        "  Example: 'JP really loved that astronomy book' → offer to add Astronomy to his interests",
+        "",
         "== PROACTIVE DATA CAPTURE ==",
         "When Mom mentions anything that should be recorded — a family friend, a meal plan, a prayer",
-        "need, an event, a recipe — PROACTIVELY ask follow-up questions to gather complete info",
-        "BEFORE writing to the data store. Examples:",
+        "need, an event, a recipe, or something about a family member — PROACTIVELY ask follow-up",
+        "questions to gather complete info, OR simply suggest adding it and do so with her permission.",
+        "Examples:",
         "- Mentions a friend → ask: full family name, parents' and kids' names/ages, how they met,",
         "  address or area, any food allergies, common interests, plans to get together",
         "- Mentions cooking something → offer to add it to the meal plan; ask which day",
         "- Mentions praying for someone → confirm you'll add it; ask for a description if helpful",
         "- Mentions a recipe → ask for ingredients and steps before saving",
+        "- Mentions something a child loves, wants, or has been asking about → offer to add it to",
+        "  their profile (interests, gift_ideas, activities_requested, etc.)",
         "You may ask 2-3 follow-up questions at once. Once you have enough, save and confirm with a",
         "badge. You can always save a partial entry and offer to fill in more later.",
         "",
@@ -659,6 +691,27 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
             lines.append("(No meals planned this week yet)")
     except Exception:
         lines.append("(Week meal plan not available)")
+
+    lines += ["", "== FAMILY MEMBER PROFILES =="]
+    try:
+        from render_child_profile import load_child_profile, LIST_SECTIONS
+        from daily_schedule_engine import CHILDREN as _PC
+        for _child in _PC:
+            _cp = load_child_profile(_child.lower())
+            _cp_lines = []
+            for _ck, _cl, _ in LIST_SECTIONS:
+                _cv = _cp.get(_ck, [])
+                if _cv:
+                    _cp_lines.append(f"{_cl}: {', '.join(str(x) for x in _cv[:8])}")
+            _cn = _cp.get("other_notes","").strip()
+            if _cn:
+                _cp_lines.append(f"Notes: {_cn[:80]}")
+            if _cp_lines:
+                lines.append(f"- {_child}: " + " | ".join(_cp_lines))
+            else:
+                lines.append(f"- {_child}: (no profile data yet)")
+    except Exception:
+        lines.append("(Profile data not available)")
 
     lines += ["", "== FRIENDS & FAMILIES DIRECTORY =="]
     try:
@@ -1012,6 +1065,18 @@ def _render_history_html(messages: list) -> str:
                     f'color:white;text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;">'
                     f'🍳 Recipes</a></div>'
                 )
+            for _pf2 in _re.finditer(r'\[PROFILE_UPDATED:([^\]:]+):([^\]:]+):([^\]]+)\]', content):
+                _pf2name, _pf2url, _pf2label = _pf2.group(1), _pf2.group(2), _pf2.group(3)
+                _plan_buttons += (
+                    f'<div style="display:flex;align-items:center;gap:8px;margin-top:6px;'
+                    f'padding:7px 10px;background:#f5f8ff;border:1px solid #93b4e8;border-radius:8px;">'
+                    f'<span style="font-size:1em;">📋</span>'
+                    f'<span style="font-size:0.82em;color:#1e3a8a;flex:1;">'
+                    f'{escape(_pf2name)}\u2019s profile updated \u2014 {escape(_pf2label)} added.</span>'
+                    f'<a href="{escape(_pf2url)}" target="_blank" style="padding:4px 12px;background:#2563eb;'
+                    f'color:white;text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;">'
+                    f'👤 Profile</a></div>'
+                )
             clean = _re.sub(r'\[RULE:(add|remove)\][\s\S]*?\[/RULE\]', '', content)
             clean = _re.sub(r'\[PLAN_UPDATED:[^\]]+\]', '', clean)
             clean = _re.sub(r'\[CARRYOVER_UPDATED:[^\]]+\]', '', clean)
@@ -1024,7 +1089,8 @@ def _render_history_html(messages: list) -> str:
             clean = _re.sub(r'\[FRIEND_ADDED:[^\]]+\]', '', clean)
             clean = _re.sub(r'\[MEAL_UPDATED:[^\]]+\]', '', clean)
             clean = _re.sub(r'\[PRAYER_ADDED:[^\]]+\]', '', clean)
-            clean = _re.sub(r'\[RECIPE_ADDED:[^\]]+\]', '', clean).strip()
+            clean = _re.sub(r'\[RECIPE_ADDED:[^\]]+\]', '', clean)
+            clean = _re.sub(r'\[PROFILE_UPDATED:[^\]]+\]', '', clean).strip()
             parts.append(
                 f'<div class="lucy-bubble-wrap" style="margin-bottom:0;">'
                 f'<div class="lucy-bubble-lucy" style="white-space:pre-wrap;">{escape(clean)}</div>'
@@ -1473,6 +1539,7 @@ function lucySend() {{
                 .replace(/\[MEAL_UPDATED:[^\]]+\]/g, '')
                 .replace(/\[PRAYER_ADDED:[^\]]+\]/g, '')
                 .replace(/\[RECIPE_ADDED:[^\]]+\]/g, '')
+                .replace(/\[PROFILE_UPDATED:[^\]]+\]/g, '')
                 .replace(/\s+$/, '');
         }}
         function read() {{
@@ -1844,6 +1911,32 @@ function lucySend() {{
                             recipeRow.appendChild(recipeBtn);
                             bubble._wrap.appendChild(recipeRow);
                         }})(m[1]);
+                    }}
+                    // Parse [PROFILE_UPDATED:person:url:label] markers
+                    var profRx = /\[PROFILE_UPDATED:([^\]:]+):([^\]:]+):([^\]]+)\]/g;
+                    while ((m = profRx.exec(full)) !== null) {{
+                        (function(pfPerson, pfUrl, pfLabel) {{
+                            var pfRow = document.createElement('div');
+                            pfRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:6px;'
+                                + 'padding:7px 10px;background:#f5f8ff;border:1px solid #93b4e8;border-radius:8px;';
+                            var pfIcon = document.createElement('span');
+                            pfIcon.textContent = '📋';
+                            pfIcon.style.cssText = 'font-size:1em;flex-shrink:0;';
+                            var pfMsg = document.createElement('span');
+                            pfMsg.textContent = pfPerson + '\u2019s profile updated \u2014 ' + pfLabel + ' added.';
+                            pfMsg.style.cssText = 'font-size:0.82em;color:#1e3a8a;flex:1;';
+                            var pfBtn = document.createElement('a');
+                            pfBtn.textContent = '\U0001F464 Profile';
+                            pfBtn.href = pfUrl;
+                            pfBtn.target = '_blank';
+                            pfBtn.style.cssText = 'padding:4px 12px;background:#2563eb;color:white;'
+                                + 'text-decoration:none;border-radius:6px;font-size:0.8em;font-weight:700;'
+                                + 'font-family:inherit;flex-shrink:0;';
+                            pfRow.appendChild(pfIcon);
+                            pfRow.appendChild(pfMsg);
+                            pfRow.appendChild(pfBtn);
+                            bubble._wrap.appendChild(pfRow);
+                        }})(m[1], m[2], m[3]);
                     }}
                     window.scrollTo(0, document.body.scrollHeight);
                     return;
