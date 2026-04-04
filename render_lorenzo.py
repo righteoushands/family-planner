@@ -731,7 +731,7 @@ function _lzUnlockAudio() {{
 }}
 
 function _lzCleanForTts(t) {{
-    return t.replace(/\\*/g,'').replace(/^[-•]\s/gm,'').replace(/\n+/g,' ').trim();
+    return t.replace(/\\*/g,'').replace(/^[-•]\\s/gm,'').replace(/\\n+/g,' ').trim();
 }}
 
 function _lzFetchAndPlay(text, onEnd) {{
