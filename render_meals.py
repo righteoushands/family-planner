@@ -1105,7 +1105,7 @@ def render_recipes_page(status: str = "") -> str:
         '  var chips = document.querySelectorAll(".chip");'
         '  chips.forEach(function(c) {'
         '    c.style.background = c.dataset.tag === tag && _activeTag !== tag ? "var(--ink)" : "var(--warm-white)";'
-        '    c.style.color = c.dataset.tag === tag && _activeTag !== tag ? "white" : "";'
+        '    c.style.color = c.dataset.tag === tag && _activeTag !== tag ? "white" : "var(--ink)";'
         '  });'
         '  if(_activeTag === tag) { _activeTag = null; }'
         '  else { _activeTag = tag; }'
