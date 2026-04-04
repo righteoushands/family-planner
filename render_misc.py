@@ -760,10 +760,9 @@ def _render_boys_now_blocks(iso: str, weekday: str) -> str:
                             f'margin:4px 0 2px 2px;">{subj}</div>'
                         )
                         for item in items:
-                            tid      = escape(item.get("task_id",""))
+                            tid      = escape(item.get("task_id",""), quote=False).replace("'", "\\'")
                             is_done  = _item_done(item, progress)
                             checked  = "checked" if is_done else ""
-                            new_val  = "false" if is_done else "true"
                             txt      = escape(item.get("text","") or subj)
                             done_sty = "opacity:0.45;text-decoration:line-through;" if is_done else ""
                             cb_url   = f"/schedule/{c_id}?date={escape(iso)}"
@@ -771,7 +770,7 @@ def _render_boys_now_blocks(iso: str, weekday: str) -> str:
                                 f'<div style="display:flex;align-items:flex-start;gap:6px;'
                                 f'padding:2px 0 2px 6px;{done_sty}">'
                                 f'<input type="checkbox" {checked} '
-                                f'onchange="toggleTask(this,\'{tid}\',\'{new_val}\',\'{cb_url}\')" '
+                                f'onchange="toggleTask(this,\'{tid}\',\'{cb_url}\')" '
                                 f'style="accent-color:{c_bg};flex-shrink:0;margin-top:2px;">'
                                 f'<span style="font-size:0.82em;color:var(--ink);">{txt}</span>'
                                 f'</div>'
@@ -793,15 +792,15 @@ def _render_boys_now_blocks(iso: str, weekday: str) -> str:
                     f'text-transform:uppercase;color:{c_bg};margin:6px 0 3px;">Chores &amp; Tasks</div>'
                 )
                 for item in other_items[:8]:
-                    tid      = escape(item.get("task_id","") if isinstance(item,dict) else "")
+                    _raw_tid = item.get("task_id","") if isinstance(item,dict) else ""
+                    tid      = escape(_raw_tid, quote=False).replace("'", "\\'")
                     is_done  = _item_done(item, progress)
                     checked  = "checked" if is_done else ""
-                    new_val  = "false" if is_done else "true"
                     txt      = escape(item.get("text","") if isinstance(item,dict) else str(item))
                     done_sty = "opacity:0.45;text-decoration:line-through;" if is_done else ""
                     cb_url   = f"/schedule/{c_id}?date={escape(iso)}"
                     onchange = (
-                        f'onchange="toggleTask(this,\'{tid}\',\'{new_val}\',\'{cb_url}\')"'
+                        f'onchange="toggleTask(this,\'{tid}\',\'{cb_url}\')"'
                         if tid else ""
                     )
                     status_line += (
@@ -3259,11 +3258,10 @@ def _render_kidsday_step(iso: str, weekday: str, date_label: str) -> str:
                             val      = _prog2.get(tid, False)
                             is_done  = (val.get("done") if isinstance(val,dict) else bool(val))
                             checked  = "checked" if is_done else ""
-                            new_val  = "false" if is_done else "true"
                             text     = _e(item.get("text","") or item.get("description","") or subj)
                             child_e  = _e(child)
                             iso_e    = _e(iso)
-                            tid_e    = _e(tid)
+                            tid_js   = escape(tid, quote=False).replace("'", "\\'")
                             done_sty = "opacity:0.5;" if is_done else ""
                             txt_sty  = "text-decoration:line-through;" if is_done else ""
                             cb_url   = f"/schedule/{child_e}?date={iso_e}"
@@ -3271,7 +3269,7 @@ def _render_kidsday_step(iso: str, weekday: str, date_label: str) -> str:
                                 f'<div style="display:flex;align-items:flex-start;gap:8px;'
                                 f'padding:3px 0 3px 8px;{done_sty}">'
                                 f'<input type="checkbox" {checked} '
-                                f'onchange="toggleTask(this,\'{tid_e}\',\'{new_val}\',\'{cb_url}\')" '
+                                f'onchange="toggleTask(this,\'{tid_js}\',\'{cb_url}\')" '
                                 f'style="accent-color:{c_bg};margin-top:2px;flex-shrink:0;">'
                                 f'<span style="font-size:0.8em;color:var(--ink);{txt_sty}">{text}</span>'
                                 f'</div>'

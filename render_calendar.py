@@ -401,6 +401,15 @@ def _do_refresh_subscribed():
         _SUBSCRIBED_REFRESHING = False
 
 
+def _apply_calendar_event_filters(events: list) -> list:
+    """Remove blocked/hidden events based on calendar_rules.json blocked_event_titles."""
+    rules = load_calendar_rules()
+    blocked = [t.lower().strip() for t in rules.get("blocked_event_titles", [])]
+    if not blocked:
+        return events
+    return [e for e in events if e.get("title", "").lower().strip() not in blocked]
+
+
 def refresh_subscribed_calendars(force: bool = False) -> list:
     """Return cached subscribed calendar events immediately; refresh in background if stale."""
     global _SUBSCRIBED_REFRESHING
@@ -418,7 +427,7 @@ def refresh_subscribed_calendars(force: bool = False) -> list:
     if stale and not _SUBSCRIBED_REFRESHING:
         _SUBSCRIBED_REFRESHING = True
         _threading.Thread(target=_do_refresh_subscribed, daemon=True).start()
-    return events
+    return _apply_calendar_event_filters(events)
 
 
 def events_for_date(events: list, iso: str) -> list:

@@ -83,11 +83,12 @@ def render_task_list(child: str, iso: str, items: list) -> str:
         done_class = "done"    if is_done else ""
         new_val    = "false"   if is_done else "true"
         tid_esc    = escape(task_id)
+        tid_js     = escape(task_id, quote=False).replace("'", "\\'")
         label_id   = f"lbl-{tid_esc}"
         html += f"""
         <div class="task {done_class}" id="task-{tid_esc}">
             <input type="checkbox" id="{label_id}" {checked}
-                   onchange="toggleTask(this,'{tid_esc}','{new_val}','/schedule/{escape(child)}?date={escape(iso)}')">
+                   onchange="toggleTask(this,'{tid_js}','/schedule/{escape(child)}?date={escape(iso)}')">
             <label for="{label_id}">{escape(item.get("text",""))}</label>
         </div>"""
     return html
@@ -342,6 +343,7 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
         )
         for item in carryover[:_CARRY_MAX]:
             tid      = escape(item.get("task_id", ""))
+            tid_js   = escape(item.get("task_id", ""), quote=False).replace("'", "\\'")
             is_done  = _item_done(item, progress)
             checked  = "checked" if is_done else ""
             nv       = "false" if is_done else "true"
@@ -353,7 +355,7 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
                 f'padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);">'
                 f'<input type="checkbox" id="lbl-{tid}" {checked}'
                 f' style="margin-top:3px;width:18px;height:18px;flex-shrink:0;accent-color:{c_bg};"'
-                f' onchange="toggleDashTask(this,\'{tid}\',\'{nv}\',\'{c_id}\',\'{escape(iso)}\')">'
+                f' onchange="toggleDashTask(this,\'{tid_js}\',\'{c_id}\',\'{escape(iso)}\')">'
                 f'<label for="lbl-{tid}" style="font-size:.88em;line-height:1.3;'
                 f'cursor:pointer;{done_sty}">{escape(item.get("text",""))}</label>'
                 f'</div>'
@@ -372,6 +374,7 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
     pending_shown = 0
     for item in queue:
         tid      = escape(item.get("task_id", ""))
+        tid_js   = escape(item.get("task_id", ""), quote=False).replace("'", "\\'")
         is_done  = _item_done(item, progress)
         checked  = "checked" if is_done else ""
         nv       = "false" if is_done else "true"
@@ -392,7 +395,7 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
             f'padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);{vis}">'
             f'<input type="checkbox" id="lbl-{tid}" {checked}'
             f' style="margin-top:3px;width:18px;height:18px;flex-shrink:0;accent-color:{c_bg};"'
-            f' onchange="toggleDashTask(this,\'{tid}\',\'{nv}\',\'{c_id}\',\'{escape(iso)}\')">'
+            f' onchange="toggleDashTask(this,\'{tid_js}\',\'{c_id}\',\'{escape(iso)}\')">'
             f'<div style="flex:1;min-width:0;">'
             f'<div style="font-size:.62em;font-weight:800;letter-spacing:.07em;'
             f'text-transform:uppercase;color:{c_bg};margin-bottom:1px;">{section}</div>'
@@ -439,14 +442,12 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
 
 _DASH_JS = """
 <script>
-function toggleDashTask(cb, tid, newVal, childId, iso) {
-    var row     = document.getElementById('task-' + tid);
-    var isDone  = (newVal === 'true');
+function toggleDashTask(cb, tid, childId, iso) {
+    var row    = document.getElementById('task-' + tid);
+    var isDone = cb.checked;
+    var newVal = isDone ? 'true' : 'false';
     if (row) {
         row.setAttribute('data-done', isDone ? '1' : '0');
-        cb.setAttribute('onchange',
-            "toggleDashTask(this,'" + tid + "','" + (isDone?'false':'true') +
-            "','" + childId + "','" + iso + "')");
         var lbl = row.querySelector('label');
         if (lbl) lbl.style.cssText += isDone
             ? 'opacity:.5;text-decoration:line-through;'

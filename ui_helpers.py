@@ -857,13 +857,12 @@ pre {{
 {get_theme_css()}
 </style>
 <script>
-function toggleTask(checkbox, taskId, newVal, returnUrl) {{
-    var row = document.getElementById('task-' + taskId);
-    var isDone = (newVal === 'true');
+function toggleTask(checkbox, taskId, returnUrl) {{
+    var row    = document.getElementById('task-' + taskId);
+    var isDone = checkbox.checked;
+    var newVal = isDone ? 'true' : 'false';
     if (row) {{
         row.classList.toggle('done', isDone);
-        checkbox.setAttribute('onchange',
-            "toggleTask(this,'" + taskId + "','" + (isDone ? 'false' : 'true') + "','" + returnUrl + "')");
     }}
     var body = 'task_id=' + encodeURIComponent(taskId) +
                '&new_value=' + encodeURIComponent(newVal) +

@@ -89,17 +89,8 @@ KITCHEN_ROLE_B_EVENING = [
 
 
 def get_kitchen_roles(for_date: date = None) -> dict:
-    """Return {JP: 'A'|'B', Joseph: 'A'|'B'} based on weekly rotation from van epoch."""
-    from config import get_van_epoch
-    if for_date is None:
-        for_date = date.today()
-    epoch         = get_van_epoch()
-    this_monday   = for_date - timedelta(days=for_date.weekday())
-    weeks_elapsed = (this_monday - epoch).days // 7
-    # Alternate weekly: week 0 = JP gets A (JP does sweep in morning)
-    if weeks_elapsed % 2 == 0:
-        return {"JP": "A", "Joseph": "B"}
-    return {"JP": "B", "Joseph": "A"}
+    """Return fixed kitchen roles: JP is always Role A, Joseph is always Role B."""
+    return {"JP": "A", "Joseph": "B"}
 
 
 def apply_canonical_chores(chores: dict) -> dict:
@@ -610,7 +601,7 @@ def render_chores_page(status_message: str = "") -> str:
                 <div style="margin-top:6px;">{_fmt(joe_evening)}</div>
             </div>
         </div>
-        <p class="small" style="margin-top:8px;">Roles switch every week. Applied to daily chore list.</p>
+        <p class="small" style="margin-top:8px;">JP is always Role A · Joseph is always Role B. Applied to daily chore list.</p>
     </div>"""
 
     # AI chore adjuster
@@ -620,7 +611,7 @@ def render_chores_page(status_message: str = "") -> str:
     ai_chore_btn = f"""
 <div style="margin-bottom:16px;">
   <button onclick="aiChoreAdjust(this)"
-    style="padding:7px 16px;background:var(--parchment);border:1.5px solid var(--border);
+    style="padding:7px 16px;background:#7c3aed;color:#fff;border:none;
            border-radius:10px;font-size:0.85em;font-weight:600;font-family:inherit;cursor:pointer;">
     ✨ AI — Adjust chores for today's capacity
   </button>

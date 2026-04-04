@@ -958,11 +958,13 @@ class Handler(BaseHTTPRequestHandler):
                 redirect=f"/school/edit?child={child}"
 
             elif path == "/save-chores":
+                def _split_lines(text):
+                    return [line for line in str(text).splitlines() if line.strip()]
                 chores={"boys":{},"lauren":{}}
                 for child in CHILDREN:
-                    chores["boys"][child]={"daily":lines_to_list(data.get(f"daily__{child}",[""])[0]),"weekly":{wd:lines_to_list(data.get(f"weekly__{child}__{wd}",[""])[0]) for wd in WEEKDAYS}}
-                chores["lauren"]={"daily":lines_to_list(data.get("daily__Lauren",[""])[0]),"weekly":{wd:lines_to_list(data.get(f"weekly__Lauren__{wd}",[""])[0]) for wd in WEEKDAYS}}
-                save_chores_data(chores); redirect="/chores#top"
+                    chores["boys"][child]={"daily":_split_lines(data.get(f"daily__{child}",[""])[0]),"weekly":{wd:_split_lines(data.get(f"weekly__{child}__{wd}",[""])[0]) for wd in WEEKDAYS}}
+                chores["lauren"]={"daily":_split_lines(data.get("daily__Lauren",[""])[0]),"weekly":{wd:_split_lines(data.get(f"weekly__Lauren__{wd}",[""])[0]) for wd in WEEKDAYS}}
+                save_chores_data(chores); redirect="/chores?msg=Chores+saved#top"
 
             elif path == "/apply-laundry":
                 save_chores_data(apply_laundry_defaults(load_chores_data()))

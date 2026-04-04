@@ -174,11 +174,11 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
         done    = get_task_done(progress, item.get("task_id", ""))
         checked = "checked" if done else ""
         dc      = "done"    if done else ""
-        nv      = "false"   if done else "true"
+        tid_js  = escape(item.get("task_id", ""), quote=False).replace("'", "\\'")
         return (
             f'<div class="task {dc}" id="task-{tid}">'
             f'<input type="checkbox" id="lbl-{tid}" {checked}'
-            f' onchange="toggleTask(this,\'{tid}\',\'{nv}\',\'/mom-profile?date={_e(iso)}\')">'
+            f' onchange="toggleTask(this,\'{tid_js}\',\'/mom-profile?date={_e(iso)}\')">'
             f'<label for="lbl-{tid}">{_e(item.get("text", ""))}</label>'
             f'</div>'
         )
