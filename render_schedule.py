@@ -309,9 +309,10 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
     c_id    = child.lower().replace(" ", "-")
 
     # ── Gather tasks ────────────────────────────────────────────────────────
-    carryover = payload.get("carryover_items", [])
+    carryover   = payload.get("carryover_items", [])
+    chore_items = payload.get("chore_items", [])
 
-    # Non-carryover tasks in order: manual → school items → chores
+    # School/task queue (2-at-a-time advance model)
     queue = []
     for item in payload.get("manual_task_items", []):
         queue.append(dict(item, _section="Task"))
@@ -319,12 +320,11 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
         subj = block.get("subject", "School")
         for item in block.get("items", []):
             queue.append(dict(item, _section=subj))
-    for item in payload.get("chore_items", []):
-        queue.append(dict(item, _section="Chore"))
 
-    total     = len(carryover) + len(queue)
-    done_cnt  = (sum(1 for i in carryover if _item_done(i, progress)) +
-                 sum(1 for i in queue     if _item_done(i, progress)))
+    total     = (len(carryover) + len(queue) + len(chore_items))
+    done_cnt  = (sum(1 for i in carryover   if _item_done(i, progress)) +
+                 sum(1 for i in queue       if _item_done(i, progress)) +
+                 sum(1 for i in chore_items if _item_done(i, progress)))
     remaining = total - done_cnt
     pct       = round(done_cnt / total * 100) if total else 0
     all_done  = total > 0 and done_cnt == total
@@ -332,6 +332,34 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
     bar_col = "#22c55e" if all_done else ("#f59e0b" if pct >= 50 else c_bg)
 
     cb_url = f"/today?date={escape(iso)}"
+
+    def _dash_row(item, extra_style="", is_chore=False):
+        tid     = escape(item.get("task_id", ""))
+        tid_js  = escape(item.get("task_id", ""), quote=False).replace("'", "\\'")
+        is_done = _item_done(item, progress)
+        checked = "checked" if is_done else ""
+        done_st = "opacity:.5;text-decoration:line-through;" if is_done else ""
+        done_d  = "1" if is_done else "0"
+        section = escape(item.get("_section", ""))
+        sec_div = (
+            f'<div style="font-size:.62em;font-weight:800;letter-spacing:.07em;'
+            f'text-transform:uppercase;color:{c_bg};margin-bottom:1px;">{section}</div>'
+            if section else ""
+        )
+        chore_attr = ' data-chore="1"' if is_chore else ""
+        return (
+            f'<div class="dash-task" data-dash-child="{c_id}" data-done="{done_d}"{chore_attr}'
+            f' id="task-{tid}" style="display:flex;align-items:flex-start;gap:8px;'
+            f'padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);{extra_style}">'
+            f'<input type="checkbox" id="lbl-{tid}" {checked}'
+            f' style="margin-top:3px;width:16px;height:16px;flex-shrink:0;accent-color:{c_bg};"'
+            f' onchange="toggleDashTask(this,\'{tid_js}\',\'{c_id}\',\'{escape(iso)}\')">'
+            f'<div style="flex:1;min-width:0;">'
+            f'{sec_div}'
+            f'<label for="lbl-{tid}" style="font-size:.88em;line-height:1.3;'
+            f'cursor:pointer;{done_st}">{escape(item.get("text",""))}</label>'
+            f'</div></div>'
+        )
 
     # ── Carryover rows (show up to 3; indicate extras) ───────────────────────
     _CARRY_MAX = 3
@@ -342,24 +370,7 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
             f'text-transform:uppercase;color:#a07040;margin:8px 0 3px;">↩ Carryover</div>'
         )
         for item in carryover[:_CARRY_MAX]:
-            tid      = escape(item.get("task_id", ""))
-            tid_js   = escape(item.get("task_id", ""), quote=False).replace("'", "\\'")
-            is_done  = _item_done(item, progress)
-            checked  = "checked" if is_done else ""
-            nv       = "false" if is_done else "true"
-            done_sty = "opacity:.5;text-decoration:line-through;" if is_done else ""
-            done_d   = "1" if is_done else "0"
-            carry_html += (
-                f'<div class="dash-task" data-dash-child="{c_id}" data-done="{done_d}"'
-                f' id="task-{tid}" style="display:flex;align-items:flex-start;gap:8px;'
-                f'padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);">'
-                f'<input type="checkbox" id="lbl-{tid}" {checked}'
-                f' style="margin-top:3px;width:18px;height:18px;flex-shrink:0;accent-color:{c_bg};"'
-                f' onchange="toggleDashTask(this,\'{tid_js}\',\'{c_id}\',\'{escape(iso)}\')">'
-                f'<label for="lbl-{tid}" style="font-size:.88em;line-height:1.3;'
-                f'cursor:pointer;{done_sty}">{escape(item.get("text",""))}</label>'
-                f'</div>'
-            )
+            carry_html += _dash_row(item)
         _carry_extra = len(carryover) - _CARRY_MAX
         if _carry_extra > 0:
             carry_html += (
@@ -369,19 +380,11 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
                 f'</div>'
             )
 
-    # ── Queue rows (next 2 unchecked visible; rest hidden until advanced) ──────
-    queue_html   = ""
+    # ── School / task queue (next 2 unchecked visible; rest hidden) ──────────
+    queue_html    = ""
     pending_shown = 0
     for item in queue:
-        tid      = escape(item.get("task_id", ""))
-        tid_js   = escape(item.get("task_id", ""), quote=False).replace("'", "\\'")
-        is_done  = _item_done(item, progress)
-        checked  = "checked" if is_done else ""
-        nv       = "false" if is_done else "true"
-        section  = escape(item.get("_section", ""))
-        done_sty = "opacity:.5;text-decoration:line-through;" if is_done else ""
-        done_d   = "1" if is_done else "0"
-        # Visibility: hide completed; show next 2 pending
+        is_done = _item_done(item, progress)
         if is_done:
             vis = "display:none;"
         elif pending_shown < 2:
@@ -389,20 +392,20 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
             pending_shown += 1
         else:
             vis = "display:none;"
-        queue_html += (
-            f'<div class="dash-task" data-dash-child="{c_id}" data-done="{done_d}"'
-            f' id="task-{tid}" style="display:flex;align-items:flex-start;gap:8px;'
-            f'padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);{vis}">'
-            f'<input type="checkbox" id="lbl-{tid}" {checked}'
-            f' style="margin-top:3px;width:18px;height:18px;flex-shrink:0;accent-color:{c_bg};"'
-            f' onchange="toggleDashTask(this,\'{tid_js}\',\'{c_id}\',\'{escape(iso)}\')">'
-            f'<div style="flex:1;min-width:0;">'
-            f'<div style="font-size:.62em;font-weight:800;letter-spacing:.07em;'
-            f'text-transform:uppercase;color:{c_bg};margin-bottom:1px;">{section}</div>'
-            f'<label for="lbl-{tid}" style="font-size:.88em;line-height:1.3;'
-            f'cursor:pointer;{done_sty}">{escape(item.get("text",""))}</label>'
-            f'</div></div>'
+        queue_html += _dash_row(item, extra_style=vis)
+
+    # ── Chores section — ALL chores always visible ───────────────────────────
+    chore_html = ""
+    if chore_items:
+        chore_done = sum(1 for i in chore_items if _item_done(i, progress))
+        chore_lbl  = f"{chore_done}/{len(chore_items)}"
+        chore_html = (
+            f'<div style="font-size:0.65em;font-weight:800;letter-spacing:.08em;'
+            f'text-transform:uppercase;color:{c_bg};margin:10px 0 3px;">'
+            f'Chores <span style="font-weight:500;color:#888;">({chore_lbl})</span></div>'
         )
+        for item in chore_items:
+            chore_html += _dash_row(item, is_chore=True)
 
     all_done_badge = (
         '<div style="color:#166534;font-weight:700;font-size:.85em;background:#dcfce7;'
@@ -436,6 +439,7 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
         f'{all_done_badge}'
         f'{carry_html}'
         f'<div id="dash-queue-{c_id}">{queue_html}</div>'
+        f'{chore_html}'
         f'</div>'
     )
 
@@ -446,13 +450,14 @@ function toggleDashTask(cb, tid, childId, iso) {
     var row    = document.getElementById('task-' + tid);
     var isDone = cb.checked;
     var newVal = isDone ? 'true' : 'false';
+    var isChore = row && row.getAttribute('data-chore') === '1';
     if (row) {
         row.setAttribute('data-done', isDone ? '1' : '0');
         var lbl = row.querySelector('label');
         if (lbl) lbl.style.cssText += isDone
             ? 'opacity:.5;text-decoration:line-through;'
             : 'opacity:1;text-decoration:none;';
-        if (isDone) setTimeout(function(){ row.style.display='none'; }, 400);
+        if (isDone && !isChore) setTimeout(function(){ row.style.display='none'; }, 400);
     }
     fetch('/toggle-task', {
         method: 'POST',
@@ -465,9 +470,9 @@ function toggleDashTask(cb, tid, childId, iso) {
             cb.checked = !cb.checked;
             if (row) { row.setAttribute('data-done', isDone?'0':'1'); row.style.display=''; }
         } else {
-            if (isDone) {
+            _dashUpdateProgress(childId);
+            if (isDone && !isChore) {
                 setTimeout(function(){ _dashAdvance(childId); }, 420);
-                _dashUpdateProgress(childId);
             }
         }
     }).catch(function() {

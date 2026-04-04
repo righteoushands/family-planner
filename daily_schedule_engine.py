@@ -119,8 +119,8 @@ def weekday_chores_for_child(child: str, weekday: str):
         section = chores.get("lauren", {})
     else:
         section = chores.get("boys", {}).get(child, {})
-    daily  = section.get("daily", []) or []
-    weekly = (section.get("weekly", {}) or {}).get(weekday, []) or []
+    daily  = [t for t in (section.get("daily",  []) or []) if str(t).strip()]
+    weekly = [t for t in ((section.get("weekly", {}) or {}).get(weekday, []) or []) if str(t).strip()]
     return daily + weekly
 
 

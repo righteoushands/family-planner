@@ -301,7 +301,6 @@
   },
   "2026-04-04": {
     "JP": [
-      "CHORE::",
       "CHORE::  → Clean sink",
       "CHORE::  → Clear table + counters",
       "CHORE::  → Load dishwasher",
@@ -329,7 +328,6 @@
       "CHORE::→ Unload dishwasher"
     ],
     "Joseph": [
-      "CHORE::",
       "CHORE::  → Clean sink",
       "CHORE::  → Clear table + counters",
       "CHORE::  → Load dishwasher",
