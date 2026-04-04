@@ -115,7 +115,8 @@ def save_recipe(name: str, ingredients: str, instructions: str,
 # ---------------------------------------------------------------------------
 
 def _build_meal_prompt(inventory: dict, cycle_phase: str = "",
-                        capacity: str = "", week_start: date = None) -> str:
+                        capacity: str = "", week_start: date = None,
+                        constraints: str = "") -> str:
     rules = load_meal_rules()
     ws = week_start or _week_start()
 
@@ -145,7 +146,7 @@ Cycle phase: """ + (cycle_phase or "not specified") + """
 Capacity: """ + (capacity or "not specified") + """
 """ + week_events_note + """
 
-CRITICAL RULES REMINDER:
+""" + (f"STANDING CONSTRAINTS (Lauren's notes — follow strictly):\n{constraints}\n\n" if constraints.strip() else "") + """CRITICAL RULES REMINDER:
 - Tuesday = leftovers day (no cooking)
 - Friday = meatless (fish or vegetarian)
 - Use-soon items MUST appear in meals early in the week
@@ -392,6 +393,12 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
             f'<div style="font-weight:700;font-size:0.82em;color:{fg};">{escape(day)}</div>'
             f'<div style="font-size:0.72em;color:{"rgba(245,234,216,0.6)" if is_today else "var(--ink-faint)"};">'
             f'{day_date.strftime("%b %d")}</div>'
+            f'<button id="swap-btn-{escape(day)}" onclick="activateSwap(\'{escape(day)}\')"'
+            f' title="Swap {escape(day)} with another day"'
+            f' style="margin-top:4px;font-size:0.65em;padding:2px 6px;border-radius:4px;'
+            f'border:1px solid {"rgba(245,234,216,0.3)" if is_today else "var(--border)"};'
+            f'background:transparent;color:{"rgba(245,234,216,0.7)" if is_today else "var(--ink-faint)"};'
+            f'cursor:pointer;">&#8644;</button>'
             f'</td>'
         )
     grid_rows += f'<tr>{header_cells}</tr>'
@@ -451,8 +458,9 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
         )
     grid_rows += f'<tr>{help_cells}</tr>'
 
-    grocery_raw    = json.dumps(plan.get("grocery_gaps", []))
-    prep_notes_raw = json.dumps(plan.get("prep_notes", {}))
+    grocery_raw      = json.dumps(plan.get("grocery_gaps", []))
+    prep_notes_raw   = json.dumps(plan.get("prep_notes", {}))
+    constraints_val  = plan.get("constraints", "")
 
     body = (
         top_nav() +
@@ -517,7 +525,44 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
         'display:flex;align-items:center;gap:10px;">'
         '<span id="grid-status" style="font-size:0.78em;color:#27ae60;"></span>'
         '<span style="font-size:0.72em;color:var(--ink-faint);margin-left:auto;">Changes save automatically</span>'
-        '</div></div>' +
+        '</div></div>'
+
+        # ── AI Edit Chat panel ────────────────────────────────────────────────
+        + (
+        '<div class="section-cap" style="margin-top:20px;">✦ Tell Claude what to change</div>'
+        '<div class="card" style="padding:14px 16px;">'
+        '<div style="font-size:0.78em;color:var(--ink-faint);margin-bottom:10px;line-height:1.5;">'
+        'Type any instruction — move meals, set constraints, request a specific dish, note a shopping day, flag prep requirements. Claude will update the plan.'
+        '</div>'
+        '<div style="display:flex;gap:8px;align-items:flex-end;">'
+        '<textarea id="meal-chat-input" rows="2"'
+        ' placeholder="e.g. \'Move Monday dinner to Wednesday\' · \'I won\'t have chicken until Saturday\' · \'Put the brine reminder on Tuesday for Wednesday\'s chicken\'"'
+        ' style="flex:1;padding:10px;border:1.5px solid var(--border);border-radius:8px;'
+        'font-size:0.85em;font-family:inherit;resize:vertical;background:white;color:var(--ink);"></textarea>'
+        '<button onclick="sendMealChat()" style="padding:10px 16px;font-size:0.85em;white-space:nowrap;">Send ✦</button>'
+        '</div>'
+        '<div id="meal-chat-status" style="font-size:0.78em;color:var(--gold);min-height:18px;margin-top:6px;"></div>'
+        '</div>'
+        if _api_key else '') +
+
+        # ── Constraints / standing notes ──────────────────────────────────────
+        '<div class="section-cap" style="margin-top:16px;">Standing notes for AI</div>'
+        '<div class="card" style="padding:14px 16px;">'
+        '<div style="font-size:0.78em;color:var(--ink-faint);margin-bottom:8px;">'
+        'Saved notes included in every AI meal plan and edit. Examples: shopping day, prep requirements, family constraints.'
+        '</div>'
+        f'<textarea id="meal-constraints" rows="3"'
+        f' placeholder="e.g. Shopping day: Saturday (chicken, beef not available until then). Brined chicken: start brine 24h before serving. No nuts — Michael allergy."'
+        f' oninput="constraintsChanged()"'
+        f' style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;'
+        f'font-size:0.82em;font-family:inherit;resize:vertical;background:white;color:var(--ink);box-sizing:border-box;">'
+        f'{escape(constraints_val)}'
+        f'</textarea>'
+        '<div style="display:flex;align-items:center;gap:10px;margin-top:8px;">'
+        '<button onclick="saveConstraints()" style="padding:7px 14px;font-size:0.82em;background:var(--parchment);color:var(--ink);border:1.5px solid var(--border);">Save notes</button>'
+        '<span id="constraints-status" style="font-size:0.78em;color:#27ae60;"></span>'
+        '</div>'
+        '</div>' +
 
         # Modals placeholder
         '<div id="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:3000;">'
@@ -531,7 +576,7 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
 
         # JS — data block + external static file (avoids Python string escaping nightmares)
         f'<script id="meal-data" type="application/json">'
-        f'{{"week":{json.dumps(wk)},"grocery_gaps":{grocery_raw},"prep_notes":{prep_notes_raw}}}'
+        f'{{"week":{json.dumps(wk)},"grocery_gaps":{grocery_raw},"prep_notes":{prep_notes_raw},"constraints":{json.dumps(constraints_val)}}}'
         f'</script>'
 
         # External JS — all logic lives in static/meals.js

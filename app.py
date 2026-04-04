@@ -2863,8 +2863,11 @@ class Handler(BaseHTTPRequestHandler):
                 anchor = _get_anchor_state(_date.today().isoformat())
                 cycle_phase = anchor.get("cycle_phase","")
                 capacity    = anchor.get("capacity","")
-                # Build prompt
-                prompt = _build_meal_prompt(inv, cycle_phase, capacity)
+                # Build prompt (include any saved constraints for this week)
+                _plan_for_constraints = load_meal_plan(wk)
+                _constraints_for_gen  = _plan_for_constraints.get("constraints","")
+                prompt = _build_meal_prompt(inv, cycle_phase, capacity,
+                                            constraints=_constraints_for_gen)
                 # Call Anthropic API
                 settings = load_app_settings()
                 api_key  = (settings.get("anthropic_api_key","")
@@ -2951,6 +2954,142 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header("Content-Type","application/json")
                 self.end_headers()
                 try: self.wfile.write(_json.dumps(result).encode())
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/meal-save-constraints":
+                import json as _json
+                wk_c  = clean_text(data.get("week",[""])[0]) or _week_key()
+                constr = data.get("constraints",[""])[0]
+                plan_c = load_meal_plan(wk_c)
+                plan_c["constraints"] = constr
+                save_meal_plan(plan_c)
+                self.send_response(200)
+                self.send_header("Content-Type","application/json")
+                self.end_headers()
+                try: self.wfile.write(b'{"ok":true}')
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/meal-edit":
+                import json as _json, re as _re, requests as _req
+                wk_e    = clean_text(data.get("week",[""])[0]) or _week_key()
+                message = clean_text(data.get("message",[""])[0])
+                raw_days = data.get("days",["{}"])[0]
+                constraints = data.get("constraints",[""])[0]
+                try:    client_days = _json.loads(raw_days)
+                except: client_days = {}
+                # Load family rules for the prompt
+                rules_e = load_meal_rules()
+                # Get API key
+                settings_e = load_app_settings()
+                api_key_e  = (settings_e.get("anthropic_api_key","")
+                              or settings_e.get("family_constraints",{}).get("anthropic_api_key",""))
+                if not api_key_e:
+                    self.send_response(200)
+                    self.send_header("Content-Type","application/json")
+                    self.end_headers()
+                    try: self.wfile.write(_json.dumps({"error":"No API key set in Settings"}).encode())
+                    except BrokenPipeError: pass
+                    return
+                # Build prompt
+                current_plan_json = _json.dumps({"days": client_days}, indent=2)
+                rules_summary = "\n".join(
+                    f"- {k}: {v}" for k,v in rules_e.items()
+                ) if isinstance(rules_e, dict) else str(rules_e)
+                edit_prompt = (
+                    "You are a meal planning assistant for the McAdams Catholic homeschool family "
+                    "(Lauren/mom, John/dad, JP 14, Joseph 12, Michael 5, James 13mo).\n\n"
+                    "CURRENT WEEK PLAN:\n" + current_plan_json + "\n\n"
+                    "FAMILY RULES (fixed, do not violate):\n"
+                    "- Tuesday: leftovers day\n"
+                    "- Friday: meatless (fish or vegetarian)\n"
+                    "- Sunday dinner: Ziplock Buffet (leftovers)\n"
+                    "- Dad needs a packable lunch every weekday\n"
+                    "- Each boy (JP, Joseph, Michael) gets a specific dinner-prep task daily\n"
+                    + (rules_summary + "\n" if rules_summary else "") +
+                    ("\nSTANDING CONSTRAINTS:\n" + constraints + "\n" if constraints.strip() else "") +
+                    "\nUSER INSTRUCTION:\n" + message + "\n\n"
+                    "Apply the instruction carefully. "
+                    "If the instruction says 'move X to Y', swap the meal to the correct day and clear or reassign the original. "
+                    "If an ingredient won't be available until a specific day, do not use it before that day. "
+                    "If a prep step requires advance action (e.g., brining 24h ahead), add the prep note to the day BEFORE. "
+                    "Return ONLY valid JSON in this exact format, no explanation:\n"
+                    '{"days":{"Monday":{...},"Tuesday":{...},...,"Sunday":{...}},'
+                    '"prep_notes":{"Monday":"...","Tuesday":"...",...},'
+                    '"grocery_gaps":[],'
+                    '"summary":"One sentence describing what changed"}'
+                )
+                result_e = {}
+                try:
+                    resp_e = _req.post(
+                        "https://api.anthropic.com/v1/messages",
+                        headers={
+                            "x-api-key": api_key_e,
+                            "anthropic-version": "2023-06-01",
+                            "content-type": "application/json",
+                        },
+                        json={
+                            "model": "claude-sonnet-4-20250514",
+                            "max_tokens": 4096,
+                            "messages": [{"role":"user","content": edit_prompt}],
+                        },
+                        timeout=90,
+                    )
+                    resp_e.raise_for_status()
+                    rj = resp_e.json()
+                    text_e = "".join(
+                        b.get("text","") for b in rj.get("content",[])
+                        if b.get("type") == "text"
+                    )
+                    # Robust parse
+                    parsed_e = {}
+                    fence_m = _re.search(r'```json\s*([\s\S]*?)\s*```', text_e)
+                    cands = []
+                    if fence_m: cands.append(fence_m.group(1))
+                    brace_m = _re.search(r'\{[\s\S]*\}', text_e)
+                    if brace_m: cands.append(brace_m.group())
+                    for cand in cands:
+                        try:
+                            parsed_e = _json.loads(cand); break
+                        except _json.JSONDecodeError:
+                            cleaned = _re.sub(r',\s*([}\]])', r'\1', cand)
+                            try:
+                                parsed_e = _json.loads(cleaned); break
+                            except Exception: pass
+                    if not parsed_e:
+                        raise ValueError("Could not parse Claude response")
+                    days_e = parsed_e.get("days", parsed_e)  # top-level may BE the days dict
+                    # If "days" key missing but day names present, treat whole object as days
+                    from render_meals import DAYS as _DAYS
+                    if not any(d in days_e for d in _DAYS) and any(d in parsed_e for d in _DAYS):
+                        days_e = {d: parsed_e.get(d, {}) for d in _DAYS}
+                    else:
+                        days_e = {d: days_e.get(d, {}) for d in _DAYS}
+                    prep_e  = parsed_e.get("prep_notes", {})
+                    groc_e  = parsed_e.get("grocery_gaps", [])
+                    summ_e  = parsed_e.get("summary", "Plan updated.")
+                    # Merge into saved plan
+                    plan_e = load_meal_plan(wk_e)
+                    for d in _DAYS:
+                        if days_e.get(d):
+                            plan_e.setdefault("days", {})[d] = days_e[d]
+                    if prep_e:  plan_e["prep_notes"]  = prep_e
+                    if groc_e:  plan_e["grocery_gaps"] = groc_e
+                    save_meal_plan(plan_e)
+                    result_e = {
+                        "ok": True,
+                        "days": days_e,
+                        "prep_notes": prep_e,
+                        "grocery_gaps": groc_e,
+                        "summary": summ_e,
+                    }
+                except Exception as ex:
+                    result_e = {"error": str(ex)[:300]}
+                self.send_response(200)
+                self.send_header("Content-Type","application/json")
+                self.end_headers()
+                try: self.wfile.write(_json.dumps(result_e).encode())
                 except BrokenPipeError: pass
                 return
 
