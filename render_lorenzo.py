@@ -179,12 +179,43 @@ def _get_easter(year: int) -> date:
 # ─────────────────────────────────────────────────────────────────────────────
 
 def build_lorenzo_context(iso: str, weekday: str, date_label: str) -> str:
+    from datetime import datetime as _dt
     meal_plan   = _get_current_meal_plan(iso)
     inventory   = _get_inventory()
     constraints = _get_meal_constraints()
     capacity    = _get_lucy_capacity(iso)
     john_status = _get_john_status(iso)
     liturny     = _get_liturgical_note(iso)
+
+    # Current Eastern time — used for situational awareness
+    _now_e = _dt.now(_EASTERN)
+    _h     = _now_e.hour
+    _time_str = _now_e.strftime("%-I:%M %p")   # e.g. "4:35 PM"
+
+    if _h < 6:
+        _phase = (f"It is {_time_str} — very early morning. The family is asleep. "
+                  "If Lauren is up now, keep suggestions extremely simple or overnight-prep focused.")
+    elif _h < 10:
+        _phase = (f"It is {_time_str} — morning. Breakfast is the immediate priority. "
+                  "Think ahead to lunch and whether any dinner prep can start today.")
+    elif _h < 12:
+        _phase = (f"It is {_time_str} — late morning. Breakfast is done. "
+                  "Lunch planning is relevant; also a good time to think through the dinner plan.")
+    elif _h < 14:
+        _phase = (f"It is {_time_str} — midday / lunchtime. "
+                  "Focus on what's for lunch right now, and start firming up the dinner plan.")
+    elif _h < 17:
+        _phase = (f"It is {_time_str} — afternoon. Dinner is the main focus. "
+                  "Lauren needs a concrete dinner plan. JP could start prep in 1-2 hours.")
+    elif _h < 19:
+        _phase = (f"It is {_time_str} — dinner prep time. This is crunch hour. "
+                  "Dinner needs to be executable RIGHT NOW. Give her the fastest viable path.")
+    elif _h < 21:
+        _phase = (f"It is {_time_str} — dinner is happening or just finished. "
+                  "Focus on tomorrow's planning, leftovers, or overnight prep if relevant.")
+    else:
+        _phase = (f"It is {_time_str} — evening. Dinner is done. "
+                  "Help with tomorrow's planning, overnight slow-cooker ideas, or shopping lists.")
 
     lines = [
         "You are Lorenzo — the McAdams family's personal AI chef.",
@@ -194,6 +225,7 @@ def build_lorenzo_context(iso: str, weekday: str, date_label: str) -> str:
         "on a gridiron. You carry his spirit: warmth, good humor, and calm under pressure.",
         "",
         f"Today is {weekday}, {date_label}.",
+        f"CURRENT TIME: {_phase}",
         "",
         "== THE McADAMS FAMILY ==",
         "Lauren (Mom) — the one you work for. A homeschooling Catholic wife and mother.",

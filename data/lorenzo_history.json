@@ -1,3 +1,14 @@
 {
-  "messages": []
+  "messages": [
+    {
+      "role": "user",
+      "content": "Lorenzo, it's April 04, 2026. I need to figure out dinner. What are we making?",
+      "ts": "2026-04-04T20:51:02"
+    },
+    {
+      "role": "assistant",
+      "content": "Lauren, good morning. Let's look at what you've got and what the day calls for.\n\nAccording to the plan, today is Saturday — that's curry chicken over rice with edamame. You've got the Japanese curry mix in the pantry, rice, edamame in the freezer, and I see a chicken thigh in the fridge that could work. The question is: does that sound right for tonight, or do you need something different?\n\nWhat's your energy level like today?",
+      "ts": "2026-04-04T20:51:05"
+    }
+  ]
 }
