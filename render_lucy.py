@@ -2996,15 +2996,17 @@ def get_child_lucy_brief(child: str, tasks_today: list, active_goals: list) -> s
     system = (
         "You are Lucy, a warm, faithful, deeply Catholic AI companion for the McAdams family. "
         "You know every member of the family well. "
-        "You are writing a brief formation note that will appear at the top of a child's daily schedule page. "
-        "Mom reads this — it is about the child, written for her eyes. "
-        "Begin immediately with the content — no salutation, no label, no header like 'For Mom:'. Just start writing. "
-        "Keep it to 3-5 sentences. Be warm, specific, and practical. "
-        "Reference what you know about this child's age, stage, and goals. "
+        "You are writing a brief formation note that appears at the top of a child's own daily dashboard page — "
+        "they will read it themselves. Speak directly TO the child by name. "
+        "Begin immediately with the content — no salutation header, no 'Dear JP:', just flow straight into speaking to them. "
+        "Keep it to 3-5 sentences. Be warm, encouraging, and direct — like a wise older friend who sees the best in them. "
+        "For teenagers: speak to their dignity, their growing strength, and the weight of real virtue. "
+        "For young children (under 8): speak simply, warmly, and with delight. "
+        "For infants: address them tenderly as if blessing them — speak to who they already are. "
+        "Reference what you know about this child's age, stage, and today's specific tasks or goals. "
         "Do not be generic. Do not be preachy. Do not list things — write in flowing, personal prose. "
-        "If the child is an infant, speak directly to Mom with warmth and a developmental note. "
-        "Always close with either a brief prayer intention, a virtue to notice today, or a specific encouragement. "
-        f"\n\nMom's standing rules and context:\n{rules_text}"
+        "Close with either a prayer intention for them, a virtue to practice today, or a specific word of courage. "
+        f"\n\nFamily context and Mom's standing rules:\n{rules_text}"
     )
 
     # Load the child's personal profile (sizes, preferences, wish lists, etc.)
@@ -3021,7 +3023,7 @@ def get_child_lucy_brief(child: str, tasks_today: list, active_goals: list) -> s
         f"Today's tasks for {child}:\n{tasks_text}\n\n"
         f"Active goals for {child}:\n{goals_text}\n\n"
         f"Personal profile for {child} (preferences, wish lists, sizes, interests):\n{profile_text}\n\n"
-        f"Please write a brief, warm formation note for Mom about {child} for today."
+        f"Please write a brief, warm formation note speaking directly to {child} for today."
     )
 
     payload = {
@@ -3043,6 +3045,233 @@ def get_child_lucy_brief(child: str, tasks_today: list, active_goals: list) -> s
         )
         with _req.urlopen(req, timeout=15) as resp:
             result = _json.loads(resp.read())
+        return result["content"][0]["text"].strip()
+    except Exception:
+        return ""
+
+
+# ── Prayer page briefs ────────────────────────────────────────────────────────
+
+_PRAYER_PERSON_CONTEXT = {
+    "lauren": {
+        "name": "Lauren",
+        "role": "wife, mother of six, homeschooling mom",
+        "note": (
+            "Lauren is the heart of the McAdams household. She carries the weight "
+            "of homeschooling, managing the home, nursing a newborn, and holding the "
+            "family's spiritual life together. She needs encouragement, not platitudes."
+        ),
+    },
+    "john": {
+        "name": "John",
+        "role": "husband, father, provider",
+        "note": (
+            "John is the father and husband — protector, provider, and spiritual head "
+            "of the family. He works hard and loves his family deeply."
+        ),
+    },
+    "jp": {
+        "name": "JP",
+        "role": "14-year-old son, eldest child",
+        "note": (
+            "JP is 14, the eldest, standing at the threshold of manhood. He is being "
+            "formed in virtue, leadership, and Catholic identity."
+        ),
+    },
+    "joseph": {
+        "name": "Joseph",
+        "role": "12-year-old son",
+        "note": (
+            "Joseph is 12, bright and energetic, growing into his own strength and "
+            "sense of self. He loves learning and has a natural curiosity."
+        ),
+    },
+    "michael": {
+        "name": "Michael",
+        "role": "5-year-old son",
+        "note": (
+            "Michael is 5, full of wonder and energy. He is at the age of imagination "
+            "and first moral formation — learning what it means to be good."
+        ),
+    },
+    "james": {
+        "name": "James",
+        "role": "newborn son, youngest child",
+        "note": (
+            "James is a newborn, the newest member of the family — a gift still "
+            "discovering the world through warmth and sound and love."
+        ),
+    },
+}
+
+
+def get_prayer_lucy_brief(person: str, intentions: list = None) -> str:
+    """
+    Generate a short prayerful, formational note for a specific family member
+    to appear on the prayer page. Written TO the person (or tenderly for/over
+    them if they cannot read yet, i.e. James). Returns plain text.
+    """
+    import json as _pjson
+    import urllib.request as _preq
+
+    pk = person.lower().strip()
+
+    if pk == "friends":
+        return _get_prayer_intentions_brief(intentions or [])
+
+    ctx = _PRAYER_PERSON_CONTEXT.get(pk)
+    if not ctx:
+        return ""
+
+    try:
+        with open("data/app_settings.json") as f:
+            settings = _pjson.load(f)
+        api_key = (settings.get("family_constraints", {}).get("anthropic_api_key", "")
+                   or settings.get("anthropic_api_key", "")).strip()
+    except Exception:
+        api_key = ""
+    if not api_key:
+        return ""
+
+    try:
+        from data_helpers import load_lucy_rules
+        rules = load_lucy_rules()
+        rules_text = "\n".join(f"- {r}" for r in rules) if rules else "(No standing rules.)"
+    except Exception:
+        rules_text = "(Could not load rules.)"
+
+    from datetime import date as _pdate
+    weekday = _pdate.today().strftime("%A")
+    date_label = _pdate.today().strftime("%B %-d, %Y")
+
+    name = ctx["name"]
+    role = ctx["role"]
+    person_note = ctx["note"]
+
+    if pk == "james":
+        address_instruction = (
+            "James is a newborn and cannot read — write as if tenderly blessing him, "
+            "acknowledging who he already is before God. It should read like a gentle prayer over him."
+        )
+    elif pk in ("lauren", "john"):
+        address_instruction = (
+            f"Speak directly TO {name} — this appears on the prayer page they use. "
+            f"Acknowledge the weight they carry and the grace available to them today."
+        )
+    else:
+        age_map = {"jp": 14, "joseph": 12, "michael": 5}
+        age = age_map.get(pk, "")
+        address_instruction = (
+            f"Speak directly TO {name} (age {age}) — this appears on the prayer page. "
+            f"Write at an age-appropriate level: warm, direct, and genuinely encouraging."
+        )
+
+    system = (
+        "You are Lucy, a warm, faithful, deeply Catholic AI companion for the McAdams family. "
+        "You are writing a brief prayerful note that will appear on the family prayer page. "
+        f"{address_instruction} "
+        "Keep it to 3-5 sentences. Be formational, loving, and prayerful — not generic or preachy. "
+        "Write in flowing personal prose — no lists, no headers, no markdown asterisks. "
+        "Anchor it in the liturgical moment (today's day, season, or feast if relevant). "
+        "Close with a specific prayer intention or virtue for today. "
+        f"\n\nFamily context:\n{rules_text}"
+    )
+
+    user = (
+        f"Today is {weekday}, {date_label}.\n\n"
+        f"{name} — {role}\n"
+        f"Context: {person_note}\n\n"
+        f"Please write a brief prayerful note for {name} for the prayer page."
+    )
+
+    payload_p = {
+        "model": "claude-haiku-4-5-20251001",
+        "max_tokens": 250,
+        "system": system,
+        "messages": [{"role": "user", "content": user}],
+    }
+
+    try:
+        preq = _preq.Request(
+            "https://api.anthropic.com/v1/messages",
+            data=_pjson.dumps(payload_p).encode(),
+            headers={
+                "Content-Type":      "application/json",
+                "x-api-key":         api_key,
+                "anthropic-version": "2023-06-01",
+            },
+        )
+        with _preq.urlopen(preq, timeout=15) as resp:
+            result = _pjson.loads(resp.read())
+        return result["content"][0]["text"].strip()
+    except Exception:
+        return ""
+
+
+def _get_prayer_intentions_brief(intentions: list) -> str:
+    """
+    Reflective synthesis of active prayer intentions, written to Lauren.
+    """
+    import json as _ijson
+    import urllib.request as _ireq
+
+    try:
+        with open("data/app_settings.json") as f:
+            settings = _ijson.load(f)
+        api_key = (settings.get("family_constraints", {}).get("anthropic_api_key", "")
+                   or settings.get("anthropic_api_key", "")).strip()
+    except Exception:
+        api_key = ""
+    if not api_key:
+        return ""
+
+    from datetime import date as _idate
+    weekday = _idate.today().strftime("%A")
+    date_label = _idate.today().strftime("%B %-d, %Y")
+
+    if intentions:
+        intentions_text = "\n".join(
+            f"- {i.get('title','')}: {i.get('description','')}"
+            for i in intentions[:12]
+        )
+    else:
+        intentions_text = "(No active prayer intentions recorded.)"
+
+    system = (
+        "You are Lucy, a warm, faithful, deeply Catholic AI companion for the McAdams family. "
+        "You are writing a brief reflective note about the family's active prayer intentions, "
+        "to appear on their prayer page. Speak to Lauren, who carries the family's intercessory life. "
+        "Acknowledge the people and intentions being held in prayer with warmth and faith. "
+        "Keep it to 3-5 sentences. Do not list the intentions back — synthesize them into a reflection. "
+        "Write in flowing personal prose — no markdown, no headers, no asterisks. "
+        "Close with a word of encouragement about the power of faithful intercession. "
+    )
+
+    user = (
+        f"Today is {weekday}, {date_label}.\n\n"
+        f"Active prayer intentions:\n{intentions_text}\n\n"
+        "Please write a brief reflective note about these intentions for the prayer page."
+    )
+
+    payload_i = {
+        "model": "claude-haiku-4-5-20251001",
+        "max_tokens": 250,
+        "system": system,
+        "messages": [{"role": "user", "content": user}],
+    }
+
+    try:
+        ireq = _ireq.Request(
+            "https://api.anthropic.com/v1/messages",
+            data=_ijson.dumps(payload_i).encode(),
+            headers={
+                "Content-Type":      "application/json",
+                "x-api-key":         api_key,
+                "anthropic-version": "2023-06-01",
+            },
+        )
+        with _ireq.urlopen(ireq, timeout=15) as resp:
+            result = _ijson.loads(resp.read())
         return result["content"][0]["text"].strip()
     except Exception:
         return ""

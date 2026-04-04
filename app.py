@@ -323,6 +323,7 @@ class Handler(BaseHTTPRequestHandler):
                 _brief = get_child_lucy_brief(matched_child, _tasks, _goals)
                 import re as _re2
                 _text = _brief.strip()
+                _text = _re2.sub(r'^#{1,3}\s+.*\n?', '', _text, flags=_re2.MULTILINE).strip()
                 _text = _re2.sub(r'^\*{0,2}[Ff]or [Mm]om:?\*{0,2}\s*', '', _text).strip()
                 _text = _re2.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', _text)
                 _html = _text.replace("\n\n", "</p><p>").replace("\n", " ")
@@ -334,6 +335,35 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
             try: self.wfile.write(_json.dumps({"html": _html}).encode())
+            except BrokenPipeError: pass
+            return
+        elif path.startswith("/lucy-prayer-brief/"):
+            import json as _pjson2
+            _person_slug = path[len("/lucy-prayer-brief/"):].strip().lower()
+            _PRAYER_PEOPLE = {"lauren", "john", "jp", "joseph", "michael", "james", "friends"}
+            if _person_slug not in _PRAYER_PEOPLE:
+                self.send_response(404); self.end_headers(); return
+            try:
+                from render_lucy import get_prayer_lucy_brief
+                from render_prayer import load_intentions
+                _p_intentions = []
+                if _person_slug == "friends":
+                    _all_int = load_intentions()
+                    _p_intentions = [i for i in _all_int if i.get("active", True) and not i.get("answered")]
+                _p_brief = get_prayer_lucy_brief(_person_slug, _p_intentions)
+                import re as _pre
+                _p_text = _p_brief.strip()
+                _p_text = _pre.sub(r'^#{1,3}\s+.*\n?', '', _p_text, flags=_pre.MULTILINE).strip()
+                _p_text = _pre.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', _p_text)
+                _p_html = _p_text.replace("\n\n", "</p><p>").replace("\n", " ")
+                _p_html = f"<p>{_p_html}</p>" if _p_html else ""
+            except Exception:
+                _p_html = ""
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            try: self.wfile.write(_pjson2.dumps({"html": _p_html}).encode())
             except BrokenPipeError: pass
             return
         else:

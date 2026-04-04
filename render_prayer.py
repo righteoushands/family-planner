@@ -548,6 +548,94 @@ def render_prayer_page(status: str = "") -> str:
                  font-family:inherit;cursor:pointer;">+ Add intention</button>
 </div>
 
+<!-- Lucy's Notes: one per family member + friends/intentions -->
+<div style="margin-bottom:20px;">
+  <div style="font-size:0.72em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+              color:var(--ink-faint);margin-bottom:10px;">Lucy's Notes</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <!-- Lauren -->
+    <div class="card card-tight" style="border-left:4px solid #7c3aed;grid-column:1/-1;">
+      <div style="font-size:0.72em;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+                  color:#7c3aed;margin-bottom:6px;">&#10022; For Lauren</div>
+      <div id="lucy-prayer-lauren"
+           style="font-size:.88em;line-height:1.6;color:#444;min-height:36px;">
+        <span style="color:#bbb;font-style:italic;">Loading\u2026</span>
+      </div>
+    </div>
+    <!-- John -->
+    <div class="card card-tight" style="border-left:4px solid #2563eb;grid-column:1/-1;">
+      <div style="font-size:0.72em;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+                  color:#2563eb;margin-bottom:6px;">&#10022; For John</div>
+      <div id="lucy-prayer-john"
+           style="font-size:.88em;line-height:1.6;color:#444;min-height:36px;">
+        <span style="color:#bbb;font-style:italic;">Loading\u2026</span>
+      </div>
+    </div>
+    <!-- JP -->
+    <div class="card card-tight" style="border-left:4px solid #b45309;">
+      <div style="font-size:0.72em;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+                  color:#b45309;margin-bottom:6px;">&#10022; For JP</div>
+      <div id="lucy-prayer-jp"
+           style="font-size:.88em;line-height:1.6;color:#444;min-height:36px;">
+        <span style="color:#bbb;font-style:italic;">Loading\u2026</span>
+      </div>
+    </div>
+    <!-- Joseph -->
+    <div class="card card-tight" style="border-left:4px solid #047857;">
+      <div style="font-size:0.72em;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+                  color:#047857;margin-bottom:6px;">&#10022; For Joseph</div>
+      <div id="lucy-prayer-joseph"
+           style="font-size:.88em;line-height:1.6;color:#444;min-height:36px;">
+        <span style="color:#bbb;font-style:italic;">Loading\u2026</span>
+      </div>
+    </div>
+    <!-- Michael -->
+    <div class="card card-tight" style="border-left:4px solid #0284c7;">
+      <div style="font-size:0.72em;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+                  color:#0284c7;margin-bottom:6px;">&#10022; For Michael</div>
+      <div id="lucy-prayer-michael"
+           style="font-size:.88em;line-height:1.6;color:#444;min-height:36px;">
+        <span style="color:#bbb;font-style:italic;">Loading\u2026</span>
+      </div>
+    </div>
+    <!-- James -->
+    <div class="card card-tight" style="border-left:4px solid #be185d;">
+      <div style="font-size:0.72em;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+                  color:#be185d;margin-bottom:6px;">&#10022; For James</div>
+      <div id="lucy-prayer-james"
+           style="font-size:.88em;line-height:1.6;color:#444;min-height:36px;">
+        <span style="color:#bbb;font-style:italic;">Loading\u2026</span>
+      </div>
+    </div>
+    <!-- Friends & Intentions -->
+    <div class="card card-tight" style="border-left:4px solid var(--gold-mid);grid-column:1/-1;">
+      <div style="font-size:0.72em;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+                  color:var(--brown);margin-bottom:6px;">&#10022; Friends &amp; Intentions</div>
+      <div id="lucy-prayer-friends"
+           style="font-size:.88em;line-height:1.6;color:#444;min-height:36px;">
+        <span style="color:#bbb;font-style:italic;">Loading\u2026</span>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function() {{
+  var _slugs = ['lauren','john','jp','joseph','michael','james','friends'];
+  _slugs.forEach(function(slug) {{
+    var el = document.getElementById('lucy-prayer-' + slug);
+    if (!el) return;
+    fetch('/lucy-prayer-brief/' + slug)
+      .then(function(r) {{ return r.json(); }})
+      .then(function(d) {{
+        el.innerHTML = d.html || "<span style='color:#bbb;font-style:italic;'>Not available right now.</span>";
+      }})
+      .catch(function() {{
+        el.innerHTML = "<span style='color:#bbb;font-style:italic;'>Could not load.</span>";
+      }});
+  }});
+}})();
+</script>
+
 <!-- Add form (hidden by default) -->
 <div id="add-form" style="display:none;margin-bottom:16px;">
   <div class="card" style="border:2px solid var(--gold-mid);">
