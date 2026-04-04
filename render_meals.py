@@ -59,16 +59,36 @@ def _week_start(for_date: date = None) -> date:
     return d - timedelta(days=d.weekday())  # Monday
 
 def load_meal_plan(week_key: str = None) -> dict:
-    key = week_key or _week_key()
+    import re as _re
+    key = week_key or date.today().isoformat()
     default = {
-        "week": key,
+        "start": key,
+        "week":  key,  # backward compat
         "generated": False,
         "days": {day: {slot: "" for slot in MEAL_SLOTS} for day in DAYS}
     }
-    return ensure_file(_plan_path(key), default)
+    path = _plan_path(key)
+    # Fast path: file exists under given key
+    if os.path.exists(path):
+        return ensure_file(path, default)
+    # Backward compat: if key is ISO date, also try the old YYYY-WNN week key
+    if _re.match(r'\d{4}-\d{2}-\d{2}', key):
+        try:
+            d = date.fromisoformat(key)
+            old_key  = d.strftime("%Y-W%W")
+            old_path = _plan_path(old_key)
+            if os.path.exists(old_path):
+                plan = ensure_file(old_path, default)
+                plan.setdefault("start", key)
+                return plan
+        except Exception:
+            pass
+    return ensure_file(path, default)
 
 def save_meal_plan(plan: dict):
-    safe_save_json(_plan_path(plan["week"]), plan)
+    # Use "start" (ISO date) as primary key; fall back to "week" for old plans
+    key = plan.get("start") or plan.get("week", date.today().isoformat())
+    safe_save_json(_plan_path(key), plan)
 
 def load_inventory() -> dict:
     return ensure_file(INVENTORY_FILE, {
@@ -281,19 +301,30 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
     from ui_helpers import html_page, page_header, render_status_message, top_nav
     from render_daily_plan import load_daily_plan
     from render_morning_anchor import _get_anchor_state
+    import re as _re
 
-    wk     = week_key or _week_key()
+    # Parse start date — accepts YYYY-MM-DD (new) or YYYY-WNN (legacy)
+    raw_key = week_key or ""
+    try:
+        if _re.match(r'\d{4}-\d{2}-\d{2}', raw_key):
+            ws = date.fromisoformat(raw_key)
+        elif raw_key:
+            from datetime import datetime as _dtp
+            ws = _dtp.strptime(raw_key + "-1", "%Y-W%W-%w").date()
+        else:
+            ws = _week_start()  # default: Monday of current week
+    except Exception:
+        ws = _week_start()
+
+    # Canonical key is always the ISO start date
+    wk = ws.isoformat()
+
     plan   = load_meal_plan(wk)
     inv    = load_inventory()
     days_data = plan.get("days", {})
 
-    # Parse the displayed week's Monday from the week_key so navigation
-    # arrows move relative to the page being viewed, not today.
-    try:
-        from datetime import datetime as _dtp
-        ws = _dtp.strptime(wk + "-1", "%Y-W%W-%w").date()
-    except Exception:
-        ws = _week_start()
+    # Ordered day names for this specific 7-day period
+    ordered_days = [(ws + timedelta(days=i)).strftime("%A") for i in range(7)]
 
     # API key for AI features
     try:
@@ -309,11 +340,12 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
     cycle_phase = anchor.get("cycle_phase", "")
     capacity    = anchor.get("capacity", "")
 
-    # Week navigation — relative to the displayed week, not today
-    prev_week = (ws - timedelta(weeks=1)).strftime("%Y-W%W")
-    next_week = (ws + timedelta(weeks=1)).strftime("%Y-W%W")
+    # Navigation — step exactly 7 days in either direction
+    prev_week = (ws - timedelta(weeks=1)).isoformat()
+    next_week = (ws + timedelta(weeks=1)).isoformat()
 
-    week_label = ws.strftime("Week of %B %d, %Y")
+    last_day  = ws + timedelta(days=6)
+    week_label = ws.strftime("%B %d") + " – " + last_day.strftime("%B %d, %Y")
 
     # ── Inventory input section ───────────────────────────────────────────────
     inv_section = (
@@ -382,8 +414,8 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
     grid_rows = ""
     # Header row
     header_cells = "<td style='width:90px;background:var(--parchment);font-size:0.72em;font-weight:700;color:var(--ink-faint);padding:8px;'></td>"
-    for day in DAYS:
-        day_date = ws + timedelta(days=DAYS.index(day))
+    for i, day in enumerate(ordered_days):
+        day_date = ws + timedelta(days=i)
         is_today = (day_date == date.today())
         day_color = CHILD_COLORS.get(day, "#555")
         bg = "var(--ink)" if is_today else "var(--parchment)"
@@ -419,13 +451,11 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
             f'white-space:nowrap;border-right:2px solid var(--border);">'
             f'{escape(slot_label)}</td>'
         )
-        for day in DAYS:
+        for day in ordered_days:
             val = days_data.get(day, {}).get(slot, "")
-            safe_day  = day.replace("'","")
-            safe_slot = slot.replace("'","")
             cells += (
                 f'<td style="padding:3px;background:{slot_bg};border-bottom:1px solid var(--border-light);">'
-                f'<textarea data-day="{escape(safe_day)}" data-slot="{escape(safe_slot)}"'
+                f'<textarea data-day="{escape(day)}" data-slot="{escape(slot)}"'
                 f' oninput="cellChanged(this)"'
                 f' style="width:100%;min-height:52px;border:none;outline:none;'
                 f'background:transparent;font-size:0.78em;font-family:inherit;'
@@ -435,19 +465,18 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
             )
         grid_rows += f'<tr>{cells}</tr>'
 
-    # Boys Help row (separate from MEAL_SLOTS — stores in days[day]["boys_help"])
+    # Boys Help row
     help_cells = (
         f'<td style="background:var(--parchment);padding:6px 8px;'
         f'font-size:0.72em;font-weight:700;color:#92400e;'
         f'white-space:nowrap;border-right:2px solid var(--border);">'
         f'👦 Boys Help</td>'
     )
-    for day in DAYS:
+    for day in ordered_days:
         val = days_data.get(day, {}).get("boys_help", "")
-        safe_day = day.replace("'", "")
         help_cells += (
             f'<td style="padding:3px;background:#fefce8;border-bottom:1px solid var(--border-light);">'
-            f'<textarea data-day="{escape(safe_day)}" data-slot="boys_help"'
+            f'<textarea data-day="{escape(day)}" data-slot="boys_help"'
             f' oninput="cellChanged(this)"'
             f' style="width:100%;min-height:52px;border:none;outline:none;'
             f'background:transparent;font-size:0.78em;font-family:inherit;'

@@ -483,17 +483,18 @@ class Handler(BaseHTTPRequestHandler):
             except BrokenPipeError: pass
             return
         elif path == "/meals":
-            wk = clean_text(query.get("week",[""])[0])
+            # Accept ?date=YYYY-MM-DD (exact start) or ?week=YYYY-WNN (legacy)
+            wk = clean_text(query.get("date",[""])[0])
             if not wk:
-                dt_str = clean_text(query.get("date",[""])[0])
-                if dt_str:
+                old_wk = clean_text(query.get("week",[""])[0])
+                if old_wk:
+                    # Convert legacy week-number key to its Monday ISO date
                     try:
-                        from datetime import date as _dp
-                        _d = _dp.fromisoformat(dt_str)
-                        _monday = _d - timedelta(days=_d.weekday())
-                        wk = _monday.strftime("%Y-W%W")
+                        from datetime import datetime as _dtp
+                        _mon = _dtp.strptime(old_wk + "-1", "%Y-W%W-%w").date()
+                        wk = _mon.isoformat()
                     except Exception:
-                        wk = ""
+                        wk = old_wk  # pass through as-is
             body = render_meal_planner_page(week_key=wk or None)
         elif path == "/meal-print":
             wk   = clean_text(query.get("week",[""])[0])
@@ -2781,7 +2782,8 @@ class Handler(BaseHTTPRequestHandler):
                     if day not in plan["days"]: plan["days"][day] = {}
                     for slot, val in slots.items():
                         plan["days"][day][slot] = clean_text(val)
-                plan["week"] = wk
+                plan["week"]  = wk
+                plan["start"] = wk
                 save_meal_plan(plan)
                 self.send_response(200)
                 self.send_header("Content-Type","application/json")
@@ -2950,6 +2952,7 @@ class Handler(BaseHTTPRequestHandler):
                     plan["use_soon_used"] = use_soon_used
                     plan["generated"]     = True
                     plan["week"]          = wk
+                    plan["start"]         = wk
                     save_meal_plan(plan)
                     result = {
                         "ok": True,
