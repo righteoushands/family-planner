@@ -70,13 +70,34 @@ def check_pin(username: str, entered: str) -> bool:
     return entered == get_pin(username)
 
 
-# ── Session store (in-memory — cleared on server restart) ────────────────────
+# ── Session store (file-backed — survives server restarts) ────────────────────
+_SESSIONS_PATH = "data/auth/sessions.json"
 _SESSIONS: dict = {}
+
+
+def _load_sessions() -> None:
+    global _SESSIONS
+    try:
+        with open(_SESSIONS_PATH) as f:
+            _SESSIONS = json.load(f)
+    except Exception:
+        _SESSIONS = {}
+
+
+def _save_sessions() -> None:
+    os.makedirs("data/auth", exist_ok=True)
+    with open(_SESSIONS_PATH, "w") as f:
+        json.dump(_SESSIONS, f)
+
+
+# Load sessions from disk on import
+_load_sessions()
 
 
 def create_session(username: str) -> str:
     token = secrets.token_urlsafe(32)
     _SESSIONS[token] = username
+    _save_sessions()
     return token
 
 
@@ -86,6 +107,7 @@ def get_session_user(token: str):
 
 def destroy_session(token: str):
     _SESSIONS.pop(token, None)
+    _save_sessions()
 
 
 # ── Current-viewer context (single-threaded server) ───────────────────────────
