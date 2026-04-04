@@ -254,7 +254,7 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
             el.innerHTML = d.html || '<span style="color:#bbb;font-style:italic;">Not available right now.</span>';
         }})
         .catch(function() {{
-            el.innerHTML = '<span style="color:#bbb;font-style:italic;">Could not load Lucy\'s notes.</span>';
+            el.innerHTML = "<span style='color:#bbb;font-style:italic;'>Could not load Lucy\u2019s notes.</span>";
         }});
 }})();
 </script>"""
