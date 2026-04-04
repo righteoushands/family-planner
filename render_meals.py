@@ -156,15 +156,26 @@ CRITICAL RULES REMINDER:
 - Include simple/familiar options for Michael; soft/easy for James
 - Cycle phase nutrition: """ + (cycle_phase or "standard balanced meals") + """
 
+BOYS DINNER PREP TASKS:
+Each boy gets exactly ONE specific dinner-related task every day. Assign by age:
+- JP (age 14): Real cooking tasks — browning meat, stirring soups on the stove, chopping with a chef's knife, draining pasta, managing timers, operating appliances independently.
+- Joseph (age 12): Active prep — washing and peeling vegetables, measuring ingredients, mixing batters or doughs, tearing, slicing with a paring knife, setting out all mise en place.
+- Michael (age 5): Simple confidence-building tasks — rinsing produce under the tap, tearing bread, fetching named pantry items, stirring cold salads, placing rolls in a basket.
+TASK TIMING RULES:
+- Tasks that involve the stove, cutting, or advanced prep MUST be doable before 4PM.
+- "Set the table," "fill water glasses," "put napkins out" are dinner-time tasks — assign these only as a secondary note if a boy has no real prep task that day.
+- On leftover/Ziplock Buffet days, assign reheating, labeling, or organizing tasks.
+- Be SPECIFIC: "JP: brown the ground beef for chili" not "JP: help with dinner."
+
 OUTPUT FORMAT (JSON only, no other text):
 {
-  "Monday":    { "breakfast": "...", "lunch": "...", "dinner": "...", "snacks": "...", "dad_lunch": "..." },
-  "Tuesday":   { "breakfast": "...", "lunch": "leftovers from [specify]", "dinner": "...", "snacks": "...", "dad_lunch": "..." },
-  "Wednesday": { "breakfast": "...", "lunch": "...", "dinner": "...", "snacks": "...", "dad_lunch": "..." },
-  "Thursday":  { "breakfast": "...", "lunch": "...", "dinner": "...", "snacks": "...", "dad_lunch": "..." },
-  "Friday":    { "breakfast": "...", "lunch": "sardine sandwiches or soup", "dinner": "Fish fry", "snacks": "...", "dad_lunch": "..." },
-  "Saturday":  { "breakfast": "...", "lunch": "...", "dinner": "...", "snacks": "...", "dad_lunch": "N/A" },
-  "Sunday":    { "breakfast": "...", "lunch": "...", "dinner": "Ziplock Buffet (leftovers)", "snacks": "...", "dad_lunch": "N/A" }
+  "Monday":    { "breakfast": "...", "lunch": "...", "dinner": "...", "snacks": "...", "dad_lunch": "...", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" },
+  "Tuesday":   { "breakfast": "...", "lunch": "leftovers from [specify]", "dinner": "...", "snacks": "...", "dad_lunch": "...", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" },
+  "Wednesday": { "breakfast": "...", "lunch": "...", "dinner": "...", "snacks": "...", "dad_lunch": "...", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" },
+  "Thursday":  { "breakfast": "...", "lunch": "...", "dinner": "...", "snacks": "...", "dad_lunch": "...", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" },
+  "Friday":    { "breakfast": "...", "lunch": "sardine sandwiches or soup", "dinner": "Fish fry", "snacks": "...", "dad_lunch": "...", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" },
+  "Saturday":  { "breakfast": "...", "lunch": "...", "dinner": "...", "snacks": "...", "dad_lunch": "N/A", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" },
+  "Sunday":    { "breakfast": "...", "lunch": "...", "dinner": "Ziplock Buffet (leftovers)", "snacks": "...", "dad_lunch": "N/A", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" }
 }
 
 Also include a "grocery_gaps" array listing ingredients NOT in the inventory that are needed,
@@ -308,6 +319,26 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
         'background:var(--ink);color:var(--gold-light);border:none;font-weight:700;">'
         '&#10024; Generate meal plan</button>'
         '</div></div>'
+
+        # Quick-paste block
+        '<div style="background:#faf8f5;border-radius:10px;border:1.5px dashed var(--border);'
+        'padding:12px 14px;margin-bottom:14px;">'
+        '<div style="font-size:0.72em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;'
+        'color:var(--ink-faint);margin-bottom:8px;">&#9998; Paste everything at once</div>'
+        '<textarea id="inv-paste-raw" rows="5" '
+        'placeholder="Here\'s what\'s in the fridge: eggs, chicken thighs, leftover rice&#10;'
+        'Freezer: ground beef, flounder fillets, frozen peas&#10;'
+        'Pantry: rice, lentils, olive oil, canned tomatoes&#10;'
+        'Use soon: open sour cream, wilting spinach" '
+        'style="font-size:0.85em;resize:vertical;margin-bottom:8px;background:white;"></textarea>'
+        '<div style="display:flex;align-items:center;gap:10px;">'
+        '<button onclick="parseInventory()" '
+        'style="padding:6px 16px;font-size:0.82em;background:var(--brown,#8b4513);'
+        'color:white;border:none;border-radius:8px;cursor:pointer;font-family:inherit;">'
+        '&#10003; Parse &amp; fill sections</button>'
+        '<div id="inv-parse-status" style="font-size:0.78em;color:#27ae60;min-height:14px;"></div>'
+        '</div></div>'
+
         '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">'
         '<div>'
         '<label>Fridge</label>'
@@ -326,7 +357,7 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
         + escape(inv.get("pantry","")) + '</textarea></div>'
         '</div>'
         '<div style="margin-top:10px;">'
-        '<label style="color:var(--crimson,#8b1a1a);">Use soon (priority ingredients)</label>'
+        '<label style="color:var(--crimson,#8b1a1a);">&#9650; Use soon (priority ingredients)</label>'
         '<input type="text" id="inv-use-soon" placeholder="spinach, ground beef in fridge, open sour cream..."'
         ' value="' + escape(inv.get("use_soon","")) + '" style="max-width:100%;">'
         '</div>'
@@ -532,6 +563,43 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
         '    var el=document.getElementById("grid-status");'
         '    if(el){el.textContent="Saved \u2713";setTimeout(function(){el.textContent="";},1800);}'
         '  });'
+        '}'
+
+        # Parse free-text inventory
+        'function parseInventory() {'
+        '  var raw = document.getElementById("inv-paste-raw").value;'
+        '  if (!raw.trim()) return;'
+        '  var chunks = { fridge: [], freezer: [], pantry: [], use_soon: [] };'
+        '  var current = "pantry";'
+        '  var lines = raw.split(/\\r?\\n/);'
+        '  lines.forEach(function(line) {'
+        '    var l = line.trim();'
+        '    if (!l) return;'
+        '    var isFridge   = /fridge|refrigerat/i.test(l);'
+        '    var isFreezer  = /freezer|frozen/i.test(l);'
+        '    var isPantry   = /pantry|cabinet|shelf|shelves|cupboard/i.test(l);'
+        '    var isUseSoon  = /use.?soon|priority|urgent/i.test(l);'
+        '    if (isFridge || isFreezer || isPantry || isUseSoon) {'
+        '      if (isFridge)  current = "fridge";'
+        '      else if (isFreezer) current = "freezer";'
+        '      else if (isPantry)  current = "pantry";'
+        '      else if (isUseSoon) current = "use_soon";'
+        '      var colon = l.indexOf(":");'
+        '      if (colon >= 0) {'
+        '        var after = l.slice(colon + 1).trim();'
+        '        if (after) chunks[current].push(after);'
+        '      }'
+        '      return;'
+        '    }'
+        '    chunks[current].push(l);'
+        '  });'
+        '  if (chunks.fridge.length)    document.getElementById("inv-fridge").value   = chunks.fridge.join("\\n");'
+        '  if (chunks.freezer.length)   document.getElementById("inv-freezer").value  = chunks.freezer.join("\\n");'
+        '  if (chunks.pantry.length)    document.getElementById("inv-pantry").value   = chunks.pantry.join("\\n");'
+        '  if (chunks.use_soon.length)  document.getElementById("inv-use-soon").value = chunks.use_soon.join(", ");'
+        '  var st = document.getElementById("inv-parse-status");'
+        '  if (st) { st.textContent = "Sections filled \u2713 \u2014 review and save.";'
+        '    setTimeout(function(){st.textContent="";}, 3000); }'
         '}'
 
         # Save inventory
