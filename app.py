@@ -2207,13 +2207,16 @@ class Handler(BaseHTTPRequestHandler):
                 redirect = "/lucy"
 
             elif path == "/lorenzo-chat":
-                import json as _json, urllib.request as _req
+                import json as _json, urllib.request as _req, re as _re
                 from data_helpers import (
                     load_lorenzo_history, append_lorenzo_messages, LORENZO_CONTEXT_MAX
                 )
                 from datetime import datetime as _dt
                 iso        = clean_text(data.get("iso",[""])[0]) or date.today().isoformat()
+                capacity   = clean_text(data.get("capacity",[""])[0])
                 message    = clean_text(data.get("message",[""])[0])
+                image_b64  = data.get("image_b64",[""])[0].strip()
+                image_type = clean_text(data.get("image_type",["image/jpeg"])[0]) or "image/jpeg"
                 settings_data = load_app_settings()
                 api_key = (settings_data.get("family_constraints",{}).get("anthropic_api_key","")
                            or settings_data.get("anthropic_api_key","")).strip()
@@ -2230,7 +2233,14 @@ class Handler(BaseHTTPRequestHandler):
                     date_label = d.strftime("%B %d, %Y")
                 except Exception:
                     weekday = date_label = iso
+                # Inject capacity override into context if user set it in UI
                 lorenzo_context = build_lorenzo_context(iso, weekday, date_label)
+                if capacity:
+                    cap_note = {"high": "OVERRIDE: Lauren says her energy is HIGH today.",
+                                "medium": "OVERRIDE: Lauren says her energy is MEDIUM today.",
+                                "low": "OVERRIDE: Lauren says her energy is LOW today."}.get(capacity, "")
+                    if cap_note:
+                        lorenzo_context = cap_note + "\n" + lorenzo_context
                 ts_now = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                 append_lorenzo_messages([{"role": "user", "content": message, "ts": ts_now}])
                 server_history = load_lorenzo_history()
@@ -2241,7 +2251,18 @@ class Handler(BaseHTTPRequestHandler):
                     if role in ("user","assistant") and content:
                         messages.append({"role": role, "content": content})
                 if not messages or messages[-1].get("role") != "user":
-                    messages.append({"role": "user", "content": message})
+                    messages.append({"role": "user", "content": message or "(image attached)"})
+                # Vision: attach image to last user message
+                if image_b64 and len(image_b64) > 10:
+                    last_text = messages[-1].get("content","") if messages else (message or "")
+                    messages[-1] = {"role": "user", "content": [
+                        {"type": "image", "source": {
+                            "type": "base64",
+                            "media_type": image_type,
+                            "data": image_b64
+                        }},
+                        {"type": "text", "text": last_text or "What do you see in this image? Describe it as a chef would."}
+                    ]}
                 payload = _json.dumps({
                     "model":      "claude-haiku-4-5-20251001",
                     "max_tokens": 1500,
@@ -2264,12 +2285,54 @@ class Handler(BaseHTTPRequestHandler):
                     text = result.get("content",[{}])[0].get("text","").strip()
                 except Exception as e:
                     text = f"Lorenzo is away from the stove. ({e})"
+                # ── Parse [MEAL_UPDATE:Day:slot]meal[/MEAL_UPDATE] and save ──
+                _meal_rx = _re.compile(
+                    r'\[MEAL_UPDATE:([^:\]]+):([^\]]+)\]([\s\S]*?)\[\/MEAL_UPDATE\]',
+                    _re.IGNORECASE
+                )
+                for _mm in _meal_rx.finditer(text):
+                    _mday = _mm.group(1).strip()
+                    _mslot = _mm.group(2).strip().lower()
+                    _mmeal = _mm.group(3).strip()
+                    if _mday and _mslot and _mmeal:
+                        try:
+                            from render_meals import load_meal_plan, save_meal_plan
+                            _plan = load_meal_plan(iso)
+                            _plan["days"].setdefault(_mday, {})[_mslot] = _mmeal
+                            _plan["start"] = _plan.get("start") or iso
+                            save_meal_plan(_plan)
+                        except Exception:
+                            pass
                 ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                 append_lorenzo_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
                 self.send_response(200)
                 self.send_header("Content-Type","text/plain; charset=utf-8")
                 self.end_headers()
                 try: self.wfile.write(text.encode("utf-8"))
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/lorenzo-rule-save":
+                import json as _json
+                action    = clean_text(data.get("action",[""])[0]).strip()
+                rule_text = clean_text(data.get("rule",[""])[0]).strip()
+                if rule_text and action in ("add", "remove"):
+                    _s = load_app_settings()
+                    fc = _s.setdefault("family_constraints", {})
+                    rules = fc.get("lorenzo_rules", [])
+                    if not isinstance(rules, list):
+                        rules = []
+                    if action == "add" and rule_text not in rules:
+                        rules.append(rule_text)
+                    elif action == "remove":
+                        rules = [r for r in rules if r != rule_text]
+                    fc["lorenzo_rules"] = rules
+                    _s["family_constraints"] = fc
+                    save_app_settings(_s)
+                self.send_response(200)
+                self.send_header("Content-Type","text/plain")
+                self.end_headers()
+                try: self.wfile.write(b"ok")
                 except BrokenPipeError: pass
                 return
 
