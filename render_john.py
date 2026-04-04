@@ -2,6 +2,7 @@
 render_john.py — John's (husband/dad) personal profile page
 
 Stores and displays:
+  - Quick-look card: today's lunch + dinner, week's dinners, note from Lauren
   - Clothing & shoe sizes
   - Birthday
   - Gift ideas
@@ -12,6 +13,7 @@ Stores and displays:
   - Other notes
 """
 import json, os
+from datetime import date, timedelta
 from html import escape
 from ui_helpers import html_page, top_nav
 
@@ -54,7 +56,98 @@ def load_john_profile() -> dict:
             "couple_bucket_list": [],
             "love_notes": "",
             "other_notes": "",
+            "note_for_john": "",
         }
+
+
+# ---------------------------------------------------------------------------
+# Quick-look helpers
+# ---------------------------------------------------------------------------
+WEEKDAYS_ORDER = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
+
+def _week_key(d: date = None) -> str:
+    d = d or date.today()
+    monday = d - timedelta(days=d.weekday())
+    return monday.strftime("%Y-W%W")
+
+def _load_week_plan(week_key: str = None) -> dict:
+    wk = week_key or _week_key()
+    path = f"data/meal_plan/{wk}.json"
+    try:
+        with open(path) as f:
+            raw = json.load(f)
+            return {k: v for k, v in raw.items() if k in WEEKDAYS_ORDER}
+    except Exception:
+        return {}
+
+def _render_john_quicklook(profile: dict) -> str:
+    today = date.today()
+    weekday = WEEKDAYS_ORDER[today.weekday()] if today.weekday() < 7 else ""
+    plan    = _load_week_plan()
+    today_data = plan.get(weekday, {})
+
+    dad_lunch = escape(today_data.get("dad_lunch") or "—")
+    tonight   = escape(today_data.get("dinner")    or "—")
+    note      = escape(profile.get("note_for_john","") or "")
+
+    # Week dinner grid (Mon–Sun)
+    week_rows = ""
+    for day in WEEKDAYS_ORDER:
+        d_data   = plan.get(day, {})
+        dinner   = escape(d_data.get("dinner","") or "—")
+        is_today = (day == weekday)
+        row_style = (
+            f"padding:6px 10px;display:flex;gap:10px;align-items:baseline;"
+            + ("background:#e8f0fe;border-radius:8px;font-weight:700;" if is_today else "")
+        )
+        today_badge = (
+            f"<span style='font-size:0.68em;background:{ACCENT};color:white;"
+            f"padding:1px 7px;border-radius:999px;vertical-align:middle;margin-left:4px;'>today</span>"
+        ) if is_today else ""
+        week_rows += (
+            f"<div style='{row_style}'>"
+            f"<span style='font-size:0.78em;font-weight:700;color:#6b7280;min-width:80px;'>{day}</span>"
+            f"<span style='font-size:0.88em;'>{dinner}{today_badge}</span>"
+            f"</div>"
+        )
+
+    note_html = (
+        f"<div style='margin-top:14px;padding:12px 14px;background:white;border-radius:10px;"
+        f"border-left:4px solid {ACCENT};font-size:0.92em;font-style:italic;color:#374151;'>"
+        f"<div style='font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;"
+        f"color:{ACCENT};margin-bottom:4px;'>Note from Lauren</div>"
+        f"{note}"
+        f"</div>"
+    ) if note else ""
+
+    return f"""
+<div style="background:#1e3a6e;color:white;border-radius:16px;padding:20px 22px;margin-bottom:20px;">
+  <div style="font-size:0.68em;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+              opacity:.7;margin-bottom:4px;">{today.strftime("%A, %B %-d")}</div>
+  <div style="font-size:1.4em;font-weight:800;margin-bottom:16px;">Good morning, John.</div>
+
+  <!-- Today at a glance -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+    <div style="background:rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;">
+      <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+                  opacity:.7;margin-bottom:4px;">Today's lunch</div>
+      <div style="font-size:0.95em;font-weight:600;">{dad_lunch}</div>
+    </div>
+    <div style="background:rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;">
+      <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+                  opacity:.7;margin-bottom:4px;">Tonight's dinner</div>
+      <div style="font-size:0.95em;font-weight:600;">{tonight}</div>
+    </div>
+  </div>
+
+  <!-- Week dinners -->
+  <div style="background:rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;margin-bottom:0;">
+    <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+                opacity:.7;margin-bottom:8px;">This week's dinners</div>
+    {week_rows}
+  </div>
+  {note_html}
+</div>"""
 
 
 def save_john_profile(data: dict) -> None:
@@ -106,11 +199,13 @@ def _list_section_html(key: str, label: str, hint: str, items: list) -> str:
 
 def render_john_page() -> str:
     p = load_john_profile()
-    clothing = p.get("clothing_sizes", {})
-    shoe     = escape(p.get("shoe_size", ""))
-    birthday = escape(p.get("birthday", ""))
-    love_notes = escape(p.get("love_notes", ""))
+    clothing    = p.get("clothing_sizes", {})
+    shoe        = escape(p.get("shoe_size", ""))
+    birthday    = escape(p.get("birthday", ""))
+    love_notes  = escape(p.get("love_notes", ""))
     other_notes = escape(p.get("other_notes", ""))
+    note_for_john = escape(p.get("note_for_john", ""))
+    quicklook_html = _render_john_quicklook(p)
 
     clothing_inputs = ""
     for key, label in CLOTHING_FIELDS:
@@ -137,13 +232,14 @@ def render_john_page() -> str:
     body = f"""
 {top_nav()}
 <div style="max-width:680px;margin:0 auto;padding:16px;">
-  <div style="margin-bottom:20px;">
+
+  {quicklook_html}
+
+  <!-- Lauren's section header -->
+  <div style="margin-bottom:16px;">
     <div style="font-size:0.7em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
-                color:{ACCENT};margin-bottom:2px;">Husband &amp; Dad</div>
-    <h1 style="margin:0;font-size:1.6em;color:var(--ink);">John</h1>
-    <div style="font-size:0.82em;color:#9ca3af;margin-top:2px;">
-      Mom's reference page — sizes, gift ideas, couple plans &amp; notes
-    </div>
+                color:{ACCENT};margin-bottom:2px;">Lauren's reference</div>
+    <h2 style="margin:0;font-size:1.2em;color:var(--ink);">Sizes, gifts &amp; couple notes</h2>
   </div>
 
   <!-- Save bar -->
@@ -199,6 +295,20 @@ def render_john_page() -> str:
               placeholder="Write freely — this is just for you…"
               style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;
                      font-size:0.85em;font-family:inherit;resize:vertical;background:white;">{love_notes}</textarea>
+  </div>
+
+  <!-- Note for John (shows in his quick-look) -->
+  <div class="card" style="border-left:5px solid {ACCENT};background:#e8f0fe;margin-bottom:14px;">
+    <div style="font-size:0.72em;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+                color:{ACCENT};margin-bottom:4px;">&#128172; Note for John</div>
+    <div style="font-size:0.75em;color:#9ca3af;margin-bottom:8px;font-style:italic;">
+      Appears at the top of this page in John's quick-look card — a daily message, reminder, or love note.
+    </div>
+    <textarea id="john-note-for-john" rows="3"
+              oninput="johnMarkDirty()"
+              placeholder="e.g. Don't forget to pick up milk. Proud of you today. &#10029;"
+              style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;
+                     font-size:0.88em;font-family:inherit;resize:vertical;background:white;">{note_for_john}</textarea>
   </div>
 
   <!-- Other Notes -->
@@ -289,11 +399,12 @@ def render_john_page() -> str:
     }});
 
     var profile = {{
-      birthday:    (document.getElementById('john-birthday') || {{}}).value || '',
+      birthday:      (document.getElementById('john-birthday') || {{}}).value || '',
       clothing_sizes: clothing,
-      shoe_size:   (document.getElementById('john-shoe') || {{}}).value || '',
-      love_notes:  (document.getElementById('john-love-notes') || {{}}).value || '',
-      other_notes: (document.getElementById('john-other-notes') || {{}}).value || '',
+      shoe_size:     (document.getElementById('john-shoe') || {{}}).value || '',
+      love_notes:    (document.getElementById('john-love-notes') || {{}}).value || '',
+      other_notes:   (document.getElementById('john-other-notes') || {{}}).value || '',
+      note_for_john: (document.getElementById('john-note-for-john') || {{}}).value || '',
     }};
     {all_keys_json}.forEach(function(key) {{ profile[key] = _data[key] || []; }});
 

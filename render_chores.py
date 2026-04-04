@@ -422,6 +422,77 @@ def render_van_roles_page() -> str:
     </div>"""
     return html_page("Van Cleaning Rotation", body)
 
+# ── Today's chore completion status ──────────────────────────────────────────
+def _render_chore_status_today() -> str:
+    """Compact overview of each boy's daily chore completion today."""
+    from data_helpers import load_progress
+    today   = date.today()
+    iso     = today.isoformat()
+    weekday = today.strftime("%A")
+    chores  = load_chores_data()
+    boys    = chores.get("boys", {})
+    progress = load_progress()
+
+    def _done(child, text):
+        val = progress.get(f"{iso}::{child}::CHORE::{text}", False)
+        if isinstance(val, bool):   return val
+        if isinstance(val, dict):   return bool(val.get("done", False))
+        return bool(val)
+
+    cards_html = ""
+    for child in ("JP", "Joseph", "Michael"):
+        data    = boys.get(child, {})
+        # Fall back to canonical defaults if stored data is empty
+        canon   = CANONICAL_CHORES.get(child, {})
+        stored_daily  = data.get("daily", [])
+        stored_weekly = data.get("weekly", {}).get(weekday, [])
+        daily  = [t for t in (stored_daily  or canon.get("daily",  [])) if t.strip() and not t.startswith("\u2192")]
+        weekly = [t for t in (stored_weekly or canon.get("weekly", {}).get(weekday, [])) if t.strip() and not t.startswith("\u2192")]
+        all_t   = daily + weekly
+        if not all_t:
+            continue
+        done_n  = sum(1 for t in all_t if _done(child, t))
+        total   = len(all_t)
+        pct     = int(done_n / total * 100) if total else 0
+        c_bg    = child_color(child, "bg")
+        c_light = child_color(child, "light")
+        bar_col = "#16a34a" if pct == 100 else c_bg
+        rows    = ""
+        for t in all_t:
+            ok = _done(child, t)
+            icon_s = "color:#16a34a;font-weight:700;" if ok else "color:#d1d5db;"
+            text_s = "text-decoration:line-through;color:#9ca3af;" if ok else ""
+            rows += (
+                f"<div style='display:flex;align-items:center;gap:7px;padding:3px 0;"
+                f"border-bottom:1px solid {c_light};'>"
+                f"<span style='font-size:0.85em;{icon_s}'>{'✓' if ok else '○'}</span>"
+                f"<span style='font-size:0.81em;{text_s}'>{escape(t)}</span></div>"
+            )
+        cards_html += (
+            f"<div style='flex:1;min-width:190px;background:white;border-radius:12px;"
+            f"border:2px solid {c_light};overflow:hidden;'>"
+            f"<div style='background:{c_bg};padding:7px 12px;display:flex;align-items:center;"
+            f"justify-content:space-between;'>"
+            f"<span style='font-size:0.88em;font-weight:800;color:white;'>{escape(child)}</span>"
+            f"<span style='font-size:0.75em;color:rgba(255,255,255,.8);'>{done_n}/{total}</span></div>"
+            f"<div style='height:4px;background:#f3f4f6;'>"
+            f"<div style='height:100%;width:{pct}%;background:{bar_col};'></div></div>"
+            f"<div style='padding:8px 12px;'>{rows}</div></div>"
+        )
+
+    return (
+        f"<div class='card' style='margin-bottom:16px;'>"
+        f"<div style='display:flex;align-items:center;justify-content:space-between;"
+        f"margin-bottom:12px;flex-wrap:wrap;gap:8px;'>"
+        f"<h3 style='margin:0;'>Today\u2019s Chores \u2014 {escape(weekday)}, {today.strftime('%B %-d')}</h3>"
+        f"<a href='/chores' style='font-size:0.78em;color:#9ca3af;text-decoration:none;'>\u21bb refresh</a>"
+        f"</div>"
+        f"<div style='display:flex;gap:12px;flex-wrap:wrap;'>{cards_html}</div>"
+        f"<div style='font-size:0.73em;color:#9ca3af;margin-top:10px;font-style:italic;'>"
+        f"Boys mark tasks done on their own schedule page.</div></div>"
+    )
+
+
 # ── Chores page ───────────────────────────────────────────────────────────────
 def render_chores_page(status_message: str = "") -> str:
     from daily_schedule_engine import CHILDREN
@@ -575,9 +646,12 @@ def render_chores_page(status_message: str = "") -> str:
   </script>
 </div>""" if _api_key else ""
 
+    status_today = _render_chore_status_today()
+
     body = f"""
     {page_header("Chores")}
     {render_status_message(status_message)}
+    {status_today}
     {ai_chore_btn}
     {van_badge}
     {kitchen_card}
