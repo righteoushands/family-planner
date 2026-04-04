@@ -2688,7 +2688,9 @@ class Handler(BaseHTTPRequestHandler):
                 stress    = clean_text(payload.get("stress",""))
 
                 settings  = load_app_settings()
-                api_key   = settings.get("anthropic_api_key","") or settings.get("fc_anthropic_api_key","")
+                api_key   = (settings.get("anthropic_api_key","")
+                             or settings.get("family_constraints",{}).get("anthropic_api_key","")
+                             or settings.get("fc_anthropic_api_key",""))
 
                 if not api_key:
                     resp_json = _json.dumps({"error": "No API key set in Settings."}).encode()
@@ -2865,7 +2867,8 @@ class Handler(BaseHTTPRequestHandler):
                 prompt = _build_meal_prompt(inv, cycle_phase, capacity)
                 # Call Anthropic API
                 settings = load_app_settings()
-                api_key  = settings.get("anthropic_api_key","")
+                api_key  = (settings.get("anthropic_api_key","")
+                            or settings.get("family_constraints",{}).get("anthropic_api_key",""))
                 if not api_key:
                     self.send_response(200)
                     self.send_header("Content-Type","application/json")
