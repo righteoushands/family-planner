@@ -536,6 +536,10 @@ def render_plan_tomorrow_page(status: str = "", for_date: date = None) -> str:
         for cap, emoji in [("High","🟢"),("Medium","🟡"),("Low","🔴")]
     )
 
+    _nav_btn_style = "padding:7px 14px;background:var(--parchment);border:1.5px solid var(--border);border-radius:8px;font-size:0.82em;text-decoration:none;color:var(--ink);"
+    _today_btn    = "" if is_today else f'<a href="/plan-today" style="{_nav_btn_style}">Plan Today</a>'
+    _tomorrow_btn = "" if not is_today else f'<a href="/plan-tomorrow" style="{_nav_btn_style}">Plan Tomorrow</a>'
+
     body = top_nav() + render_status_message(status) + f"""
 <div style="display:flex;align-items:flex-start;justify-content:space-between;
             flex-wrap:wrap;gap:8px;padding-top:4px;margin-bottom:16px;">
@@ -548,8 +552,8 @@ def render_plan_tomorrow_page(status: str = "", for_date: date = None) -> str:
     </div>
   </div>
   <div style="display:flex;gap:8px;">
-    {"" if is_today else f'<a href=\"/plan-today\" style=\"padding:7px 14px;background:var(--parchment);border:1.5px solid var(--border);border-radius:8px;font-size:0.82em;text-decoration:none;color:var(--ink);\">Plan Today</a>'}
-    {"" if not is_today else f'<a href=\"/plan-tomorrow\" style=\"padding:7px 14px;background:var(--parchment);border:1.5px solid var(--border);border-radius:8px;font-size:0.82em;text-decoration:none;color:var(--ink);\">Plan Tomorrow</a>'}
+    {_today_btn}
+    {_tomorrow_btn}
     <a href="/" style="padding:7px 14px;background:var(--parchment);
        border:1.5px solid var(--border);border-radius:8px;font-size:0.82em;
        text-decoration:none;color:var(--ink);">&larr; Dashboard</a>

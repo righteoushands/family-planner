@@ -42,6 +42,80 @@ def _get_phase() -> str:
         return "evening"
 
 
+def _get_cycle_context(iso: str) -> dict:
+    """Compute current cycle day, phase, and daily tracking data."""
+    try:
+        import json as _j, os as _o
+        from datetime import date as _d
+        CYCLE_LOG = "data/cycle_log.json"
+        if not _o.path.exists(CYCLE_LOG):
+            return {}
+        with open(CYCLE_LOG) as f:
+            entries = _j.load(f)
+        if not entries:
+            return {}
+        sorted_entries = sorted(entries, key=lambda e: e.get("day1", ""), reverse=True)
+        last_day1_str = sorted_entries[0].get("day1", "")
+        if not last_day1_str:
+            return {}
+        last_day1 = _d.fromisoformat(last_day1_str)
+        today     = _d.fromisoformat(iso)
+        cycle_day = (today - last_day1).days + 1
+        if cycle_day < 1:
+            return {}
+        day1s = sorted([_d.fromisoformat(e["day1"]) for e in sorted_entries if e.get("day1")])
+        if len(day1s) > 1:
+            diffs   = [(day1s[i+1] - day1s[i]).days for i in range(len(day1s)-1)]
+            avg_len = round(sum(diffs) / len(diffs))
+        else:
+            avg_len = 28
+        if cycle_day <= 5:
+            phase = "Menstrual"
+            note  = "Energy is low. Warmth, rest, and iron-rich foods are her friends today. Reduce expectations, add grace."
+        elif cycle_day <= 12:
+            phase = "Follicular"
+            note  = "Energy is rising. Good window for new projects, creative work, and tackling harder tasks."
+        elif cycle_day <= 16:
+            phase = "Ovulatory"
+            note  = "Peak energy and connection. Ideal for hard conversations, social plans, and high-output work."
+        elif cycle_day <= 21:
+            phase = "Early Luteal"
+            note  = "Nesting phase — organizing, completing, and home-focus come naturally. Energy starting to ease down."
+        else:
+            days_until = avg_len - cycle_day
+            phase = "Late Luteal"
+            note  = (
+                f"Pre-menstrual phase (roughly {max(0, days_until)} days until next cycle). "
+                "Emotions may run higher. Be especially gentle — simplify the day, validate her feelings, extend grace."
+            )
+        daily      = {}
+        daily_file = f"data/cycle/{today.strftime('%Y-%m')}.json"
+        if _o.path.exists(daily_file):
+            with open(daily_file) as f:
+                monthly = _j.load(f)
+            daily = monthly.get(iso, {})
+        return {"cycle_day": cycle_day, "avg_len": avg_len, "phase": phase, "note": note, "daily": daily}
+    except Exception:
+        return {}
+
+
+def _get_school_week_position(for_date) -> str:
+    """Return school-week day number and fatigue context."""
+    wd = for_date.weekday()   # 0=Mon … 4=Fri, 5=Sat, 6=Sun
+    if wd >= 5:
+        return "It is the weekend — no school today."
+    day_num = wd + 1
+    names   = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+    fatigue = {
+        1: "A fresh start — the whole week is ahead. Good day for ambitious goals and resetting routines.",
+        2: "Day 2. Momentum is building. Routines are settling in.",
+        3: "Midweek. Energy may be starting to dip. Celebrate small wins, encourage the boys.",
+        4: "Day 4. The weekend is close — help her protect the finish without burning out.",
+        5: "Last school day of the week. Finish strong, then release fully into the weekend.",
+    }
+    return f"Day {day_num} of 5 ({names[wd]}). {fatigue[day_num]}"
+
+
 def _get_time_context() -> dict:
     """Return rich time-of-day context for Lucy's system prompt."""
     now = _now_eastern()
@@ -163,6 +237,54 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
 
     if capacity_note:
         lines.append(capacity_note)
+
+    # ── School week position ──────────────────────────────────────────────────
+    from datetime import date as _date_cls
+    _for_date = _date_cls.fromisoformat(iso)
+    _swp = _get_school_week_position(_for_date)
+    lines.append(f"School week position: {_swp}")
+
+    # ── Mom's cycle context ───────────────────────────────────────────────────
+    _cc = _get_cycle_context(iso)
+    if _cc:
+        lines += [
+            "",
+            "== MOM'S CYCLE CONTEXT ==",
+            f"Current cycle day: {_cc['cycle_day']} of ~{_cc['avg_len']} (phase: {_cc['phase']}).",
+            f"Guidance: {_cc['note']}",
+        ]
+        _daily = _cc.get("daily", {})
+        if _daily:
+            for _field in ("energy", "mood", "symptoms", "sleep"):
+                _val = _daily.get(_field, "")
+                if _val:
+                    lines.append(f"  Today's tracked {_field}: {_val}")
+
+    # ── Household status (John + James) ──────────────────────────────────────
+    try:
+        from render_morning_anchor import _get_anchor_state as _gas
+        _anchor = _gas(iso)
+        _john_status = _anchor.get("john_status", "")
+        _james_note  = _anchor.get("james_note", "")
+        _hs_lines = []
+        if _john_status:
+            _hs_lines.append(f"John's location today: {_john_status}.")
+            if _john_status.lower() in ("wfh", "working from home", "home office", "work from home"):
+                _hs_lines.append(
+                    "John is home today — there is another adult present. "
+                    "This is helpful for coverage during school or errands."
+                )
+            elif "travel" in _john_status.lower() or "away" in _john_status.lower():
+                _hs_lines.append(
+                    "John is traveling — Lauren is solo parenting today. "
+                    "Be especially sensitive about her workload and emotional bandwidth."
+                )
+        if _james_note:
+            _hs_lines.append(f"James update: {_james_note}")
+        if _hs_lines:
+            lines += ["", "== HOUSEHOLD STATUS =="] + _hs_lines
+    except Exception:
+        pass
 
     lines += [
         "",
@@ -939,17 +1061,72 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
     try:
         from saint_data import fetch_saint_data
         from render_liturgical import get_day_info
-        lit     = get_day_info(date.fromisoformat(iso))
+        from datetime import date as _ldate, timedelta as _td
+        _ltoday = _ldate.fromisoformat(iso)
+        lit     = get_day_info(_ltoday)
         season  = lit.get("season", "")
         feast   = lit.get("feast_name", "")
-        sd      = fetch_saint_data(date.fromisoformat(iso))
+        feast_rank = lit.get("rank", "")
+        sd      = fetch_saint_data(_ltoday)
         saint   = sd.get("name", "")
         readings = sd.get("readings", {})
         gospel  = readings.get("gospel", "")
-        if season: lines.append(f"- Liturgical season: {season}")
-        if feast:  lines.append(f"- Feast: {feast}")
-        if saint:  lines.append(f"- Saint of the day: {saint}")
-        if gospel: lines.append(f"- Gospel: {gospel}")
+        if season:     lines.append(f"- Liturgical season: {season}")
+        if feast:      lines.append(f"- Feast: {feast}" + (f" ({feast_rank})" if feast_rank else ""))
+        if saint:      lines.append(f"- Saint of the day: {saint}")
+        if gospel:     lines.append(f"- Gospel: {gospel}")
+
+        # Fast / abstinence detection
+        try:
+            from render_liturgical import _easter as _le
+            _easter_date = _le(_ltoday.year)
+            _ash_wed   = _easter_date - _td(days=46)
+            _good_fri  = _easter_date - _td(days=2)
+            _is_lent_fri = (_ltoday.weekday() == 4) and season in ("Lent", "Holy Week")
+            if _ltoday == _ash_wed:
+                lines.append("- TODAY IS ASH WEDNESDAY — day of fasting and abstinence from meat.")
+                lines.append("  Remind Mom to get ashes if she hasn't planned for Mass today.")
+            elif _ltoday == _good_fri:
+                lines.append("- TODAY IS GOOD FRIDAY — day of fasting and abstinence from meat.")
+                lines.append("  Stations of the Cross, silence, and special reverence are appropriate.")
+            elif _is_lent_fri:
+                lines.append("- Today is a Friday in Lent — abstinence from meat.")
+                lines.append("  Gently confirm the meal plan avoids meat. Suggest a fish or meatless dish if needed.")
+        except Exception:
+            pass
+
+        # Seasonal behavioral guidance for Lucy
+        _season_guidance = {
+            "Advent": (
+                "It is Advent — a season of expectant waiting and preparation. "
+                "Suggest the Jesse Tree, Advent wreath prayers, O Antiphons (Dec 17+), "
+                "and keeping the focus on Christ rather than the commercial countdown."
+            ),
+            "Christmas": (
+                "It is the Christmas season — twelve days of celebration, not just one. "
+                "Encourage the family to continue feasting, visiting, and praising. "
+                "The Epiphany (Jan 6) is still ahead. Don't let the spirit die on Dec 26."
+            ),
+            "Lent": (
+                "It is Lent — forty days of prayer, fasting, and almsgiving. "
+                "Suggest age-appropriate penances for the boys, family Stations of the Cross on Fridays, "
+                "daily scripture, and a spirit of joyful sacrifice rather than grim duty."
+            ),
+            "Holy Week": (
+                "It is Holy Week — the most sacred week of the year. "
+                "Every day has profound significance: Palm Sunday, Holy Monday/Tuesday/Wednesday, "
+                "Holy Thursday (Last Supper), Good Friday (fasting, abstinence, Stations), "
+                "Holy Saturday (Easter Vigil). Help the family enter deeply into the Paschal Mystery."
+            ),
+            "Easter": (
+                "It is the Easter season — fifty days of alleluia! "
+                "The Regina Caeli replaces the Angelus. Suggest Easter octave celebrations, "
+                "Divine Mercy Sunday (first Sunday after Easter), and keeping the Paschal candle lit. "
+                "This season runs all the way to Pentecost."
+            ),
+        }
+        if season in _season_guidance:
+            lines.append(f"- Seasonal guidance: {_season_guidance[season]}")
     except Exception:
         pass
 

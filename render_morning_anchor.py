@@ -164,9 +164,11 @@ def render_morning_anchor(iso: str, weekday: str, date_label: str,
     """
     from render_liturgical import get_day_info
 
-    anchor   = _get_anchor_state(iso)
-    mode     = anchor.get("mode", "Home")
-    capacity = anchor.get("capacity", "")
+    anchor      = _get_anchor_state(iso)
+    mode        = anchor.get("mode", "Home")
+    capacity    = anchor.get("capacity", "")
+    john_status = anchor.get("john_status", "")
+    james_note  = anchor.get("james_note", "")
 
     lit       = get_day_info(for_date)
     season    = lit.get("season", "Ordinary Time")
@@ -198,6 +200,27 @@ def render_morning_anchor(iso: str, weekday: str, date_label: str,
             f'border:none;border-radius:6px;cursor:pointer;font-family:inherit;">'
             f'{label}</button>'
         )
+
+    # ── John status ───────────────────────────────────────────────────────────
+    john_opts = [
+        ("At office",   "\U0001f3e2"),
+        ("WFH",         "\U0001f4bb"),
+        ("Traveling",   "\u2708\ufe0f"),
+        ("Day off",     "\u2600\ufe0f"),
+    ]
+    john_buttons = ""
+    for jval, jico in john_opts:
+        active  = "background:#2563eb;color:white;" if jval == john_status else "background:#f0ebe4;color:#555;"
+        jval_id = jval.replace(" ", "-")
+        john_buttons += (
+            f'<button onclick="anchorSetJohn(\'{jval}\')" id="john-btn-{jval_id}" '
+            f'style="{active}padding:5px 12px;font-size:0.82em;font-weight:600;'
+            f'border:none;border-radius:6px;cursor:pointer;font-family:inherit;">'
+            f'{jico} {jval}</button>'
+        )
+
+    # ── James note ────────────────────────────────────────────────────────────
+    james_note_esc = escape(james_note)
 
     # ── This Day in History ───────────────────────────────────────────────────
     history_items = fetch_this_day_in_history(for_date)
@@ -321,7 +344,7 @@ def render_morning_anchor(iso: str, weekday: str, date_label: str,
     <div id="s-morning" class="plan-section">
         <div class="plan-section-label">Step 0 — Morning anchor</div>
 
-        <!-- Mode + Capacity row -->
+        <!-- Mode + Capacity + John + James row -->
         <div class="card card-tight" style="padding:14px 16px;margin-bottom:10px;">
             <div style="display:flex;align-items:flex-start;flex-wrap:wrap;gap:20px;">
                 <div style="flex:1;min-width:140px;">
@@ -334,6 +357,24 @@ def render_morning_anchor(iso: str, weekday: str, date_label: str,
                                 letter-spacing:0.1em;color:var(--gold);margin-bottom:8px;">Capacity today</div>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;">{cap_buttons}</div>
                 </div>
+            </div>
+            <!-- John status row -->
+            <div style="margin-top:14px;padding-top:12px;border-top:1px solid #f5f0eb;">
+                <div style="font-size:0.68em;font-weight:800;text-transform:uppercase;
+                            letter-spacing:0.1em;color:var(--gold);margin-bottom:8px;">John today</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">{john_buttons}</div>
+            </div>
+            <!-- James note row -->
+            <div style="margin-top:14px;padding-top:12px;border-top:1px solid #f5f0eb;">
+                <div style="font-size:0.68em;font-weight:800;text-transform:uppercase;
+                            letter-spacing:0.1em;color:var(--gold);margin-bottom:8px;">James update</div>
+                <textarea id="james-note-input"
+                    placeholder="How was his night? Any feeding notes, fussiness, sleep stretch..."
+                    onblur="anchorSaveJamesNote(this.value)"
+                    style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:0.85em;
+                           font-family:inherit;border:1px solid #e8e0d8;border-radius:8px;
+                           resize:none;height:56px;color:#333;background:#fdfaf7;
+                           outline:none;line-height:1.4;">{james_note_esc}</textarea>
             </div>
         </div>
 
@@ -432,6 +473,21 @@ def render_morning_anchor(iso: str, weekday: str, date_label: str,
         var launchData = {{}};
         launchData['launch_' + key] = newDone;
         _anchorSave(launchData);
+    }}
+
+    function anchorSetJohn(val) {{
+        var opts = ['At office','WFH','Traveling','Day off'];
+        opts.forEach(function(o) {{
+            var btn = document.getElementById('john-btn-' + o.replace(/ /g, '-'));
+            if (!btn) return;
+            btn.style.background = (o === val) ? '#2563eb' : '#f0ebe4';
+            btn.style.color      = (o === val) ? 'white'   : '#555';
+        }});
+        _anchorSave({{john_status: val}});
+    }}
+
+    function anchorSaveJamesNote(val) {{
+        _anchorSave({{james_note: val}});
     }}
     </script>"""
 
