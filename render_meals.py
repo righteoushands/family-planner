@@ -633,7 +633,8 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
         '  });'
         '}'
 
-        # Parse free-text / voice inventory — handles voice dictation with no line breaks
+        # Parse free-text / voice inventory
+        # Strategy: tag section keywords, then split by "I have" + periods + commas
         'function parseInventory() {'
         '  var raw = document.getElementById("inv-paste-raw").value;'
         '  if (!raw.trim()) {'
@@ -641,40 +642,45 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
         '    if (st) { st.style.color="#c0392b"; st.textContent = "Nothing to parse \u2014 type or dictate your inventory first."; setTimeout(function(){st.textContent="";st.style.color="#27ae60";},3000); }'
         '    return;'
         '  }'
-        # Section boundary patterns (natural language + typed)
-        '  var FRIDGE  = /(?:in(?:\\s+the)?\\s+)?(?:fridge|refrigerat)/i;'
-        '  var FREEZER = /(?:in(?:\\s+the)?\\s+)?(?:freezer|frozen)/i;'
-        '  var PANTRY  = /(?:in(?:\\s+the)?\\s+)?(?:pantry|cabinet|shelf|shelves|cupboard|dry(?:\\s+goods)?)/i;'
-        '  var SOON    = /(?:use|need\\s+to\\s+use)\\s*(?:soon|up)|(?:expir|going\\s+bad|priority|wilting|leftover)/i;'
-        # Inject newlines before section keywords to normalise voice & typed input
-        '  var normed = raw'
-        '    .replace(/[,.;]\\s*(?=(?:in(?:\\s+the)?\\s+)?(?:fridge|refrigerat|freezer|frozen|pantry|cabinet|shelf|cupboard|dry\\s+goods))/gi, "\\n")'
-        '    .replace(/[,.;]\\s*(?=(?:use|need\\s+to\\s+use)\\s*(?:soon|up)|(?:expir|going\\s+bad|priority|wilting))/gi, "\\n");'
+
+        # Step 1: replace section-heading phrases with ALLCAPS markers + newline
+        '  var t = raw'
+        # fridge
+        '    .replace(/\\b(?:in(?:\\s+(?:the|my))?\\s+)?(?:fridge|refrigerator)\\b[:\\s,]*/gi, "\\nFRIDGE: ")'
+        # freezer — also convert standalone "frozen" section phrase
+        '    .replace(/\\b(?:in(?:\\s+(?:the|my))?\\s+)?freezer\\b[:\\s,]*/gi, "\\nFREEZER: ")'
+        '    .replace(/\\bfrozen\\b[:\\s,]*/gi, "\\nFREEZER: ")'
+        # pantry
+        '    .replace(/\\b(?:in(?:\\s+(?:the|my))?\\s+)?(?:pantry|cabinet|cupboard|shelf|shelves|dry\\s+goods)\\b[:\\s,]*/gi, "\\nPANTRY: ")'
+        # use soon
+        '    .replace(/\\b(?:use\\s+soon|need\\s+to\\s+use(?:\\s+(?:soon|up))?|going\\s+bad|use\\s+(?:these|this)\\s+(?:soon|up))\\b[:\\s,]*/gi, "\\nUSE_SOON: ")'
+        '    .replace(/\\b(?:expir\\w*|wilting|leftover)\\b/gi, "\\nUSE_SOON: $&")'
+
+        # Step 2: split natural "I have X" dictation into one item per line
+        '    .replace(/\\.\\s*I\\s+(?:also\\s+)?(?:have|don\'t have|do not have|got)\\s+/gi, "\\n")'
+        '    .replace(/\\bI\\s+(?:also\\s+)?(?:have|got)\\s+/gi, "\\n")'
+
+        # Step 3: periods alone become line breaks
+        '    .replace(/\\.\\s+/g, "\\n")'
+        '    .replace(/;/g, "\\n");'
+
         '  var chunks = { fridge: [], freezer: [], pantry: [], use_soon: [] };'
         '  var current = "pantry";'
-        '  var lines = normed.split(/\\r?\\n/);'
-        '  lines.forEach(function(line) {'
-        '    var l = line.trim().replace(/^[,;]+/, "").trim();'
+        '  t.split("\\n").forEach(function(line) {'
+        '    var l = line.trim().replace(/^[,]+/, "").trim();'
         '    if (!l) return;'
-        '    var hitFridge  = FRIDGE.test(l);'
-        '    var hitFreezer = FREEZER.test(l);'
-        '    var hitPantry  = PANTRY.test(l);'
-        '    var hitSoon    = SOON.test(l);'
-        '    if (hitFridge || hitFreezer || hitPantry || hitSoon) {'
-        '      if (hitFreezer)     current = "freezer";'
-        '      else if (hitFridge) current = "fridge";'
-        '      else if (hitPantry) current = "pantry";'
-        '      else                current = "use_soon";'
-        # Strip the keyword phrase and colon, keep anything after it as items
-        '      var stripped = l.replace(/^.*?(?:fridge|refrigerat|freezer|frozen|pantry|cabinet|shelf|shelves|cupboard|dry\\s+goods|use\\s+soon|need\\s+to\\s+use\\s+(?:soon|up)|going\\s+bad|priority)\\w*[:\\s]*/i, "").trim().replace(/^[,:;]+/, "").trim();'
-        '      if (stripped) {'
-        '        stripped.split(",").forEach(function(item) { var t=item.trim(); if(t) chunks[current].push(t); });'
-        '      }'
-        '      return;'
-        '    }'
-        # Not a section header — split comma-separated items into current section
-        '    l.split(",").forEach(function(item) { var t=item.trim().replace(/^(and|also|plus)\\s+/i,""); if(t) chunks[current].push(t); });'
+        '    if (/^FRIDGE:\\s*/i.test(l))    { current = "fridge";   l = l.replace(/^FRIDGE:\\s*/i, ""); }'
+        '    else if (/^FREEZER:\\s*/i.test(l)) { current = "freezer"; l = l.replace(/^FREEZER:\\s*/i, ""); }'
+        '    else if (/^PANTRY:\\s*/i.test(l))  { current = "pantry";  l = l.replace(/^PANTRY:\\s*/i, ""); }'
+        '    else if (/^USE_SOON:\\s*/i.test(l)) { current = "use_soon"; l = l.replace(/^USE_SOON:\\s*/i, ""); }'
+        '    l = l.trim().replace(/^[,;:]+/, "").trim();'
+        '    if (!l) return;'
+        '    l.split(",").forEach(function(item) {'
+        '      var it = item.trim().replace(/^\\s*(?:and|also|plus|some|any|a|an)\\s+/i, "").trim();'
+        '      if (it && it.length > 1) chunks[current].push(it);'
+        '    });'
         '  });'
+
         '  var filled = 0;'
         '  if (chunks.fridge.length)   { document.getElementById("inv-fridge").value   = chunks.fridge.join("\\n");  filled++; }'
         '  if (chunks.freezer.length)  { document.getElementById("inv-freezer").value  = chunks.freezer.join("\\n"); filled++; }'
@@ -683,8 +689,8 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
         '  var st = document.getElementById("inv-parse-status");'
         '  if (st) {'
         '    if (filled) { st.style.color="#27ae60"; st.textContent = "Sections filled \u2713 \u2014 review and save."; }'
-        '    else { st.style.color="#c0392b"; st.textContent = "Couldn\u2019t sort into sections \u2014 check your text and try again."; }'
-        '    setTimeout(function(){st.textContent="";st.style.color="#27ae60";}, 3500);'
+        '    else { st.style.color="#c0392b"; st.textContent = "Couldn\u2019t sort \u2014 try starting with \\"In the fridge I have\\""; }'
+        '    setTimeout(function(){st.textContent="";st.style.color="#27ae60";}, 4000);'
         '  }'
         '}'
 
