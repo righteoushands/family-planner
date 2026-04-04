@@ -1138,6 +1138,7 @@ def top_nav() -> str:
                  padding:6px 14px;font-size:0.82em;font-weight:700;cursor:pointer;
                  font-family:inherit;">&#128140; Message Mom</button>
         <div class="nav-divider"></div>
+        <a href="/change-pin" style="color:#9ca3af;font-size:0.8em;">Change PIN</a>
         <a href="/logout" style="color:#9ca3af;font-size:0.8em;">Sign out</a>
       </div>
     </nav>

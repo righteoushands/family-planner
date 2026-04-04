@@ -67,6 +67,103 @@ from render_daily_plan import (
 )
 
 
+def _render_change_pin_page(viewer: str, error: str = "", ok: str = "") -> str:
+    """Simple PIN-change page for children (and admins redirected to settings)."""
+    from html import escape as _esc
+    from ui_helpers import html_page, page_header
+    u = _auth.USERS.get(viewer, {})
+    color = u.get("color", "#1f2937")
+    name  = u.get("name", viewer.title())
+    no_pin = not u.get("pin_required", True)
+
+    if no_pin:
+        body = (
+            f'{page_header("Change PIN")}'
+            f'<div class="card" style="text-align:center;padding:32px 24px;">'
+            f'<p style="font-size:1.1em;color:var(--ink-muted);">'
+            f'{_esc(name)} logs in by tapping the avatar — no PIN needed.</p>'
+            f'</div>'
+        )
+        return html_page("Change PIN", body)
+
+    alert = ""
+    if ok:
+        alert = ('<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:12px;'
+                 'padding:12px 16px;color:#15803d;font-weight:600;margin-bottom:18px;">'
+                 '&#10003; PIN changed successfully!</div>')
+    elif error:
+        alert = (f'<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:12px;'
+                 f'padding:12px 16px;color:#b91c1c;font-weight:600;margin-bottom:18px;">'
+                 f'{_esc(error)}</div>')
+
+    back = f"/schedule/{viewer}" if not _auth.is_admin(viewer) else "/"
+
+    body = f"""
+{page_header("Change PIN")}
+<div class="card" style="max-width:400px;">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+    <div style="width:44px;height:44px;border-radius:50%;background:{color};
+                display:flex;align-items:center;justify-content:center;
+                color:white;font-size:1.1em;font-weight:800;">
+      {_esc(u.get('emoji', name[0]))}
+    </div>
+    <div>
+      <div style="font-weight:700;color:var(--ink);">{_esc(name)}</div>
+      <div style="font-size:0.78em;color:var(--ink-muted);">Change your 4-digit login PIN</div>
+    </div>
+  </div>
+
+  {alert}
+
+  <form method="POST" action="/change-pin" style="display:flex;flex-direction:column;gap:14px;">
+    <div>
+      <label style="font-size:0.82em;font-weight:600;color:var(--ink-muted);
+                    display:block;margin-bottom:6px;">Current PIN</label>
+      <input type="password" name="current_pin" inputmode="numeric" maxlength="4"
+        pattern="[0-9]{{4}}" placeholder="&#9679;&#9679;&#9679;&#9679;" required
+        style="width:100%;padding:12px 14px;border:1.5px solid var(--border-light);
+               border-radius:12px;font-size:1.1em;letter-spacing:.2em;
+               font-family:inherit;text-align:center;">
+    </div>
+    <div>
+      <label style="font-size:0.82em;font-weight:600;color:var(--ink-muted);
+                    display:block;margin-bottom:6px;">New PIN</label>
+      <input type="password" name="new_pin" inputmode="numeric" maxlength="4"
+        pattern="[0-9]{{4}}" placeholder="&#9679;&#9679;&#9679;&#9679;" required
+        style="width:100%;padding:12px 14px;border:1.5px solid var(--border-light);
+               border-radius:12px;font-size:1.1em;letter-spacing:.2em;
+               font-family:inherit;text-align:center;">
+    </div>
+    <div>
+      <label style="font-size:0.82em;font-weight:600;color:var(--ink-muted);
+                    display:block;margin-bottom:6px;">Confirm new PIN</label>
+      <input type="password" name="confirm_pin" inputmode="numeric" maxlength="4"
+        pattern="[0-9]{{4}}" placeholder="&#9679;&#9679;&#9679;&#9679;" required
+        style="width:100%;padding:12px 14px;border:1.5px solid var(--border-light);
+               border-radius:12px;font-size:1.1em;letter-spacing:.2em;
+               font-family:inherit;text-align:center;">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button type="submit"
+        style="flex:1;background:{color};color:white;border:none;border-radius:12px;
+               padding:14px;font-weight:700;font-size:0.95em;cursor:pointer;
+               font-family:inherit;">
+        Save new PIN
+      </button>
+      <a href="{back}"
+        style="flex:1;background:#f3f4f6;color:#374151;border-radius:12px;
+               padding:14px;font-weight:700;font-size:0.95em;cursor:pointer;
+               font-family:inherit;text-align:center;text-decoration:none;
+               display:flex;align-items:center;justify-content:center;">
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>
+"""
+    return html_page("Change PIN", body)
+
+
 class Handler(BaseHTTPRequestHandler):
 
     # ── Auth helpers ──────────────────────────────────────────────────────────
@@ -181,6 +278,16 @@ class Handler(BaseHTTPRequestHandler):
         viewer = self._require_auth(path)
         if viewer is None:
             return  # _require_auth already sent the redirect
+
+        # ── Change PIN (child self-service) ──────────────────────────────────
+        if path == "/change-pin":
+            body = _render_change_pin_page(viewer, query.get("error",[""])[0], query.get("ok",[""])[0])
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            try: self.wfile.write(body.encode())
+            except BrokenPipeError: pass
+            return
 
         if   path == "/":                body = render_dashboard()
         elif path == "/today":           body = render_today_all(query.get("date",[""])[0])
@@ -548,6 +655,31 @@ class Handler(BaseHTTPRequestHandler):
             if txt:
                 _auth.save_message(user, txt)
             self._redirect(f"/schedule/{user}" if not _auth.is_admin(user) else "/")
+            return
+
+        # ── Change PIN (child self-service) ──────────────────────────────────
+        if path == "/change-pin":
+            user = self._get_viewer()
+            _auth.set_viewer(user)
+            if not user:
+                self._redirect("/login"); return
+            if _auth.is_admin(user):
+                self._redirect("/settings#group-app"); return
+            cl  = int(self.headers.get("Content-Length", 0))
+            raw = self.rfile.read(cl).decode("utf-8", errors="ignore")
+            from urllib.parse import parse_qs as _pqs2, unquote_plus as _uqp3
+            prm = _pqs2(raw)
+            cur = _uqp3(prm.get("current_pin", [""])[0]).strip()
+            new1 = _uqp3(prm.get("new_pin",     [""])[0]).strip()
+            new2 = _uqp3(prm.get("confirm_pin", [""])[0]).strip()
+            if not _auth.check_pin(user, cur):
+                self._redirect("/change-pin?error=Wrong+current+PIN"); return
+            if len(new1) != 4 or not new1.isdigit():
+                self._redirect("/change-pin?error=PIN+must+be+4+digits"); return
+            if new1 != new2:
+                self._redirect("/change-pin?error=PINs+don%27t+match"); return
+            _auth.save_pins({user: new1})
+            self._redirect("/change-pin?ok=1")
             return
 
         # ── Mark messages read ────────────────────────────────────────────────
