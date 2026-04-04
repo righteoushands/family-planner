@@ -1579,5 +1579,23 @@
     "status": "active",
     "source": "lucy",
     "recurring": false
+  },
+  {
+    "text": "JP has chosen 20 minutes of video games today",
+    "assigned_to": "JP",
+    "due_date": "2026-04-04",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "JP has chosen 30 minutes of video games today",
+    "assigned_to": "JP",
+    "due_date": "2026-04-05",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
   }
 ]

@@ -316,7 +316,8 @@
       "CHORE::KITCHEN (Evening — Role A):",
       "CHORE::KITCHEN (Morning — Role A):",
       "CHORE::Prepare Mass clothes (with Mom approval)",
-      "CHORE::Weekly room clean (~90 min): full clean, vacuum, laundry check"
+      "CHORE::Weekly room clean (~90 min): full clean, vacuum, laundry check",
+      "MANUAL::MEDIUM::JP has chosen 20 minutes of video games today"
     ],
     "Joseph": [
       "CHORE::  → Clean sink",
