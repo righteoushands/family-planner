@@ -391,7 +391,7 @@ class Handler(BaseHTTPRequestHandler):
         path     = urlparse(self.path).path
         redirect = "/"
 
-        if path == "/school-upload" or path == "/prayer-intention-add":
+        if path in ("/school-upload", "/prayer-intention-add", "/recipe-import"):
             form = parse_multipart_form(self)
 
             if path == "/school-upload":
@@ -446,6 +446,94 @@ class Handler(BaseHTTPRequestHandler):
                 try: self.wfile.write(out)
                 except BrokenPipeError: pass
                 return
+
+            elif path == "/recipe-import":
+                import json as _rj, base64 as _b64, re as _rre
+                name_in    = clean_text(form.getfirst("name", ""))
+                url_in     = clean_text(form.getfirst("url", ""))
+                text_in    = clean_text(form.getfirst("text", ""))
+                photo_bytes = None
+                try:
+                    pf = form["recipe_photo"] if "recipe_photo" in form else None
+                    if pf and getattr(pf, "filename", ""):
+                        raw_photo = pf.file.read() if pf.file else b""
+                        if len(raw_photo) > 500:
+                            photo_bytes = raw_photo
+                except Exception:
+                    pass
+                # Fetch URL if provided and no text/photo
+                if url_in and not text_in and not photo_bytes:
+                    try:
+                        import urllib.request as _ur2
+                        req_url = _ur2.Request(url_in, headers={"User-Agent": "Mozilla/5.0"})
+                        with _ur2.urlopen(req_url, timeout=10) as _resp:
+                            raw_html = _resp.read().decode("utf-8", errors="ignore")
+                        # Strip HTML tags for a plain text approximation
+                        text_in = _rre.sub(r'<[^>]+>', ' ', raw_html)
+                        text_in = _rre.sub(r'\s{2,}', ' ', text_in).strip()[:3000]
+                    except Exception:
+                        text_in = url_in  # fallback: pass the URL itself
+
+                ingr = ""; instr = ""; tags = []; prep = ""
+                try:
+                    from render_ai_planner import get_api_key
+                    api_key = get_api_key()
+                    if api_key:
+                        import urllib.request as _ur3
+                        if photo_bytes:
+                            # Vision: read recipe from photo
+                            img_b64 = _b64.b64encode(photo_bytes).decode()
+                            media_type = "image/jpeg"
+                            _vision_payload = _rj.dumps({
+                                "model": "claude-opus-4-5",
+                                "max_tokens": 800,
+                                "messages": [{
+                                    "role": "user",
+                                    "content": [
+                                        {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": img_b64}},
+                                        {"type": "text", "text": (
+                                            "Read this recipe image and return ONLY valid JSON with keys: "
+                                            "ingredients (string), instructions (string), tags (array of strings), prep_time (string). "
+                                            "No markdown fences, just raw JSON."
+                                        )},
+                                    ]
+                                }]
+                            }).encode()
+                        else:
+                            content = text_in or url_in
+                            _vision_payload = _rj.dumps({
+                                "model": "claude-haiku-4-5-20251001",
+                                "max_tokens": 700,
+                                "messages": [{"role": "user", "content": (
+                                    "Parse this recipe into structured JSON. "
+                                    "Return ONLY valid JSON (no markdown fences) with keys: "
+                                    "ingredients (string), instructions (string), tags (array of strings), prep_time (string).\n\n"
+                                    f"Recipe source:\n{content[:2500]}"
+                                )}]
+                            }).encode()
+                        _rq = _ur3.Request(
+                            "https://api.anthropic.com/v1/messages",
+                            data=_vision_payload,
+                            headers={"Content-Type": "application/json", "x-api-key": api_key,
+                                     "anthropic-version": "2023-06-01"},
+                        )
+                        with _ur3.urlopen(_rq, timeout=30) as _resp2:
+                            _res = _rj.loads(_resp2.read())
+                        raw_text_out = _res["content"][0]["text"].strip()
+                        # Strip markdown fences properly
+                        raw_text_out = _rre.sub(r'^```(?:json)?\s*\n?', '', raw_text_out)
+                        raw_text_out = _rre.sub(r'\n?```\s*$', '', raw_text_out).strip()
+                        parsed_r = _rj.loads(raw_text_out)
+                        ingr  = parsed_r.get("ingredients", "")
+                        instr = parsed_r.get("instructions", "")
+                        tags  = parsed_r.get("tags", [])
+                        prep  = parsed_r.get("prep_time", "")
+                except Exception as _re_err:
+                    if not ingr:
+                        ingr = text_in[:500] if text_in else ""
+                if name_in:
+                    save_recipe(name_in, ingr, instr, tags, prep)
+                redirect = "/recipes?msg=Recipe+imported"
 
         else:
             data = parse_urlencoded_body(self)
@@ -2500,53 +2588,6 @@ class Handler(BaseHTTPRequestHandler):
                     else:
                         save_recipe(name, ingr, instr, tags, prep)
                 redirect = "/recipes?msg=Recipe+saved"
-
-            elif path == "/recipe-import":
-                import json as _json
-                name     = clean_text(data.get("name",[""])[0])
-                url_in   = clean_text(data.get("url",[""])[0])
-                text_in  = clean_text(data.get("text",[""])[0])
-                # Use AI to parse if API key available
-                content  = text_in or url_in
-                ingr = ""; instr = ""; tags = []
-                if content and name:
-                    try:
-                        from render_ai_planner import get_api_key
-                        api_key = get_api_key()
-                        if api_key:
-                            import urllib.request as _ur, json as _js
-                            prompt = (
-                                f"Parse this recipe into structured JSON. "
-                                f"Return ONLY valid JSON with keys: ingredients (string), "
-                                f"instructions (string), tags (array of strings), prep_time (string).\n\n"
-                                f"Recipe source: {content[:2000]}"
-                            )
-                            req_body = _js.dumps({
-                                "model": "claude-haiku-4-5-20251001",
-                                "max_tokens": 600,
-                                "messages": [{"role": "user", "content": prompt}]
-                            }).encode()
-                            req = _ur.Request(
-                                "https://api.anthropic.com/v1/messages",
-                                data=req_body,
-                                headers={"Content-Type":"application/json","x-api-key":api_key,
-                                         "anthropic-version":"2023-06-01"}
-                            )
-                            with _ur.urlopen(req, timeout=15) as resp:
-                                result = _js.loads(resp.read())
-                            raw = result["content"][0]["text"]
-                            # Strip markdown fences
-                            raw = raw.strip().lstrip("```json").lstrip("```").rstrip("```").strip()
-                            parsed = _js.loads(raw)
-                            ingr  = parsed.get("ingredients","")
-                            instr = parsed.get("instructions","")
-                            tags  = parsed.get("tags",[])
-                            prep  = parsed.get("prep_time","")
-                    except Exception:
-                        ingr = content[:500]
-                if name:
-                    save_recipe(name, ingr, instr, tags, prep if 'prep' in dir() else "")
-                redirect = "/recipes?msg=Recipe+imported"
 
             elif path == "/recipe-delete":
                 rid = clean_text(data.get("id",[""])[0])
