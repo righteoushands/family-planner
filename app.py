@@ -288,8 +288,10 @@ class Handler(BaseHTTPRequestHandler):
                     _pkt = generate_day_packet(_today.isoformat())
                     _payload = build_schedule_payload("Mom", _pkt["weekday"], _pkt["date_label"], _pkt["iso"])
                     _tasks = [i.get("text","") for i in (_payload.get("manual_task_items",[]) + _payload.get("chore_items",[]))]
+                    import re as _re
                     _brief = get_mom_lucy_brief(_tasks)
-                    _html = _brief.replace("\n\n","</p><p>").replace("\n"," ")
+                    _text = _re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', _brief.strip())
+                    _html = _text.replace("\n\n","</p><p>").replace("\n"," ")
                     _html = f"<p>{_html}</p>" if _html else ""
                 except Exception:
                     _html = ""
@@ -319,8 +321,11 @@ class Handler(BaseHTTPRequestHandler):
                         _tasks.append(_si.get("label", _si.get("text", "")))
                 _goals = [g for g in load_child_goals(matched_child) if not g.get("archived")]
                 _brief = get_child_lucy_brief(matched_child, _tasks, _goals)
-                from html import escape as _esc
-                _html = _brief.replace("\n\n", "</p><p>").replace("\n", " ")
+                import re as _re2
+                _text = _brief.strip()
+                _text = _re2.sub(r'^\*{0,2}[Ff]or [Mm]om:?\*{0,2}\s*', '', _text).strip()
+                _text = _re2.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', _text)
+                _html = _text.replace("\n\n", "</p><p>").replace("\n", " ")
                 _html = f"<p>{_html}</p>" if _html else ""
             except Exception as _e:
                 _html = ""
