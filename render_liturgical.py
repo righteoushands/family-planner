@@ -499,7 +499,7 @@ def render_liturgical_page(status_message="") -> str:
         </div>"""
 
     upcoming = []
-    for offset in range(1, 61):
+    for offset in range(7, 61):
         d = today + timedelta(days=offset)
         info = get_day_info(d)
         if info["feast_name"] or info["is_fast"] or info["is_abstinence"]:
@@ -525,7 +525,7 @@ def render_liturgical_page(status_message="") -> str:
             <h2>This Week</h2>{week_html}
         </div>
         <div>
-            <h2>Upcoming (next 60 days)</h2>
+            <h2>Upcoming Feasts</h2>
             {upcoming_html or "<div class='card'><p class='muted'>No major feasts upcoming.</p></div>"}
             <div class="card">
                 <h2>Add or Override a Day</h2>

@@ -551,9 +551,12 @@ def render_calendar_page(status_message: str = "") -> str:
         ev_html  = "".join(render_event_pill(e) for e in de) if de else "<p class='muted' style='font-size:0.85em;'>No events.</p>"
         week_html += f"<div class='card card-tight'><div style='{hstyle}margin-bottom:8px;'>{escape(d.strftime('%A, %B %d'))}{tbadge}</div>{ev_html}</div>"
 
+    week_cutoff    = (today + timedelta(days=7)).isoformat()
     upcoming_html = ""
-    for e in all_cal_events[:20]:
+    for e in all_cal_events[:40]:
         start = e.get("start","")
+        if start[:10] < week_cutoff[:10]:
+            continue
         try:
             from datetime import datetime as _dt
             if "T" in start:
@@ -580,6 +583,6 @@ def render_calendar_page(status_message: str = "") -> str:
     {status_bar}
     <div class="two-col">
         <div><h2>This Week</h2>{week_html}</div>
-        <div><h2>Upcoming 14 Days</h2>{upcoming_html}</div>
+        <div><h2>Upcoming</h2>{upcoming_html}</div>
     </div>"""
     return html_page("Calendar", body)
