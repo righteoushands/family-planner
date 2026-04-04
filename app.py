@@ -41,6 +41,7 @@ from render_calendar import render_calendar_page, refresh_calendar
 from render_liturgical import render_liturgical_page, render_liturgical_edit_page
 from render_readings import render_readings_page
 from render_lucy import render_lucy_page, build_lucy_context
+from render_lorenzo import render_lorenzo_page, build_lorenzo_context
 from render_memory_book import render_memory_book_page, add_memory_entry, delete_memory_entry
 from render_chores import render_chores_page, render_van_roles_page, apply_laundry_defaults, apply_van_rotation
 from render_misc import (
@@ -438,6 +439,16 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/readings":         body = render_readings_page(date_str=query.get("date",[""])[0])
         elif path == "/lucy":
             html = render_lucy_page(iso=query.get("date",[""])[0])
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header("Pragma","no-cache")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
+        elif path == "/lorenzo":
+            html = render_lorenzo_page()
             self.send_response(200)
             self.send_header("Content-Type","text/html; charset=utf-8")
             self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
@@ -2194,6 +2205,78 @@ class Handler(BaseHTTPRequestHandler):
                 from data_helpers import clear_lucy_history
                 clear_lucy_history()
                 redirect = "/lucy"
+
+            elif path == "/lorenzo-chat":
+                import json as _json, urllib.request as _req
+                from data_helpers import (
+                    load_lorenzo_history, append_lorenzo_messages, LORENZO_CONTEXT_MAX
+                )
+                from datetime import datetime as _dt
+                iso        = clean_text(data.get("iso",[""])[0]) or date.today().isoformat()
+                message    = clean_text(data.get("message",[""])[0])
+                settings_data = load_app_settings()
+                api_key = (settings_data.get("family_constraints",{}).get("anthropic_api_key","")
+                           or settings_data.get("anthropic_api_key","")).strip()
+                if not api_key:
+                    self.send_response(400)
+                    self.send_header("Content-Type","text/plain")
+                    self.end_headers()
+                    try: self.wfile.write(b"No API key. Add your Anthropic key in Settings.")
+                    except BrokenPipeError: pass
+                    return
+                try:
+                    d = date.fromisoformat(iso)
+                    weekday    = d.strftime("%A")
+                    date_label = d.strftime("%B %d, %Y")
+                except Exception:
+                    weekday = date_label = iso
+                lorenzo_context = build_lorenzo_context(iso, weekday, date_label)
+                ts_now = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                append_lorenzo_messages([{"role": "user", "content": message, "ts": ts_now}])
+                server_history = load_lorenzo_history()
+                messages = []
+                for h in server_history[-LORENZO_CONTEXT_MAX:]:
+                    role    = h.get("role","user")
+                    content = h.get("content","")
+                    if role in ("user","assistant") and content:
+                        messages.append({"role": role, "content": content})
+                if not messages or messages[-1].get("role") != "user":
+                    messages.append({"role": "user", "content": message})
+                payload = _json.dumps({
+                    "model":      "claude-haiku-4-5-20251001",
+                    "max_tokens": 1500,
+                    "system":     lorenzo_context,
+                    "messages":   messages,
+                }).encode()
+                req = _req.Request(
+                    "https://api.anthropic.com/v1/messages",
+                    data=payload,
+                    headers={
+                        "Content-Type":      "application/json",
+                        "x-api-key":         api_key,
+                        "anthropic-version": "2023-06-01",
+                    },
+                    method="POST"
+                )
+                try:
+                    with _req.urlopen(req, timeout=45) as resp:
+                        result = _json.loads(resp.read().decode())
+                    text = result.get("content",[{}])[0].get("text","").strip()
+                except Exception as e:
+                    text = f"Lorenzo is away from the stove. ({e})"
+                ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                append_lorenzo_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
+                self.send_response(200)
+                self.send_header("Content-Type","text/plain; charset=utf-8")
+                self.end_headers()
+                try: self.wfile.write(text.encode("utf-8"))
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/lorenzo-clear-history":
+                from data_helpers import clear_lorenzo_history
+                clear_lorenzo_history()
+                redirect = "/lorenzo"
 
             elif path in ("/calendar-config-save","/calendar-save-config"):
                 apple_id=clean_text(data.get("apple_id",[""])[0]); app_password=clean_text(data.get("app_password",[""])[0])

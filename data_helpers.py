@@ -245,6 +245,28 @@ def clear_lucy_history():
     safe_save_json(LUCY_HISTORY_FILE, {"messages": []})
 
 
+# ── Lorenzo conversation history ──────────────────────────────────────────────
+LORENZO_HISTORY_FILE = "data/lorenzo_history.json"
+LORENZO_HISTORY_MAX  = 60
+LORENZO_CONTEXT_MAX  = 30
+
+def load_lorenzo_history() -> list:
+    data = ensure_file(LORENZO_HISTORY_FILE, {"messages": []})
+    return data.get("messages", [])
+
+def save_lorenzo_history(messages: list):
+    trimmed = messages[-LORENZO_HISTORY_MAX:]
+    safe_save_json(LORENZO_HISTORY_FILE, {"messages": trimmed})
+
+def append_lorenzo_messages(new_msgs: list):
+    history = load_lorenzo_history()
+    history.extend(new_msgs)
+    save_lorenzo_history(history)
+
+def clear_lorenzo_history():
+    safe_save_json(LORENZO_HISTORY_FILE, {"messages": []})
+
+
 # ── Monthly planner ──────────────────────────────────────────────────────────
 def load_monthly_planner() -> dict:
     return ensure_file(MONTHLY_PLANNER_FILE, {})

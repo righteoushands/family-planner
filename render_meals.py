@@ -516,6 +516,7 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
         f'<a href="/meals?week={escape(prev_week)}" class="link-button" style="font-size:0.82em;">&larr;</a>'
         f'<a href="/meals?week={escape(next_week)}" class="link-button" style="font-size:0.82em;">&rarr;</a>'
         '<button onclick="savePlan()" style="padding:7px 14px;font-size:0.82em;">Save plan</button>'
+        '<a href="/lorenzo" style="padding:7px 14px;font-size:0.82em;background:#8b3a1a;color:white;border-radius:8px;text-decoration:none;font-weight:600;white-space:nowrap;">&#127860; Ask Lorenzo</a>'
         '<button onclick="printFridge()" style="padding:7px 14px;font-size:0.82em;background:var(--parchment);color:var(--ink);border:1.5px solid var(--border);">&#128438; Fridge card</button>'
         '<button onclick="viewGrocery()" style="padding:7px 14px;font-size:0.82em;background:var(--parchment);color:var(--ink);border:1.5px solid var(--border);">&#128722; Grocery list</button>'
         '<button onclick="viewPrepSchedule()" style="padding:7px 14px;font-size:0.82em;background:var(--parchment);color:var(--ink);border:1.5px solid var(--border);">&#9200; Prep schedule</button>'

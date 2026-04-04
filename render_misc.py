@@ -1183,8 +1183,14 @@ def render_dashboard() -> str:
         _lucy_msg = f'Blessed {escape(weekday)} to the McAdams family. Ready to make today count?'
 
     body = f"""
-    <!-- Control panel strip (Talk to Lucy only) -->
-    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;padding-top:4px;">
+    <!-- Control panel strip (Lucy + Lorenzo) -->
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px;padding-top:4px;">
+      <a href="/lorenzo"
+         style="padding:7px 16px;background:#8b3a1a;
+                color:white;border-radius:20px;text-decoration:none;font-size:0.82em;font-weight:700;
+                white-space:nowrap;letter-spacing:.01em;">
+        &#127860; Lorenzo
+      </a>
       <a href="/lucy"
          style="padding:7px 16px;background:{parent_color('Lauren','bg')};
                 color:white;border-radius:20px;text-decoration:none;font-size:0.82em;font-weight:700;
@@ -2917,6 +2923,8 @@ def _render_meals_step(iso: str, target_date) -> str:
     <a href="/meals" style="font-size:0.82em;color:var(--brown);font-weight:700;text-decoration:none;">
       Edit meal plan &rarr;
     </a>
+    <span style="color:var(--border);">|</span>
+    <a href="/lorenzo" style="font-size:0.82em;color:#8b3a1a;font-weight:700;text-decoration:none;">&#127860; Ask Lorenzo</a>
     <span style="color:var(--border);">|</span>
     <a href="/settings#s-meals" style="font-size:0.78em;color:var(--ink-faint);text-decoration:none;">⚙ Meal rules</a>
   </div>
