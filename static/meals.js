@@ -483,6 +483,18 @@
     });
   };
 
+  /* ── Week date picker ── */
+  window.jumpToWeek = function (val) {
+    if (!val) return;
+    var d = new Date(val + "T12:00:00"); // noon avoids DST edge cases
+    var dow = d.getDay(); // 0=Sunday, 1=Monday, ...
+    var diff = dow === 0 ? -6 : 1 - dow; // adjust to Monday
+    var monday = new Date(d);
+    monday.setDate(d.getDate() + diff);
+    var iso = monday.toISOString().slice(0, 10); // YYYY-MM-DD
+    window.location.href = "/meals?date=" + iso;
+  };
+
   /* ── Init ── */
   document.addEventListener("DOMContentLoaded", function () {
     _updateSwapUI();

@@ -472,9 +472,15 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
         '<div>'
         '<div style="font-family:\'Cormorant Garamond\',Georgia,serif;'
         'font-size:2rem;font-weight:600;color:var(--ink);line-height:1.1;">Meal Planner</div>'
-        '<div style="font-size:0.85em;color:var(--ink-muted);margin-top:2px;">'
-        + escape(week_label) +
-        '</div></div>'
+        '<div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap;">'
+        f'<input type="date" id="week-date-picker" value="{ws.isoformat()}"'
+        f' onchange="jumpToWeek(this.value)"'
+        f' style="font-size:0.82em;padding:4px 8px;border:1.5px solid var(--border);'
+        f'border-radius:8px;background:var(--parchment);color:var(--ink);font-family:inherit;'
+        f'cursor:pointer;">'
+        f'<span style="font-size:0.75em;color:var(--ink-faint);">{escape(week_label)}</span>'
+        '</div>'
+        '</div>'
 
         # Week nav + outputs
         '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px;">'

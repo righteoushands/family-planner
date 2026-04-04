@@ -483,7 +483,17 @@ class Handler(BaseHTTPRequestHandler):
             except BrokenPipeError: pass
             return
         elif path == "/meals":
-            wk   = clean_text(query.get("week",[""])[0])
+            wk = clean_text(query.get("week",[""])[0])
+            if not wk:
+                dt_str = clean_text(query.get("date",[""])[0])
+                if dt_str:
+                    try:
+                        from datetime import date as _dp
+                        _d = _dp.fromisoformat(dt_str)
+                        _monday = _d - timedelta(days=_d.weekday())
+                        wk = _monday.strftime("%Y-W%W")
+                    except Exception:
+                        wk = ""
             body = render_meal_planner_page(week_key=wk or None)
         elif path == "/meal-print":
             wk   = clean_text(query.get("week",[""])[0])
