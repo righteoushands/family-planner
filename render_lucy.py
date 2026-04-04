@@ -42,6 +42,95 @@ def _get_phase() -> str:
         return "evening"
 
 
+def _get_time_context() -> dict:
+    """Return rich time-of-day context for Lucy's system prompt."""
+    now = _now_eastern()
+    h, m = now.hour, now.minute
+    time_str = now.strftime("%-I:%M %p")   # e.g.  "3:47 PM"
+    day_str  = now.strftime("%A")
+
+    if h < 5:
+        period = "Late Night"
+        focus  = (
+            "It is very late (or very early). Something is going on — a sick child, a baby waking, "
+            "insomnia. Be gentle, present, and completely non-demanding. Do not suggest planning or tasks. "
+            "Simply be with her."
+        )
+    elif h < 7:
+        period = "Early Morning"
+        focus  = (
+            "The house is quiet. A beautiful, sacred time. Good for morning offering, gentle planning, "
+            "talking about the day ahead, or silent encouragement before the noise begins. "
+            "Don't rush. Let her ease into the day."
+        )
+    elif h < 9:
+        period = "Morning Routine"
+        focus  = (
+            "The family is waking, getting ready, possibly heading to or returning from Mass. "
+            "Help her launch the day well — morning prayers, breakfast, getting boys organized. "
+            "Be energizing and practical. Time is real right now."
+        )
+    elif h < 12:
+        period = "School Hours"
+        focus  = (
+            "School is in session. Mom is teaching, supervising, and managing simultaneously. "
+            "Be efficient — short answers, clear priorities, quick subject help. "
+            "Avoid long tangents; she is likely pulled in several directions at once."
+        )
+    elif h < 13:
+        period = "Midday / Lunch"
+        focus  = (
+            "A natural pause. The morning push is over. Mom may have a few minutes to breathe, eat, "
+            "or reset before the afternoon. A good time to check in, encourage, and lightly plan "
+            "the afternoon. Keep it restorative, not overwhelming."
+        )
+    elif h < 15:
+        period = "Afternoon School"
+        focus  = (
+            "Second half of school. Michael may be napping. A quieter stretch. Good time for "
+            "focused work with JP and Joseph, read-alouds, or helping Mom think through the "
+            "remainder of the day. She may be starting to tire — acknowledge that."
+        )
+    elif h < 17:
+        period = "Afternoon Wind-down"
+        focus  = (
+            "School is wrapping up or finished. Boys likely have outdoor time or free play. "
+            "Dinner thinking is beginning. Help Mom transition from school mode into home mode — "
+            "meal planning, task wrap-up, a moment of gratitude for what was accomplished."
+        )
+    elif h < 19:
+        period = "Dinner & Evening"
+        focus  = (
+            "Dinner is being prepared or is underway. Family is together. Keep responses short and "
+            "practical. A good time for quick meal questions, tomorrow's plan, or simple "
+            "encouragement. Do not overwhelm — this is a high-energy family hour."
+        )
+    elif h < 21:
+        period = "Bedtime Routines"
+        focus  = (
+            "Boys are heading to bed. Evening prayers, story, blessings. The household is winding "
+            "down. Be gentle and reflective. A good time for the Examen, a word of encouragement, "
+            "or a soft plan for tomorrow. Don't add stress — the day is ending."
+        )
+    else:
+        period = "Mom's Quiet Evening"
+        focus  = (
+            "The boys are in bed. This is Lauren's time — to rest, pray, read, reflect, or simply "
+            "breathe. Honor that. Do not suggest heavy tasks or ambitious planning. Lean toward "
+            "encouragement, restful reflection, and a gentle thought for tomorrow. She has given "
+            "much today and deserves peace."
+        )
+
+    return {
+        "time_str": time_str,
+        "period":   period,
+        "focus":    focus,
+        "hour":     h,
+        "minute":   m,
+        "day_str":  day_str,
+    }
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Lucy system prompt builder
 # ─────────────────────────────────────────────────────────────────────────────
@@ -52,6 +141,7 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
     capacity: "high", "medium", "low", or ""
     """
     phase = _get_phase()
+    tc    = _get_time_context()
 
     capacity_note = ""
     if capacity:
@@ -67,7 +157,8 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
         "You are Lucy — a warm, faithful, and deeply Catholic companion for a homeschooling family.",
         "You are not a generic assistant. You are a knowledgeable Catholic companion who knows this family deeply and speaks to Mom personally.",
         f"Today is {weekday}, {date_label} ({iso}).",
-        f"Current phase of day: {phase.upper()}.",
+        f"The current time is {tc['time_str']} Eastern — {tc['period']}.",
+        f"Time-of-day guidance: {tc['focus']}",
     ]
 
     if capacity_note:
@@ -735,18 +826,44 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
     except Exception:
         lines.append("(Friends directory not available)")
 
-    lines += ["", "== FAMILY SCHEDULE GRID =="]
+    lines += ["", "== FAMILY SCHEDULE GRID (TODAY) =="]
     try:
         from data_helpers import load_family_schedule
         from render_schedule_support import generate_half_hour_times
-        schedule = load_family_schedule()
-        times = schedule.get("times", []) or generate_half_hour_times()
-        day_slots = schedule.get("days", {}).get(weekday, {})
-        populated = [(t, day_slots.get(t, "")) for t in times if day_slots.get(t, "")]
-        if populated:
-            for t, activity in populated:
-                lines.append(f"  {t}: {activity}")
-        else:
+        import re as _schre
+        schedule   = load_family_schedule()
+        _sched_times = schedule.get("times", []) or generate_half_hour_times()
+        day_slots  = schedule.get("days", {}).get(weekday, {})
+        populated  = [(t, day_slots.get(t, "")) for t in _sched_times if day_slots.get(t, "")]
+
+        def _slot_minutes(ts: str) -> int:
+            """Convert '9:00 AM' → minutes since midnight."""
+            try:
+                _m = _schre.match(r'(\d+):(\d+)\s*(AM|PM)', ts, _schre.I)
+                if not _m:
+                    return -1
+                _hh, _mm, _ap = int(_m.group(1)), int(_m.group(2)), _m.group(3).upper()
+                if _ap == "PM" and _hh != 12:
+                    _hh += 12
+                elif _ap == "AM" and _hh == 12:
+                    _hh = 0
+                return _hh * 60 + _mm
+            except Exception:
+                return -1
+
+        _cur_mins = tc["hour"] * 60 + tc["minute"]
+        past_slots     = [(t, a) for t, a in populated if _slot_minutes(t) < _cur_mins]
+        upcoming_slots = [(t, a) for t, a in populated if _slot_minutes(t) >= _cur_mins]
+
+        if past_slots:
+            lines.append("Already passed today:")
+            for t, a in past_slots[-4:]:   # show last 4 past items
+                lines.append(f"  ✓ {t}: {a}")
+        if upcoming_slots:
+            lines.append("Coming up:")
+            for t, a in upcoming_slots[:6]:   # show next 6 items
+                lines.append(f"  → {t}: {a}")
+        if not populated:
             lines.append("(No schedule grid entries for today)")
     except Exception:
         lines.append("(Schedule grid not available)")
