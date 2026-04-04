@@ -278,6 +278,29 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
+        # ── Static files (/static/*) ─────────────────────────────────────────
+        if path.startswith("/static/"):
+            import os, mimetypes
+            filename = path[8:]  # strip "/static/"
+            filename = filename.replace("..", "").replace("/", "").strip()
+            static_path = os.path.join("static", filename)
+            try:
+                with open(static_path, "rb") as f:
+                    content = f.read()
+                mime, _ = mimetypes.guess_type(filename)
+                mime = mime or "application/octet-stream"
+                self.send_response(200)
+                self.send_header("Content-Type", mime)
+                self.send_header("Cache-Control", "no-cache")
+                self.send_header("Content-Length", str(len(content)))
+                self.end_headers()
+                try: self.wfile.write(content)
+                except BrokenPipeError: pass
+            except FileNotFoundError:
+                self.send_response(404)
+                self.end_headers()
+            return
+
         # ── Auth gate ─────────────────────────────────────────────────────────
         viewer = self._require_auth(path)
         if viewer is None:
