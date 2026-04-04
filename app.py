@@ -2303,6 +2303,21 @@ class Handler(BaseHTTPRequestHandler):
                             save_meal_plan(_plan)
                         except Exception:
                             pass
+                # ── Parse [RECIPE_CARD:add]JSON[/RECIPE_CARD] and auto-save ──
+                import json as _rj
+                _rc_rx = _re.compile(
+                    r'\[RECIPE_CARD:add\]([\s\S]*?)\[\/RECIPE_CARD\]',
+                    _re.IGNORECASE
+                )
+                for _rcm in _rc_rx.finditer(text):
+                    _rc_raw = _rcm.group(1).strip()
+                    try:
+                        _rc_data = _rj.loads(_rc_raw)
+                        if isinstance(_rc_data, dict) and _rc_data.get("name"):
+                            from data_helpers import add_recipe
+                            add_recipe(_rc_data)
+                    except Exception:
+                        pass
                 ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                 append_lorenzo_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
                 self.send_response(200)

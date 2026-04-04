@@ -96,6 +96,35 @@ def _get_inventory() -> str:
     except Exception:
         return "Inventory unavailable."
 
+def _get_saved_recipes() -> str:
+    """Return a compact summary of saved recipe cards for the system prompt."""
+    try:
+        from data_helpers import load_recipes
+        recipes = load_recipes()
+        if not recipes:
+            return "No recipe cards saved yet."
+        lines = [f"Saved recipe cards ({len(recipes)} total):"]
+        for r in recipes:
+            name      = r.get("name", "Unknown")
+            servings  = r.get("servings", "")
+            prep      = r.get("prep_time", "")
+            cook      = r.get("cook_time", "")
+            ingr_raw  = r.get("ingredients", [])
+            # Handle both list-of-strings and legacy plain-string formats
+            if isinstance(ingr_raw, list):
+                ingr_preview = ", ".join(ingr_raw[:5]) + ("..." if len(ingr_raw) > 5 else "")
+            else:
+                ingr_str = str(ingr_raw)
+                ingr_preview = ingr_str[:80] + ("..." if len(ingr_str) > 80 else "")
+            timing    = " | ".join(x for x in [f"Serves {servings}" if servings else "",
+                                               f"Prep {prep}" if prep else "",
+                                               f"Cook {cook}" if cook else ""] if x)
+            lines.append(f"  - {name}" + (f" ({timing})" if timing else "") +
+                         (f": {ingr_preview}" if ingr_preview else ""))
+        return "\n".join(lines)
+    except Exception:
+        return "Recipe cards unavailable."
+
 def _get_meal_constraints() -> str:
     try:
         settings = _load_app_settings()
@@ -186,6 +215,7 @@ def build_lorenzo_context(iso: str, weekday: str, date_label: str) -> str:
     capacity    = _get_lucy_capacity(iso)
     john_status = _get_john_status(iso)
     liturny     = _get_liturgical_note(iso)
+    saved_recipes = _get_saved_recipes()
 
     # Current Eastern time — used for situational awareness
     _now_e = _dt.now(_EASTERN)
@@ -295,6 +325,29 @@ def build_lorenzo_context(iso: str, weekday: str, date_label: str) -> str:
         "This will save directly to the meal plan. Example:",
         "[MEAL_UPDATE:Monday:dinner]Sheet pan chicken thighs with roasted broccoli[/MEAL_UPDATE]",
         "Slots are: breakfast, lunch, dinner, snack.",
+        "",
+        "RECIPE CARDS: Lauren can ask you to save any recipe as a card. When she does",
+        '("Can you save that?", "Add that to my recipe cards", "Save this recipe", etc.),',
+        "output a [RECIPE_CARD:add] tag containing a JSON object with these fields:",
+        "  name        — recipe name (string)",
+        "  servings    — number of servings (number or string like '6-8')",
+        "  prep_time   — prep time string (e.g. '15 minutes')",
+        "  cook_time   — cook time string (e.g. '45 minutes')",
+        "  ingredients — array of strings, each with quantity and item (e.g. '2 lbs chicken thighs')",
+        "  instructions — array of step strings",
+        "  notes       — any family-specific notes, substitutions, or tips (string, can be '')",
+        "  tags        — array of short tag strings for searching (e.g. ['chicken','one-pan','JP'])",
+        "Example:",
+        '[RECIPE_CARD:add]{"name":"Sheet Pan Chicken Thighs","servings":6,"prep_time":"10 minutes",',
+        '"cook_time":"40 minutes","ingredients":["6 bone-in chicken thighs","2 cups broccoli florets"],',
+        '"instructions":["Preheat oven to 425F","Season chicken and arrange on pan","Roast 40 min"],',
+        '"notes":"JP can handle this solo. Double the broccoli for leftovers.","tags":["chicken","JP","sheet pan"]}[/RECIPE_CARD]',
+        "The card is saved automatically — no button needed. Then tell Lauren it is saved.",
+        "When Lauren asks about saved recipes ('What recipes do I have?', 'Show me the curry'),",
+        "refer to the SAVED RECIPE CARDS section below and quote the details back to her.",
+        "",
+        "== SAVED RECIPE CARDS ==",
+        saved_recipes,
         "",
         "== YOUR CORE MEAL PLANNING PHILOSOPHY ==",
         "SIMPLICITY FIRST:",
@@ -1203,6 +1256,109 @@ function lzSend() {{
                             mRow.appendChild(mIcon); mRow.appendChild(mMsg); mRow.appendChild(mBtn);
                             if (bubble._wrap) bubble._wrap.appendChild(mRow);
                         }})(m[1], m[2], m[3]);
+                    }}
+
+                    // ── Parse [RECIPE_CARD:add]JSON[/RECIPE_CARD] ────────────
+                    var rcRx = /\[RECIPE_CARD:add\]([\s\S]*?)\[\/RECIPE_CARD\]/g;
+                    while ((m = rcRx.exec(full)) !== null) {{
+                        (function(rawJson) {{
+                            var rc;
+                            try {{ rc = JSON.parse(rawJson.trim()); }} catch(e) {{ return; }}
+                            var name  = rc.name || 'Recipe';
+                            var ingrs = Array.isArray(rc.ingredients) ? rc.ingredients : [];
+                            var steps = Array.isArray(rc.instructions) ? rc.instructions : [];
+                            var tags  = Array.isArray(rc.tags) ? rc.tags : [];
+                            var timing = [
+                                rc.servings ? 'Serves ' + rc.servings : '',
+                                rc.prep_time ? 'Prep ' + rc.prep_time : '',
+                                rc.cook_time ? 'Cook ' + rc.cook_time : ''
+                            ].filter(Boolean).join(' \u00b7 ');
+
+                            var card = document.createElement('div');
+                            card.style.cssText = 'margin-top:10px;border:1.5px solid #8b3a1a;border-radius:10px;'
+                                + 'overflow:hidden;font-size:0.83em;';
+
+                            var hdr = document.createElement('div');
+                            hdr.style.cssText = 'background:#8b3a1a;color:white;padding:8px 12px;display:flex;'
+                                + 'align-items:center;gap:8px;';
+                            var hIcon = document.createElement('span');
+                            hIcon.textContent = '\U0001F4D6';
+                            var hTitle = document.createElement('strong');
+                            hTitle.textContent = name;
+                            hTitle.style.flex = '1';
+                            var hBadge = document.createElement('span');
+                            hBadge.textContent = '\u2713 Saved to recipe cards';
+                            hBadge.style.cssText = 'font-size:0.78em;opacity:0.85;white-space:nowrap;';
+                            hdr.appendChild(hIcon);
+                            hdr.appendChild(hTitle);
+                            hdr.appendChild(hBadge);
+                            card.appendChild(hdr);
+
+                            var body = document.createElement('div');
+                            body.style.cssText = 'padding:10px 12px;background:#fdf8f5;display:flex;'
+                                + 'flex-direction:column;gap:8px;';
+
+                            if (timing) {{
+                                var tRow = document.createElement('div');
+                                tRow.style.cssText = 'color:#8b3a1a;font-size:0.82em;font-weight:600;';
+                                tRow.textContent = timing;
+                                body.appendChild(tRow);
+                            }}
+
+                            if (ingrs.length) {{
+                                var iSec = document.createElement('div');
+                                var iHdr = document.createElement('div');
+                                iHdr.style.cssText = 'font-weight:700;color:#1a1a1a;margin-bottom:3px;';
+                                iHdr.textContent = 'Ingredients';
+                                iSec.appendChild(iHdr);
+                                ingrs.forEach(function(ing) {{
+                                    var li = document.createElement('div');
+                                    li.style.cssText = 'color:#444;padding-left:10px;line-height:1.5;';
+                                    li.textContent = '\u2022 ' + ing;
+                                    iSec.appendChild(li);
+                                }});
+                                body.appendChild(iSec);
+                            }}
+
+                            if (steps.length) {{
+                                var sSec = document.createElement('div');
+                                var sHdr = document.createElement('div');
+                                sHdr.style.cssText = 'font-weight:700;color:#1a1a1a;margin-bottom:3px;';
+                                sHdr.textContent = 'Instructions';
+                                sSec.appendChild(sHdr);
+                                steps.forEach(function(step, idx) {{
+                                    var li = document.createElement('div');
+                                    li.style.cssText = 'color:#444;padding-left:10px;line-height:1.5;';
+                                    li.textContent = (idx+1) + '. ' + step;
+                                    sSec.appendChild(li);
+                                }});
+                                body.appendChild(sSec);
+                            }}
+
+                            if (rc.notes) {{
+                                var nSec = document.createElement('div');
+                                nSec.style.cssText = 'background:#fff8f0;border:1px solid #e6b870;'
+                                    + 'border-radius:6px;padding:6px 10px;color:#7a4500;font-style:italic;';
+                                nSec.textContent = rc.notes;
+                                body.appendChild(nSec);
+                            }}
+
+                            if (tags.length) {{
+                                var tSec = document.createElement('div');
+                                tSec.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;';
+                                tags.forEach(function(tag) {{
+                                    var t = document.createElement('span');
+                                    t.style.cssText = 'background:#f0ebe4;border:1px solid #d4c5b0;'
+                                        + 'border-radius:12px;padding:2px 8px;font-size:0.78em;color:#5a3a1a;';
+                                    t.textContent = tag;
+                                    tSec.appendChild(t);
+                                }});
+                                body.appendChild(tSec);
+                            }}
+
+                            card.appendChild(body);
+                            if (bubble._wrap) bubble._wrap.appendChild(card);
+                        }})(m[1]);
                     }}
 
                     window.scrollTo(0, document.body.scrollHeight);

@@ -267,6 +267,55 @@ def clear_lorenzo_history():
     safe_save_json(LORENZO_HISTORY_FILE, {"messages": []})
 
 
+# ── Recipe cards ─────────────────────────────────────────────────────────────
+RECIPES_FILE = "data/recipes.json"
+
+def load_recipes() -> list:
+    data = ensure_file(RECIPES_FILE, {"recipes": []})
+    # Legacy format: top-level list
+    if isinstance(data, list):
+        return data
+    return data.get("recipes", [])
+
+def save_recipes(recipes: list):
+    safe_save_json(RECIPES_FILE, {"recipes": recipes})
+
+def add_recipe(recipe: dict) -> dict:
+    """Add or update a recipe (match by name, case-insensitive). Returns saved recipe."""
+    import uuid
+    from datetime import date as _d
+    recipes = load_recipes()
+    name = recipe.get("name", "").strip()
+    # Dedup: replace if same name already exists
+    recipes = [r for r in recipes if r.get("name", "").lower() != name.lower()]
+    recipe.setdefault("id", str(uuid.uuid4())[:8])
+    recipe.setdefault("date_added", _d.today().isoformat())
+    recipes.append(recipe)
+    save_recipes(recipes)
+    return recipe
+
+def delete_recipe(recipe_id: str) -> bool:
+    recipes = load_recipes()
+    before = len(recipes)
+    recipes = [r for r in recipes if r.get("id") != recipe_id]
+    save_recipes(recipes)
+    return len(recipes) < before
+
+def search_recipes(query: str) -> list:
+    """Return recipes whose name or ingredients contain the query (case-insensitive)."""
+    q = query.lower().strip()
+    if not q:
+        return load_recipes()
+    results = []
+    for r in load_recipes():
+        haystack = (r.get("name","") + " " +
+                    " ".join(r.get("ingredients", [])) + " " +
+                    " ".join(r.get("tags", []))).lower()
+        if q in haystack:
+            results.append(r)
+    return results
+
+
 # ── Monthly planner ──────────────────────────────────────────────────────────
 def load_monthly_planner() -> dict:
     return ensure_file(MONTHLY_PLANNER_FILE, {})
