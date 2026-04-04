@@ -364,7 +364,7 @@ def render_lorenzo_page() -> str:
     ])
 
     quick_buttons = "".join(
-        f'<button onclick="lzQuick({_ej(prompt)})" '
+        f'<button onclick=\'lzQuick({_ej(prompt)})\' '
         f'style="background:#faf8f5;border:1px solid #e4dbd2;border-radius:20px;'
         f'padding:6px 14px;font-size:0.8em;cursor:pointer;color:#555;font-family:inherit;'
         f'white-space:nowrap;transition:background 0.15s;" '
