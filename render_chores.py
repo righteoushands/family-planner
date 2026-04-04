@@ -17,6 +17,18 @@ CANONICAL_CHORES = {
             "Check Sea Cadet email",
             "Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
             "Exercise (non-PE days)",
+            "",
+            "KITCHEN (Morning — Role A):",
+            "  → Put food away",
+            "  → Clear table + counters",
+            "  → Spray + wipe table and counters",
+            "  → Take out trash + recycling",
+            "  → Sweep kitchen / dining room / foyer",
+            "",
+            "KITCHEN (Evening — Role A):",
+            "  → Unload dishwasher",
+            "  → Load dishwasher",
+            "  → Clean sink",
         ],
         "weekly": {
             "Monday":    ["Trim nails", "Sweep indoor stairs"],
@@ -34,6 +46,18 @@ CANONICAL_CHORES = {
             "Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
             "Exercise (non-PE days)",
             "Review irregular verbs",
+            "",
+            "KITCHEN (Morning — Role B):",
+            "  → Unload dishwasher",
+            "  → Load dishwasher",
+            "  → Clean sink",
+            "",
+            "KITCHEN (Evening — Role B):",
+            "  → Put food away",
+            "  → Clear table + counters",
+            "  → Spray + wipe table and counters",
+            "  → Take out trash + recycling",
+            "  → Sweep kitchen / dining room / foyer",
         ],
         "weekly": {
             "Monday":    ["Trim nails"],
@@ -583,25 +607,19 @@ def render_chores_page(status_message: str = "") -> str:
     joe_color = child_color("Joseph", "bg")
     kitchen_card = f"""
     <div class="card" style="border-left:4px solid #e67e22;background:#fef6ed;margin-bottom:16px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-            <h3 style="margin:0;">🍽 Kitchen Jobs — This week</h3>
-            <form method="POST" action="/apply-kitchen-rotation" style="display:inline;">
-                <button type="submit" class="secondary" style="font-size:0.82em;padding:5px 12px;">Apply to daily chores</button>
-            </form>
-        </div>
+        <h3 style="margin:0 0 10px;">🍽 Kitchen Jobs — This week</h3>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
             <div>
-                <div style="font-weight:700;color:{jp_color};margin-bottom:6px;">JP — Role {jp_k}</div>
+                <div style="font-weight:700;color:{jp_color};margin-bottom:6px;">JP</div>
                 {_fmt(jp_morning)}
                 <div style="margin-top:6px;">{_fmt(jp_evening)}</div>
             </div>
             <div>
-                <div style="font-weight:700;color:{joe_color};margin-bottom:6px;">Joseph — Role {joe_k}</div>
+                <div style="font-weight:700;color:{joe_color};margin-bottom:6px;">Joseph</div>
                 {_fmt(joe_morning)}
                 <div style="margin-top:6px;">{_fmt(joe_evening)}</div>
             </div>
         </div>
-        <p class="small" style="margin-top:8px;">JP is always Role A · Joseph is always Role B. Applied to daily chore list.</p>
     </div>"""
 
     # AI chore adjuster
