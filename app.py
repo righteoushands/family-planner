@@ -185,7 +185,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def _set_session_cookie(self, token: str):
         """Set a session cookie (no max-age = browser-close expiry)."""
-        self.send_header("Set-Cookie", f"session={token}; Path=/; HttpOnly; SameSite=Strict")
+        self.send_header("Set-Cookie", f"session={token}; Path=/; HttpOnly; SameSite=Lax")
 
     def _clear_session_cookie(self):
         self.send_header("Set-Cookie", "session=deleted; Path=/; HttpOnly; Max-Age=0")
@@ -622,7 +622,8 @@ class Handler(BaseHTTPRequestHandler):
                 token = _auth.create_session(uid)
                 # Where to land after login
                 if _auth.is_admin(uid):
-                    dest = nxt if nxt not in ("/login", "") else "/"
+                    safe = nxt and not nxt.startswith("/login") and nxt != ""
+                    dest = nxt if safe else "/"
                 else:
                     dest = f"/schedule/{uid}"
                 self.send_response(303)
