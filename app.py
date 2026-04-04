@@ -209,7 +209,11 @@ class Handler(BaseHTTPRequestHandler):
             return user  # pass through
 
         if not user:
-            self._redirect(f"/login?next={path}")
+            # Preserve full URL (including query string) so the user lands
+            # back on the exact page they wanted after logging in.
+            from urllib.parse import quote as _quote
+            full = _quote(self.path, safe="/:@!$&'()*+,;=?%#")
+            self._redirect(f"/login?next={full}")
             return None
 
         if not _auth.can_get(user, path):
@@ -3931,6 +3935,20 @@ def initialize_data_files():
 
 
 if __name__ == "__main__":
+    import os as _os, signal as _signal, socket as _socket, time as _time2
+
+    # ── PID file: kill any previous instance before binding ───────────────────
+    _PID_FILE = "/tmp/family_dashboard.pid"
+    if _os.path.exists(_PID_FILE):
+        try:
+            _old_pid = int(open(_PID_FILE).read().strip())
+            _os.kill(_old_pid, _signal.SIGKILL)
+            _time2.sleep(0.5)
+        except (ValueError, ProcessLookupError, PermissionError):
+            pass
+    with open(_PID_FILE, "w") as _pf:
+        _pf.write(str(_os.getpid()))
+
     initialize_data_files()
     # Pre-fetch saint data for the week in the background
     try:
@@ -3946,32 +3964,40 @@ if __name__ == "__main__":
         maybe_auto_fetch()
     except Exception:
         pass
-    import socket as _socket, time as _time2
 
-    class ReusableServer(socketserver.ThreadingMixIn, HTTPServer):
-        daemon_threads       = True   # clean up threads automatically
-        allow_reuse_address  = True
-        allow_reuse_port     = True
+    class _Server(socketserver.ThreadingMixIn, HTTPServer):
+        daemon_threads      = True
+        allow_reuse_address = True
+        allow_reuse_port    = False   # ONE process owns port 5000 at a time
 
         def server_bind(self):
             self.socket.setsockopt(_socket.SOL_SOCKET, _socket.SO_REUSEADDR, 1)
-            try:
-                self.socket.setsockopt(_socket.SOL_SOCKET, _socket.SO_REUSEPORT, 1)
-            except (AttributeError, OSError):
-                pass
             super().server_bind()
 
-    # Retry binding — old process may still be releasing the port
+    # ── Graceful shutdown on SIGTERM / SIGINT ─────────────────────────────────
     _server = None
-    for _attempt in range(10):
+
+    def _shutdown(signum, frame):
         try:
-            _server = ReusableServer((HOST, PORT), Handler)
+            _os.remove(_PID_FILE)
+        except Exception:
+            pass
+        if _server:
+            threading.Thread(target=_server.shutdown, daemon=True).start()
+
+    _signal.signal(_signal.SIGTERM, _shutdown)
+    _signal.signal(_signal.SIGINT,  _shutdown)
+
+    # Retry binding — give previous process up to 8 s to release the port
+    for _attempt in range(8):
+        try:
+            _server = _Server((HOST, PORT), Handler)
             break
         except OSError:
-            if _attempt < 9:
+            if _attempt < 7:
                 _time2.sleep(1)
     if _server is None:
-        raise RuntimeError(f"Could not bind to port {PORT} after 10 attempts")
+        raise RuntimeError(f"Could not bind to port {PORT} after 8 attempts")
 
     print(f"Running on http://{HOST}:{PORT}")
     _server.serve_forever()

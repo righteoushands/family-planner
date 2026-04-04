@@ -284,8 +284,15 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
     wk     = week_key or _week_key()
     plan   = load_meal_plan(wk)
     inv    = load_inventory()
-    ws     = _week_start()
     days_data = plan.get("days", {})
+
+    # Parse the displayed week's Monday from the week_key so navigation
+    # arrows move relative to the page being viewed, not today.
+    try:
+        from datetime import datetime as _dtp
+        ws = _dtp.strptime(wk + "-1", "%Y-W%W-%w").date()
+    except Exception:
+        ws = _week_start()
 
     # API key for AI features
     try:
@@ -301,9 +308,9 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
     cycle_phase = anchor.get("cycle_phase", "")
     capacity    = anchor.get("capacity", "")
 
-    # Week navigation
-    prev_week = (_week_start() - timedelta(weeks=1)).strftime("%Y-W%W")
-    next_week = (_week_start() + timedelta(weeks=1)).strftime("%Y-W%W")
+    # Week navigation — relative to the displayed week, not today
+    prev_week = (ws - timedelta(weeks=1)).strftime("%Y-W%W")
+    next_week = (ws + timedelta(weeks=1)).strftime("%Y-W%W")
 
     week_label = ws.strftime("Week of %B %d, %Y")
 

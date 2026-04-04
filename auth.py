@@ -102,6 +102,10 @@ def create_session(username: str) -> str:
 
 
 def get_session_user(token: str):
+    if token in _SESSIONS:
+        return _SESSIONS[token]
+    # Re-read from disk in case another process created this session
+    _load_sessions()
     return _SESSIONS.get(token)
 
 
