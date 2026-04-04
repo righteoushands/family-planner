@@ -558,22 +558,36 @@ class Handler(BaseHTTPRequestHandler):
             self._redirect("/")
             return
 
-        # ── Save PINs (admin only) ────────────────────────────────────────────
+        # ── Save PINs (admin only, returns JSON for AJAX caller) ─────────────
         if path == "/save-pins":
+            import json as _json
             user = self._get_viewer()
-            if user and _auth.is_admin(user):
-                cl  = int(self.headers.get("Content-Length", 0))
-                raw = self.rfile.read(cl).decode("utf-8", errors="ignore")
-                from urllib.parse import parse_qs as _pqs, unquote_plus as _uqp2
-                params = _pqs(raw)
-                new_pins = {}
-                for uid in ("lauren", "john", "jp", "joseph", "michael", "james"):
-                    val = _uqp2(params.get(f"pin_{uid}", [""])[0]).strip()
-                    if val and len(val) == 4 and val.isdigit():
-                        new_pins[uid] = val
-                if new_pins:
-                    _auth.save_pins(new_pins)
-            self._redirect("/settings#group-app")
+            _auth.set_viewer(user)
+            if not (user and _auth.is_admin(user)):
+                out = _json.dumps({"ok": False, "error": "Not authorized"}).encode()
+                self.send_response(403)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                try: self.wfile.write(out)
+                except BrokenPipeError: pass
+                return
+            cl  = int(self.headers.get("Content-Length", 0))
+            raw = self.rfile.read(cl).decode("utf-8", errors="ignore")
+            from urllib.parse import parse_qs as _pqs, unquote_plus as _uqp2
+            params = _pqs(raw)
+            new_pins = {}
+            for uid in ("lauren", "john", "jp", "joseph", "michael", "james"):
+                val = _uqp2(params.get(f"pin_{uid}", [""])[0]).strip()
+                if val and len(val) == 4 and val.isdigit():
+                    new_pins[uid] = val
+            if new_pins:
+                _auth.save_pins(new_pins)
+            out = _json.dumps({"ok": True, "saved": list(new_pins.keys())}).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            try: self.wfile.write(out)
+            except BrokenPipeError: pass
             return
 
         # ── Auth gate for all other POST routes ───────────────────────────────

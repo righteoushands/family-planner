@@ -1155,14 +1155,51 @@ def _section_pins() -> str:
       Enter a new 4-digit PIN to change it. Leave blank to keep the current PIN.
       Michael and James have no PIN — they tap their avatar to log in.
     </p>
-    <form method="POST" action="/save-pins">
+    <form id="pin-save-form" method="POST" action="/save-pins"
+          onsubmit="savePins(event)">
       {rows}
-      <div style="margin-top:14px;">
+      <div style="margin-top:14px;display:flex;align-items:center;gap:12px;">
         <button class="btn-primary" type="submit">Save PINs</button>
+        <span id="pin-save-status" style="font-size:0.82em;display:none;"></span>
       </div>
     </form>
   </div>
-</details>"""
+</details>
+<script>
+function savePins(e) {{
+  e.preventDefault();
+  var form = document.getElementById('pin-save-form');
+  var status = document.getElementById('pin-save-status');
+  var btn = form.querySelector('button[type="submit"]');
+  var data = new URLSearchParams();
+  form.querySelectorAll('input[name]').forEach(function(el) {{
+    if (el.value.trim()) data.append(el.name, el.value.trim());
+  }});
+  btn.disabled = true;
+  status.style.display = 'inline';
+  status.style.color = 'var(--ink-faint)';
+  status.textContent = 'Saving\u2026';
+  fetch('/save-pins', {{
+    method: 'POST',
+    headers: {{'Content-Type': 'application/x-www-form-urlencoded'}},
+    body: data.toString()
+  }}).then(function(r) {{ return r.json(); }}).then(function(d) {{
+    btn.disabled = false;
+    if (d.ok) {{
+      status.style.color = '#22c55e';
+      status.textContent = 'PINs saved \u2713';
+      setTimeout(function() {{ status.style.display = 'none'; }}, 3000);
+    }} else {{
+      status.style.color = '#ef4444';
+      status.textContent = d.error || 'Save failed';
+    }}
+  }}).catch(function() {{
+    btn.disabled = false;
+    status.style.color = '#ef4444';
+    status.textContent = 'Connection error \u2014 try again';
+  }});
+}}
+</script>"""
 
 
 def render_settings_page(status_message: str = "") -> str:
@@ -1498,6 +1535,7 @@ function autoSaveSettings() {
     if (el.closest('form[action="/subscribed-cal-delete"]')) return;
     if (el.closest('form[action="/meal-rule-add"]')) return;
     if (el.closest('form[action="/meal-rule-delete"]')) return;
+    if (el.closest('form[action="/save-pins"]')) return;
     if (el.type === 'checkbox') {
       if (el.checked) formData.append(el.name, el.value || 'on');
     } else if (el.type === 'radio') {
@@ -1529,6 +1567,7 @@ function _wireAutosave() {
     if (el.closest('form[action="/subscribed-cal-delete"]')) return;
     if (el.closest('form[action="/meal-rule-add"]')) return;
     if (el.closest('form[action="/meal-rule-delete"]')) return;
+    if (el.closest('form[action="/save-pins"]')) return;
     if (el.type === 'password') {
       // Password fields save when changed like any other field
     }
