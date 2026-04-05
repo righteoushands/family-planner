@@ -473,6 +473,13 @@ def _render_mom_now_block(iso: str, weekday: str) -> str:
         # Plan My Day step strip
         + f'<div style="display:flex;gap:4px;margin-bottom:8px;">{step_chips}</div>'
 
+        # Lorenzo menu planning button
+        + f'<a href="/lorenzo" style="display:flex;align-items:center;justify-content:center;gap:6px;'
+        f'width:100%;padding:7px;border-radius:10px;font-size:0.75em;font-weight:600;'
+        f'background:rgba(139,58,26,0.08);color:#8b3a1a;border:1px solid rgba(139,58,26,0.2);'
+        f'text-decoration:none;margin-bottom:8px;box-sizing:border-box;">'
+        f'&#128197; Plan this week\'s menu with Lorenzo</a>'
+
         # 5AM + quick links row
         + f'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
         f'<div style="display:flex;gap:4px;">{club_html}</div>'
@@ -1183,20 +1190,27 @@ def render_dashboard() -> str:
         _lucy_msg = f'Blessed {escape(weekday)} to the McAdams family. Ready to make today count?'
 
     body = f"""
-    <!-- Control panel strip (Lucy + Lorenzo) -->
-    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px;padding-top:4px;">
-      <a href="/lorenzo"
-         style="padding:7px 16px;background:#8b3a1a;
-                color:white;border-radius:20px;text-decoration:none;font-size:0.82em;font-weight:700;
-                white-space:nowrap;letter-spacing:.01em;">
-        &#127860; Lorenzo
-      </a>
-      <a href="/lucy"
-         style="padding:7px 16px;background:{parent_color('Lauren','bg')};
-                color:white;border-radius:20px;text-decoration:none;font-size:0.82em;font-weight:700;
-                white-space:nowrap;letter-spacing:.01em;">
-        🌿 Talk to Lucy
-      </a>
+    <!-- AI Companions strip -->
+    <div style="margin:-4px -4px 0;padding:10px 16px 12px;background:#1C1917;
+                border-bottom:1px solid rgba(255,255,255,0.08);">
+      <div style="font-size:0.68em;letter-spacing:.04em;
+                  color:rgba(245,240,232,0.5);margin-bottom:8px;">Your AI companions</div>
+      <div style="display:flex;gap:8px;">
+        <a href="/lorenzo"
+           style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+                  padding:7px 12px;background:#8b3a1a;
+                  color:rgba(245,240,232,1);border-radius:20px;text-decoration:none;
+                  font-size:0.78em;font-weight:600;">
+          &#127860; Lorenzo <span style="opacity:0.7;font-weight:400;">&middot; Personal Chef</span>
+        </a>
+        <a href="/lucy"
+           style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+                  padding:7px 12px;background:#5b3a8a;
+                  color:rgba(245,240,232,1);border-radius:20px;text-decoration:none;
+                  font-size:0.78em;font-weight:600;">
+          ✨ Lucy <span style="opacity:0.7;font-weight:400;">&middot; Family Guide</span>
+        </a>
+      </div>
     </div>
 
     <!-- Lucy Banner -->
@@ -1219,7 +1233,7 @@ def render_dashboard() -> str:
             Lucy &middot; AI Family Companion
           </div>
           <h1 style="margin:0;font-family:'Cormorant Garamond',Georgia,serif;
-                     font-size:1.9rem;font-weight:600;color:var(--ink);line-height:1.1;">
+                     font-size:2.25rem;font-weight:600;color:var(--ink);line-height:1.1;">
             {_greeting}.
           </h1>
           <div style="font-size:0.82em;color:var(--ink-muted);margin-top:2px;">

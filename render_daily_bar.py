@@ -375,17 +375,27 @@ def render_daily_bar(for_date: date = None, compact: bool = False) -> str:
         '<a href="/settings#s-daily" style="margin-left:auto;font-size:0.78em;color:#ccc;">&#9881;</a>'
         if not location else ""
     )
-    return f"""
+    # Weather row (its own block so the status strip never overflows)
+    _weather_row = ""
+    if weather:
+        _weather_row = f"""
     <div style="background:white;border:1px solid #e4dbd2;border-radius:12px;
-                padding:10px 16px;margin-bottom:16px;
-                display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
-        {season_html}
+                padding:8px 16px;margin-bottom:8px;font-size:0.82em;">
         {weather_html}
-        <div style="width:1px;height:20px;background:#e0d8d0;flex-shrink:0;"></div>
+    </div>"""
+    # Status strip — single row, no wrap
+    return f"""
+    {_weather_row}
+    <div style="background:white;border:1px solid #e4dbd2;border-radius:12px;
+                padding:8px 16px;margin-bottom:16px;
+                display:flex;flex-wrap:nowrap;gap:0;align-items:center;overflow:hidden;">
+        {season_html}
+        <div style="width:1px;height:16px;background:#e0d8d0;flex-shrink:0;margin:0 10px;"></div>
         {saint_html}
+        <div style="width:1px;height:16px;background:#e0d8d0;flex-shrink:0;margin:0 10px;"></div>
         {gospel_html}
         {events_html}
-        <a href="/mom" style="margin-left:auto;font-size:0.78em;font-weight:600;
-           color:var(--brown);text-decoration:none;white-space:nowrap;">Plan my day &#8594;</a>
+        <a href="/mom" style="margin-left:auto;font-size:0.78em;font-weight:600;flex-shrink:0;
+           color:var(--brown);text-decoration:none;white-space:nowrap;padding-left:8px;">Plan my day &#8594;</a>
         {_settings_link_html}
     </div>"""
