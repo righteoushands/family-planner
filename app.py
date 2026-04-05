@@ -2741,7 +2741,12 @@ class Handler(BaseHTTPRequestHandler):
                 # Build system prompt
                 _pi_sys = build_analysis_system_prompt(_iso_pi, _lbl_pi, _ev_summary)
                 # Build user message (plan + any answers)
-                _pi_user = f"Here is the plan to parse:\n\n{plan_text}"
+                # Replace any double-quote chars in plan text so Claude can't
+                # accidentally embed them unescaped in JSON string values.
+                _pi_safe_text = (plan_text
+                    .replace('\u201c', '\u2018').replace('\u201d', '\u2019')  # curly → single
+                    .replace('"', "'"))                                        # straight → single
+                _pi_user = f"Here is the plan to parse:\n\n{_pi_safe_text}"
                 if answers:
                     _pi_user += "\n\n== ANSWERS TO PREVIOUS QUESTIONS ==\n"
                     for qid, ans in answers.items():
