@@ -1,5 +1,5 @@
 import React from "react";
-import { Sparkles, ArrowRight, Check, BookOpen, Cloud, ChevronRight } from "lucide-react";
+import { Sparkles, ArrowRight, Check, BookOpen, Cloud, ChevronRight, UtensilsCrossed } from "lucide-react";
 
 export function WarmEditorial() {
   return (
@@ -16,13 +16,22 @@ export function WarmEditorial() {
             Sancta Familia
           </span>
         </div>
-        <button
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
-          style={{ backgroundColor: "#B8904A", color: "#1C1917" }}
-        >
-          <Sparkles size={13} />
-          Ask Lucy
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
+            style={{ backgroundColor: "#8b3a1a", color: "#F5F0E8" }}
+          >
+            <UtensilsCrossed size={12} />
+            Lorenzo
+          </button>
+          <button
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
+            style={{ backgroundColor: "#B8904A", color: "#1C1917" }}
+          >
+            <Sparkles size={12} />
+            Ask Lucy
+          </button>
+        </div>
       </nav>
 
       {/* LUCY BANNER */}
