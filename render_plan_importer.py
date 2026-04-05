@@ -1232,7 +1232,7 @@ async function conveneCouncil() {{
 
   btn.disabled = true;
   btn.textContent = '\u2026';
-  resp.style.display = '';
+  resp.style.display = 'block';
   thread.innerHTML = '<div class="council-thinking">The companions are conferring\u2026</div>';
 
   // Collect currently displayed companion keys
