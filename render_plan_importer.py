@@ -1291,7 +1291,7 @@ function parseCouncilResponse(text) {{
 
 // ── Companion Consultation ─────────────────────────────────────────────────
 let activeCompanion = null;      // current companion key
-let consultHistories = {{}};      // key -> [{role, content}]
+let consultHistories = {{}};      // key -> [{{role, content}}]
 
 function renderCompanionPanel(companions) {{
   if (!companions || !companions.length) return;
