@@ -89,6 +89,11 @@ TODAY IS: {label_today} ({iso_today})
 
 == OUTPUT FORMAT ==
 Respond with ONLY valid JSON inside ```json ... ``` code fences. No other text outside the fences.
+CRITICAL JSON RULES:
+- Do NOT put literal line breaks inside string values — use \\n if needed
+- Do NOT use trailing commas after the last item in an array or object
+- All string values must be on one line or use \\n escapes
+- Use only standard ASCII quotes ("), never curly/smart quotes
 
 {{
   "events": [

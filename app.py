@@ -2761,6 +2761,42 @@ class Handler(BaseHTTPRequestHandler):
                              "content-type": "application/json"},
                 )
                 import urllib.error as _pi_urlerr
+
+                def _repair_and_parse_json(raw_str):
+                    """Try to parse JSON, repairing common LLM mistakes."""
+                    # Attempt 1: as-is
+                    try: return _pij.loads(raw_str)
+                    except Exception: pass
+                    # Attempt 2: remove trailing commas before } or ]
+                    import re as _re2
+                    fixed = _re2.sub(r',(\s*[}\]])', r'\1', raw_str)
+                    try: return _pij.loads(fixed)
+                    except Exception: pass
+                    # Attempt 3: escape literal newlines inside string values
+                    def _fix_newlines(s):
+                        result, in_str, i = [], False, 0
+                        while i < len(s):
+                            c = s[i]
+                            if c == '"' and (i == 0 or s[i-1] != '\\'):
+                                in_str = not in_str
+                                result.append(c)
+                            elif in_str and c == '\n':
+                                result.append('\\n')
+                            elif in_str and c == '\r':
+                                result.append('\\r')
+                            elif in_str and c == '\t':
+                                result.append('\\t')
+                            else:
+                                result.append(c)
+                            i += 1
+                        return ''.join(result)
+                    fixed2 = _fix_newlines(fixed)
+                    try: return _pij.loads(fixed2)
+                    except Exception: pass
+                    # Attempt 4: strip trailing commas again after newline fix
+                    fixed3 = _re2.sub(r',(\s*[}\]])', r'\1', fixed2)
+                    return _pij.loads(fixed3)  # raise if still broken
+
                 try:
                     _pi_resp = _pireq.urlopen(_pi_req, timeout=90)
                     _pi_raw  = _pi_resp.read().decode("utf-8")
@@ -2778,12 +2814,12 @@ class Handler(BaseHTTPRequestHandler):
                     # Extract JSON from ```json ... ``` block
                     _pi_jm = _pire.search(r"```json\s*([\s\S]*?)```", _pi_text)
                     if _pi_jm:
-                        _pi_parsed = _pij.loads(_pi_jm.group(1).strip())
+                        _pi_parsed = _repair_and_parse_json(_pi_jm.group(1).strip())
                     else:
                         # Try bare JSON object/array
                         _pi_jm2 = _pire.search(r"(\{[\s\S]*\}|\[[\s\S]*\])", _pi_text)
                         if _pi_jm2:
-                            _pi_parsed = _pij.loads(_pi_jm2.group(1))
+                            _pi_parsed = _repair_and_parse_json(_pi_jm2.group(1))
                         else:
                             raise ValueError(f"Claude did not return JSON. Response was: {_pi_text[:300]}")
                     # Detect relevant companions
