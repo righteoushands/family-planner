@@ -119,6 +119,36 @@
       "role": "assistant",
       "content": "Perfect. You're all set then.\n\nSo Sunday you'll mix the brine and get that chicken in — it'll be ready to roast Monday evening. Nice and simple.\n\nAnything else on your mind for the week?",
       "ts": "2026-04-05T01:02:06"
+    },
+    {
+      "role": "user",
+      "content": "What’s on teller menus and other “to dos” for the day?",
+      "ts": "2026-04-05T09:11:42"
+    },
+    {
+      "role": "assistant",
+      "content": "I'm not sure what you mean by \"teller menus\" — is that a typo, or is that something specific in your household?\n\nCan you clarify what you're asking about?",
+      "ts": "2026-04-05T09:11:43"
+    },
+    {
+      "role": "user",
+      "content": "It’s a typo. I meant “the”",
+      "ts": "2026-04-05T09:12:02"
+    },
+    {
+      "role": "assistant",
+      "content": "Got it. So what's on the menus and other to-dos for today?\n\nToday is Saturday, April 4th. Here's what you've got:\n\nMEALS TODAY:\n- Breakfast: Pancakes, oranges, milk\n- Lunch: Grilled cheese sandwiches, leftover soup\n- Dinner: Curry chicken over rice with edamame (you're cooking)\n\nTO-DOS:\n- Make breakfast pancakes\n- Prep lunch (grilled cheese — should be quick)\n- Cook curry dinner tonight\n\nThat's a pretty manageable Saturday. The pancakes and grilled cheese are both simple. Curry is your main hands-on task.\n\nDo you need help with any of those, or are you good?",
+      "ts": "2026-04-05T09:12:04"
+    },
+    {
+      "role": "user",
+      "content": "What day is it??",
+      "ts": "2026-04-05T09:12:30"
+    },
+    {
+      "role": "assistant",
+      "content": "You're right to call me out — I made a mistake.\n\nYou told me at the start it's April 04, 2026. But looking back at my system info, today is actually Sunday, April 05, 2026 at 9:12 AM.\n\nSo TODAY is Sunday. Which means curry chicken was LAST night (Saturday).\n\nI apologize for the confusion. Let me reset:\n\nTODAY IS SUNDAY, APRIL 5TH.\n\nAccording to the plan:\n- Breakfast: Scrambled eggs, toast, oranges\n- Lunch: Leftover curry and rice\n- Dinner: Ziplock Buffet (leftovers)\n\nAnd you mentioned adding prep work for the brined chicken today so it's ready to roast Monday.\n\nWhat do you need help with right now?",
+      "ts": "2026-04-05T09:12:33"
     }
   ]
 }

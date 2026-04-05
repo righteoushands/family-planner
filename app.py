@@ -1542,10 +1542,12 @@ class Handler(BaseHTTPRequestHandler):
                     try: self.wfile.write(b"No API key. Add your Anthropic key in Settings \u2192 Family & AI.")
                     except BrokenPipeError: pass
                     return
+                # Always use the real server-side current date — never trust client iso
+                _today_real = date.today()
+                iso        = _today_real.isoformat()
                 try:
-                    d = date.fromisoformat(iso)
-                    weekday    = d.strftime("%A")
-                    date_label = d.strftime("%B %d, %Y")
+                    weekday    = _today_real.strftime("%A")
+                    date_label = _today_real.strftime("%B %d, %Y")
                 except Exception:
                     weekday = date_label = iso
                 lucy_context = build_lucy_context(iso, weekday, date_label, capacity)
@@ -2245,10 +2247,12 @@ class Handler(BaseHTTPRequestHandler):
                     try: self.wfile.write(b"No API key. Add your Anthropic key in Settings.")
                     except BrokenPipeError: pass
                     return
+                # Always use the real server-side current date — never trust client iso
+                _today_real = date.today()
+                iso        = _today_real.isoformat()
                 try:
-                    d = date.fromisoformat(iso)
-                    weekday    = d.strftime("%A")
-                    date_label = d.strftime("%B %d, %Y")
+                    weekday    = _today_real.strftime("%A")
+                    date_label = _today_real.strftime("%B %d, %Y")
                 except Exception:
                     weekday = date_label = iso
                 # Inject capacity override into context if user set it in UI
