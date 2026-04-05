@@ -723,6 +723,44 @@ textarea.pi-paste:focus{{outline:none;border-color:var(--navy);}}
         <span class="section-count green" id="task-count">0</span>
       </div>
       <div id="tasks-list"></div>
+
+      <!-- Inline add-task form (hidden until triggered) -->
+      <div id="add-task-form" style="display:none;margin-top:12px;padding:14px;
+           background:#f0f9f4;border-radius:10px;border:1.5px dashed #6ee7b7;">
+        <div class="edit-grid">
+          <div class="edit-field" style="grid-column:1/-1;">
+            <label>Task description</label>
+            <input type="text" id="new-task-text" placeholder="What needs to be done?">
+          </div>
+          <div class="edit-field">
+            <label>Assigned to</label>
+            <select id="new-task-person">
+              <option>Lauren</option><option>John</option><option>JP</option>
+              <option>Joseph</option><option>Michael</option><option>James</option>
+            </select>
+          </div>
+          <div class="edit-field">
+            <label>Due date</label>
+            <input type="date" id="new-task-date">
+          </div>
+          <div class="edit-field" style="grid-column:1/-1;">
+            <label>Notes <span style="font-weight:400;color:var(--ink-faint);">(optional)</span></label>
+            <input type="text" id="new-task-notes" placeholder="">
+          </div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end;">
+          <button class="pi-btn pi-btn-sm" onclick="cancelAddTask()">Cancel</button>
+          <button class="pi-btn pi-btn-sm pi-btn-primary" onclick="submitManualTask()">&#9989; Add Task</button>
+        </div>
+      </div>
+
+      <div style="margin-top:10px;text-align:center;">
+        <button id="show-add-task-btn" class="pi-btn pi-btn-sm pi-btn-edit"
+                onclick="showAddTaskForm(null)"
+                style="font-size:0.78em;">
+          &#43; Add task manually
+        </button>
+      </div>
     </div>
   </div>
 
@@ -983,10 +1021,23 @@ function renderResults(data) {{
         <span class="warn-text">${{esc(w.text)}}</span>
       </div>
     `).join('');
-    document.getElementById('suggestions-list').innerHTML = suggestions.map(s => `
-      <div class="sug-item">
-        <span class="warn-icon">&#128161;</span>
-        <span class="sug-text">${{esc(s.text)}}</span>
+    document.getElementById('suggestions-list').innerHTML = suggestions.map((s, idx) => `
+      <div class="sug-item" id="sug-${{idx}}"
+           style="align-items:flex-start;gap:8px;flex-wrap:wrap;">
+        <span class="warn-icon" style="flex-shrink:0;margin-top:2px;">&#128161;</span>
+        <span class="sug-text" style="flex:1;min-width:0;">${{esc(s.text)}}</span>
+        <div style="display:flex;gap:5px;flex-shrink:0;margin-top:1px;">
+          <button class="pi-btn pi-btn-sm pi-btn-primary"
+                  style="padding:3px 10px;font-size:0.72em;"
+                  onclick="acceptSuggestion(${{idx}})">
+            &#10003; Add as task
+          </button>
+          <button class="pi-btn pi-btn-sm pi-btn-remove"
+                  style="padding:3px 10px;font-size:0.72em;"
+                  onclick="ignoreSuggestion(${{idx}})">
+            &#10005; Ignore
+          </button>
+        </div>
       </div>
     `).join('');
   }} else {{
@@ -1003,15 +1054,11 @@ function renderResults(data) {{
     evSec.style.display = 'none';
   }}
 
-  // Tasks
+  // Tasks — always show so "Add task manually" is accessible
   const tSec = document.getElementById('section-tasks');
-  if (tasks.length) {{
-    tSec.style.display = '';
-    document.getElementById('task-count').textContent = tasks.length;
-    document.getElementById('tasks-list').innerHTML = tasks.map(t => renderTaskItem(t)).join('');
-  }} else {{
-    tSec.style.display = 'none';
-  }}
+  tSec.style.display = '';
+  document.getElementById('task-count').textContent = tasks.length;
+  document.getElementById('tasks-list').innerHTML = tasks.map(t => renderTaskItem(t)).join('');
 
   // Empty state
   document.getElementById('section-empty').style.display = hasAnything ? 'none' : '';
@@ -1182,6 +1229,112 @@ function updateApplySummary() {{
   document.getElementById('apply-btn').disabled = checked === 0;
 }}
 
+// ── Accept/Ignore counsel suggestions ─────────────────────────────────────
+function acceptSuggestion(idx) {{
+  const row    = document.getElementById('sug-' + idx);
+  const textEl = row ? row.querySelector('.sug-text') : null;
+  const text   = textEl ? textEl.textContent.trim() : '';
+  if (!text) return;
+
+  const newTask = {{
+    id:         'sug-' + Date.now(),
+    text,
+    person:     'Lauren',
+    due_date:   '',
+    notes:      'From counsel suggestion',
+    subtasks:   [],
+    confidence: 'low',
+  }};
+
+  if (!analysisData) analysisData = {{events:[], tasks:[]}};
+  if (!analysisData.tasks) analysisData.tasks = [];
+  analysisData.tasks.push(newTask);
+
+  const list = document.getElementById('tasks-list');
+  if (list) {{
+    const tmp = document.createElement('div');
+    tmp.innerHTML = renderTaskItem(newTask);
+    list.appendChild(tmp.firstElementChild);
+  }}
+
+  const cnt = document.getElementById('task-count');
+  if (cnt) cnt.textContent = (analysisData.tasks || []).length;
+  document.getElementById('section-tasks').style.display = '';
+  document.getElementById('apply-bar').style.display = 'flex';
+  updateApplySummary();
+  _saveSession();
+
+  // Confirm and dismiss the suggestion row
+  if (row) {{
+    row.style.background = '#f0fdf4';
+    row.innerHTML = '<span style="color:#16a34a;font-size:0.82em;padding:4px 0;display:block;">&#10003; Added to tasks &mdash; edit it in the Tasks section below.</span>';
+    setTimeout(() => row.remove(), 2200);
+  }}
+}}
+
+function ignoreSuggestion(idx) {{
+  const row = document.getElementById('sug-' + idx);
+  if (row) {{
+    row.style.transition = 'opacity .25s';
+    row.style.opacity    = '0';
+    setTimeout(() => row.remove(), 300);
+  }}
+}}
+
+// ── Manual Add Task ────────────────────────────────────────────────────────
+function showAddTaskForm(prefill) {{
+  const form    = document.getElementById('add-task-form');
+  const showBtn = document.getElementById('show-add-task-btn');
+  form.style.display = 'block';
+  if (showBtn) showBtn.style.display = 'none';
+  if (prefill) document.getElementById('new-task-text').value = prefill;
+  setTimeout(() => document.getElementById('new-task-text').focus(), 50);
+}}
+
+function cancelAddTask() {{
+  document.getElementById('add-task-form').style.display = 'none';
+  const showBtn = document.getElementById('show-add-task-btn');
+  if (showBtn) showBtn.style.display = '';
+  document.getElementById('new-task-text').value  = '';
+  document.getElementById('new-task-date').value  = '';
+  document.getElementById('new-task-notes').value = '';
+}}
+
+function submitManualTask() {{
+  const text = (document.getElementById('new-task-text').value || '').trim();
+  if (!text) {{ document.getElementById('new-task-text').focus(); return; }}
+
+  const person   = document.getElementById('new-task-person').value;
+  const due_date = document.getElementById('new-task-date').value;
+  const notes    = (document.getElementById('new-task-notes').value || '').trim();
+
+  const newTask = {{
+    id:         'manual-' + Date.now(),
+    text, person, due_date, notes,
+    subtasks:   [],
+    confidence: 'high',
+  }};
+
+  if (!analysisData) analysisData = {{events:[], tasks:[]}};
+  if (!analysisData.tasks) analysisData.tasks = [];
+  analysisData.tasks.push(newTask);
+
+  const list = document.getElementById('tasks-list');
+  if (list) {{
+    const tmp = document.createElement('div');
+    tmp.innerHTML = renderTaskItem(newTask);
+    list.appendChild(tmp.firstElementChild);
+  }}
+
+  const cnt = document.getElementById('task-count');
+  if (cnt) cnt.textContent = (analysisData.tasks || []).length;
+  document.getElementById('section-tasks').style.display = '';
+  document.getElementById('apply-bar').style.display = 'flex';
+  updateApplySummary();
+  _saveSession();
+  cancelAddTask();
+}}
+
 // ── Collect current state ──────────────────────────────────────────────────
 function collectApproved() {{
   if (!analysisData) return {{events:[], tasks:[]}};
@@ -1341,6 +1494,14 @@ function parseCouncilResponse(text) {{
     html += `<div class="${{isSynth ? 'council-synthesis' : 'council-voice'}}" style="border-left-color:${{color}};">
       <div class="council-voice-name" style="color:${{color}};">${{esc(name)}}</div>
       <div class="council-voice-text">${{esc(content)}}</div>
+      <div style="margin-top:8px;text-align:right;">
+        <button class="pi-btn pi-btn-sm pi-btn-edit"
+                style="font-size:0.72em;padding:3px 10px;"
+                data-prefill="${{esc(content.slice(0,120))}}"
+                onclick="showAddTaskForm(this.getAttribute('data-prefill'))">
+          &#43; Make this a task
+        </button>
+      </div>
     </div>`;
   }}
   return html || `<div class="council-voice-text" style="padding:6px;">${{esc(text)}}</div>`;
