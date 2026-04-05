@@ -2986,6 +2986,82 @@ class Handler(BaseHTTPRequestHandler):
                     except BrokenPipeError: pass
                 return
 
+            # ── Plan Import — Group Council (streaming, single call) ───────────
+            elif path == "/plan-import-group-consult":
+                import json as _gcj, urllib.request as _gcreq
+                _gc_v = _auth.get_viewer()
+                if _gc_v.get("role") not in ("admin",):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Forbidden")
+                    except BrokenPipeError: pass
+                    return
+                _gc_question    = clean_text(data.get("question",[""])[0])
+                _gc_comp_raw    = data.get("companions",["[]"])[0]
+                _gc_plan_raw    = data.get("plan_json",["{}"])[0]
+                try: _gc_companions = _gcj.loads(_gc_comp_raw)
+                except Exception: _gc_companions = []
+                try: _gc_plan = _gcj.loads(_gc_plan_raw)
+                except Exception: _gc_plan = {}
+                if not _gc_question:
+                    self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Missing question")
+                    except BrokenPipeError: pass
+                    return
+                _gc_settings = load_app_settings()
+                _gc_key = (_gc_settings.get("family_constraints",{}).get("anthropic_api_key","")
+                           or _gc_settings.get("anthropic_api_key","")).strip()
+                if not _gc_key:
+                    self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"No API key configured.")
+                    except BrokenPipeError: pass
+                    return
+                _today_gc   = date.today()
+                _iso_gc     = _today_gc.isoformat()
+                _weekday_gc = _today_gc.strftime("%A")
+                _label_gc   = _today_gc.strftime("%B %d, %Y")
+                from render_plan_importer import build_roundtable_prompt
+                _gc_sys = build_roundtable_prompt(
+                    _gc_companions, _gc_plan, _gc_question,
+                    _iso_gc, _weekday_gc, _label_gc
+                )
+                _gc_payload = _gcj.dumps({
+                    "model": "claude-opus-4-5",
+                    "max_tokens": 1800,
+                    "system": _gc_sys,
+                    "messages": [{"role": "user", "content": f"Please conduct the roundtable on this question: {_gc_question}"}],
+                    "stream": True,
+                }).encode("utf-8")
+                _gc_req = _gcreq.Request(
+                    "https://api.anthropic.com/v1/messages",
+                    data=_gc_payload,
+                    headers={"x-api-key": _gc_key, "anthropic-version": "2023-06-01",
+                             "content-type": "application/json"},
+                )
+                try:
+                    _gc_resp = _gcreq.urlopen(_gc_req, timeout=90)
+                    self.send_response(200)
+                    self.send_header("Content-Type","text/plain; charset=utf-8")
+                    self.send_header("Transfer-Encoding","chunked")
+                    self.send_header("Cache-Control","no-store")
+                    self.end_headers()
+                    for _raw in _gc_resp:
+                        _line = _raw.decode("utf-8").strip()
+                        if _line.startswith("data:"):
+                            _chunk = _line[5:].strip()
+                            if _chunk == "[DONE]": break
+                            try:
+                                _obj   = _gcj.loads(_chunk)
+                                _delta = _obj.get("delta",{})
+                                _piece = _delta.get("text","") if _delta.get("type") == "text_delta" else ""
+                                if _piece:
+                                    try: self.wfile.write(_piece.encode("utf-8")); self.wfile.flush()
+                                    except BrokenPipeError: break
+                            except Exception: pass
+                except Exception as _gce:
+                    try: self.wfile.write(str(_gce).encode("utf-8"))
+                    except BrokenPipeError: pass
+                return
+
             elif path in ("/calendar-config-save","/calendar-save-config"):
                 apple_id=clean_text(data.get("apple_id",[""])[0]); app_password=clean_text(data.get("app_password",[""])[0])
                 cfg=load_calendar_config()

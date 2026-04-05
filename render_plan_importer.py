@@ -329,6 +329,109 @@ Keep responses concise and actionable — she is in the middle of reviewing the 
 Do NOT try to apply or write anything to the system — just advise."""
 
 
+_COMPANION_COLORS = {
+    "lucy":    "#5b3a8a",
+    "lorenzo": "#8b3a1a",
+    "gregory": "#1e3566",
+    "coach":   "#1a6e3e",
+    "monica":  "#8b3a5c",
+}
+
+_COMPANION_DISPLAY = {
+    "lucy":    ("✨", "Lucy"),
+    "lorenzo": ("🍽️", "Lorenzo"),
+    "gregory": ("📚", "Father Gregory"),
+    "coach":   ("💪", "Coach"),
+    "monica":  ("🌸", "Dr. Monica"),
+}
+
+
+def build_roundtable_prompt(
+    companion_keys: list,
+    plan_data: dict,
+    question: str,
+    iso: str,
+    weekday: str,
+    date_label: str,
+) -> str:
+    """Single-call prompt that makes all companions respond then Lucy synthesizes."""
+
+    # Build plan summary
+    plan_lines = []
+    events = plan_data.get("events", [])
+    if events:
+        plan_lines.append("CALENDAR EVENTS:")
+        for ev in events:
+            who = ", ".join(ev.get("who", []))
+            t   = ev.get("time", "")
+            plan_lines.append(f"  - {ev.get('date','')} {ev.get('title','')} {t} [{who}]")
+    tasks = plan_data.get("tasks", [])
+    if tasks:
+        plan_lines.append("TASKS:")
+        for t in tasks:
+            subs = t.get("subtasks", [])
+            plan_lines.append(f"  - [{t.get('person','')}] {t.get('text','')} (due {t.get('due_date','')})")
+            for s in subs:
+                plan_lines.append(f"      • {s}")
+    warnings = plan_data.get("warnings", [])
+    if warnings:
+        plan_lines.append("FLAGS/WARNINGS:")
+        for w in warnings:
+            plan_lines.append(f"  ⚠ {w.get('text','')}")
+    plan_summary = "\n".join(plan_lines) if plan_lines else "No events or tasks in plan yet."
+
+    # Describe present companions
+    present = [k for k in companion_keys if k in _COMPANION_DISPLAY]
+    if "lucy" not in present:
+        present.append("lucy")  # always moderates
+
+    companion_descriptions = {
+        "lucy":    "Lucy — warm Catholic companion and family integrator; cares about faith rhythms, rest, emotional balance, and the big picture",
+        "lorenzo": "Lorenzo — personal chef; focused on meals, grocery reality, kitchen prep time, and feeding the family well",
+        "gregory": "Father Gregory — homeschool headmaster; focused on academics, child-appropriate learning, lesson sequencing, and formation",
+        "coach":   "Coach — fitness and movement guide; focused on physical activity, outdoor time, age-appropriate exercise, and energy levels",
+        "monica":  "Dr. Monica — child development and pediatric health expert; focused on James and Michael's developmental needs, health appointments, and age-appropriate expectations",
+    }
+    companions_text = "\n".join(
+        f"- {companion_descriptions[k]}"
+        for k in present if k in companion_descriptions
+    )
+
+    # Non-Lucy companions speak first, then Lucy synthesizes
+    speakers = [k for k in present if k != "lucy"]
+    speaker_lines = "\n".join(
+        f"**{_COMPANION_DISPLAY[k][1]}:** [2–4 sentences from {_COMPANION_DISPLAY[k][1]}'s specific perspective on this question and plan]"
+        for k in speakers
+    )
+
+    return f"""You are facilitating a private roundtable among the McAdams family's AI companions.
+Today is {weekday}, {date_label} ({iso}).
+
+THE FAMILY: Lauren (Mom, homeschools), John (Dad, works), JP (14), Joseph (12), Michael (5), James (13 months).
+
+COMPANIONS PRESENT:
+{companions_text}
+
+THE IMPORTED PLAN:
+{plan_summary}
+
+LAUREN'S QUESTION / SITUATION:
+\"{question}\"
+
+YOUR TASK:
+Write the roundtable discussion as if each companion is speaking in turn, then Lucy gives a final synthesis.
+Be concrete and specific to THIS plan and THIS question. Each companion should speak from their expertise.
+Keep each voice brief (2–4 sentences). Lucy's synthesis should be 4–6 sentences and give a clear, actionable recommendation.
+
+FORMAT (use exactly this structure — bold names, colon, then response):
+
+{speaker_lines}
+
+**Lucy's Synthesis:** [Warm, decisive, practical wrap-up that weaves all perspectives into one clear recommendation for Lauren. What should she actually DO?]
+
+Do not add any other text outside this format. Do not use headers or section breaks beyond the companion names."""
+
+
 def render_plan_import_page() -> str:
     today = date.today()
     iso   = today.isoformat()
@@ -456,6 +559,28 @@ textarea.pi-paste:focus{{outline:none;border-color:var(--navy);}}
 .consult-title{{font-size:0.82em;font-weight:700;color:var(--ink);margin-bottom:6px;}}
 .consult-subtitle{{font-size:0.72em;color:var(--ink-faint);line-height:1.4;}}
 .companion-row{{display:flex;gap:7px;flex-wrap:wrap;padding:0 16px 12px;}}
+/* Council */
+.council-section{{margin:0 16px 12px;padding:11px 13px;background:linear-gradient(135deg,#f9f4ff 0%,#f4f0fb 100%);border:1px solid #d9cef0;border-radius:10px;}}
+.council-title{{font-size:0.75em;font-weight:700;color:#5b3a8a;margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;}}
+.council-presets{{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}}
+.council-preset{{font-size:0.72em;padding:4px 10px;border:1px solid #c8b8e8;background:#fff;border-radius:14px;cursor:pointer;color:#5b3a8a;font-family:inherit;transition:background .12s;white-space:nowrap;}}
+.council-preset:hover{{background:#ede5ff;}}
+.council-preset.selected{{background:#5b3a8a;color:#fff;border-color:#5b3a8a;}}
+.council-input-row{{display:flex;gap:6px;}}
+.council-input{{flex:1;padding:7px 10px;font-size:0.78em;border:1px solid #c8b8e8;border-radius:8px;font-family:inherit;background:#fff;color:var(--ink);outline:none;}}
+.council-input:focus{{border-color:#5b3a8a;box-shadow:0 0 0 2px #5b3a8a30;}}
+.council-btn{{padding:7px 14px;background:#5b3a8a;border:none;border-radius:8px;color:#fff;font-size:0.78em;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;}}
+.council-btn:hover{{background:#4a2e72;}}
+.council-btn:disabled{{opacity:.5;cursor:not-allowed;}}
+.council-response{{margin-top:10px;display:none;}}
+.council-thread{{font-size:0.82em;line-height:1.55;color:var(--ink);}}
+.council-voice{{margin-bottom:10px;padding:9px 12px;border-radius:8px;background:#fff;border-left:3px solid #ccc;}}
+.council-voice-name{{font-weight:700;font-size:0.9em;margin-bottom:3px;}}
+.council-voice-text{{color:var(--ink-sub);}}
+.council-synthesis{{margin-bottom:10px;padding:10px 13px;border-radius:8px;background:#f0e8ff;border-left:3px solid #5b3a8a;}}
+.council-synthesis .council-voice-name{{color:#5b3a8a;}}
+.council-thinking{{font-size:0.8em;color:var(--ink-faint);font-style:italic;padding:6px 0;}}
+.council-error{{font-size:0.8em;color:#c0392b;padding:6px 0;}}
 .companion-btn{{display:flex;align-items:center;gap:6px;padding:7px 13px;
                 border:none;border-radius:20px;font-family:inherit;font-size:0.78em;
                 font-weight:700;cursor:pointer;color:#fff;transition:opacity .15s;
@@ -608,10 +733,29 @@ textarea.pi-paste:focus{{outline:none;border-color:var(--navy);}}
     <div class="consult-header">
       <div class="consult-title">&#129504; Get Expert Input</div>
       <div class="consult-subtitle">
-        Ask a companion to review this plan before you apply it.
-        Their advice is advisory only &mdash; you&rsquo;re still in control of what gets added.
+        Ask all companions together for a group recommendation, or tap one for a 1-on-1 chat.
       </div>
     </div>
+
+    <!-- Group Council -->
+    <div class="council-section">
+      <div class="council-title">&#x1F4AC; Group Council</div>
+      <div class="council-presets" id="council-presets">
+        <button class="council-preset" onclick="selectPreset(this,'Low capacity day \u2014 what should we simplify or cut?')">&#x1F33F; Low capacity day</button>
+        <button class="council-preset" onclick="selectPreset(this,'We feel overwhelmed. What are the top things to drop or defer?')">&#x1F4A8; Overwhelmed</button>
+        <button class="council-preset" onclick="selectPreset(this,'Quick check \u2014 anything missing or that we might regret skipping?')">&#x2705; Quick review</button>
+        <button class="council-preset" onclick="selectPreset(this,'How does this plan fit our Catholic family rhythms and faith life?')">&#x271D;&#xFE0F; Faith check</button>
+      </div>
+      <div class="council-input-row">
+        <input class="council-input" id="council-input" type="text"
+               placeholder="Or describe your situation\u2026" />
+        <button class="council-btn" id="council-btn" onclick="conveneCouncil()">Convene &#x2728;</button>
+      </div>
+      <div class="council-response" id="council-response">
+        <div class="council-thread" id="council-thread"></div>
+      </div>
+    </div>
+
     <div class="companion-row" id="companion-row"></div>
     <div class="consult-chat-area" id="consult-chat-area" style="display:none;">
       <div class="consult-chat-header">
@@ -1054,6 +1198,95 @@ function esc(str) {{
   return String(str)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}}
+
+// ── Group Council ─────────────────────────────────────────────────────────
+const COMPANION_VOICE_COLORS = {{
+  'Father Gregory': '#1e3566',
+  'Lorenzo':        '#8b3a1a',
+  'Coach':          '#1a6e3e',
+  'Dr. Monica':     '#8b3a5c',
+  "Lucy's Synthesis": '#5b3a8a',
+  'Lucy':           '#5b3a8a',
+}};
+
+function selectPreset(btn, text) {{
+  document.querySelectorAll('.council-preset').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('council-input').value = text;
+}}
+
+async function conveneCouncil() {{
+  const inp = document.getElementById('council-input');
+  const question = inp.value.trim();
+  if (!question) {{ inp.focus(); return; }}
+
+  const btn    = document.getElementById('council-btn');
+  const resp   = document.getElementById('council-response');
+  const thread = document.getElementById('council-thread');
+
+  btn.disabled = true;
+  btn.textContent = '\u2026';
+  resp.style.display = '';
+  thread.innerHTML = '<div class="council-thinking">The companions are conferring\u2026</div>';
+
+  // Collect currently displayed companion keys
+  const compKeys = Array.from(document.querySelectorAll('.companion-btn'))
+    .map(b => b.id.replace('cbtn-',''))
+    .filter(Boolean);
+
+  const body = new URLSearchParams({{
+    question:   question,
+    companions: JSON.stringify(compKeys),
+    plan_json:  JSON.stringify(analysisData || {{}})
+  }});
+
+  try {{
+    const r = await fetch('/plan-import-group-consult', {{method:'POST', body}});
+    if (!r.ok) throw new Error(await r.text());
+
+    const reader  = r.body.getReader();
+    const decoder = new TextDecoder();
+    let   fullText = '';
+
+    thread.innerHTML = '';
+    let streamEl = document.createElement('div');
+    streamEl.style.cssText = 'font-size:.82em;line-height:1.55;color:var(--ink);white-space:pre-wrap;';
+    thread.appendChild(streamEl);
+
+    while (true) {{
+      const {{done, value}} = await reader.read();
+      if (done) break;
+      fullText += decoder.decode(value, {{stream: true}});
+      streamEl.textContent = fullText;
+      thread.scrollIntoView({{block:'nearest'}});
+    }}
+
+    // Parse and render formatted voices
+    thread.innerHTML = parseCouncilResponse(fullText);
+  }} catch(err) {{
+    thread.innerHTML = `<div class="council-error">Council failed: ${{esc(err.message)}}</div>`;
+  }} finally {{
+    btn.disabled = false;
+    btn.innerHTML = 'Convene &#x2728;';
+  }}
+}}
+
+function parseCouncilResponse(text) {{
+  // Split on **Name:** pattern
+  const parts = text.split(/\*\*([^*]+)\*\*:/);
+  let html = '';
+  for (let i = 1; i < parts.length; i += 2) {{
+    const name    = parts[i].trim();
+    const content = (parts[i+1] || '').trim();
+    const color   = COMPANION_VOICE_COLORS[name] || '#666';
+    const isSynth = name.includes('Synthesis') || name === 'Lucy';
+    html += `<div class="${{isSynth ? 'council-synthesis' : 'council-voice'}}" style="border-left-color:${{color}};">
+      <div class="council-voice-name" style="color:${{color}};">${{esc(name)}}</div>
+      <div class="council-voice-text">${{esc(content)}}</div>
+    </div>`;
+  }}
+  return html || `<div class="council-voice-text" style="padding:6px;">${{esc(text)}}</div>`;
 }}
 
 // ── Companion Consultation ─────────────────────────────────────────────────
