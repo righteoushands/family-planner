@@ -70,3 +70,19 @@ A Python HTTP server (no framework) running on port 5000. A Catholic family dash
 ## Navigation
 - Mobile nav: `position:fixed; bottom:0; height:64px; z-index:2000` (ui_helpers.py)
 - iOS input bar fix: `position:fixed; bottom:64px` for chat input
+
+## Standing Rules (Lauren's Preferences)
+These apply automatically to every new feature built — no need to ask each time.
+
+### Auto-Save Everything
+Whenever a new feature includes any form, text input, textarea, or multi-step workflow, it MUST include draft persistence. Lauren is a mom with young children and gets interrupted constantly — work in progress must never be silently lost.
+
+**Implementation pattern:**
+- Save to `localStorage` on every `oninput` or `onchange` event
+- Use a descriptive, versioned key (e.g. `featureName_draft_v1`)
+- Auto-restore on page load — pre-fill fields and re-open the form/panel if a draft exists
+- Show a subtle green "Your draft was restored" notice when a draft is loaded
+- Clear the draft **only** on explicit success: successful server save, submit, or deliberate "Start Over" / "Cancel" click
+- Expire drafts older than 24 hours
+- Prefer server-side auto-save (fetch POST on change) over localStorage when a server endpoint already exists for that data; only use localStorage when there is no immediate server save
+- For multi-step AI workflows (like Plan Importer), persist the full result JSON + original input so the user can return to the results phase after any interruption
