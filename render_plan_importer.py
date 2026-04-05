@@ -670,6 +670,22 @@ textarea.pi-paste:focus{{outline:none;border-color:var(--navy);}}
             border:none;cursor:pointer;color:#166534;font-size:1.1em;line-height:1;">&#10005;</button>
   </div>
 
+  <!-- Project label strip -->
+  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;
+       background:#fdf8f0;border-radius:10px;border:1.5px solid #e2e8f0;margin-bottom:10px;">
+    <span style="font-size:0.8em;color:var(--ink-soft);white-space:nowrap;font-weight:600;">
+      &#127991; Project label
+    </span>
+    <input type="text" id="project-label-input"
+           placeholder="e.g. Soccer Season, Week 14, Spring Planning&hellip;"
+           maxlength="60"
+           style="flex:1;padding:7px 10px;border:1.5px solid #dbeafe;border-radius:8px;
+                  font-family:inherit;font-size:0.82em;background:white;outline:none;">
+    <span style="font-size:0.72em;color:var(--ink-faint);white-space:nowrap;">
+      Stamps every item
+    </span>
+  </div>
+
   <!-- Questions -->
   <div id="section-questions" style="display:none;">
     <div class="pi-card">
@@ -1337,7 +1353,8 @@ function submitManualTask() {{
 
 // ── Collect current state ──────────────────────────────────────────────────
 function collectApproved() {{
-  if (!analysisData) return {{events:[], tasks:[]}};
+  if (!analysisData) return {{events:[], tasks:[], project_label: ''}};
+  const projectLabel = (document.getElementById('project-label-input') || {{}}).value || '';
   const events = (analysisData.events || []).filter(ev => {{
     const cb = document.getElementById('cb-' + ev.id);
     const row = document.getElementById('item-' + ev.id);
@@ -1371,7 +1388,7 @@ function collectApproved() {{
     }};
   }});
 
-  return {{events, tasks}};
+  return {{events, tasks, project_label: projectLabel}};
 }}
 
 // ── Apply ──────────────────────────────────────────────────────────────────

@@ -3190,6 +3190,7 @@ class Handler(BaseHTTPRequestHandler):
                     return
                 _ai_events = _ai_payload.get("events", [])
                 _ai_tasks  = _ai_payload.get("tasks", [])
+                _ai_proj   = (_ai_payload.get("project_label") or "").strip()[:60]
                 _today_ai  = date.today().isoformat()
                 events_added = 0
                 tasks_added  = 0
@@ -3230,6 +3231,7 @@ class Handler(BaseHTTPRequestHandler):
                                 "notes": ev.get("notes",""),
                                 "subtasks": [],
                                 "archived": False,
+                                **({"project": _ai_proj} if _ai_proj else {}),
                             }
                             _aievdata.setdefault("data", []).append(_new_ev)
                             events_added += 1
@@ -3260,6 +3262,7 @@ class Handler(BaseHTTPRequestHandler):
                                 "recurring": False,
                                 "notes": notes,
                                 "subtasks": subtasks,
+                                **({"project": _ai_proj} if _ai_proj else {}),
                             })
                             tasks_added += 1
                         save_manual_tasks(_all_tasks)
