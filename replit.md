@@ -35,6 +35,7 @@ A Python HTTP server (no framework) running on port 5000. A Catholic family dash
 | `render_gregory.py` | Father Gregory AI chat — homeschool headmaster, academic planning |
 | `render_coach.py` | Coach AI chat — family fitness, movement plans |
 | `render_monica.py` | Dr. Monica AI chat — child development, pediatric health |
+| `render_plan_importer.py` | Plan Import Tool — paste external AI plan, parse to events+tasks, approve+apply |
 | `render_settings.py` | All settings including PIN management section |
 | `render_schedule_support.py` | `get_current_slot()`, `get_eastern_now()` helpers |
 | `data_helpers.py` | Load/save helpers for all JSON data files |

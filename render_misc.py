@@ -477,8 +477,15 @@ def _render_mom_now_block(iso: str, weekday: str) -> str:
         + f'<a href="/lorenzo" style="display:flex;align-items:center;justify-content:center;gap:6px;'
         f'width:100%;padding:7px;border-radius:10px;font-size:0.75em;font-weight:600;'
         f'background:rgba(139,58,26,0.08);color:#8b3a1a;border:1px solid rgba(139,58,26,0.2);'
-        f'text-decoration:none;margin-bottom:8px;box-sizing:border-box;">'
+        f'text-decoration:none;margin-bottom:6px;box-sizing:border-box;">'
         f'&#128197; Plan this week\'s menu with Lorenzo</a>'
+
+        # Plan Import button
+        + f'<a href="/plan-import" style="display:flex;align-items:center;justify-content:center;gap:6px;'
+        f'width:100%;padding:7px;border-radius:10px;font-size:0.75em;font-weight:600;'
+        f'background:rgba(30,53,102,0.07);color:#1e3566;border:1px solid rgba(30,53,102,0.18);'
+        f'text-decoration:none;margin-bottom:8px;box-sizing:border-box;">'
+        f'&#128203; Import a plan from external AI</a>'
 
         # 5AM + quick links row
         + f'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'

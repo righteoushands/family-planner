@@ -51,6 +51,10 @@ from render_lorenzo import render_lorenzo_page, build_lorenzo_context
 from render_gregory import render_gregory_page, build_gregory_context
 from render_coach import render_coach_page, build_coach_context
 from render_monica import render_monica_page, build_monica_context
+from render_plan_importer import (
+    render_plan_import_page, build_analysis_system_prompt,
+    _load_upcoming_events, _format_events_summary,
+)
 from render_memory_book import render_memory_book_page, add_memory_entry, delete_memory_entry
 from render_chores import render_chores_page, render_van_roles_page, apply_laundry_defaults, apply_van_rotation
 from render_misc import (
@@ -500,6 +504,22 @@ class Handler(BaseHTTPRequestHandler):
             return
         elif path == "/dr-monica":
             html = render_monica_page()
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header("Pragma","no-cache")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
+        elif path == "/plan-import":
+            _pi_viewer = _auth.get_viewer()
+            if _pi_viewer.get("role") not in ("admin",):
+                self.send_response(302)
+                self.send_header("Location", "/")
+                self.end_headers()
+                return
+            html = render_plan_import_page()
             self.send_response(200)
             self.send_header("Content-Type","text/html; charset=utf-8")
             self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
@@ -2683,6 +2703,193 @@ class Handler(BaseHTTPRequestHandler):
                 from data_helpers import clear_monica_history
                 clear_monica_history()
                 redirect = "/dr-monica"
+
+            # ── Plan Import — Analyze ─────────────────────────────────────────
+            elif path == "/plan-import-analyze":
+                import json as _pij, re as _pire, urllib.request as _pireq
+                from datetime import datetime as _pidt
+                _pi_v = _auth.get_viewer()
+                if _pi_v.get("role") not in ("admin",):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Forbidden")
+                    except BrokenPipeError: pass
+                    return
+                plan_text = clean_text(data.get("plan_text",[""])[0])
+                answers_raw = data.get("answers",[""])[0]
+                try: answers = _pij.loads(answers_raw) if answers_raw.strip() else {}
+                except Exception: answers = {}
+                if not plan_text:
+                    self.send_response(400); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(_pij.dumps({"error":"No plan text"}).encode())
+                    except BrokenPipeError: pass
+                    return
+                # API key
+                _pi_settings = load_app_settings()
+                _pi_key = (_pi_settings.get("family_constraints",{}).get("anthropic_api_key","")
+                           or _pi_settings.get("anthropic_api_key","")).strip()
+                if not _pi_key:
+                    self.send_response(400); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(_pij.dumps({"error":"No API key configured in Settings."}).encode())
+                    except BrokenPipeError: pass
+                    return
+                _today_real = date.today()
+                _iso_pi  = _today_real.isoformat()
+                _lbl_pi  = _today_real.strftime("%A, %B %d, %Y")
+                # Build events summary for conflict context
+                _upcoming = _load_upcoming_events(30)
+                _ev_summary = _format_events_summary(_upcoming)
+                # Build system prompt
+                _pi_sys = build_analysis_system_prompt(_iso_pi, _lbl_pi, _ev_summary)
+                # Build user message (plan + any answers)
+                _pi_user = f"Here is the plan to parse:\n\n{plan_text}"
+                if answers:
+                    _pi_user += "\n\n== ANSWERS TO PREVIOUS QUESTIONS ==\n"
+                    for qid, ans in answers.items():
+                        if ans.strip():
+                            _pi_user += f"- {qid}: {ans}\n"
+                _pi_payload = _pij.dumps({
+                    "model": "claude-haiku-4-5-20251001",
+                    "max_tokens": 2000,
+                    "system": _pi_sys,
+                    "messages": [{"role": "user", "content": _pi_user}],
+                    "stream": False,
+                }).encode("utf-8")
+                _pi_req = _pireq.Request(
+                    "https://api.anthropic.com/v1/messages",
+                    data=_pi_payload,
+                    headers={"x-api-key": _pi_key, "anthropic-version": "2023-06-01",
+                             "content-type": "application/json"},
+                )
+                try:
+                    _pi_resp = _pireq.urlopen(_pi_req, timeout=90)
+                    _pi_body = _pij.loads(_pi_resp.read().decode("utf-8"))
+                    _pi_text = _pi_body.get("content", [{}])[0].get("text", "")
+                    # Extract JSON from ```json ... ``` block
+                    _pi_jm = _pire.search(r"```json\s*([\s\S]*?)```", _pi_text)
+                    if _pi_jm:
+                        _pi_parsed = _pij.loads(_pi_jm.group(1).strip())
+                    else:
+                        # Try bare JSON
+                        _pi_parsed = _pij.loads(_pi_text.strip())
+                    self.send_response(200)
+                    self.send_header("Content-Type","application/json; charset=utf-8")
+                    self.send_header("Cache-Control","no-store")
+                    self.end_headers()
+                    try: self.wfile.write(_pij.dumps(_pi_parsed).encode("utf-8"))
+                    except BrokenPipeError: pass
+                except Exception as _pie:
+                    self.send_response(500)
+                    self.send_header("Content-Type","application/json; charset=utf-8")
+                    self.end_headers()
+                    try: self.wfile.write(_pij.dumps({"error": str(_pie)}).encode())
+                    except BrokenPipeError: pass
+                return
+
+            # ── Plan Import — Apply ───────────────────────────────────────────
+            elif path == "/plan-import-apply":
+                import json as _aij
+                _ai_v = _auth.get_viewer()
+                if _ai_v.get("role") not in ("admin",):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Forbidden")
+                    except BrokenPipeError: pass
+                    return
+                # Read raw JSON body
+                _ai_cl = int(self.headers.get("Content-Length","0") or 0)
+                _ai_raw = self.rfile.read(_ai_cl).decode("utf-8","ignore") if _ai_cl else ""
+                try: _ai_payload = _aij.loads(_ai_raw)
+                except Exception:
+                    self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Invalid JSON")
+                    except BrokenPipeError: pass
+                    return
+                _ai_events = _ai_payload.get("events", [])
+                _ai_tasks  = _ai_payload.get("tasks", [])
+                _today_ai  = date.today().isoformat()
+                events_added = 0
+                tasks_added  = 0
+                # Write events
+                if _ai_events:
+                    try:
+                        import uuid as _aiuuid
+                        try:
+                            with open("data/events.json") as _aief:
+                                _aievdata = _aij.load(_aief)
+                        except Exception:
+                            _aievdata = {"version": 1, "updated_at": _today_ai, "data": []}
+                        for ev in _ai_events:
+                            if not ev.get("title") or not ev.get("date"):
+                                continue
+                            _who = [w.strip() for w in (ev.get("who") or ["Lauren"]) if isinstance(w,str) and w.strip()]
+                            if not _who:
+                                _who = ["Lauren"]
+                            _rec = ev.get("recurrence","none")
+                            if _rec not in ("none","weekly","monthly","yearly"):
+                                _rec = "none"
+                            _new_ev = {
+                                "id": "evt_" + _aiuuid.uuid4().hex[:8],
+                                "title": ev["title"],
+                                "assigned_to": _who,
+                                "start_date": ev["date"],
+                                "end_date": ev.get("end_date") or ev["date"],
+                                "start_time": ev.get("time",""),
+                                "end_time": ev.get("end_time",""),
+                                "recurrence": {"type": _rec},
+                                "notifications": {
+                                    "show_on_dashboard": True,
+                                    "show_on_daily_page": True,
+                                    "show_in_looking_ahead": True,
+                                    "lead_days": 1,
+                                },
+                                "prep": {"lead_days": 0},
+                                "notes": ev.get("notes",""),
+                                "subtasks": [],
+                                "archived": False,
+                            }
+                            _aievdata.setdefault("data", []).append(_new_ev)
+                            events_added += 1
+                        _aievdata["updated_at"] = _today_ai
+                        safe_save_json("data/events.json", _aievdata)
+                    except Exception as _aieve:
+                        pass
+                # Write tasks
+                if _ai_tasks:
+                    try:
+                        from data_helpers import load_manual_tasks, save_manual_tasks
+                        _all_tasks = load_manual_tasks()
+                        for t in _ai_tasks:
+                            person = (t.get("person") or "Lauren").strip()
+                            text   = (t.get("text") or "").strip()
+                            due    = (t.get("due_date") or _today_ai).strip()
+                            notes  = (t.get("notes") or "").strip()
+                            subtasks = t.get("subtasks") or []
+                            if not text:
+                                continue
+                            _all_tasks.append({
+                                "text": text,
+                                "assigned_to": person,
+                                "due_date": due,
+                                "priority": "MEDIUM",
+                                "status": "active",
+                                "source": "plan_importer",
+                                "recurring": False,
+                                "notes": notes,
+                                "subtasks": subtasks,
+                            })
+                            tasks_added += 1
+                        save_manual_tasks(_all_tasks)
+                    except Exception:
+                        pass
+                self.send_response(200)
+                self.send_header("Content-Type","application/json; charset=utf-8")
+                self.send_header("Cache-Control","no-store")
+                self.end_headers()
+                try: self.wfile.write(_aij.dumps({
+                    "events_added": events_added,
+                    "tasks_added": tasks_added,
+                }).encode())
+                except BrokenPipeError: pass
+                return
 
             elif path in ("/calendar-config-save","/calendar-save-config"):
                 apple_id=clean_text(data.get("apple_id",[""])[0]); app_password=clean_text(data.get("app_password",[""])[0])
