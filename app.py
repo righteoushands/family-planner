@@ -514,7 +514,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         elif path == "/plan-import":
             _pi_viewer = self._get_viewer()
-            if _pi_viewer.get("role") not in ("admin",):
+            if not (_pi_viewer and _auth.is_admin(_pi_viewer)):
                 self.send_response(302)
                 self.send_header("Location", "/")
                 self.end_headers()
@@ -2709,7 +2709,7 @@ class Handler(BaseHTTPRequestHandler):
                 import json as _pij, re as _pire, urllib.request as _pireq
                 from datetime import datetime as _pidt
                 _pi_v = self._get_viewer()
-                if _pi_v.get("role") not in ("admin",):
+                if not (_pi_v and _auth.is_admin(_pi_v)):
                     self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
                     try: self.wfile.write(b"Forbidden")
                     except BrokenPipeError: pass
@@ -2802,7 +2802,7 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/plan-import-apply":
                 import json as _aij
                 _ai_v = self._get_viewer()
-                if _ai_v.get("role") not in ("admin",):
+                if not (_ai_v and _auth.is_admin(_ai_v)):
                     self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
                     try: self.wfile.write(b"Forbidden")
                     except BrokenPipeError: pass
@@ -2908,7 +2908,7 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/plan-import-consult":
                 import json as _cj, urllib.request as _creq
                 _cc_v = self._get_viewer()
-                if _cc_v.get("role") not in ("admin",):
+                if not (_cc_v and _auth.is_admin(_cc_v)):
                     self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
                     try: self.wfile.write(b"Forbidden")
                     except BrokenPipeError: pass
@@ -2990,7 +2990,7 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/plan-import-group-consult":
                 import json as _gcj, urllib.request as _gcreq
                 _gc_v = self._get_viewer()
-                if _gc_v.get("role") not in ("admin",):
+                if not (_gc_v and _auth.is_admin(_gc_v)):
                     self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
                     try: self.wfile.write(b"Forbidden")
                     except BrokenPipeError: pass
