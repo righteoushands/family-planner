@@ -1,5 +1,5 @@
 import React from "react";
-import { Sparkles, ArrowRight, Check, BookOpen, Cloud, ChevronRight, UtensilsCrossed } from "lucide-react";
+import { Sparkles, ArrowRight, Check, BookOpen, Cloud, ChevronRight, UtensilsCrossed, CalendarDays } from "lucide-react";
 
 export function WarmEditorial() {
   return (
@@ -16,23 +16,28 @@ export function WarmEditorial() {
             Sancta Familia
           </span>
         </div>
-        <div className="flex items-center gap-1.5">
+      </nav>
+
+      {/* AI COMPANIONS STRIP */}
+      <div className="px-4 py-2.5" style={{ backgroundColor: "#1C1917", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <p className="text-xs mb-2" style={{ color: "rgba(245,240,232,0.5)", letterSpacing: "0.04em" }}>Your AI companions</p>
+        <div className="flex gap-2">
           <button
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold flex-1 justify-center"
             style={{ backgroundColor: "#8b3a1a", color: "#F5F0E8" }}
           >
             <UtensilsCrossed size={11} />
-            Lorenzo
+            <span>Lorenzo <span style={{ opacity: 0.7, fontWeight: 400 }}>· Personal Chef</span></span>
           </button>
           <button
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold"
-            style={{ backgroundColor: "#B8904A", color: "#1C1917" }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold flex-1 justify-center"
+            style={{ backgroundColor: "#5b3a8a", color: "#F5F0E8" }}
           >
             <Sparkles size={11} />
-            Ask Lucy
+            <span>Lucy <span style={{ opacity: 0.7, fontWeight: 400 }}>· Family Guide</span></span>
           </button>
         </div>
-      </nav>
+      </div>
 
       {/* LUCY BANNER */}
       <section style={{ background: "linear-gradient(160deg, #EDE8DC, #F5F0E8)", borderBottom: "1px solid #E5E0D5" }} className="px-4 pt-4 pb-3">
@@ -46,7 +51,7 @@ export function WarmEditorial() {
           </div>
           <div>
             <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "#7C5C2E" }}>Lucy · AI Family Companion</p>
-            <h1 className="text-xl leading-tight" style={{ fontFamily: "Playfair Display, serif" }}>Good evening.</h1>
+            <h1 className="text-3xl leading-tight" style={{ fontFamily: "Playfair Display, serif" }}>Good evening.</h1>
             <p className="text-xs" style={{ color: "#9CA3AF" }}>Saturday · April 4, 2026</p>
           </div>
         </div>
@@ -70,24 +75,23 @@ export function WarmEditorial() {
         </div>
       </section>
 
-      {/* STATUS STRIP */}
+      {/* STATUS STRIP — single row, all items fit */}
       <div
-        className="flex items-center gap-3 px-4 py-2 overflow-x-auto"
-        style={{ backgroundColor: "#FFF", borderBottom: "1px solid #E5E0D5", whiteSpace: "nowrap" }}
+        className="flex items-center px-4 py-2"
+        style={{ backgroundColor: "#FFF", borderBottom: "1px solid #E5E0D5" }}
       >
         <div className="flex items-center gap-1 text-xs font-semibold shrink-0" style={{ color: "#7C5C2E" }}>
-          <BookOpen size={12} /> Holy Week
+          <BookOpen size={11} /> Holy Week
         </div>
-        <div className="w-px h-3 shrink-0" style={{ backgroundColor: "#E5E0D5" }} />
+        <div className="w-px h-3 mx-2.5 shrink-0" style={{ backgroundColor: "#E5E0D5" }} />
         <div className="flex items-center gap-1 text-xs font-medium shrink-0" style={{ color: "#1C1917" }}>
           <span style={{ color: "#7C5C2E" }}>✝</span> Holy Saturday
         </div>
-        <div className="w-px h-3 shrink-0" style={{ backgroundColor: "#E5E0D5" }} />
+        <div className="w-px h-3 mx-2.5 shrink-0" style={{ backgroundColor: "#E5E0D5" }} />
         <div className="flex items-center gap-1 text-xs font-medium shrink-0" style={{ color: "#1C1917" }}>
-          <Cloud size={12} style={{ color: "#6B7280" }} /> Mass Readings
+          <Cloud size={11} style={{ color: "#6B7280" }} /> Mass Readings
         </div>
-        <div className="w-px h-3 shrink-0" style={{ backgroundColor: "#E5E0D5" }} />
-        <button className="text-xs font-medium shrink-0 flex items-center gap-0.5" style={{ color: "#7C5C2E" }}>
+        <button className="text-xs font-semibold ml-auto shrink-0 flex items-center gap-0.5" style={{ color: "#7C5C2E" }}>
           Plan my day <ArrowRight size={10} />
         </button>
       </div>
@@ -126,6 +130,16 @@ export function WarmEditorial() {
                 </button>
               ))}
             </div>
+
+            {/* Menu planning button */}
+            <button
+              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold mb-2"
+              style={{ backgroundColor: "rgba(139,58,26,0.08)", color: "#8b3a1a", border: "1px solid rgba(139,58,26,0.2)" }}
+            >
+              <CalendarDays size={12} />
+              Plan this week's menu with Lorenzo
+            </button>
+
             <div className="flex justify-end gap-3">
               {["Prayer", "5AM", "Virtue"].map((label) => (
                 <button key={label} className="text-xs font-semibold" style={{ color: "#7C5C2E" }}>{label}</button>
@@ -142,7 +156,7 @@ export function WarmEditorial() {
         </div>
 
         {/* SECTION LABEL */}
-        <p className="text-xs font-bold uppercase tracking-widest px-0.5 mt-0" style={{ color: "#9CA3AF" }}>Children</p>
+        <p className="text-xs font-bold uppercase tracking-widest px-0.5" style={{ color: "#9CA3AF" }}>Children</p>
 
         {/* CHILDREN */}
         {[
