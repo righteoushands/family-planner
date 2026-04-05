@@ -660,6 +660,16 @@ textarea.pi-paste:focus{{outline:none;border-color:var(--navy);}}
 <div id="phase-results" class="phase">
 <div class="pi-body">
 
+  <!-- Restore banner (shown when session auto-restored) -->
+  <div id="restore-banner" style="display:none;background:#f0fdf4;border:1px solid #86efac;
+       border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:0.8em;
+       color:#166534;align-items:center;gap:8px;">
+    <span>&#x1F7E2;</span>
+    <span>Your previous plan was restored. Selections are intact — continue where you left off.</span>
+    <button onclick="this.parentElement.style.display='none'" style="margin-left:auto;background:none;
+            border:none;cursor:pointer;color:#166534;font-size:1.1em;line-height:1;">&#10005;</button>
+  </div>
+
   <!-- Questions -->
   <div id="section-questions" style="display:none;">
     <div class="pi-card">
@@ -823,6 +833,44 @@ const FAMILY = {json.dumps(FAMILY_MEMBERS)};
 let analysisData = null;   // Full analysis JSON from server
 let currentAnswers = {{}};  // question id -> answer text
 
+const _STORAGE_KEY = 'planImporter_session_v1';
+
+function _saveSession() {{
+  try {{
+    const planText = document.getElementById('plan-text').value || '';
+    localStorage.setItem(_STORAGE_KEY, JSON.stringify({{
+      analysisData,
+      planText,
+      savedAt: Date.now(),
+    }}));
+  }} catch(e) {{}}
+}}
+
+function _clearSession() {{
+  try {{ localStorage.removeItem(_STORAGE_KEY); }} catch(e) {{}}
+}}
+
+function _restoreSession() {{
+  try {{
+    const raw = localStorage.getItem(_STORAGE_KEY);
+    if (!raw) return;
+    const session = JSON.parse(raw);
+    // Only restore sessions from the last 24 hours
+    if (!session.analysisData || (Date.now() - (session.savedAt||0)) > 86400000) {{
+      _clearSession(); return;
+    }}
+    // Restore plan text
+    if (session.planText) document.getElementById('plan-text').value = session.planText;
+    // Restore analysis
+    analysisData = session.analysisData;
+    renderResults(analysisData);
+    showPhase('phase-results');
+    // Show a subtle "restored" banner
+    const banner = document.getElementById('restore-banner');
+    if (banner) banner.style.display = 'flex';
+  }} catch(e) {{ _clearSession(); }}
+}}
+
 // ── Phase helpers ──────────────────────────────────────────────────────────
 function showPhase(id) {{
   document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
@@ -834,6 +882,7 @@ function resetToPaste() {{
   document.getElementById('plan-text').value = '';
   document.getElementById('paste-error').style.display = 'none';
   document.getElementById('analyze-btn').disabled = false;
+  _clearSession();
   showPhase('phase-paste');
 }}
 
@@ -863,6 +912,7 @@ async function analyzePlan(extraAnswers) {{
     analysisData = data;
     renderResults(data);
     showPhase('phase-results');
+    _saveSession();
   }} catch(err) {{
     document.getElementById('analyze-btn').disabled = false;
     showPhase('phase-paste');
@@ -888,6 +938,7 @@ async function reanalyzeWithAnswers() {{
     analysisData = await resp.json();
     renderResults(analysisData);
     showPhase('phase-results');
+    _saveSession();
   }} catch(err) {{
     showPhase('phase-results');
     alert('Re-analysis failed: ' + err.message);
@@ -1190,6 +1241,7 @@ async function applyPlan() {{
     document.getElementById('success-body').innerHTML =
       `Added <strong>${{evAdded}} calendar event${{evAdded!==1?'s':''}}</strong> and
        <strong>${{tAdded}} task${{tAdded!==1?'s':''}}</strong> to the family plan.`;
+    _clearSession();
     showPhase('phase-success');
   }} catch(err) {{
     btn.disabled = false;
@@ -1456,6 +1508,11 @@ async function runConsultMessage(key, message, isAuto) {{
     inp.focus();
   }}
 }}
+
+// ── Auto-restore on page load ───────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {{
+  _restoreSession();
+}});
 </script>
 </body>
 </html>"""
