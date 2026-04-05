@@ -513,7 +513,7 @@ class Handler(BaseHTTPRequestHandler):
             except BrokenPipeError: pass
             return
         elif path == "/plan-import":
-            _pi_viewer = _auth.get_viewer()
+            _pi_viewer = self._get_viewer()
             if _pi_viewer.get("role") not in ("admin",):
                 self.send_response(302)
                 self.send_header("Location", "/")
@@ -2708,7 +2708,7 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/plan-import-analyze":
                 import json as _pij, re as _pire, urllib.request as _pireq
                 from datetime import datetime as _pidt
-                _pi_v = _auth.get_viewer()
+                _pi_v = self._get_viewer()
                 if _pi_v.get("role") not in ("admin",):
                     self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
                     try: self.wfile.write(b"Forbidden")
@@ -2801,7 +2801,7 @@ class Handler(BaseHTTPRequestHandler):
             # ── Plan Import — Apply ───────────────────────────────────────────
             elif path == "/plan-import-apply":
                 import json as _aij
-                _ai_v = _auth.get_viewer()
+                _ai_v = self._get_viewer()
                 if _ai_v.get("role") not in ("admin",):
                     self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
                     try: self.wfile.write(b"Forbidden")
@@ -2907,7 +2907,7 @@ class Handler(BaseHTTPRequestHandler):
             # ── Plan Import — Companion Consult (streaming) ───────────────────
             elif path == "/plan-import-consult":
                 import json as _cj, urllib.request as _creq
-                _cc_v = _auth.get_viewer()
+                _cc_v = self._get_viewer()
                 if _cc_v.get("role") not in ("admin",):
                     self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
                     try: self.wfile.write(b"Forbidden")
@@ -2989,7 +2989,7 @@ class Handler(BaseHTTPRequestHandler):
             # ── Plan Import — Group Council (streaming, single call) ───────────
             elif path == "/plan-import-group-consult":
                 import json as _gcj, urllib.request as _gcreq
-                _gc_v = _auth.get_viewer()
+                _gc_v = self._get_viewer()
                 if _gc_v.get("role") not in ("admin",):
                     self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
                     try: self.wfile.write(b"Forbidden")
