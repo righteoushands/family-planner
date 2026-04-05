@@ -528,6 +528,23 @@ class Handler(BaseHTTPRequestHandler):
             try: self.wfile.write(html.encode())
             except BrokenPipeError: pass
             return
+        elif path == "/dev":
+            _dv = self._get_viewer()
+            if not (_dv and _auth.is_admin(_dv)):
+                self.send_response(302)
+                self.send_header("Location", "/")
+                self.end_headers()
+                return
+            from render_dev import render_dev_page
+            from data_helpers import load_dev_history
+            html = render_dev_page(load_dev_history())
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
         elif path == "/memory-book":      body = render_memory_book_page()
         elif path == "/liturgical":      body = render_liturgical_page()
         elif path == "/prayer":           body = render_liturgical_page()
@@ -2627,6 +2644,150 @@ class Handler(BaseHTTPRequestHandler):
                 from data_helpers import clear_coach_history
                 clear_coach_history()
                 redirect = "/coach"
+
+            # ── Felix (Dev companion) ─────────────────────────────────────────
+            elif path == "/dev-chat":
+                import json as _json, urllib.request as _req
+                from data_helpers import (
+                    load_dev_history, append_dev_messages, DEV_CONTEXT_MAX
+                )
+                from render_dev import build_felix_context, _get_relevant_files
+                from datetime import datetime as _dt
+
+                _dv = self._get_viewer()
+                if not (_dv and _auth.is_admin(_dv)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    self.wfile.write(b"Admin only."); return
+
+                message = clean_text(data.get("message",[""])[0])
+                settings_data = load_app_settings()
+                api_key = (settings_data.get("family_constraints",{}).get("anthropic_api_key","")
+                           or settings_data.get("anthropic_api_key","")).strip()
+                if not api_key:
+                    self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"No API key configured.")
+                    except BrokenPipeError: pass
+                    return
+
+                # Inject relevant source files into context
+                relevant = _get_relevant_files(message)
+                file_context = ""
+                if relevant:
+                    file_context = "\n\n════ RELEVANT SOURCE FILES (auto-detected) ════\n"
+                    for fname, content in relevant:
+                        file_context += f"\n── {fname} ──\n{content}\n"
+
+                felix_context = build_felix_context()
+                ts_now = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                full_user_msg = message + file_context if file_context else message
+                append_dev_messages([{"role": "user", "content": full_user_msg, "ts": ts_now}])
+
+                server_history = load_dev_history()
+                messages = []
+                for h in server_history[-DEV_CONTEXT_MAX:]:
+                    role = h.get("role","user"); content = h.get("content","")
+                    if role in ("user","assistant") and content:
+                        messages.append({"role": role, "content": content})
+                if not messages or messages[-1].get("role") != "user":
+                    messages.append({"role": "user", "content": full_user_msg})
+
+                payload = _json.dumps({
+                    "model":      "claude-sonnet-4-20250514",
+                    "max_tokens": 4000,
+                    "system":     felix_context,
+                    "messages":   messages,
+                    "stream":     True,
+                }).encode("utf-8")
+                req = _req.Request("https://api.anthropic.com/v1/messages",
+                    data=payload,
+                    headers={"x-api-key": api_key, "anthropic-version": "2023-06-01",
+                             "content-type": "application/json"})
+                try:
+                    resp = _req.urlopen(req, timeout=90)
+                    self.send_response(200)
+                    self.send_header("Content-Type","text/plain; charset=utf-8")
+                    self.send_header("Transfer-Encoding","chunked")
+                    self.send_header("Cache-Control","no-store")
+                    self.end_headers()
+                    text = ""
+                    for raw in resp:
+                        line = raw.decode("utf-8").strip()
+                        if line.startswith("data:"):
+                            chunk = line[5:].strip()
+                            if chunk == "[DONE]": break
+                            try:
+                                obj = _json.loads(chunk)
+                                delta = obj.get("delta",{})
+                                piece = delta.get("text","") if delta.get("type") == "text_delta" else ""
+                                if piece:
+                                    text += piece
+                                    try: self.wfile.write(piece.encode("utf-8")); self.wfile.flush()
+                                    except BrokenPipeError: break
+                            except Exception: pass
+                    ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                    append_dev_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
+                except Exception as e:
+                    try: self.wfile.write(str(e).encode("utf-8"))
+                    except BrokenPipeError: pass
+                return
+
+            elif path == "/dev-apply":
+                import pathlib as _pathlib
+                _dv = self._get_viewer()
+                if not (_dv and _auth.is_admin(_dv)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    self.wfile.write(b"Admin only."); return
+
+                filename = clean_text(data.get("file",[""])[0]).strip()
+                find_str = data.get("find",[""])[0]   # raw — don't strip whitespace
+                repl_str = data.get("replace",[""])[0]
+
+                # Safety: only allow .py files and known config files in project root
+                allowed_exts = {".py", ".json", ".css", ".js", ".html", ".md"}
+                fpath = _pathlib.Path(filename)
+                if fpath.parent != _pathlib.Path(".") or fpath.suffix not in allowed_exts:
+                    self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    self.wfile.write(b"Only project-root .py/.json/.css/.js files allowed."); return
+                if not fpath.exists():
+                    self.send_response(404); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    self.wfile.write(f"File not found: {filename}".encode()); return
+
+                content = fpath.read_text(encoding="utf-8")
+                if find_str not in content:
+                    self.send_response(422); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    self.wfile.write(b"FIND string not found in file - the code may have already been changed."); return
+
+                new_content = content.replace(find_str, repl_str, 1)
+                fpath.write_text(new_content, encoding="utf-8")
+
+                self.send_response(200); self.send_header("Content-Type","text/plain"); self.end_headers()
+                try: self.wfile.write(f"Applied to {filename}".encode())
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/dev-restart":
+                _dv = self._get_viewer()
+                if not (_dv and _auth.is_admin(_dv)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    self.wfile.write(b"Admin only."); return
+                self.send_response(200); self.send_header("Content-Type","text/plain"); self.end_headers()
+                try: self.wfile.write(b"Restarting...")
+                except BrokenPipeError: pass
+                import signal as _sig, threading as _thr
+                def _do_restart():
+                    import time; time.sleep(0.8)
+                    import os as _os; _os.kill(_os.getpid(), _sig.SIGTERM)
+                _thr.Thread(target=_do_restart, daemon=True).start()
+                return
+
+            elif path == "/dev-clear":
+                _dv = self._get_viewer()
+                if not (_dv and _auth.is_admin(_dv)):
+                    redirect = "/"
+                else:
+                    from data_helpers import clear_dev_history
+                    clear_dev_history()
+                    redirect = "/dev"
 
             # ── Dr. Monica ───────────────────────────────────────────────────
             elif path == "/dr-monica-chat":

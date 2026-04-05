@@ -311,6 +311,28 @@ def clear_coach_history():
     safe_save_json(COACH_HISTORY_FILE, {"messages": []})
 
 
+# ── Felix (Dev) history ───────────────────────────────────────────────────────
+DEV_HISTORY_FILE = "data/dev_history.json"
+DEV_HISTORY_MAX  = 40   # keep last 20 turns
+DEV_CONTEXT_MAX  = 20   # messages sent to Claude per request
+
+def load_dev_history() -> list:
+    data = ensure_file(DEV_HISTORY_FILE, {"messages": []})
+    return data.get("messages", [])
+
+def save_dev_history(messages: list):
+    trimmed = messages[-DEV_HISTORY_MAX:]
+    safe_save_json(DEV_HISTORY_FILE, {"messages": trimmed})
+
+def append_dev_messages(new_msgs: list):
+    history = load_dev_history()
+    history.extend(new_msgs)
+    save_dev_history(history)
+
+def clear_dev_history():
+    safe_save_json(DEV_HISTORY_FILE, {"messages": []})
+
+
 # ── Dr. Monica conversation history ───────────────────────────────────────────
 MONICA_HISTORY_FILE = "data/monica_history.json"
 MONICA_HISTORY_MAX  = 60

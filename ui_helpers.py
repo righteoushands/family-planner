@@ -1220,6 +1220,7 @@ def top_nav() -> str:
             <div class="nav-drop-section">Admin</div>
             <a href="/roadmap">🗺 Roadmap</a>
             <a href="/history">📂 History</a>
+            <a href="/dev" style="color:#1e3a8a;font-weight:700;">&#128187; Felix (Dev)</a>
             <a href="/signup" style="color:#8b5a3c;font-weight:700;">✨ Join Beta Waitlist</a>
           </div>
         </div>
