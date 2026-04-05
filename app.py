@@ -2760,17 +2760,32 @@ class Handler(BaseHTTPRequestHandler):
                     headers={"x-api-key": _pi_key, "anthropic-version": "2023-06-01",
                              "content-type": "application/json"},
                 )
+                import urllib.error as _pi_urlerr
                 try:
                     _pi_resp = _pireq.urlopen(_pi_req, timeout=90)
-                    _pi_body = _pij.loads(_pi_resp.read().decode("utf-8"))
-                    _pi_text = _pi_body.get("content", [{}])[0].get("text", "")
+                    _pi_raw  = _pi_resp.read().decode("utf-8")
+                    _pi_body = _pij.loads(_pi_raw)
+                    _pi_text = ""
+                    _pi_content = _pi_body.get("content", [])
+                    for _blk in _pi_content:
+                        if isinstance(_blk, dict) and _blk.get("type") == "text":
+                            _pi_text = _blk.get("text", "")
+                            break
+                    if not _pi_text:
+                        # Anthropic error object?
+                        _pi_err = _pi_body.get("error", {})
+                        raise ValueError(f"Empty response from Claude. API said: {_pi_err.get('message', _pi_raw[:200])}")
                     # Extract JSON from ```json ... ``` block
                     _pi_jm = _pire.search(r"```json\s*([\s\S]*?)```", _pi_text)
                     if _pi_jm:
                         _pi_parsed = _pij.loads(_pi_jm.group(1).strip())
                     else:
-                        # Try bare JSON
-                        _pi_parsed = _pij.loads(_pi_text.strip())
+                        # Try bare JSON object/array
+                        _pi_jm2 = _pire.search(r"(\{[\s\S]*\}|\[[\s\S]*\])", _pi_text)
+                        if _pi_jm2:
+                            _pi_parsed = _pij.loads(_pi_jm2.group(1))
+                        else:
+                            raise ValueError(f"Claude did not return JSON. Response was: {_pi_text[:300]}")
                     # Detect relevant companions
                     from render_plan_importer import detect_relevant_companions, _COMPANION_KEYWORDS
                     _rel_keys = detect_relevant_companions(_pi_parsed)
@@ -2789,6 +2804,17 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_header("Cache-Control","no-store")
                     self.end_headers()
                     try: self.wfile.write(_pij.dumps(_pi_parsed).encode("utf-8"))
+                    except BrokenPipeError: pass
+                except _pi_urlerr.HTTPError as _pie_http:
+                    _pi_err_body = ""
+                    try: _pi_err_body = _pie_http.read().decode("utf-8")
+                    except Exception: pass
+                    try: _pi_err_msg = _pij.loads(_pi_err_body).get("error",{}).get("message", _pi_err_body[:300])
+                    except Exception: _pi_err_msg = _pi_err_body[:300] or str(_pie_http)
+                    self.send_response(500)
+                    self.send_header("Content-Type","application/json; charset=utf-8")
+                    self.end_headers()
+                    try: self.wfile.write(_pij.dumps({"error": f"API error {_pie_http.code}: {_pi_err_msg}"}).encode())
                     except BrokenPipeError: pass
                 except Exception as _pie:
                     self.send_response(500)
