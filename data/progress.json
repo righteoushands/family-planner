@@ -389,5 +389,10 @@
   "2026-04-04::JP::CHORE::  → Spray + wipe table and counters": true,
   "2026-04-04::JP::CHORE::  → Take out trash + recycling": true,
   "2026-04-04::JP::CHORE::  → Sweep kitchen / dining room / foyer": true,
-  "2026-04-04::JP::CHORE::Weekly room clean (~90 min): full clean, vacuum, laundry check": true
+  "2026-04-04::JP::CHORE::Weekly room clean (~90 min): full clean, vacuum, laundry check": true,
+  "2026-04-04::JP::MANUAL::MEDIUM::JP has chosen 20 minutes of video games today": true,
+  "2026-04-04::JP::CHORE::KITCHEN (Evening — Role A):": true,
+  "2026-04-04::JP::CHORE::  → Unload dishwasher": true,
+  "2026-04-04::JP::CHORE::  → Load dishwasher": true,
+  "2026-04-04::JP::CHORE::  → Clean sink": true
 }
