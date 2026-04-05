@@ -120,8 +120,23 @@ Your job: diagnose bugs, explain how the code works, and propose concrete fixes.
 {file_list}
 
 ════════════ YOUR CAPABILITIES ════════════
-1. You can read any source file — Lauren will paste the relevant section, or ask you by name.
-2. When you propose a code change, output it in this EXACT format (one block per fix):
+1. SERVER LOG — Every message Lauren sends automatically includes the last 25 lines of the
+   live server log as [SERVER LOG — last 25 lines]. Use it to spot errors and tracebacks
+   without Lauren having to paste anything.
+
+2. SCREENSHOTS — Lauren can attach screenshots directly to any message. When you see an
+   image, describe what you notice (error messages, UI glitches, etc.) and use it to
+   diagnose the problem.
+
+3. FILE READING — Request any file section using this tag (the page fetches it automatically):
+
+   [READ: filename.py:start_line-end_line]
+
+   Example: [READ: app.py:1000-1200] — the file section arrives in your next message.
+   Use multiple [READ:] tags per response. For app.py (5000+ lines), always request
+   specific sections rather than the whole file.
+
+4. CODE FIXES — When you propose a change, use this exact format:
 
 [FIX: filename.py]
 FIND:
@@ -130,37 +145,32 @@ REPLACE:
 <new code>
 [/FIX]
 
-Rules for FIX blocks:
-- The FIND section must be an exact substring of the current file.
-- Use 3-5 lines of context (not just the changed line) so the match is unambiguous.
-- One logical change per [FIX] block.
-- Keep REPLACE code properly indented.
-- After a fix is applied, the server needs to be restarted (there is a Restart button in the UI).
+   Rules: FIND must exactly match the file. 3-5 lines of context. One logical change per
+   block. Correct indentation. The server must be restarted after applying.
 
-3. When the fix is displayed, Lauren sees an "Apply This Fix" button.
-   Clicking it writes the change directly to the file.
-4. You can request specific sections of large files using this tag:
+5. APPLY & RESTART — Lauren sees an "Apply Fix" button for each [FIX] block. Once applied,
+   she clicks Restart and the fix goes live.
 
-[READ: filename.py:start_line-end_line]
-
-Example: [READ: app.py:1000-1200] — a "Load lines 1000–1200" button will appear
-and Lauren can click it to inject that section into the conversation.
-You can use multiple [READ:] tags per response to request different sections.
-If you need a specific function, estimate its line range from context.
-
-5. You can see live server error logs. Lauren has a "Show Errors" button that
-   fetches the last 300 lines of the server log and injects them as context.
-   If Lauren clicks it, you will receive the log text in the next message.
-
-6. app.py is the largest file (5000+ lines). Use [READ: app.py:start-end] to
-   request specific sections rather than asking for the whole file at once.
+════════════ WHAT YOU CANNOT DO — be honest about these ════════════
+- You cannot RUN code or test whether a fix actually works. Always say "apply it and restart
+  to see if this fixes it" rather than claiming it will definitely work.
+- You cannot see the live browser/UI directly unless Lauren sends a screenshot.
+- You cannot access production (the deployed app) — only this development server.
+- You cannot safely make many large changes at once. For big refactors, propose one step at
+  a time and ask Lauren to test each one.
+- You cannot fix problems that require new external API keys, credentials, or third-party
+  services Lauren doesn't already have set up.
+- You cannot permanently remember things between sessions — your memory resets each time
+  Lauren clears the chat.
+- When you're not sure, say so clearly: "I'm not certain — here's my best guess, but let's
+  test it." Never make something up with false confidence.
 
 ════════════ PERSONALITY ════════════
 - Speak plainly. Lauren is not a developer — explain WHY as well as WHAT.
-- Be direct: name the file and line, don't hedge.
-- Celebrate when a fix works. Be encouraging.
-- If you are unsure, say so and ask Lauren to paste the relevant code.
-- Sign off with something cheerful but brief.
+- Be direct: name the file and line number, don't hedge.
+- When you can't fix something, say so and explain why. Suggest what Lauren could do instead.
+- Celebrate when a fix works. Be warm and encouraging — this is a family dashboard.
+- Keep replies focused. Don't over-explain. One clear answer is better than three vague ones.
 """
 
 
@@ -299,22 +309,102 @@ def render_dev_page(history: list) -> str:
 
 <!-- Fixed input bar -->
 <div style="position:fixed;bottom:64px;left:0;right:0;background:#fdf8f0;
-            border-top:1px solid #e2e8f0;padding:10px 14px;z-index:1000;">
-  <div style="max-width:700px;margin:0 auto;display:flex;gap:8px;align-items:flex-end;">
-    <textarea id="felix-input" rows="2" placeholder="Ask Felix… describe the bug, paste an error, or name a feature"
-              style="flex:1;padding:10px 12px;border:1.5px solid #dbeafe;border-radius:12px;
-                     font-family:inherit;font-size:0.88em;resize:none;outline:none;
-                     background:#fff;max-height:120px;"
-              onkeydown="if(event.key==='Enter'&&!event.shiftKey){{event.preventDefault();sendToFelix();}}"></textarea>
-    <button onclick="sendToFelix()" id="felix-send"
-            style="padding:10px 18px;background:#1e3a8a;color:white;border:none;border-radius:12px;
-                   font-family:inherit;font-size:0.88em;font-weight:700;cursor:pointer;white-space:nowrap;">
-      Send
-    </button>
+            border-top:1px solid #e2e8f0;padding:8px 14px;z-index:1000;">
+  <div style="max-width:680px;margin:0 auto;">
+
+    <!-- Image preview strip (hidden until image is attached) -->
+    <div id="felix-img-preview" style="display:none;align-items:center;gap:8px;
+         padding:6px 10px;margin-bottom:6px;background:#eff6ff;border-radius:10px;
+         border:1.5px solid #bfdbfe;">
+      <img id="felix-img-thumb" style="height:48px;width:auto;border-radius:6px;
+           object-fit:cover;border:1px solid #dbeafe;">
+      <div style="flex:1;font-size:0.75em;color:#1d4ed8;">
+        Screenshot attached &mdash; Felix will see this image.
+      </div>
+      <button onclick="clearImage()"
+              style="padding:2px 8px;border-radius:6px;border:1px solid #bfdbfe;
+                     background:white;color:#3b82f6;font-size:0.75em;cursor:pointer;">
+        ✕ Remove
+      </button>
+    </div>
+
+    <!-- Input row -->
+    <div style="display:flex;gap:8px;align-items:flex-end;">
+      <input type="file" id="felix-img-input" accept="image/*" style="display:none"
+             onchange="handleImageSelect(event)">
+      <button onclick="document.getElementById('felix-img-input').click()"
+              id="felix-cam-btn"
+              title="Attach a screenshot so Felix can see the problem"
+              style="padding:10px 11px;border:1.5px solid #dbeafe;border-radius:12px;
+                     background:white;color:#3b82f6;font-size:1.1em;cursor:pointer;
+                     flex-shrink:0;line-height:1;">
+        &#128247;
+      </button>
+      <textarea id="felix-input" rows="2"
+                placeholder="Describe the problem, or just say what&rsquo;s broken&hellip;"
+                style="flex:1;padding:10px 12px;border:1.5px solid #dbeafe;border-radius:12px;
+                       font-family:inherit;font-size:0.88em;resize:none;outline:none;
+                       background:#fff;max-height:120px;"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){{event.preventDefault();sendToFelix();}}"></textarea>
+      <button onclick="sendToFelix()" id="felix-send"
+              style="padding:10px 18px;background:#1e3a8a;color:white;border:none;border-radius:12px;
+                     font-family:inherit;font-size:0.88em;font-weight:700;cursor:pointer;white-space:nowrap;">
+        Send
+      </button>
+    </div>
   </div>
 </div>
 
 <script>
+// ── Image attachment ───────────────────────────────────────────────────────
+let _pendingImage = null;  // {{ base64, mediaType }}
+
+function handleImageSelect(evt) {{
+  const file = evt.target.files[0];
+  if (!file) return;
+  resizeAndEncode(file).then(img => {{
+    _pendingImage = img;
+    const thumb = document.getElementById('felix-img-thumb');
+    const preview = document.getElementById('felix-img-preview');
+    thumb.src = 'data:' + img.mediaType + ';base64,' + img.base64;
+    preview.style.display = 'flex';
+    // Tint the camera button to show active state
+    document.getElementById('felix-cam-btn').style.background = '#dbeafe';
+  }});
+  evt.target.value = '';  // allow re-selecting the same file
+}}
+
+function clearImage() {{
+  _pendingImage = null;
+  document.getElementById('felix-img-preview').style.display = 'none';
+  document.getElementById('felix-img-thumb').src = '';
+  document.getElementById('felix-cam-btn').style.background = 'white';
+}}
+
+function resizeAndEncode(file) {{
+  return new Promise(resolve => {{
+    const reader = new FileReader();
+    reader.onload = e => {{
+      const img = new Image();
+      img.onload = () => {{
+        const MAX = 1280;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {{
+          if (w > h) {{ h = Math.round(h * MAX / w); w = MAX; }}
+          else {{ w = Math.round(w * MAX / h); h = MAX; }}
+        }}
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        resolve({{ base64: dataUrl.split(',')[1], mediaType: 'image/jpeg' }});
+      }};
+      img.src = e.target.result;
+    }};
+    reader.readAsDataURL(file);
+  }});
+}}
+
 // ── Quick prompts ──────────────────────────────────────────────────────────
 function quickMsg(text) {{
   document.getElementById('felix-input').value = text;
@@ -337,8 +427,12 @@ async function sendToFelix() {{
   const thinkEl= document.getElementById('felix-thinking');
   errEl.style.display = 'none';
 
-  // Append user bubble immediately (shows the clean text only)
-  box.appendChild(buildUserBubble(text));
+  // Grab and clear the pending image before building the bubble so it appears in it
+  const imageToSend = _pendingImage;
+  clearImage();
+
+  // Append user bubble immediately (shows the clean text + thumbnail if image attached)
+  box.appendChild(buildUserBubble(text, imageToSend));
   box.scrollTop = box.scrollHeight;
 
   setThinking('Checking server logs\u2026');
@@ -358,21 +452,26 @@ async function sendToFelix() {{
   }} catch(e) {{}}
 
   setThinking('Felix is thinking\u2026');
-  await streamFelix(text + logContext);
+  await streamFelix(text + logContext, false, imageToSend);
 }}
 
 // ── Core streaming function (reusable for auto-reads) ─────────────────
-async function streamFelix(payload, isAutoRead) {{
+async function streamFelix(payload, isAutoRead, image) {{
   const box    = document.getElementById('felix-msgs');
   const errEl  = document.getElementById('felix-error');
   const thinkEl= document.getElementById('felix-thinking');
   document.getElementById('felix-send').disabled = true;
 
   try {{
+    let formBody = 'message=' + encodeURIComponent(payload);
+    if (image) {{
+      formBody += '&image_data=' + encodeURIComponent(image.base64)
+               + '&image_type=' + encodeURIComponent(image.mediaType);
+    }}
     const resp = await fetch('/dev-chat', {{
       method: 'POST',
       headers: {{'Content-Type': 'application/x-www-form-urlencoded'}},
-      body: 'message=' + encodeURIComponent(payload),
+      body: formBody,
     }});
     if (!resp.ok) throw new Error(await resp.text());
 
@@ -466,11 +565,19 @@ function setThinking(msg) {{
 }}
 
 // ── Bubble builders ────────────────────────────────────────────────────────
-function buildUserBubble(text) {{
+function buildUserBubble(text, image) {{
   const d = document.createElement('div');
   d.style.cssText = 'display:flex;justify-content:flex-end;';
+  const imgHtml = image
+    ? `<div style="text-align:right;margin-bottom:6px;">
+         <img src="data:${{image.mediaType}};base64,${{image.base64}}"
+              style="max-height:100px;max-width:220px;border-radius:8px;
+                     border:2px solid #3b82f6;object-fit:cover;">
+         <div style="font-size:0.7em;color:#93c5fd;margin-top:2px;">📷 Screenshot attached</div>
+       </div>`
+    : '';
   d.innerHTML = `<div style="max-width:80%;background:#1e3a8a;color:white;padding:10px 14px;
-    border-radius:14px 14px 4px 14px;font-size:0.88em;line-height:1.5;white-space:pre-wrap;">${{escHtml(text)}}</div>`;
+    border-radius:14px 14px 4px 14px;font-size:0.88em;line-height:1.5;">${{imgHtml}}<span style="white-space:pre-wrap;">${{escHtml(text)}}</span></div>`;
   return d;
 }}
 

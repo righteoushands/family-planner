@@ -2776,6 +2776,8 @@ class Handler(BaseHTTPRequestHandler):
                     self.wfile.write(b"Admin only."); return
 
                 message = clean_text(data.get("message",[""])[0])
+                image_b64  = data.get("image_data",[""])[0]   # raw base64 from client
+                image_type = clean_text(data.get("image_type",["image/jpeg"])[0]) or "image/jpeg"
                 settings_data = load_app_settings()
                 api_key = (settings_data.get("family_constraints",{}).get("anthropic_api_key","")
                            or settings_data.get("anthropic_api_key","")).strip()
@@ -2796,7 +2798,10 @@ class Handler(BaseHTTPRequestHandler):
                 felix_context = build_felix_context()
                 ts_now = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                 full_user_msg = message + file_context if file_context else message
-                append_dev_messages([{"role": "user", "content": full_user_msg, "ts": ts_now}])
+
+                # Store text-only in history (no base64 blobs)
+                history_content = full_user_msg + ("\n[Lauren attached a screenshot]" if image_b64 else "")
+                append_dev_messages([{"role": "user", "content": history_content, "ts": ts_now}])
 
                 server_history = load_dev_history()
                 messages = []
@@ -2804,8 +2809,22 @@ class Handler(BaseHTTPRequestHandler):
                     role = h.get("role","user"); content = h.get("content","")
                     if role in ("user","assistant") and content:
                         messages.append({"role": role, "content": content})
-                if not messages or messages[-1].get("role") != "user":
-                    messages.append({"role": "user", "content": full_user_msg})
+
+                # Build the current turn — with image content array if a screenshot was sent
+                if image_b64:
+                    current_content = [
+                        {"type": "image", "source": {
+                            "type": "base64", "media_type": image_type, "data": image_b64}},
+                        {"type": "text", "text": full_user_msg}
+                    ]
+                else:
+                    current_content = full_user_msg
+
+                # Replace the last (text-only) history entry with the image-enhanced version
+                if messages and messages[-1].get("role") == "user":
+                    messages[-1]["content"] = current_content
+                else:
+                    messages.append({"role": "user", "content": current_content})
 
                 payload = _json.dumps({
                     "model":      "claude-sonnet-4-20250514",
