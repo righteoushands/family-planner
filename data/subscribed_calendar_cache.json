@@ -1,39 +1,6 @@
 {
   "events": [
     {
-      "title": "Easter at UJs",
-      "start": "2026-04-04",
-      "end": "2026-04-04",
-      "all_day": true,
-      "location": "",
-      "notes": "",
-      "calendar": "Apple Calendar",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Holy Saturday",
-      "start": "2026-04-04",
-      "end": "2026-04-04",
-      "all_day": true,
-      "location": "",
-      "notes": "//thelittleroseshop.com/blogs/the-little-rose-shop-everyday-faith/how-to-celebrate-the-triduum?_pos=1&_sid=b5afe789c&_ss=r  ------   Powered by addevent.com  Share your next event with us!  ",
-      "calendar": "Liturgical Calendar (Little Rose Shop)",
-      "color": "#e91e8c",
-      "source": "subscribed"
-    },
-    {
-      "title": "John's class",
-      "start": "2026-04-04T08:00",
-      "end": "2026-04-04T17:00",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
       "title": "Easter Sunday",
       "start": "2026-04-05",
       "end": "2026-04-05",
@@ -53,6 +20,17 @@
       "notes": "//thelittleroseshop.com/pages/vault​​​    ------   Powered by addevent.com  Share your next event with us!  ",
       "calendar": "Liturgical Calendar (Little Rose Shop)",
       "color": "#e91e8c",
+      "source": "subscribed"
+    },
+    {
+      "title": "John's class",
+      "start": "2026-04-05T08:00",
+      "end": "2026-04-05T17:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
       "source": "subscribed"
     },
     {
@@ -1759,7 +1737,51 @@
       "calendar": "Apple Calendar",
       "color": "#9b59b6",
       "source": "subscribed"
+    },
+    {
+      "title": "Grandma Elizabeth McAdams birthday",
+      "start": "2026-06-04",
+      "end": "2026-06-04",
+      "all_day": true,
+      "location": "1923",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Lost Carol Jude McAdams",
+      "start": "2026-06-04",
+      "end": "2026-06-04",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Pop Pop and GMA Joan",
+      "start": "2026-06-04",
+      "end": "2026-06-04",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "HEAV Homeschooling Conventipn",
+      "start": "2026-06-04",
+      "end": "2026-06-04",
+      "all_day": true,
+      "location": "Richmond, VA",
+      "notes": "",
+      "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-04-04T20:35:27.369027"
+  "fetched_at": "2026-04-05T00:54:48.146223"
 }

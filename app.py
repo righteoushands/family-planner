@@ -447,6 +447,18 @@ class Handler(BaseHTTPRequestHandler):
             try: self.wfile.write(html.encode())
             except BrokenPipeError: pass
             return
+        elif path == "/lorenzo-plan-state":
+            import json as _pjg
+            from data_helpers import load_planning_session, planning_session_summary
+            _sess = load_planning_session()
+            _info = planning_session_summary(_sess)
+            self.send_response(200)
+            self.send_header("Content-Type","application/json; charset=utf-8")
+            self.send_header("Cache-Control","no-store")
+            self.end_headers()
+            try: self.wfile.write(_pjg.dumps(_info).encode("utf-8"))
+            except BrokenPipeError: pass
+            return
         elif path == "/lorenzo":
             html = render_lorenzo_page()
             self.send_response(200)
@@ -2290,19 +2302,34 @@ class Handler(BaseHTTPRequestHandler):
                     r'\[MEAL_UPDATE:([^:\]]+):([^\]]+)\]([\s\S]*?)\[\/MEAL_UPDATE\]',
                     _re.IGNORECASE
                 )
+                _meal_updates_found = []
                 for _mm in _meal_rx.finditer(text):
                     _mday = _mm.group(1).strip()
                     _mslot = _mm.group(2).strip().lower()
                     _mmeal = _mm.group(3).strip()
-                    if _mday and _mslot and _mmeal:
+                    if _mday and _mslot:
                         try:
                             from render_meals import load_meal_plan, save_meal_plan
                             _plan = load_meal_plan(iso)
-                            _plan["days"].setdefault(_mday, {})[_mslot] = _mmeal
+                            if _mmeal:
+                                _plan["days"].setdefault(_mday, {})[_mslot] = _mmeal
+                            else:
+                                _plan["days"].setdefault(_mday, {}).pop(_mslot, None)
                             _plan["start"] = _plan.get("start") or iso
                             save_meal_plan(_plan)
                         except Exception:
                             pass
+                        _meal_updates_found.append((_mday, _mslot))
+                # ── Advance planning session for each saved slot ──────────────
+                if _meal_updates_found:
+                    try:
+                        from data_helpers import load_planning_session, advance_planning_session
+                        _ps = load_planning_session()
+                        if _ps.get("active"):
+                            for (_up_day, _up_slot) in _meal_updates_found:
+                                advance_planning_session(_up_day, _up_slot)
+                    except Exception:
+                        pass
                 # ── Parse [RECIPE_CARD:add]JSON[/RECIPE_CARD] and auto-save ──
                 import json as _rj
                 _rc_rx = _re.compile(
@@ -2344,6 +2371,36 @@ class Handler(BaseHTTPRequestHandler):
                     fc["lorenzo_rules"] = rules
                     _s["family_constraints"] = fc
                     save_app_settings(_s)
+                self.send_response(200)
+                self.send_header("Content-Type","text/plain")
+                self.end_headers()
+                try: self.wfile.write(b"ok")
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/lorenzo-plan-start":
+                import json as _pj
+                from data_helpers import (start_planning_session, clear_lorenzo_history,
+                                          planning_session_summary, PLAN_DAYS, PLAN_SLOTS)
+                from datetime import date as _ddate, timedelta as _tdelta
+                # Determine week ISO — default to Sunday of current week
+                _iso_in = clean_text(data.get("iso",[""])[0]).strip()
+                if not _iso_in:
+                    _td = _ddate.today()
+                    _iso_in = (_td - _tdelta(days=(_td.weekday()+1)%7)).isoformat()
+                clear_lorenzo_history()
+                _sess = start_planning_session(_iso_in)
+                _info = planning_session_summary(_sess)
+                self.send_response(200)
+                self.send_header("Content-Type","application/json; charset=utf-8")
+                self.end_headers()
+                try: self.wfile.write(_pj.dumps(_info).encode("utf-8"))
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/lorenzo-plan-end":
+                from data_helpers import clear_planning_session
+                clear_planning_session()
                 self.send_response(200)
                 self.send_header("Content-Type","text/plain")
                 self.end_headers()

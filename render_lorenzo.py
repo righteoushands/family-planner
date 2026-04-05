@@ -203,6 +203,75 @@ def _get_easter(year: int) -> date:
     return date(year, month, day)
 
 
+def _get_planning_session_block() -> str:
+    """Return the planning session section to inject into the system prompt when active."""
+    try:
+        from data_helpers import load_planning_session, PLAN_DAYS, PLAN_SLOTS
+        session = load_planning_session()
+        if not session.get("active"):
+            return ""
+        days  = session.get("days",  PLAN_DAYS)
+        slots = session.get("slots", PLAN_SLOTS)
+        di    = session.get("current_day_idx",  0)
+        si    = session.get("current_slot_idx", 0)
+        week_iso  = session.get("week_iso", "this week")
+        cur_day   = days[di]  if di  < len(days)  else "?"
+        cur_slot  = slots[si] if si  < len(slots) else "?"
+        pos       = di * len(slots) + si
+        total     = len(days) * len(slots)
+        pct_done  = round(pos / total * 100)
+
+        # What has already been planned this session?
+        try:
+            from render_meals import load_meal_plan
+            plan  = load_meal_plan(week_iso)
+            filled = []
+            for d in days:
+                for s in slots:
+                    val = plan.get("days", {}).get(d, {}).get(s, "").strip()
+                    if val:
+                        filled.append(f"  {d} {s}: {val}")
+            filled_text = "\n".join(filled) if filled else "  (nothing filled in yet)"
+        except Exception:
+            filled_text = "  (meal plan unavailable)"
+
+        lines = [
+            "",
+            "== ACTIVE WEEKLY MEAL PLANNING SESSION ==",
+            f"You and Lauren are planning meals for the week of {week_iso} together,",
+            "one slot at a time, in a warm, conversational back-and-forth.",
+            "",
+            f"CURRENT SLOT: {cur_day} — {cur_slot.capitalize()}",
+            f"Progress: {pos} of {total} slots planned ({pct_done}%)",
+            "",
+            "SLOTS ALREADY FILLED IN THIS WEEK:",
+            filled_text,
+            "",
+            "HOW THE PLANNING SESSION WORKS:",
+            f"1. Your immediate focus is {cur_day} {cur_slot.capitalize()}.",
+            "2. Open with ONE focused question — anything to use up? Any cravings? Any ideas?",
+            "3. Draw on the inventory, saved recipes, and her energy level.",
+            "4. Make a concrete suggestion. Discuss until you agree.",
+            f"5. When agreed, save it: [MEAL_UPDATE:{cur_day}:{cur_slot}]meal name[/MEAL_UPDATE]",
+            "   Then say a brief transition line like 'Great — moving on to ...'",
+            "   and ask your ONE opening question for the next slot.",
+            "6. If Lauren wants to skip a slot ('we don't do breakfast' / 'JP handles that'),",
+            "   save it as empty: [MEAL_UPDATE:{cur_day}:{cur_slot}][/MEAL_UPDATE]",
+            "   and move on without making a fuss.",
+            "7. After each full day, note it briefly: 'Sunday is set. On to Monday.'",
+            "8. When the week is complete, give a warm one-paragraph summary of the week",
+            "   and wish Lauren good cooking.",
+            "",
+            "TONE: This is two people who enjoy food, planning together. Be warm, efficient,",
+            "and practical. Celebrate good choices. Don't repeat the rules to Lauren —",
+            "just execute them naturally.",
+            "CRITICAL: One question at a time. Move forward with purpose.",
+        ]
+        return "\n".join(lines)
+    except Exception:
+        return ""
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # System prompt
 # ─────────────────────────────────────────────────────────────────────────────
@@ -389,6 +458,11 @@ def build_lorenzo_context(iso: str, weekday: str, date_label: str) -> str:
         "- CRITICAL: Ask only ONE question at a time. Never stack questions.",
     ]
 
+    # Planning session block — injected last so it takes precedence
+    planning_block = _get_planning_session_block()
+    if planning_block:
+        lines.append(planning_block)
+
     return "\n".join(lines)
 
 
@@ -396,12 +470,32 @@ def build_lorenzo_context(iso: str, weekday: str, date_label: str) -> str:
 # Page renderer
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _week_sunday(d: date) -> date:
+    """Return the Sunday that starts the week containing d."""
+    return d - timedelta(days=(d.weekday() + 1) % 7)
+
 def render_lorenzo_page() -> str:
     today      = _today_eastern()
     iso        = today.isoformat()
     weekday    = today.strftime("%A")
     date_label = today.strftime("%B %d, %Y")
     h          = _hour_eastern()
+
+    # ── Planning session state ────────────────────────────────────────────────
+    from data_helpers import (load_planning_session, planning_session_summary,
+                               PLAN_DAYS, PLAN_SLOTS)
+    _ps        = load_planning_session()
+    _psinfo    = planning_session_summary(_ps)
+    plan_active    = _psinfo.get("active", False)
+    plan_week_iso  = _psinfo.get("week_iso", _week_sunday(today).isoformat())
+    plan_day       = _psinfo.get("current_day",  "Sunday")
+    plan_slot      = _psinfo.get("current_slot", "breakfast")
+    plan_day_idx   = _psinfo.get("day_idx",  0)
+    plan_slot_idx  = _psinfo.get("slot_idx", 0)
+    plan_done      = _psinfo.get("slots_done",   0)
+    plan_total     = _psinfo.get("total_slots",  21)
+    plan_days_js   = json.dumps(_psinfo.get("days",  PLAN_DAYS))
+    plan_slots_js  = json.dumps(_psinfo.get("slots", PLAN_SLOTS))
 
     if h < 11:
         greeting      = "Buongiorno."
@@ -471,6 +565,53 @@ def render_lorenzo_page() -> str:
         '</form>'
     ) if has_history else ''
 
+    # ── Plan Together button (hidden while planning session active) ───────────
+    _next_sunday   = _week_sunday(today)
+    _next_sun_iso  = _next_sunday.isoformat()
+    _next_sun_lbl  = _next_sunday.strftime("%B %-d")
+    plan_together_btn = (
+        f'<div id="lz-plan-start-row" style="margin-bottom:16px;'
+        f'{"display:none;" if plan_active else ""}">'
+        f'<button onclick="lzStartPlan()" '
+        f'style="width:100%;padding:11px 16px;background:#8b3a1a;color:white;border:none;'
+        f'border-radius:10px;font-size:0.88em;font-weight:700;cursor:pointer;font-family:inherit;'
+        f'display:flex;align-items:center;justify-content:center;gap:8px;">'
+        f'&#128197; Plan this week with me &rarr;'
+        f'</button>'
+        f'<div style="text-align:center;font-size:0.74em;color:#aaa;margin-top:5px;">'
+        f'Walk through every meal of the week together, one at a time</div>'
+        f'</div>'
+    )
+
+    # ── Planning session banner ───────────────────────────────────────────────
+    _pct      = round(plan_done / plan_total * 100) if plan_total else 0
+    _day_dots = "".join(
+        f'<span title="{d}" style="display:inline-block;width:8px;height:8px;border-radius:50%;'
+        f'margin:0 2px;background:{"#8b3a1a" if i < plan_day_idx else ("#e4a87a" if i == plan_day_idx else "#e4dbd2")};"></span>'
+        for i, d in enumerate(PLAN_DAYS)
+    )
+    plan_banner_html = (
+        f'<div id="lz-plan-banner" style="background:#fff4ee;border:1.5px solid #8b3a1a;'
+        f'border-radius:10px;padding:12px 16px;margin-bottom:16px;'
+        f'{"" if plan_active else "display:none;"}">'
+        f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
+        f'<strong style="color:#8b3a1a;font-size:0.88em;">&#128197; Planning together</strong>'
+        f'<button onclick="lzEndPlan()" style="background:none;border:none;font-size:0.75em;'
+        f'color:#aaa;cursor:pointer;font-family:inherit;padding:0;">&#10005; End session</button>'
+        f'</div>'
+        f'<div style="font-size:0.78em;color:#777;margin-bottom:8px;">'
+        f'Week of <span id="lz-plan-week-lbl">{escape(plan_week_iso)}</span></div>'
+        f'<div style="margin-bottom:8px;">{_day_dots}</div>'
+        f'<div style="background:#e4dbd2;border-radius:6px;height:5px;overflow:hidden;margin-bottom:8px;">'
+        f'<div id="lz-plan-progress-bar" style="background:#8b3a1a;height:100%;width:{_pct}%;'
+        f'transition:width 0.4s;"></div></div>'
+        f'<div style="font-size:0.88em;color:#1a1a1a;">'
+        f'Now: <strong id="lz-plan-current-label">{escape(plan_day)} — {escape(plan_slot.capitalize())}</strong>'
+        f' <span style="font-size:0.78em;color:#aaa;">({plan_done}/{plan_total} meals planned)</span>'
+        f'</div>'
+        f'</div>'
+    )
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -530,9 +671,15 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     </div>
 
     <!-- Quick prompts -->
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
         {quick_buttons}
     </div>
+
+    <!-- Plan Together button -->
+    {plan_together_btn}
+
+    <!-- Planning banner (shown when session active) -->
+    {plan_banner_html}
 
     <!-- Capacity selector -->
     <div style="background:#fdfaf7;border:1px solid #ede7e0;border-radius:10px;
@@ -701,6 +848,16 @@ var _lzTtsFull        = null;
 var _lzTtsFirstEndPos = 0;
 var _lzAudioEl = new Audio();
 var _lzVoiceName = localStorage.getItem('lz_voice_name') || 'onyx';
+
+// ── Planning session state ────────────────────────────────────────────────────
+var _lzPlanActive  = {json.dumps(plan_active)};
+var _lzPlanWeekIso = {_ej(plan_week_iso)};
+var _lzPlanDay     = {_ej(plan_day)};
+var _lzPlanSlot    = {_ej(plan_slot)};
+var _lzPlanDone    = {plan_done};
+var _lzPlanTotal   = {plan_total};
+var _lzPlanDays    = {plan_days_js};
+var _lzPlanSlots   = {plan_slots_js};
 
 var _LZ_VOICES = [
     {{id:'alloy',   label:'Alloy',   desc:'Neutral, balanced'}},
@@ -1361,6 +1518,9 @@ function lzSend() {{
                         }})(m[1]);
                     }}
 
+                    // Refresh planning banner if session is active
+                    if (_lzPlanActive) lzRefreshPlanBanner();
+
                     window.scrollTo(0, document.body.scrollHeight);
                     return;
                 }}
@@ -1397,6 +1557,78 @@ function lzSend() {{
         document.getElementById('lz-thinking').style.display = 'none';
         _lzRenderBubble('lz', 'Network error: ' + e.message);
     }});
+}}
+
+// ── Planning session ─────────────────────────────────────────────────────────
+function lzStartPlan() {{
+    fetch('/lorenzo-plan-start', {{
+        method: 'POST',
+        headers: {{'Content-Type':'application/x-www-form-urlencoded'}},
+        body: 'iso=' + encodeURIComponent(_lzPlanWeekIso || _lzIso)
+    }}).then(function(r) {{ return r.json(); }})
+    .then(function(info) {{
+        _lzPlanActive = true;
+        _lzUpdatePlanUI(info);
+        // Clear chat history display
+        var feed = document.getElementById('lz-feed');
+        if (feed) feed.innerHTML = '';
+        _lzHistory = [];
+        // Send the opener message automatically
+        var day   = info.current_day  || 'Sunday';
+        var slot  = info.current_slot || 'breakfast';
+        var slotLabel = slot.charAt(0).toUpperCase() + slot.slice(1);
+        var input = document.getElementById('lz-input');
+        if (input) {{
+            input.value = "Lorenzo, let's plan this week together. Start with " + day + " and walk me through the meals one at a time.";
+            lzSend();
+        }}
+    }}).catch(function(e) {{ console.error('Plan start error:', e); }});
+}}
+
+function lzEndPlan() {{
+    fetch('/lorenzo-plan-end', {{method:'POST'}}).then(function() {{
+        _lzPlanActive = false;
+        var banner = document.getElementById('lz-plan-banner');
+        if (banner) banner.style.display = 'none';
+        var startRow = document.getElementById('lz-plan-start-row');
+        if (startRow) startRow.style.display = '';
+    }});
+}}
+
+function lzRefreshPlanBanner() {{
+    fetch('/lorenzo-plan-state')
+    .then(function(r) {{ return r.json(); }})
+    .then(function(info) {{ _lzUpdatePlanUI(info); }})
+    .catch(function() {{}});
+}}
+
+function _lzUpdatePlanUI(info) {{
+    if (!info || !info.active) {{
+        _lzPlanActive = false;
+        var banner = document.getElementById('lz-plan-banner');
+        if (banner) banner.style.display = 'none';
+        var startRow = document.getElementById('lz-plan-start-row');
+        if (startRow) startRow.style.display = '';
+        return;
+    }}
+    _lzPlanActive = true;
+    _lzPlanDay    = info.current_day  || _lzPlanDay;
+    _lzPlanSlot   = info.current_slot || _lzPlanSlot;
+    _lzPlanDone   = info.slots_done   || 0;
+    _lzPlanTotal  = info.total_slots  || 21;
+    var banner = document.getElementById('lz-plan-banner');
+    if (banner) banner.style.display = '';
+    var startRow = document.getElementById('lz-plan-start-row');
+    if (startRow) startRow.style.display = 'none';
+    var lbl = document.getElementById('lz-plan-current-label');
+    var slotCap = _lzPlanSlot.charAt(0).toUpperCase() + _lzPlanSlot.slice(1);
+    if (lbl) lbl.textContent = _lzPlanDay + ' \u2014 ' + slotCap;
+    var bar = document.getElementById('lz-plan-progress-bar');
+    if (bar && _lzPlanTotal > 0) bar.style.width = Math.round(_lzPlanDone / _lzPlanTotal * 100) + '%';
+    var weekLbl = document.getElementById('lz-plan-week-lbl');
+    if (weekLbl && info.week_iso) weekLbl.textContent = info.week_iso;
+    var countEl = document.querySelector('#lz-plan-banner span[style*="color:#aaa"]');
+    if (countEl) countEl.textContent = '(' + _lzPlanDone + '/' + _lzPlanTotal + ' meals planned)';
 }}
 
 // ── Init ──────────────────────────────────────────────────────────────────────

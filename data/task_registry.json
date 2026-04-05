@@ -351,39 +351,41 @@
   },
   "2026-04-05": {
     "JP": [
+      "CHORE::  → Clean sink",
+      "CHORE::  → Clear table + counters",
+      "CHORE::  → Load dishwasher",
+      "CHORE::  → Put food away",
+      "CHORE::  → Spray + wipe table and counters",
+      "CHORE::  → Sweep kitchen / dining room / foyer",
+      "CHORE::  → Take out trash + recycling",
+      "CHORE::  → Unload dishwasher",
       "CHORE::Check CAP email",
       "CHORE::Check Sea Cadet email",
-      "CHORE::Daily Room Reset",
-      "CHORE::Exercise (non-PE days)",
-      "CHORE::KITCHEN (Evening — Role B):",
-      "CHORE::KITCHEN (Morning — Role B):",
-      "CHORE::Tidy the basement for 10 minutes.",
-      "CHORE::→ Clean sink",
-      "CHORE::→ Clear table + counters",
-      "CHORE::→ Load dishwasher",
-      "CHORE::→ Put food away",
-      "CHORE::→ Spray + wipe table and counters",
-      "CHORE::→ Sweep kitchen / dining room / foyer",
-      "CHORE::→ Take out trash + recycling",
-      "CHORE::→ Unload dishwasher"
-    ],
-    "Joseph": [
-      "CHORE::Check Sea Cadet email",
-      "CHORE::Daily Room Reset",
+      "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
       "CHORE::Exercise (non-PE days)",
       "CHORE::KITCHEN (Evening — Role A):",
       "CHORE::KITCHEN (Morning — Role A):",
-      "CHORE::Tidy the basement for 10 minutes.",
-      "CHORE::→ Clean sink",
-      "CHORE::→ Clear table + counters",
-      "CHORE::→ Load dishwasher",
-      "CHORE::→ Put food away",
-      "CHORE::→ Spray + wipe table and counters",
-      "CHORE::→ Sweep kitchen / dining room / foyer",
-      "CHORE::→ Take out trash + recycling",
-      "CHORE::→ Unload dishwasher"
+      "MANUAL::MEDIUM::JP has chosen 30 minutes of video games today"
     ],
-    "Michael": [],
+    "Joseph": [
+      "CHORE::  → Clean sink",
+      "CHORE::  → Clear table + counters",
+      "CHORE::  → Load dishwasher",
+      "CHORE::  → Put food away",
+      "CHORE::  → Spray + wipe table and counters",
+      "CHORE::  → Sweep kitchen / dining room / foyer",
+      "CHORE::  → Take out trash + recycling",
+      "CHORE::  → Unload dishwasher",
+      "CHORE::Check Sea Cadet email",
+      "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
+      "CHORE::Exercise (non-PE days)",
+      "CHORE::KITCHEN (Evening — Role B):",
+      "CHORE::KITCHEN (Morning — Role B):",
+      "CHORE::Review irregular verbs"
+    ],
+    "Michael": [
+      "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash"
+    ],
     "James": []
   }
 }

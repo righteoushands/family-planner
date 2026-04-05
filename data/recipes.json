@@ -236,6 +236,41 @@
       ],
       "prep_time": "",
       "created": "2026-04-01"
+    },
+    {
+      "name": "Curry Chicken Over Rice",
+      "servings": "6",
+      "prep_time": "5 minutes",
+      "cook_time": "15 minutes",
+      "ingredients": [
+        "2 cans chicken (drained)",
+        "1 white onion (diced)",
+        "3 tablespoons butter or oil",
+        "1 packet Japanese curry mix",
+        "1 cup chicken broth or water",
+        "3 cups cooked rice",
+        "1 bag edamame (thawed)",
+        "Fresh carrots (optional — steamed or raw)"
+      ],
+      "instructions": [
+        "Heat butter in a large pot over medium heat",
+        "Add diced onion, cook until soft (about 5 minutes)",
+        "Add canned chicken, stir and warm through (2 minutes)",
+        "Sprinkle curry mix over chicken and onion",
+        "Pour in broth or water, stir well",
+        "Simmer 5-10 minutes until slightly thickened",
+        "Serve over rice with edamame alongside"
+      ],
+      "notes": "Quick weeknight dinner. Works with fresh or canned chicken. Edamame adds protein and color.",
+      "tags": [
+        "curry",
+        "chicken",
+        "rice",
+        "quick",
+        "weeknight"
+      ],
+      "id": "824c6401",
+      "date_added": "2026-04-04"
     }
   ]
 }

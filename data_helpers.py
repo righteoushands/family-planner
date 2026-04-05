@@ -316,6 +316,85 @@ def search_recipes(query: str) -> list:
     return results
 
 
+# ── Guided planning session ──────────────────────────────────────────────────
+PLANNING_SESSION_FILE = "data/planning_session.json"
+PLAN_DAYS  = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]
+PLAN_SLOTS = ["breakfast","lunch","dinner"]
+
+def load_planning_session() -> dict:
+    return ensure_file(PLANNING_SESSION_FILE, {"active": False})
+
+def save_planning_session(session: dict):
+    safe_save_json(PLANNING_SESSION_FILE, session)
+
+def start_planning_session(week_iso: str) -> dict:
+    from datetime import datetime as _dt
+    session = {
+        "active": True,
+        "week_iso": week_iso,
+        "days":  PLAN_DAYS,
+        "slots": PLAN_SLOTS,
+        "current_day_idx":  0,
+        "current_slot_idx": 0,
+        "started_at": _dt.now().isoformat(),
+    }
+    save_planning_session(session)
+    return session
+
+def advance_planning_session(matched_day: str, matched_slot: str) -> dict:
+    """Advance the session to the slot after the one just filled.
+    Only advances if the filled slot is at or after the current position."""
+    session = load_planning_session()
+    if not session.get("active"):
+        return session
+    days  = session.get("days",  PLAN_DAYS)
+    slots = session.get("slots", PLAN_SLOTS)
+    mday  = matched_day.strip().capitalize()
+    mslot = matched_slot.strip().lower()
+    if mday not in days or mslot not in slots:
+        return session
+    total        = len(days) * len(slots)
+    current_pos  = session.get("current_day_idx", 0) * len(slots) + session.get("current_slot_idx", 0)
+    saved_pos    = days.index(mday) * len(slots) + slots.index(mslot)
+    if saved_pos >= current_pos:
+        next_pos = saved_pos + 1
+        if next_pos >= total:
+            from datetime import datetime as _dt
+            session["active"] = False
+            session["completed_at"] = _dt.now().isoformat()
+        else:
+            session["current_day_idx"]  = next_pos // len(slots)
+            session["current_slot_idx"] = next_pos %  len(slots)
+        save_planning_session(session)
+    return session
+
+def clear_planning_session():
+    save_planning_session({"active": False})
+
+def planning_session_summary(session: dict) -> dict:
+    """Return a dict suitable for sending to the client."""
+    if not session.get("active"):
+        return {"active": False}
+    days  = session.get("days",  PLAN_DAYS)
+    slots = session.get("slots", PLAN_SLOTS)
+    di    = session.get("current_day_idx",  0)
+    si    = session.get("current_slot_idx", 0)
+    total = len(days) * len(slots)
+    pos   = di * len(slots) + si
+    return {
+        "active":       True,
+        "week_iso":     session.get("week_iso",""),
+        "current_day":  days[di]  if di  < len(days)  else "",
+        "current_slot": slots[si] if si  < len(slots) else "",
+        "day_idx":      di,
+        "slot_idx":     si,
+        "total_slots":  total,
+        "slots_done":   pos,
+        "days":         days,
+        "slots":        slots,
+    }
+
+
 # ── Monthly planner ──────────────────────────────────────────────────────────
 def load_monthly_planner() -> dict:
     return ensure_file(MONTHLY_PLANNER_FILE, {})
