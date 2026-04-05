@@ -3,7 +3,13 @@ app.py — HTTP server and router only.
 All rendering lives in render_*.py modules.
 All data I/O lives in data_helpers.py.
 """
-import os, uuid
+import os, uuid, time as _time
+
+# ── Pin the process timezone to Eastern so date.today() / datetime.now()
+# ── always reflect the McAdams family's local time, not UTC.
+os.environ.setdefault("TZ", "America/New_York")
+_time.tzset()
+
 from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import socketserver
