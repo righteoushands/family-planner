@@ -646,11 +646,12 @@ def render_prayer_page(status: str = "") -> str:
     <div id="add-form-error" style="display:none;font-size:0.82em;color:#ef4444;margin-bottom:8px;"></div>
     <label style="font-size:0.75em;">Intention title *</label>
     <input type="text" id="add-title" placeholder="e.g. Grandma's healing..."
-           style="margin-bottom:10px;">
+           style="margin-bottom:10px;" oninput="prayerDraftSave()">
     <label style="font-size:0.75em;">Description / prayer request</label>
     <textarea id="add-desc" rows="3"
               placeholder="Details about what you're praying for..."
-              style="margin-bottom:10px;font-size:0.88em;resize:vertical;"></textarea>
+              style="margin-bottom:10px;font-size:0.88em;resize:vertical;"
+              oninput="prayerDraftSave()"></textarea>
     <label style="font-size:0.75em;">Photo (optional)</label>
     <input type="file" id="add-photo" accept="image/*"
            style="margin-bottom:14px;font-size:0.85em;">
@@ -792,6 +793,7 @@ function submitAddIntention() {{
     body: formData
   }}).then(function(r) {{
     // Server redirects — just navigate to intentions page
+    try {{ localStorage.removeItem('prayerIntentionDraft'); }} catch(e) {{}}
     window.location.href = '/prayer-intentions';
   }}).catch(function() {{
     btn.disabled = false; btn.textContent = 'Add intention';
@@ -840,6 +842,42 @@ function aiIntentionPrayer(iid, btn) {{
     btn.disabled = false;
   }});
 }}
+
+// ── Prayer intention draft save/restore ────────────────────────────────────
+var _PRAYER_DRAFT_KEY = 'prayerIntentionDraft';
+function prayerDraftSave() {{
+  try {{
+    var draft = {{
+      title: document.getElementById('add-title').value || '',
+      desc:  document.getElementById('add-desc').value  || '',
+      savedAt: Date.now()
+    }};
+    localStorage.setItem(_PRAYER_DRAFT_KEY, JSON.stringify(draft));
+  }} catch(e) {{}}
+}}
+(function prayerDraftRestore() {{
+  try {{
+    var raw = localStorage.getItem(_PRAYER_DRAFT_KEY);
+    if (!raw) return;
+    var draft = JSON.parse(raw);
+    if (!draft || !draft.title || (Date.now() - (draft.savedAt||0)) > 86400000) {{ return; }}
+    document.getElementById('add-title').value = draft.title;
+    document.getElementById('add-desc').value  = draft.desc || '';
+    // Auto-open the add form so the draft is visible
+    var form = document.getElementById('add-form');
+    if (form) {{ form.style.display = 'block'; }}
+    // Add a small notice
+    var errEl = document.getElementById('add-form-error');
+    if (errEl) {{
+      errEl.textContent = 'Your draft was restored. Continue where you left off.';
+      errEl.style.color = '#166534';
+      errEl.style.background = '#f0fdf4';
+      errEl.style.padding = '6px 10px';
+      errEl.style.borderRadius = '6px';
+      errEl.style.display = 'block';
+    }}
+  }} catch(e) {{}}
+}})();
 </script>
 """
     return html_page("Prayer Intentions", body)

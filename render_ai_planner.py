@@ -280,7 +280,8 @@ def render_ai_panel(iso: str) -> str:
                         </p>
                         <textarea id="ai-gen-notes" rows="3"
                                   placeholder="e.g. I have an appointment 2–3pm. Michael has a test."
-                                  style="font-size:0.82em;margin-bottom:8px;resize:vertical;width:100%;"></textarea>
+                                  style="font-size:0.82em;margin-bottom:8px;resize:vertical;width:100%;"
+                                  oninput="aiNotesDraftSave()"></textarea>
                         <button onclick="aiGenerate()" style="font-size:0.85em;padding:7px 16px;">
                             ✨ Generate schedule
                         </button>
@@ -440,4 +441,24 @@ def render_ai_panel(iso: str) -> str:
         }}
         return read();
     }}
+
+    // ── AI generate-notes draft save/restore ──────────────────────────────
+    var _AI_NOTES_KEY = 'aiGenNotesDraft_v1';
+    function aiNotesDraftSave() {{
+        try {{
+            var el = document.getElementById('ai-gen-notes');
+            if (!el) return;
+            localStorage.setItem(_AI_NOTES_KEY, JSON.stringify({{text: el.value, savedAt: Date.now()}}));
+        }} catch(e) {{}}
+    }}
+    (function aiNotesDraftRestore() {{
+        try {{
+            var raw = localStorage.getItem(_AI_NOTES_KEY);
+            if (!raw) return;
+            var d = JSON.parse(raw);
+            if (!d || !d.text || (Date.now() - (d.savedAt||0)) > 86400000) {{ return; }}
+            var el = document.getElementById('ai-gen-notes');
+            if (el && !el.value) {{ el.value = d.text; }}
+        }} catch(e) {{}}
+    }})();
     </script>"""
