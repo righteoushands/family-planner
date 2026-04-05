@@ -2771,6 +2771,19 @@ class Handler(BaseHTTPRequestHandler):
                     else:
                         # Try bare JSON
                         _pi_parsed = _pij.loads(_pi_text.strip())
+                    # Detect relevant companions
+                    from render_plan_importer import detect_relevant_companions, _COMPANION_KEYWORDS
+                    _rel_keys = detect_relevant_companions(_pi_parsed)
+                    _pi_parsed["_companions"] = [
+                        {
+                            "key":   k,
+                            "label": _COMPANION_KEYWORDS[k]["label"],
+                            "color": _COMPANION_KEYWORDS[k]["color"],
+                            "emoji": _COMPANION_KEYWORDS[k]["emoji"],
+                            "role":  _COMPANION_KEYWORDS[k]["role"],
+                        }
+                        for k in _rel_keys if k in _COMPANION_KEYWORDS
+                    ]
                     self.send_response(200)
                     self.send_header("Content-Type","application/json; charset=utf-8")
                     self.send_header("Cache-Control","no-store")
@@ -2889,6 +2902,88 @@ class Handler(BaseHTTPRequestHandler):
                     "tasks_added": tasks_added,
                 }).encode())
                 except BrokenPipeError: pass
+                return
+
+            # ── Plan Import — Companion Consult (streaming) ───────────────────
+            elif path == "/plan-import-consult":
+                import json as _cj, urllib.request as _creq
+                _cc_v = _auth.get_viewer()
+                if _cc_v.get("role") not in ("admin",):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Forbidden")
+                    except BrokenPipeError: pass
+                    return
+                _cc_companion = clean_text(data.get("companion",[""])[0])
+                _cc_message   = clean_text(data.get("message",[""])[0])
+                _cc_hist_raw  = data.get("history",["[]"])[0]
+                _cc_plan_raw  = data.get("plan_json",["{}"])[0]
+                try: _cc_history = _cj.loads(_cc_hist_raw)
+                except Exception: _cc_history = []
+                try: _cc_plan = _cj.loads(_cc_plan_raw)
+                except Exception: _cc_plan = {}
+                if not _cc_companion or not _cc_message:
+                    self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Missing companion or message")
+                    except BrokenPipeError: pass
+                    return
+                _cc_settings = load_app_settings()
+                _cc_key = (_cc_settings.get("family_constraints",{}).get("anthropic_api_key","")
+                           or _cc_settings.get("anthropic_api_key","")).strip()
+                if not _cc_key:
+                    self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"No API key configured.")
+                    except BrokenPipeError: pass
+                    return
+                _today_cc   = date.today()
+                _iso_cc     = _today_cc.isoformat()
+                _weekday_cc = _today_cc.strftime("%A")
+                _label_cc   = _today_cc.strftime("%B %d, %Y")
+                from render_plan_importer import build_consult_system_prompt
+                _cc_sys = build_consult_system_prompt(_cc_companion, _cc_plan, _iso_cc, _weekday_cc, _label_cc)
+                # Build messages from history + current message
+                _cc_msgs = []
+                for _h in _cc_history:
+                    _r = _h.get("role","user")
+                    _c = _h.get("content","")
+                    if _r in ("user","assistant") and _c:
+                        _cc_msgs.append({"role": _r, "content": _c})
+                _cc_msgs.append({"role": "user", "content": _cc_message})
+                _cc_payload = _cj.dumps({
+                    "model": "claude-haiku-4-5-20251001",
+                    "max_tokens": 1200,
+                    "system": _cc_sys,
+                    "messages": _cc_msgs,
+                    "stream": True,
+                }).encode("utf-8")
+                _cc_req = _creq.Request(
+                    "https://api.anthropic.com/v1/messages",
+                    data=_cc_payload,
+                    headers={"x-api-key": _cc_key, "anthropic-version": "2023-06-01",
+                             "content-type": "application/json"},
+                )
+                try:
+                    _cc_resp = _creq.urlopen(_cc_req, timeout=60)
+                    self.send_response(200)
+                    self.send_header("Content-Type","text/plain; charset=utf-8")
+                    self.send_header("Transfer-Encoding","chunked")
+                    self.send_header("Cache-Control","no-store")
+                    self.end_headers()
+                    for _raw in _cc_resp:
+                        _line = _raw.decode("utf-8").strip()
+                        if _line.startswith("data:"):
+                            _chunk = _line[5:].strip()
+                            if _chunk == "[DONE]": break
+                            try:
+                                _obj   = _cj.loads(_chunk)
+                                _delta = _obj.get("delta",{})
+                                _piece = _delta.get("text","") if _delta.get("type") == "text_delta" else ""
+                                if _piece:
+                                    try: self.wfile.write(_piece.encode("utf-8")); self.wfile.flush()
+                                    except BrokenPipeError: break
+                            except Exception: pass
+                except Exception as _cce:
+                    try: self.wfile.write(str(_cce).encode("utf-8"))
+                    except BrokenPipeError: pass
                 return
 
             elif path in ("/calendar-config-save","/calendar-save-config"):

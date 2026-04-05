@@ -139,6 +139,196 @@ Respond with ONLY valid JSON inside ```json ... ``` code fences. No other text o
 }}"""
 
 
+# ── Companion detection & consultation ────────────────────────────────────────
+
+_COMPANION_KEYWORDS = {
+    "gregory": {
+        "words": [
+            "school","lesson","lessons","curriculum","homework","essay","study","class","subject",
+            "assignment","academic","history","math","reading","science","latin","writing","spelling",
+            "phonics","catechism","literature","geography","schedule school","teach","textbook",
+            "co-op","co op","learning","workbook","chapter",
+        ],
+        "label": "Fr. Gregory",
+        "role": "Headmaster · School",
+        "color": "#1e3566",
+        "emoji": "📚",
+        "prompt_intro": (
+            "You are being consulted during a plan import. Lauren has pasted a plan from an "
+            "external AI and you are reviewing the school-related portions. Give your perspective "
+            "as the academic director: are the school tasks realistic, well-sequenced, and "
+            "appropriate for each child? Flag anything concerning. Be concise and direct."
+        ),
+    },
+    "lorenzo": {
+        "words": [
+            "meal","dinner","lunch","breakfast","cook","cooking","recipe","grocery","groceries",
+            "food","menu","restaurant","kitchen","bake","baking","snack","prep","crockpot",
+            "slow cooker","instant pot","leftovers","pantry","shop","shopping","ingredients",
+        ],
+        "label": "Lorenzo",
+        "role": "Personal Chef",
+        "color": "#8b3a1a",
+        "emoji": "🍽️",
+        "prompt_intro": (
+            "You are being consulted during a plan import. Lauren has pasted a plan from an "
+            "external AI and you are reviewing the meal and food-related portions. Give your "
+            "perspective as the family chef: are the meals planned wisely, is the timing "
+            "realistic, any suggestions for simplifying or improving the week's menu? "
+            "Be practical and specific."
+        ),
+    },
+    "coach": {
+        "words": [
+            "exercise","sport","sports","soccer","baseball","basketball","run","running","bike",
+            "biking","walk","hike","gym","pe","physical education","outdoor","park","swim",
+            "swimming","practice","game","tournament","yoga","workout","movement","fitness",
+            "strength","stretching","kickball","tee ball","active",
+        ],
+        "label": "Coach",
+        "role": "Fitness",
+        "color": "#1a6e3e",
+        "emoji": "💪",
+        "prompt_intro": (
+            "You are being consulted during a plan import. Lauren has pasted a plan from an "
+            "external AI and you are reviewing the physical activity and fitness portions. "
+            "Give your perspective as the family fitness coach: is there enough movement? "
+            "Are activities age-appropriate? Any concerns or suggestions? Be energetic and direct."
+        ),
+    },
+    "monica": {
+        "words": [
+            "doctor","dentist","appointment","sick","health","vaccine","vaccination","milestone",
+            "development","pediatric","checkup","check-up","fever","medicine","therapy","speech",
+            "vision","hearing","well visit","well-child","growth","nap","sleep","potty","feeding",
+            "weight","allergy","allergist","pediatrician","james","michael",
+        ],
+        "label": "Dr. Monica",
+        "role": "Health & Development",
+        "color": "#8b3a5c",
+        "emoji": "🌸",
+        "prompt_intro": (
+            "You are being consulted during a plan import. Lauren has pasted a plan from an "
+            "external AI and you are reviewing the child health, development, and medical portions. "
+            "Give your perspective as the family's child development and pediatric health expert: "
+            "anything concerning, any follow-ups to recommend, any developmental context to add? "
+            "Be warm and reassuring but thorough."
+        ),
+    },
+    "lucy": {
+        "words": [],  # Lucy is always relevant as the integrator
+        "label": "Lucy",
+        "role": "Family Companion",
+        "color": "#5b3a8a",
+        "emoji": "✨",
+        "prompt_intro": (
+            "You are being consulted during a plan import. Lauren has pasted a plan from an "
+            "external AI and wants your overall perspective. Look at the plan holistically: "
+            "Does it feel balanced? Is there rest built in? Does it honor the family's faith "
+            "life and rhythms? What would make this week feel more like a gift than a grind? "
+            "Be warm, honest, and practical."
+        ),
+    },
+}
+
+
+def detect_relevant_companions(parsed_data: dict) -> list:
+    """Return list of companion keys that are relevant to this parsed plan."""
+    # Gather all text from events and tasks
+    all_text = []
+    for ev in parsed_data.get("events", []):
+        all_text.append(ev.get("title", "").lower())
+        all_text.append(ev.get("notes", "").lower())
+    for t in parsed_data.get("tasks", []):
+        all_text.append(t.get("text", "").lower())
+        all_text.append(t.get("notes", "").lower())
+        for s in t.get("subtasks", []):
+            all_text.append(s.lower())
+    corpus = " ".join(all_text)
+
+    relevant = []
+    for key, cfg in _COMPANION_KEYWORDS.items():
+        if key == "lucy":
+            continue  # Lucy is added at the end always
+        if any(w in corpus for w in cfg["words"]):
+            relevant.append(key)
+
+    # Lucy is always available as the integrator
+    relevant.append("lucy")
+    return relevant
+
+
+def build_consult_system_prompt(companion_key: str, parsed_data: dict,
+                                 iso: str, weekday: str, date_label: str) -> str:
+    """Build a full system prompt for a companion consulting on the imported plan."""
+    cfg = _COMPANION_KEYWORDS.get(companion_key, {})
+    intro = cfg.get("prompt_intro", "")
+
+    # Get companion's own system prompt
+    try:
+        if companion_key == "lucy":
+            from render_lucy import build_lucy_context
+            base_ctx = build_lucy_context(iso, weekday, date_label)
+        elif companion_key == "lorenzo":
+            from render_lorenzo import build_lorenzo_context
+            base_ctx = build_lorenzo_context(iso, weekday, date_label)
+        elif companion_key == "gregory":
+            from render_gregory import build_gregory_context
+            base_ctx = build_gregory_context(iso, weekday, date_label)
+        elif companion_key == "coach":
+            from render_coach import build_coach_context
+            base_ctx = build_coach_context(iso, weekday, date_label)
+        elif companion_key == "monica":
+            from render_monica import build_monica_context
+            base_ctx = build_monica_context(iso, weekday, date_label)
+        else:
+            base_ctx = ""
+    except Exception:
+        base_ctx = ""
+
+    # Build compact plan summary
+    plan_lines = []
+    events = parsed_data.get("events", [])
+    if events:
+        plan_lines.append("CALENDAR EVENTS IN THE PLAN:")
+        for ev in events:
+            who = ", ".join(ev.get("who", []))
+            t = ev.get("time", "")
+            plan_lines.append(f"  - {ev.get('date','')} {ev.get('title','')} {t} [{who}]")
+            if ev.get("notes"):
+                plan_lines.append(f"    Notes: {ev['notes']}")
+
+    tasks = parsed_data.get("tasks", [])
+    if tasks:
+        plan_lines.append("TASKS IN THE PLAN:")
+        for t in tasks:
+            subs = t.get("subtasks", [])
+            plan_lines.append(f"  - [{t.get('person','')}] {t.get('text','')} (due {t.get('due_date','')})")
+            for s in subs:
+                plan_lines.append(f"      • {s}")
+
+    warnings = parsed_data.get("warnings", [])
+    if warnings:
+        plan_lines.append("FLAGGED WARNINGS:")
+        for w in warnings:
+            plan_lines.append(f"  ⚠ {w.get('text','')}")
+
+    plan_summary = "\n".join(plan_lines) if plan_lines else "No events or tasks parsed yet."
+
+    return f"""{base_ctx}
+
+== PLAN IMPORT CONSULTATION ==
+{intro}
+
+Here is what was parsed from Lauren's imported plan:
+
+{plan_summary}
+
+Lauren may ask you general questions or request specific advice about this plan.
+Keep responses concise and actionable — she is in the middle of reviewing the plan.
+Do NOT try to apply or write anything to the system — just advise."""
+
+
 def render_plan_import_page() -> str:
     today = date.today()
     iso   = today.isoformat()
@@ -259,6 +449,39 @@ textarea.pi-paste:focus{{outline:none;border-color:var(--navy);}}
 .person-tag{{display:inline-block;padding:1px 7px;border-radius:8px;
              font-size:0.7em;font-weight:700;margin-right:3px;
              background:rgba(30,53,102,.1);color:var(--navy);}}
+/* Companion consultation panel */
+.consult-card{{background:#fff;border:1px solid var(--border);border-radius:14px;
+               margin:0 16px 80px;overflow:hidden;}}
+.consult-header{{padding:12px 16px 8px;}}
+.consult-title{{font-size:0.82em;font-weight:700;color:var(--ink);margin-bottom:6px;}}
+.consult-subtitle{{font-size:0.72em;color:var(--ink-faint);line-height:1.4;}}
+.companion-row{{display:flex;gap:7px;flex-wrap:wrap;padding:0 16px 12px;}}
+.companion-btn{{display:flex;align-items:center;gap:6px;padding:7px 13px;
+                border:none;border-radius:20px;font-family:inherit;font-size:0.78em;
+                font-weight:700;cursor:pointer;color:#fff;transition:opacity .15s;
+                white-space:nowrap;}}
+.companion-btn:hover{{opacity:.88;}}
+.companion-btn.active{{box-shadow:0 0 0 3px rgba(255,255,255,.6),0 0 0 5px currentColor;}}
+.consult-chat-area{{border-top:1px solid var(--border);}}
+.consult-chat-header{{display:flex;align-items:center;gap:10px;padding:10px 14px 8px;}}
+.consult-chat-name{{font-size:0.85em;font-weight:700;flex:1;}}
+.consult-chat-close{{background:none;border:none;cursor:pointer;font-size:1.1em;
+                     color:var(--ink-faint);padding:4px;}}
+.consult-messages{{padding:10px 14px;max-height:280px;overflow-y:auto;
+                   display:flex;flex-direction:column;gap:8px;}}
+.cmsg-user{{background:var(--navy);color:#fff;padding:8px 12px;border-radius:14px 14px 4px 14px;
+             font-size:0.84em;line-height:1.5;max-width:80%;align-self:flex-end;}}
+.cmsg-ai{{background:var(--cream);padding:8px 12px;border-radius:4px 14px 14px 14px;
+           font-size:0.84em;line-height:1.6;max-width:90%;align-self:flex-start;white-space:pre-wrap;}}
+.cmsg-thinking{{font-size:0.78em;color:var(--ink-faint);align-self:flex-start;
+                 font-style:italic;padding:4px 0;}}
+.consult-input-row{{display:flex;gap:8px;padding:8px 14px 12px;border-top:1px solid var(--border);}}
+.consult-input{{flex:1;border:1px solid var(--border);border-radius:20px;
+                padding:8px 14px;font-family:inherit;font-size:0.84em;
+                color:var(--ink);background:var(--cream);}}
+.consult-input:focus{{outline:none;border-color:var(--navy);}}
+.consult-send{{background:var(--navy);color:#fff;border:none;border-radius:20px;
+               padding:8px 16px;font-family:inherit;font-size:0.82em;font-weight:700;cursor:pointer;}}
 </style>
 </head>
 <body>
@@ -377,6 +600,33 @@ textarea.pi-paste:focus{{outline:none;border-color:var(--navy);}}
     </div>
   </div>
 
+</div>
+
+<!-- Companion Consultation Panel -->
+<div id="consult-panel" style="display:none;margin-bottom:4px;">
+  <div class="consult-card">
+    <div class="consult-header">
+      <div class="consult-title">&#129504; Get Expert Input</div>
+      <div class="consult-subtitle">
+        Ask a companion to review this plan before you apply it.
+        Their advice is advisory only &mdash; you&rsquo;re still in control of what gets added.
+      </div>
+    </div>
+    <div class="companion-row" id="companion-row"></div>
+    <div class="consult-chat-area" id="consult-chat-area" style="display:none;">
+      <div class="consult-chat-header">
+        <span id="consult-chat-emoji" style="font-size:1.3em;"></span>
+        <span class="consult-chat-name" id="consult-chat-name"></span>
+        <button class="consult-chat-close" onclick="closeConsultChat()" title="Close">&#10005;</button>
+      </div>
+      <div class="consult-messages" id="consult-messages"></div>
+      <div class="consult-input-row">
+        <input class="consult-input" id="consult-input" placeholder="Ask this companion\u2026"
+               onkeydown="if(event.key==='Enter'&&!event.shiftKey){{event.preventDefault();consultSend();}}">
+        <button class="consult-send" id="consult-send-btn" onclick="consultSend()">Send</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Apply bar -->
@@ -569,6 +819,16 @@ function renderResults(data) {{
   // Apply bar
   document.getElementById('apply-bar').style.display = hasAnything ? 'flex' : 'none';
   updateApplySummary();
+
+  // Companion panel — reset old chat state and render fresh
+  consultHistories = {{}};
+  activeCompanion = null;
+  const chatArea = document.getElementById('consult-chat-area');
+  if (chatArea) chatArea.style.display = 'none';
+  document.getElementById('consult-panel').style.display = 'none';
+  if (data._companions && data._companions.length && hasAnything) {{
+    renderCompanionPanel(data._companions);
+  }}
 }}
 
 function renderEventItem(ev) {{
@@ -794,6 +1054,169 @@ function esc(str) {{
   return String(str)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}}
+
+// ── Companion Consultation ─────────────────────────────────────────────────
+let activeCompanion = null;      // current companion key
+let consultHistories = {{}};      // key -> [{role, content}]
+
+function renderCompanionPanel(companions) {{
+  if (!companions || !companions.length) return;
+  const panel = document.getElementById('consult-panel');
+  const row   = document.getElementById('companion-row');
+  if (!panel || !row) return;
+
+  row.innerHTML = companions.map(c => `
+    <button class="companion-btn" id="cbtn-${{c.key}}"
+            style="background:${{c.color}};"
+            onclick="openCompanionChat('${{c.key}}','${{esc(c.label)}}','${{c.color}}','${{esc(c.emoji)}}','${{esc(c.role)}}')">
+      ${{c.emoji}} ${{esc(c.label)}} <span style="opacity:.75;font-weight:400;">&middot; ${{esc(c.role)}}</span>
+    </button>
+  `).join('');
+
+  panel.style.display = '';
+}}
+
+function openCompanionChat(key, label, color, emoji, role) {{
+  // Toggle if already active
+  if (activeCompanion === key) {{
+    closeConsultChat();
+    return;
+  }}
+  activeCompanion = key;
+  if (!consultHistories[key]) consultHistories[key] = [];
+
+  // Update active state on buttons
+  document.querySelectorAll('.companion-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('cbtn-' + key);
+  if (btn) btn.classList.add('active');
+
+  // Update chat header
+  document.getElementById('consult-chat-emoji').textContent = emoji;
+  const nameEl = document.getElementById('consult-chat-name');
+  nameEl.textContent = label + ' · ' + role;
+  nameEl.style.color = color;
+  document.getElementById('consult-send-btn').style.background = color;
+
+  // Show chat area
+  const chatArea = document.getElementById('consult-chat-area');
+  chatArea.style.display = '';
+  chatArea.style.borderTopColor = color + '40';
+
+  // Render existing history
+  renderConsultHistory();
+
+  // If no history, send an opening "review" message automatically
+  if (consultHistories[key].length === 0) {{
+    autoOpenConsult(key);
+  }}
+
+  // Focus input
+  setTimeout(() => document.getElementById('consult-input').focus(), 100);
+}}
+
+function closeConsultChat() {{
+  activeCompanion = null;
+  document.querySelectorAll('.companion-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('consult-chat-area').style.display = 'none';
+}}
+
+function renderConsultHistory() {{
+  const msgs = consultHistories[activeCompanion] || [];
+  const box  = document.getElementById('consult-messages');
+  box.innerHTML = msgs.map(m => m.role === 'user'
+    ? `<div class="cmsg-user">${{esc(m.content)}}</div>`
+    : `<div class="cmsg-ai">${{m.content}}</div>`
+  ).join('');
+  box.scrollTop = box.scrollHeight;
+}}
+
+async function autoOpenConsult(key) {{
+  const openMsg = 'Please review the parsed plan and give me your expert perspective.';
+  await runConsultMessage(key, openMsg, true);
+}}
+
+async function consultSend() {{
+  if (!activeCompanion) return;
+  const inp = document.getElementById('consult-input');
+  const msg = inp.value.trim();
+  if (!msg) return;
+  inp.value = '';
+  await runConsultMessage(activeCompanion, msg, false);
+}}
+
+async function runConsultMessage(key, message, isAuto) {{
+  if (!consultHistories[key]) consultHistories[key] = [];
+
+  // Add user message (show only if not auto)
+  if (!isAuto) {{
+    consultHistories[key].push({{role:'user', content: message}});
+    renderConsultHistory();
+  }}
+
+  // Show thinking
+  const box = document.getElementById('consult-messages');
+  const thinkEl = document.createElement('div');
+  thinkEl.className = 'cmsg-thinking';
+  thinkEl.id = 'consult-thinking';
+  thinkEl.textContent = '\u2026';
+  box.appendChild(thinkEl);
+  box.scrollTop = box.scrollHeight;
+
+  // Disable input
+  const sendBtn = document.getElementById('consult-send-btn');
+  const inp     = document.getElementById('consult-input');
+  sendBtn.disabled = true; inp.disabled = true;
+
+  // Build history to send (include this user turn)
+  const histToSend = isAuto ? [] : [...consultHistories[key]];
+
+  const body = new URLSearchParams({{
+    companion: key,
+    message:   message,
+    history:   JSON.stringify(histToSend.slice(0,-1)),  // exclude last (just added)
+    plan_json: JSON.stringify(analysisData || {{}})
+  }});
+
+  try {{
+    const resp = await fetch('/plan-import-consult', {{method:'POST', body}});
+    if (!resp.ok) throw new Error(await resp.text());
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let text = '';
+
+    // Replace thinking with streaming bubble
+    thinkEl.remove();
+    const aiEl = document.createElement('div');
+    aiEl.className = 'cmsg-ai';
+    box.appendChild(aiEl);
+
+    while (true) {{
+      const {{done, value}} = await reader.read();
+      if (done) break;
+      text += decoder.decode(value, {{stream:true}});
+      aiEl.textContent = text;
+      box.scrollTop = box.scrollHeight;
+    }}
+
+    // Save to history
+    if (!isAuto) {{
+      consultHistories[key].push({{role:'assistant', content: text}});
+    }} else {{
+      // Auto message: just show the response (don't save user turn to history)
+      consultHistories[key].push({{role:'assistant', content: text}});
+    }}
+  }} catch(err) {{
+    thinkEl.remove();
+    const errEl = document.createElement('div');
+    errEl.className = 'cmsg-thinking';
+    errEl.textContent = 'Error: ' + err.message;
+    box.appendChild(errEl);
+  }} finally {{
+    sendBtn.disabled = false; inp.disabled = false;
+    inp.focus();
+  }}
 }}
 </script>
 </body>
