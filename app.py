@@ -2753,8 +2753,8 @@ class Handler(BaseHTTPRequestHandler):
                         if ans.strip():
                             _pi_user += f"- {qid}: {ans}\n"
                 _pi_payload = _pij.dumps({
-                    "model": "claude-haiku-4-5-20251001",
-                    "max_tokens": 2000,
+                    "model": "claude-sonnet-4-20250514",
+                    "max_tokens": 4000,
                     "system": _pi_sys,
                     "messages": [{"role": "user", "content": _pi_user}],
                     "stream": False,
@@ -2800,7 +2800,16 @@ class Handler(BaseHTTPRequestHandler):
                     except Exception: pass
                     # Attempt 4: strip trailing commas again after newline fix
                     fixed3 = _re2.sub(r',(\s*[}\]])', r'\1', fixed2)
-                    return _pij.loads(fixed3)  # raise if still broken
+                    try: return _pij.loads(fixed3)
+                    except Exception: pass
+                    # Attempt 5: add missing commas between adjacent string/object/array values
+                    # e.g. "val1"\n    "val2" → "val1",\n    "val2"
+                    fixed4 = _re2.sub(r'("|\d|true|false|null|}|])\s*\n(\s*)("|\{|\[)', r'\1,\n\2\3', fixed3)
+                    try: return _pij.loads(fixed4)
+                    except Exception: pass
+                    # Attempt 6: combined
+                    fixed5 = _re2.sub(r',(\s*[}\]])', r'\1', fixed4)
+                    return _pij.loads(fixed5)  # raise if still broken
 
                 try:
                     _pi_resp = _pireq.urlopen(_pi_req, timeout=90)
