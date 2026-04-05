@@ -51,7 +51,7 @@ _KEYWORD_FILES: list[tuple[list[str], str]] = [
     (["daily_schedule", "engine", "build_schedule", "CHILDREN"],            "daily_schedule_engine.py"),
 ]
 
-_MAX_FILE_CHARS = 12_000   # chars per injected file (roughly 3k tokens)
+_MAX_FILE_CHARS = 50_000   # chars per injected file (~12k tokens — covers most files in full)
 _MAX_FILES      = 2        # inject at most 2 files per request
 
 
@@ -139,7 +139,21 @@ Rules for FIX blocks:
 
 3. When the fix is displayed, Lauren sees an "Apply This Fix" button.
    Clicking it writes the change directly to the file.
-4. You can also see error logs if Lauren pastes them.
+4. You can request specific sections of large files using this tag:
+
+[READ: filename.py:start_line-end_line]
+
+Example: [READ: app.py:1000-1200] — a "Load lines 1000–1200" button will appear
+and Lauren can click it to inject that section into the conversation.
+You can use multiple [READ:] tags per response to request different sections.
+If you need a specific function, estimate its line range from context.
+
+5. You can see live server error logs. Lauren has a "Show Errors" button that
+   fetches the last 300 lines of the server log and injects them as context.
+   If Lauren clicks it, you will receive the log text in the next message.
+
+6. app.py is the largest file (5000+ lines). Use [READ: app.py:start-end] to
+   request specific sections rather than asking for the whole file at once.
 
 ════════════ PERSONALITY ════════════
 - Speak plainly. Lauren is not a developer — explain WHY as well as WHAT.
@@ -182,6 +196,16 @@ def render_dev_page(history: list) -> str:
       <div style="font-size:0.78em;color:#64748b;">Your app's built-in programmer · reads code · applies real fixes</div>
     </div>
     <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+      <button onclick="fetchLogs()" id="logs-btn"
+              style="padding:6px 12px;font-size:0.78em;border-radius:8px;border:1.5px solid #dc2626;
+                     background:#fef2f2;color:#dc2626;font-family:inherit;cursor:pointer;font-weight:600;">
+        &#128276; Errors
+      </button>
+      <button onclick="toggleFileLoader()" id="file-loader-btn"
+              style="padding:6px 12px;font-size:0.78em;border-radius:8px;border:1.5px solid #7c3aed;
+                     background:#fdf4ff;color:#7c3aed;font-family:inherit;cursor:pointer;font-weight:600;">
+        &#128196; Load File
+      </button>
       <button onclick="restartServer()" id="restart-btn"
               style="padding:6px 12px;font-size:0.78em;border-radius:8px;border:1.5px solid #f59e0b;
                      background:#fffbeb;color:#92400e;font-family:inherit;cursor:pointer;font-weight:600;">
@@ -198,11 +222,42 @@ def render_dev_page(history: list) -> str:
   </div>
 
   <!-- Capability chips -->
-  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;">
-    <span style="padding:4px 10px;background:#eff6ff;color:#1d4ed8;border-radius:20px;font-size:0.75em;font-weight:600;">Reads source files</span>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+    <span style="padding:4px 10px;background:#eff6ff;color:#1d4ed8;border-radius:20px;font-size:0.75em;font-weight:600;">Reads full source files</span>
     <span style="padding:4px 10px;background:#f0fdf4;color:#15803d;border-radius:20px;font-size:0.75em;font-weight:600;">Applies code fixes</span>
+    <span style="padding:4px 10px;background:#fef2f2;color:#dc2626;border-radius:20px;font-size:0.75em;font-weight:600;">Sees live error logs</span>
     <span style="padding:4px 10px;background:#fef3c7;color:#92400e;border-radius:20px;font-size:0.75em;font-weight:600;">Restarts server</span>
-    <span style="padding:4px 10px;background:#fdf4ff;color:#7e22ce;border-radius:20px;font-size:0.75em;font-weight:600;">Explains bugs</span>
+    <span style="padding:4px 10px;background:#fdf4ff;color:#7e22ce;border-radius:20px;font-size:0.75em;font-weight:600;">Loads any file section</span>
+  </div>
+
+  <!-- File loader panel (hidden by default) -->
+  <div id="file-loader-panel" style="display:none;background:#fdf4ff;border:1.5px solid #e9d5ff;
+       border-radius:12px;padding:14px;margin-bottom:14px;">
+    <div style="font-size:0.78em;font-weight:700;color:#7e22ce;margin-bottom:10px;">
+      &#128196; Load a file (or section) into the conversation
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <select id="fl-file" style="flex:1;min-width:160px;padding:7px 10px;border:1.5px solid #e9d5ff;
+              border-radius:8px;font-family:inherit;font-size:0.82em;background:white;">
+        <option value="">-- choose file --</option>
+        {chr(10).join(f'<option value="{fn}">{fn}</option>' for fn in sorted(f for f in os.listdir('.') if f.endswith('.py')))}
+      </select>
+      <input id="fl-start" type="number" placeholder="from line" min="1"
+             style="width:90px;padding:7px 10px;border:1.5px solid #e9d5ff;border-radius:8px;
+                    font-family:inherit;font-size:0.82em;">
+      <input id="fl-end" type="number" placeholder="to line"
+             style="width:90px;padding:7px 10px;border:1.5px solid #e9d5ff;border-radius:8px;
+                    font-family:inherit;font-size:0.82em;">
+      <button onclick="loadFileSection()" id="fl-load-btn"
+              style="padding:7px 14px;background:#7c3aed;color:white;border:none;border-radius:8px;
+                     font-family:inherit;font-size:0.82em;font-weight:700;cursor:pointer;">
+        Inject into chat
+      </button>
+    </div>
+    <div style="font-size:0.72em;color:#a855f7;margin-top:6px;">
+      Leave line numbers blank to load the entire file. Felix can also request sections by saying
+      [READ: filename.py:100-300].
+    </div>
   </div>
 
   <!-- Quick prompts -->
@@ -360,10 +415,10 @@ function escHtml(str) {{
          .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }}
 
-// ── Parse [FIX:...] blocks ─────────────────────────────────────────────────
+// ── Parse [FIX:...] and [READ:...] blocks ─────────────────────────────────
 function parseFixes(bubble, fullText) {{
-  // Format: [FIX: filename.py]\nFIND:\nold code\nREPLACE:\nnew code\n[/FIX]
-  const pattern = /\[FIX:\s*([^\]]+)\]\s*\nFIND:\n([\s\S]*?)\nREPLACE:\n([\s\S]*?)\n\[\/FIX\]/g;
+  const fixPattern  = /\[FIX:\s*([^\]]+)\]\s*\nFIND:\n([\s\S]*?)\nREPLACE:\n([\s\S]*?)\n\[\/FIX\]/g;
+  const readPattern = /\[READ:\s*([^:\]]+):(\d+)-(\d+)\]/g;
   const rawEl   = bubble.querySelector('.felix-raw');
   const fixesEl = bubble.querySelector('.felix-fixes');
   if (!rawEl || !fixesEl) return;
@@ -371,15 +426,12 @@ function parseFixes(bubble, fullText) {{
   let cleanText = fullText;
   let match;
 
-  while ((match = pattern.exec(fullText)) !== null) {{
+  // ── FIX blocks ────────────────────────────────────────────────────────────
+  while ((match = fixPattern.exec(fullText)) !== null) {{
     const filename = match[1].trim();
     const findStr  = match[2];
     const replStr  = match[3];
-
-    // Remove the raw FIX block from display text
-    cleanText = cleanText.replace(match[0], `✅ Fix proposed for ${{filename}} (see button below)`);
-
-    // Build apply card
+    cleanText = cleanText.replace(match[0], `\u2705 Fix proposed for ${{filename}} (see button below)`);
     const card = document.createElement('div');
     card.style.cssText = 'margin-top:12px;border:1.5px solid #86efac;border-radius:10px;overflow:hidden;';
     card.innerHTML = `
@@ -391,7 +443,7 @@ function parseFixes(bubble, fullText) {{
                 data-replace="${{escHtml(replStr)}}"
                 style="padding:4px 12px;background:#15803d;color:white;border:none;border-radius:6px;
                        font-size:0.85em;font-weight:700;cursor:pointer;font-family:inherit;">
-          Apply Fix &#10003;
+          Apply Fix \u2713
         </button>
       </div>
       <div style="background:#1e293b;padding:10px 12px;">
@@ -403,7 +455,102 @@ function parseFixes(bubble, fullText) {{
     fixesEl.appendChild(card);
   }}
 
+  // ── READ blocks ───────────────────────────────────────────────────────────
+  let readMatch;
+  while ((readMatch = readPattern.exec(fullText)) !== null) {{
+    const fname = readMatch[1].trim();
+    const start = parseInt(readMatch[2]);
+    const end   = parseInt(readMatch[3]);
+    cleanText = cleanText.replace(readMatch[0],
+      `[Felix wants to read ${{fname}} lines ${{start}}-${{end}} \u2014 see button below]`);
+    const readCard = document.createElement('div');
+    readCard.style.cssText = 'margin-top:10px;border:1.5px solid #e9d5ff;border-radius:10px;overflow:hidden;';
+    readCard.innerHTML = `
+      <div style="background:#fdf4ff;padding:8px 12px;font-size:0.75em;font-weight:700;
+                  color:#7e22ce;display:flex;align-items:center;justify-content:space-between;">
+        <span>&#128196; Felix needs: <code>${{escHtml(fname)}}</code> lines ${{start}}\u2013${{end}}</span>
+        <button onclick="loadFileSectionDirect('${{escHtml(fname)}}',${{start}},${{end}})"
+                style="padding:4px 12px;background:#7c3aed;color:white;border:none;border-radius:6px;
+                       font-size:0.85em;font-weight:700;cursor:pointer;font-family:inherit;">
+          Load &amp; send to Felix
+        </button>
+      </div>`;
+    fixesEl.appendChild(readCard);
+  }}
+
   rawEl.textContent = cleanText;
+}}
+
+// ── File loader panel ─────────────────────────────────────────────────────
+function toggleFileLoader() {{
+  const panel = document.getElementById('file-loader-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}}
+
+async function loadFileSection() {{
+  const fname = document.getElementById('fl-file').value;
+  if (!fname) {{ alert('Pick a file first.'); return; }}
+  const start = document.getElementById('fl-start').value || '';
+  const end   = document.getElementById('fl-end').value   || '';
+  await loadFileSectionDirect(fname, start ? parseInt(start) : 0, end ? parseInt(end) : 0);
+  document.getElementById('file-loader-panel').style.display = 'none';
+}}
+
+async function loadFileSectionDirect(fname, start, end) {{
+  const btn = event && event.target;
+  if (btn) {{ btn.disabled = true; btn.textContent = 'Loading\u2026'; }}
+  try {{
+    const params = new URLSearchParams({{file: fname}});
+    if (start > 0) params.append('start', start);
+    if (end   > 0) params.append('end',   end);
+    const resp = await fetch('/dev-read-file?' + params.toString());
+    const text = await resp.text();
+    if (!resp.ok) {{ alert('Error: ' + text); return; }}
+    // Inject as a context message, then send to Felix
+    injectContext('\u{1F4C4} File section loaded — ' + fname +
+      (start > 0 ? ' lines ' + start + '-' + end : ' (full file)') +
+      ':\n\n' + text);
+  }} catch(e) {{
+    alert('Network error: ' + e.message);
+  }} finally {{
+    if (btn) {{ btn.disabled = false; btn.textContent = 'Load & send to Felix'; }}
+  }}
+}}
+
+// ── Fetch error logs ─────────────────────────────────────────────────────
+async function fetchLogs() {{
+  const btn = document.getElementById('logs-btn');
+  btn.disabled = true; btn.textContent = 'Loading\u2026';
+  try {{
+    const resp = await fetch('/dev-logs');
+    const text = await resp.text();
+    if (!resp.ok) {{ alert('Could not load logs: ' + text); return; }}
+    injectContext('\u{1F6A8} Server error log (last 300 lines):\n\n' + text);
+  }} catch(e) {{
+    alert('Network error: ' + e.message);
+  }} finally {{
+    btn.disabled = false; btn.textContent = '\u{1F514} Errors';
+  }}
+}}
+
+// ── Inject context message and ask Felix to analyze ─────────────────────
+function injectContext(contextText) {{
+  const box = document.getElementById('felix-msgs');
+  // Show a teal "context loaded" indicator
+  const info = document.createElement('div');
+  info.style.cssText = 'background:#e0f2fe;border:1px solid #7dd3fc;border-radius:10px;padding:8px 12px;' +
+    'font-size:0.75em;color:#0369a1;display:flex;justify-content:space-between;align-items:center;';
+  const preview = contextText.substring(0, 80).replace(/\n/g,' ') + '\u2026';
+  info.innerHTML = `<span>&#128196; Context loaded: ${{escHtml(preview)}}</span>
+    <button onclick="this.closest('div').remove()" style="background:none;border:none;cursor:pointer;
+            color:#0369a1;font-size:1em;">&#10005;</button>`;
+  box.appendChild(info);
+
+  // Pre-fill input with the context + a prompt
+  const inp = document.getElementById('felix-input');
+  inp.value = contextText + '\n\nPlease analyze this and let me know what you see.';
+  inp.focus();
+  box.scrollTop = box.scrollHeight;
 }}
 
 // ── Apply a fix ───────────────────────────────────────────────────────────

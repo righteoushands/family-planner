@@ -3,7 +3,58 @@ app.py — HTTP server and router only.
 All rendering lives in render_*.py modules.
 All data I/O lives in data_helpers.py.
 """
-import os, uuid, time as _time
+import os, uuid, time as _time, sys, threading
+
+# ── Tee stderr → data/server.log so Felix can see runtime errors ──────────────
+os.makedirs("data", exist_ok=True)
+class _TeeWriter:
+    """Writes to both the original stream and data/server.log."""
+    _lock = threading.Lock()
+    _log_path = "data/server.log"
+    _max_bytes = 300_000   # ~300 KB; trimmed to half when exceeded
+    def __init__(self, original):
+        self._orig = original
+        # Trim log file to last 150 KB on startup
+        try:
+            if os.path.getsize(self._log_path) > self._max_bytes:
+                with open(self._log_path, "r", encoding="utf-8", errors="replace") as f:
+                    content = f.read()
+                keep = content[-(self._max_bytes // 2):]
+                nl = keep.find("\n")
+                if nl >= 0:
+                    keep = keep[nl + 1:]
+                with open(self._log_path, "w", encoding="utf-8", errors="replace") as f:
+                    f.write(keep)
+        except Exception:
+            pass
+    def write(self, data):
+        if data:
+            try: self._orig.write(data)
+            except Exception: pass
+            try:
+                with _TeeWriter._lock:
+                    with open(self._log_path, "a", encoding="utf-8", errors="replace") as f:
+                        f.write(data)
+                    if os.path.getsize(self._log_path) > self._max_bytes:
+                        with open(self._log_path, "r", encoding="utf-8", errors="replace") as f:
+                            content = f.read()
+                        keep = content[-(self._max_bytes // 2):]
+                        nl = keep.find("\n")
+                        if nl >= 0: keep = keep[nl + 1:]
+                        with open(self._log_path, "w", encoding="utf-8", errors="replace") as f:
+                            f.write(keep)
+            except Exception:
+                pass
+    def flush(self):
+        try: self._orig.flush()
+        except Exception: pass
+    def __getattr__(self, name):
+        return getattr(self._orig, name)
+
+if not isinstance(sys.stderr, _TeeWriter):
+    sys.stderr = _TeeWriter(sys.stderr)
+if not isinstance(sys.stdout, _TeeWriter):
+    sys.stdout = _TeeWriter(sys.stdout)
 
 # ── Pin the process timezone to Eastern so date.today() / datetime.now()
 # ── always reflect the McAdams family's local time, not UTC.
@@ -545,6 +596,71 @@ class Handler(BaseHTTPRequestHandler):
             try: self.wfile.write(html.encode())
             except BrokenPipeError: pass
             return
+
+        # ── Felix: server error log ────────────────────────────────────────────
+        elif path == "/dev-logs":
+            import pathlib as _pl
+            _dv = self._get_viewer()
+            if not (_dv and _auth.is_admin(_dv)):
+                self.send_response(403); self.end_headers(); return
+            log_path = _pl.Path("data/server.log")
+            if log_path.exists():
+                raw = log_path.read_text(encoding="utf-8", errors="replace")
+                lines = raw.splitlines()
+                text = "\n".join(lines[-300:])
+            else:
+                text = "No log file yet. Errors will appear here once the server logs something."
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            try: self.wfile.write(text.encode("utf-8", errors="replace"))
+            except BrokenPipeError: pass
+            return
+
+        # ── Felix: read a file or line range ──────────────────────────────────
+        elif path == "/dev-read-file":
+            import pathlib as _pl
+            _dv = self._get_viewer()
+            if not (_dv and _auth.is_admin(_dv)):
+                self.send_response(403); self.end_headers(); return
+            fname = query.get("file", [""])[0].strip()
+            fpath = _pl.Path(fname)
+            # Safety: only project-root files with allowed extensions
+            allowed_exts = {".py", ".js", ".ts", ".html", ".css", ".json", ".md", ".txt"}
+            if (not fname or fpath.parent != _pl.Path(".")
+                    or fpath.suffix not in allowed_exts
+                    or not fpath.exists()):
+                self.send_response(404)
+                self.send_header("Content-Type", "text/plain")
+                self.end_headers()
+                try: self.wfile.write(b"File not found or not allowed.")
+                except BrokenPipeError: pass
+                return
+            content = fpath.read_text(encoding="utf-8", errors="replace")
+            all_lines = content.splitlines()
+            total = len(all_lines)
+            try:
+                start = max(1, int(query.get("start", ["1"])[0])) - 1   # 0-indexed
+            except (ValueError, IndexError):
+                start = 0
+            try:
+                end = min(total, int(query.get("end", ["0"])[0]))
+            except (ValueError, IndexError):
+                end = 0
+            if end == 0 or end > total:
+                end = total
+            selected = "\n".join(all_lines[start:end])
+            result = (f"=== {fname}  (lines {start+1}–{end} of {total}) ===\n\n"
+                      + selected)
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            try: self.wfile.write(result.encode("utf-8", errors="replace"))
+            except BrokenPipeError: pass
+            return
+
         elif path == "/memory-book":      body = render_memory_book_page()
         elif path == "/liturgical":      body = render_liturgical_page()
         elif path == "/prayer":           body = render_liturgical_page()
