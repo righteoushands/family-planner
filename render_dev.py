@@ -185,49 +185,184 @@ def render_dev_page(history: list) -> str:
 <div style="max-width:700px;margin:0 auto;padding:16px 16px 120px;">
 
   <!-- Header -->
-  <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-top:8px;">
-    <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1e3a8a,#3b82f6);
-                display:flex;align-items:center;justify-content:center;font-size:1.6em;flex-shrink:0;">
-      &#128187;
+  <div style="background:linear-gradient(135deg,#1e3a8a 0%,#1e40af 60%,#2563eb 100%);
+              border-radius:16px;padding:20px 20px 16px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.15);
+                  border:2px solid rgba(255,255,255,0.3);
+                  display:flex;align-items:center;justify-content:center;font-size:1.8em;flex-shrink:0;">
+        &#128187;
+      </div>
+      <div style="flex:1;">
+        <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:1.7em;font-weight:700;
+                    color:white;line-height:1.1;">The Help Desk</div>
+        <div style="font-size:0.78em;color:rgba(255,255,255,0.75);margin-top:2px;">
+          Felix &middot; your app&rsquo;s built-in programmer &middot; reads code &middot; applies real fixes
+        </div>
+      </div>
+      <button onclick="toggleGuide()" id="guide-btn"
+              title="Show / hide the full guide explaining every button and how Felix works"
+              style="padding:6px 13px;font-size:0.78em;border-radius:8px;
+                     border:1.5px solid rgba(255,255,255,0.4);
+                     background:rgba(255,255,255,0.12);color:white;
+                     font-family:inherit;cursor:pointer;font-weight:600;white-space:nowrap;">
+        &#10067; How it works
+      </button>
     </div>
-    <div>
-      <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:1.5em;font-weight:700;
-                  color:#1e3a8a;line-height:1.1;">Felix</div>
-      <div style="font-size:0.78em;color:#64748b;">Your app's built-in programmer · reads code · applies real fixes</div>
-    </div>
-    <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-      <button onclick="fetchLogs()" id="logs-btn"
-              style="padding:6px 12px;font-size:0.78em;border-radius:8px;border:1.5px solid #dc2626;
-                     background:#fef2f2;color:#dc2626;font-family:inherit;cursor:pointer;font-weight:600;">
-        &#128276; Errors
+
+    <!-- Action buttons row -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
+      <button onclick="toggleErrors()" id="errors-toggle-btn"
+              title="Show / hide the live server error log panel. Errors, tracebacks, and print statements from the running app appear here in real time."
+              style="padding:6px 13px;font-size:0.78em;border-radius:8px;
+                     border:1.5px solid rgba(252,165,165,0.6);
+                     background:rgba(220,38,38,0.15);color:#fca5a5;
+                     font-family:inherit;cursor:pointer;font-weight:600;">
+        &#128680; Live Errors
       </button>
       <button onclick="toggleFileLoader()" id="file-loader-btn"
-              style="padding:6px 12px;font-size:0.78em;border-radius:8px;border:1.5px solid #7c3aed;
-                     background:#fdf4ff;color:#7c3aed;font-family:inherit;cursor:pointer;font-weight:600;">
+              title="Open the file loader: pick any source file (and optional line range) to inject directly into the chat so Felix can read it."
+              style="padding:6px 13px;font-size:0.78em;border-radius:8px;
+                     border:1.5px solid rgba(216,180,254,0.5);
+                     background:rgba(124,58,237,0.15);color:#d8b4fe;
+                     font-family:inherit;cursor:pointer;font-weight:600;">
         &#128196; Load File
       </button>
       <button onclick="restartServer()" id="restart-btn"
-              style="padding:6px 12px;font-size:0.78em;border-radius:8px;border:1.5px solid #f59e0b;
-                     background:#fffbeb;color:#92400e;font-family:inherit;cursor:pointer;font-weight:600;">
-        &#128260; Restart
+              title="Gracefully restart the server after applying a code fix. The page will tell you when to refresh."
+              style="padding:6px 13px;font-size:0.78em;border-radius:8px;
+                     border:1.5px solid rgba(251,191,36,0.5);
+                     background:rgba(245,158,11,0.15);color:#fcd34d;
+                     font-family:inherit;cursor:pointer;font-weight:600;">
+        &#128260; Restart Server
       </button>
       <form method="POST" action="/dev-clear" style="display:inline;">
         <button type="submit"
-                style="padding:6px 12px;font-size:0.78em;border-radius:8px;border:1.5px solid #e2e8f0;
-                       background:white;color:#64748b;font-family:inherit;cursor:pointer;">
-          &#128465; Clear
+                title="Clear Felix's entire conversation history and start fresh. Useful when a conversation gets too long or goes off track."
+                style="padding:6px 13px;font-size:0.78em;border-radius:8px;
+                       border:1.5px solid rgba(255,255,255,0.2);
+                       background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);
+                       font-family:inherit;cursor:pointer;">
+          &#128465; Clear Chat
         </button>
       </form>
     </div>
   </div>
 
-  <!-- Capability chips -->
-  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
-    <span style="padding:4px 10px;background:#eff6ff;color:#1d4ed8;border-radius:20px;font-size:0.75em;font-weight:600;">Reads full source files</span>
-    <span style="padding:4px 10px;background:#f0fdf4;color:#15803d;border-radius:20px;font-size:0.75em;font-weight:600;">Applies code fixes</span>
-    <span style="padding:4px 10px;background:#fef2f2;color:#dc2626;border-radius:20px;font-size:0.75em;font-weight:600;">Sees live error logs</span>
-    <span style="padding:4px 10px;background:#fef3c7;color:#92400e;border-radius:20px;font-size:0.75em;font-weight:600;">Restarts server</span>
-    <span style="padding:4px 10px;background:#fdf4ff;color:#7e22ce;border-radius:20px;font-size:0.75em;font-weight:600;">Loads any file section</span>
+  <!-- Collapsible Guide -->
+  <div id="guide-panel" style="display:none;background:#f8faff;border:1.5px solid #dbeafe;
+       border-radius:14px;padding:18px 20px;margin-bottom:14px;">
+    <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:1.1em;font-weight:700;
+                color:#1e3a8a;margin-bottom:14px;">&#128218; Help Desk Guide</div>
+
+    <div style="display:grid;gap:12px;">
+
+      <div style="background:white;border-radius:10px;padding:13px 15px;border-left:4px solid #dc2626;">
+        <div style="font-weight:700;font-size:0.82em;color:#dc2626;margin-bottom:4px;">&#128680; Live Errors</div>
+        <div style="font-size:0.78em;color:#475569;line-height:1.6;">
+          Opens a panel showing the last 300 lines of the server&rsquo;s live output — including Python
+          tracebacks, error messages, and print statements from any part of the app. Use
+          <strong>Auto-refresh</strong> to keep it updating every 5 seconds, or <strong>Refresh now</strong>
+          to pull the latest manually. When you see an error, click <strong>Send log to Felix</strong>
+          and he will diagnose it immediately.
+        </div>
+      </div>
+
+      <div style="background:white;border-radius:10px;padding:13px 15px;border-left:4px solid #7c3aed;">
+        <div style="font-weight:700;font-size:0.82em;color:#7c3aed;margin-bottom:4px;">&#128196; Load File</div>
+        <div style="font-size:0.78em;color:#475569;line-height:1.6;">
+          Opens a panel where you pick any source file from a dropdown and optionally enter a line range
+          (e.g. 500 to 700). Clicking <strong>Inject into chat</strong> sends that section straight to
+          Felix so he can read it. Leave the line numbers blank to load the entire file. You can also
+          let Felix request sections himself — he will write <code>[READ: filename.py:100-300]</code>
+          in his response and a purple <strong>Load &amp; send to Felix</strong> button will appear.
+        </div>
+      </div>
+
+      <div style="background:white;border-radius:10px;padding:13px 15px;border-left:4px solid #d97706;">
+        <div style="font-weight:700;font-size:0.82em;color:#d97706;margin-bottom:4px;">&#128260; Restart Server</div>
+        <div style="font-size:0.78em;color:#475569;line-height:1.6;">
+          After Felix proposes a fix and you click <strong>Apply Fix</strong>, the code is written to
+          the file but the server keeps running the old version. Click <strong>Restart Server</strong>
+          to reload everything. A toast will count down — refresh the page after 5 seconds to confirm
+          the fix is live.
+        </div>
+      </div>
+
+      <div style="background:white;border-radius:10px;padding:13px 15px;border-left:4px solid #64748b;">
+        <div style="font-weight:700;font-size:0.82em;color:#64748b;margin-bottom:4px;">&#128465; Clear Chat</div>
+        <div style="font-size:0.78em;color:#475569;line-height:1.6;">
+          Wipes Felix&rsquo;s entire conversation history and starts fresh. Useful when a conversation
+          goes long or drifts off topic. Felix&rsquo;s memory of the codebase is rebuilt automatically
+          from the source files on each new message.
+        </div>
+      </div>
+
+      <div style="background:white;border-radius:10px;padding:13px 15px;border-left:4px solid #15803d;">
+        <div style="font-weight:700;font-size:0.82em;color:#15803d;margin-bottom:4px;">&#128295; Apply Fix (green card)</div>
+        <div style="font-size:0.78em;color:#475569;line-height:1.6;">
+          When Felix proposes a code change, it appears as a dark card showing exactly what will be
+          removed (red) and added (green). Click <strong>Apply Fix ✓</strong> to write the change
+          directly to the file. Then restart the server to see it live. You can always roll back using
+          a checkpoint if something goes wrong.
+        </div>
+      </div>
+
+      <div style="background:white;border-radius:10px;padding:13px 15px;border-left:4px solid #7c3aed;">
+        <div style="font-weight:700;font-size:0.82em;color:#7c3aed;margin-bottom:4px;">&#128196; Load Section (purple card)</div>
+        <div style="font-size:0.78em;color:#475569;line-height:1.6;">
+          Felix sometimes needs to see a specific part of a large file. He will write
+          <code>[READ: app.py:1000-1200]</code> and a purple card appears. Click
+          <strong>Load &amp; send to Felix</strong> to fetch those exact lines and send them back
+          into the conversation automatically.
+        </div>
+      </div>
+
+      <div style="background:#fffbeb;border-radius:10px;padding:13px 15px;border-left:4px solid #f59e0b;">
+        <div style="font-weight:700;font-size:0.82em;color:#92400e;margin-bottom:4px;">&#128161; Tips for best results</div>
+        <div style="font-size:0.78em;color:#475569;line-height:1.6;">
+          &bull; Describe bugs in plain English — Felix will figure out which file to read.<br>
+          &bull; If you get a Python traceback, click <strong>Live Errors</strong>, then <strong>Send log to Felix</strong>.<br>
+          &bull; For huge files like <code>app.py</code>, let Felix ask for the section he needs via [READ:] rather than loading the whole thing.<br>
+          &bull; One [FIX] block = one logical change. Felix will split big changes into multiple cards.<br>
+          &bull; If a fix breaks something, roll back using the checkpoint history (the app saves checkpoints automatically).
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Live Errors Panel (hidden by default) -->
+  <div id="errors-panel" style="display:none;background:#0f172a;border:1.5px solid #334155;
+       border-radius:14px;padding:0;margin-bottom:14px;overflow:hidden;">
+    <div style="display:flex;align-items:center;justify-content:space-between;
+                padding:10px 14px;background:#1e293b;border-bottom:1px solid #334155;">
+      <div style="font-size:0.78em;font-weight:700;color:#f1f5f9;">
+        &#128680; Live Server Log <span id="log-line-count" style="font-weight:400;color:#64748b;"></span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <label style="font-size:0.72em;color:#94a3b8;display:flex;align-items:center;gap:5px;cursor:pointer;">
+          <input type="checkbox" id="log-auto-refresh" onchange="toggleAutoRefresh()"
+                 style="accent-color:#3b82f6;">
+          Auto-refresh (5s)
+        </label>
+        <button onclick="refreshLogs()" id="log-refresh-btn"
+                title="Pull the latest server output right now"
+                style="padding:4px 10px;font-size:0.72em;border-radius:6px;border:1px solid #475569;
+                       background:#334155;color:#94a3b8;font-family:inherit;cursor:pointer;">
+          &#8635; Refresh now
+        </button>
+        <button onclick="sendLogToFelix()"
+                title="Copy the visible log text into the chat input and ask Felix to diagnose it"
+                style="padding:4px 10px;font-size:0.72em;border-radius:6px;border:1px solid #3b82f6;
+                       background:#1d4ed8;color:white;font-family:inherit;cursor:pointer;font-weight:600;">
+          &#128172; Send to Felix
+        </button>
+      </div>
+    </div>
+    <pre id="log-content" style="margin:0;padding:12px 14px;font-size:0.72em;color:#94a3b8;
+         max-height:280px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;
+         line-height:1.5;">Loading&hellip;</pre>
   </div>
 
   <!-- File loader panel (hidden by default) -->
@@ -249,26 +384,30 @@ def render_dev_page(history: list) -> str:
              style="width:90px;padding:7px 10px;border:1.5px solid #e9d5ff;border-radius:8px;
                     font-family:inherit;font-size:0.82em;">
       <button onclick="loadFileSection()" id="fl-load-btn"
+              title="Fetch the selected file (and line range if specified) and send it to Felix as context"
               style="padding:7px 14px;background:#7c3aed;color:white;border:none;border-radius:8px;
                      font-family:inherit;font-size:0.82em;font-weight:700;cursor:pointer;">
         Inject into chat
       </button>
     </div>
     <div style="font-size:0.72em;color:#a855f7;margin-top:6px;">
-      Leave line numbers blank to load the entire file. Felix can also request sections by saying
-      [READ: filename.py:100-300].
+      Leave line numbers blank to load the entire file &middot; Felix can also request sections automatically with [READ: filename.py:100-300]
     </div>
   </div>
 
   <!-- Quick prompts -->
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">
     <button onclick="quickMsg('Can you explain how the app is structured?')"
+            title="Ask Felix for a plain-English overview of how the codebase is organized"
             class="q-chip">App overview</button>
     <button onclick="quickMsg('Are there any common bugs or edge cases I should know about?')"
+            title="Ask Felix to scan the codebase for known pitfalls and fragile spots"
             class="q-chip">Common issues</button>
     <button onclick="quickMsg('Something is broken — I will paste the error below. What could cause this?')"
+            title="Pre-fill a debugging prompt — then paste your error message and hit Send"
             class="q-chip">Debug an error</button>
     <button onclick="quickMsg('Can you read render_plan_importer.py and check it for bugs?')"
+            title="Ask Felix to read and audit the Plan Importer source file"
             class="q-chip">Audit Plan Importer</button>
   </div>
   <style>
@@ -481,6 +620,94 @@ function parseFixes(bubble, fullText) {{
   rawEl.textContent = cleanText;
 }}
 
+// ── Guide panel ───────────────────────────────────────────────────────────
+function toggleGuide() {{
+  const p = document.getElementById('guide-panel');
+  const b = document.getElementById('guide-btn');
+  if (p.style.display === 'none') {{
+    p.style.display = 'block';
+    b.textContent = '\u2715 Close guide';
+  }} else {{
+    p.style.display = 'none';
+    b.innerHTML = '&#10067; How it works';
+  }}
+}}
+
+// ── Live errors panel ─────────────────────────────────────────────────────
+let _autoRefreshTimer = null;
+
+function toggleErrors() {{
+  const panel = document.getElementById('errors-panel');
+  const btn   = document.getElementById('errors-toggle-btn');
+  if (panel.style.display === 'none') {{
+    panel.style.display = 'block';
+    btn.style.background = 'rgba(220,38,38,0.35)';
+    refreshLogs();
+  }} else {{
+    panel.style.display = 'none';
+    btn.style.background = 'rgba(220,38,38,0.15)';
+    stopAutoRefresh();
+    document.getElementById('log-auto-refresh').checked = false;
+  }}
+}}
+
+async function refreshLogs() {{
+  const btn = document.getElementById('log-refresh-btn');
+  if (btn) {{ btn.disabled = true; btn.textContent = 'Loading\u2026'; }}
+  try {{
+    const resp = await fetch('/dev-logs');
+    const text = await resp.text();
+    const pre  = document.getElementById('log-content');
+    if (pre) {{
+      // Colorize common patterns
+      const colored = text
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/(Traceback \(most recent call last\):)/g,
+          '<span style="color:#f87171;font-weight:700;">$1</span>')
+        .replace(/(Error|Exception|Traceback):/g,
+          '<span style="color:#f87171;font-weight:700;">$1:</span>')
+        .replace(/(\d{{3}}\s+[A-Z]+)/g,
+          '<span style="color:#fbbf24;">$1</span>')
+        .replace(/(WARNING)/g,
+          '<span style="color:#fbbf24;font-weight:600;">$1</span>');
+      pre.innerHTML = colored;
+      pre.scrollTop = pre.scrollHeight;
+      const lines = text.split('\n').length;
+      const ctr = document.getElementById('log-line-count');
+      if (ctr) ctr.textContent = '(' + lines + ' lines)';
+    }}
+  }} catch(e) {{
+    const pre = document.getElementById('log-content');
+    if (pre) pre.textContent = 'Could not load log: ' + e.message;
+  }} finally {{
+    if (btn) {{ btn.disabled = false; btn.textContent = '\u21bb Refresh now'; }}
+  }}
+}}
+
+function toggleAutoRefresh() {{
+  const cb = document.getElementById('log-auto-refresh');
+  if (cb && cb.checked) {{
+    _autoRefreshTimer = setInterval(refreshLogs, 5000);
+  }} else {{
+    stopAutoRefresh();
+  }}
+}}
+
+function stopAutoRefresh() {{
+  if (_autoRefreshTimer) {{ clearInterval(_autoRefreshTimer); _autoRefreshTimer = null; }}
+}}
+
+function sendLogToFelix() {{
+  const pre = document.getElementById('log-content');
+  if (!pre) return;
+  const logText = pre.innerText || pre.textContent || '';
+  const inp = document.getElementById('felix-input');
+  inp.value = '\ud83d\udea8 Server error log (last 300 lines):\n\n' + logText +
+    '\n\nPlease analyze this log. Identify any errors, exceptions, or warnings and explain what caused them.';
+  inp.focus();
+  document.getElementById('felix-msgs').scrollTop = 99999;
+}}
+
 // ── File loader panel ─────────────────────────────────────────────────────
 function toggleFileLoader() {{
   const panel = document.getElementById('file-loader-panel');
@@ -514,22 +741,6 @@ async function loadFileSectionDirect(fname, start, end) {{
     alert('Network error: ' + e.message);
   }} finally {{
     if (btn) {{ btn.disabled = false; btn.textContent = 'Load & send to Felix'; }}
-  }}
-}}
-
-// ── Fetch error logs ─────────────────────────────────────────────────────
-async function fetchLogs() {{
-  const btn = document.getElementById('logs-btn');
-  btn.disabled = true; btn.textContent = 'Loading\u2026';
-  try {{
-    const resp = await fetch('/dev-logs');
-    const text = await resp.text();
-    if (!resp.ok) {{ alert('Could not load logs: ' + text); return; }}
-    injectContext('\u{1F6A8} Server error log (last 300 lines):\n\n' + text);
-  }} catch(e) {{
-    alert('Network error: ' + e.message);
-  }} finally {{
-    btn.disabled = false; btn.textContent = '\u{1F514} Errors';
   }}
 }}
 
@@ -633,11 +844,16 @@ def _welcome_bubble() -> str:
               display:flex;align-items:center;justify-content:center;font-size:1em;flex-shrink:0;">&#128187;</div>
   <div style="flex:1;background:#f8faff;border:1px solid #dbeafe;padding:12px 14px;
               border-radius:4px 14px 14px 14px;font-size:0.87em;line-height:1.6;color:#1e293b;">
-    Hi Lauren! I'm Felix, your app's programmer. &#128075;<br><br>
-    I know this codebase inside and out. Tell me what's not working — describe the problem,
-    paste an error message, or just say <em>"the plan importer is broken"</em> and I'll read
-    the code and figure it out.<br><br>
-    When I find a fix, I'll show it to you and you can apply it with one tap.
+    Welcome to the Help Desk, Lauren! I&rsquo;m Felix, your app&rsquo;s programmer. &#128075;<br><br>
+    I know this codebase inside and out. Tell me what&rsquo;s not working &mdash; describe the problem,
+    paste an error message, or just say <em>&ldquo;the plan importer is broken&rdquo;</em> and I&rsquo;ll
+    read the code and figure it out.<br><br>
+    A few things that might help you get started:<br>
+    &bull; Click <strong>&#128680; Live Errors</strong> to see the server&rsquo;s live output &mdash;
+      tracebacks and errors show up there in real time.<br>
+    &bull; Click <strong>&#10067; How it works</strong> for a full guide to every button on this page.<br>
+    &bull; Use the quick-prompt chips below to get started with common tasks.<br><br>
+    When I find a fix, I&rsquo;ll show it to you and you can apply it with one tap.
     Nothing changes until you say so. &#128512;
   </div>
 </div>"""
