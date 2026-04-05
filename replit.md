@@ -1,7 +1,7 @@
 # Sancta Familia — Family Management & Homeschooling Dashboard
 
 ## Overview
-A Python HTTP server (no framework) running on port 5000. A Catholic family dashboard for the McAdams family: Lauren (Mom), John (Dad), JP (14), Joseph (12), Michael (5), James (13 months). Features Mass readings, weather, meal plans, calendar, chores, and "Lucy" — a Claude-powered AI companion. Full authentication with per-user access control.
+A Python HTTP server (no framework) running on port 5000. A Catholic family dashboard for the McAdams family: Lauren (Mom), John (Dad), JP (14), Joseph (12), Michael (5), James (13 months). Features Mass readings, weather, meal plans, calendar, chores, and a five-companion AI ecosystem: Lucy (Catholic friend/integrator), Lorenzo (personal chef), Father Gregory (academic headmaster), Coach (family fitness), Dr. Monica (child development + pediatric health). Full authentication with per-user access control.
 
 ## Architecture
 - **Entry point**: `app.py` — single HTTP handler routing all GET/POST requests
@@ -30,7 +30,11 @@ A Python HTTP server (no framework) running on port 5000. A Catholic family dash
 | `render_login.py` | Login page with avatar grid and PIN pad |
 | `render_misc.py` | Dashboard (with mom's message inbox), `/now` page, school, tasks, notes |
 | `render_schedule.py` | `/today` (child dash cards) and child schedule full page |
-| `render_lucy.py` | Lucy AI chat, rule parsing, memory book integration |
+| `render_lucy.py` | Lucy AI chat — Catholic companion/integrator; rule parsing, memory book |
+| `render_lorenzo.py` | Lorenzo AI chat — personal chef, meal planning, streaming |
+| `render_gregory.py` | Father Gregory AI chat — homeschool headmaster, academic planning |
+| `render_coach.py` | Coach AI chat — family fitness, movement plans |
+| `render_monica.py` | Dr. Monica AI chat — child development, pediatric health |
 | `render_settings.py` | All settings including PIN management section |
 | `render_schedule_support.py` | `get_current_slot()`, `get_eastern_now()` helpers |
 | `data_helpers.py` | Load/save helpers for all JSON data files |

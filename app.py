@@ -48,6 +48,9 @@ from render_liturgical import render_liturgical_page, render_liturgical_edit_pag
 from render_readings import render_readings_page
 from render_lucy import render_lucy_page, build_lucy_context
 from render_lorenzo import render_lorenzo_page, build_lorenzo_context
+from render_gregory import render_gregory_page, build_gregory_context
+from render_coach import render_coach_page, build_coach_context
+from render_monica import render_monica_page, build_monica_context
 from render_memory_book import render_memory_book_page, add_memory_entry, delete_memory_entry
 from render_chores import render_chores_page, render_van_roles_page, apply_laundry_defaults, apply_van_rotation
 from render_misc import (
@@ -467,6 +470,36 @@ class Handler(BaseHTTPRequestHandler):
             return
         elif path == "/lorenzo":
             html = render_lorenzo_page()
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header("Pragma","no-cache")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
+        elif path == "/headmaster":
+            html = render_gregory_page()
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header("Pragma","no-cache")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
+        elif path == "/coach":
+            html = render_coach_page()
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header("Pragma","no-cache")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
+        elif path == "/dr-monica":
+            html = render_monica_page()
             self.send_response(200)
             self.send_header("Content-Type","text/html; charset=utf-8")
             self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
@@ -2422,6 +2455,234 @@ class Handler(BaseHTTPRequestHandler):
                 from data_helpers import clear_lorenzo_history
                 clear_lorenzo_history()
                 redirect = "/lorenzo"
+
+            # ── Father Gregory ───────────────────────────────────────────────
+            elif path == "/headmaster-chat":
+                import json as _json, urllib.request as _req
+                from data_helpers import (
+                    load_gregory_history, append_gregory_messages, GREGORY_CONTEXT_MAX
+                )
+                from datetime import datetime as _dt
+                _today_real = date.today()
+                iso        = _today_real.isoformat()
+                weekday    = _today_real.strftime("%A")
+                date_label = _today_real.strftime("%B %d, %Y")
+                message    = clean_text(data.get("message",[""])[0])
+                settings_data = load_app_settings()
+                api_key = (settings_data.get("family_constraints",{}).get("anthropic_api_key","")
+                           or settings_data.get("anthropic_api_key","")).strip()
+                if not api_key:
+                    self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"No API key configured.")
+                    except BrokenPipeError: pass
+                    return
+                gregory_context = build_gregory_context(iso, weekday, date_label)
+                ts_now = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                append_gregory_messages([{"role": "user", "content": message, "ts": ts_now}])
+                server_history = load_gregory_history()
+                messages = []
+                for h in server_history[-GREGORY_CONTEXT_MAX:]:
+                    role = h.get("role","user"); content = h.get("content","")
+                    if role in ("user","assistant") and content:
+                        messages.append({"role": role, "content": content})
+                if not messages or messages[-1].get("role") != "user":
+                    messages.append({"role": "user", "content": message})
+                payload = _json.dumps({
+                    "model":      "claude-haiku-4-5-20251001",
+                    "max_tokens": 1500,
+                    "system":     gregory_context,
+                    "messages":   messages,
+                    "stream":     True,
+                }).encode("utf-8")
+                req = _req.Request("https://api.anthropic.com/v1/messages",
+                    data=payload,
+                    headers={"x-api-key": api_key, "anthropic-version": "2023-06-01",
+                             "content-type": "application/json"})
+                try:
+                    resp = _req.urlopen(req, timeout=60)
+                    self.send_response(200)
+                    self.send_header("Content-Type","text/plain; charset=utf-8")
+                    self.send_header("Transfer-Encoding","chunked")
+                    self.send_header("Cache-Control","no-store")
+                    self.end_headers()
+                    text = ""
+                    for raw in resp:
+                        line = raw.decode("utf-8").strip()
+                        if line.startswith("data:"):
+                            chunk = line[5:].strip()
+                            if chunk == "[DONE]": break
+                            try:
+                                obj = _json.loads(chunk)
+                                delta = obj.get("delta",{})
+                                piece = delta.get("text","") if delta.get("type") == "text_delta" else ""
+                                if piece:
+                                    text += piece
+                                    try: self.wfile.write(piece.encode("utf-8")); self.wfile.flush()
+                                    except BrokenPipeError: break
+                            except Exception: pass
+                    ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                    append_gregory_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
+                except Exception as e:
+                    try: self.wfile.write(str(e).encode("utf-8"))
+                    except BrokenPipeError: pass
+                return
+
+            elif path == "/headmaster-clear-history":
+                from data_helpers import clear_gregory_history
+                clear_gregory_history()
+                redirect = "/headmaster"
+
+            # ── Coach ────────────────────────────────────────────────────────
+            elif path == "/coach-chat":
+                import json as _json, urllib.request as _req
+                from data_helpers import (
+                    load_coach_history, append_coach_messages, COACH_CONTEXT_MAX
+                )
+                from datetime import datetime as _dt
+                _today_real = date.today()
+                iso        = _today_real.isoformat()
+                weekday    = _today_real.strftime("%A")
+                date_label = _today_real.strftime("%B %d, %Y")
+                message    = clean_text(data.get("message",[""])[0])
+                settings_data = load_app_settings()
+                api_key = (settings_data.get("family_constraints",{}).get("anthropic_api_key","")
+                           or settings_data.get("anthropic_api_key","")).strip()
+                if not api_key:
+                    self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"No API key configured.")
+                    except BrokenPipeError: pass
+                    return
+                coach_context = build_coach_context(iso, weekday, date_label)
+                ts_now = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                append_coach_messages([{"role": "user", "content": message, "ts": ts_now}])
+                server_history = load_coach_history()
+                messages = []
+                for h in server_history[-COACH_CONTEXT_MAX:]:
+                    role = h.get("role","user"); content = h.get("content","")
+                    if role in ("user","assistant") and content:
+                        messages.append({"role": role, "content": content})
+                if not messages or messages[-1].get("role") != "user":
+                    messages.append({"role": "user", "content": message})
+                payload = _json.dumps({
+                    "model":      "claude-haiku-4-5-20251001",
+                    "max_tokens": 1200,
+                    "system":     coach_context,
+                    "messages":   messages,
+                    "stream":     True,
+                }).encode("utf-8")
+                req = _req.Request("https://api.anthropic.com/v1/messages",
+                    data=payload,
+                    headers={"x-api-key": api_key, "anthropic-version": "2023-06-01",
+                             "content-type": "application/json"})
+                try:
+                    resp = _req.urlopen(req, timeout=60)
+                    self.send_response(200)
+                    self.send_header("Content-Type","text/plain; charset=utf-8")
+                    self.send_header("Transfer-Encoding","chunked")
+                    self.send_header("Cache-Control","no-store")
+                    self.end_headers()
+                    text = ""
+                    for raw in resp:
+                        line = raw.decode("utf-8").strip()
+                        if line.startswith("data:"):
+                            chunk = line[5:].strip()
+                            if chunk == "[DONE]": break
+                            try:
+                                obj = _json.loads(chunk)
+                                delta = obj.get("delta",{})
+                                piece = delta.get("text","") if delta.get("type") == "text_delta" else ""
+                                if piece:
+                                    text += piece
+                                    try: self.wfile.write(piece.encode("utf-8")); self.wfile.flush()
+                                    except BrokenPipeError: break
+                            except Exception: pass
+                    ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                    append_coach_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
+                except Exception as e:
+                    try: self.wfile.write(str(e).encode("utf-8"))
+                    except BrokenPipeError: pass
+                return
+
+            elif path == "/coach-clear-history":
+                from data_helpers import clear_coach_history
+                clear_coach_history()
+                redirect = "/coach"
+
+            # ── Dr. Monica ───────────────────────────────────────────────────
+            elif path == "/dr-monica-chat":
+                import json as _json, urllib.request as _req
+                from data_helpers import (
+                    load_monica_history, append_monica_messages, MONICA_CONTEXT_MAX
+                )
+                from datetime import datetime as _dt
+                _today_real = date.today()
+                iso        = _today_real.isoformat()
+                weekday    = _today_real.strftime("%A")
+                date_label = _today_real.strftime("%B %d, %Y")
+                message    = clean_text(data.get("message",[""])[0])
+                settings_data = load_app_settings()
+                api_key = (settings_data.get("family_constraints",{}).get("anthropic_api_key","")
+                           or settings_data.get("anthropic_api_key","")).strip()
+                if not api_key:
+                    self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"No API key configured.")
+                    except BrokenPipeError: pass
+                    return
+                monica_context = build_monica_context(iso, weekday, date_label)
+                ts_now = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                append_monica_messages([{"role": "user", "content": message, "ts": ts_now}])
+                server_history = load_monica_history()
+                messages = []
+                for h in server_history[-MONICA_CONTEXT_MAX:]:
+                    role = h.get("role","user"); content = h.get("content","")
+                    if role in ("user","assistant") and content:
+                        messages.append({"role": role, "content": content})
+                if not messages or messages[-1].get("role") != "user":
+                    messages.append({"role": "user", "content": message})
+                payload = _json.dumps({
+                    "model":      "claude-haiku-4-5-20251001",
+                    "max_tokens": 1500,
+                    "system":     monica_context,
+                    "messages":   messages,
+                    "stream":     True,
+                }).encode("utf-8")
+                req = _req.Request("https://api.anthropic.com/v1/messages",
+                    data=payload,
+                    headers={"x-api-key": api_key, "anthropic-version": "2023-06-01",
+                             "content-type": "application/json"})
+                try:
+                    resp = _req.urlopen(req, timeout=60)
+                    self.send_response(200)
+                    self.send_header("Content-Type","text/plain; charset=utf-8")
+                    self.send_header("Transfer-Encoding","chunked")
+                    self.send_header("Cache-Control","no-store")
+                    self.end_headers()
+                    text = ""
+                    for raw in resp:
+                        line = raw.decode("utf-8").strip()
+                        if line.startswith("data:"):
+                            chunk = line[5:].strip()
+                            if chunk == "[DONE]": break
+                            try:
+                                obj = _json.loads(chunk)
+                                delta = obj.get("delta",{})
+                                piece = delta.get("text","") if delta.get("type") == "text_delta" else ""
+                                if piece:
+                                    text += piece
+                                    try: self.wfile.write(piece.encode("utf-8")); self.wfile.flush()
+                                    except BrokenPipeError: break
+                            except Exception: pass
+                    ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                    append_monica_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
+                except Exception as e:
+                    try: self.wfile.write(str(e).encode("utf-8"))
+                    except BrokenPipeError: pass
+                return
+
+            elif path == "/dr-monica-clear-history":
+                from data_helpers import clear_monica_history
+                clear_monica_history()
+                redirect = "/dr-monica"
 
             elif path in ("/calendar-config-save","/calendar-save-config"):
                 apple_id=clean_text(data.get("apple_id",[""])[0]); app_password=clean_text(data.get("app_password",[""])[0])

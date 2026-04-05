@@ -267,6 +267,72 @@ def clear_lorenzo_history():
     safe_save_json(LORENZO_HISTORY_FILE, {"messages": []})
 
 
+# ── Father Gregory (Headmaster) conversation history ──────────────────────────
+GREGORY_HISTORY_FILE = "data/gregory_history.json"
+GREGORY_HISTORY_MAX  = 60
+GREGORY_CONTEXT_MAX  = 30
+
+def load_gregory_history() -> list:
+    data = ensure_file(GREGORY_HISTORY_FILE, {"messages": []})
+    return data.get("messages", [])
+
+def save_gregory_history(messages: list):
+    trimmed = messages[-GREGORY_HISTORY_MAX:]
+    safe_save_json(GREGORY_HISTORY_FILE, {"messages": trimmed})
+
+def append_gregory_messages(new_msgs: list):
+    history = load_gregory_history()
+    history.extend(new_msgs)
+    save_gregory_history(history)
+
+def clear_gregory_history():
+    safe_save_json(GREGORY_HISTORY_FILE, {"messages": []})
+
+
+# ── Coach conversation history ────────────────────────────────────────────────
+COACH_HISTORY_FILE = "data/coach_history.json"
+COACH_HISTORY_MAX  = 60
+COACH_CONTEXT_MAX  = 30
+
+def load_coach_history() -> list:
+    data = ensure_file(COACH_HISTORY_FILE, {"messages": []})
+    return data.get("messages", [])
+
+def save_coach_history(messages: list):
+    trimmed = messages[-COACH_HISTORY_MAX:]
+    safe_save_json(COACH_HISTORY_FILE, {"messages": trimmed})
+
+def append_coach_messages(new_msgs: list):
+    history = load_coach_history()
+    history.extend(new_msgs)
+    save_coach_history(history)
+
+def clear_coach_history():
+    safe_save_json(COACH_HISTORY_FILE, {"messages": []})
+
+
+# ── Dr. Monica conversation history ───────────────────────────────────────────
+MONICA_HISTORY_FILE = "data/monica_history.json"
+MONICA_HISTORY_MAX  = 60
+MONICA_CONTEXT_MAX  = 30
+
+def load_monica_history() -> list:
+    data = ensure_file(MONICA_HISTORY_FILE, {"messages": []})
+    return data.get("messages", [])
+
+def save_monica_history(messages: list):
+    trimmed = messages[-MONICA_HISTORY_MAX:]
+    safe_save_json(MONICA_HISTORY_FILE, {"messages": trimmed})
+
+def append_monica_messages(new_msgs: list):
+    history = load_monica_history()
+    history.extend(new_msgs)
+    save_monica_history(history)
+
+def clear_monica_history():
+    safe_save_json(MONICA_HISTORY_FILE, {"messages": []})
+
+
 # ── Recipe cards ─────────────────────────────────────────────────────────────
 RECIPES_FILE = "data/recipes.json"
 
