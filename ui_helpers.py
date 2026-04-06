@@ -297,6 +297,7 @@ def html_page(title: str, body: str) -> str:
 
 /* ── Reset ── */
 *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
+html {{ -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }}
 
 /* ── Base ── */
 body {{

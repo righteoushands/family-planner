@@ -1597,5 +1597,137 @@
     "status": "active",
     "source": "lucy",
     "recurring": false
+  },
+  {
+    "text": "Make lemon curd for baby shower cake",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-20",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Make day before the shower",
+    "subtasks": []
+  },
+  {
+    "text": "Bake and assemble 3-layer lemon curd cake",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-20",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Assemble day before shower. Transport refrigerated.",
+    "subtasks": [
+      "Bake 3 vanilla almond sponge layers",
+      "Fill with lemon curd",
+      "Apply whipped cream cheese frosting",
+      "Decorate with fresh flowers/lemon slices/edible pearls",
+      "Refrigerate for transport"
+    ]
+  },
+  {
+    "text": "Prepare Teddy Graham guessing game",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-20",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "For baby shower game",
+    "subtasks": [
+      "Fill large clear plastic baby bottle with Teddy Grahams",
+      "Count exact number",
+      "Buy small prize for winner"
+    ]
+  },
+  {
+    "text": "Order baby accessories on Amazon to send to Aletha",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-15",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Ship directly to Aletha for diaper wreath construction",
+    "subtasks": [
+      "Mini pacifiers bulk pack",
+      "Miniature decorative baby bottles",
+      "Small rubber ducky",
+      "Newborn baby booties",
+      "Large clear plastic baby bottle bank"
+    ]
+  },
+  {
+    "text": "Write funny advice on diapers",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-20",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Lauren's third of diaper messages. Examples: 'This too shall pass... quickly', '3am: the loneliest hour. You are not alone', etc.",
+    "subtasks": []
+  },
+  {
+    "text": "Pack baby shower supplies",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-21",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Pack morning of shower",
+    "subtasks": [
+      "Large picnic blanket for kids",
+      "Completed cake",
+      "Teddy Graham game bottle",
+      "Small prize",
+      "Written diaper messages"
+    ]
+  },
+  {
+    "text": "Ensure guest of honor attends baby shower",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-21",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Make sure guest of honor shows up / cajole if needed",
+    "subtasks": []
+  },
+  {
+    "text": "Consider making the lemon curd 2 days before (April 19th) to spread out the workload",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-05",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "From counsel suggestion",
+    "subtasks": []
+  },
+  {
+    "text": "JP or Joseph could help with simpler cake decorating tasks like arranging lemon slices",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-05",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "From counsel suggestion",
+    "subtasks": []
+  },
+  {
+    "text": "Set a reminder to confirm guest of honor's attendance a few days before the shower",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-05",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "From counsel suggestion",
+    "subtasks": []
   }
 ]
