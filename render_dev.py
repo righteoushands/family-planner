@@ -872,10 +872,11 @@ import re as _re
 
 def _clean_user_history(text: str) -> str:
     """Strip auto-injected server log / system context from saved user messages."""
-    # Remove [SERVER LOG — ...] block appended automatically
-    text = _re.sub(r'\n\n\[SERVER LOG[^\[]*?\]', '', text, flags=_re.DOTALL)
-    # Remove any other [SYSTEM: ...] injections
-    text = _re.sub(r'\n\n\[SYSTEM:[^\[]*?\[END OF FILE SECTIONS\]', '', text, flags=_re.DOTALL)
+    # Remove [SERVER LOG — ...] block. Ends with \n] (bracket on its own line).
+    # Can't use [^\[] because log lines contain [ characters (e.g. [05/Apr/2026]).
+    text = _re.sub(r'\n\n\[SERVER LOG.*?\n\]', '', text, flags=_re.DOTALL)
+    # Remove any [SYSTEM: ...][END OF FILE SECTIONS] auto-read injections
+    text = _re.sub(r'\n\n\[SYSTEM:.*?\[END OF FILE SECTIONS\]', '', text, flags=_re.DOTALL)
     return text.strip()
 
 def _user_bubble(text: str, ts: str) -> str:
