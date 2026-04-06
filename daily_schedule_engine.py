@@ -141,7 +141,7 @@ def set_task_done(task_id: str, is_done: bool):
         progress[task_id] = True
     else:
         progress.pop(task_id, None)
-        # Also remove legacy-format CHORE keys so old checked state doesn't ghost back
+        # Remove legacy-format keys so old checked state doesn't ghost back
         parts = task_id.split("::")
         if len(parts) == 5 and parts[0] == "CHORE":
             _, child, iso, _prefix, display = parts
@@ -149,6 +149,37 @@ def set_task_done(task_id: str, is_done: bool):
                 f"{iso}::{child}::CHORE::  \u2192 {display}",
                 f"{iso}::{child}::CHORE::\u2192 {display}",
                 f"{iso}::{child}::CHORE::{display}",
+                f"{iso}::{child}::  \u2192 {display}",
+                f"{iso}::{child}::\u2192 {display}",
+            ):
+                progress.pop(old_key, None)
+        elif len(parts) == 4 and parts[0] == "ROUTINE":
+            _, child, iso, label = parts
+            label_l = label.lower()
+            old_pfx = f"{iso}::{child}::"
+            stale = []
+            for k, v in progress.items():
+                if not v or not k.startswith(old_pfx): continue
+                tail = k[len(old_pfx):]
+                if "::" in tail: tail = tail.split("::", 1)[1]
+                tail_clean = tail.lstrip("\u2192 ->").strip().lower()
+                if tail_clean.startswith(label_l) or label_l.startswith(tail_clean):
+                    stale.append(k)
+            for k in stale:
+                progress.pop(k, None)
+        elif len(parts) == 5 and parts[0] == "SCHOOL":
+            _, child, iso, subject, item_label = parts
+            progress.pop(f"{iso}::{child}::SCHOOL::{subject}::{item_label}", None)
+        elif len(parts) == 4 and parts[0] in ("MANUAL", "CARRY"):
+            _, child, iso, text = parts
+            for old_key in (
+                f"{iso}::{child}::MANUAL::MEDIUM::{text}",
+                f"{iso}::{child}::MANUAL::HIGH::{text}",
+                f"{iso}::{child}::MANUAL::LOW::{text}",
+                f"{iso}::{child}::[MEDIUM] {text}",
+                f"{iso}::{child}::[HIGH] {text}",
+                f"{iso}::{child}::[LOW] {text}",
+                f"{iso}::{child}::{text}",
             ):
                 progress.pop(old_key, None)
 
@@ -864,15 +895,67 @@ def _dl_done(progress: dict, tid: str) -> bool:
             return bool(val.get("done", False))
         return bool(val)   # handles plain True / False / int
 
-    # ── Backward-compat: old CHORE key format was {iso}::{child}::CHORE::{raw}
-    # New format is CHORE::{child}::{iso}::{prefix}::{display}
+    # ── Backward-compat: multiple old key formats existed before the Day List.
+    # We silently accept any of them so already-checked items stay checked.
+    #
+    # Old formats seen in the wild:
+    #   {iso}::{child}::→ {text}                   (arrow, no type)
+    #   {iso}::{child}::CHORE::(  →|→|){text}      (CHORE + optional arrow)
+    #   {iso}::{child}::{text}                      (plain, no type)
+    #   {iso}::{child}::SCHOOL::{subj}::{item}      (SCHOOL, old field order)
+    #   {iso}::{child}::MANUAL::MEDIUM::{text}      (MANUAL + priority)
+    #   {iso}::{child}::[MEDIUM] {text}             (MANUAL with inline priority)
+
     parts = tid.split("::")
+
+    # ── CHORE items ────────────────────────────────────────────────────────────
     if len(parts) == 5 and parts[0] == "CHORE":
         _, child, iso, _prefix, display = parts
         for old_key in (
-            f"{iso}::{child}::CHORE::  \u2192 {display}",   # two-space arrow
-            f"{iso}::{child}::CHORE::\u2192 {display}",      # bare arrow
-            f"{iso}::{child}::CHORE::{display}",              # plain text
+            f"{iso}::{child}::CHORE::  \u2192 {display}",
+            f"{iso}::{child}::CHORE::\u2192 {display}",
+            f"{iso}::{child}::CHORE::{display}",
+            f"{iso}::{child}::  \u2192 {display}",        # no type keyword
+            f"{iso}::{child}::\u2192 {display}",
+        ):
+            if progress.get(old_key):
+                return True
+
+    # ── ROUTINE items ──────────────────────────────────────────────────────────
+    elif len(parts) == 4 and parts[0] == "ROUTINE":
+        _, child, iso, label = parts
+        label_l = label.lower().strip()
+        old_prefix2 = f"{iso}::{child}::"
+        for k, v in progress.items():
+            if not v or not k.startswith(old_prefix2):
+                continue
+            tail = k[len(old_prefix2):]
+            # Strip type keyword if present: "CHORE::→ text" → "→ text" → "text"
+            if "::" in tail:
+                tail = tail.split("::", 1)[1]
+            tail_clean = tail.lstrip("\u2192 ->").strip().lower()
+            # Fuzzy-prefix: "Exercise" ↔ "Exercise (non-PE days)"
+            if tail_clean.startswith(label_l) or label_l.startswith(tail_clean):
+                return True
+
+    # ── SCHOOL items ───────────────────────────────────────────────────────────
+    elif len(parts) == 5 and parts[0] == "SCHOOL":
+        _, child, iso, subject, item_label = parts
+        old_key = f"{iso}::{child}::SCHOOL::{subject}::{item_label}"
+        if progress.get(old_key):
+            return True
+
+    # ── MANUAL / CARRY items ───────────────────────────────────────────────────
+    elif len(parts) == 4 and parts[0] in ("MANUAL", "CARRY"):
+        _, child, iso, text = parts
+        for old_key in (
+            f"{iso}::{child}::MANUAL::MEDIUM::{text}",
+            f"{iso}::{child}::MANUAL::HIGH::{text}",
+            f"{iso}::{child}::MANUAL::LOW::{text}",
+            f"{iso}::{child}::[MEDIUM] {text}",
+            f"{iso}::{child}::[HIGH] {text}",
+            f"{iso}::{child}::[LOW] {text}",
+            f"{iso}::{child}::{text}",
         ):
             if progress.get(old_key):
                 return True
