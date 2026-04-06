@@ -394,7 +394,7 @@ function quickMsg(text) {{
 async function sendToFelix() {{
   const inp  = document.getElementById('felix-input');
   const text = inp.value.trim();
-  if (!text) return;
+  if (!text && !_pendingImage) return;  // need at least something
   inp.value = '';
 
   // Collapse the capability intro after first message
@@ -410,8 +410,11 @@ async function sendToFelix() {{
   const imageToSend = _pendingImage;
   clearImage();
 
+  // If only a screenshot was sent with no text, give Felix a prompt
+  const payload = text || (imageToSend ? 'Here\u2019s a screenshot \u2014 please review it and let me know what you see or what might need fixing.' : '');
+
   // Append user bubble immediately (shows the clean text + thumbnail if image attached)
-  box.appendChild(buildUserBubble(text, imageToSend));
+  box.appendChild(buildUserBubble(payload, imageToSend));
   box.scrollTop = box.scrollHeight;
 
   setThinking('Checking server logs\u2026');
@@ -431,7 +434,7 @@ async function sendToFelix() {{
   }} catch(e) {{}}
 
   setThinking('Felix is thinking\u2026');
-  await streamFelix(text + logContext, false, imageToSend);
+  await streamFelix(payload + logContext, false, imageToSend);
 }}
 
 // ── Core streaming function (reusable for auto-reads) ─────────────────
