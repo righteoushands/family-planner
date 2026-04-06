@@ -30,7 +30,7 @@ A Python HTTP server (no framework) running on port 5000. A Catholic family dash
 | `auth.py` | Session management, PIN verification, access control, message store |
 | `render_login.py` | Login page with avatar grid and PIN pad |
 | `render_misc.py` | Dashboard (with mom's message inbox), `/now` page, school, tasks, notes |
-| `render_schedule.py` | `/today` (child dash cards) and child schedule full page |
+| `render_schedule.py` | `/today` (child dash cards) and child schedule full page; Day List renderer |
 | `render_lucy.py` | Lucy AI chat — Catholic companion/integrator; rule parsing, memory book |
 | `render_lorenzo.py` | Lorenzo AI chat — personal chef, meal planning, streaming |
 | `render_gregory.py` | Father Gregory AI chat — homeschool headmaster, academic planning |
@@ -57,6 +57,16 @@ A Python HTTP server (no framework) running on port 5000. A Catholic family dash
 - **Lucy history**: `load_lucy_history()` / `append_lucy_messages()` / `clear_lucy_history()` in `data_helpers.py`. Server history (last 30 msgs) sent to Claude — client no longer needs to send history
 - **Lucy web fetch**: `web_fetch.py` — when Mom includes a URL in her message, the server fetches the page, strips it to plain text (up to 5 000 chars), and injects it into Lucy's system prompt context before calling Claude. No extra UI needed — just paste the link
 - **Calendar**: 150 events from 6 calendars (`data/subscribed_calendar_cache.json`), 15-day lookahead
+
+## Day List (Core Feature)
+The Day List is the primary per-person view — a complete chronological schedule for each person built directly from the Rule of Life templates in `data/day_templates/`.
+
+- **Engine**: `build_day_list(child, weekday, iso)` in `daily_schedule_engine.py` — reads the Rule of Life grid, merges same-label slots, classifies each by kind (prayer/meal/school/chore/exercise/routine/free/task), expands variable slots with real data (school assignments from PDF engine, chores from `data/chores.json`, manual tasks + carryover)
+- **Stats**: `day_list_stats(day_list)` → `{total, done, pct}`
+- **Day List renderer**: `_render_day_list_html()` in `render_schedule.py` — generates the interactive chronological HTML with color-coded kind indicators and expandable sub-items
+- **Print**: `render_print_child_day_list(child, date)` → clean print-ready version; route: `GET /print/day/{child}?date=YYYY-MM-DD`
+- **Kind colors**: prayer=#c8a42a, mass=#4a1a6e, meal=#8b3a5c, exercise=#1a6e3e, school=#1e3566, chore=#8b3a1a, task=#5b3a8a
+- **Templates**: `data/day_templates/{Weekday}.json` — grid per person; falls back to `Friday.json`
 
 ## AI / API
 - Claude model: `claude-haiku-4-5-20251001`

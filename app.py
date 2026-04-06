@@ -93,7 +93,7 @@ from data_helpers import (
     advance_recurring_task,
 )
 from ui_helpers import parse_urlencoded_body, parse_multipart_form
-from render_schedule import render_child_schedule, render_today_all, render_week, render_print_day, render_print_week
+from render_schedule import render_child_schedule, render_today_all, render_week, render_print_day, render_print_week, render_print_child_day_list
 from render_schedule_support import render_family_schedule_page, generate_half_hour_times
 from render_calendar import render_calendar_page, refresh_calendar
 from render_liturgical import render_liturgical_page, render_liturgical_edit_page
@@ -528,6 +528,12 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/school/edit":     body = render_school_edit_page(clean_child(query.get("child",[""])[0]))
         elif path == "/chores":          body = render_chores_page(status_message=query.get("msg",[""])[0])
         elif path == "/van-roles":       body = render_van_roles_page()
+        elif path.startswith("/print/day/"):
+            child_slug = path.split("/print/day/", 1)[1].strip("/")
+            # Map slug back to canonical child name
+            _slug_map = {c.lower(): c for c in ["Lauren", "John", "JP", "Joseph", "Michael", "James"]}
+            canonical = _slug_map.get(child_slug.lower(), child_slug.capitalize())
+            body = render_print_child_day_list(canonical, query.get("date",[""])[0])
         elif path == "/print/day":       body = render_print_day(query.get("date",[""])[0])
         elif path == "/print/week":      body = render_print_week()
         elif path == "/notes":           body = render_notes()

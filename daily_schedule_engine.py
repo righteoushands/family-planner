@@ -832,3 +832,315 @@ def boys_task_snapshot_text(iso: str = "") -> str:
         lines.append("")
 
     return "\n".join(lines)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DAY LIST — Full chronological schedule built from the Rule of Life
+# Each person's entire day in one flat, sortable, expandable list.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_DAY_TEMPLATES_DIR = Path("data/day_templates")
+
+# Slot-kind classification: first match wins
+_SLOT_KIND_MAP: list = [
+    ("prayer",   ["prayer", "rosary", "angelus", "lauds", "vespers"]),
+    ("mass",     ["holy mass", "mass"]),
+    ("wakeup",   ["up & moving", "wake", "rising"]),
+    ("meal",     ["breakfast", "brunch", "lunch", "dinner", "snack"]),
+    ("exercise", ["exercise", "pe ", "physical ed", "workout"]),
+    ("school",   ["school", "math", "writing", "reading", "science", "history",
+                  "grammar", "latin", "logic", "religion", "english"]),
+    ("chore",    ["morning jobs", "weekly job", "weekly jobs", "room clean",
+                  "clean the kitchen", "clean the", "prep mass", "prep for sunday",
+                  "laundry", "trash", "sweep", "mop"]),
+    ("task",     ["lists with mom", "go over lists"]),
+    ("routine",  ["showers", "shower", "bath", "hygiene", "groom",
+                  "get ready for", "prep mass clothes"]),
+    ("free",     ["free time", "video game", "hw or free", "screen",
+                  "leisure", "rest", "family time", "week prep",
+                  "school or video"]),
+]
+
+
+def _classify_slot(label: str) -> str:
+    low = label.lower()
+    for kind, kws in _SLOT_KIND_MAP:
+        if any(kw in low for kw in kws):
+            return kind
+    return "routine"
+
+
+def _slot_checkable(kind: str) -> bool:
+    return kind not in ("free", "wakeup")
+
+
+def _parse_slot_time(time_str: str) -> str:
+    try:
+        from datetime import datetime as _dt
+        return _dt.strptime(time_str.strip(), "%I:%M %p").strftime("%H:%M")
+    except Exception:
+        return "00:00"
+
+
+def _split_daily_chores(daily: list) -> dict:
+    morning, evening, current = [], [], None
+    current = morning
+    for line in daily:
+        low = line.lower() if isinstance(line, str) else ""
+        if "kitchen (morning" in low or "kitchen (am" in low:
+            current = morning
+            morning.append(line)
+        elif "kitchen (evening" in low or "kitchen (pm" in low:
+            current = evening
+            evening.append(line)
+        else:
+            current.append(line)
+    return {"morning": morning, "evening": evening}
+
+
+def _lines_to_sub_items(lines: list, child: str, iso: str, prefix: str,
+                         progress: dict) -> list:
+    items = []
+    for line in lines:
+        if not isinstance(line, str):
+            continue
+        stripped = line.strip()
+        if not stripped:
+            continue
+        arrow = stripped.startswith("\u2192") or stripped.startswith("->") or stripped.startswith("  \u2192")
+        is_header = stripped.endswith(":") and not arrow
+        display = stripped.lstrip("\u2192-> ").strip()
+        if not display:
+            continue
+        if is_header:
+            items.append({"text": display, "task_id": None,
+                          "done": False, "checkable": False, "is_header": True})
+        else:
+            tid = f"CHORE::{child}::{iso}::{prefix}::{display}"
+            items.append({"text": display, "task_id": tid,
+                          "done": bool(progress.get(tid, {}).get("done", False)),
+                          "checkable": True, "is_header": False})
+    return items
+
+
+def _school_sub_items(school_raw: list, subjects_used: set,
+                      child: str, iso: str, hint: str, progress: dict) -> list:
+    items = []
+    for block in school_raw:
+        subj = block.get("subject", "").strip()
+        subj_low = subj.lower()
+        hint_low = hint.lower()
+        if hint and not (hint_low in subj_low or subj_low in hint_low):
+            continue
+        if subj_low in subjects_used:
+            continue
+        subjects_used.add(subj_low)
+        assign_text = block.get("assignment_text", "").strip()
+        for ci in block.get("checklist", ["Done"]):
+            tid = f"SCHOOL::{child}::{iso}::{subj}::{ci}"
+            text = f"{ci}" if not assign_text else f"{assign_text} — {ci}"
+            if hint == "":
+                text = f"{subj}: {text}"
+            items.append({"text": text, "task_id": tid,
+                          "done": bool(progress.get(tid, {}).get("done", False)),
+                          "checkable": True, "is_header": False})
+    return items
+
+
+def build_day_list(child: str, weekday: str, iso: str) -> list:
+    """
+    Build the full chronological Day List for a person on a given weekday.
+
+    Returns a list of time-block dicts, each with:
+      time, time_sort, end_time, label, kind, checkable, task_id, done, sub_items
+    """
+    # Load Rule of Life template
+    person_grid = {}
+    for candidate in [f"{weekday}.json", "Friday.json"]:
+        try:
+            path = _DAY_TEMPLATES_DIR / candidate
+            if path.exists():
+                data = json.loads(path.read_text(encoding="utf-8"))
+                grid = data.get("grid", {})
+                person_grid = (grid.get(child)
+                               or grid.get("Mom")
+                               or (next(iter(grid.values())) if grid else {}))
+                if person_grid:
+                    break
+        except Exception:
+            pass
+    if not person_grid:
+        return []
+
+    # Parse and sort slots; merge consecutive same-label ones
+    raw_slots = sorted(
+        [(_parse_slot_time(ts), ts, (lbl or "").strip())
+         for ts, lbl in person_grid.items()],
+        key=lambda x: x[0]
+    )
+    merged = []
+    for time_sort, time_str, label in raw_slots:
+        if not label:
+            continue
+        if merged and merged[-1]["label"] == label:
+            pass   # same block continues; end_time updated next
+        else:
+            merged.append({"time": time_str, "time_sort": time_sort,
+                           "end_time": time_str, "label": label})
+    for i, blk in enumerate(merged):
+        blk["end_time"] = merged[i + 1]["time"] if i + 1 < len(merged) else blk["time"]
+
+    # Load data sources
+    progress = load_progress()
+
+    school_raw = []
+    try:
+        school_raw = extract_school_tasks_for_child(child, weekday)
+    except Exception:
+        pass
+
+    chores_data: dict = {}
+    try:
+        rc = json.loads(Path(CHORES_FILE).read_text(encoding="utf-8"))
+        if child in ("JP", "Joseph", "Michael"):
+            chores_data = rc.get("boys", {}).get(child, {})
+        else:
+            chores_data = rc.get("lauren", rc.get(child.lower(), {}))
+    except Exception:
+        pass
+    daily_split  = _split_daily_chores(chores_data.get("daily", []))
+    weekly_today = chores_data.get("weekly", {}).get(weekday, [])
+    weekly_sat   = chores_data.get("weekly", {}).get("Saturday", [])
+
+    manual_items, carryover_items = [], []
+    try:
+        for t in get_manual_tasks_for_child_and_date(child, iso):
+            tid = f"MANUAL::{child}::{iso}::{t['text']}"
+            manual_items.append({"text": t["text"], "task_id": tid,
+                                 "done": bool(progress.get(tid, {}).get("done", False)),
+                                 "checkable": True, "is_header": False})
+        for txt in get_carryover_tasks(child, normalize_target_date(iso)):
+            tid = f"CARRY::{child}::{iso}::{txt}"
+            carryover_items.append({"text": txt, "task_id": tid,
+                                    "done": bool(progress.get(tid, {}).get("done", False)),
+                                    "checkable": True, "is_header": False,
+                                    "is_carryover": True})
+    except Exception:
+        pass
+
+    # Build the result list
+    subjects_used: set = set()
+    has_tasks_slot = any(
+        "lists with mom" in b["label"].lower() or "go over lists" in b["label"].lower()
+        for b in merged
+    )
+    result = []
+
+    for blk in merged:
+        label     = blk["label"]
+        label_low = label.lower()
+        kind      = _classify_slot(label)
+
+        item = {
+            "time":      blk["time"],
+            "time_sort": blk["time_sort"],
+            "end_time":  blk["end_time"],
+            "label":     label,
+            "kind":      kind,
+            "checkable": _slot_checkable(kind),
+            "task_id":   None,
+            "done":      False,
+            "sub_items": [],
+        }
+
+        # ── School ──────────────────────────────────────────────────────
+        if kind == "school" and "or video" not in label_low and "hw or" not in label_low:
+            hint = ""
+            if "\u2014" in label:
+                hint = label.split("\u2014", 1)[1].strip()
+            elif "—" in label:
+                hint = label.split("—", 1)[1].strip()
+            subs = _school_sub_items(school_raw, subjects_used, child, iso, hint, progress)
+            item["sub_items"] = subs
+            item["checkable"] = False
+
+        # ── Morning Jobs ────────────────────────────────────────────────
+        elif "morning jobs" in label_low:
+            item["sub_items"] = _lines_to_sub_items(
+                daily_split["morning"], child, iso, "morning", progress)
+            item["checkable"] = False
+
+        # ── Evening kitchen clean ───────────────────────────────────────
+        elif "clean the kitchen" in label_low and blk["time_sort"] >= "17:00":
+            item["sub_items"] = _lines_to_sub_items(
+                daily_split["evening"], child, iso, "evening", progress)
+            item["checkable"] = False
+
+        # ── Midday kitchen clean (simple checkbox) ──────────────────────
+        elif "clean the kitchen" in label_low:
+            tid = f"CHORE::{child}::{iso}::noon_kitchen"
+            item["task_id"] = tid
+            item["done"]    = bool(progress.get(tid, {}).get("done", False))
+
+        # ── Weekly Job(s) ────────────────────────────────────────────────
+        elif "weekly job" in label_low:
+            item["sub_items"] = _lines_to_sub_items(
+                weekly_today, child, iso, "weekly", progress)
+            item["checkable"] = False
+
+        # ── Saturday Room Clean ─────────────────────────────────────────
+        elif "room clean" in label_low:
+            item["sub_items"] = _lines_to_sub_items(
+                weekly_sat, child, iso, "sat_clean", progress)
+            item["checkable"] = False
+
+        # ── Go over Lists with Mom ──────────────────────────────────────
+        elif "lists with mom" in label_low or "go over lists" in label_low:
+            subs = [dict(i, is_carryover=True) for i in carryover_items] + list(manual_items)
+            item["sub_items"] = subs
+            item["checkable"] = False
+
+        # ── Free / informational ────────────────────────────────────────
+        elif kind in ("free",):
+            item["checkable"] = False
+
+        # ── Single-checkbox items: prayer, exercise, routine, wakeup, meal
+        else:
+            tid = f"ROUTINE::{child}::{iso}::{label}"
+            item["task_id"] = tid
+            item["done"]    = bool(progress.get(tid, {}).get("done", False))
+            if kind in ("meal", "wakeup", "free"):
+                item["checkable"] = False
+
+        result.append(item)
+
+    # Append task block if no dedicated slot exists in the template
+    if not has_tasks_slot:
+        extra = [dict(i, is_carryover=True) for i in carryover_items] + list(manual_items)
+        if extra:
+            result.append({
+                "time": "", "time_sort": "23:00", "end_time": "",
+                "label": "Tasks", "kind": "task",
+                "checkable": False, "task_id": None, "done": False,
+                "sub_items": extra,
+            })
+
+    return result
+
+
+def day_list_stats(day_list: list) -> dict:
+    """Return {total, done, pct} for progress tracking."""
+    total = done = 0
+    for item in day_list:
+        if item.get("sub_items"):
+            for s in item["sub_items"]:
+                if s.get("checkable") and not s.get("is_header"):
+                    total += 1
+                    if s.get("done"):
+                        done += 1
+        elif item.get("checkable") and item.get("task_id"):
+            total += 1
+            if item.get("done"):
+                done += 1
+    return {"total": total, "done": done,
+            "pct": round(done / total * 100) if total else 0}

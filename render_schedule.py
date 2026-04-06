@@ -10,6 +10,8 @@ from daily_schedule_engine import (
     CHILDREN, build_schedule_payload,
     generate_day_packet, generate_week_packet,
     RULE_OF_LIFE_ANCHORS, fmt_time_12h,
+    build_day_list, day_list_stats,
+    get_calendar_events_for_boys,
 )
 
 from config import child_color, WEEKDAYS
@@ -190,84 +192,243 @@ def _render_schedule_events_section(cal_items: list) -> str:
     )
 
 
+# ── Day List rendering helpers ────────────────────────────────────────────────
+
+_DL_KIND_COLORS = {
+    "wakeup":   "#aaaaaa",
+    "prayer":   "#c8a42a",
+    "mass":     "#4a1a6e",
+    "meal":     "#8b3a5c",
+    "exercise": "#1a6e3e",
+    "school":   "#1e3566",
+    "chore":    "#8b3a1a",
+    "task":     "#5b3a8a",
+    "routine":  "#666666",
+    "free":     "#cccccc",
+}
+
+_DL_KIND_LABELS = {
+    "wakeup":   "☀",
+    "prayer":   "✝",
+    "mass":     "✝",
+    "meal":     "🍽",
+    "exercise": "💪",
+    "school":   "📚",
+    "chore":    "🧹",
+    "task":     "✓",
+    "routine":  "•",
+    "free":     "◦",
+}
+
+_DL_CSS = """<style>
+.day-list{display:flex;flex-direction:column;gap:0;}
+.dl-block{border-radius:6px;overflow:hidden;margin-bottom:4px;}
+.dl-header-row{display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(0,0,0,0.03);}
+.dl-row{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;margin-bottom:3px;}
+.dl-row.dl-info{opacity:.7;}
+.dl-time{font-size:.72em;font-weight:700;letter-spacing:.03em;color:#888;white-space:nowrap;min-width:80px;}
+.dl-kind-icon{font-size:.85em;min-width:16px;text-align:center;}
+.dl-label{flex:1;font-size:.9em;line-height:1.3;font-weight:500;}
+.dl-label.done{opacity:.45;text-decoration:line-through;}
+.dl-check{display:flex;align-items:center;}
+.dl-subitems{padding:2px 10px 6px 26px;display:flex;flex-direction:column;gap:3px;}
+.dl-sub-row{display:flex;align-items:flex-start;gap:7px;padding:3px 0;}
+.dl-sub-header{font-size:.72em;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+               color:#888;padding:5px 0 2px;margin-top:3px;}
+.dl-sub-label{flex:1;font-size:.85em;line-height:1.35;}
+.dl-sub-label.done{opacity:.45;text-decoration:line-through;}
+.dl-carry-badge{font-size:.7em;background:#f59e0b;color:#fff;border-radius:3px;
+                padding:1px 4px;margin-right:4px;font-weight:700;}
+.dl-progress-bar{height:4px;border-radius:2px;background:#e5e7eb;margin-bottom:12px;}
+.dl-progress-fill{height:100%;border-radius:2px;transition:width .3s;}
+@media print {
+  .dl-row,.dl-block{break-inside:avoid;}
+  .dl-time{color:#555;}
+  .no-print{display:none!important;}
+}
+</style>"""
+
+
+def _dl_kind_color(kind: str) -> str:
+    return _DL_KIND_COLORS.get(kind, "#888888")
+
+
+def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str) -> str:
+    rows = []
+    for sub in sub_items:
+        if sub.get("is_header"):
+            rows.append(
+                f'<div class="dl-sub-header">{escape(sub.get("text",""))}</div>'
+            )
+        elif sub.get("checkable") and sub.get("task_id"):
+            tid   = escape(sub["task_id"])
+            tid_j = sub["task_id"].replace("'", "\\'")
+            done  = sub.get("done", False)
+            chk   = "checked" if done else ""
+            dst   = "done" if done else ""
+            dnv   = "1" if done else "0"
+            carry = '<span class="dl-carry-badge">↩</span>' if sub.get("is_carryover") else ""
+            rows.append(
+                f'<div class="dl-sub-row" id="task-{tid}"'
+                f' data-dash-child="{c_id}" data-done="{dnv}">'
+                f'<input type="checkbox" {chk}'
+                f' style="width:15px;height:15px;flex-shrink:0;margin-top:2px;accent-color:{c_bg};"'
+                f' onchange="toggleDashTask(this,\'{tid_j}\',\'{c_id}\',\'{escape(iso)}\')">'
+                f'<span class="dl-sub-label {dst}">{carry}{escape(sub.get("text",""))}</span>'
+                f'</div>'
+            )
+        else:
+            rows.append(
+                f'<div class="dl-sub-row" style="padding-left:22px;">'
+                f'<span class="dl-sub-label" style="opacity:.7;">'
+                f'{escape(sub.get("text",""))}</span></div>'
+            )
+    return "".join(rows)
+
+
+def _render_day_list_html(day_list: list, child: str, iso: str,
+                           c_bg: str) -> str:
+    c_id = child.lower().replace(" ", "-")
+    rows = []
+    for item in day_list:
+        kind  = item.get("kind", "routine")
+        color = _dl_kind_color(kind)
+        icon  = _DL_KIND_LABELS.get(kind, "•")
+        t_st  = item.get("time", "")
+        t_en  = item.get("end_time", "")
+        t_disp = f"{t_st} – {t_en}" if t_en and t_en != t_st else t_st
+        label  = escape(item.get("label", ""))
+        subs   = item.get("sub_items", [])
+
+        if subs:
+            # Expanded block — header row + sub-items
+            checkable_subs = [s for s in subs if s.get("checkable") and not s.get("is_header")]
+            done_cnt = sum(1 for s in checkable_subs if s.get("done"))
+            tot_cnt  = len(checkable_subs)
+            prog_label = f" ({done_cnt}/{tot_cnt})" if tot_cnt else ""
+            rows.append(
+                f'<div class="dl-block" style="border-left:3px solid {color};">'
+                f'<div class="dl-header-row">'
+                f'<span class="dl-time">{t_disp}</span>'
+                f'<span class="dl-kind-icon">{icon}</span>'
+                f'<span class="dl-label" style="color:{color};font-weight:700;">'
+                f'{label}<span style="font-weight:400;font-size:.85em;color:#999;">'
+                f'{prog_label}</span></span>'
+                f'</div>'
+                f'<div class="dl-subitems">'
+                f'{_dl_sub_items_html(subs, c_id, iso, c_bg)}'
+                f'</div></div>'
+            )
+        elif item.get("task_id") and item.get("checkable"):
+            # Single-checkbox item
+            tid  = escape(item["task_id"])
+            tidj = item["task_id"].replace("'", "\\'")
+            done = item.get("done", False)
+            chk  = "checked" if done else ""
+            dst  = "done" if done else ""
+            dnv  = "1" if done else "0"
+            rows.append(
+                f'<div class="dl-row" style="border-left:3px solid {color};"'
+                f' id="task-{tid}" data-dash-child="{c_id}" data-done="{dnv}">'
+                f'<span class="dl-time">{t_disp}</span>'
+                f'<span class="dl-kind-icon">{icon}</span>'
+                f'<span class="dl-label {dst}">{label}</span>'
+                f'<div class="dl-check">'
+                f'<input type="checkbox" {chk}'
+                f' style="width:16px;height:16px;accent-color:{c_bg};"'
+                f' onchange="toggleDashTask(this,\'{tidj}\',\'{c_id}\',\'{escape(iso)}\')">'
+                f'</div></div>'
+            )
+        else:
+            # Informational / free slot
+            rows.append(
+                f'<div class="dl-row dl-info" style="border-left:3px solid {color};">'
+                f'<span class="dl-time">{t_disp}</span>'
+                f'<span class="dl-kind-icon">{icon}</span>'
+                f'<span class="dl-label" style="color:#999;">{label}</span>'
+                f'</div>'
+            )
+    return "".join(rows)
+
+
 def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
-    # These are imported here to avoid circular imports at module level
     from render_calendar import render_calendar_today_strip
     from render_schedule_support import render_now_next_strip
 
     normalized_date = normalize_date_query(target_date_str)
-    packet  = generate_day_packet(normalized_date)
-    iso     = packet["iso"]
-    weekday = packet["weekday"]
+    packet     = generate_day_packet(normalized_date)
+    iso        = packet["iso"]
+    weekday    = packet["weekday"]
     date_label = packet["date_label"]
 
-    payload = build_schedule_payload(child, weekday, date_label, iso)
-    merged_carryover = payload.get("carryover_items", [])
+    # Build the Day List (Rule-of-Life-anchored chronological schedule)
+    day_list = build_day_list(child, weekday, iso)
+    stats    = day_list_stats(day_list)
+    total    = stats["total"]
+    done_cnt = stats["done"]
+    pct      = stats["pct"]
 
-    school_html  = "".join(render_school_block(child, iso, b) for b in payload["school_blocks"])
-    school_count = count_school_check_items(payload)
-    carry_count  = len(merged_carryover)
+    # Also load calendar events to show at top
+    try:
+        cal_items = get_calendar_events_for_boys(iso)
+    except Exception:
+        cal_items = []
 
-    # Merge manual tasks + chores into one list, deduplicating by text
-    _chore_items  = payload.get("chore_items", [])
-    _manual_items = payload.get("manual_task_items", [])
-    _chore_texts  = {i.get("text", "").lower().strip() for i in _chore_items}
-    _manual_deduped = [i for i in _manual_items if i.get("text", "").lower().strip() not in _chore_texts]
-    combined_tasks = _manual_deduped + _chore_items
-    task_count = len(combined_tasks)
-
-    c_bg    = child_color(child, "bg")
+    c_bg   = child_color(child, "bg")
     c_light = child_color(child, "light")
-    complete       = is_day_complete(payload)
-    celebration_html = render_confetti_celebration(child) if complete else ""
 
     try:
         target_iso = date.fromisoformat(iso)
     except Exception:
         target_iso = date.today()
-    age_strip = render_child_age_strip(child, target_iso)
 
-    return f"""
+    age_strip = render_child_age_strip(child, target_iso)
+    bar_col   = "#22c55e" if pct == 100 else ("#f59e0b" if pct >= 50 else c_bg)
+    all_done  = total > 0 and pct == 100
+    celebration_html = render_confetti_celebration(child) if all_done else ""
+
+    day_list_html  = _render_day_list_html(day_list, child, iso, c_bg)
+    events_html    = _render_schedule_events_section(cal_items)
+
+    return f"""{_DL_CSS}
     <div class="card" style="border-left:5px solid {c_bg};background:{c_light};">
         {celebration_html}
         {render_daily_bar(target_iso)}
         <div class="page-header">
-            <h2 style="color:{c_bg};">{escape(child)} — {escape(date_label)}</h2>
+            <h2 style="color:{c_bg};">{escape(child)}'s Day — {escape(date_label)}</h2>
             {f'<div style="margin-bottom:4px;">{age_strip}</div>' if age_strip else ""}
             <div class="no-print">{render_day_nav(f"/schedule/{child}", iso)}</div>
-            <div class="summary-row">
-                <span class="badge">Carryover: {carry_count}</span>
-                <span class="badge">Tasks: {task_count}</span>
-                <span class="badge">School checks: {school_count}</span>
+            <div class="dl-progress-bar no-print">
+                <div class="dl-progress-fill"
+                     style="width:{pct}%;background:{bar_col};"></div>
+            </div>
+            <div class="summary-row no-print">
+                <span class="badge" style="background:{bar_col};color:#fff;">
+                    {done_cnt}/{total} done
+                </span>
+                <span class="badge">{escape(weekday)}</span>
             </div>
             <div class="link-row no-print">
-                <a class="link-button" href="/print/day?date={escape(iso)}">Print This Day</a>
+                <a class="link-button" href="/print/day/{escape(child)}?date={escape(iso)}">Print Day List</a>
             </div>
             <div style="margin-top:8px;">{render_now_next_strip()}</div>
             <div style="margin-top:8px;">{render_calendar_today_strip(iso)}</div>
         </div>
-        <div class="section-stack">
-            <div class="card card-tight no-print" id="lucy-child-panel-{child.lower()}"
-                 style="border-left:4px solid {c_bg};background:{c_light};">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                    <span style="font-size:1.1em;">✦</span>
-                    <h3 style="margin:0;font-size:.95em;color:{c_bg};">Lucy's Notes for {escape(child)}</h3>
-                </div>
-                <div id="lucy-child-brief-{child.lower()}"
-                     style="font-size:.88em;line-height:1.6;color:#444;min-height:40px;">
-                    <span style="color:#bbb;font-style:italic;">Loading…</span>
-                </div>
+        {events_html}
+        <div class="card card-tight no-print" id="lucy-child-panel-{child.lower()}"
+             style="border-left:4px solid {c_bg};background:{c_light};margin-bottom:8px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <span style="font-size:1em;">✦</span>
+                <span style="font-size:.85em;font-weight:700;color:{c_bg};">
+                    Lucy's notes for {escape(child)}</span>
             </div>
-            {_render_schedule_events_section(payload.get("calendar_items", []))}
-            <div class="card card-tight">
-                <h3>Carryover</h3>{render_task_list(child, iso, merged_carryover)}
+            <div id="lucy-child-brief-{child.lower()}"
+                 style="font-size:.85em;line-height:1.55;color:#444;min-height:32px;">
+                <span style="color:#bbb;font-style:italic;">Loading…</span>
             </div>
-            <div class="card card-tight">
-                <h3>School</h3>{school_html or "<p class='muted'>None.</p>"}
-            </div>
-            <div class="card card-tight">
-                <h3>Tasks</h3>{render_task_list(child, iso, combined_tasks)}
-            </div>
+        </div>
+        <div class="day-list">
+            {day_list_html}
         </div>
         {_render_meal_card_for_child(target_iso)}
         {_render_child_goals_section(child)}
@@ -280,10 +441,12 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
     fetch('/lucy-child-brief/{child.lower()}')
         .then(function(r) {{ return r.json(); }})
         .then(function(d) {{
-            el.innerHTML = d.html || '<span style="color:#bbb;font-style:italic;">Not available right now.</span>';
+            el.innerHTML = d.html ||
+                '<span style="color:#bbb;font-style:italic;">Not available.</span>';
         }})
         .catch(function() {{
-            el.innerHTML = "<span style='color:#bbb;font-style:italic;'>Could not load Lucy\u2019s notes.</span>";
+            el.innerHTML =
+                "<span style='color:#bbb;font-style:italic;'>Could not load.</span>";
         }});
 }})();
 </script>"""
@@ -836,6 +999,129 @@ def _render_meal_print_section(target_date, weekday: str) -> str:
         f'{extra}'
         f'</div>'
     )
+
+
+def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
+    """Print a single child's complete chronological Day List — clean, checkable."""
+    normalized_date = normalize_date_query(target_date_str)
+    packet     = generate_day_packet(normalized_date)
+    iso        = packet["iso"]
+    weekday    = packet["weekday"]
+    date_label = packet["date_label"]
+
+    day_list = build_day_list(child, weekday, iso)
+    stats    = day_list_stats(day_list)
+    c_color  = child_color(child, "bg")
+
+    try:
+        target_iso = date.fromisoformat(iso)
+    except Exception:
+        target_iso = date.today()
+
+    age_strip = render_child_age_strip(child, target_iso)
+    age_html  = (f'<div style="font-size:9pt;color:#888;margin-top:2px;">{age_strip}</div>'
+                 if age_strip else "")
+
+    _kind_icons_print = {
+        "wakeup": "☀", "prayer": "✝", "mass": "✝", "meal": "🍽",
+        "exercise": "💪", "school": "📚", "chore": "🧹",
+        "task": "✎", "routine": "•", "free": "◦",
+    }
+    _kind_colors_print = {
+        "prayer": "#7a6a00", "mass": "#2d0a5f", "school": "#0a2266",
+        "chore": "#5a2000", "task": "#3a1a6e", "exercise": "#0a4a28",
+        "meal": "#5a1a3a",
+    }
+
+    rows_html = ""
+    for item in day_list:
+        kind   = item.get("kind", "routine")
+        t_st   = item.get("time", "")
+        t_en   = item.get("end_time", "")
+        t_disp = f"{t_st}\u2013{t_en}" if t_en and t_en != t_st else t_st
+        label  = escape(item.get("label", ""))
+        icon   = _kind_icons_print.get(kind, "")
+        kcolor = _kind_colors_print.get(kind, "#333")
+        subs   = item.get("sub_items", [])
+
+        if subs:
+            checkable_subs = [s for s in subs if s.get("checkable") and not s.get("is_header")]
+            tot = len(checkable_subs)
+            rows_html += (
+                f'<div style="margin:10px 0 2px;border-left:3px solid {kcolor};padding-left:7px;">'
+                f'<span style="font-size:8pt;color:#888;">{escape(t_disp)}</span> '
+                f'<strong style="font-size:11pt;color:{kcolor};">{icon} {label}</strong>'
+                f'<span style="font-size:8pt;color:#aaa;"> — {tot} item{"s" if tot != 1 else ""}</span>'
+                f'</div>'
+            )
+            for sub in subs:
+                if sub.get("is_header"):
+                    rows_html += (
+                        f'<div style="font-size:7.5pt;font-weight:800;letter-spacing:.08em;'
+                        f'text-transform:uppercase;color:#888;margin:6px 0 2px 14px;">'
+                        f'{escape(sub.get("text",""))}</div>'
+                    )
+                elif sub.get("checkable") and sub.get("task_id"):
+                    carry_mark = "↩ " if sub.get("is_carryover") else ""
+                    done  = sub.get("done", False)
+                    done_style = "opacity:.4;text-decoration:line-through;" if done else ""
+                    done_check = "✓" if done else ""
+                    rows_html += (
+                        f'<div style="display:flex;align-items:flex-start;gap:8px;'
+                        f'margin:3px 0 3px 22px;font-size:10.5pt;">'
+                        f'<span style="width:15px;height:15px;border:1.5px solid #555;'
+                        f'border-radius:3px;flex-shrink:0;display:inline-flex;'
+                        f'align-items:center;justify-content:center;font-size:9pt;'
+                        f'margin-top:2px;">{done_check}</span>'
+                        f'<span style="{done_style}">{carry_mark}{escape(sub.get("text",""))}</span>'
+                        f'</div>'
+                    )
+                else:
+                    rows_html += (
+                        f'<div style="margin:2px 0 2px 30px;font-size:10pt;color:#666;">'
+                        f'{escape(sub.get("text",""))}</div>'
+                    )
+        elif item.get("task_id") and item.get("checkable"):
+            done  = item.get("done", False)
+            done_style = "opacity:.4;text-decoration:line-through;" if done else ""
+            done_check = "✓" if done else ""
+            rows_html += (
+                f'<div style="display:flex;align-items:center;gap:10px;'
+                f'border-left:3px solid {kcolor};padding:5px 6px;margin:3px 0;">'
+                f'<span style="font-size:8pt;color:#888;min-width:68px;">{escape(t_disp)}</span>'
+                f'<span style="font-size:9pt;">{icon}</span>'
+                f'<span style="flex:1;font-size:11pt;{done_style}">{label}</span>'
+                f'<span style="width:16px;height:16px;border:1.5px solid #555;'
+                f'border-radius:3px;display:inline-flex;align-items:center;'
+                f'justify-content:center;font-size:9pt;">{done_check}</span>'
+                f'</div>'
+            )
+        else:
+            rows_html += (
+                f'<div style="display:flex;align-items:center;gap:10px;'
+                f'padding:4px 6px;margin:2px 0;opacity:.65;">'
+                f'<span style="font-size:8pt;color:#888;min-width:68px;">{escape(t_disp)}</span>'
+                f'<span style="font-size:9pt;">{icon}</span>'
+                f'<span style="flex:1;font-size:11pt;color:#777;">{label}</span>'
+                f'</div>'
+            )
+
+    meal_print = _render_meal_print_section(target_iso, weekday)
+    body = f"""
+    <div class="child-page" style="--child-color:{c_color};">
+        <div class="page-header">
+            <div class="child-name">{escape(child)}</div>
+            <div class="date-line">{escape(weekday)}, {escape(date_label)}</div>
+            {age_html}
+        </div>
+        <div style="font-size:8.5pt;color:#888;margin-bottom:10px;">
+            {stats['done']}/{stats['total']} complete · Rule of Life Day List
+        </div>
+        {rows_html or '<p style="color:#aaa;font-style:italic;">No schedule data for today.</p>'}
+        {meal_print}
+        <div class="page-footer">McAdams Family · {escape(date_label)}</div>
+    </div>"""
+    return print_page_html(f"{escape(child)} — {escape(date_label)}", body)
 
 
 def render_print_day(target_date_str: str = "") -> str:
