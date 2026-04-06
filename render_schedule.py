@@ -9,6 +9,7 @@ from html import escape
 from daily_schedule_engine import (
     CHILDREN, build_schedule_payload,
     generate_day_packet, generate_week_packet,
+    RULE_OF_LIFE_ANCHORS, fmt_time_12h,
 )
 
 from config import child_color, WEEKDAYS
@@ -165,6 +166,30 @@ def render_day_nav(base_url: str, iso: str) -> str:
     </div>"""
 
 
+def _render_schedule_events_section(cal_items: list) -> str:
+    """Render a 'Today's Events' card for the full schedule page. Hidden if no events."""
+    if not cal_items:
+        return ""
+    rows = ""
+    for ev in cal_items:
+        tl    = fmt_time_12h(ev["time"]) if ev["time"] else "All day"
+        loc   = f'<span style="color:#6b7280;"> · {escape(ev["location"])}</span>' if ev.get("location") else ""
+        rows += (
+            f'<div style="display:flex;align-items:baseline;gap:10px;'
+            f'padding:6px 0;border-bottom:1px solid #ede9fe;">'
+            f'<span style="font-size:.78em;font-weight:700;color:#7c3aed;'
+            f'min-width:68px;flex-shrink:0;">{escape(tl)}</span>'
+            f'<span style="font-size:.9em;color:#1e1b4b;">{escape(ev["title"])}{loc}</span>'
+            f'</div>'
+        )
+    return (
+        f'<div class="card card-tight" style="border-left:4px solid #7c3aed;background:#faf5ff;">'
+        f'<h3 style="color:#7c3aed;margin-bottom:8px;">📅 Today\'s Events</h3>'
+        f'{rows}'
+        f'</div>'
+    )
+
+
 def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
     # These are imported here to avoid circular imports at module level
     from render_calendar import render_calendar_today_strip
@@ -228,17 +253,18 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
                     <span style="color:#bbb;font-style:italic;">Loading…</span>
                 </div>
             </div>
+            {_render_schedule_events_section(payload.get("calendar_items", []))}
             <div class="card card-tight">
                 <h3>Carryover</h3>{render_task_list(child, iso, merged_carryover)}
-            </div>
-            <div class="card card-tight">
-                <h3>Manual Tasks</h3>{render_task_list(child, iso, payload["manual_task_items"])}
             </div>
             <div class="card card-tight">
                 <h3>School</h3>{school_html or "<p class='muted'>None.</p>"}
             </div>
             <div class="card card-tight">
                 <h3>Chores</h3>{render_task_list(child, iso, payload["chore_items"])}
+            </div>
+            <div class="card card-tight">
+                <h3>Manual Tasks</h3>{render_task_list(child, iso, payload["manual_task_items"])}
             </div>
         </div>
         {_render_meal_card_for_child(target_iso)}
@@ -380,32 +406,73 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
                 f'</div>'
             )
 
-    # ── School / task queue (next 2 unchecked visible; rest hidden) ──────────
-    queue_html    = ""
-    pending_shown = 0
-    for item in queue:
-        is_done = _item_done(item, progress)
-        if is_done:
-            vis = "display:none;"
-        elif pending_shown < 2:
-            vis = ""
-            pending_shown += 1
-        else:
-            vis = "display:none;"
-        queue_html += _dash_row(item, extra_style=vis)
+    # ── Calendar events for today ─────────────────────────────────────────────
+    cal_items = payload.get("calendar_items", [])
 
-    # ── Chores section — ALL chores always visible ───────────────────────────
-    chore_html = ""
-    if chore_items:
-        chore_done = sum(1 for i in chore_items if _item_done(i, progress))
-        chore_lbl  = f"{chore_done}/{len(chore_items)}"
-        chore_html = (
-            f'<div style="font-size:0.65em;font-weight:800;letter-spacing:.08em;'
-            f'text-transform:uppercase;color:{c_bg};margin:10px 0 3px;">'
-            f'Chores <span style="font-weight:500;color:#888;">({chore_lbl})</span></div>'
+    def _event_row(ev):
+        tl  = fmt_time_12h(ev["time"]) if ev["time"] else "All day"
+        loc = f' · <em>{escape(ev["location"])}</em>' if ev.get("location") else ""
+        return (
+            f'<div style="display:flex;align-items:center;gap:8px;'
+            f'padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);">'
+            f'<span style="font-size:.9em;flex-shrink:0;margin-top:1px;">📅</span>'
+            f'<div style="flex:1;min-width:0;">'
+            f'<div style="font-size:.62em;font-weight:800;letter-spacing:.07em;'
+            f'text-transform:uppercase;color:#7c3aed;margin-bottom:1px;">'
+            f'{escape(tl)}</div>'
+            f'<div style="font-size:.88em;line-height:1.3;color:#1e1b4b;">'
+            f'{escape(ev["title"])}{loc}</div>'
+            f'</div></div>'
         )
-        for item in chore_items:
-            chore_html += _dash_row(item, is_chore=True)
+
+    # ── Build combined chronological list: events + tasks + chores ────────────
+    # Each entry: {"kind": "event"|"task"|"chore", "sort_time": "HH:MM", "data": ...}
+    combined = []
+    for ev in cal_items:
+        t = "00:00" if ev.get("all_day") else (ev["time"] or "23:59")
+        combined.append({"kind": "event",  "sort_time": t, "data": ev})
+    for item in queue:
+        sec = item.get("_section", "")
+        pri = item.get("priority", "MEDIUM")
+        if sec == "Task":
+            t = RULE_OF_LIFE_ANCHORS.get(f"manual_{pri}", "09:00")
+        else:
+            t = RULE_OF_LIFE_ANCHORS["school"]
+        combined.append({"kind": "task",   "sort_time": t, "data": item})
+    for item in chore_items:
+        combined.append({"kind": "chore",  "sort_time": RULE_OF_LIFE_ANCHORS["chore"], "data": item})
+    combined.sort(key=lambda x: x["sort_time"])
+
+    # ── Render combined list (2-at-a-time for tasks; events+chores always show) ─
+    combined_html = ""
+    pending_shown = 0
+    chore_done    = sum(1 for i in chore_items if _item_done(i, progress))
+    chore_shown   = False
+    for entry in combined:
+        kind = entry["kind"]
+        if kind == "event":
+            combined_html += _event_row(entry["data"])
+        elif kind == "task":
+            item    = entry["data"]
+            is_done = _item_done(item, progress)
+            if is_done:
+                vis = "display:none;"
+            elif pending_shown < 2:
+                vis = ""
+                pending_shown += 1
+            else:
+                vis = "display:none;"
+            combined_html += _dash_row(item, extra_style=vis)
+        elif kind == "chore":
+            if not chore_shown and chore_items:
+                chore_lbl = f"{chore_done}/{len(chore_items)}"
+                combined_html += (
+                    f'<div style="font-size:0.65em;font-weight:800;letter-spacing:.08em;'
+                    f'text-transform:uppercase;color:{c_bg};margin:10px 0 3px;">'
+                    f'Chores <span style="font-weight:500;color:#888;">({chore_lbl})</span></div>'
+                )
+                chore_shown = True
+            combined_html += _dash_row(entry["data"], is_chore=True)
 
     all_done_badge = (
         '<div style="color:#166534;font-weight:700;font-size:.85em;background:#dcfce7;'
@@ -438,8 +505,7 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
 
         f'{all_done_badge}'
         f'{carry_html}'
-        f'<div id="dash-queue-{c_id}">{queue_html}</div>'
-        f'{chore_html}'
+        f'<div id="dash-queue-{c_id}">{combined_html}</div>'
         f'</div>'
     )
 

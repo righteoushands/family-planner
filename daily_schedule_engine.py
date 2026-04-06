@@ -1,4 +1,6 @@
+import json
 from datetime import date, timedelta
+from pathlib import Path
 
 from safe_utils import (
     ensure_file,
@@ -11,6 +13,8 @@ CHORES_FILE = "data/chores.json"
 PROGRESS_FILE = "data/progress.json"
 TASK_REGISTRY_FILE = "data/task_registry.json"
 MANUAL_TASKS_FILE = "data/manual_tasks.json"
+CALENDAR_CACHE_FILE = "data/subscribed_calendar_cache.json"
+CALENDAR_RULES_FILE = "data/calendar_rules.json"
 
 CHILDREN = ["JP", "Joseph", "Michael", "James"]
 
@@ -19,6 +23,71 @@ PRIORITY_ORDER = {
     "MEDIUM": 1,
     "LOW": 2,
 }
+
+# ── Rule of Life: default time anchors for sorting when no explicit time ──────
+# These reflect the McAdams family's daily rhythm.
+RULE_OF_LIFE_ANCHORS = {
+    "carryover":     "06:30",
+    "manual_HIGH":   "07:00",
+    "school":        "08:30",
+    "manual_MEDIUM": "09:00",
+    "manual_LOW":    "15:00",
+    "chore":         "15:30",
+}
+
+
+# ── Calendar events for the boys ─────────────────────────────────────────────
+
+def get_calendar_events_for_boys(iso: str) -> list:
+    """
+    Return calendar events on the given date (YYYY-MM-DD) relevant to the boys.
+    Filters out events blocked in calendar_rules.json (e.g., Dad's class).
+    Returns sorted list of dicts: {title, time (HH:MM|None), end_time, all_day, location}
+    """
+    try:
+        cache = json.loads(Path(CALENDAR_CACHE_FILE).read_text(encoding="utf-8"))
+        events = cache.get("events", [])
+    except Exception:
+        return []
+    try:
+        rules = json.loads(Path(CALENDAR_RULES_FILE).read_text(encoding="utf-8"))
+        blocked = {t.strip().lower() for t in rules.get("blocked_event_titles", [])}
+    except Exception:
+        blocked = set()
+
+    result = []
+    for e in events:
+        start = e.get("start", "")
+        if not start.startswith(iso):
+            continue
+        title = str(e.get("title", "")).strip()
+        if not title or title.lower() in blocked:
+            continue
+        time_part = start.split("T")[1][:5] if "T" in start else None
+        end       = e.get("end", "")
+        end_time  = end.split("T")[1][:5] if "T" in end else None
+        result.append({
+            "title":    title,
+            "time":     time_part,
+            "end_time": end_time,
+            "all_day":  bool(e.get("all_day", False)),
+            "location": str(e.get("location", "") or ""),
+        })
+    result.sort(key=lambda ev: ("00:00" if ev["all_day"] else (ev["time"] or "23:59")))
+    return result
+
+
+def fmt_time_12h(hhmm: str | None) -> str:
+    """Convert 'HH:MM' to '11:30 AM'. Returns '' if None."""
+    if not hhmm:
+        return ""
+    try:
+        h, m = int(hhmm[:2]), int(hhmm[3:5])
+        suffix = "AM" if h < 12 else "PM"
+        h12 = h % 12 or 12
+        return f"{h12}:{m:02d} {suffix}"
+    except Exception:
+        return hhmm
 
 
 # -------------------------
@@ -573,6 +642,8 @@ def build_schedule_payload(child: str, weekday: str, date_label: str, iso: str):
         school_tasks, chore_tasks, manual_tasks, carryover
     )
 
+    calendar_items = get_calendar_events_for_boys(iso)
+
     return {
         "child": child,
         "weekday": weekday,
@@ -583,6 +654,7 @@ def build_schedule_payload(child: str, weekday: str, date_label: str, iso: str):
         "manual_task_items": manual_task_items,
         "school_blocks": school_blocks,
         "chore_items": chore_items,
+        "calendar_items": calendar_items,
     }
 
 
