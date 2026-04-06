@@ -736,7 +736,7 @@ function sendLogToFelix() {{
   if (!pre) return;
   const logText = pre.innerText || pre.textContent || '';
   const inp = document.getElementById('felix-input');
-  inp.value = '\ud83d\udea8 Server error log (last 300 lines):\n\n' + logText +
+  inp.value = '[!!] Server error log (last 300 lines):\n\n' + logText +
     '\n\nPlease analyze this log. Identify any errors, exceptions, or warnings and explain what caused them.';
   inp.focus();
   document.getElementById('felix-msgs').scrollTop = 99999;
