@@ -74,6 +74,7 @@ from school_pdf_engine import (
     approve_school_preview, extract_pdf_text,
     load_school_preview, parse_school_pdf_text, save_school_preview,
 )
+import gdrive as _gdrive
 from safe_utils import safe_save_json
 
 from config import HOST, PORT, ROADMAP_STATUSES, WEEKDAYS
@@ -397,6 +398,16 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/now":             body = render_now_page()
         elif path == "/week":            body = render_week()
         elif path == "/school":          body = render_school_page(status_message=clean_text(query.get("msg",[""])[0]))
+        elif path == "/gdrive-files":
+            if not _auth.is_admin(user):
+                self._send_json({"error": "unauthorized"}, 403); return
+            folder_id = clean_text(query.get("folder", ["root"])[0]) or "root"
+            try:
+                files = _gdrive.list_files(folder_id)
+                self._send_json({"files": files, "folder": folder_id})
+            except Exception as _ge:
+                self._send_json({"error": str(_ge)}, 500)
+            return
         elif path == "/kids-week":
             from render_kids_week import render_kids_week_page
             wk = clean_text(query.get("week",[""])[0])
@@ -989,11 +1000,22 @@ class Handler(BaseHTTPRequestHandler):
                 child = clean_child(form.getfirst("child",""))
                 raw_text = clean_text(form.getfirst("raw_text",""))
                 gdrive_url = clean_text(form.getfirst("gdrive_url",""))
+                gdrive_file_id = clean_text(form.getfirst("gdrive_file_id",""))
+                gdrive_file_mime = clean_text(form.getfirst("gdrive_file_mime",""))
+                gdrive_file_name = clean_text(form.getfirst("gdrive_file_name",""))
                 filename = "pasted_text"
                 uploaded = form["file"] if "file" in form else None
                 file_bytes = b""; uploaded_name = ""
-                # --- Google Drive URL fetch ---
-                if not raw_text and gdrive_url and "drive.google.com" in gdrive_url:
+                # --- Google Drive authenticated download (via connector) ---
+                if not raw_text and gdrive_file_id:
+                    try:
+                        file_bytes = _gdrive.download_file(gdrive_file_id, gdrive_file_mime)
+                        uploaded_name = gdrive_file_name or "gdrive_file.pdf"
+                        filename = uploaded_name
+                    except Exception as _ge:
+                        uploaded_name = "_gdrive_error:" + str(_ge)[:120]
+                # --- Google Drive URL fetch (public link fallback) ---
+                elif not raw_text and gdrive_url and "drive.google.com" in gdrive_url:
                     try:
                         m = _re.search(r'/d/([a-zA-Z0-9_-]+)', gdrive_url) or \
                             _re.search(r'[?&]id=([a-zA-Z0-9_-]+)', gdrive_url)

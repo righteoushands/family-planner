@@ -4075,34 +4075,119 @@ def render_school_page(status_message: str = "") -> str:
     <div class="two-col">
         <div class="card">
             <h2>Upload or Paste School List</h2>
-            <form method="POST" action="/school-upload" enctype="multipart/form-data">
+            <form id="school-upload-form" method="POST" action="/school-upload" enctype="multipart/form-data">
+                <input type="hidden" name="gdrive_file_id" id="gdf-id">
+                <input type="hidden" name="gdrive_file_mime" id="gdf-mime">
+                <input type="hidden" name="gdrive_file_name" id="gdf-name">
+                <input type="hidden" name="gdrive_url" value="">
                 <label>Child</label>
                 <select name="child">{child_options}</select>
+
+                <!-- Google Drive Browser -->
                 <div style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;
                             padding:14px 16px;margin-bottom:16px;">
-                  <div style="font-weight:700;font-size:0.88em;color:#1e40af;margin-bottom:8px;">
+                  <div style="font-weight:700;font-size:0.88em;color:#1e40af;margin-bottom:6px;">
                     📁 Import from Google Drive
                   </div>
-                  <div style="font-size:0.82em;color:#374151;margin-bottom:10px;">
-                    In Google Drive, tap the three dots next to the PDF → Share → Copy link. Paste it below.
+                  <div id="gd-selected" style="display:none;background:#e0f2fe;border-radius:7px;
+                       padding:8px 12px;margin-bottom:10px;font-size:0.85em;color:#0369a1;
+                       display:flex;align-items:center;gap:8px;">
+                    <span>📄</span><span id="gd-selected-name"></span>
+                    <button type="button" onclick="gdClear()"
+                            style="margin-left:auto;background:none;border:none;
+                                   color:#64748b;cursor:pointer;padding:0;font-size:1em;">✕</button>
                   </div>
-                  <input type="text" name="gdrive_url"
-                         placeholder="Paste Google Drive link here..."
-                         style="font-size:15px;margin-bottom:0;">
+                  <button type="button" id="gd-browse-btn"
+                          onclick="gdOpen('root')"
+                          style="background:#1e40af;color:white;border:none;border-radius:7px;
+                                 padding:9px 16px;font-size:0.88em;font-weight:600;cursor:pointer;
+                                 width:100%;">Browse Google Drive</button>
+                  <div id="gd-browser" style="display:none;margin-top:10px;
+                       border:1px solid #bfdbfe;border-radius:8px;overflow:hidden;">
+                    <div id="gd-breadcrumb" style="background:#e0f2fe;padding:8px 12px;
+                         font-size:0.78em;color:#0369a1;font-weight:600;"></div>
+                    <div id="gd-list" style="max-height:280px;overflow-y:auto;"></div>
+                  </div>
                 </div>
-                <label style="color:var(--ink-faint);font-size:0.8em;">
-                  — or choose a local file —
-                </label>
+
+                <label style="color:var(--ink-faint);font-size:0.8em;">— or choose a local file —</label>
                 <input type="file" name="file"
-                       style="display:block;width:100%;font-size:16px;
-                              margin-bottom:16px;cursor:pointer;">
-                <label style="color:var(--ink-faint);font-size:0.8em;">
-                  — or paste text —
-                </label>
-                <textarea name="raw_text" rows="6"
+                       style="display:block;width:100%;font-size:16px;margin-bottom:16px;cursor:pointer;">
+                <label style="color:var(--ink-faint);font-size:0.8em;">— or paste text —</label>
+                <textarea name="raw_text" rows="5"
                           placeholder="Paste the school list text here..."></textarea>
                 <button type="submit">Import &amp; Create Preview</button>
             </form>
+            <script>
+            (function(){{
+              var stack = [];
+              function gdOpen(fid, fname) {{
+                stack.push({{id: fid, name: fname || 'My Drive'}});
+                gdLoad(fid);
+              }}
+              function gdUp() {{
+                if (stack.length > 1) stack.pop();
+                gdLoad(stack[stack.length-1].id);
+              }}
+              function gdLoad(fid) {{
+                var list = document.getElementById('gd-list');
+                var browser = document.getElementById('gd-browser');
+                browser.style.display = 'block';
+                list.innerHTML = '<div style="padding:16px;text-align:center;color:#64748b;font-size:0.85em;">Loading...</div>';
+                gdCrumb();
+                fetch('/gdrive-files?folder=' + encodeURIComponent(fid))
+                  .then(function(r){{ return r.json(); }})
+                  .then(function(data) {{
+                    if (data.error) {{ list.innerHTML = '<div style="padding:12px;color:#b91c1c;font-size:0.85em;">Error: ' + data.error + '</div>'; return; }}
+                    var files = data.files || [];
+                    if (!files.length) {{ list.innerHTML = '<div style="padding:12px;color:#64748b;font-size:0.85em;">No files found.</div>'; return; }}
+                    list.innerHTML = files.map(function(f) {{
+                      var isFolder = f.mimeType === 'application/vnd.google-apps.folder';
+                      var readable = ['application/pdf','application/vnd.google-apps.document','text/plain'].indexOf(f.mimeType) >= 0;
+                      var icon = isFolder ? '📁' : (f.mimeType === 'application/pdf' ? '📄' : (f.mimeType.indexOf('document') >= 0 ? '📝' : '📃'));
+                      var style = 'display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #e0f2fe;cursor:pointer;font-size:0.88em;';
+                      if (!isFolder && !readable) style += 'opacity:0.45;pointer-events:none;';
+                      var onclick = isFolder
+                        ? 'gdOpen(' + JSON.stringify(f.id) + ',' + JSON.stringify(f.name) + ')'
+                        : (readable ? 'gdSelect(' + JSON.stringify(f.id) + ',' + JSON.stringify(f.mimeType) + ',' + JSON.stringify(f.name) + ')' : '');
+                      return '<div style="' + style + '" onclick="' + onclick + '">' + icon + ' <span>' + f.name + '</span></div>';
+                    }}).join('');
+                  }})
+                  .catch(function(e) {{ list.innerHTML = '<div style="padding:12px;color:#b91c1c;font-size:0.85em;">Failed to load.</div>'; }});
+              }}
+              function gdCrumb() {{
+                var crumb = document.getElementById('gd-breadcrumb');
+                var parts = stack.map(function(s, i) {{
+                  if (i === stack.length - 1) return '<b>' + s.name + '</b>';
+                  return '<span onclick="gdJump(' + i + ')" style="cursor:pointer;text-decoration:underline;">' + s.name + '</span>';
+                }});
+                crumb.innerHTML = (stack.length > 1 ? '<span onclick="gdUp()" style="cursor:pointer;margin-right:6px;">&#8592;</span>' : '') + parts.join(' › ');
+              }}
+              window.gdOpen = gdOpen;
+              window.gdUp = gdUp;
+              window.gdJump = function(idx) {{
+                stack = stack.slice(0, idx + 1);
+                gdLoad(stack[stack.length-1].id);
+              }};
+              window.gdSelect = function(id, mime, name) {{
+                document.getElementById('gdf-id').value = id;
+                document.getElementById('gdf-mime').value = mime;
+                document.getElementById('gdf-name').value = name;
+                document.getElementById('gd-selected-name').textContent = name;
+                document.getElementById('gd-selected').style.display = 'flex';
+                document.getElementById('gd-browser').style.display = 'none';
+                document.getElementById('gd-browse-btn').textContent = 'Change file';
+              }};
+              window.gdClear = function() {{
+                document.getElementById('gdf-id').value = '';
+                document.getElementById('gdf-mime').value = '';
+                document.getElementById('gdf-name').value = '';
+                document.getElementById('gd-selected').style.display = 'none';
+                document.getElementById('gd-browse-btn').textContent = 'Browse Google Drive';
+                stack = [];
+              }};
+            }})();
+            </script>
         </div>
         <div class="card">
             <h2>Approved Weeks</h2>
