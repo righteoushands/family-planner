@@ -126,7 +126,8 @@ def build_felix_context() -> str:
 
 ════════════ YOUR TOOLS ════════════
 READ FILES: [READ: filename.py:start_line-end_line]
-  Fetches that section. Use this before proposing any fix.
+  ALWAYS include line numbers. Example: [READ: app.py:100-200]
+  Use this before proposing any fix. For large files, read 50-100 lines at a time.
 
 APPLY FIXES: Use this exact format — Lauren sees a clean Apply button, no code shown:
 
@@ -505,11 +506,11 @@ async function streamFelix(payload, isAutoRead, image) {{
 
 // ── Auto-handle [READ:] tags — no button click needed ─────────────────
 async function autoHandleReads(fullText) {{
-  const readPattern = /\[READ:\s*([^:\]]+):(\d+)-(\d+)\]/g;
+  const readPattern = /\[READ:\s*([^:\]\n]+)(?::(\d+)-(\d+))?\]/g;
   const sections = [];
   let m;
   while ((m = readPattern.exec(fullText)) !== null) {{
-    sections.push({{ fname: m[1].trim(), start: parseInt(m[2]), end: parseInt(m[3]) }});
+    sections.push({{ fname: m[1].trim(), start: m[2] ? parseInt(m[2]) : 0, end: m[3] ? parseInt(m[3]) : 0 }});
   }}
   if (sections.length === 0) return;
 
@@ -595,7 +596,7 @@ function escHtml(str) {{
 // ── Parse [FIX:...] and [READ:...] blocks ─────────────────────────────────
 function parseFixes(bubble, fullText) {{
   const fixPattern  = /\[FIX:\s*([^\]]+)\]\s*[\\r\\n]+(?:WHAT:\s*([^\\r\\n]*)[\\r\\n]+)?FIND:[\\r\\n]+([\s\S]*?)[\\r\\n]+REPLACE:[\\r\\n]+([\s\S]*?)[\\r\\n]+\[\/FIX\]/g;
-  const readPattern = /\[READ:\s*([^:\]]+):(\d+)-(\d+)\]/g;
+  const readPattern = /\[READ:\s*([^:\]\n]+)(?::(\d+)-(\d+))?\]/g;
   const rawEl   = bubble.querySelector('.felix-raw');
   const fixesEl = bubble.querySelector('.felix-fixes');
   if (!rawEl || !fixesEl) return;
@@ -634,9 +635,8 @@ function parseFixes(bubble, fullText) {{
     const fname = readMatch[1].trim();
     const start = readMatch[2];
     const end   = readMatch[3];
-    // Just remove the tag from display text; autoHandleReads does the fetch
-    cleanText = cleanText.replace(readMatch[0],
-      `[📄 Fetching ${{fname}} lines ${{start}}\u2013${{end}}\u2026]`);
+    const rangeLabel = (start && end) ? ` lines ${{start}}\u2013${{end}}` : '';
+    cleanText = cleanText.replace(readMatch[0], `[📄 Reading ${{fname}}${{rangeLabel}}\u2026]`);
   }}
 
   rawEl.textContent = cleanText;
@@ -865,20 +865,34 @@ async function restartServer() {{
 
 
 # ── Bubble HTML helpers (used for server-rendered history) ────────────────────
+import re as _re
+
+def _clean_user_history(text: str) -> str:
+    """Strip auto-injected server log / system context from saved user messages."""
+    # Remove [SERVER LOG — ...] block appended automatically
+    text = _re.sub(r'\n\n\[SERVER LOG[^\[]*?\]', '', text, flags=_re.DOTALL)
+    # Remove any other [SYSTEM: ...] injections
+    text = _re.sub(r'\n\n\[SYSTEM:[^\[]*?\[END OF FILE SECTIONS\]', '', text, flags=_re.DOTALL)
+    return text.strip()
+
 def _user_bubble(text: str, ts: str) -> str:
     ts_label = f'<div style="font-size:0.7em;color:#94a3b8;margin-top:4px;text-align:right;">{escape(ts[:16])}</div>' if ts else ""
+    clean = _clean_user_history(text)
     return f"""<div style="display:flex;justify-content:flex-end;">
   <div style="max-width:80%;background:#1e3a8a;color:white;padding:10px 14px;
               border-radius:14px 14px 4px 14px;font-size:0.88em;line-height:1.5;white-space:pre-wrap;">
-    {escape(text)}{ts_label}
+    {escape(clean)}{ts_label}
   </div>
 </div>"""
 
 
 def _felix_bubble(text: str, ts: str) -> str:
     ts_label = f'<div style="font-size:0.7em;color:#94a3b8;margin-top:6px;">{escape(ts[:16])}</div>' if ts else ""
-    # For server-rendered history, just show raw text (no FIX parsing — those are past fixes)
-    safe = escape(text)
+    # Strip [READ:...] and [FIX:...][/FIX] blocks from history (already processed)
+    clean = _re.sub(r'\[READ:[^\]]*\]', '', text)
+    clean = _re.sub(r'\[FIX:[^\]]*\].*?\[/FIX\]', '', clean, flags=_re.DOTALL)
+    clean = clean.strip()
+    safe = escape(clean)
     return f"""<div style="display:flex;gap:10px;align-items:flex-start;">
   <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#1e3a8a,#3b82f6);
               display:flex;align-items:center;justify-content:center;font-size:1em;flex-shrink:0;">&#128187;</div>
