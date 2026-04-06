@@ -206,9 +206,15 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
 
     school_html  = "".join(render_school_block(child, iso, b) for b in payload["school_blocks"])
     school_count = count_school_check_items(payload)
-    chore_count  = len(payload.get("chore_items", []))
     carry_count  = len(merged_carryover)
-    manual_count = len(payload.get("manual_task_items", []))
+
+    # Merge manual tasks + chores into one list, deduplicating by text
+    _chore_items  = payload.get("chore_items", [])
+    _manual_items = payload.get("manual_task_items", [])
+    _chore_texts  = {i.get("text", "").lower().strip() for i in _chore_items}
+    _manual_deduped = [i for i in _manual_items if i.get("text", "").lower().strip() not in _chore_texts]
+    combined_tasks = _manual_deduped + _chore_items
+    task_count = len(combined_tasks)
 
     c_bg    = child_color(child, "bg")
     c_light = child_color(child, "light")
@@ -231,9 +237,8 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
             <div class="no-print">{render_day_nav(f"/schedule/{child}", iso)}</div>
             <div class="summary-row">
                 <span class="badge">Carryover: {carry_count}</span>
-                <span class="badge">Manual: {manual_count}</span>
+                <span class="badge">Tasks: {task_count}</span>
                 <span class="badge">School checks: {school_count}</span>
-                <span class="badge">Chores: {chore_count}</span>
             </div>
             <div class="link-row no-print">
                 <a class="link-button" href="/print/day?date={escape(iso)}">Print This Day</a>
@@ -261,10 +266,7 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
                 <h3>School</h3>{school_html or "<p class='muted'>None.</p>"}
             </div>
             <div class="card card-tight">
-                <h3>Chores</h3>{render_task_list(child, iso, payload["chore_items"])}
-            </div>
-            <div class="card card-tight">
-                <h3>Manual Tasks</h3>{render_task_list(child, iso, payload["manual_task_items"])}
+                <h3>Tasks</h3>{render_task_list(child, iso, combined_tasks)}
             </div>
         </div>
         {_render_meal_card_for_child(target_iso)}
@@ -427,11 +429,15 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
 
     # ── Build combined chronological list: events + tasks + chores ────────────
     # Each entry: {"kind": "event"|"task"|"chore", "sort_time": "HH:MM", "data": ...}
+    # Deduplicate: remove manual tasks whose text matches a chore item
+    _dash_chore_texts = {i.get("text", "").lower().strip() for i in chore_items}
     combined = []
     for ev in cal_items:
         t = "00:00" if ev.get("all_day") else (ev["time"] or "23:59")
         combined.append({"kind": "event",  "sort_time": t, "data": ev})
     for item in queue:
+        if item.get("_section") == "Task" and item.get("text", "").lower().strip() in _dash_chore_texts:
+            continue  # skip manual tasks that duplicate a chore
         sec = item.get("_section", "")
         pri = item.get("priority", "MEDIUM")
         if sec == "Task":
@@ -737,9 +743,13 @@ def render_print_child_page(child: str, weekday: str, date_label: str, iso: str)
     if carryover:
         items = "".join(f'<div class="carryover-item"><span class="checkbox"></span>{escape(i["text"])}</div>' for i in carryover)
         sections_html += f'<div class="section-title">Carryover</div>{items}'
-    manual = payload.get("manual_task_items", [])
-    if manual:
-        items = "".join(f'<div class="check-item"><span class="checkbox"></span>{escape(i["text"])}</div>' for i in manual)
+    _pr_chores  = payload.get("chore_items", [])
+    _pr_manual  = payload.get("manual_task_items", [])
+    _pr_ctexts  = {i.get("text", "").lower().strip() for i in _pr_chores}
+    _pr_mdeduped = [i for i in _pr_manual if i.get("text", "").lower().strip() not in _pr_ctexts]
+    _pr_combined = _pr_mdeduped + _pr_chores
+    if _pr_combined:
+        items = "".join(f'<div class="check-item"><span class="checkbox"></span>{escape(i["text"])}</div>' for i in _pr_combined)
         sections_html += f'<div class="section-title">Tasks</div>{items}'
     school_blocks = payload.get("school_blocks", [])
     if school_blocks:
@@ -756,10 +766,6 @@ def render_print_child_page(child: str, weekday: str, date_label: str, iso: str)
             at_html = f'<div class="assignment-text">{escape(at)}</div>' if at else ""
             blocks_html += f'<div class="subject-name">{escape(subject)}</div>{math_note}{at_html}{checklist}'
         sections_html += f'<div class="section-title">School</div>{blocks_html}'
-    chores = payload.get("chore_items", [])
-    if chores:
-        items = "".join(f'<div class="check-item"><span class="checkbox"></span>{escape(i["text"])}</div>' for i in chores)
-        sections_html += f'<div class="section-title">Chores</div>{items}'
 
     # Meals section for print
     meal_print_html = _render_meal_print_section(target_iso, weekday)
