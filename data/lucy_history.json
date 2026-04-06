@@ -2,46 +2,6 @@
   "messages": [
     {
       "role": "user",
-      "content": "Ok, ty",
-      "ts": "2026-04-06T06:44:32"
-    },
-    {
-      "role": "assistant",
-      "content": "You're welcome, love. Go take care of yourself.\n\nI'm here when you get back.",
-      "ts": "2026-04-06T06:44:33"
-    },
-    {
-      "role": "user",
-      "content": "Make lists for boys",
-      "ts": "2026-04-06T09:44:59"
-    },
-    {
-      "role": "assistant",
-      "content": "I want to help you with that, Lauren, but I need to know what you're thinking.\n\nWhat do you want on their lists today? Are you looking at:\n\n- Their regular chores and school tasks?\n- Something specific for this Monday?\n- Help organizing what's already there?\n\nTell me what would be most helpful right now.",
-      "ts": "2026-04-06T09:45:01"
-    },
-    {
-      "role": "user",
-      "content": "All lists for today",
-      "ts": "2026-04-06T09:45:21"
-    },
-    {
-      "role": "assistant",
-      "content": "Got it. Let me pull together what each boy needs for today (Monday, April 6th).\n\nBefore I build the lists, I want to check: you've eaten something, yes? And how are you feeling now — a bit steadier?\n\nAlso, quick clarification: I see JP has video games chosen for today (20 minutes). Should that stay on his printable task list, or would you rather I remove it since it's already noted in his carryover?\n\nOnce you confirm, I'll build out clean, fresh task lists for all four boys for today.",
-      "ts": "2026-04-06T09:45:24"
-    },
-    {
-      "role": "user",
-      "content": "No that should be checked off.",
-      "ts": "2026-04-06T09:46:02"
-    },
-    {
-      "role": "assistant",
-      "content": "Got it — removing that from JP's carryover.\n\nNow, for the task lists today. I'm looking at what each boy has:\n\n**JP:** Finish Sea Cadet Recruit Orientation + Wash CAP uniform for tonight's meeting\n**Joseph:** Finish Sea Cadet Recruit Orientation\n**Michael:** Nothing scheduled yet\n**James:** Nothing scheduled yet\n\nDoes this look right for today? Or do you want to add anything else — chores, practice, reading, virtue work, anything?",
-      "ts": "2026-04-06T09:46:04"
-    },
-    {
-      "role": "user",
       "content": "Yes",
       "ts": "2026-04-06T09:46:13"
     },
@@ -299,6 +259,46 @@
       "role": "assistant",
       "content": "Perfect. Adding those to Joseph's list today:\n\n- Find plain black pants for CAP\n- Find white t-shirt for CAP\n\nAnd I'm adding him to tonight's CAP meeting (6:00 PM and 6:30 PM, same as JP), but without the element email responsibility since he's not an element leader.\n\nLet me update his task list now:\n\n\nJoseph's list is updated with his new CAP tasks. Shall I also update the family schedule to reflect that Joseph now has CAP tonight along with JP?\n[PLAN_UPDATED:Joseph:2026-04-06]",
       "ts": "2026-04-06T13:10:06"
+    },
+    {
+      "role": "user",
+      "content": "I need to make some changes to the menu plan. The chicken is in the brine now so let’s cook it tomorrow evening tomorrow for lunch. Let’s while we’re eating a Bible study tomorrow for lunch so perhaps we should have pizza for dinner and then wait and do the brine. On Wednesday.",
+      "ts": "2026-04-06T18:34:07"
+    },
+    {
+      "role": "assistant",
+      "content": "Got it — let me make sure I have this right:\n\n**Tuesday (tomorrow):**\n- Lunch: Brined roast chicken with roasted vegetables\n- Dinner: Pizza\n- Bible Study happens during lunch\n\n**Wednesday:**\n- Start the brine for chicken (to cook later)\n\nSo you're shifting the chicken from tonight to tomorrow lunch, moving dinner to pizza, and then prepping fresh chicken in brine on Wednesday to cook Wednesday evening or later in the week.\n\nDoes that capture it correctly?",
+      "ts": "2026-04-06T18:34:10"
+    },
+    {
+      "role": "user",
+      "content": "Move brine chicken on menu to Wednesday",
+      "ts": "2026-04-06T18:34:19"
+    },
+    {
+      "role": "assistant",
+      "content": "Got it. Moving the brined chicken to Wednesday.\n\nJust to confirm the full plan:\n\n**Tuesday (tomorrow):**\n- Lunch: Pizza\n- Dinner: Pizza\n\n**Wednesday:**\n- Brined chicken (when — lunch or dinner?)\n\nAnd the Bible Study is at lunch tomorrow — so pizza works well for that timing.\n\nWhen should the brined chicken go on Wednesday — lunch or dinner?",
+      "ts": "2026-04-06T18:34:21"
+    },
+    {
+      "role": "user",
+      "content": "Dinner",
+      "ts": "2026-04-06T18:34:44"
+    },
+    {
+      "role": "assistant",
+      "content": "Perfect.\n\n**Tuesday (tomorrow):**\n- Lunch: Pizza\n- Dinner: Pizza\n\n**Wednesday:**\n- Dinner: Brined roast chicken with roasted vegetables\n\nUpdating the meal plan now:\n\n\n\nAll set. The chicken will be ready to cook Wednesday evening when you need it.\n[MEAL_UPDATED:2026-W14:3]",
+      "ts": "2026-04-06T18:34:46"
+    },
+    {
+      "role": "user",
+      "content": "What is on the meal plan for Wednesday",
+      "ts": "2026-04-06T18:35:16"
+    },
+    {
+      "role": "assistant",
+      "content": "**Wednesday, April 8:**\n- Dinner: Brined roast chicken with roasted vegetables\n\nThat's the only meal on the plan for Wednesday right now. Would you like to add breakfast or lunch for that day?",
+      "ts": "2026-04-06T18:35:18"
     }
   ]
 }
