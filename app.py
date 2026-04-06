@@ -1851,14 +1851,12 @@ class Handler(BaseHTTPRequestHandler):
                     try: self.wfile.write(b"No API key. Add your Anthropic key in Settings \u2192 Family & AI.")
                     except BrokenPipeError: pass
                     return
-                # Always use the real server-side current date — never trust client iso
-                _today_real = date.today()
-                iso        = _today_real.isoformat()
-                try:
-                    weekday    = _today_real.strftime("%A")
-                    date_label = _today_real.strftime("%B %d, %Y")
-                except Exception:
-                    weekday = date_label = iso
+                # Use Eastern datetime (TZ set to America/New_York at server startup)
+                _now_et    = datetime.now()
+                iso        = _now_et.date().isoformat()
+                weekday    = _now_et.strftime("%A")
+                date_label = _now_et.strftime("%B %d, %Y")
+                _time_et   = _now_et.strftime("%-I:%M %p")
                 lucy_context = build_lucy_context(iso, weekday, date_label, capacity)
                 # ── Fetch any URLs in the user's message ──────────────────────
                 _urls = extract_urls(message)
@@ -1892,6 +1890,17 @@ class Handler(BaseHTTPRequestHandler):
                         }},
                         {"type": "text", "text": last_text or "What do you see in this image?"}
                     ]}
+                # Stamp current date+time into the last user message so stale history can't override it
+                _date_stamp = f"[Today: {weekday}, {date_label}, {_time_et} ET]"
+                if messages and messages[-1].get("role") == "user":
+                    _lc = messages[-1]["content"]
+                    if isinstance(_lc, str):
+                        messages[-1]["content"] = f"{_date_stamp}\n{_lc}"
+                    elif isinstance(_lc, list):
+                        for _part in _lc:
+                            if isinstance(_part, dict) and _part.get("type") == "text":
+                                _part["text"] = f"{_date_stamp}\n{_part['text']}"
+                                break
                 payload = _json.dumps({
                     "model":      "claude-haiku-4-5-20251001",
                     "max_tokens": 1500,
@@ -2620,14 +2629,12 @@ class Handler(BaseHTTPRequestHandler):
                     try: self.wfile.write(b"No API key. Add your Anthropic key in Settings.")
                     except BrokenPipeError: pass
                     return
-                # Always use the real server-side current date — never trust client iso
-                _today_real = date.today()
-                iso        = _today_real.isoformat()
-                try:
-                    weekday    = _today_real.strftime("%A")
-                    date_label = _today_real.strftime("%B %d, %Y")
-                except Exception:
-                    weekday = date_label = iso
+                # Use Eastern datetime (TZ set to America/New_York at server startup)
+                _now_et    = datetime.now()
+                iso        = _now_et.date().isoformat()
+                weekday    = _now_et.strftime("%A")
+                date_label = _now_et.strftime("%B %d, %Y")
+                _time_et   = _now_et.strftime("%-I:%M %p")
                 # Inject capacity override into context if user set it in UI
                 lorenzo_context = build_lorenzo_context(iso, weekday, date_label)
                 if capacity:
@@ -2658,6 +2665,17 @@ class Handler(BaseHTTPRequestHandler):
                         }},
                         {"type": "text", "text": last_text or "What do you see in this image? Describe it as a chef would."}
                     ]}
+                # Stamp current date+time into the last user message so stale history can't override it
+                _date_stamp = f"[Today: {weekday}, {date_label}, {_time_et} ET]"
+                if messages and messages[-1].get("role") == "user":
+                    _lc = messages[-1]["content"]
+                    if isinstance(_lc, str):
+                        messages[-1]["content"] = f"{_date_stamp}\n{_lc}"
+                    elif isinstance(_lc, list):
+                        for _part in _lc:
+                            if isinstance(_part, dict) and _part.get("type") == "text":
+                                _part["text"] = f"{_date_stamp}\n{_part['text']}"
+                                break
                 payload = _json.dumps({
                     "model":      "claude-haiku-4-5-20251001",
                     "max_tokens": 1500,
@@ -2803,10 +2821,12 @@ class Handler(BaseHTTPRequestHandler):
                     load_gregory_history, append_gregory_messages, GREGORY_CONTEXT_MAX
                 )
                 from datetime import datetime as _dt
-                _today_real = date.today()
-                iso        = _today_real.isoformat()
-                weekday    = _today_real.strftime("%A")
-                date_label = _today_real.strftime("%B %d, %Y")
+                # Use Eastern datetime (TZ set to America/New_York at server startup)
+                _now_et    = datetime.now()
+                iso        = _now_et.date().isoformat()
+                weekday    = _now_et.strftime("%A")
+                date_label = _now_et.strftime("%B %d, %Y")
+                _time_et   = _now_et.strftime("%-I:%M %p")
                 message    = clean_text(data.get("message",[""])[0])
                 settings_data = load_app_settings()
                 api_key = (settings_data.get("family_constraints",{}).get("anthropic_api_key","")
@@ -2827,6 +2847,10 @@ class Handler(BaseHTTPRequestHandler):
                         messages.append({"role": role, "content": content})
                 if not messages or messages[-1].get("role") != "user":
                     messages.append({"role": "user", "content": message})
+                # Stamp current date+time into the last user message so stale history can't override it
+                _date_stamp = f"[Today: {weekday}, {date_label}, {_time_et} ET]"
+                if messages and messages[-1].get("role") == "user" and isinstance(messages[-1]["content"], str):
+                    messages[-1]["content"] = f"{_date_stamp}\n{messages[-1]['content']}"
                 payload = _json.dumps({
                     "model":      "claude-haiku-4-5-20251001",
                     "max_tokens": 1500,
@@ -2879,10 +2903,12 @@ class Handler(BaseHTTPRequestHandler):
                     load_coach_history, append_coach_messages, COACH_CONTEXT_MAX
                 )
                 from datetime import datetime as _dt
-                _today_real = date.today()
-                iso        = _today_real.isoformat()
-                weekday    = _today_real.strftime("%A")
-                date_label = _today_real.strftime("%B %d, %Y")
+                # Use Eastern datetime (TZ set to America/New_York at server startup)
+                _now_et    = datetime.now()
+                iso        = _now_et.date().isoformat()
+                weekday    = _now_et.strftime("%A")
+                date_label = _now_et.strftime("%B %d, %Y")
+                _time_et   = _now_et.strftime("%-I:%M %p")
                 message    = clean_text(data.get("message",[""])[0])
                 settings_data = load_app_settings()
                 api_key = (settings_data.get("family_constraints",{}).get("anthropic_api_key","")
@@ -2903,6 +2929,10 @@ class Handler(BaseHTTPRequestHandler):
                         messages.append({"role": role, "content": content})
                 if not messages or messages[-1].get("role") != "user":
                     messages.append({"role": "user", "content": message})
+                # Stamp current date+time into the last user message so stale history can't override it
+                _date_stamp = f"[Today: {weekday}, {date_label}, {_time_et} ET]"
+                if messages and messages[-1].get("role") == "user" and isinstance(messages[-1]["content"], str):
+                    messages[-1]["content"] = f"{_date_stamp}\n{messages[-1]['content']}"
                 payload = _json.dumps({
                     "model":      "claude-haiku-4-5-20251001",
                     "max_tokens": 1200,
@@ -2985,7 +3015,11 @@ class Handler(BaseHTTPRequestHandler):
 
                 felix_context = build_felix_context()
                 ts_now = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
-                full_user_msg = message + file_context if file_context else message
+                _now_et_iz  = datetime.now()
+                _date_stamp_iz = (f"[Today: {_now_et_iz.strftime('%A')}, "
+                                  f"{_now_et_iz.strftime('%B %d, %Y')}, "
+                                  f"{_now_et_iz.strftime('%-I:%M %p')} ET]")
+                full_user_msg = f"{_date_stamp_iz}\n{message}" + file_context if file_context else f"{_date_stamp_iz}\n{message}"
 
                 # Save ONLY what Lauren typed — never the injected log/file context.
                 # That context is for Claude only, not for history display.
@@ -3240,10 +3274,12 @@ class Handler(BaseHTTPRequestHandler):
                     load_monica_history, append_monica_messages, MONICA_CONTEXT_MAX
                 )
                 from datetime import datetime as _dt
-                _today_real = date.today()
-                iso        = _today_real.isoformat()
-                weekday    = _today_real.strftime("%A")
-                date_label = _today_real.strftime("%B %d, %Y")
+                # Use Eastern datetime (TZ set to America/New_York at server startup)
+                _now_et    = datetime.now()
+                iso        = _now_et.date().isoformat()
+                weekday    = _now_et.strftime("%A")
+                date_label = _now_et.strftime("%B %d, %Y")
+                _time_et   = _now_et.strftime("%-I:%M %p")
                 message    = clean_text(data.get("message",[""])[0])
                 settings_data = load_app_settings()
                 api_key = (settings_data.get("family_constraints",{}).get("anthropic_api_key","")
@@ -3264,6 +3300,10 @@ class Handler(BaseHTTPRequestHandler):
                         messages.append({"role": role, "content": content})
                 if not messages or messages[-1].get("role") != "user":
                     messages.append({"role": "user", "content": message})
+                # Stamp current date+time into the last user message so stale history can't override it
+                _date_stamp = f"[Today: {weekday}, {date_label}, {_time_et} ET]"
+                if messages and messages[-1].get("role") == "user" and isinstance(messages[-1]["content"], str):
+                    messages[-1]["content"] = f"{_date_stamp}\n{messages[-1]['content']}"
                 payload = _json.dumps({
                     "model":      "claude-haiku-4-5-20251001",
                     "max_tokens": 1500,

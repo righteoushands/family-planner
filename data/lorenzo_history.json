@@ -149,6 +149,16 @@
       "role": "assistant",
       "content": "You're right to call me out — I made a mistake.\n\nYou told me at the start it's April 04, 2026. But looking back at my system info, today is actually Sunday, April 05, 2026 at 9:12 AM.\n\nSo TODAY is Sunday. Which means curry chicken was LAST night (Saturday).\n\nI apologize for the confusion. Let me reset:\n\nTODAY IS SUNDAY, APRIL 5TH.\n\nAccording to the plan:\n- Breakfast: Scrambled eggs, toast, oranges\n- Lunch: Leftover curry and rice\n- Dinner: Ziplock Buffet (leftovers)\n\nAnd you mentioned adding prep work for the brined chicken today so it's ready to roast Monday.\n\nWhat do you need help with right now?",
       "ts": "2026-04-05T09:12:33"
+    },
+    {
+      "role": "user",
+      "content": "I don’t brine the chicken yesterday. Let’s change the menu so the chicken can have a brine.",
+      "ts": "2026-04-06T13:02:55"
+    },
+    {
+      "role": "assistant",
+      "content": "Got it — we need to push the brined roast chicken back so you have time to brine it properly.\n\nWhen do you want to do the brined chicken instead? Do you want to brine it tonight (Sunday) so you can roast it Monday? Or push it further out in the week?",
+      "ts": "2026-04-06T13:02:56"
     }
   ]
 }

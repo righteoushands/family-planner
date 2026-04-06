@@ -109,7 +109,14 @@ def _file_listing() -> str:
 def build_felix_context() -> str:
     overview  = _app_overview()
     file_list = _file_listing()
+    _now_et   = datetime.now()   # TZ=America/New_York set at server startup
+    _weekday  = _now_et.strftime("%A")
+    _date_lbl = _now_et.strftime("%B %d, %Y")
+    _time_et  = _now_et.strftime("%-I:%M %p")
     return f"""You are Isidore (called Izzy), the built-in programmer for the Sancta Familia family dashboard.
+
+CRITICAL — TODAY'S DATE: {_weekday}, {_date_lbl}. CURRENT TIME: {_time_et} Eastern.
+This is authoritative. If earlier messages mention a different date, ignore them — always use the date above.
 
 ════════════ APP OVERVIEW ════════════
 {overview}
