@@ -466,5 +466,7 @@
   "2026-04-06::Joseph::CHORE::  → Clean sink": true,
   "2026-04-06::Joseph::MANUAL::MEDIUM::KITCHEN (Evening — Role B): Put food away, clear table + counters, spray + wipe table and counters, take out trash + recycling, sweep kitchen / dining room / foyer": true,
   "2026-04-06::Joseph::SCHOOL::Math 87::Assignment completed": true,
-  "2026-04-06::Joseph::SCHOOL::Math 87::Given to checker": true
+  "2026-04-06::Joseph::SCHOOL::Math 87::Given to checker": true,
+  "2026-04-06::JP::MANUAL::MEDIUM::Wash CAP uniform for tonight's meeting": true,
+  "2026-04-06::JP::MANUAL::MEDIUM::Finish next Sea Cadet Recruit Orientation": true
 }
