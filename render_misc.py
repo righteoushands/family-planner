@@ -4076,27 +4076,16 @@ def render_school_page(status_message: str = "") -> str:
         <div class="card">
             <h2>Upload or Paste School List</h2>
             <form method="POST" action="/school-upload" enctype="multipart/form-data">
-                <label>Child</label><select name="child">{child_options}</select>
-                <div style="margin-bottom:14px;">
-                  <input type="file" name="file" id="school-file-input"
-                         accept=".pdf,application/pdf,text/plain,.txt"
-                         style="display:none;"
-                         onchange="(function(i){{var t=document.getElementById('sft');if(i.files&&i.files[0]){{t.textContent=i.files[0].name;t.parentElement.style.borderColor='#8b5a3c';t.parentElement.style.color='#3d2b1f';}}}})(this)">
-                  <label for="school-file-input"
-                         style="display:flex;align-items:center;gap:12px;
-                                padding:16px;border:2px dashed #c8bfb0;
-                                border-radius:10px;background:#faf8f5;
-                                cursor:pointer;font-size:0.92em;color:#8b7a6a;
-                                -webkit-tap-highlight-color:rgba(0,0,0,0.08);
-                                min-height:56px;box-sizing:border-box;">
-                    <span style="font-size:1.6em;flex-shrink:0;">📎</span>
-                    <span id="sft">Tap here to choose a PDF or text file</span>
-                  </label>
-                </div>
+                <label>Child</label>
+                <select name="child">{child_options}</select>
+                <label>Choose PDF file</label>
+                <input type="file" name="file"
+                       style="display:block;width:100%;font-size:16px;
+                              margin-bottom:16px;cursor:pointer;">
                 <label>Or paste text instead</label>
                 <textarea name="raw_text" rows="8"
                           placeholder="Paste the school list text here..."></textarea>
-                <button type="submit" style="margin-top:4px;">Create Preview</button>
+                <button type="submit">Upload &amp; Create Preview</button>
             </form>
         </div>
         <div class="card">
