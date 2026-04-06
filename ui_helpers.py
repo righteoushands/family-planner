@@ -502,7 +502,7 @@ label {{
 }}
 input[type="text"], input[type="number"], input[type="date"],
 input[type="email"], input[type="password"],
-input[type="file"], select, textarea {{
+select, textarea {{
   width: 100%;
   max-width: 680px;
   margin-bottom: 14px;
@@ -514,6 +514,14 @@ input[type="file"], select, textarea {{
   font-family: inherit;
   color: var(--ink);
   transition: border-color 0.15s, box-shadow 0.15s;
+}}
+input[type="file"] {{
+  width: 100%;
+  max-width: 680px;
+  margin-bottom: 14px;
+  font-size: 0.95em;
+  font-family: inherit;
+  color: var(--ink);
 }}
 input:focus, select:focus, textarea:focus {{
   outline: none;
