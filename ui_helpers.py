@@ -1330,7 +1330,14 @@ def page_header(title: str, subtitle: str = "") -> str:
 def render_status_message(message: str) -> str:
     if not message:
         return ""
-    return f"<div class='success'>{escape(message)}</div>"
+    if message.startswith("error:"):
+        text = message[6:]
+        return (f'<div style="background:#fef2f2;border:1px solid #fca5a5;'
+                f'border-radius:8px;padding:10px 14px;margin-bottom:12px;'
+                f'color:#b91c1c;font-size:0.9em;">'
+                f'⚠️ {escape(text)}</div>')
+    text = message[3:] if message.startswith("ok:") else message
+    return f"<div class='success'>{escape(text)}</div>"
 
 
 # ── Form parsing ─────────────────────────────────────────────────────────────

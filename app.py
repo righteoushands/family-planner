@@ -396,7 +396,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         elif path == "/now":             body = render_now_page()
         elif path == "/week":            body = render_week()
-        elif path == "/school":          body = render_school_page()
+        elif path == "/school":          body = render_school_page(status_message=clean_text(query.get("msg",[""])[0]))
         elif path == "/kids-week":
             from render_kids_week import render_kids_week_page
             wk = clean_text(query.get("week",[""])[0])
@@ -994,14 +994,26 @@ class Handler(BaseHTTPRequestHandler):
                     uploaded_name = uploaded.filename
                     file_bytes = uploaded.file.read() if uploaded.file else b""
                 if uploaded_name: filename = uploaded_name
+                upload_msg = ""
                 if not raw_text and file_bytes:
-                    if uploaded_name.lower().endswith(".pdf"): raw_text = extract_pdf_text(file_bytes)
+                    if uploaded_name.lower().endswith(".pdf"):
+                        raw_text = extract_pdf_text(file_bytes)
+                        if not raw_text:
+                            upload_msg = "error:PDF was received but no text could be extracted — it may be scanned/image-based. Try copying the text and pasting it below instead."
                     else:
                         try:    raw_text = file_bytes.decode("utf-8")
                         except: raw_text = file_bytes.decode("latin-1", errors="ignore")
-                if child and raw_text:
+                if not child:
+                    upload_msg = "error:Please select a child before uploading."
+                elif not raw_text and not file_bytes:
+                    upload_msg = "error:No file was received by the server. Please try again — tap the dashed box, select the PDF, then tap Create Preview."
+                elif not raw_text:
+                    upload_msg = upload_msg or "error:Could not read text from the uploaded file."
+                else:
                     save_school_preview(child, filename, raw_text, parse_school_pdf_text(raw_text, child))
-                redirect = "/school#top"
+                    upload_msg = "ok:School list uploaded and preview created for " + child + "!"
+                import urllib.parse as _up
+                redirect = "/school?msg=" + _up.quote(upload_msg) + "#top"
 
             elif path == "/prayer-intention-add":
                 import json as _pj
