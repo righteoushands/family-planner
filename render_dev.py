@@ -446,6 +446,7 @@ async function streamFelix(payload, isAutoRead, image) {{
 
   try {{
     let formBody = 'message=' + encodeURIComponent(payload);
+    if (isAutoRead) formBody += '&is_auto_read=1';
     if (image) {{
       formBody += '&image_data=' + encodeURIComponent(image.base64)
                + '&image_type=' + encodeURIComponent(image.mediaType);

@@ -2780,6 +2780,7 @@ class Handler(BaseHTTPRequestHandler):
                 message = clean_text(data.get("message",[""])[0])
                 image_b64  = data.get("image_data",[""])[0]   # raw base64 from client
                 image_type = clean_text(data.get("image_type",["image/jpeg"])[0]) or "image/jpeg"
+                is_auto_read = data.get("is_auto_read",[""])[0] == "1"
                 settings_data = load_app_settings()
                 api_key = (settings_data.get("family_constraints",{}).get("anthropic_api_key","")
                            or settings_data.get("anthropic_api_key","")).strip()
@@ -2801,36 +2802,42 @@ class Handler(BaseHTTPRequestHandler):
                 ts_now = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                 full_user_msg = message + file_context if file_context else message
 
-                # Store text-only in history (no base64 blobs)
-                history_content = full_user_msg + ("\n[Lauren attached a screenshot]" if image_b64 else "")
+                # For auto-reads (file content injections), save only a tiny placeholder
+                # to prevent file content from accumulating in history and bloating tokens.
+                if is_auto_read:
+                    history_content = "[file read]"
+                else:
+                    history_content = full_user_msg + ("\n[Lauren attached a screenshot]" if image_b64 else "")
                 append_dev_messages([{"role": "user", "content": history_content, "ts": ts_now}])
 
                 server_history = load_dev_history()
                 messages = []
                 for h in server_history[-DEV_CONTEXT_MAX:]:
                     role = h.get("role","user"); content = h.get("content","")
+                    # Skip auto-read placeholders — they just clutter context
+                    if content == "[file read]": continue
                     if role in ("user","assistant") and content:
                         messages.append({"role": role, "content": content})
 
-                # Build the current turn — with image content array if a screenshot was sent
-                if image_b64:
+                # Build the current turn
+                if is_auto_read:
+                    # Auto-read: full file content wasn't saved to history, add it now
+                    messages.append({"role": "user", "content": full_user_msg})
+                elif image_b64:
                     current_content = [
                         {"type": "image", "source": {
                             "type": "base64", "media_type": image_type, "data": image_b64}},
                         {"type": "text", "text": full_user_msg}
                     ]
-                else:
-                    current_content = full_user_msg
-
-                # Replace the last (text-only) history entry with the image-enhanced version
-                if messages and messages[-1].get("role") == "user":
-                    messages[-1]["content"] = current_content
-                else:
-                    messages.append({"role": "user", "content": current_content})
+                    if messages and messages[-1].get("role") == "user":
+                        messages[-1]["content"] = current_content
+                    else:
+                        messages.append({"role": "user", "content": current_content})
+                # else: regular text message already added via history loop above
 
                 payload = _json.dumps({
                     "model":      "claude-sonnet-4-20250514",
-                    "max_tokens": 4000,
+                    "max_tokens": 1500,
                     "system":     felix_context,
                     "messages":   messages,
                     "stream":     True,
