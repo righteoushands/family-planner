@@ -2839,33 +2839,67 @@ class Handler(BaseHTTPRequestHandler):
                     data=payload,
                     headers={"x-api-key": api_key, "anthropic-version": "2023-06-01",
                              "content-type": "application/json"})
+                import urllib.error as _uerr
                 try:
                     resp = _req.urlopen(req, timeout=90)
-                    self.send_response(200)
+                except _uerr.HTTPError as e:
+                    err_body = ""
+                    try: err_body = e.read().decode("utf-8")
+                    except Exception: pass
+                    # Try to extract Anthropic's human-readable error message
+                    try:
+                        err_obj = _json.loads(err_body)
+                        err_msg = err_obj.get("error", {}).get("message", "") or err_body
+                    except Exception:
+                        err_msg = err_body or str(e)
+                    self.send_response(400)
                     self.send_header("Content-Type","text/plain; charset=utf-8")
-                    self.send_header("Transfer-Encoding","chunked")
-                    self.send_header("Cache-Control","no-store")
                     self.end_headers()
-                    text = ""
-                    for raw in resp:
-                        line = raw.decode("utf-8").strip()
-                        if line.startswith("data:"):
-                            chunk = line[5:].strip()
-                            if chunk == "[DONE]": break
-                            try:
-                                obj = _json.loads(chunk)
-                                delta = obj.get("delta",{})
-                                piece = delta.get("text","") if delta.get("type") == "text_delta" else ""
-                                if piece:
-                                    text += piece
-                                    try: self.wfile.write(piece.encode("utf-8")); self.wfile.flush()
-                                    except BrokenPipeError: break
-                            except Exception: pass
-                    ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
-                    append_dev_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
-                except Exception as e:
-                    try: self.wfile.write(str(e).encode("utf-8"))
+                    try: self.wfile.write(f"Anthropic API error: {err_msg}".encode("utf-8"))
                     except BrokenPipeError: pass
+                    return
+                except Exception as e:
+                    self.send_response(500)
+                    self.send_header("Content-Type","text/plain; charset=utf-8")
+                    self.end_headers()
+                    try: self.wfile.write(f"Server error: {e}".encode("utf-8"))
+                    except BrokenPipeError: pass
+                    return
+
+                self.send_response(200)
+                self.send_header("Content-Type","text/plain; charset=utf-8")
+                self.send_header("Transfer-Encoding","chunked")
+                self.send_header("Cache-Control","no-store")
+                self.end_headers()
+                text = ""
+                api_error = ""
+                for raw in resp:
+                    line = raw.decode("utf-8").strip()
+                    if line.startswith("event:"):
+                        event_type = line[6:].strip()
+                        if event_type == "error":
+                            api_error = "stream_error"
+                    elif line.startswith("data:"):
+                        chunk = line[5:].strip()
+                        if chunk == "[DONE]": break
+                        try:
+                            obj = _json.loads(chunk)
+                            # Surface Anthropic stream errors
+                            if obj.get("type") == "error":
+                                api_error = obj.get("error", {}).get("message", "Unknown API error")
+                                try: self.wfile.write(f"\n\n⚠️ API error: {api_error}".encode("utf-8")); self.wfile.flush()
+                                except BrokenPipeError: pass
+                                break
+                            delta = obj.get("delta",{})
+                            piece = delta.get("text","") if delta.get("type") == "text_delta" else ""
+                            if piece:
+                                text += piece
+                                try: self.wfile.write(piece.encode("utf-8")); self.wfile.flush()
+                                except BrokenPipeError: break
+                        except Exception: pass
+                ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                if text:
+                    append_dev_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
                 return
 
             elif path == "/dev-apply":
