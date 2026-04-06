@@ -939,6 +939,21 @@ document.addEventListener('click', function(e) {{
     <!-- Sections -->
     <div style="padding:4px 16px 20px;">
 
+      <!-- Felix Help Desk — admin shortcut -->
+      <a href="/dev" onclick="closeMobileMore()"
+         style="display:flex;align-items:center;gap:14px;padding:14px 18px;
+                background:linear-gradient(135deg,#1e3a8a,#3b82f6);
+                border-radius:14px;text-decoration:none;color:white;
+                font-weight:700;font-size:0.95em;margin-bottom:16px;
+                box-shadow:0 4px 14px rgba(30,58,138,0.35);">
+        <span style="font-size:1.6em;line-height:1;">&#128187;</span>
+        <div>
+          <div style="font-size:0.95em;font-weight:800;">Felix · Help Desk</div>
+          <div style="font-size:0.75em;font-weight:400;opacity:.85;">Debug, fix, build features</div>
+        </div>
+        <span style="margin-left:auto;font-size:1.1em;opacity:.7;">&#8594;</span>
+      </a>
+
       <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
                   color:#9ca3af;margin:10px 0 8px;">People</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
@@ -1060,7 +1075,7 @@ document.addEventListener('click', function(e) {{
   /* Highlight More btn if on a "more" page */
   var morePaths = ['/mom-profile','/john','/friends','/calendar','/notes','/planner',
                    '/school','/chores','/meals','/recipes','/family-schedule','/roadmap',
-                   '/settings','/mom'];
+                   '/settings','/mom','/dev'];
   if (morePaths.indexOf(path) > -1) {{
     var btn = document.getElementById('mobile-more-btn');
     if (btn) {{
