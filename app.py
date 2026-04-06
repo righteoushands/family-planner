@@ -2932,7 +2932,7 @@ class Handler(BaseHTTPRequestHandler):
 
                 payload = _json.dumps({
                     "model":      "claude-sonnet-4-20250514",
-                    "max_tokens": 1500,
+                    "max_tokens": 1000,
                     "system":     felix_context,
                     "messages":   messages,
                     "stream":     True,

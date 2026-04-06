@@ -1812,7 +1812,7 @@
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
-    "status": "active",
+    "status": "inactive",
     "source": "lucy",
     "recurring": false
   },
@@ -1821,7 +1821,7 @@
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
-    "status": "active",
+    "status": "inactive",
     "source": "lucy",
     "recurring": false
   },
@@ -1830,7 +1830,7 @@
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
-    "status": "active",
+    "status": "inactive",
     "source": "lucy",
     "recurring": false
   },
@@ -1839,7 +1839,7 @@
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
-    "status": "active",
+    "status": "inactive",
     "source": "lucy",
     "recurring": false
   },
@@ -1848,7 +1848,7 @@
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
-    "status": "active",
+    "status": "inactive",
     "source": "lucy",
     "recurring": false
   },
@@ -1857,7 +1857,7 @@
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
-    "status": "active",
+    "status": "inactive",
     "source": "lucy",
     "recurring": false
   },
@@ -1866,7 +1866,7 @@
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
-    "status": "active",
+    "status": "inactive",
     "source": "lucy",
     "recurring": false
   },
@@ -1875,7 +1875,7 @@
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
-    "status": "active",
+    "status": "inactive",
     "source": "lucy",
     "recurring": false
   },
@@ -1884,7 +1884,7 @@
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
-    "status": "active",
+    "status": "inactive",
     "source": "lucy",
     "recurring": false
   },
@@ -1893,7 +1893,7 @@
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
-    "status": "active",
+    "status": "inactive",
     "source": "lucy",
     "recurring": false
   },
@@ -1902,7 +1902,7 @@
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
-    "status": "active",
+    "status": "inactive",
     "source": "lucy",
     "recurring": false
   },
@@ -1911,12 +1911,246 @@
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
-    "status": "active",
+    "status": "inactive",
     "source": "lucy",
     "recurring": false
   },
   {
     "text": "Poetry 8",
+    "assigned_to": "JP",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Art 7",
+    "assigned_to": "JP",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Reading 8",
+    "assigned_to": "JP",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "KITCHEN (Morning — Role A)",
+    "assigned_to": "JP",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Finish next Sea Cadet Recruit Orientation",
+    "assigned_to": "JP",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Wash CAP uniform for tonight's meeting",
+    "assigned_to": "JP",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Check Sea Cadet email",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Exercise (non-PE days)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Review irregular verbs",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Math 87",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Religion 7",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "English 8",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Editing 7",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Spelling & Vocabulary 8",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Beginning Latin III",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "History & Geog 7",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Science 6",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Poetry 8",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Music 7",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Reading 7",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "KITCHEN (Morning — Role B)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Finish next Sea Cadet Recruit Orientation",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Help with lunch prep",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Play with blocks",
+    "assigned_to": "James",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "inactive",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Algebra 1/2",
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -1934,7 +2168,79 @@
     "recurring": false
   },
   {
-    "text": "Reading 8",
+    "text": "Beginning Latin III",
+    "assigned_to": "JP",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Check CAP email",
+    "assigned_to": "JP",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Check Sea Cadet email",
+    "assigned_to": "JP",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Daily Room Reset (after breakfast)",
+    "assigned_to": "JP",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Editing 7",
+    "assigned_to": "JP",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "English 8",
+    "assigned_to": "JP",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Exercise (non-PE days)",
+    "assigned_to": "JP",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Finish next Sea Cadet Recruit Orientation",
+    "assigned_to": "JP",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "History & Geog 8",
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -1952,7 +2258,43 @@
     "recurring": false
   },
   {
-    "text": "Finish next Sea Cadet Recruit Orientation",
+    "text": "Poetry 8",
+    "assigned_to": "JP",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Reading 8",
+    "assigned_to": "JP",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Religion 8",
+    "assigned_to": "JP",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Science 7",
+    "assigned_to": "JP",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Spelling & Vocabulary 8",
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -1970,6 +2312,15 @@
     "recurring": false
   },
   {
+    "text": "Beginning Latin III",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
     "text": "Check Sea Cadet email",
     "assigned_to": "Joseph",
     "due_date": "2026-04-06",
@@ -1979,52 +2330,7 @@
     "recurring": false
   },
   {
-    "text": "Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "Exercise (non-PE days)",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "Review irregular verbs",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "Math 87",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "Religion 7",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "English 8",
+    "text": "Daily Room Reset (after breakfast)",
     "assigned_to": "Joseph",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2042,7 +2348,7 @@
     "recurring": false
   },
   {
-    "text": "Spelling & Vocabulary 8",
+    "text": "English 8",
     "assigned_to": "Joseph",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2051,61 +2357,7 @@
     "recurring": false
   },
   {
-    "text": "Beginning Latin III",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "History & Geog 7",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "Science 6",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "Poetry 8",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "Music 7",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "Reading 7",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "KITCHEN (Morning — Role B)",
+    "text": "Exercise (non-PE days)",
     "assigned_to": "Joseph",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2123,7 +2375,97 @@
     "recurring": false
   },
   {
-    "text": "Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
+    "text": "History & Geog 7",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "KITCHEN (Morning — Role B)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Math 87",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Music 7",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Poetry 8",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Reading 7",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Religion 7",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Review irregular verbs",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Science 6",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Spelling & Vocabulary 8",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "Daily Room Reset (after breakfast)",
     "assigned_to": "Michael",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",

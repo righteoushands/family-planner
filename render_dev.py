@@ -131,7 +131,7 @@ GOOD: (just show the [FIX:] block — no explanation needed)
 ════════════ YOUR TOOLS ════════════
 READ FILES: [READ: filename.py:start_line-end_line]
   ALWAYS include line numbers. Example: [READ: app.py:100-200]
-  Read before proposing any fix. Read 50-100 lines at a time for large files.
+  Read 50-100 lines at a time. ONE [READ:] tag per response maximum — never two in the same reply.
 
 APPLY FIXES:
 [FIX: filename.py]
@@ -527,7 +527,7 @@ async function streamFelix(payload, isAutoRead, image) {{
   }}
 }})();
 
-// ── Auto-handle [READ:] tags — no button click needed ─────────────────
+// ── Auto-handle [READ:] tags — silently fetch, never show status to user ──
 async function autoHandleReads(fullText) {{
   const readPattern = /\[READ:\s*([^:\]]+)(?::(\d+)-(\d+))?\]/g;
   const sections = [];
@@ -537,30 +537,18 @@ async function autoHandleReads(fullText) {{
   }}
   if (sections.length === 0) return;
 
-  const box = document.getElementById('felix-msgs');
+  // Cap at 2 sections per turn to avoid rate-limit spirals
+  const limited = sections.slice(0, 2);
 
-  // Show a small status bubble
-  const statusEl = document.createElement('div');
-  statusEl.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 12px;' +
-    'background:#fdf4ff;border:1px solid #e9d5ff;border-radius:10px;' +
-    'font-size:0.76em;color:#7e22ce;';
-  const names = sections.map(s => s.fname).join(', ');
-  statusEl.innerHTML = '<span style="animation:spin 1s linear infinite;display:inline-block;">&#9696;</span>' +
-    ' Izzy is reading ' + escHtml(names) + '\u2026';
-  box.appendChild(statusEl);
-  box.scrollTop = box.scrollHeight;
-
-  // Fetch all requested sections
+  // Fetch silently — no status bubble shown to user
   const parts = [];
-  for (const {{fname, start, end}} of sections) {{
+  for (const {{fname, start, end}} of limited) {{
     try {{
       const params = new URLSearchParams({{file: fname, start, end}});
       const resp = await fetch('/dev-read-file?' + params);
       if (resp.ok) parts.push(await resp.text());
     }} catch(e) {{ parts.push('Could not load ' + fname + ': ' + e.message); }}
   }}
-
-  statusEl.remove();
 
   if (parts.length === 0) return;
 
@@ -617,6 +605,7 @@ function escHtml(str) {{
 }}
 
 // ── Parse [FIX:...] and [READ:...] blocks ─────────────────────────────────
+// All fixes → ONE card, ONE button. READ tags stripped silently.
 function parseFixes(bubble, fullText) {{
   const fixPattern  = /\[FIX:\s*([^\]]+)\]\s*[\\r\\n]+(?:WHAT:\s*([^\\r\\n]*)[\\r\\n]+)?FIND:[\\r\\n]+([\s\S]*?)[\\r\\n]+REPLACE:[\\r\\n]+([\s\S]*?)[\\r\\n]+\[\/FIX\]/g;
   const readPattern = /\[READ:\s*([^:\]]+)(?::(\d+)-(\d+))?\]/g;
@@ -625,48 +614,52 @@ function parseFixes(bubble, fullText) {{
   if (!rawEl || !fixesEl) return;
 
   let cleanText = fullText;
+  const fixes = [];
   let match;
 
-  // ── FIX blocks — show clean approval card, no code ────────────────────────
+  // Collect every FIX block into the fixes array
   while ((match = fixPattern.exec(fullText)) !== null) {{
-    const filename = match[1].trim();
-    const whatDesc = (match[2] || '').trim() || 'Update ' + filename;
-    const findStr  = match[3];
-    const replStr  = match[4];
+    fixes.push({{
+      filename: match[1].trim(),
+      what:     (match[2] || '').trim() || 'Update ' + match[1].trim(),
+      find:     match[3],
+      replace:  match[4],
+    }});
     cleanText = cleanText.replace(match[0], '');
-    const card = document.createElement('div');
-    card.style.cssText = 'margin-top:10px;border:1.5px solid #86efac;border-radius:12px;overflow:hidden;';
-    card.innerHTML = `
-      <div style="background:#f0fdf4;padding:10px 14px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-          <span style="font-size:1em;flex-shrink:0;">&#128295;</span>
-          <span style="flex:1;font-size:0.8em;color:#6b7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${{escHtml(filename)}}</span>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:10px;">
-          <span style="flex:1;font-size:0.9em;color:#166534;font-weight:600;line-height:1.4;">${{escHtml(whatDesc)}}</span>
-          <button onclick="applyFix(this,'${{escHtml(filename)}}', this.dataset.find, this.dataset.replace)"
-                  data-find="${{escHtml(findStr)}}"
-                  data-replace="${{escHtml(replStr)}}"
-                  style="padding:8px 18px;background:#15803d;color:white;border:none;border-radius:8px;
-                         font-size:0.88em;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;margin-top:2px;">
-            Apply
-          </button>
-        </div>
-      </div>`;
-    fixesEl.appendChild(card);
   }}
 
-  // ── READ blocks — silently strip them (autoHandleReads processes them) ──
-  let readMatch;
-  while ((readMatch = readPattern.exec(fullText)) !== null) {{
-    const fname = readMatch[1].trim();
-    const start = readMatch[2];
-    const end   = readMatch[3];
-    const rangeLabel = (start && end) ? ` lines ${{start}}\u2013${{end}}` : '';
-    cleanText = cleanText.replace(readMatch[0], `[📄 Reading ${{fname}}${{rangeLabel}}\u2026]`);
+  // Strip READ tags completely — user never needs to see them
+  let rm;
+  while ((rm = readPattern.exec(fullText)) !== null) {{
+    cleanText = cleanText.replace(rm[0], '');
   }}
 
-  rawEl.textContent = cleanText;
+  rawEl.textContent = cleanText.trim();
+
+  // Nothing to apply
+  if (fixes.length === 0) return;
+
+  // Build ONE consolidated card with ONE button
+  const label = fixes.length === 1
+    ? escHtml(fixes[0].what)
+    : fixes.length + ' changes \u2014 ' + fixes.map(f => escHtml(f.filename)).join(', ');
+
+  const card = document.createElement('div');
+  card.style.cssText = 'margin-top:10px;border:1.5px solid #86efac;border-radius:12px;overflow:hidden;';
+  card.innerHTML = `
+    <div style="background:#f0fdf4;padding:10px 14px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1em;flex-shrink:0;">&#128295;</span>
+        <span style="flex:1;font-size:0.9em;color:#166534;font-weight:600;line-height:1.4;">${{label}}</span>
+        <button style="padding:8px 20px;background:#15803d;color:white;border:none;border-radius:8px;
+                       font-size:0.88em;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">
+          Apply
+        </button>
+      </div>
+    </div>`;
+  const applyBtn = card.querySelector('button');
+  applyBtn.addEventListener('click', function() {{ applyAllFixes(applyBtn, fixes); }});
+  fixesEl.appendChild(card);
 }}
 
 // ── Guide panel ───────────────────────────────────────────────────────────
@@ -813,43 +806,43 @@ function injectContext(contextText) {{
   box.scrollTop = box.scrollHeight;
 }}
 
-// ── Apply a fix ───────────────────────────────────────────────────────────
-async function applyFix(btn, filename, findStr, replaceStr) {{
+// ── Apply all fixes in one go ─────────────────────────────────────────────
+async function applyAllFixes(btn, fixes) {{
   btn.disabled = true;
   btn.textContent = 'Applying\u2026';
-  try {{
-    const body = new URLSearchParams({{
-      file:    filename,
-      find:    findStr,
-      replace: replaceStr,
-    }});
-    const resp = await fetch('/dev-apply', {{method:'POST', body}});
-    const txt  = await resp.text();
-    if (!resp.ok) {{
-      btn.textContent = '\u274c Failed';
-      btn.style.background = '#dc2626';
-      btn.disabled = false;
-      // Show error in a small note below the card
-      const errNote = document.createElement('div');
-      errNote.style.cssText = 'padding:6px 14px;font-size:0.75em;color:#dc2626;background:#fef2f2;';
-      errNote.textContent = txt;
-      btn.closest('div').parentElement.appendChild(errNote);
-      return;
+  const row = btn.closest('div');
+  const errContainer = row.parentElement;
+  let failCount = 0;
+
+  for (const fix of fixes) {{
+    try {{
+      const body = new URLSearchParams({{
+        file:    fix.filename,
+        find:    fix.find,
+        replace: fix.replace,
+      }});
+      const resp = await fetch('/dev-apply', {{method:'POST', body}});
+      if (!resp.ok) {{
+        failCount++;
+        const errNote = document.createElement('div');
+        errNote.style.cssText = 'padding:6px 14px;font-size:0.75em;color:#dc2626;background:#fef2f2;'
+          + 'border-radius:0 0 10px 10px;';
+        errNote.textContent = fix.filename + ': ' + await resp.text();
+        errContainer.appendChild(errNote);
+      }}
+    }} catch(e) {{
+      failCount++;
     }}
-    // Success — replace the row with Applied + Undo
-    const row = btn.closest('div');
+  }}
+
+  if (failCount === 0) {{
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 14px;background:#dcfce7;';
     row.innerHTML = `
       <span style="font-size:1.1em;">&#10003;</span>
-      <span style="flex:1;font-size:0.88em;color:#166534;font-weight:600;">Applied — restarting\u2026</span>
-      <button onclick="undoFix('${{escHtml(filename)}}')"
-              style="padding:6px 14px;background:#64748b;color:white;border:none;border-radius:8px;
-                     font-size:0.82em;font-weight:600;cursor:pointer;font-family:inherit;">
-        Undo
-      </button>`;
-    row.style.cssText += ';background:#dcfce7;';
+      <span style="flex:1;font-size:0.88em;color:#166534;font-weight:600;">Applied \u2014 restarting\u2026</span>`;
     restartServer();
-  }} catch(e) {{
-    btn.textContent = 'Error';
+  }} else {{
+    btn.textContent = '\u274c ' + failCount + ' failed';
     btn.style.background = '#dc2626';
     btn.disabled = false;
   }}

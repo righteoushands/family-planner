@@ -419,7 +419,7 @@
       "MANUAL::MEDIUM::Beginning Latin III",
       "MANUAL::MEDIUM::Check CAP email",
       "MANUAL::MEDIUM::Check Sea Cadet email",
-      "MANUAL::MEDIUM::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
+      "MANUAL::MEDIUM::Daily Room Reset (after breakfast)",
       "MANUAL::MEDIUM::Editing 7",
       "MANUAL::MEDIUM::English 8",
       "MANUAL::MEDIUM::Exercise (non-PE days)",
@@ -469,7 +469,7 @@
       "CHORE::VAN — Shared (both boys)",
       "MANUAL::MEDIUM::Beginning Latin III",
       "MANUAL::MEDIUM::Check Sea Cadet email",
-      "MANUAL::MEDIUM::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
+      "MANUAL::MEDIUM::Daily Room Reset (after breakfast)",
       "MANUAL::MEDIUM::Editing 7",
       "MANUAL::MEDIUM::English 8",
       "MANUAL::MEDIUM::Exercise (non-PE days)",
@@ -502,7 +502,7 @@
     ],
     "Michael": [
       "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
-      "MANUAL::MEDIUM::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
+      "MANUAL::MEDIUM::Daily Room Reset (after breakfast)",
       "MANUAL::MEDIUM::Help with lunch prep"
     ],
     "James": [
