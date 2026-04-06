@@ -291,19 +291,20 @@ class Handler(BaseHTTPRequestHandler):
     def _require_post_auth(self, path: str) -> str | None:
         """
         Check auth for a POST request.
-        Returns username if allowed, None (and 403) if not.
+        Returns username if allowed, None (and redirect) if not.
         """
         user = self._get_viewer()
         _auth.set_viewer(user)
 
         if not user:
-            self.send_response(403)
-            self.end_headers()
+            from urllib.parse import quote as _q
+            referer = self.headers.get("Referer", "/")
+            safe = referer if referer.startswith("/") else "/"
+            self._redirect(f"/login?next={_q(safe)}")
             return None
 
         if not _auth.can_post(user, path):
-            self.send_response(403)
-            self.end_headers()
+            self._redirect("/")
             return None
 
         return user
