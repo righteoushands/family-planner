@@ -1029,6 +1029,22 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
     except Exception:
         lines += ["", "== EACH CHILD'S TASKS TODAY ==", "(Could not load live task state)"]
 
+    try:
+        from data_helpers import get_family_rule_of_life_text
+        _rol = get_family_rule_of_life_text(weekday)
+        if _rol:
+            lines += [
+                "",
+                "== FAMILY RULE OF LIFE (Daily Structure Template) ==",
+                "This is the McAdams family's Rule of Life — the expected time structure for each day.",
+                "Use it to order task lists chronologically when Mom asks for a printed list, a daily summary,",
+                "or asks how the boys' day should flow. Activities are per-person, 30-min slots.",
+                "",
+                _rol,
+            ]
+    except Exception:
+        pass
+
     lines += ["", "== CURRENT DAILY PLAN (MOM'S TASKS) =="]
     try:
         from render_daily_plan import load_daily_plan

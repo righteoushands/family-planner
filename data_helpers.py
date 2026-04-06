@@ -219,6 +219,36 @@ def save_family_schedule(data: dict):
     safe_save_json(FAMILY_SCHEDULE_FILE, data)
 
 
+def get_family_rule_of_life_text(weekday: str) -> str:
+    """
+    Return the Family Rule of Life template for a given weekday as plain text.
+    Reads from data/day_templates/{Weekday}.json — the per-person daily rhythm.
+    Used to give Lucy context so she can structure and print task lists in order.
+    """
+    import json as _json
+    from pathlib import Path as _Path
+    try:
+        path = _Path(f"data/day_templates/{weekday}.json")
+        if not path.exists():
+            return ""
+        data = _json.loads(path.read_text(encoding="utf-8"))
+        grid = data.get("grid", {})
+        if not grid:
+            return ""
+        lines = [f"Daily Schedule Template — {weekday}", ""]
+        for person, schedule in grid.items():
+            active = [(t, a) for t, a in schedule.items() if a and str(a).strip()]
+            if not active:
+                continue
+            lines.append(f"{person}:")
+            for time_slot, activity in active:
+                lines.append(f"  {time_slot}: {activity}")
+            lines.append("")
+        return "\n".join(lines).strip()
+    except Exception:
+        return ""
+
+
 # ── Lucy conversation history ─────────────────────────────────────────────────
 LUCY_HISTORY_FILE = "data/lucy_history.json"
 LUCY_HISTORY_MAX  = 60   # max messages stored (30 back-and-forth turns)
