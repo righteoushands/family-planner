@@ -141,6 +141,16 @@ def set_task_done(task_id: str, is_done: bool):
         progress[task_id] = True
     else:
         progress.pop(task_id, None)
+        # Also remove legacy-format CHORE keys so old checked state doesn't ghost back
+        parts = task_id.split("::")
+        if len(parts) == 5 and parts[0] == "CHORE":
+            _, child, iso, _prefix, display = parts
+            for old_key in (
+                f"{iso}::{child}::CHORE::  \u2192 {display}",
+                f"{iso}::{child}::CHORE::\u2192 {display}",
+                f"{iso}::{child}::CHORE::{display}",
+            ):
+                progress.pop(old_key, None)
 
     save_progress(progress)
 
@@ -849,11 +859,25 @@ def _dl_done(progress: dict, tid: str) -> bool:
     Calling .get("done") on a bool raises AttributeError — this helper handles both.
     """
     val = progress.get(tid)
-    if val is None:
-        return False
-    if isinstance(val, dict):
-        return bool(val.get("done", False))
-    return bool(val)   # handles plain True / False / int
+    if val is not None:
+        if isinstance(val, dict):
+            return bool(val.get("done", False))
+        return bool(val)   # handles plain True / False / int
+
+    # ── Backward-compat: old CHORE key format was {iso}::{child}::CHORE::{raw}
+    # New format is CHORE::{child}::{iso}::{prefix}::{display}
+    parts = tid.split("::")
+    if len(parts) == 5 and parts[0] == "CHORE":
+        _, child, iso, _prefix, display = parts
+        for old_key in (
+            f"{iso}::{child}::CHORE::  \u2192 {display}",   # two-space arrow
+            f"{iso}::{child}::CHORE::\u2192 {display}",      # bare arrow
+            f"{iso}::{child}::CHORE::{display}",              # plain text
+        ):
+            if progress.get(old_key):
+                return True
+
+    return False
 
 
 # Slot-kind classification: first match wins

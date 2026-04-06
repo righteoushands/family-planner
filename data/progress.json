@@ -461,7 +461,6 @@
   "2026-04-06::Joseph::MANUAL::MEDIUM::KITCHEN (Morning — Role B): Unload dishwasher, load dishwasher, clean sink": true,
   "2026-04-06::Joseph::CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash": true,
   "2026-04-06::Joseph::CHORE::KITCHEN (Morning — Role B):": true,
-  "2026-04-06::Joseph::CHORE::  → Unload dishwasher": true,
   "2026-04-06::Joseph::CHORE::  → Load dishwasher": true,
   "2026-04-06::Joseph::CHORE::  → Clean sink": true,
   "2026-04-06::Joseph::MANUAL::MEDIUM::KITCHEN (Evening — Role B): Put food away, clear table + counters, spray + wipe table and counters, take out trash + recycling, sweep kitchen / dining room / foyer": true,
@@ -472,5 +471,6 @@
   "2026-04-06::Joseph::CHORE::Check Sea Cadet email": true,
   "2026-04-06::Joseph::SCHOOL::History & Geog 7::Done": true,
   "2026-04-06::Joseph::CHORE::Exercise (non-PE days)": true,
-  "2026-04-06::Joseph::CHORE::Review irregular verbs": true
+  "2026-04-06::Joseph::CHORE::Review irregular verbs": true,
+  "CHORE::Joseph::2026-04-06::morning::Unload dishwasher": true
 }
