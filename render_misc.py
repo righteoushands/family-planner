@@ -850,18 +850,18 @@ def _render_boys_now_blocks(iso: str, weekday: str) -> str:
 
         cards += (
             f'<div style="border-radius:12px;border:1px solid var(--border);'
-            f'border-left:3px solid {c_bg};padding:10px 14px;'
-            f'background:white;margin-bottom:8px;overflow:hidden;">'
+            f'border-top:3px solid {c_bg};padding:9px 11px;'
+            f'background:white;overflow:hidden;">'
             f'<div style="display:flex;align-items:center;'
-            f'justify-content:space-between;margin-bottom:6px;">'
-            f'<div style="display:flex;align-items:center;gap:6px;">'
-            f'<span style="width:8px;height:8px;border-radius:50%;background:{c_bg};'
+            f'justify-content:space-between;margin-bottom:5px;">'
+            f'<div style="display:flex;align-items:center;gap:5px;">'
+            f'<span style="width:7px;height:7px;border-radius:50%;background:{c_bg};'
             f'display:inline-block;flex-shrink:0;"></span>'
-            f'<div style="font-weight:700;font-size:0.9em;color:var(--ink);">{c_id}</div>'
+            f'<div style="font-weight:700;font-size:0.88em;color:var(--ink);">{c_id}</div>'
             f'</div>'
             f'<a href="/schedule/{c_id}?date={escape(iso)}" '
-            f'style="font-size:0.72em;color:var(--ink-faint);font-weight:600;text-decoration:none;">'
-            f'Full schedule &rarr;</a>'
+            f'style="font-size:0.68em;color:var(--ink-faint);font-weight:600;text-decoration:none;">'
+            f'Schedule &rarr;</a>'
             f'</div>'
             f'{family_line}'
             f'{prog_bar}'
@@ -872,7 +872,7 @@ def _render_boys_now_blocks(iso: str, weekday: str) -> str:
     if not cards:
         return ""
 
-    return f'<div style="margin-bottom:12px;">{cards}</div>'
+    return f'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">{cards}</div>'
 
 
 def __render_meal_card_safe(target_date=None) -> str:
@@ -1251,9 +1251,9 @@ def render_dashboard() -> str:
     </div>
 
     <!-- Lucy Banner -->
-    <div style="background:linear-gradient(160deg,var(--parchment),var(--bg,#fff));
+    <div style="background:var(--parchment);
                 border-bottom:1px solid var(--border-light);
-                margin:-4px -4px 14px;padding:18px 16px 16px;">
+                margin:-4px -4px 12px;padding:14px 16px 14px;">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
         <div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;
                     background:{parent_color('Lauren','bg')};border:2px solid {parent_color('Lauren','bg')};
@@ -1299,8 +1299,10 @@ def render_dashboard() -> str:
     {render_daily_bar()}
 
     <!-- Mom & Boys — Right Now -->
-    <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;
-                text-transform:uppercase;color:var(--ink-faint);margin-bottom:8px;">
+    <div style="font-size:0.68em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+                color:rgba(245,240,232,0.5);background:#1C1917;
+                padding:6px 14px;margin:-4px -4px 10px;
+                border-bottom:1px solid rgba(255,255,255,0.06);">
       Right Now
     </div>
     {_render_mom_now_block(iso, weekday)}
