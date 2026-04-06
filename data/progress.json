@@ -394,5 +394,13 @@
   "2026-04-04::JP::CHORE::KITCHEN (Evening — Role A):": true,
   "2026-04-04::JP::CHORE::  → Unload dishwasher": true,
   "2026-04-04::JP::CHORE::  → Load dishwasher": true,
-  "2026-04-04::JP::CHORE::  → Clean sink": true
+  "2026-04-04::JP::CHORE::  → Clean sink": true,
+  "2026-04-06::JP::[MEDIUM] JP has chosen 30 minutes of video games today": true,
+  "2026-04-06::JP::→ Clean sink": true,
+  "2026-04-06::JP::→ Clear table + counters": true,
+  "2026-04-06::JP::→ Load dishwasher": true,
+  "2026-04-06::JP::→ Put food away": true,
+  "2026-04-06::JP::→ Spray + wipe table and counters": true,
+  "2026-04-06::JP::→ Sweep kitchen / dining room / foyer": true,
+  "2026-04-06::JP::→ Take out trash + recycling": true
 }
