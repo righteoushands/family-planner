@@ -506,6 +506,27 @@ async function streamFelix(payload, isAutoRead, image) {{
   }}
 }}
 
+// ── Lucy → Izzy handoff: prefill input from ?q= URL param ──────────────
+(function() {{
+  var q = new URLSearchParams(window.location.search).get('q');
+  if (q && q.trim()) {{
+    var inp = document.getElementById('felix-input');
+    if (inp) {{
+      inp.value = q.trim();
+      inp.style.height = 'auto';
+      inp.style.height = Math.min(inp.scrollHeight, 120) + 'px';
+      inp.focus();
+      // Show a soft banner so Lauren knows the brief landed
+      var banner = document.createElement('div');
+      banner.textContent = '📋 Lucy briefed Izzy. Review above and hit Send, or edit first.';
+      banner.style.cssText = 'background:#dbeafe;color:#1e3a8a;font-size:0.82em;padding:8px 14px;'
+        + 'border-radius:8px;margin-bottom:10px;border:1px solid #93c5fd;';
+      var msgs = document.getElementById('felix-msgs');
+      if (msgs) msgs.parentNode.insertBefore(banner, msgs);
+    }}
+  }}
+}})();
+
 // ── Auto-handle [READ:] tags — no button click needed ─────────────────
 async function autoHandleReads(fullText) {{
   const readPattern = /\[READ:\s*([^:\]]+)(?::(\d+)-(\d+))?\]/g;

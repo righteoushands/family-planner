@@ -501,9 +501,12 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
         "  approaches for specific ages. Refer medical/developmental questions to her.",
         "- Izzy (Isidore) — the family's built-in programmer, lives at /dev. Izzy built this entire dashboard",
         "  and can add new features, fix bugs, redesign pages, or build new tools on request.",
-        "  When Mom asks for something you can't do — a new feature, a page change, a new tool, 'can we track X?',",
-        "  'can you add Y to the app?' — tell her warmly: 'That's Izzy's territory — head to /dev and ask him directly.'",
-        "  Never pretend you can build features yourself. Be honest: you can think and talk, Izzy can build.",
+        "  When Mom asks for something that requires BUILDING or CHANGING the app — a new feature, a new page,",
+        "  a new tracker, 'can we add X?', 'can you make Y?' — do NOT just say 'ask Izzy.'",
+        "  Instead: acknowledge her request warmly, then end your message with a handoff tag:",
+        "    [IZZY]Write 1-3 sentences briefing Izzy directly — what Lauren wants built, any context she gave, what it should do.[/IZZY]",
+        "  This renders a button that pre-loads your briefing into Izzy's chat. She never has to re-explain.",
+        "  Never pretend you can build features yourself. Be honest: you can think and plan, Izzy can build.",
         "YOUR LANE as Lucy: You are the heart of the family companion system — the integrator and friend.",
         "You handle faith, prayer, spiritual direction, motherhood, emotional support, daily rhythms,",
         "liturgical life, virtue formation, cycle awareness, household logistics, and the big-picture",
@@ -1385,7 +1388,8 @@ def _render_history_html(messages: list) -> str:
             clean = _re.sub(r'\[MEAL_UPDATED:[^\]]+\]', '', clean)
             clean = _re.sub(r'\[PRAYER_ADDED:[^\]]+\]', '', clean)
             clean = _re.sub(r'\[RECIPE_ADDED:[^\]]+\]', '', clean)
-            clean = _re.sub(r'\[PROFILE_UPDATED:[^\]]+\]', '', clean).strip()
+            clean = _re.sub(r'\[PROFILE_UPDATED:[^\]]+\]', '', clean)
+            clean = _re.sub(r'\[IZZY\][\s\S]*?\[/IZZY\]', '', clean).strip()
             parts.append(
                 f'<div class="lucy-bubble-wrap" style="margin-bottom:0;">'
                 f'<div class="lucy-bubble-lucy" style="white-space:pre-wrap;">{escape(clean)}</div>'
@@ -1835,6 +1839,7 @@ function lucySend() {{
                 .replace(/\[PRAYER_ADDED:[^\]]+\]/g, '')
                 .replace(/\[RECIPE_ADDED:[^\]]+\]/g, '')
                 .replace(/\[PROFILE_UPDATED:[^\]]+\]/g, '')
+                .replace(/\[IZZY\][\s\S]*?\[\/IZZY\]/g, '')
                 .replace(/\s+$/, '');
         }}
         function read() {{
@@ -2232,6 +2237,32 @@ function lucySend() {{
                             pfRow.appendChild(pfBtn);
                             bubble._wrap.appendChild(pfRow);
                         }})(m[1], m[2], m[3]);
+                    }}
+                    // Parse [IZZY]...[/IZZY] — render "Open in Izzy" handoff button
+                    var izzyRx = /\[IZZY\]([\s\S]*?)\[\/IZZY\]/g;
+                    while ((m = izzyRx.exec(full)) !== null) {{
+                        (function(izzyBrief) {{
+                            izzyBrief = izzyBrief.trim();
+                            var izzyRow = document.createElement('div');
+                            izzyRow.style.cssText = 'display:flex;align-items:center;gap:10px;margin-top:10px;'
+                                + 'padding:11px 14px;background:#1e3a8a;border-radius:10px;';
+                            var izzyIcon = document.createElement('span');
+                            izzyIcon.textContent = '🛠';
+                            izzyIcon.style.cssText = 'font-size:1.2em;flex-shrink:0;';
+                            var izzyMsg = document.createElement('span');
+                            izzyMsg.textContent = "Lucy has briefed Izzy — your request is ready.";
+                            izzyMsg.style.cssText = 'font-size:0.83em;color:#bfdbfe;flex:1;';
+                            var izzyBtn = document.createElement('a');
+                            izzyBtn.textContent = '→ Open in Izzy';
+                            izzyBtn.href = '/dev?q=' + encodeURIComponent(izzyBrief);
+                            izzyBtn.style.cssText = 'padding:7px 15px;background:white;color:#1e3a8a;'
+                                + 'text-decoration:none;border-radius:8px;font-size:0.85em;font-weight:700;'
+                                + 'font-family:inherit;flex-shrink:0;white-space:nowrap;';
+                            izzyRow.appendChild(izzyIcon);
+                            izzyRow.appendChild(izzyMsg);
+                            izzyRow.appendChild(izzyBtn);
+                            bubble._wrap.appendChild(izzyRow);
+                        }})(m[1]);
                     }}
                     window.scrollTo(0, document.body.scrollHeight);
                     return;
