@@ -977,7 +977,7 @@ document.addEventListener('click', function(e) {{
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;
                   background:#eef3fc;border-radius:12px;text-decoration:none;
                   color:#1e3a8a;font-weight:700;font-size:0.88em;">
-          <span>&#128187;</span> Felix
+          <span>&#128187;</span> Izzy
         </a>
       </div>
 
@@ -1231,6 +1231,7 @@ def top_nav() -> str:
         <a href="/prayer">✝ Prayer</a>
         <div class="nav-divider"></div>
         <a href="/settings">⚙️ Settings</a>
+        <a href="/dev" style="color:#1e3a8a;font-weight:700;">&#128187; Izzy</a>
         <div class="nav-more">
           <button class="nav-more-btn" onclick="toggleMoreMenu()">☰ More</button>
           <div class="nav-dropdown" id="nav-dropdown">
@@ -1263,7 +1264,7 @@ def top_nav() -> str:
             <div class="nav-drop-section">Admin</div>
             <a href="/roadmap">🗺 Roadmap</a>
             <a href="/history">📂 History</a>
-            <a href="/dev" style="color:#1e3a8a;font-weight:700;">&#128187; Help Desk</a>
+            <a href="/dev" style="color:#1e3a8a;font-weight:700;">&#128187; Izzy</a>
             <a href="/signup" style="color:#8b5a3c;font-weight:700;">✨ Join Beta Waitlist</a>
           </div>
         </div>

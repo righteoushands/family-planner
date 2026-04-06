@@ -1,5 +1,5 @@
 """
-render_dev.py — Felix, the Sancta Familia built-in programmer.
+render_dev.py — Isidore (Izzy), the Sancta Familia built-in programmer.
 
 Felix is a skilled, friendly software developer who knows this codebase
 inside and out. He can diagnose bugs, read relevant source files, propose
@@ -109,7 +109,7 @@ def _file_listing() -> str:
 def build_felix_context() -> str:
     overview  = _app_overview()
     file_list = _file_listing()
-    return f"""You are Felix, the built-in programmer for the Sancta Familia family dashboard.
+    return f"""You are Isidore (called Izzy), the built-in programmer for the Sancta Familia family dashboard.
 
 ════════════ APP OVERVIEW ════════════
 {overview}
@@ -187,7 +187,7 @@ def render_dev_page(history: list) -> str:
       <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:1.25em;
                   font-weight:700;color:#1e3a8a;line-height:1.1;">The Help Desk</div>
       <div style="font-size:0.72em;color:#94a3b8;">
-        Felix &middot; reads code &middot; checks errors &middot; applies fixes
+        Izzy &middot; reads code &middot; checks errors &middot; applies fixes
       </div>
     </div>
     <button onclick="restartServer()" id="restart-btn"
@@ -199,7 +199,7 @@ def render_dev_page(history: list) -> str:
     </button>
     <form method="POST" action="/dev-clear" style="display:inline;">
       <button type="submit"
-              title="Clear Felix&rsquo;s conversation and start fresh"
+              title="Clear Izzy&rsquo;s conversation and start fresh"
               style="padding:5px 10px;font-size:0.76em;border-radius:8px;
                      border:1.5px solid #e2e8f0;background:white;color:#94a3b8;
                      font-family:inherit;cursor:pointer;">
@@ -211,20 +211,20 @@ def render_dev_page(history: list) -> str:
   <!-- ── Capability intro (shown only when no history yet) ────────────── -->
   {'<div id="felix-intro" style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:14px;padding:16px 18px;margin-bottom:16px;">' if not msg_html else '<div id="felix-intro" style="display:none;">'}
     <div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:1.05em;font-weight:700;
-                color:#0369a1;margin-bottom:10px;">What Felix can do for you</div>
+                color:#0369a1;margin-bottom:10px;">What Izzy can do for you</div>
     <div style="display:grid;gap:8px;">
       <div style="display:flex;gap:10px;align-items:flex-start;">
         <span style="font-size:1.1em;flex-shrink:0;">&#128680;</span>
         <div style="font-size:0.8em;color:#334155;line-height:1.5;">
           <strong>See live errors automatically.</strong> Every time you send a message,
-          Felix quietly reads the most recent server log so he already knows about
+          Izzy quietly reads the most recent server log so he already knows about
           any tracebacks or crashes &mdash; you don&rsquo;t have to paste anything.
         </div>
       </div>
       <div style="display:flex;gap:10px;align-items:flex-start;">
         <span style="font-size:1.1em;flex-shrink:0;">&#128196;</span>
         <div style="font-size:0.8em;color:#334155;line-height:1.5;">
-          <strong>Read any source file himself.</strong> When Felix needs to see code,
+          <strong>Read any source file himself.</strong> When Izzy needs to see code,
           he requests the exact section he needs and the page fetches it for him
           automatically &mdash; no copy-pasting required.
         </div>
@@ -232,17 +232,16 @@ def render_dev_page(history: list) -> str:
       <div style="display:flex;gap:10px;align-items:flex-start;">
         <span style="font-size:1.1em;flex-shrink:0;">&#128295;</span>
         <div style="font-size:0.8em;color:#334155;line-height:1.5;">
-          <strong>Propose and apply code fixes.</strong> When Felix has a solution,
-          he shows exactly what changes &mdash; green for added, red for removed.
-          Tap <strong>Apply Fix</strong> and the file is updated instantly. Then hit
-          <strong>Restart</strong> to make it live.
+          <strong>Propose and apply code fixes.</strong> When Izzy has a solution,
+          he shows exactly what changes. Tap <strong>Apply</strong> and the file
+          is updated instantly.
         </div>
       </div>
       <div style="display:flex;gap:10px;align-items:flex-start;">
         <span style="font-size:1.1em;flex-shrink:0;">&#128172;</span>
         <div style="font-size:0.8em;color:#334155;line-height:1.5;">
           <strong>Just describe the problem.</strong> You don&rsquo;t need to know which
-          file it&rsquo;s in or what the error means. Tell Felix what&rsquo;s broken
+          file it&rsquo;s in or what the error means. Tell Izzy what&rsquo;s broken
           in plain English and he&rsquo;ll figure out the rest.
         </div>
       </div>
@@ -271,7 +270,7 @@ def render_dev_page(history: list) -> str:
   <!-- Thinking indicator -->
   <div id="felix-thinking" style="display:none;padding:12px 16px;background:#eff6ff;
        border-radius:12px;font-size:0.85em;color:#1d4ed8;margin-bottom:8px;">
-    <span>&#9679;&#9679;&#9679;</span> Felix is reading the code&hellip;
+    <span>&#9679;&#9679;&#9679;</span> Izzy is reading the code&hellip;
   </div>
 
   <!-- Error -->
@@ -297,7 +296,7 @@ def render_dev_page(history: list) -> str:
       <img id="felix-img-thumb" style="height:48px;width:auto;border-radius:6px;
            object-fit:cover;border:1px solid #dbeafe;">
       <div style="flex:1;font-size:0.75em;color:#1d4ed8;">
-        Screenshot attached &mdash; Felix will see this image.
+        Screenshot attached &mdash; Izzy will see this image.
       </div>
       <button onclick="clearImage()"
               style="padding:2px 8px;border-radius:6px;border:1px solid #bfdbfe;
@@ -312,7 +311,7 @@ def render_dev_page(history: list) -> str:
              onchange="handleImageSelect(event)">
       <button onclick="document.getElementById('felix-img-input').click()"
               id="felix-cam-btn"
-              title="Attach a screenshot so Felix can see the problem"
+              title="Attach a screenshot so Izzy can see the problem"
               style="padding:10px 11px;border:1.5px solid #dbeafe;border-radius:12px;
                      background:white;color:#3b82f6;font-size:1.1em;cursor:pointer;
                      flex-shrink:0;line-height:1;">
@@ -432,7 +431,7 @@ async function sendToFelix() {{
     }}
   }} catch(e) {{}}
 
-  setThinking('Felix is thinking\u2026');
+  setThinking('Izzy is thinking\u2026');
   await streamFelix(payload + logContext, false, imageToSend);
 }}
 
@@ -526,7 +525,7 @@ async function autoHandleReads(fullText) {{
     'font-size:0.76em;color:#7e22ce;';
   const names = sections.map(s => s.fname).join(', ');
   statusEl.innerHTML = '<span style="animation:spin 1s linear infinite;display:inline-block;">&#9696;</span>' +
-    ' Felix is reading ' + escHtml(names) + '\u2026';
+    ' Izzy is reading ' + escHtml(names) + '\u2026';
   box.appendChild(statusEl);
   box.scrollTop = box.scrollHeight;
 
@@ -550,7 +549,7 @@ async function autoHandleReads(fullText) {{
     parts.join('\\n\\n\u2500\u2500\u2500\\n\\n') +
     '\\n\\n[END OF FILE SECTIONS]';
 
-  setThinking('Felix is reading the code\u2026');
+  setThinking('Izzy is reading the code\u2026');
   await streamFelix(contextPayload, true);
 }}
 
@@ -769,7 +768,7 @@ async function loadFileSectionDirect(fname, start, end) {{
   }} catch(e) {{
     alert('Network error: ' + e.message);
   }} finally {{
-    if (btn) {{ btn.disabled = false; btn.textContent = 'Load & send to Felix'; }}
+    if (btn) {{ btn.disabled = false; btn.textContent = 'Load & send to Izzy'; }}
   }}
 }}
 
@@ -868,7 +867,7 @@ async function restartServer() {{
 }}
 </script>
 """
-    return html_page("Felix — Dev", body)
+    return html_page("Izzy — Help Desk", body)
 
 
 # ── Bubble HTML helpers (used for server-rendered history) ────────────────────
