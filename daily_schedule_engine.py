@@ -841,6 +841,21 @@ def boys_task_snapshot_text(iso: str = "") -> str:
 
 _DAY_TEMPLATES_DIR = Path("data/day_templates")
 
+
+def _dl_done(progress: dict, tid: str) -> bool:
+    """Read a Day List progress flag safely.
+
+    progress.json stores values as plain True (legacy) or {"done": True} (new).
+    Calling .get("done") on a bool raises AttributeError — this helper handles both.
+    """
+    val = progress.get(tid)
+    if val is None:
+        return False
+    if isinstance(val, dict):
+        return bool(val.get("done", False))
+    return bool(val)   # handles plain True / False / int
+
+
 # Slot-kind classification: first match wins
 _SLOT_KIND_MAP: list = [
     ("prayer",   ["prayer", "rosary", "angelus", "lauds", "vespers"]),
@@ -927,7 +942,7 @@ def _lines_to_sub_items(lines: list, child: str, iso: str, prefix: str,
         else:
             tid = f"CHORE::{child}::{iso}::{prefix}::{display}"
             items.append({"text": display, "task_id": tid,
-                          "done": bool(progress.get(tid, {}).get("done", False)),
+                          "done": _dl_done(progress, tid),
                           "checkable": True, "is_header": False})
     return items
 
@@ -951,7 +966,7 @@ def _school_sub_items(school_raw: list, subjects_used: set,
             if hint == "":
                 text = f"{subj}: {text}"
             items.append({"text": text, "task_id": tid,
-                          "done": bool(progress.get(tid, {}).get("done", False)),
+                          "done": _dl_done(progress, tid),
                           "checkable": True, "is_header": False})
     return items
 
@@ -1086,7 +1101,7 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
             _seen_manual_texts.add(norm)
             tid = f"MANUAL::{child}::{iso}::{txt}"
             manual_items.append({"text": txt, "task_id": tid,
-                                 "done": bool(progress.get(tid, {}).get("done", False)),
+                                 "done": _dl_done(progress, tid),
                                  "checkable": True, "is_header": False})
         _seen_carry_texts: set = _seen_manual_texts.copy()
         for txt in get_carryover_tasks(child, normalize_target_date(iso)):
@@ -1098,7 +1113,7 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
             _seen_carry_texts.add(norm)
             tid = f"CARRY::{child}::{iso}::{txt}"
             carryover_items.append({"text": txt, "task_id": tid,
-                                    "done": bool(progress.get(tid, {}).get("done", False)),
+                                    "done": _dl_done(progress, tid),
                                     "checkable": True, "is_header": False,
                                     "is_carryover": True})
     except Exception:
@@ -1157,7 +1172,7 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
         elif "clean the kitchen" in label_low:
             tid = f"CHORE::{child}::{iso}::noon_kitchen"
             item["task_id"] = tid
-            item["done"]    = bool(progress.get(tid, {}).get("done", False))
+            item["done"]    = _dl_done(progress, tid)
 
         # ── Weekly Job(s) — expand only the FIRST occurrence ────────────
         elif "weekly job" in label_low:
@@ -1190,7 +1205,7 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
         else:
             tid = f"ROUTINE::{child}::{iso}::{label}"
             item["task_id"] = tid
-            item["done"]    = bool(progress.get(tid, {}).get("done", False))
+            item["done"]    = _dl_done(progress, tid)
             if kind in ("meal", "wakeup", "free"):
                 item["checkable"] = False
 

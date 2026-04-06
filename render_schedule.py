@@ -636,9 +636,10 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
             if not chore_shown and chore_items:
                 chore_lbl = f"{chore_done}/{len(chore_items)}"
                 combined_html += (
-                    f'<div style="font-size:0.65em;font-weight:800;letter-spacing:.08em;'
+                    f'<div id="dash-chore-hdr-{c_id}"'
+                    f' style="font-size:0.65em;font-weight:800;letter-spacing:.08em;'
                     f'text-transform:uppercase;color:{c_bg};margin:10px 0 3px;">'
-                    f'Chores <span style="font-weight:500;color:#888;">({chore_lbl})</span></div>'
+                    f'Chores <span id="dash-chore-cnt-{c_id}" style="font-weight:500;color:#888;">({chore_lbl})</span></div>'
                 )
                 chore_shown = True
             combined_html += _dash_row(entry["data"], is_chore=True)
@@ -682,17 +683,31 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
 _DASH_JS = """
 <script>
 function toggleDashTask(cb, tid, childId, iso) {
-    var row    = document.getElementById('task-' + tid);
-    var isDone = cb.checked;
-    var newVal = isDone ? 'true' : 'false';
+    var row     = document.getElementById('task-' + tid);
+    var isDone  = cb.checked;
+    var newVal  = isDone ? 'true' : 'false';
     var isChore = row && row.getAttribute('data-chore') === '1';
+    /* Optimistic UI: strike through immediately; on the dashboard also fade+hide */
+    var isDashItem = row && row.classList.contains('dash-task');
     if (row) {
         row.setAttribute('data-done', isDone ? '1' : '0');
-        var lbl = row.querySelector('label');
-        if (lbl) lbl.style.cssText += isDone
-            ? 'opacity:.5;text-decoration:line-through;'
-            : 'opacity:1;text-decoration:none;';
-        if (isDone && !isChore) setTimeout(function(){ row.style.display='none'; }, 400);
+        var lbl = row.querySelector('label, .dl-sub-label, .dl-label');
+        if (lbl) {
+            lbl.style.opacity        = isDone ? '0.4' : '1';
+            lbl.style.textDecoration = isDone ? 'line-through' : 'none';
+        }
+        if (isDone && isDashItem) {
+            /* Dashboard items fade out and disappear */
+            setTimeout(function() {
+                row.style.transition = 'opacity .25s';
+                row.style.opacity    = '0';
+                setTimeout(function() { row.style.display = 'none'; }, 260);
+            }, 320);
+        } else if (!isDone) {
+            row.style.display    = '';
+            row.style.opacity    = '1';
+            row.style.transition = '';
+        }
     }
     fetch('/toggle-task', {
         method: 'POST',
@@ -703,29 +718,64 @@ function toggleDashTask(cb, tid, childId, iso) {
     }).then(function(r) {
         if (!r.ok) {
             cb.checked = !cb.checked;
-            if (row) { row.setAttribute('data-done', isDone?'0':'1'); row.style.display=''; }
+            if (row) {
+                row.setAttribute('data-done', isDone ? '0' : '1');
+                row.style.display    = '';
+                row.style.opacity    = '1';
+                row.style.transition = '';
+            }
         } else {
             _dashUpdateProgress(childId);
+            /* Advance next queued task (non-chore only) */
             if (isDone && !isChore) {
-                setTimeout(function(){ _dashAdvance(childId); }, 420);
+                setTimeout(function() { _dashAdvance(childId); }, 600);
             }
+            /* Hide chore section header once all chores are done */
+            _dashMaybeHideChoreHeader(childId);
         }
     }).catch(function() {
         cb.checked = !cb.checked;
-        if (row) { row.setAttribute('data-done', isDone?'0':'1'); row.style.display=''; }
+        if (row) {
+            row.setAttribute('data-done', isDone ? '0' : '1');
+            row.style.display    = '';
+            row.style.opacity    = '1';
+            row.style.transition = '';
+        }
     });
 }
 
 function _dashAdvance(childId) {
+    /* Show the next hidden-but-pending task in the queue */
     var queue = document.getElementById('dash-queue-' + childId);
     if (!queue) return;
     var tasks = queue.querySelectorAll('.dash-task[data-dash-child="' + childId + '"]');
     for (var i = 0; i < tasks.length; i++) {
-        if (tasks[i].getAttribute('data-done') === '0' &&
-            tasks[i].style.display === 'none') {
-            tasks[i].style.display = '';
+        var t = tasks[i];
+        if (t.getAttribute('data-done') === '0' && t.getAttribute('data-chore') !== '1'
+                && (t.style.display === 'none' || t.style.opacity === '0')) {
+            t.style.display    = '';
+            t.style.opacity    = '1';
+            t.style.transition = '';
             break;
         }
+    }
+}
+
+function _dashMaybeHideChoreHeader(childId) {
+    var card = document.getElementById('dash-card-' + childId);
+    if (!card) return;
+    var chores  = card.querySelectorAll('.dash-task[data-chore="1"]');
+    var hdr     = document.getElementById('dash-chore-hdr-' + childId);
+    var cntEl   = document.getElementById('dash-chore-cnt-' + childId);
+    var total   = chores.length, done = 0;
+    for (var i = 0; i < chores.length; i++) {
+        if (chores[i].getAttribute('data-done') === '1') done++;
+    }
+    if (cntEl) cntEl.textContent = '(' + done + '/' + total + ')';
+    if (hdr && done === total && total > 0) {
+        hdr.style.transition = 'opacity .3s';
+        hdr.style.opacity    = '0';
+        setTimeout(function() { hdr.style.display = 'none'; }, 320);
     }
 }
 
@@ -739,10 +789,12 @@ function _dashUpdateProgress(childId) {
     }
     var pct = tot > 0 ? Math.round(done / tot * 100) : 0;
     var bar = document.getElementById('dash-bar-' + childId);
-    if (bar) { bar.style.width = pct + '%';
-               bar.style.background = pct === 100 ? '#22c55e' : pct >= 50 ? '#f59e0b' : bar.style.background; }
+    if (bar) {
+        bar.style.width      = pct + '%';
+        bar.style.background = pct === 100 ? '#22c55e' : pct >= 50 ? '#f59e0b' : bar.style.background;
+    }
     var cnt = document.getElementById('dash-count-' + childId);
-    if (cnt) cnt.textContent = pct === 100 ? '✓ done' : (tot - done) + ' left';
+    if (cnt) cnt.textContent = pct === 100 ? '\\u2713 done' : (tot - done) + ' left';
 }
 </script>"""
 
