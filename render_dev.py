@@ -495,8 +495,8 @@ async function streamFelix(payload, isAutoRead, image) {{
     parseFixes(bubble, full);
     box.scrollTop = box.scrollHeight;
 
-    // ── Auto-process [READ:] tags — Felix reads files himself ────────
-    if (full) await autoHandleReads(full);
+    // ── Auto-process [READ:] tags — only on user-initiated turns, never recursively ──
+    if (full && !isAutoRead) await autoHandleReads(full);
 
   }} catch(err) {{
     thinkEl.style.display = 'none';
