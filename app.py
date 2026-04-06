@@ -409,6 +409,32 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as _bte:
                 self._send_json({"error": str(_bte)}, 500)
             return
+        elif path == "/api/child-tasks":
+            # Per-child task snapshot: ?child=JP&date=2026-04-06
+            if not _auth.is_admin(user):
+                self._send_json({"error": "unauthorized"}, 403); return
+            _ct_child = clean_text(query.get("child", [""])[0])
+            _ct_date  = clean_text(query.get("date",  [""])[0])
+            try:
+                from daily_schedule_engine import boys_task_snapshot, CHILDREN
+                _ct_child = _ct_child.strip()
+                if _ct_child and _ct_child not in CHILDREN:
+                    self._send_json({"error": f"Unknown child: {_ct_child}"}, 400); return
+                snap = boys_task_snapshot(_ct_date)
+                if _ct_child:
+                    child_data = snap["children"].get(_ct_child, {})
+                    self._send_json({
+                        "child":      _ct_child,
+                        "iso":        snap["iso"],
+                        "weekday":    snap["weekday"],
+                        "date_label": snap["date_label"],
+                        **child_data,
+                    })
+                else:
+                    self._send_json(snap)
+            except Exception as _cte:
+                self._send_json({"error": str(_cte)}, 500)
+            return
         elif path == "/gdrive-files":
             if not _auth.is_admin(user):
                 self._send_json({"error": "unauthorized"}, 403); return
