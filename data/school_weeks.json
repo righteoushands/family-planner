@@ -725,35 +725,35 @@
       "parsed_days": [
         {
           "weekday": "Monday",
-          "day_label": "Monday, March 30, 2026",
+          "day_label": "Monday, April 6, 2026",
           "blocks": [
             {
               "subject": "Algebra 1/2",
-              "assignment_text": "Lesson 67",
+              "assignment_text": "Lesson 69",
               "is_math": true,
               "is_math_test": false
             },
             {
               "subject": "Religion 8",
-              "assignment_text": "Work for 5 minutes reviewing any of the questions for this year that you find you need to work on. Also review the spiritual andcorporal works of mercy. Read Chapter 17 of Our Life in the Church.",
+              "assignment_text": "Work for 5 minutes reviewing any of the questions for this year that you find you need to work on. Discuss the following:A priest is a mediator between God and man. Christ is the one priest in Whom the fullness of the priesthood is found. Use ananalogy to show how other priests share in the priesthood of Christ. (p. 213)",
               "is_math": false,
               "is_math_test": false
             },
             {
               "subject": "English 8",
-              "assignment_text": "Do workbook pages 135-136. (T.E. pages 268-271.)",
+              "assignment_text": "Go over workbook pages 137 with your teacher. Then do workbook page 138. Do workbook page 139 with your teacher. (T.E. pages272-277.)Students may find this video on Appositives helpful: https://vimeo.com/1006216568/c08b51347e?share=copy",
               "is_math": false,
               "is_math_test": false
             },
             {
               "subject": "Editing 7",
-              "assignment_text": "Review Lessons 1-6, Selection 32: find the errors and mark them in your book.",
+              "assignment_text": "Review Lessons 1-6, Selection 32: write the selection correctly.",
               "is_math": false,
               "is_math_test": false
             },
             {
               "subject": "Spelling & Vocabulary 8",
-              "assignment_text": "Look at the Familiar Words and Challenge Words for each root word in Lesson 9. If there are any you do not know, or can't figureout, look them up. You can add them to your notebook. Go over any of the Key Words you had trouble spelling.",
+              "assignment_text": "Do the Lesson 9 Exercises. Go over any Lesson 9 Key Words you had trouble spelling.",
               "is_math": false,
               "is_math_test": false
             },
@@ -797,35 +797,23 @@
         },
         {
           "weekday": "Tuesday",
-          "day_label": "Tuesday, March 31, 2026",
+          "day_label": "Tuesday, April 7, 2026",
           "blocks": [
             {
               "subject": "Algebra 1/2",
-              "assignment_text": "Lesson 68",
+              "assignment_text": "Lesson 70",
               "is_math": true,
               "is_math_test": false
             },
             {
-              "subject": "Religion 8",
-              "assignment_text": "Work for 5 minutes reviewing the seven capital sins and the four cardinal virtues. Also review the spiritual and corporal works of mercy.Discuss the counsels of perfection. What are they? What do they mean?",
-              "is_math": false,
-              "is_math_test": false
-            },
-            {
-              "subject": "English 8",
-              "assignment_text": "Go over workbook pages 137 with your teacher. Then do workbook page 138. Do workbook page 139 with your teacher. (T.E. pages272-277.)Students may find this video on Appositives helpful: https://vimeo.com/1006216568/c08b51347e?share=copy",
-              "is_math": false,
-              "is_math_test": false
-            },
-            {
               "subject": "Editing 7",
-              "assignment_text": "Review Lessons 1-6, Selection 32: write the selection correctly.",
+              "assignment_text": "Review Lessons 1-6, Selection 33: find the errors and mark them in your book.",
               "is_math": false,
               "is_math_test": false
             },
             {
               "subject": "Spelling & Vocabulary 8",
-              "assignment_text": "Do the Lesson 9 Exercises. Go over any Lesson 9 Key Words you had trouble spelling.",
+              "assignment_text": "Have someone read you the definition of the Lesson 9 Key Words and you write down the word. If you had trouble spelling any ofthem, practice.",
               "is_math": false,
               "is_math_test": false
             },
@@ -863,31 +851,31 @@
         },
         {
           "weekday": "Wednesday",
-          "day_label": "Wednesday, April 1, 2026",
+          "day_label": "Wednesday, April 8, 2026",
           "blocks": [
             {
               "subject": "Algebra 1/2",
-              "assignment_text": "Test 16",
+              "assignment_text": "Lesson 71",
               "is_math": true,
-              "is_math_test": true
+              "is_math_test": false
             },
             {
               "subject": "Religion 8",
-              "assignment_text": "Work for 5 minutes reviewing any of the questions for this year that you find you need to work on. Also review the spiritual andcorporal works of mercy. Read pp. 211-214 in your Baltimore Catechism. Discuss Chapter 17 of Our Life in the Church with yourteacher using the discussion questions in Chapter 17 Review in Our Life and the Church Quiz Book (see syllabus resources). Theexercises could be used for additional discussion or to encourage independent work. (Note: one could also use the questions inChapter 17 Lessons 1-4 of the activity book as a guide.)",
+              "assignment_text": "Work for 5 minutes reviewing any of the questions for this year that you find you need to work on. Also review the spiritual andcorporal works of mercy. Read Chapter 18 of Our Life in the Church.",
               "is_math": false,
               "is_math_test": false
             },
             {
-              "subject": "Editing 7",
-              "assignment_text": "Review Lessons 1-6, Selection 33: find the errors and mark them in your book.",
+              "subject": "English 8",
+              "assignment_text": "Do Noun Review, pages 140-143. (T.E. pages 278-285.)",
               "is_math": false,
               "is_math_test": false
             },
             {
               "subject": "Spelling & Vocabulary 8",
-              "assignment_text": "Have someone read you the definition of the Lesson 9 Key Words and you write down the word. If you had trouble spelling any ofthem, practice.",
+              "assignment_text": "Take a spelling test on Lesson 9 Key words. If there are definitions you are unsure of, read them over again.",
               "is_math": false,
-              "is_math_test": false
+              "is_math_test": true
             },
             {
               "subject": "Beginning Latin III",
@@ -923,31 +911,31 @@
         },
         {
           "weekday": "Thursday",
-          "day_label": "Thursday, April 2, 2026",
+          "day_label": "Thursday, April 9, 2026",
           "blocks": [
             {
               "subject": "Algebra 1/2",
-              "assignment_text": "Lesson 69",
+              "assignment_text": "Lesson 72",
               "is_math": true,
               "is_math_test": false
             },
             {
               "subject": "Religion 8",
-              "assignment_text": "Work for 5 minutes reviewing any of the questions for this year that you find you need to work on. Discuss the following:A priest is a mediator between God and man. Christ is the one priest in Whom the fullness of the priesthood is found. Use ananalogy to show how other priests share in the priesthood of Christ. (p. 213)",
+              "assignment_text": "Work for 5 minutes reviewing the seven capital sins and the four cardinal virtues. Also review the spiritual and corporal works ofmercy. Discuss the following questions:How does the layman bring Christ's gospel message to the world?What is the specific vocation of the layman?As a student, what is your particular work?What is leisure, and what does it have to do with this discussion?You could also use the discussion questions in Chapter 18 Review in Our Life and the Church Quiz Book (see syllabus resources).The exercises could be used for additional discussion or to encourage independent work.",
               "is_math": false,
               "is_math_test": false
             },
             {
               "subject": "English 8",
-              "assignment_text": "Do Noun Review, pages 140-143. (T.E. pages 278-285.)",
+              "assignment_text": "Study for the Noun Test by reviewing any parts of the noun section that you had trouble with. Go over any mistakes from Thursday'sNoun Review with your teacher.",
               "is_math": false,
-              "is_math_test": false
+              "is_math_test": true
             },
             {
               "subject": "Spelling & Vocabulary 8",
-              "assignment_text": "Take a spelling test on Lesson 9 Key words. If there are definitions you are unsure of, read them over again.",
+              "assignment_text": "Begin Lesson 10. First look at the meanings of the roots for Lesson 10. Then look at the Lesson 10 Key Words. Which do you knowwithout looking at the definitions? Use the roots to help you. Read over the entries for each of the key words. Add the key words toyour notebook, so that you practice spelling them. Write down definitions for any words you do not already know.",
               "is_math": false,
-              "is_math_test": true
+              "is_math_test": false
             },
             {
               "subject": "Beginning Latin III",
@@ -977,23 +965,35 @@
         },
         {
           "weekday": "Friday",
-          "day_label": "Friday, April 3, 2026",
+          "day_label": "Friday, April 10, 2026",
           "blocks": [
             {
               "subject": "Algebra 1/2",
-              "assignment_text": "Lesson 70",
+              "assignment_text": "Test 17",
               "is_math": true,
+              "is_math_test": true
+            },
+            {
+              "subject": "Religion 8",
+              "assignment_text": "Work for 5 minutes reviewing any of the questions for this year that you find you need to work on. Also review the spiritual andcorporal works of mercy. Read Chapter 19 of Our Life in the Church.",
+              "is_math": false,
               "is_math_test": false
             },
             {
               "subject": "English 8",
-              "assignment_text": "Study for the Noun Test by reviewing any parts of the noun section that you had trouble with. Go over any mistakes from Thursday'sNoun Review with your teacher.",
+              "assignment_text": "Take the Noun Test on page 19 in the Test Booklet. (T.E. pages 286-289.)",
               "is_math": false,
               "is_math_test": true
             },
             {
+              "subject": "Editing 7",
+              "assignment_text": "Lesson 7, Selection 35: find the errors and mark them in your book.",
+              "is_math": false,
+              "is_math_test": false
+            },
+            {
               "subject": "Spelling & Vocabulary 8",
-              "assignment_text": "Begin Lesson 10. First look at the meanings of the roots for Lesson 10. Then look at the Lesson 10 Key Words. Which do you knowwithout looking at the definitions? Use the roots to help you. Read over the entries for each of the key words. Add the key words toyour notebook, so that you practice spelling them. Write down definitions for any words you do not already know.",
+              "assignment_text": "Look at the Familiar Words and Challenge Words for each root word in Lesson 10. If there are any you do not know, or can't figureout, look them up. You can add them to your notebook. Go over any of the Key Words you had trouble spelling.",
               "is_math": false,
               "is_math_test": false
             },
@@ -1030,26 +1030,26 @@
           ]
         }
       ],
-      "raw_text": "Weekly List for John Paul McAdams\nMonday, March 30, 2026\nAlgebra 1/2 (Saxon 3rd Edition)Lesson 67\nReligion 8 (Our Life in the Church)Work for 5 minutes reviewing any of the questions for this year that you find you need to work on. Also review the spiritual andcorporal works of mercy. Read Chapter 17 of Our Life in the Church.\nEnglish 8 (Easy Grammar Plus/7-8)Do workbook pages 135-136. (T.E. pages 268-271.)\nEditing 7 (Editor in Chief, Level 2)Review Lessons 1-6, Selection 32: find the errors and mark them in your book.\nSpelling & Vocabulary 8 (Vocabulary from Classical Roots B)Look at the Familiar Words and Challenge Words for each root word in Lesson 9. If there are any you do not know, or can't figureout, look them up. You can add them to your notebook. Go over any of the Key Words you had trouble spelling.\nBeginning Latin III Syllabus (LS)Lesson 23. Do the Day 2 exercises. Practice vocabulary for ten minutes.\nScience 7 (Exploring the Building Blocks of Science Book 7 Year 1)Re-read Biology — Chapter 7: Section 7.2. Answer question 7.2b and The Big Idea.\nHistory & Geog 8 (Old World & America)Read The Magna Charta.\nPoetry 8 SyllabusRecite and also try rendering the next 10 lines in prose.\nArt 7 (Ever Ancient, Ever New, Level 2)Optional: Do Art Pad #14, Baroque Garland Project, Part 2. \n \nReading 8 SyllabusRead for about 1 hour. \n \nTuesday, March 31, 2026\nAlgebra 1/2 (Saxon 3rd Edition)Lesson 68\nReligion 8 (Our Life in the Church)Work for 5 minutes reviewing the seven capital sins and the four cardinal virtues. Also review the spiritual and corporal works of mercy.Discuss the counsels of perfection. What are they? What do they mean?\nEnglish 8 (Easy Grammar Plus/7-8)Go over workbook pages 137 with your teacher. Then do workbook page 138. Do workbook page 139 with your teacher. (T.E. pages272-277.)Students may find this video on Appositives helpful: https://vimeo.com/1006216568/c08b51347e?share=copy\nEditing 7 (Editor in Chief, Level 2)Review Lessons 1-6, Selection 32: write the selection correctly.\nSpelling & Vocabulary 8 (Vocabulary from Classical Roots B)Do the Lesson 9 Exercises. Go over any Lesson 9 Key Words you had trouble spelling.\nBeginning Latin III Syllabus (LS)Lesson 23. Do the Day 3 exercises. Practice vocabulary for ten minutes.\nScience 7 (Exploring the Building Blocks of Science Book 7 Year 1)Read Biology — Chapter 7: Section 7.3. Answer question 7.3 in your workbook.\nHistory & Geog 8 (Old World & America)Finish The Magna Charta.\nPoetry 8 SyllabusRecite and finish putting the selection in your own words.\nReading 8 SyllabusRead for about 1 hour. \n \n \nWednesday, April 1, 2026\nAlgebra 1/2 (Saxon 3rd Edition)Test 16\nReligion 8 (Our Life in the Church)Work for 5 minutes reviewing any of the questions for this year that you find you need to work on. Also review the spiritual andcorporal works of mercy. Read pp. 211-214 in your Baltimore Catechism. Discuss Chapter 17 of Our Life in the Church with yourteacher using the discussion questions in Chapter 17 Review in Our Life and the Church Quiz Book (see syllabus resources). Theexercises could be used for additional discussion or to encourage independent work. (Note: one could also use the questions inChapter 17 Lessons 1-4 of the activity book as a guide.)\nEditing 7 (Editor in Chief, Level 2)Review Lessons 1-6, Selection 33: find the errors and mark them in your book.\nSpelling & Vocabulary 8 (Vocabulary from Classical Roots B)Have someone read you the definition of the Lesson 9 Key Words and you write down the word. If you had trouble spelling any ofthem, practice.\nBeginning Latin III Syllabus (LS)Lesson 23. Take Quiz 23.\nScience 7 (Exploring the Building Blocks of Science Book 7 Year 1)Read Biology — Chapter 7: Section 7.4. Answer question 7.4 and The Big Idea in your workbook.\nHistory & Geog 8 (Old World & America)Geography: Complete Chapter 4, Section 3 (Canada) in Eighth Grade Geography.OR If you have The Ultimate Geography and Timeline Guide: Turn to p. 163. Read this page and the next. Then, using a photocopyof the map on p. 234, identify the places listed in the ‘Map-It' section of p.164.\nMusic 8 (Top 100 Classical Music 1685-1928 1-10)Listen to the Clarinet Quintet by Mozart.\nReading 8 SyllabusRead for about 1 hour. \n \n \nThursday, April 2, 2026\nAlgebra 1/2 (Saxon 3rd Edition)Lesson 69\nReligion 8 (Our Life in the Church)Work for 5 minutes reviewing any of the questions for this year that you find you need to work on. Discuss the following:A priest is a mediator between God and man. Christ is the one priest in Whom the fullness of the priesthood is found. Use ananalogy to show how other priests share in the priesthood of Christ. (p. 213)\nEnglish 8 (Easy Grammar Plus/7-8)Do Noun Review, pages 140-143. (T.E. pages 278-285.)\nSpelling & Vocabulary 8 (Vocabulary from Classical Roots B)Take a spelling test on Lesson 9 Key words. If there are definitions you are unsure of, read them over again.\nBeginning Latin III Syllabus (LS)Attend Class. Do the Lesson XXIII Quia Games. \nScience 7 (Exploring the Building Blocks of Science Book 7 Year 1)Read Biology — Chapter 7: Section 7.5. Do the Chapter 7 Review in your workbook.\nPoetry 8 SyllabusStart memorizing \"The Merchant of Venice\", Act V, Scene I, lines 53-88 (this passage begins with \"How sweet the moonlight sleepsupon this bank...\"). Spend five minutes each day this week working on the first 4 lines, from \"How sweet the moonlight sleeps…\" to\"...sweet harmony.\"Review the poems you learned in Seventh Grade (see the Poetry List for Kindergarten to Eighth Grade found at the end of theselesson plans). Recite as many as you can from memory. If you have not already memorized these poems or cannot recite them, thatis fine, just read and enjoy them.\nReading 8 SyllabusRead for about 1 hour. \n \n \nFriday, April 3, 2026\nAlgebra 1/2 (Saxon 3rd Edition)Lesson 70\nEnglish 8 (Easy Grammar Plus/7-8)Study for the Noun Test by reviewing any parts of the noun section that you had trouble with. Go over any mistakes from Thursday'sNoun Review with your teacher.\nSpelling & Vocabulary 8 (Vocabulary from Classical Roots B)Begin Lesson 10. First look at the meanings of the roots for Lesson 10. Then look at the Lesson 10 Key Words. Which do you knowwithout looking at the definitions? Use the roots to help you. Read over the entries for each of the key words. Add the key words toyour notebook, so that you practice spelling them. Write down definitions for any words you do not already know.\nBeginning Latin III Syllabus (LS)Lesson 24. Review all noun declensions (see charts in lesson XXIV). Read the twenty-fourth lesson. Oral Drill: conjugate \"volo,\"\"nolo,\" \"malo,\" and \"fero.\" Do the Day 1 exercises. Practice vocabulary for ten minutes.Oral Drill Answer Key:volo, vis, vult, volumus, vultis, voluntnolo, non vis, non vult, nolumus, non vultis, noluntmalo, mavis, mavult, malumus, mavultis, maluntfero, fers, fert, ferimus, feritis, ferunt\nHistory & Geog 8 (Old World & America)Start reading Adam of the Road by Elizabeth Gray (in print). This book is somewhat longer than the others you have been reading.We'll plan to take three weeks to read it.\nPoetry 8 SyllabusMemorize.\nArt 7 (Ever Ancient, Ever New, Level 2)Read Unit 4, Chapter 15, Diego Velazquez.\nReading 8 SyllabusRead for about 1 hour."
+      "raw_text": "Weekly List for John Paul McAdams\nMonday, April 6, 2026\nAlgebra 1/2 (Saxon 3rd Edition)Lesson 69\nReligion 8 (Our Life in the Church)Work for 5 minutes reviewing any of the questions for this year that you find you need to work on. Discuss the following:A priest is a mediator between God and man. Christ is the one priest in Whom the fullness of the priesthood is found. Use ananalogy to show how other priests share in the priesthood of Christ. (p. 213)\nEnglish 8 (Easy Grammar Plus/7-8)Go over workbook pages 137 with your teacher. Then do workbook page 138. Do workbook page 139 with your teacher. (T.E. pages272-277.)Students may find this video on Appositives helpful: https://vimeo.com/1006216568/c08b51347e?share=copy\nEditing 7 (Editor in Chief, Level 2)Review Lessons 1-6, Selection 32: write the selection correctly.\nSpelling & Vocabulary 8 (Vocabulary from Classical Roots B)Do the Lesson 9 Exercises. Go over any Lesson 9 Key Words you had trouble spelling.\nBeginning Latin III Syllabus (LS)Lesson 23. Do the Day 2 exercises. Practice vocabulary for ten minutes.\nScience 7 (Exploring the Building Blocks of Science Book 7 Year 1)Re-read Biology — Chapter 7: Section 7.2. Answer question 7.2b and The Big Idea.\nHistory & Geog 8 (Old World & America)Read The Magna Charta.\nPoetry 8 SyllabusRecite and also try rendering the next 10 lines in prose. \n \nArt 7 (Ever Ancient, Ever New, Level 2)Optional: Do Art Pad #14, Baroque Garland Project, Part 2.\nReading 8 SyllabusRead for about 1 hour. \n \nTuesday, April 7, 2026\nAlgebra 1/2 (Saxon 3rd Edition)Lesson 70\nEditing 7 (Editor in Chief, Level 2)Review Lessons 1-6, Selection 33: find the errors and mark them in your book.\nSpelling & Vocabulary 8 (Vocabulary from Classical Roots B)Have someone read you the definition of the Lesson 9 Key Words and you write down the word. If you had trouble spelling any ofthem, practice.\nBeginning Latin III Syllabus (LS)Lesson 23. Do the Day 3 exercises. Practice vocabulary for ten minutes.\nScience 7 (Exploring the Building Blocks of Science Book 7 Year 1)Read Biology — Chapter 7: Section 7.3. Answer question 7.3 in your workbook.\nHistory & Geog 8 (Old World & America)Finish The Magna Charta.\nPoetry 8 SyllabusRecite and finish putting the selection in your own words.\nReading 8 SyllabusRead for about 1 hour. \n \nWednesday, April 8, 2026\nAlgebra 1/2 (Saxon 3rd Edition)Lesson 71\nReligion 8 (Our Life in the Church)Work for 5 minutes reviewing any of the questions for this year that you find you need to work on. Also review the spiritual andcorporal works of mercy. Read Chapter 18 of Our Life in the Church.\nEnglish 8 (Easy Grammar Plus/7-8)Do Noun Review, pages 140-143. (T.E. pages 278-285.)\nSpelling & Vocabulary 8 (Vocabulary from Classical Roots B)Take a spelling test on Lesson 9 Key words. If there are definitions you are unsure of, read them over again.\nBeginning Latin III Syllabus (LS)Lesson 23. Take Quiz 23.\nScience 7 (Exploring the Building Blocks of Science Book 7 Year 1)Read Biology — Chapter 7: Section 7.4. Answer question 7.4 and The Big Idea in your workbook.\nHistory & Geog 8 (Old World & America)Geography: Complete Chapter 4, Section 3 (Canada) in Eighth Grade Geography.OR If you have The Ultimate Geography and Timeline Guide: Turn to p. 163. Read this page and the next. Then, using a photocopyof the map on p. 234, identify the places listed in the ‘Map-It' section of p.164.\nMusic 8 (Top 100 Classical Music 1685-1928 1-10)Listen to the Clarinet Quintet by Mozart.\nReading 8 SyllabusRead for about 1 hour. \n \n \nThursday, April 9, 2026\nAlgebra 1/2 (Saxon 3rd Edition)Lesson 72\nReligion 8 (Our Life in the Church)Work for 5 minutes reviewing the seven capital sins and the four cardinal virtues. Also review the spiritual and corporal works ofmercy. Discuss the following questions:How does the layman bring Christ's gospel message to the world?What is the specific vocation of the layman?As a student, what is your particular work?What is leisure, and what does it have to do with this discussion?You could also use the discussion questions in Chapter 18 Review in Our Life and the Church Quiz Book (see syllabus resources).The exercises could be used for additional discussion or to encourage independent work.\nEnglish 8 (Easy Grammar Plus/7-8)Study for the Noun Test by reviewing any parts of the noun section that you had trouble with. Go over any mistakes from Thursday'sNoun Review with your teacher.\nSpelling & Vocabulary 8 (Vocabulary from Classical Roots B)Begin Lesson 10. First look at the meanings of the roots for Lesson 10. Then look at the Lesson 10 Key Words. Which do you knowwithout looking at the definitions? Use the roots to help you. Read over the entries for each of the key words. Add the key words toyour notebook, so that you practice spelling them. Write down definitions for any words you do not already know.\nBeginning Latin III Syllabus (LS)Attend Class. Do the Lesson XXIII Quia Games. \nScience 7 (Exploring the Building Blocks of Science Book 7 Year 1)Read Biology — Chapter 7: Section 7.5. Do the Chapter 7 Review in your workbook.\nPoetry 8 SyllabusStart memorizing \"The Merchant of Venice\", Act V, Scene I, lines 53-88 (this passage begins with \"How sweet the moonlight sleepsupon this bank...\"). Spend five minutes each day this week working on the first 4 lines, from \"How sweet the moonlight sleeps…\" to\"...sweet harmony.\"Review the poems you learned in Seventh Grade (see the Poetry List for Kindergarten to Eighth Grade found at the end of theselesson plans). Recite as many as you can from memory. If you have not already memorized these poems or cannot recite them, thatis fine, just read and enjoy them. \n \nReading 8 SyllabusRead for about 1 hour. \n \n \nFriday, April 10, 2026\nAlgebra 1/2 (Saxon 3rd Edition)Test 17\nReligion 8 (Our Life in the Church)Work for 5 minutes reviewing any of the questions for this year that you find you need to work on. Also review the spiritual andcorporal works of mercy. Read Chapter 19 of Our Life in the Church.\nEnglish 8 (Easy Grammar Plus/7-8)Take the Noun Test on page 19 in the Test Booklet. (T.E. pages 286-289.)\nEditing 7 (Editor in Chief, Level 2)Lesson 7, Selection 35: find the errors and mark them in your book.\nSpelling & Vocabulary 8 (Vocabulary from Classical Roots B)Look at the Familiar Words and Challenge Words for each root word in Lesson 10. If there are any you do not know, or can't figureout, look them up. You can add them to your notebook. Go over any of the Key Words you had trouble spelling.\nBeginning Latin III Syllabus (LS)Lesson 24. Review all noun declensions (see charts in lesson XXIV). Read the twenty-fourth lesson. Oral Drill: conjugate \"volo,\"\"nolo,\" \"malo,\" and \"fero.\" Do the Day 1 exercises. Practice vocabulary for ten minutes.Oral Drill Answer Key:volo, vis, vult, volumus, vultis, voluntnolo, non vis, non vult, nolumus, non vultis, noluntmalo, mavis, mavult, malumus, mavultis, maluntfero, fers, fert, ferimus, feritis, ferunt\nHistory & Geog 8 (Old World & America)Start reading Adam of the Road by Elizabeth Gray (in print). This book is somewhat longer than the others you have been reading.We'll plan to take three weeks to read it.\nPoetry 8 SyllabusMemorize.\nArt 7 (Ever Ancient, Ever New, Level 2)Read Unit 4, Chapter 15, Diego Velazquez. \n \nReading 8 SyllabusRead for about 1 hour."
     },
     "Joseph": {
       "child": "Joseph",
       "parsed_days": [
         {
           "weekday": "Monday",
-          "day_label": "Monday, March 30, 2026",
+          "day_label": "Monday, April 6, 2026",
           "blocks": [
             {
               "subject": "Math 87",
-              "assignment_text": "Lesson 60",
+              "assignment_text": "Investigation 6",
               "is_math": true,
               "is_math_test": false
             },
             {
               "subject": "Religion 7",
-              "assignment_text": "Discuss the questions for Chapter 17. Or, if you prefer, you may write out your answers.1. Paul and his companions went to Thessalonica. What did they do there? And for how long?2. What happened and why?3. Next Paul went to Berea. How did the Jews there receive him?4. What happened at Berea? Where did Paul go next?5. Paul preached to the Athenians. What idea did he use to begin telling them about Jesus? Why did he use this instead of theLaw and the prophets of the Old Testament?Review your new cards, both the questions and answers and the Bible verses. Also review three cards you worked on previously.",
+              "assignment_text": "Discuss the questions for Chapter 18, or write out your answers.1. Was Paul successful with the Jews at Corinth?2. What did Jesus tell Paul he should do?3. Why did the Jews bring Paul before Gallio? What did Gallio say?4. What did Apollos do for the Church?Practice defending your faith. Have someone ask you one or more of the questions you have been working on in your FriendlyDefender cards. Answer the question and give the Bible verse that pertains to that answer.",
               "is_math": false,
-              "is_math_test": true
+              "is_math_test": false
             },
             {
               "subject": "English 8",
@@ -1109,18 +1109,12 @@
         },
         {
           "weekday": "Tuesday",
-          "day_label": "Tuesday, March 31, 2026",
+          "day_label": "Tuesday, April 7, 2026",
           "blocks": [
             {
               "subject": "Math 87",
-              "assignment_text": "Investigation 6",
+              "assignment_text": "Lesson 61",
               "is_math": true,
-              "is_math_test": false
-            },
-            {
-              "subject": "Religion 7",
-              "assignment_text": "Read Chapter 18 of Acts. Review your new cards, both the questions and answers and the Bible verses. Also review three cards youworked on previously.",
-              "is_math": false,
               "is_math_test": false
             },
             {
@@ -1157,17 +1151,17 @@
         },
         {
           "weekday": "Wednesday",
-          "day_label": "Wednesday, April 1, 2026",
+          "day_label": "Wednesday, April 8, 2026",
           "blocks": [
             {
               "subject": "Math 87",
-              "assignment_text": "Lesson 61",
+              "assignment_text": "Math 7: Quarterly Assessment 2 (this replaces Test 11)Assessment Assignment:Math 7: Quarterly Assessment 2",
               "is_math": true,
-              "is_math_test": false
+              "is_math_test": true
             },
             {
               "subject": "Religion 7",
-              "assignment_text": "Discuss the questions for Chapter 18, or write out your answers.1. Was Paul successful with the Jews at Corinth?2. What did Jesus tell Paul he should do?3. Why did the Jews bring Paul before Gallio? What did Gallio say?4. What did Apollos do for the Church?Practice defending your faith. Have someone ask you one or more of the questions you have been working on in your FriendlyDefender cards. Answer the question and give the Bible verse that pertains to that answer.",
+              "assignment_text": "Read Chapter 19 of Acts. Also, start working on two new Friendly Defender cards. Pick one card from each of the followingcategories: Purgatory and Baptism. Read the cards and think about the issues. Start to memorize the verses.",
               "is_math": false,
               "is_math_test": false
             },
@@ -1211,13 +1205,19 @@
         },
         {
           "weekday": "Thursday",
-          "day_label": "Thursday, April 2, 2026",
+          "day_label": "Thursday, April 9, 2026",
           "blocks": [
             {
               "subject": "Math 87",
-              "assignment_text": "Math 7: Quarterly Assessment 2 (this replaces Test 11)Assessment Assignment:Math 7: Quarterly Assessment 2",
+              "assignment_text": "Lesson 62",
               "is_math": true,
-              "is_math_test": true
+              "is_math_test": false
+            },
+            {
+              "subject": "Religion 7",
+              "assignment_text": "Discuss the questions for Chapter 19. Or, if you prefer, you may write out your answers.1. Had the members of the Church in Ephesus been baptized?2. Paul found that, after three months, certain of those in the synagogue were hardened, speaking evil of the way of the Lord.What did he do?3. Could anyone cure using the way of the Lord?4. Why was the man Demetrius upset about the way of the Lord? What did he do?5. How did the town clerk quiet the tumult?Review your new cards, both the questions and answers and the Bible verses. Also review three cards you worked on previously.",
+              "is_math": false,
+              "is_math_test": false
             },
             {
               "subject": "English 8",
@@ -1277,17 +1277,17 @@
         },
         {
           "weekday": "Friday",
-          "day_label": "Friday, April 3, 2026",
+          "day_label": "Friday, April 10, 2026",
           "blocks": [
             {
               "subject": "Math 87",
-              "assignment_text": "Lesson 62",
+              "assignment_text": "Lesson 63",
               "is_math": true,
               "is_math_test": false
             },
             {
               "subject": "Religion 7",
-              "assignment_text": "Read Chapter 19 of Acts. Also, start working on two new Friendly Defender cards. Pick one card from each of the followingcategories: Purgatory and Baptism. Read the cards and think about the issues. Start to memorize the verses.",
+              "assignment_text": "Read Chapter 20 of Acts. Practice defending your faith. Review your new cards, both the questions and answers and the Bibleverses. Also review three cards you worked on previously.",
               "is_math": false,
               "is_math_test": false
             },
@@ -1342,7 +1342,7 @@
           ]
         }
       ],
-      "raw_text": "Weekly List for Joseph McAdams\nMonday, March 30, 2026\nMath 87 (Saxon 3rd Edition)Lesson 60\nReligion 7 (Acts of the Apostles)Discuss the questions for Chapter 17. Or, if you prefer, you may write out your answers.1. Paul and his companions went to Thessalonica. What did they do there? And for how long?2. What happened and why?3. Next Paul went to Berea. How did the Jews there receive him?4. What happened at Berea? Where did Paul go next?5. Paul preached to the Athenians. What idea did he use to begin telling them about Jesus? Why did he use this instead of theLaw and the prophets of the Old Testament?Review your new cards, both the questions and answers and the Bible verses. Also review three cards you worked on previously.\nEnglish 8 (Easy Grammar Plus/7-8)Start today by going over workbook pages 73 and 75 with your teacher. Then do workbook pages 74 and 76. (T.E. pages 138-145.)\nEditing 7 (Editor in Chief, Level 2)Mini Review Lessons 4-6, Selection 30: find the errors and mark them in your book.\nSpelling & Vocabulary 8 (Vocabulary from Classical Roots B)Write sentences using the Lesson 7 Key words. You can put each word in a separate sentence, but if you use more than one word inthe same sentence that is even better. Make sure your sentences are intelligible.\nBeginning Latin III Syllabus (LS)Lesson 19. Do the Day 2 exercises. Practice vocabulary for ten minutes.\nHistory & Geog 7 (Old World & America)Finish Archimedes and the Door of Science.\nScience 6 (Exploring the Building Blocks of Science Book 6)Read Geology — Chapter 16: Section 16.1 and 16.2. Answer the questions in your workbook \n \nPoetry 8 SyllabusMemorize and review for five minutes, then recite as much of the section as you now know.\nMusic 7 (Alfred's Essentials of Music)Do the Review for Unit 3.\nReading 7 SyllabusRead for about 1 hour. \n \nTuesday, March 31, 2026\nMath 87 (Saxon 3rd Edition)Investigation 6\nReligion 7 (Acts of the Apostles)Read Chapter 18 of Acts. Review your new cards, both the questions and answers and the Bible verses. Also review three cards youworked on previously.\nEnglish 8 (Easy Grammar Plus/7-8)Do workbook pages 77-79 today. (T.E. pages 146-151.)\nSpelling & Vocabulary 8 (Vocabulary from Classical Roots B)Write sentences using the Lesson 8 Key words. You can put each word in a separate sentence, but if you use more than one word inthe same sentence that is even better. Make sure your sentences are intelligible.\nBeginning Latin III Syllabus (LS)Lesson 19. Do the Day 3 exercises. Practice vocabulary for ten minutes.\nHistory & Geog 7 (Old World & America)Read pp. 24-35 (Farming and Food, A Greek House, Clothes and Jewelry, Pottery, Markets, Money and Trade, Travel by Land andSea), pp. 50-53 (The Role of Women, Childhood and Education), and pp. 58-59 (Athletics and Sports) in The Greeks.\nReading 7 SyllabusRead for about 1 hour. \n \n \n \nWednesday, April 1, 2026\nMath 87 (Saxon 3rd Edition)Lesson 61\nReligion 7 (Acts of the Apostles)Discuss the questions for Chapter 18, or write out your answers.1. Was Paul successful with the Jews at Corinth?2. What did Jesus tell Paul he should do?3. Why did the Jews bring Paul before Gallio? What did Gallio say?4. What did Apollos do for the Church?Practice defending your faith. Have someone ask you one or more of the questions you have been working on in your FriendlyDefender cards. Answer the question and give the Bible verse that pertains to that answer.\nSpelling & Vocabulary 8 (Vocabulary from Classical Roots B)Write a single paragraph using as many of the Lessons 7 and 8 Key Words as you can. Make sure the paragraph is intelligible.\nBeginning Latin III Syllabus (LS)Lesson 19. Take Quiz 19.\nHistory & Geog 7 (Old World & America)Read pp. 51-59 in The Old World and America, and pp. 64-71 in The Greeks.\nScience 6 (Exploring the Building Blocks of Science Book 6)Read Geology — Chapter 16: Section 16.3. Answer the questions in your workbook.\nPoetry 8 SyllabusWork on the next 4 ½ lines, up to \"... justice\", and review the first lines.Review the poems you learned in Fifth Grade (see the Poetry List for Kindergarten to Eighth Grade found at the end of these lessonplans). Recite as many as you can from memory. If you have not already memorized these poems or cannot recite them, that is fine,just read and enjoy them.\nReading 7 SyllabusRead for about 1 hour. \n \n \nThursday, April 2, 2026\nMath 87 (Saxon 3rd Edition)Math 7: Quarterly Assessment 2 (this replaces Test 11)Assessment Assignment:Math 7: Quarterly Assessment 2\nEnglish 8 (Easy Grammar Plus/7-8)Do workbook pages 80-81 today. (T.E. pages 152-155.)\nEditing 7 (Editor in Chief, Level 2)Mini Review Lessons 4-6, Selection 30: write the selection correctly.\nSpelling & Vocabulary 8 (Vocabulary from Classical Roots B)Take a spelling test on the Lesson 7 and Lesson 8 Key Words.\nBeginning Latin III Syllabus (LS)Attend Class. Do the Lesson XIX Quia Games\nScience 6 (Exploring the Building Blocks of Science Book 6)Read Geology — Chapter 16: Section 16.4. Answer the questions in your workbook.\nPoetry 8 SyllabusMemorize and review for five minutes.\nArt 7 (Ever Ancient, Ever New, Level 2)Read Unit 4, Chapter 15, Diego Velazquez.\nMusic 7 (Alfred's Essentials of Music)Complete the Review for Unit 3.\nReading 7 SyllabusRead for about 1 hour. \n \n \nFriday, April 3, 2026\nMath 87 (Saxon 3rd Edition)Lesson 62\nReligion 7 (Acts of the Apostles)Read Chapter 19 of Acts. Also, start working on two new Friendly Defender cards. Pick one card from each of the followingcategories: Purgatory and Baptism. Read the cards and think about the issues. Start to memorize the verses.\nEnglish 8 (Easy Grammar Plus/7-8)Today go over workbook pages 82-84 with your teacher. Then do workbook page 85. (T.E. pages 156-161.)\nEditing 7 (Editor in Chief, Level 2)Review Lessons 1-6, Selection 31: find the errors and mark them in your book.\nBeginning Latin III Syllabus (LS)Lesson 20. Review adjectives of three, two, and one endings (lesson V). Read the twentieth lesson. Make flashcards for newvocabulary. Oral Drill: decline \"terra, ae,\" \"servus, i,\" and \"donum, i.\" Do the Day 1 exercises. Practice vocabulary for ten minutes.Oral Drill Answer Key:terra, terrae, terrae, terram, terra, terrae, terrarum, terris, terras, terrisservus, servi, servo, servum, servo, servi, servorum, servis, servos, servisdonum, doni, dono, donum, dono, dona, donorum, donis, dona, donis\nHistory & Geog 7 (Old World & America)Do the Objective Tests, pp. 59-60, in The Old World and America. Give the page numbers of the place in the text that you found youranswers.\nScience 6 (Exploring the Building Blocks of Science Book 6)Read Geology — Chapter 16: Section 16.5 and 16.6. Answer the questions in your workbook.\nPoetry 8 SyllabusMemorize and review for five minutes.\nArt 7 (Ever Ancient, Ever New, Level 2)Optional: Do Art Pad #15, Baroque Garland Project, Part 3. \n \nReading 7 SyllabusRead for about 1 hour."
+      "raw_text": "Weekly List for Joseph McAdams\nMonday, April 6, 2026\nMath 87 (Saxon 3rd Edition)Investigation 6\nReligion 7 (Acts of the Apostles)Discuss the questions for Chapter 18, or write out your answers.1. Was Paul successful with the Jews at Corinth?2. What did Jesus tell Paul he should do?3. Why did the Jews bring Paul before Gallio? What did Gallio say?4. What did Apollos do for the Church?Practice defending your faith. Have someone ask you one or more of the questions you have been working on in your FriendlyDefender cards. Answer the question and give the Bible verse that pertains to that answer.\nEnglish 8 (Easy Grammar Plus/7-8)Start today by going over workbook pages 73 and 75 with your teacher. Then do workbook pages 74 and 76. (T.E. pages 138-145.)\nEditing 7 (Editor in Chief, Level 2)Mini Review Lessons 4-6, Selection 30: find the errors and mark them in your book.\nSpelling & Vocabulary 8 (Vocabulary from Classical Roots B)Write sentences using the Lesson 7 Key words. You can put each word in a separate sentence, but if you use more than one word inthe same sentence that is even better. Make sure your sentences are intelligible.\nBeginning Latin III Syllabus (LS)Lesson 19. Do the Day 2 exercises. Practice vocabulary for ten minutes.\nHistory & Geog 7 (Old World & America)Finish Archimedes and the Door of Science.\nScience 6 (Exploring the Building Blocks of Science Book 6)Read Geology — Chapter 16: Section 16.1 and 16.2. Answer the questions in your workbook\nPoetry 8 SyllabusMemorize and review for five minutes, then recite as much of the section as you now know. \n \nMusic 7 (Alfred's Essentials of Music)Do the Review for Unit 3.\nReading 7 SyllabusRead for about 1 hour. \n \nTuesday, April 7, 2026\nMath 87 (Saxon 3rd Edition)Lesson 61\nEnglish 8 (Easy Grammar Plus/7-8)Do workbook pages 77-79 today. (T.E. pages 146-151.)\nSpelling & Vocabulary 8 (Vocabulary from Classical Roots B)Write sentences using the Lesson 8 Key words. You can put each word in a separate sentence, but if you use more than one word inthe same sentence that is even better. Make sure your sentences are intelligible.\nBeginning Latin III Syllabus (LS)Lesson 19. Do the Day 3 exercises. Practice vocabulary for ten minutes.\nHistory & Geog 7 (Old World & America)Read pp. 24-35 (Farming and Food, A Greek House, Clothes and Jewelry, Pottery, Markets, Money and Trade, Travel by Land andSea), pp. 50-53 (The Role of Women, Childhood and Education), and pp. 58-59 (Athletics and Sports) in The Greeks.\nReading 7 SyllabusRead for about 1 hour. \n \n \n \nWednesday, April 8, 2026\nMath 87 (Saxon 3rd Edition)Math 7: Quarterly Assessment 2 (this replaces Test 11)Assessment Assignment:Math 7: Quarterly Assessment 2\nReligion 7 (Acts of the Apostles)Read Chapter 19 of Acts. Also, start working on two new Friendly Defender cards. Pick one card from each of the followingcategories: Purgatory and Baptism. Read the cards and think about the issues. Start to memorize the verses.\nSpelling & Vocabulary 8 (Vocabulary from Classical Roots B)Write a single paragraph using as many of the Lessons 7 and 8 Key Words as you can. Make sure the paragraph is intelligible.\nBeginning Latin III Syllabus (LS)Lesson 19. Take Quiz 19.\nHistory & Geog 7 (Old World & America)Read pp. 51-59 in The Old World and America, and pp. 64-71 in The Greeks.\nScience 6 (Exploring the Building Blocks of Science Book 6)Read Geology — Chapter 16: Section 16.3. Answer the questions in your workbook.\nPoetry 8 SyllabusWork on the next 4 ½ lines, up to \"... justice\", and review the first lines.Review the poems you learned in Fifth Grade (see the Poetry List for Kindergarten to Eighth Grade found at the end of these lessonplans). Recite as many as you can from memory. If you have not already memorized these poems or cannot recite them, that is fine,just read and enjoy them.\nReading 7 SyllabusRead for about 1 hour. \n \n \nThursday, April 9, 2026\nMath 87 (Saxon 3rd Edition)Lesson 62\nReligion 7 (Acts of the Apostles)Discuss the questions for Chapter 19. Or, if you prefer, you may write out your answers.1. Had the members of the Church in Ephesus been baptized?2. Paul found that, after three months, certain of those in the synagogue were hardened, speaking evil of the way of the Lord.What did he do?3. Could anyone cure using the way of the Lord?4. Why was the man Demetrius upset about the way of the Lord? What did he do?5. How did the town clerk quiet the tumult?Review your new cards, both the questions and answers and the Bible verses. Also review three cards you worked on previously.\nEnglish 8 (Easy Grammar Plus/7-8)Do workbook pages 80-81 today. (T.E. pages 152-155.)\nEditing 7 (Editor in Chief, Level 2)Mini Review Lessons 4-6, Selection 30: write the selection correctly.\nSpelling & Vocabulary 8 (Vocabulary from Classical Roots B)Take a spelling test on the Lesson 7 and Lesson 8 Key Words.\nBeginning Latin III Syllabus (LS)Attend Class. Do the Lesson XIX Quia Games\nScience 6 (Exploring the Building Blocks of Science Book 6)Read Geology — Chapter 16: Section 16.4. Answer the questions in your workbook.\nPoetry 8 SyllabusMemorize and review for five minutes.\nArt 7 (Ever Ancient, Ever New, Level 2)Read Unit 4, Chapter 15, Diego Velazquez. \n \nMusic 7 (Alfred's Essentials of Music)Complete the Review for Unit 3.\nReading 7 SyllabusRead for about 1 hour. \n \n \nFriday, April 10, 2026\nMath 87 (Saxon 3rd Edition)Lesson 63\nReligion 7 (Acts of the Apostles)Read Chapter 20 of Acts. Practice defending your faith. Review your new cards, both the questions and answers and the Bibleverses. Also review three cards you worked on previously.\nEnglish 8 (Easy Grammar Plus/7-8)Today go over workbook pages 82-84 with your teacher. Then do workbook page 85. (T.E. pages 156-161.)\nEditing 7 (Editor in Chief, Level 2)Review Lessons 1-6, Selection 31: find the errors and mark them in your book.\nBeginning Latin III Syllabus (LS)Lesson 20. Review adjectives of three, two, and one endings (lesson V). Read the twentieth lesson. Make flashcards for newvocabulary. Oral Drill: decline \"terra, ae,\" \"servus, i,\" and \"donum, i.\" Do the Day 1 exercises. Practice vocabulary for ten minutes.Oral Drill Answer Key:terra, terrae, terrae, terram, terra, terrae, terrarum, terris, terras, terrisservus, servi, servo, servum, servo, servi, servorum, servis, servos, servisdonum, doni, dono, donum, dono, dona, donorum, donis, dona, donis\nHistory & Geog 7 (Old World & America)Do the Objective Tests, pp. 59-60, in The Old World and America. Give the page numbers of the place in the text that you found youranswers.\nScience 6 (Exploring the Building Blocks of Science Book 6)Read Geology — Chapter 16: Section 16.5 and 16.6. Answer the questions in your workbook.\nPoetry 8 SyllabusMemorize and review for five minutes.\nArt 7 (Ever Ancient, Ever New, Level 2)Optional: Do Art Pad #15, Baroque Garland Project, Part 3. \n \nReading 7 SyllabusRead for about 1 hour."
     }
   }
 }
