@@ -617,17 +617,21 @@ function parseFixes(bubble, fullText) {{
     const card = document.createElement('div');
     card.style.cssText = 'margin-top:10px;border:1.5px solid #86efac;border-radius:12px;overflow:hidden;';
     card.innerHTML = `
-      <div style="background:#f0fdf4;padding:10px 14px;display:flex;align-items:center;gap:10px;">
-        <span style="font-size:1.1em;">&#128295;</span>
-        <span style="flex:1;font-size:0.88em;color:#166534;font-weight:600;">${{escHtml(whatDesc)}}</span>
-        <span style="font-size:0.72em;color:#6b7280;">${{escHtml(filename)}}</span>
-        <button onclick="applyFix(this,'${{escHtml(filename)}}', this.dataset.find, this.dataset.replace)"
-                data-find="${{escHtml(findStr)}}"
-                data-replace="${{escHtml(replStr)}}"
-                style="padding:6px 16px;background:#15803d;color:white;border:none;border-radius:8px;
-                       font-size:0.85em;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">
-          Apply
-        </button>
+      <div style="background:#f0fdf4;padding:10px 14px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="font-size:1em;flex-shrink:0;">&#128295;</span>
+          <span style="flex:1;font-size:0.8em;color:#6b7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${{escHtml(filename)}}</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <span style="flex:1;font-size:0.9em;color:#166534;font-weight:600;line-height:1.4;">${{escHtml(whatDesc)}}</span>
+          <button onclick="applyFix(this,'${{escHtml(filename)}}', this.dataset.find, this.dataset.replace)"
+                  data-find="${{escHtml(findStr)}}"
+                  data-replace="${{escHtml(replStr)}}"
+                  style="padding:8px 18px;background:#15803d;color:white;border:none;border-radius:8px;
+                         font-size:0.88em;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;margin-top:2px;">
+            Apply
+          </button>
+        </div>
       </div>`;
     fixesEl.appendChild(card);
   }}
