@@ -1126,7 +1126,9 @@ class Handler(BaseHTTPRequestHandler):
                 redirect = "/recipes?msg=Recipe+imported"
 
         else:
-            data = parse_urlencoded_body(self)
+            # /plan-import-apply reads its own raw JSON body — don't consume it with URL form parse
+            _JSON_PATHS = {"/plan-import-apply"}
+            data = {} if path in _JSON_PATHS else parse_urlencoded_body(self)
 
             if path == "/toggle-task":
                 set_task_done(data.get("task_id",[""])[0], data.get("new_value",["false"])[0]=="true")
