@@ -2802,12 +2802,14 @@ class Handler(BaseHTTPRequestHandler):
                 ts_now = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                 full_user_msg = message + file_context if file_context else message
 
-                # For auto-reads (file content injections), save only a tiny placeholder
-                # to prevent file content from accumulating in history and bloating tokens.
+                # Save ONLY what Lauren typed — never the injected log/file context.
+                # That context is for Claude only, not for history display.
+                import re as _re_save
+                clean_msg = _re_save.sub(r'\n\n\[SERVER LOG.*?\n\]', '', message, flags=_re_save.DOTALL).strip()
                 if is_auto_read:
                     history_content = "[file read]"
                 else:
-                    history_content = full_user_msg + ("\n[Lauren attached a screenshot]" if image_b64 else "")
+                    history_content = clean_msg + ("\n[Lauren attached a screenshot]" if image_b64 else "")
                 append_dev_messages([{"role": "user", "content": history_content, "ts": ts_now}])
 
                 server_history = load_dev_history()
