@@ -72,6 +72,9 @@ A Python HTTP server (no framework) running on port 5000. A Catholic family dash
 - Mobile nav: `position:fixed; bottom:0; height:64px; z-index:2000` (ui_helpers.py)
 - iOS input bar fix: `position:fixed; bottom:64px` for chat input
 
+## Pending Integrations
+- **Google Drive**: Lauren wants to connect Google Drive for access to school documents. A Replit-native Google Drive connector exists (`connector:ccfg_google-drive_0F6D7EF5E22543468DB221F94F`). The OAuth flow was dismissed — when she's ready, call `proposeIntegration` with that connector ID, then `addIntegration` once authorized, wire up the rendered code snippet, and build the document-browsing feature. Do NOT ask for API keys — use the Replit integration connector.
+
 ## Standing Rules (Lauren's Preferences)
 These apply automatically to every new feature built — no need to ask each time.
 
