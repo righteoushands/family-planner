@@ -302,8 +302,8 @@ html {{ -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }}
 /* ── Base ── */
 body {{
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 15px;
-  line-height: 1.55;
+  font-size: 17px;
+  line-height: 1.6;
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 16px 60px;

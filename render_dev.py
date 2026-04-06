@@ -462,14 +462,28 @@ async function streamFelix(payload, isAutoRead, image) {{
     const decoder = new TextDecoder();
     let full = '';
 
-    while (true) {{
-      const {{done, value}} = await reader.read();
-      if (done) break;
-      const chunk = decoder.decode(value, {{stream: true}});
-      full += chunk;
-      const raw = bubble.querySelector('.felix-raw');
-      if (raw) raw.textContent = full;
-      box.scrollTop = box.scrollHeight;
+    try {{
+      while (true) {{
+        const {{done, value}} = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, {{stream: true}});
+        full += chunk;
+        const raw = bubble.querySelector('.felix-raw');
+        if (raw) raw.textContent = full;
+        box.scrollTop = box.scrollHeight;
+      }}
+    }} catch(streamErr) {{
+      // iOS Safari drops streaming connections — show whatever arrived
+      if (full) {{
+        const raw = bubble.querySelector('.felix-raw');
+        if (raw) raw.textContent = full + ' \u2026';
+        const note = document.createElement('div');
+        note.style.cssText = 'margin-top:8px;font-size:0.75em;color:#9ca3af;font-style:italic;';
+        note.textContent = '(Response cut off — tap Send again if you need more.)';
+        bubble.appendChild(note);
+      }} else {{
+        throw streamErr; // nothing received — surface the real error
+      }}
     }}
 
     // Post-process: render [FIX:] cards
@@ -477,7 +491,7 @@ async function streamFelix(payload, isAutoRead, image) {{
     box.scrollTop = box.scrollHeight;
 
     // ── Auto-process [READ:] tags — Felix reads files himself ────────
-    await autoHandleReads(full);
+    if (full) await autoHandleReads(full);
 
   }} catch(err) {{
     thinkEl.style.display = 'none';
