@@ -13,6 +13,7 @@ API: POST /lucy-chat  → streams Claude response as plain text
 """
 from datetime import date, datetime
 from html import escape
+from companion_handoffs import companion_system_block, handoff_js
 try:
     from zoneinfo import ZoneInfo
     _EASTERN = ZoneInfo("America/New_York")
@@ -1213,6 +1214,7 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
     except Exception:
         lines.append("(Memory book not available)")
 
+    lines += [""] + companion_system_block("LUCY")
     return "\n".join(lines)
 
 
@@ -1426,7 +1428,7 @@ def _render_history_html(messages: list) -> str:
             clean = _re.sub(r'\[PRAYER_ADDED:[^\]]+\]', '', clean)
             clean = _re.sub(r'\[RECIPE_ADDED:[^\]]+\]', '', clean)
             clean = _re.sub(r'\[PROFILE_UPDATED:[^\]]+\]', '', clean)
-            clean = _re.sub(r'\[IZZY\][\s\S]*?\[/IZZY\]', '', clean).strip()
+            clean = _re.sub(r'\[[A-Z]+\][\s\S]*?\[/[A-Z]+\]', '', clean).strip()
             parts.append(
                 f'<div class="lucy-bubble-wrap" style="margin-bottom:0;">'
                 f'<div class="lucy-bubble-lucy" style="white-space:pre-wrap;">{escape(clean)}</div>'
@@ -1514,6 +1516,8 @@ def render_lucy_page(iso: str = "") -> str:
 
     # Phase dot color
     phase_dot = f'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:{phase_color};margin-right:6px;"></span>'
+
+    _ho_js = handoff_js("LUCY")
 
     body = f"""
 <style>
@@ -1738,6 +1742,7 @@ var _lucyIso      = '{escape(iso)}';
 var _lucyCapacity = '';
 var _lucyHistory  = {_history_js};
 var _attachedImage = null;
+{_ho_js}
 
 function openAttach() {{
     document.getElementById('lucy-file-input').click();
@@ -1876,7 +1881,7 @@ function lucySend() {{
                 .replace(/\[PRAYER_ADDED:[^\]]+\]/g, '')
                 .replace(/\[RECIPE_ADDED:[^\]]+\]/g, '')
                 .replace(/\[PROFILE_UPDATED:[^\]]+\]/g, '')
-                .replace(/\[IZZY\][\s\S]*?\[\/IZZY\]/g, '')
+                .replace(/\[[A-Z]+\][\s\S]*?\[\/[A-Z]+\]/g, '')
                 .replace(/\s+$/, '');
         }}
         function read() {{
@@ -2275,32 +2280,8 @@ function lucySend() {{
                             bubble._wrap.appendChild(pfRow);
                         }})(m[1], m[2], m[3]);
                     }}
-                    // Parse [IZZY]...[/IZZY] — render "Open in Izzy" handoff button
-                    var izzyRx = /\[IZZY\]([\s\S]*?)\[\/IZZY\]/g;
-                    while ((m = izzyRx.exec(full)) !== null) {{
-                        (function(izzyBrief) {{
-                            izzyBrief = izzyBrief.trim();
-                            var izzyRow = document.createElement('div');
-                            izzyRow.style.cssText = 'display:flex;align-items:center;gap:10px;margin-top:10px;'
-                                + 'padding:11px 14px;background:#1e3a8a;border-radius:10px;';
-                            var izzyIcon = document.createElement('span');
-                            izzyIcon.textContent = '🛠';
-                            izzyIcon.style.cssText = 'font-size:1.2em;flex-shrink:0;';
-                            var izzyMsg = document.createElement('span');
-                            izzyMsg.textContent = "Lucy has briefed Izzy — your request is ready.";
-                            izzyMsg.style.cssText = 'font-size:0.83em;color:#bfdbfe;flex:1;';
-                            var izzyBtn = document.createElement('a');
-                            izzyBtn.textContent = '→ Open in Izzy';
-                            izzyBtn.href = '/dev?q=' + encodeURIComponent(izzyBrief);
-                            izzyBtn.style.cssText = 'padding:7px 15px;background:white;color:#1e3a8a;'
-                                + 'text-decoration:none;border-radius:8px;font-size:0.85em;font-weight:700;'
-                                + 'font-family:inherit;flex-shrink:0;white-space:nowrap;';
-                            izzyRow.appendChild(izzyIcon);
-                            izzyRow.appendChild(izzyMsg);
-                            izzyRow.appendChild(izzyBtn);
-                            bubble._wrap.appendChild(izzyRow);
-                        }})(m[1]);
-                    }}
+                    // Render companion handoff buttons for all [TAG]...[/TAG] patterns
+                    _renderHandoffBtns(full, bubble._wrap);
                     window.scrollTo(0, document.body.scrollHeight);
                     return;
                 }}

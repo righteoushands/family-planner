@@ -18,6 +18,7 @@ import re
 import json
 from html import escape
 from datetime import datetime
+from companion_handoffs import companion_system_block, handoff_js
 from pathlib import Path
 
 # ── File-detection keyword map ────────────────────────────────────────────────
@@ -170,7 +171,7 @@ REPLACE:
 - If uncertain, say so in one sentence.
 - NEVER change visual styling (font sizes, colors, spacing, layout) unless the user explicitly asks for a visual change. Functional bugs only.
 - NEVER apply a fix that doesn't directly match what the user asked for. If the task is unclear, ask one clarifying question.
-"""
+""" + "\n\n" + "\n".join(companion_system_block("IZZY"))
 
 
 # ── Render page ───────────────────────────────────────────────────────────────
@@ -187,6 +188,8 @@ def render_dev_page(history: list) -> str:
             msg_html += _user_bubble(content, ts)
         elif role == "assistant":
             msg_html += _felix_bubble(content, ts)
+
+    _ho_js = handoff_js("IZZY")
 
     body = f"""
 {top_nav()}
@@ -354,6 +357,7 @@ def render_dev_page(history: list) -> str:
 </div>
 
 <script>
+{_ho_js}
 // ── Image attachment ───────────────────────────────────────────────────────
 let _pendingImage = null;  // {{ base64, mediaType }}
 
@@ -493,7 +497,7 @@ async function streamFelix(payload, isAutoRead, image) {{
         const chunk = decoder.decode(value, {{stream: true}});
         full += chunk;
         const raw = bubble.querySelector('.felix-raw');
-        if (raw) raw.textContent = full;
+        if (raw) raw.textContent = _stripHandoffTags(full);
         box.scrollTop = box.scrollHeight;
       }}
     }} catch(streamErr) {{
@@ -510,8 +514,9 @@ async function streamFelix(payload, isAutoRead, image) {{
       }}
     }}
 
-    // Post-process: render [FIX:] cards
+    // Post-process: render [FIX:] cards and companion handoff buttons
     parseFixes(bubble, full);
+    _renderHandoffBtns(full, bubble.lastElementChild || bubble);
     box.scrollTop = box.scrollHeight;
 
     // ── Auto-process [READ:] tags — only on user-initiated turns, never recursively ──
@@ -527,26 +532,7 @@ async function streamFelix(payload, isAutoRead, image) {{
   }}
 }}
 
-// ── Lucy → Izzy handoff: prefill input from ?q= URL param ──────────────
-(function() {{
-  var q = new URLSearchParams(window.location.search).get('q');
-  if (q && q.trim()) {{
-    var inp = document.getElementById('felix-input');
-    if (inp) {{
-      inp.value = q.trim();
-      inp.style.height = 'auto';
-      inp.style.height = Math.min(inp.scrollHeight, 120) + 'px';
-      inp.focus();
-      // Show a soft banner so Lauren knows the brief landed
-      var banner = document.createElement('div');
-      banner.textContent = '📋 Lucy briefed Izzy. Review above and hit Send, or edit first.';
-      banner.style.cssText = 'background:#dbeafe;color:#1e3a8a;font-size:0.82em;padding:8px 14px;'
-        + 'border-radius:8px;margin-bottom:10px;border:1px solid #93c5fd;';
-      var msgs = document.getElementById('felix-msgs');
-      if (msgs) msgs.parentNode.insertBefore(banner, msgs);
-    }}
-  }}
-}})();
+// ── ?q= URL param prefill is handled by _ho_js above ──────────────────
 
 // ── Auto-handle [READ:] tags — silently fetch, never show status to user ──
 async function autoHandleReads(fullText) {{
@@ -958,9 +944,10 @@ def _user_bubble(text: str, ts: str) -> str:
 
 def _felix_bubble(text: str, ts: str) -> str:
     ts_label = f'<div style="font-size:0.7em;color:#94a3b8;margin-top:6px;">{escape(ts[:16])}</div>' if ts else ""
-    # Strip [READ:...] and [FIX:...][/FIX] blocks from history (already processed)
+    # Strip [READ:...], [FIX:...][/FIX], and handoff tags from history
     clean = _re.sub(r'\[READ:[^\]]*\]', '', text)
     clean = _re.sub(r'\[FIX:[^\]]*\].*?\[/FIX\]', '', clean, flags=_re.DOTALL)
+    clean = _re.sub(r'\[[A-Z]+\][\s\S]*?\[/[A-Z]+\]', '', clean)
     clean = clean.strip()
     safe = escape(clean)
     return f"""<div style="display:flex;gap:10px;align-items:flex-start;">

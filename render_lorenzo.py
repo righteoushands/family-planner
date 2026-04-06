@@ -16,6 +16,7 @@ import json
 import os
 from datetime import date, timedelta
 from html import escape
+from companion_handoffs import companion_system_block, handoff_js
 
 try:
     from zoneinfo import ZoneInfo
@@ -460,6 +461,8 @@ def build_lorenzo_context(iso: str, weekday: str, date_label: str) -> str:
         "- CRITICAL: Ask only ONE question at a time. Never stack questions.",
     ]
 
+    lines += [""] + companion_system_block("LORENZO")
+
     # Planning session block — injected last so it takes precedence
     planning_block = _get_planning_session_block()
     if planning_block:
@@ -613,6 +616,8 @@ def render_lorenzo_page() -> str:
         f'</div>'
         f'</div>'
     )
+
+    _ho_js = handoff_js("LORENZO")
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -836,6 +841,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 var _lzIso       = {_ej(iso)};
 var _lzHistory   = {history_js};
 var _lzCapacity  = '';
+{_ho_js}
 var _lzAttached  = null;
 
 // ── Voice state ──────────────────────────────────────────────────────────────
@@ -949,16 +955,17 @@ function _lzRenderBubble(role, text) {{
     var wrap = document.createElement('div');
     var div  = document.createElement('div');
     div.className = (role === 'user') ? 'lz-bubble-user' : 'lz-bubble-lz';
-    div.textContent = text;
+    div.textContent = (role === 'user') ? text : _lzStrip(text);
     div._wrap = wrap;
     wrap.appendChild(div);
+    if (role !== 'user') _renderHandoffBtns(text, wrap);
     hist.appendChild(wrap);
     return div;
 }}
 
 // ── Strip hidden tags from display text ──────────────────────────────────────
 function _lzStrip(text) {{
-    return text
+    return _stripHandoffTags(text)
         .replace(/\[RULE:(add|remove)\][\s\S]*?\[\/RULE\]/g, '')
         .replace(/\[MEAL_UPDATE:[^\]]+\][\s\S]*?\[\/MEAL_UPDATE\]/g, '')
         .replace(/\s+$/, '');
@@ -1336,6 +1343,7 @@ function lzSend() {{
                     bubble.textContent = clean;
                     _lzHistory.push({{role:'assistant', content: clean}});
                     _lzTtsFull = clean;
+                    _renderHandoffBtns(full, bubble._wrap);
                     if (!_lzTtsFirstFired) {{
                         lzSpeak(clean);
                     }}

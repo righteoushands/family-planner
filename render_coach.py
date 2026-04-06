@@ -10,6 +10,7 @@ API: POST /coach-chat
 import json
 from datetime import date
 from html import escape
+from companion_handoffs import companion_system_block, handoff_js
 
 try:
     from zoneinfo import ZoneInfo
@@ -135,6 +136,7 @@ def build_coach_context(iso: str, weekday: str, date_label: str) -> str:
         "When Lauren is exhausted, acknowledge it first, then offer the minimum viable movement.",
     ]
 
+    lines += [""] + companion_system_block("COACH")
     return "\n".join(lines)
 
 
@@ -221,6 +223,8 @@ def render_coach_page() -> str:
         welcome = "Afternoon. The boys need to burn some energy. What are we working with today?"
     else:
         welcome = "Evening. Good time to plan tomorrow's movement. What does the family's schedule look like?"
+
+    _ho_js = handoff_js("COACH")
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -314,6 +318,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <script>
 var _coHistory = {history_js};
 var _coIso     = {_ej(iso)};
+{_ho_js}
 
 (function() {{
     for (var i = 0; i < _coHistory.length; i++) {{
@@ -329,8 +334,9 @@ function _coRenderBubble(text) {{
     var row  = document.createElement('div');
     var bub  = document.createElement('div');
     bub.className   = 'co-bubble-co';
-    bub.textContent = text;
+    bub.textContent = _stripHandoffTags(text);
     row.appendChild(bub);
+    _renderHandoffBtns(text, row);
     wrap.appendChild(row);
     window.scrollTo(0, document.body.scrollHeight);
     return bub;
@@ -383,12 +389,13 @@ function coachSend() {{
         function read() {{
             return reader.read().then(function(res) {{
                 if (res.done) {{
-                    bubble.textContent = full;
+                    bubble.textContent = _stripHandoffTags(full);
+                    _renderHandoffBtns(full, bubble.parentNode);
                     _coHistory.push({{role:'assistant', content: full}});
                     return;
                 }}
                 full += decoder.decode(res.value, {{stream: true}});
-                bubble.textContent = full;
+                bubble.textContent = _stripHandoffTags(full);
                 window.scrollTo(0, document.body.scrollHeight);
                 return read();
             }});

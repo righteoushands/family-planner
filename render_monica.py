@@ -13,6 +13,7 @@ API: POST /dr-monica-chat
 import json
 from datetime import date
 from html import escape
+from companion_handoffs import companion_system_block, handoff_js
 
 try:
     from zoneinfo import ZoneInfo
@@ -185,6 +186,7 @@ def build_monica_context(iso: str, weekday: str, date_label: str) -> str:
         "You note when something is outside your knowledge and should go to her real pediatrician.",
     ]
 
+    lines += [""] + companion_system_block("MONICA")
     return "\n".join(lines)
 
 
@@ -270,6 +272,8 @@ def render_monica_page() -> str:
         welcome = "Hi! How are James and Michael doing today? And are JP and Joseph doing alright? Tell me what's going on."
     else:
         welcome = "Evening. How did the day go with the kids? Any health or development concerns before the night?"
+
+    _ho_js = handoff_js("MONICA")
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -370,6 +374,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <script>
 var _moHistory = {history_js};
 var _moIso     = {_ej(iso)};
+{_ho_js}
 
 (function() {{
     for (var i = 0; i < _moHistory.length; i++) {{
@@ -385,8 +390,9 @@ function _moRenderBubble(text) {{
     var row  = document.createElement('div');
     var bub  = document.createElement('div');
     bub.className   = 'mo-bubble-mo';
-    bub.textContent = text;
+    bub.textContent = _stripHandoffTags(text);
     row.appendChild(bub);
+    _renderHandoffBtns(text, row);
     wrap.appendChild(row);
     window.scrollTo(0, document.body.scrollHeight);
     return bub;
@@ -439,12 +445,13 @@ function monicaSend() {{
         function read() {{
             return reader.read().then(function(res) {{
                 if (res.done) {{
-                    bubble.textContent = full;
+                    bubble.textContent = _stripHandoffTags(full);
+                    _renderHandoffBtns(full, bubble.parentNode);
                     _moHistory.push({{role:'assistant', content: full}});
                     return;
                 }}
                 full += decoder.decode(res.value, {{stream: true}});
-                bubble.textContent = full;
+                bubble.textContent = _stripHandoffTags(full);
                 window.scrollTo(0, document.body.scrollHeight);
                 return read();
             }});

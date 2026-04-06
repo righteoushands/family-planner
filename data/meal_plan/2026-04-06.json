@@ -1,0 +1,67 @@
+{
+  "week": "2026-W14",
+  "generated": false,
+  "days": {
+    "Monday": {
+      "breakfast": "Eggs, fruit, cereal or toast",
+      "lunch": "",
+      "dinner": "Steak, shrimp, salad, broccoli and cheese, mac and cheese",
+      "snacks": "",
+      "dad_lunch": "",
+      "snack": "Fruit, crackers and cheese, Greek yogurt, peanut butter, hummus"
+    },
+    "Tuesday": {
+      "breakfast": "Eggs, fruit, cereal or toast",
+      "lunch": "Pizza",
+      "dinner": "Leftover buffet (broccoli and cheese, curry rice, pizza, pancakes)",
+      "snacks": "",
+      "dad_lunch": "",
+      "snack": "Fruit, crackers and cheese, Greek yogurt, peanut butter, hummus",
+      "helpers": "JP: Lead reheating leftover proteins and sides | Joseph: Assemble the buffet platters | Michael: Pour drinks, set out napkins"
+    },
+    "Wednesday": {
+      "breakfast": "Eggs, fruit, cereal or toast",
+      "lunch": "Chicken nuggets, French fries, fruit cups (little boys); leftovers (big boys)",
+      "dinner": "Brined roast chicken, baked sweet potatoes, roasted vegetables",
+      "snacks": "",
+      "dad_lunch": "",
+      "snack": "Fruit, crackers and cheese, Greek yogurt, peanut butter, hummus",
+      "helpers": "JP: Prep vegetables for roasting, set up the sweet potato baking | Joseph: Monitor roasted chicken in oven | Michael: Wash vegetables"
+    },
+    "Thursday": {
+      "breakfast": "Eggs, fruit, cereal or toast",
+      "lunch": "Chicken nuggets, French fries, fruit cups (little boys); leftovers (big boys)",
+      "dinner": "Spaghetti with meat sauce",
+      "snacks": "",
+      "dad_lunch": "",
+      "snack": "Fruit, crackers and cheese, Greek yogurt, peanut butter, hummus",
+      "helpers": "JP: Brown the meat, lead sauce and pasta | Joseph: Prep garlic and onions, cook pasta | Michael: Stir sauce (with supervision), grate cheese"
+    },
+    "Friday": {
+      "breakfast": "Eggs, fruit, cereal or toast",
+      "lunch": "Sardines, green beans, sugar snap peas, apples, oranges, strawberries, cheese, crackers, blueberries, Greek yogurt, tortillas, applesauce, canned yams, rolled oats",
+      "dinner": "Baked flounder, rice, roasted vegetables, green beans",
+      "snacks": "",
+      "dad_lunch": "",
+      "snack": "Fruit, crackers and cheese, Greek yogurt, peanut butter, hummus",
+      "helpers": "JP: Prep flounder for baking, lead the oven work | Joseph: Cook rice, prep vegetables | Michael: Wash green beans"
+    },
+    "Saturday": {
+      "breakfast": "Eggs, fruit, cereal or toast",
+      "lunch": "",
+      "dinner": "TBD",
+      "snacks": "",
+      "dad_lunch": "",
+      "snack": "Fruit, crackers and cheese, Greek yogurt, peanut butter, hummus"
+    },
+    "Sunday": {
+      "breakfast": "Eggs, fruit, cereal or toast",
+      "lunch": "",
+      "dinner": "TBD",
+      "snacks": "",
+      "dad_lunch": "",
+      "snack": "Fruit, crackers and cheese, Greek yogurt, peanut butter, hummus"
+    }
+  },
+  "start": "2026-04-06"
+}
