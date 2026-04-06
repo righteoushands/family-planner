@@ -10,6 +10,7 @@ A Python HTTP server (no framework) running on port 5000. A Catholic family dash
 - **Port**: 5000 (`PORT=5000 python app.py`)
 - **Timezone**: Eastern (`America/New_York`), helpers in `render_schedule_support.py`
 - **Auth**: `auth.py` — session-based, PIN login, per-user access tables, viewer context
+- **Live task snapshot**: `daily_schedule_engine.boys_task_snapshot(iso)` and `boys_task_snapshot_text(iso)` return real-time task state (done/pending) for all four boys; injected into Lucy's system prompt on every message; also available at `GET /api/boys-tasks?date=YYYY-MM-DD`
 
 ## Authentication System
 - **`auth.py`**: Session store (in-memory), PIN management (`data/auth/pins.json`), access control tables

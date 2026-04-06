@@ -632,3 +632,131 @@ def generate_week_packet(target_date_str: str = ""):
         "week_of": monday.isoformat(),
         "days": days,
     }
+
+
+# -------------------------
+# LIVE TASK SNAPSHOT
+# -------------------------
+
+def boys_task_snapshot(iso: str = "") -> dict:
+    """
+    Return live task state for all four boys for a given date (defaults to today).
+    Each task carries its completion state from progress.json.
+    Returns a structured dict with children keyed by name.
+    """
+    target = normalize_target_date(iso)
+    iso_str = target.isoformat()
+    weekday = target.strftime("%A")
+    date_label = target.strftime("%B %d, %Y")
+
+    children_data = {}
+    for child in CHILDREN:
+        try:
+            payload = build_schedule_payload(child, weekday, date_label, iso_str)
+        except Exception:
+            children_data[child] = {"error": "could not build payload"}
+            continue
+
+        carryover = [
+            {"text": i["text"], "done": i["done"], "task_id": i["task_id"]}
+            for i in payload.get("carryover_items", [])
+        ]
+        school = [
+            {
+                "subject": b["subject"],
+                "items": [
+                    {"text": ci["text"], "done": ci["done"], "task_id": ci["task_id"]}
+                    for ci in b.get("items", [])
+                ],
+            }
+            for b in payload.get("school_blocks", [])
+        ]
+        chores = [
+            {"text": i["text"], "done": i["done"], "task_id": i["task_id"]}
+            for i in payload.get("chore_items", [])
+        ]
+        manual = [
+            {"text": i["text"], "done": i["done"], "priority": i["priority"], "task_id": i["task_id"]}
+            for i in payload.get("manual_task_items", [])
+        ]
+
+        all_items = (
+            carryover
+            + [ci for b in school for ci in b["items"]]
+            + chores
+            + manual
+        )
+        total = len(all_items)
+        done  = sum(1 for i in all_items if i["done"])
+
+        children_data[child] = {
+            "carryover": carryover,
+            "school":    school,
+            "chores":    chores,
+            "manual":    manual,
+            "total":     total,
+            "done":      done,
+            "pending":   total - done,
+        }
+
+    return {
+        "iso":        iso_str,
+        "weekday":    weekday,
+        "date_label": date_label,
+        "children":   children_data,
+    }
+
+
+def boys_task_snapshot_text(iso: str = "") -> str:
+    """
+    Return a formatted text summary of all boys' live task state.
+    Suitable for injection directly into an AI system prompt.
+    ✓ = done   ○ = still pending
+    """
+    data = boys_task_snapshot(iso)
+    lines = [
+        f"== LIVE TASK STATE FOR EACH BOY — {data['weekday']}, {data['date_label']} ==",
+        "This is pulled in real time from progress.json at the moment of your response.",
+        "✓ = done already   ○ = still pending",
+        "",
+    ]
+
+    for child, info in data["children"].items():
+        if "error" in info:
+            lines.append(f"{child}: (could not load — {info['error']})")
+            lines.append("")
+            continue
+
+        done    = info["done"]
+        total   = info["total"]
+        pending = info["pending"]
+        lines.append(f"{child} — {done}/{total} complete, {pending} remaining:")
+
+        if not total:
+            lines.append("  (No tasks today)")
+
+        for item in info["carryover"]:
+            mark = "✓" if item["done"] else "○"
+            lines.append(f"  [Carryover] {mark} {item['text']}")
+
+        for block in info["school"]:
+            subj = block["subject"]
+            block_items = block["items"]
+            bd = sum(1 for i in block_items if i["done"])
+            bt = len(block_items)
+            lines.append(f"  [School — {subj}] {bd}/{bt} done:")
+            for item in block_items:
+                mark = "✓" if item["done"] else "○"
+                lines.append(f"    {mark} {item['text']}")
+
+        for item in info["chores"]:
+            mark = "✓" if item["done"] else "○"
+            lines.append(f"  [Chore] {mark} {item['text']}")
+
+        for item in info["manual"]:
+            mark = "✓" if item["done"] else "○"
+            lines.append(f"  [Task] {mark} {item['text']} [{item['priority']}]")
+
+        lines.append("")
+
+    return "\n".join(lines)

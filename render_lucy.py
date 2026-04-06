@@ -1009,40 +1009,17 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
     except Exception:
         lines.append("(Schedule grid not available)")
 
-    lines += ["", "== EACH CHILD'S SCHOOL & CHORES TODAY =="]
     try:
-        from daily_schedule_engine import (
-            CHILDREN, build_schedule_payload,
-            get_manual_tasks_for_child_and_date, get_carryover_tasks
+        from daily_schedule_engine import boys_task_snapshot_text
+        lines.append("")
+        lines.append(boys_task_snapshot_text(iso))
+        lines.append(
+            "IMPORTANT: The task state above is live — read directly from the server at the moment "
+            "this system prompt was built. When Mom asks 'what does JP still have to do?' or "
+            "'give me the boys' lists', use this data. ✓ = already done. ○ = still outstanding."
         )
-        from datetime import date as _dse_date
-        _today_d = _dse_date.fromisoformat(iso)
-        for child in CHILDREN:
-            payload = build_schedule_payload(child, weekday, date_label, iso)
-            school_blocks  = payload.get("school_blocks", [])
-            chore_items    = payload.get("chore_items", [])
-            manual_items   = get_manual_tasks_for_child_and_date(child, iso)
-            carryover_disp = get_carryover_tasks(child, _today_d)
-            lines.append(f"\n{child}:")
-            if school_blocks:
-                subjects = [b.get("subject", "?") for b in school_blocks]
-                lines.append(f"  School: {', '.join(subjects)}")
-            else:
-                lines.append("  No school today")
-            if chore_items:
-                chores = [c.get("text", "?") for c in chore_items[:5]]
-                lines.append(f"  Chores: {', '.join(chores)}")
-            if carryover_disp:
-                lines.append(f"  Carryover (you can dismiss): {'; '.join(carryover_disp)}")
-            else:
-                lines.append("  Carryover: (none)")
-            if manual_items:
-                task_texts = [t.get("text", "") for t in manual_items]
-                lines.append(f"  Printable tasks (you can edit): {'; '.join(task_texts)}")
-            else:
-                lines.append(f"  Printable tasks: (none yet — you can add them)")
     except Exception:
-        lines.append("(Could not load child schedules)")
+        lines += ["", "== EACH CHILD'S TASKS TODAY ==", "(Could not load live task state)"]
 
     lines += ["", "== CURRENT DAILY PLAN (MOM'S TASKS) =="]
     try:

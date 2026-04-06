@@ -399,6 +399,16 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/now":             body = render_now_page()
         elif path == "/week":            body = render_week()
         elif path == "/school":          body = render_school_page(status_message=clean_text(query.get("msg",[""])[0]))
+        elif path == "/api/boys-tasks":
+            if not _auth.is_admin(user):
+                self._send_json({"error": "unauthorized"}, 403); return
+            _bt_date = clean_text(query.get("date", [""])[0])
+            try:
+                from daily_schedule_engine import boys_task_snapshot
+                self._send_json(boys_task_snapshot(_bt_date))
+            except Exception as _bte:
+                self._send_json({"error": str(_bte)}, 500)
+            return
         elif path == "/gdrive-files":
             if not _auth.is_admin(user):
                 self._send_json({"error": "unauthorized"}, 403); return
@@ -865,6 +875,18 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         try:
             self.wfile.write(body.encode())
+        except BrokenPipeError:
+            pass
+
+    def _send_json(self, data: dict, status: int = 200):
+        """Helper to send a JSON response."""
+        import json as _sj
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        try:
+            self.wfile.write(_sj.dumps(data).encode())
         except BrokenPipeError:
             pass
 
