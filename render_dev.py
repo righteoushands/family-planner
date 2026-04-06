@@ -506,7 +506,7 @@ async function streamFelix(payload, isAutoRead, image) {{
 
 // ── Auto-handle [READ:] tags — no button click needed ─────────────────
 async function autoHandleReads(fullText) {{
-  const readPattern = /\[READ:\s*([^:\]\n]+)(?::(\d+)-(\d+))?\]/g;
+  const readPattern = /\[READ:\s*([^:\]]+)(?::(\d+)-(\d+))?\]/g;
   const sections = [];
   let m;
   while ((m = readPattern.exec(fullText)) !== null) {{
@@ -596,7 +596,7 @@ function escHtml(str) {{
 // ── Parse [FIX:...] and [READ:...] blocks ─────────────────────────────────
 function parseFixes(bubble, fullText) {{
   const fixPattern  = /\[FIX:\s*([^\]]+)\]\s*[\\r\\n]+(?:WHAT:\s*([^\\r\\n]*)[\\r\\n]+)?FIND:[\\r\\n]+([\s\S]*?)[\\r\\n]+REPLACE:[\\r\\n]+([\s\S]*?)[\\r\\n]+\[\/FIX\]/g;
-  const readPattern = /\[READ:\s*([^:\]\n]+)(?::(\d+)-(\d+))?\]/g;
+  const readPattern = /\[READ:\s*([^:\]]+)(?::(\d+)-(\d+))?\]/g;
   const rawEl   = bubble.querySelector('.felix-raw');
   const fixesEl = bubble.querySelector('.felix-fixes');
   if (!rawEl || !fixesEl) return;
