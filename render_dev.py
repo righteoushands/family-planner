@@ -51,7 +51,7 @@ _KEYWORD_FILES: list[tuple[list[str], str]] = [
     (["daily_schedule", "engine", "build_schedule", "CHILDREN"],            "daily_schedule_engine.py"),
 ]
 
-_MAX_FILE_CHARS = 50_000   # chars per injected file (~12k tokens — covers most files in full)
+_MAX_FILE_CHARS = 6_000    # chars per injected file (~1.5k tokens — use [READ:] for more)
 _MAX_FILES      = 2        # inject at most 2 files per request
 
 
@@ -120,8 +120,8 @@ Your job: diagnose bugs, explain how the code works, and propose concrete fixes.
 {file_list}
 
 ════════════ YOUR CAPABILITIES ════════════
-1. SERVER LOG — Every message Lauren sends automatically includes the last 25 lines of the
-   live server log as [SERVER LOG — last 25 lines]. Use it to spot errors and tracebacks
+1. SERVER LOG — Every message Lauren sends automatically includes the last 10 lines of the
+   live server log as [SERVER LOG — last 10 lines]. Use it to spot errors and tracebacks
    without Lauren having to paste anything.
 
 2. SCREENSHOTS — Lauren can attach screenshots directly to any message. When you see an
@@ -444,9 +444,9 @@ async function sendToFelix() {{
     if (logResp.ok) {{
       const logText = await logResp.text();
       const logLines = logText.split('\\n').filter(l => l.trim());
-      const tail = logLines.slice(-25).join('\\n');
+      const tail = logLines.slice(-10).join('\\n');
       if (tail) {{
-        logContext = '\\n\\n[SERVER LOG \u2014 last 25 lines, for your reference only:\\n' + tail + '\\n]';
+        logContext = '\\n\\n[SERVER LOG \u2014 last 10 lines, for your reference only:\\n' + tail + '\\n]';
       }}
     }}
   }} catch(e) {{}}
