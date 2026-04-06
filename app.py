@@ -1924,6 +1924,72 @@ class Handler(BaseHTTPRequestHandler):
                 def _attr(attrs, name):
                     m2 = _re.search(r'\b' + name + r'\s*=\s*["\']([^"\']*)["\']', attrs, _re.I)
                     return m2.group(1).strip() if m2 else ""
+
+                # ── Agentic query loop: <get_tasks> lets Lucy see current data ─
+                _query_rx = _re.compile(
+                    r'<get_tasks\b([^/>/]*?)(?:/>|>.*?</get_tasks>)',
+                    _re.IGNORECASE | _re.DOTALL
+                )
+                _query_matches = list(_query_rx.finditer(text))
+                if _query_matches:
+                    from daily_schedule_engine import boys_task_snapshot as _bts
+                    _task_parts = []
+                    for _qm in _query_matches:
+                        _qchild = _attr(_qm.group(1), "child")
+                        _qdate  = _attr(_qm.group(1), "date") or iso
+                        if not _qchild:
+                            continue
+                        try:
+                            _snap   = _bts(_qdate)
+                            _cdata  = _snap["children"].get(_qchild)
+                            if not _cdata or "error" in _cdata:
+                                _task_parts.append(f"[No task data found for {_qchild} on {_qdate}]")
+                                continue
+                            _ql = [f"CURRENT TASK STATE — {_qchild} on {_qdate}",
+                                   f"  Summary: {_cdata['done']}/{_cdata['total']} complete, {_cdata['pending']} remaining"]
+                            for _ci in _cdata.get("carryover", []):
+                                _ql.append(f"  [Carryover] {'✓' if _ci['done'] else '○'} {_ci['text']}")
+                            for _sb in _cdata.get("school", []):
+                                _ql.append(f"  [School — {_sb['subject']}]")
+                                for _si in _sb["items"]:
+                                    _ql.append(f"    {'✓' if _si['done'] else '○'} {_si['text']}")
+                            for _ch in _cdata.get("chores", []):
+                                _ql.append(f"  [Chore] {'✓' if _ch['done'] else '○'} {_ch['text']}")
+                            for _mt in _cdata.get("manual", []):
+                                _ql.append(f"  [Task/{_mt['priority']}] {'✓' if _mt['done'] else '○'} {_mt['text']}")
+                            _task_parts.append("\n".join(_ql))
+                        except Exception as _qe:
+                            _task_parts.append(f"[Error fetching {_qchild}: {_qe}]")
+                    if _task_parts:
+                        _inject = (
+                            "[SYSTEM: You requested current task data. Here it is — now use it to "
+                            "make informed edits with <plan_update>.]\n\n"
+                            + "\n\n".join(_task_parts)
+                        )
+                        _msgs2 = messages + [
+                            {"role": "assistant", "content": text},
+                            {"role": "user",      "content": _inject},
+                        ]
+                        _pay2 = _json.dumps({
+                            "model":      "claude-haiku-4-5-20251001",
+                            "max_tokens": 1500,
+                            "system":     lucy_context,
+                            "messages":   _msgs2,
+                        }).encode()
+                        try:
+                            _req2 = _req.Request(
+                                "https://api.anthropic.com/v1/messages",
+                                data=_pay2,
+                                headers={"Content-Type": "application/json",
+                                         "x-api-key": api_key,
+                                         "anthropic-version": "2023-06-01"},
+                                method="POST"
+                            )
+                            with _req.urlopen(_req2, timeout=45) as _r2:
+                                text = _json.loads(_r2.read().decode()).get("content",[{}])[0].get("text", text)
+                        except Exception:
+                            pass  # keep original response if second call fails
+
                 for _m in _plan_rx.finditer(text):
                     _child = _attr(_m.group(1), "child")
                     _date  = _attr(_m.group(1), "date")
