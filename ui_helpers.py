@@ -939,20 +939,47 @@ document.addEventListener('click', function(e) {{
     <!-- Sections -->
     <div style="padding:4px 16px 20px;">
 
-      <!-- Felix Help Desk — admin shortcut -->
-      <a href="/dev" onclick="closeMobileMore()"
-         style="display:flex;align-items:center;gap:14px;padding:14px 18px;
-                background:linear-gradient(135deg,#1e3a8a,#3b82f6);
-                border-radius:14px;text-decoration:none;color:white;
-                font-weight:700;font-size:0.95em;margin-bottom:16px;
-                box-shadow:0 4px 14px rgba(30,58,138,0.35);">
-        <span style="font-size:1.6em;line-height:1;">&#128187;</span>
-        <div>
-          <div style="font-size:0.95em;font-weight:800;">Felix · Help Desk</div>
-          <div style="font-size:0.75em;font-weight:400;opacity:.85;">Debug, fix, build features</div>
-        </div>
-        <span style="margin-left:auto;font-size:1.1em;opacity:.7;">&#8594;</span>
-      </a>
+      <!-- AI Companions section -->
+      <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+                  color:#9ca3af;margin:10px 0 8px;">Your Companions</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+        <a href="/lucy" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:#f3f0f9;border-radius:12px;text-decoration:none;
+                  color:#5b3a8a;font-weight:700;font-size:0.88em;">
+          <span>&#10024;</span> Lucy
+        </a>
+        <a href="/headmaster" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:#eef1f8;border-radius:12px;text-decoration:none;
+                  color:#1e3566;font-weight:700;font-size:0.88em;">
+          <span>&#128218;</span> Fr. Gregory
+        </a>
+        <a href="/lorenzo" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:#faf0ec;border-radius:12px;text-decoration:none;
+                  color:#8b3a1a;font-weight:700;font-size:0.88em;">
+          <span>&#127869;&#65039;</span> Lorenzo
+        </a>
+        <a href="/coach" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:#eef7f1;border-radius:12px;text-decoration:none;
+                  color:#1a6e3e;font-weight:700;font-size:0.88em;">
+          <span>&#128170;</span> Coach
+        </a>
+        <a href="/dr-monica" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:#faf0f5;border-radius:12px;text-decoration:none;
+                  color:#8b3a5c;font-weight:700;font-size:0.88em;">
+          <span>&#127800;</span> Dr. Monica
+        </a>
+        <a href="/dev" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:#eef3fc;border-radius:12px;text-decoration:none;
+                  color:#1e3a8a;font-weight:700;font-size:0.88em;">
+          <span>&#128187;</span> Felix
+        </a>
+      </div>
 
       <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
                   color:#9ca3af;margin:10px 0 8px;">People</div>
@@ -1075,7 +1102,7 @@ document.addEventListener('click', function(e) {{
   /* Highlight More btn if on a "more" page */
   var morePaths = ['/mom-profile','/john','/friends','/calendar','/notes','/planner',
                    '/school','/chores','/meals','/recipes','/family-schedule','/roadmap',
-                   '/settings','/mom','/dev'];
+                   '/settings','/mom','/dev','/lucy','/lorenzo','/headmaster','/coach','/dr-monica'];
   if (morePaths.indexOf(path) > -1) {{
     var btn = document.getElementById('mobile-more-btn');
     if (btn) {{
