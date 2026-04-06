@@ -648,7 +648,7 @@ function parseFixes(bubble, fullText) {{
     const end   = readMatch[3];
     // Just remove the tag from display text; autoHandleReads does the fetch
     cleanText = cleanText.replace(readMatch[0],
-      `[\u{1F4C4} Fetching ${{fname}} lines ${{start}}\u2013${{end}}\u2026]`);
+      `[📄 Fetching ${{fname}} lines ${{start}}\u2013${{end}}\u2026]`);
   }}
 
   rawEl.textContent = cleanText;
@@ -768,7 +768,7 @@ async function loadFileSectionDirect(fname, start, end) {{
     const text = await resp.text();
     if (!resp.ok) {{ alert('Error: ' + text); return; }}
     // Inject as a context message, then send to Felix
-    injectContext('\u{1F4C4} File section loaded — ' + fname +
+    injectContext('📄 File section loaded — ' + fname +
       (start > 0 ? ' lines ' + start + '-' + end : ' (full file)') +
       ':\n\n' + text);
   }} catch(e) {{
