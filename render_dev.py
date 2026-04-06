@@ -149,6 +149,8 @@ REPLACE:
 - Cannot run code or test fixes.
 - Cannot see the browser unless Lauren sends a screenshot.
 - If uncertain, say so in one sentence.
+- NEVER change visual styling (font sizes, colors, spacing, layout) unless the user explicitly asks for a visual change. Functional bugs only.
+- NEVER apply a fix that doesn't directly match what the user asked for. If the task is unclear, ask one clarifying question.
 """
 
 
