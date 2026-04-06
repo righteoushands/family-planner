@@ -1204,48 +1204,48 @@ def render_dashboard() -> str:
                   color:rgba(245,240,232,0.5);margin-bottom:8px;">Your companions</div>
       <div style="display:flex;gap:6px;margin-bottom:6px;">
         <a href="/lucy"
-           style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;
-                  padding:7px 8px;background:#5b3a8a;
-                  color:rgba(245,240,232,1);border-radius:20px;text-decoration:none;
-                  font-size:0.74em;font-weight:600;">
-          ✨ Lucy <span style="opacity:0.7;font-weight:400;">&middot; Companion</span>
+           style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+                  padding:8px 6px;background:#5b3a8a;
+                  color:rgba(245,240,232,1);border-radius:14px;text-decoration:none;">
+          <span style="font-size:0.8em;font-weight:700;">✨ Lucy</span>
+          <span style="font-size:0.65em;opacity:0.7;font-weight:400;margin-top:1px;">Companion</span>
         </a>
         <a href="/lorenzo"
-           style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;
-                  padding:7px 8px;background:#8b3a1a;
-                  color:rgba(245,240,232,1);border-radius:20px;text-decoration:none;
-                  font-size:0.74em;font-weight:600;">
-          &#127860; Lorenzo <span style="opacity:0.7;font-weight:400;">&middot; Chef</span>
+           style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+                  padding:8px 6px;background:#8b3a1a;
+                  color:rgba(245,240,232,1);border-radius:14px;text-decoration:none;">
+          <span style="font-size:0.8em;font-weight:700;">&#127860; Lorenzo</span>
+          <span style="font-size:0.65em;opacity:0.7;font-weight:400;margin-top:1px;">Chef</span>
         </a>
         <a href="/dev"
-           style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;
-                  padding:7px 8px;background:#1e3a8a;
-                  color:rgba(245,240,232,1);border-radius:20px;text-decoration:none;
-                  font-size:0.74em;font-weight:600;">
-          &#128187; Izzy <span style="opacity:0.7;font-weight:400;">&middot; Help Desk</span>
+           style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+                  padding:8px 6px;background:#1e3a8a;
+                  color:rgba(245,240,232,1);border-radius:14px;text-decoration:none;">
+          <span style="font-size:0.8em;font-weight:700;">&#128187; Izzy</span>
+          <span style="font-size:0.65em;opacity:0.7;font-weight:400;margin-top:1px;">Help Desk</span>
         </a>
       </div>
       <div style="display:flex;gap:6px;">
         <a href="/headmaster"
-           style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;
-                  padding:7px 8px;background:#1e3566;
-                  color:rgba(245,240,232,1);border-radius:20px;text-decoration:none;
-                  font-size:0.74em;font-weight:600;">
-          &#128218; Fr. Gregory <span style="opacity:0.7;font-weight:400;">&middot; School</span>
+           style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+                  padding:8px 6px;background:#1e3566;
+                  color:rgba(245,240,232,1);border-radius:14px;text-decoration:none;">
+          <span style="font-size:0.8em;font-weight:700;">&#128218; Fr. Gregory</span>
+          <span style="font-size:0.65em;opacity:0.7;font-weight:400;margin-top:1px;">School</span>
         </a>
         <a href="/coach"
-           style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;
-                  padding:7px 8px;background:#1a6e3e;
-                  color:rgba(245,240,232,1);border-radius:20px;text-decoration:none;
-                  font-size:0.74em;font-weight:600;">
-          &#128170; Coach <span style="opacity:0.7;font-weight:400;">&middot; Fitness</span>
+           style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+                  padding:8px 6px;background:#1a6e3e;
+                  color:rgba(245,240,232,1);border-radius:14px;text-decoration:none;">
+          <span style="font-size:0.8em;font-weight:700;">&#128170; Coach</span>
+          <span style="font-size:0.65em;opacity:0.7;font-weight:400;margin-top:1px;">Fitness</span>
         </a>
         <a href="/dr-monica"
-           style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;
-                  padding:7px 8px;background:#8b3a5c;
-                  color:rgba(245,240,232,1);border-radius:20px;text-decoration:none;
-                  font-size:0.74em;font-weight:600;">
-          &#127800; Dr. Monica <span style="opacity:0.7;font-weight:400;">&middot; Health</span>
+           style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+                  padding:8px 6px;background:#8b3a5c;
+                  color:rgba(245,240,232,1);border-radius:14px;text-decoration:none;">
+          <span style="font-size:0.8em;font-weight:700;">&#127800; Dr. Monica</span>
+          <span style="font-size:0.65em;opacity:0.7;font-weight:400;margin-top:1px;">Health</span>
         </a>
       </div>
     </div>
