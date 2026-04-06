@@ -110,8 +110,6 @@ def build_felix_context() -> str:
     overview  = _app_overview()
     file_list = _file_listing()
     return f"""You are Felix, the built-in programmer for the Sancta Familia family dashboard.
-You are friendly, precise, and deeply familiar with this codebase.
-Your job: diagnose bugs, explain how the code works, and propose concrete fixes.
 
 ════════════ APP OVERVIEW ════════════
 {overview}
@@ -119,58 +117,38 @@ Your job: diagnose bugs, explain how the code works, and propose concrete fixes.
 ════════════ SOURCE FILES ════════════
 {file_list}
 
-════════════ YOUR CAPABILITIES ════════════
-1. SERVER LOG — Every message Lauren sends automatically includes the last 10 lines of the
-   live server log as [SERVER LOG — last 10 lines]. Use it to spot errors and tracebacks
-   without Lauren having to paste anything.
+════════════ RESPONSE RULES — follow these strictly ════════════
+- Keep ALL replies to 1-3 short sentences. Never write more.
+- NEVER show code in your text. Code goes only inside [FIX:] blocks.
+- No bullet lists, no headers, no long explanations.
+- If you need to read a file before answering, do that first with [READ:].
+- If something can't be fixed, say so in one sentence.
 
-2. SCREENSHOTS — Lauren can attach screenshots directly to any message. When you see an
-   image, describe what you notice (error messages, UI glitches, etc.) and use it to
-   diagnose the problem.
+════════════ YOUR TOOLS ════════════
+READ FILES: [READ: filename.py:start_line-end_line]
+  Fetches that section. Use this before proposing any fix.
 
-3. FILE READING — Request any file section using this tag (the page fetches it automatically):
-
-   [READ: filename.py:start_line-end_line]
-
-   Example: [READ: app.py:1000-1200] — the file section arrives in your next message.
-   Use multiple [READ:] tags per response. For app.py (5000+ lines), always request
-   specific sections rather than the whole file.
-
-4. CODE FIXES — When you propose a change, use this exact format:
+APPLY FIXES: Use this exact format — Lauren sees a clean Apply button, no code shown:
 
 [FIX: filename.py]
+WHAT: One plain-English sentence describing what changes (e.g. "Increase body font from 15px to 16px")
 FIND:
-<exact code to be replaced — include 3-5 lines for context>
+<exact text to replace — include 3-5 lines for context>
 REPLACE:
-<new code>
+<new text>
 [/FIX]
 
-   Rules: FIND must exactly match the file. 3-5 lines of context. One logical change per
-   block. Correct indentation. The server must be restarted after applying.
+  Rules: FIND must match the file exactly. One change per block. Correct indentation.
+  Server restarts automatically after apply.
 
-5. APPLY & RESTART — Lauren sees an "Apply Fix" button for each [FIX] block. Once applied,
-   she clicks Restart and the fix goes live.
-
-════════════ WHAT YOU CANNOT DO — be honest about these ════════════
-- You cannot RUN code or test whether a fix actually works. Always say "apply it and restart
-  to see if this fixes it" rather than claiming it will definitely work.
-- You cannot see the live browser/UI directly unless Lauren sends a screenshot.
-- You cannot access production (the deployed app) — only this development server.
-- You cannot safely make many large changes at once. For big refactors, propose one step at
-  a time and ask Lauren to test each one.
-- You cannot fix problems that require new external API keys, credentials, or third-party
-  services Lauren doesn't already have set up.
-- You cannot permanently remember things between sessions — your memory resets each time
-  Lauren clears the chat.
-- When you're not sure, say so clearly: "I'm not certain — here's my best guess, but let's
-  test it." Never make something up with false confidence.
+════════════ LIMITS ════════════
+- Cannot run code or test fixes — always say "apply and restart to check".
+- Cannot see the browser unless Lauren sends a screenshot.
+- Uncertain? Say so in one sentence. Never guess with false confidence.
 
 ════════════ PERSONALITY ════════════
-- Speak plainly. Lauren is not a developer — explain WHY as well as WHAT.
-- Be direct: name the file and line number, don't hedge.
-- When you can't fix something, say so and explain why. Suggest what Lauren could do instead.
-- Celebrate when a fix works. Be warm and encouraging — this is a family dashboard.
-- Keep replies focused. Don't over-explain. One clear answer is better than three vague ones.
+- Warm, brief, plain English. Lauren is not a developer.
+- One clear answer beats three vague ones.
 """
 
 
@@ -602,7 +580,7 @@ function escHtml(str) {{
 
 // ── Parse [FIX:...] and [READ:...] blocks ─────────────────────────────────
 function parseFixes(bubble, fullText) {{
-  const fixPattern  = /\[FIX:\s*([^\]]+)\]\s*[\\r\\n]+FIND:[\\r\\n]+([\s\S]*?)[\\r\\n]+REPLACE:[\\r\\n]+([\s\S]*?)[\\r\\n]+\[\/FIX\]/g;
+  const fixPattern  = /\[FIX:\s*([^\]]+)\]\s*[\\r\\n]+(?:WHAT:\s*([^\\r\\n]*)[\\r\\n]+)?FIND:[\\r\\n]+([\s\S]*?)[\\r\\n]+REPLACE:[\\r\\n]+([\s\S]*?)[\\r\\n]+\[\/FIX\]/g;
   const readPattern = /\[READ:\s*([^:\]]+):(\d+)-(\d+)\]/g;
   const rawEl   = bubble.querySelector('.felix-raw');
   const fixesEl = bubble.querySelector('.felix-fixes');
@@ -611,31 +589,27 @@ function parseFixes(bubble, fullText) {{
   let cleanText = fullText;
   let match;
 
-  // ── FIX blocks ────────────────────────────────────────────────────────────
+  // ── FIX blocks — show clean approval card, no code ────────────────────────
   while ((match = fixPattern.exec(fullText)) !== null) {{
     const filename = match[1].trim();
-    const findStr  = match[2];
-    const replStr  = match[3];
-    cleanText = cleanText.replace(match[0], `\u2705 Fix proposed for ${{filename}} (see button below)`);
+    const whatDesc = (match[2] || '').trim() || 'Update ' + filename;
+    const findStr  = match[3];
+    const replStr  = match[4];
+    cleanText = cleanText.replace(match[0], '');
     const card = document.createElement('div');
-    card.style.cssText = 'margin-top:12px;border:1.5px solid #86efac;border-radius:10px;overflow:hidden;';
+    card.style.cssText = 'margin-top:10px;border:1.5px solid #86efac;border-radius:12px;overflow:hidden;';
     card.innerHTML = `
-      <div style="background:#f0fdf4;padding:8px 12px;font-size:0.75em;font-weight:700;
-                  color:#166534;display:flex;align-items:center;justify-content:space-between;">
-        <span>&#128295; Fix for <code>${{escHtml(filename)}}</code></span>
+      <div style="background:#f0fdf4;padding:10px 14px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.1em;">&#128295;</span>
+        <span style="flex:1;font-size:0.88em;color:#166534;font-weight:600;">${{escHtml(whatDesc)}}</span>
+        <span style="font-size:0.72em;color:#6b7280;">${{escHtml(filename)}}</span>
         <button onclick="applyFix(this,'${{escHtml(filename)}}', this.dataset.find, this.dataset.replace)"
                 data-find="${{escHtml(findStr)}}"
                 data-replace="${{escHtml(replStr)}}"
-                style="padding:4px 12px;background:#15803d;color:white;border:none;border-radius:6px;
-                       font-size:0.85em;font-weight:700;cursor:pointer;font-family:inherit;">
-          Apply Fix \u2713
+                style="padding:6px 16px;background:#15803d;color:white;border:none;border-radius:8px;
+                       font-size:0.85em;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">
+          Apply
         </button>
-      </div>
-      <div style="background:#1e293b;padding:10px 12px;">
-        <div style="font-size:0.7em;color:#94a3b8;margin-bottom:4px;">REMOVE:</div>
-        <pre style="margin:0;font-size:0.78em;color:#fca5a5;white-space:pre-wrap;word-break:break-all;">${{escHtml(findStr)}}</pre>
-        <div style="font-size:0.7em;color:#94a3b8;margin:8px 0 4px;">ADD:</div>
-        <pre style="margin:0;font-size:0.78em;color:#86efac;white-space:pre-wrap;word-break:break-all;">${{escHtml(replStr)}}</pre>
       </div>`;
     fixesEl.appendChild(card);
   }}
@@ -811,22 +785,52 @@ async function applyFix(btn, filename, findStr, replaceStr) {{
     const resp = await fetch('/dev-apply', {{method:'POST', body}});
     const txt  = await resp.text();
     if (!resp.ok) {{
-      btn.textContent = '&#10060; Failed';
+      btn.textContent = '\u274c Failed';
       btn.style.background = '#dc2626';
-      alert('Apply failed: ' + txt);
+      btn.disabled = false;
+      // Show error in a small note below the card
+      const errNote = document.createElement('div');
+      errNote.style.cssText = 'padding:6px 14px;font-size:0.75em;color:#dc2626;background:#fef2f2;';
+      errNote.textContent = txt;
+      btn.closest('div').parentElement.appendChild(errNote);
       return;
     }}
-    btn.textContent = '&#10003; Applied!';
-    btn.style.background = '#166534';
-    btn.parentElement.parentElement.style.borderColor = '#16a34a';
-    // Offer restart
-    if (confirm('Fix applied! Restart the server now to see the change?')) {{
-      restartServer();
-    }}
+    // Success — replace the row with Applied + Undo
+    const row = btn.closest('div');
+    row.innerHTML = `
+      <span style="font-size:1.1em;">&#10003;</span>
+      <span style="flex:1;font-size:0.88em;color:#166534;font-weight:600;">Applied — restarting\u2026</span>
+      <button onclick="undoFix('${{escHtml(filename)}}')"
+              style="padding:6px 14px;background:#64748b;color:white;border:none;border-radius:8px;
+                     font-size:0.82em;font-weight:600;cursor:pointer;font-family:inherit;">
+        Undo
+      </button>`;
+    row.style.cssText += ';background:#dcfce7;';
+    restartServer();
   }} catch(e) {{
     btn.textContent = 'Error';
     btn.style.background = '#dc2626';
-    alert('Network error: ' + e.message);
+    btn.disabled = false;
+  }}
+}}
+
+// ── Undo the last applied fix ─────────────────────────────────────────────
+async function undoFix(filename) {{
+  try {{
+    const resp = await fetch('/dev-undo', {{
+      method: 'POST',
+      headers: {{'Content-Type':'application/x-www-form-urlencoded'}},
+      body: 'file=' + encodeURIComponent(filename),
+    }});
+    const txt = await resp.text();
+    if (!resp.ok) {{
+      alert('Undo failed: ' + txt);
+      return;
+    }}
+    // Refresh so the restored file takes effect
+    restartServer();
+  }} catch(e) {{
+    alert('Undo error: ' + e.message);
   }}
 }}
 

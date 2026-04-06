@@ -2928,11 +2928,40 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_response(422); self.send_header("Content-Type","text/plain"); self.end_headers()
                     self.wfile.write(b"FIND string not found in file - the code may have already been changed."); return
 
+                # Save undo backup before writing
+                import json as _jundo, pathlib as _pupath
+                _undo_path = _pupath.Path("data/felix_undo.json")
+                try:
+                    _undo_path.write_text(_jundo.dumps({"file": filename, "content": content}), encoding="utf-8")
+                except Exception: pass
+
                 new_content = content.replace(find_str, repl_str, 1)
                 fpath.write_text(new_content, encoding="utf-8")
 
                 self.send_response(200); self.send_header("Content-Type","text/plain"); self.end_headers()
                 try: self.wfile.write(f"Applied to {filename}".encode())
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/dev-undo":
+                import json as _jundo2, pathlib as _pupath2
+                _dvu = self._get_viewer()
+                if not (_dvu and _auth.is_admin(_dvu)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    self.wfile.write(b"Admin only."); return
+                _undo2 = _pupath2.Path("data/felix_undo.json")
+                if not _undo2.exists():
+                    self.send_response(404); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    self.wfile.write(b"Nothing to undo."); return
+                try:
+                    saved = _jundo2.loads(_undo2.read_text(encoding="utf-8"))
+                    _pupath2.Path(saved["file"]).write_text(saved["content"], encoding="utf-8")
+                    _undo2.unlink()  # consume the undo — one level only
+                except Exception as ex:
+                    self.send_response(500); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    self.wfile.write(f"Undo error: {ex}".encode()); return
+                self.send_response(200); self.send_header("Content-Type","text/plain"); self.end_headers()
+                try: self.wfile.write(b"Undone.")
                 except BrokenPipeError: pass
                 return
 
