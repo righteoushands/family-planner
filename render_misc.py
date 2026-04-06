@@ -4077,7 +4077,7 @@ def render_school_page(status_message: str = "") -> str:
             <h2>Upload or Paste School List</h2>
             <form method="POST" action="/school-upload" enctype="multipart/form-data">
                 <label>Child</label><select name="child">{child_options}</select>
-                <label>PDF or text file</label><input type="file" name="file">
+                <label>PDF or text file</label><input type="file" name="file" accept=".pdf,application/pdf,text/plain,.txt,*/*">
                 <label>Or paste text</label><textarea name="raw_text" rows="10"></textarea>
                 <button type="submit">Create Preview</button>
             </form>
