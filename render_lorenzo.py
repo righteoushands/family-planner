@@ -850,6 +850,7 @@ var _lzTtsFull        = null;
 var _lzTtsFirstEndPos = 0;
 var _lzAudioEl = new Audio();
 var _lzVoiceName = localStorage.getItem('lz_voice_name') || 'onyx';
+var _lzInFlight = false;
 
 // ── Planning session state ────────────────────────────────────────────────────
 var _lzPlanActive  = {json.dumps(plan_active)};
@@ -987,7 +988,7 @@ function _lzFetchAndPlay(text, onEnd) {{
     }})
     .then(function(r) {{ return r.ok ? r.blob() : null; }})
     .then(function(blob) {{
-        if (!blob) return;
+        if (!blob) {{ if (onEnd) onEnd(); return; }}
         var url = URL.createObjectURL(blob);
         _lzAudioEl.src = url;
         _lzAudioEl.onended = function() {{
@@ -997,15 +998,23 @@ function _lzFetchAndPlay(text, onEnd) {{
         }};
         _lzAudioEl.play().then(function() {{
             _lzUpdateStopBtn(true);
-        }}).catch(function(){{}});
-    }}).catch(function(){{}});
+        }}).catch(function() {{ if (onEnd) onEnd(); }});
+    }}).catch(function() {{ if (onEnd) onEnd(); }});
+}}
+
+function _lzAfterSpeak() {{
+    var wasVoice = _lzLastWasVoice;
+    _lzLastWasVoice = false;
+    if (_lzVoiceEnabled || wasVoice) {{
+        setTimeout(lzStartListening, 400);
+    }}
 }}
 
 function lzSpeak(text) {{
     if (!_lzVoiceEnabled && !_lzLastWasVoice) return;
     var clean = _lzCleanForTts(text);
     if (clean.length < 5) return;
-    _lzFetchAndPlay(clean.substring(0,3000), null);
+    _lzFetchAndPlay(clean.substring(0,3000), _lzAfterSpeak);
 }}
 
 function lzSpeakTap(text, btn) {{
@@ -1280,6 +1289,8 @@ function lzSend() {{
     var msg   = input.value.trim();
     var img   = _lzAttached;
     if (!msg && !img) return;
+    if (_lzInFlight) return;
+    _lzInFlight = true;
     _lzUnlockAudio();
     _lzTtsFirstFired  = false;
     _lzTtsFull        = null;
@@ -1309,6 +1320,7 @@ function lzSend() {{
     }}).then(function(r) {{
         document.getElementById('lz-thinking').style.display = 'none';
         if (!r.ok) {{
+            _lzInFlight = false;
             _lzRenderBubble('lz', 'Lorenzo stepped away. Check that your API key is set in Settings.');
             return;
         }}
@@ -1319,14 +1331,13 @@ function lzSend() {{
         function read() {{
             return reader.read().then(function(res) {{
                 if (res.done) {{
+                    _lzInFlight = false;
                     var clean = _lzStrip(full);
                     bubble.textContent = clean;
                     _lzHistory.push({{role:'assistant', content: clean}});
                     _lzTtsFull = clean;
                     if (!_lzTtsFirstFired) {{
                         lzSpeak(clean);
-                    }} else {{
-                        _lzLastWasVoice = false;
                     }}
 
                     // ── Tap-to-hear button ────────────────────────────────
@@ -1542,7 +1553,11 @@ function lzSend() {{
                                     if (!_lzTtsFull) {{ setTimeout(_playRest, 150); return; }}
                                     if (_lzAudioEl.paused) {{
                                         var rt = _lzCleanForTts(_lzTtsFull.substring(_lzTtsFirstEndPos));
-                                        if (rt.length > 20) _lzFetchAndPlay(rt.substring(0,3000), null);
+                                        if (rt.length > 20) {{
+                                            _lzFetchAndPlay(rt.substring(0,3000), _lzAfterSpeak);
+                                        }} else {{
+                                            _lzAfterSpeak();
+                                        }}
                                     }}
                                 }}
                                 _playRest();
@@ -1554,8 +1569,9 @@ function lzSend() {{
                 return read();
             }});
         }}
-        read().catch(function(e) {{ bubble.textContent = 'Stream error: ' + e.message; }});
+        read().catch(function(e) {{ _lzInFlight = false; bubble.textContent = 'Stream error: ' + e.message; }});
     }}).catch(function(e) {{
+        _lzInFlight = false;
         document.getElementById('lz-thinking').style.display = 'none';
         _lzRenderBubble('lz', 'Network error: ' + e.message);
     }});
