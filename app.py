@@ -2958,7 +2958,7 @@ class Handler(BaseHTTPRequestHandler):
 
                 payload = _json.dumps({
                     "model":      "claude-sonnet-4-20250514",
-                    "max_tokens": 1000,
+                    "max_tokens": 3000,
                     "system":     felix_context,
                     "messages":   messages,
                     "stream":     True,
@@ -3068,6 +3068,56 @@ class Handler(BaseHTTPRequestHandler):
 
                 self.send_response(200); self.send_header("Content-Type","text/plain"); self.end_headers()
                 try: self.wfile.write(f"Applied to {filename}".encode())
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/dev-write":
+                # Line-range replacement: more reliable than find/replace for Izzy
+                import pathlib as _wpathlib
+                _wdv = self._get_viewer()
+                if not (_wdv and _auth.is_admin(_wdv)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    self.wfile.write(b"Admin only."); return
+
+                w_filename = clean_text(data.get("file",[""])[0]).strip()
+                try:
+                    w_start = int(data.get("start",["0"])[0])
+                    w_end   = int(data.get("end",["0"])[0])
+                except (ValueError, IndexError):
+                    self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    self.wfile.write(b"Invalid start/end line numbers."); return
+                w_content = data.get("content",[""])[0]
+
+                allowed_exts = {".py", ".json", ".css", ".js", ".html", ".md"}
+                w_fpath = _wpathlib.Path(w_filename)
+                if w_fpath.parent != _wpathlib.Path(".") or w_fpath.suffix not in allowed_exts:
+                    self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    self.wfile.write(b"Only project-root .py/.json/.css/.js files allowed."); return
+                if not w_fpath.exists():
+                    self.send_response(404); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    self.wfile.write(f"File not found: {w_filename}".encode()); return
+
+                w_file_content = w_fpath.read_text(encoding="utf-8")
+                w_lines = w_file_content.splitlines(keepends=True)
+                total_lines = len(w_lines)
+                if w_start < 1 or w_end < w_start or w_start > total_lines:
+                    self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    self.wfile.write(f"Line range {w_start}-{w_end} is out of bounds (file has {total_lines} lines).".encode()); return
+
+                # Save undo backup
+                import json as _wjundo, pathlib as _wpupath
+                _wundo_path = _wpupath.Path("data/felix_undo.json")
+                try:
+                    _wundo_path.write_text(_wjundo.dumps({"file": w_filename, "content": w_file_content}), encoding="utf-8")
+                except Exception: pass
+
+                # Replace lines w_start..w_end (1-indexed inclusive) with new content
+                new_block = w_content if w_content.endswith("\n") else w_content + "\n"
+                new_lines = w_lines[:w_start - 1] + [new_block] + w_lines[w_end:]
+                w_fpath.write_text("".join(new_lines), encoding="utf-8")
+
+                self.send_response(200); self.send_header("Content-Type","text/plain"); self.end_headers()
+                try: self.wfile.write(f"Written lines {w_start}-{w_end} of {w_filename}".encode())
                 except BrokenPipeError: pass
                 return
 

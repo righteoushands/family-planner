@@ -133,7 +133,19 @@ READ FILES: [READ: filename.py:start_line-end_line]
   ALWAYS include line numbers. Example: [READ: app.py:100-200]
   Read 50-100 lines at a time. ONE [READ:] tag per response maximum — never two in the same reply.
 
-APPLY FIXES:
+APPLY FIXES — TWO METHODS (prefer WRITE):
+
+METHOD 1 — WRITE (preferred, use whenever you know the exact line numbers):
+[WRITE: filename.py:start_line-end_line]
+WHAT: One sentence describing the change
+new content that replaces lines start_line through end_line
+[/WRITE]
+
+  Use line numbers from your most recent [READ:] of that file.
+  The new content replaces ALL of lines start_line..end_line (1-indexed, inclusive).
+  Include correct indentation. Do not include the line-number prefix from READ output.
+
+METHOD 2 — FIX (fallback, only if you cannot determine exact line numbers):
 [FIX: filename.py]
 WHAT: One plain-English sentence describing what changes
 FIND:
@@ -606,11 +618,12 @@ function escHtml(str) {{
          .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }}
 
-// ── Parse [FIX:...] and [READ:...] blocks ─────────────────────────────────
-// All fixes → ONE card, ONE button. READ tags stripped silently.
+// ── Parse [FIX:...], [WRITE:...] and [READ:...] blocks ───────────────────
+// All fixes/writes → ONE card, ONE button. READ tags stripped silently.
 function parseFixes(bubble, fullText) {{
-  const fixPattern  = /\[FIX:\s*([^\]]+)\]\s*[\\r\\n]+(?:WHAT:\s*([^\\r\\n]*)[\\r\\n]+)?FIND:[\\r\\n]+([\s\S]*?)[\\r\\n]+REPLACE:[\\r\\n]+([\s\S]*?)[\\r\\n]+\[\/FIX\]/g;
-  const readPattern = /\[READ:\s*([^:\]]+)(?::(\d+)-(\d+))?\]/g;
+  const fixPattern   = /\[FIX:\s*([^\]]+)\]\s*[\r\n]+(?:WHAT:\s*([^\r\n]*)[\r\n]+)?FIND:[\r\n]+([\s\S]*?)[\r\n]+REPLACE:[\r\n]+([\s\S]*?)[\r\n]+\[\/FIX\]/g;
+  const writePattern = /\[WRITE:\s*([^\]]+):(\d+)-(\d+)\]\s*[\r\n]+(?:WHAT:\s*([^\r\n]*)[\r\n]+)?([\s\S]*?)[\r\n]*\[\/WRITE\]/g;
+  const readPattern  = /\[READ:\s*([^:\]]+)(?::(\d+)-(\d+))?\]/g;
   const rawEl   = bubble.querySelector('.felix-raw');
   const fixesEl = bubble.querySelector('.felix-fixes');
   if (!rawEl || !fixesEl) return;
@@ -619,9 +632,23 @@ function parseFixes(bubble, fullText) {{
   const fixes = [];
   let match;
 
-  // Collect every FIX block into the fixes array
+  // Collect every WRITE block (preferred method — line-range replacement)
+  while ((match = writePattern.exec(fullText)) !== null) {{
+    fixes.push({{
+      type:      'write',
+      filename:  match[1].trim(),
+      startLine: parseInt(match[2]),
+      endLine:   parseInt(match[3]),
+      what:      (match[4] || '').trim() || 'Update ' + match[1].trim(),
+      content:   match[5],
+    }});
+    cleanText = cleanText.replace(match[0], '');
+  }}
+
+  // Collect every FIX block (fallback — find/replace)
   while ((match = fixPattern.exec(fullText)) !== null) {{
     fixes.push({{
+      type:     'fix',
       filename: match[1].trim(),
       what:     (match[2] || '').trim() || 'Update ' + match[1].trim(),
       find:     match[3],
@@ -818,12 +845,25 @@ async function applyAllFixes(btn, fixes) {{
 
   for (const fix of fixes) {{
     try {{
-      const body = new URLSearchParams({{
-        file:    fix.filename,
-        find:    fix.find,
-        replace: fix.replace,
-      }});
-      const resp = await fetch('/dev-apply', {{method:'POST', body}});
+      let resp;
+      if (fix.type === 'write') {{
+        // Line-range replacement — preferred, no text matching
+        const body = new URLSearchParams({{
+          file:    fix.filename,
+          start:   fix.startLine,
+          end:     fix.endLine,
+          content: fix.content,
+        }});
+        resp = await fetch('/dev-write', {{method:'POST', body}});
+      }} else {{
+        // Classic find/replace fallback
+        const body = new URLSearchParams({{
+          file:    fix.filename,
+          find:    fix.find,
+          replace: fix.replace,
+        }});
+        resp = await fetch('/dev-apply', {{method:'POST', body}});
+      }}
       if (!resp.ok) {{
         failCount++;
         const errNote = document.createElement('div');
