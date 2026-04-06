@@ -416,7 +416,7 @@ class Handler(BaseHTTPRequestHandler):
             _ct_child = clean_text(query.get("child", [""])[0])
             _ct_date  = clean_text(query.get("date",  [""])[0])
             try:
-                from daily_schedule_engine import boys_task_snapshot, CHILDREN
+                from daily_schedule_engine import boys_task_snapshot
                 _ct_child = _ct_child.strip()
                 if _ct_child and _ct_child not in CHILDREN:
                     self._send_json({"error": f"Unknown child: {_ct_child}"}, 400); return

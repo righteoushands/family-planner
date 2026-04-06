@@ -1036,9 +1036,14 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
             lines += [
                 "",
                 "== FAMILY RULE OF LIFE (Daily Structure Template) ==",
-                "This is the McAdams family's Rule of Life — the expected time structure for each day.",
-                "Use it to order task lists chronologically when Mom asks for a printed list, a daily summary,",
-                "or asks how the boys' day should flow. Activities are per-person, 30-min slots.",
+                "This is the McAdams family's Rule of Life — the expected daily rhythm, per person, in 30-min slots.",
+                "CRITICAL RULE: When generating any task list or printable schedule for a boy, you MUST:",
+                "  1. Look up that boy's Rule of Life slots for today",
+                "  2. Place each outstanding task under the time slot where it fits (school → school block, chores → chore block, etc.)",
+                "  3. Mark tasks already done with ✓ and outstanding tasks with ○",
+                "  4. Only include non-empty time slots that have tasks or activities",
+                "This makes the list feel like a structured daily schedule, not a random list.",
+                "Do NOT generate a flat task list — always anchor items to their Rule of Life time slot.",
                 "",
                 _rol,
             ]
