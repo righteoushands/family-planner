@@ -443,10 +443,10 @@ async function sendToFelix() {{
     const logResp = await fetch('/dev-logs');
     if (logResp.ok) {{
       const logText = await logResp.text();
-      const logLines = logText.split('\n').filter(l => l.trim());
-      const tail = logLines.slice(-25).join('\n');
+      const logLines = logText.split('\\n').filter(l => l.trim());
+      const tail = logLines.slice(-25).join('\\n');
       if (tail) {{
-        logContext = '\n\n[SERVER LOG \u2014 last 25 lines, for your reference only:\n' + tail + '\n]';
+        logContext = '\\n\\n[SERVER LOG \u2014 last 25 lines, for your reference only:\\n' + tail + '\\n]';
       }}
     }}
   }} catch(e) {{}}
@@ -550,9 +550,9 @@ async function autoHandleReads(fullText) {{
 
   // Send the file content back to Felix silently (no user bubble)
   const contextPayload =
-    '[SYSTEM: You requested the following file sections. Here they are \u2014 please continue your analysis.]\n\n' +
-    parts.join('\n\n\u2500\u2500\u2500\n\n') +
-    '\n\n[END OF FILE SECTIONS]';
+    '[SYSTEM: You requested the following file sections. Here they are \u2014 please continue your analysis.]\\n\\n' +
+    parts.join('\\n\\n\u2500\u2500\u2500\\n\\n') +
+    '\\n\\n[END OF FILE SECTIONS]';
 
   setThinking('Felix is reading the code\u2026');
   await streamFelix(contextPayload, true);
@@ -602,7 +602,7 @@ function escHtml(str) {{
 
 // ── Parse [FIX:...] and [READ:...] blocks ─────────────────────────────────
 function parseFixes(bubble, fullText) {{
-  const fixPattern  = /\[FIX:\s*([^\]]+)\]\s*\nFIND:\n([\s\S]*?)\nREPLACE:\n([\s\S]*?)\n\[\/FIX\]/g;
+  const fixPattern  = /\[FIX:\s*([^\]]+)\]\s*[\\r\\n]+FIND:[\\r\\n]+([\s\S]*?)[\\r\\n]+REPLACE:[\\r\\n]+([\s\S]*?)[\\r\\n]+\[\/FIX\]/g;
   const readPattern = /\[READ:\s*([^:\]]+):(\d+)-(\d+)\]/g;
   const rawEl   = bubble.querySelector('.felix-raw');
   const fixesEl = bubble.querySelector('.felix-fixes');
@@ -706,7 +706,7 @@ async function refreshLogs() {{
           '<span style="color:#fbbf24;font-weight:600;">$1</span>');
       pre.innerHTML = colored;
       pre.scrollTop = pre.scrollHeight;
-      const lines = text.split('\n').length;
+      const lines = text.split('\\n').length;
       const ctr = document.getElementById('log-line-count');
       if (ctr) ctr.textContent = '(' + lines + ' lines)';
     }}
@@ -736,8 +736,8 @@ function sendLogToFelix() {{
   if (!pre) return;
   const logText = pre.innerText || pre.textContent || '';
   const inp = document.getElementById('felix-input');
-  inp.value = '[!!] Server error log (last 300 lines):\n\n' + logText +
-    '\n\nPlease analyze this log. Identify any errors, exceptions, or warnings and explain what caused them.';
+  inp.value = '[!!] Server error log (last 300 lines):\\n\\n' + logText +
+    '\\n\\nPlease analyze this log. Identify any errors, exceptions, or warnings and explain what caused them.';
   inp.focus();
   document.getElementById('felix-msgs').scrollTop = 99999;
 }}
@@ -770,7 +770,7 @@ async function loadFileSectionDirect(fname, start, end) {{
     // Inject as a context message, then send to Felix
     injectContext('📄 File section loaded — ' + fname +
       (start > 0 ? ' lines ' + start + '-' + end : ' (full file)') +
-      ':\n\n' + text);
+      ':\\n\\n' + text);
   }} catch(e) {{
     alert('Network error: ' + e.message);
   }} finally {{
@@ -785,7 +785,7 @@ function injectContext(contextText) {{
   const info = document.createElement('div');
   info.style.cssText = 'background:#e0f2fe;border:1px solid #7dd3fc;border-radius:10px;padding:8px 12px;' +
     'font-size:0.75em;color:#0369a1;display:flex;justify-content:space-between;align-items:center;';
-  const preview = contextText.substring(0, 80).replace(/\n/g,' ') + '\u2026';
+  const preview = contextText.substring(0, 80).replace(/\\n/g,' ') + '\u2026';
   info.innerHTML = `<span>&#128196; Context loaded: ${{escHtml(preview)}}</span>
     <button onclick="this.closest('div').remove()" style="background:none;border:none;cursor:pointer;
             color:#0369a1;font-size:1em;">&#10005;</button>`;
@@ -793,7 +793,7 @@ function injectContext(contextText) {{
 
   // Pre-fill input with the context + a prompt
   const inp = document.getElementById('felix-input');
-  inp.value = contextText + '\n\nPlease analyze this and let me know what you see.';
+  inp.value = contextText + '\\n\\nPlease analyze this and let me know what you see.';
   inp.focus();
   box.scrollTop = box.scrollHeight;
 }}
