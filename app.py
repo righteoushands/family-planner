@@ -1883,7 +1883,6 @@ class Handler(BaseHTTPRequestHandler):
                     _new_tasks = [ln.strip() for ln in _body.splitlines() if ln.strip()]
                     if _child and _date and _new_tasks:
                         try:
-                            from data_helpers import load_manual_tasks, save_manual_tasks
                             _all = load_manual_tasks()
                             # Deactivate existing lucy-sourced tasks for this child+date
                             for _t in _all:
@@ -2099,7 +2098,6 @@ class Handler(BaseHTTPRequestHandler):
                     if not _natext:
                         continue
                     try:
-                        from data_helpers import load_mom_notes, save_mom_notes
                         import uuid as _uuid3
                         _notes = load_mom_notes()
                         if isinstance(_notes, dict):
@@ -3389,7 +3387,6 @@ class Handler(BaseHTTPRequestHandler):
                 # Write tasks
                 if _ai_tasks:
                     try:
-                        from data_helpers import load_manual_tasks, save_manual_tasks
                         _all_tasks = load_manual_tasks()
                         for t in _ai_tasks:
                             person = (t.get("person") or "Lauren").strip()
