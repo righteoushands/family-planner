@@ -883,8 +883,12 @@ def _parse_slot_time(time_str: str) -> str:
 
 
 def _split_daily_chores(daily: list) -> dict:
-    morning, evening, current = [], [], None
-    current = morning
+    morning, evening = [], []
+    current = None   # start outside any kitchen section
+    # Only collect items that are *within* a KITCHEN section.
+    # Items before the first KITCHEN header are general daily tasks
+    # (e.g. "Check CAP email", "Daily Room Reset") — those should NOT
+    # appear inside Morning Jobs; they belong in their own slots elsewhere.
     for line in daily:
         low = line.lower() if isinstance(line, str) else ""
         if "kitchen (morning" in low or "kitchen (am" in low:
@@ -893,8 +897,13 @@ def _split_daily_chores(daily: list) -> dict:
         elif "kitchen (evening" in low or "kitchen (pm" in low:
             current = evening
             evening.append(line)
-        else:
-            current.append(line)
+        elif current is not None:
+            # Empty line ends the current kitchen section
+            if not (isinstance(line, str) and line.strip()):
+                current = None
+            else:
+                current.append(line)
+        # else: pre-kitchen general daily items — intentionally ignored here
     return {"morning": morning, "evening": evening}
 
 
@@ -1012,14 +1021,81 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
     weekly_today = chores_data.get("weekly", {}).get(weekday, [])
     weekly_sat   = chores_data.get("weekly", {}).get("Saturday", [])
 
+    # Build a set of chore texts already covered by the structured chore sections,
+    # so we can filter manual tasks that duplicate them.
+    def _chore_line_texts(lines: list) -> set:
+        texts = set()
+        for ln in lines:
+            if not isinstance(ln, str):
+                continue
+            t = ln.strip().lstrip("\u2192-> ").strip()
+            if t and not t.endswith(":"):
+                texts.add(t.lower())
+        return texts
+
+    known_chore_texts: set = (
+        _chore_line_texts(daily_split["morning"])
+        | _chore_line_texts(daily_split["evening"])
+        | _chore_line_texts(weekly_today)
+        | _chore_line_texts(weekly_sat)
+        | _chore_line_texts(chores_data.get("daily", []))
+    )
+
+    # Normalize text for robust deduplication (strip, lowercase, normalize apostrophes/quotes)
+    def _norm(s: str) -> str:
+        return (s.strip()
+                .lower()
+                .replace("\u2019", "'")   # curly right single quote → straight
+                .replace("\u2018", "'")   # curly left single quote → straight
+                .replace("\u201c", '"')   # curly left double quote → straight
+                .replace("\u201d", '"'))  # curly right double quote → straight
+
+    # Patterns that should NEVER appear as manual tasks (they live in their own Day List slots)
+    _rol_skip_prefixes = (
+        "kitchen (morning", "kitchen (evening", "kitchen (am", "kitchen (pm",
+        "laundry —", "laundry --", "van —", "van --",
+    )
+    _rol_skip_exact = {
+        "check cap email", "check sea cadet email",
+        "daily room reset", "exercise (non-pe days)",
+        "morning prayer", "breakfast", "lunch", "dinner",
+        "clean the kitchen", "evening kitchen",
+        "wakeup", "up & moving",
+    }
+
     manual_items, carryover_items = [], []
+    _seen_manual_texts: set = set()   # deduplicate within manual list itself (normalised)
     try:
         for t in get_manual_tasks_for_child_and_date(child, iso):
-            tid = f"MANUAL::{child}::{iso}::{t['text']}"
-            manual_items.append({"text": t["text"], "task_id": tid,
+            txt = t.get("text", "").strip()
+            if not txt:
+                continue
+            norm = _norm(txt)
+            # Skip if it duplicates a chore already shown elsewhere
+            if norm in known_chore_texts:
+                continue
+            # Skip chore-section summary lines (e.g. "KITCHEN (Morning — Role A): ...")
+            if any(norm.startswith(p) for p in _rol_skip_prefixes):
+                continue
+            # Skip Rule-of-Life anchor items
+            if any(skip in norm for skip in _rol_skip_exact):
+                continue
+            # Deduplicate within the manual list by normalised text
+            if norm in _seen_manual_texts:
+                continue
+            _seen_manual_texts.add(norm)
+            tid = f"MANUAL::{child}::{iso}::{txt}"
+            manual_items.append({"text": txt, "task_id": tid,
                                  "done": bool(progress.get(tid, {}).get("done", False)),
                                  "checkable": True, "is_header": False})
+        _seen_carry_texts: set = _seen_manual_texts.copy()
         for txt in get_carryover_tasks(child, normalize_target_date(iso)):
+            if not txt:
+                continue
+            norm = _norm(txt)
+            if norm in known_chore_texts or norm in _seen_carry_texts:
+                continue
+            _seen_carry_texts.add(norm)
             tid = f"CARRY::{child}::{iso}::{txt}"
             carryover_items.append({"text": txt, "task_id": tid,
                                     "done": bool(progress.get(tid, {}).get("done", False)),
@@ -1030,6 +1106,7 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
 
     # Build the result list
     subjects_used: set = set()
+    weekly_expanded: bool = False        # prevent double-expansion of weekly chores
     has_tasks_slot = any(
         "lists with mom" in b["label"].lower() or "go over lists" in b["label"].lower()
         for b in merged
@@ -1082,10 +1159,15 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
             item["task_id"] = tid
             item["done"]    = bool(progress.get(tid, {}).get("done", False))
 
-        # ── Weekly Job(s) ────────────────────────────────────────────────
+        # ── Weekly Job(s) — expand only the FIRST occurrence ────────────
         elif "weekly job" in label_low:
-            item["sub_items"] = _lines_to_sub_items(
-                weekly_today, child, iso, "weekly", progress)
+            if not weekly_expanded:
+                weekly_expanded = True
+                item["sub_items"] = _lines_to_sub_items(
+                    weekly_today, child, iso, "weekly", progress)
+            else:
+                # Second occurrence: simple informational row, no duplication
+                item["sub_items"] = []
             item["checkable"] = False
 
         # ── Saturday Room Clean ─────────────────────────────────────────
