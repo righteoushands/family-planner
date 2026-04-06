@@ -4077,42 +4077,27 @@ def render_school_page(status_message: str = "") -> str:
             <h2>Upload or Paste School List</h2>
             <form method="POST" action="/school-upload" enctype="multipart/form-data">
                 <label>Child</label><select name="child">{child_options}</select>
-                <label>PDF or text file</label>
-                <div style="position:relative;margin-bottom:14px;">
+                <div style="margin-bottom:14px;">
                   <input type="file" name="file" id="school-file-input"
                          accept=".pdf,application/pdf,text/plain,.txt"
-                         style="position:absolute;inset:0;width:100%;height:100%;
-                                opacity:0;cursor:pointer;z-index:2;
-                                padding:0;margin:0;border:none;">
-                  <div id="school-file-label"
-                       style="display:flex;align-items:center;gap:10px;
-                              padding:14px 16px;border:2px dashed #c8bfb0;
-                              border-radius:8px;background:#faf8f5;
-                              cursor:pointer;font-size:0.9em;color:#8b7a6a;
-                              pointer-events:none;">
-                    <span style="font-size:1.5em;">📎</span>
-                    <span id="school-file-text">Tap to choose a PDF or text file</span>
-                  </div>
+                         style="display:none;"
+                         onchange="(function(i){{var t=document.getElementById('sft');if(i.files&&i.files[0]){{t.textContent=i.files[0].name;t.parentElement.style.borderColor='#8b5a3c';t.parentElement.style.color='#3d2b1f';}}}})(this)">
+                  <label for="school-file-input"
+                         style="display:flex;align-items:center;gap:12px;
+                                padding:16px;border:2px dashed #c8bfb0;
+                                border-radius:10px;background:#faf8f5;
+                                cursor:pointer;font-size:0.92em;color:#8b7a6a;
+                                -webkit-tap-highlight-color:rgba(0,0,0,0.08);
+                                min-height:56px;box-sizing:border-box;">
+                    <span style="font-size:1.6em;flex-shrink:0;">📎</span>
+                    <span id="sft">Tap here to choose a PDF or text file</span>
+                  </label>
                 </div>
-                <label>Or paste text</label><textarea name="raw_text" rows="8" placeholder="Paste the school list text here if you can&#39;t upload a file..."></textarea>
-                <button type="submit">Create Preview</button>
+                <label>Or paste text instead</label>
+                <textarea name="raw_text" rows="8"
+                          placeholder="Paste the school list text here..."></textarea>
+                <button type="submit" style="margin-top:4px;">Create Preview</button>
             </form>
-            <script>
-            (function(){{
-              var inp = document.getElementById('school-file-input');
-              var lbl = document.getElementById('school-file-label');
-              var txt = document.getElementById('school-file-text');
-              if (!inp) return;
-              inp.addEventListener('change', function() {{
-                var name = inp.files && inp.files[0] ? inp.files[0].name : '';
-                if (name) {{
-                  txt.textContent = name;
-                  lbl.style.borderColor = '#8b5a3c';
-                  lbl.style.color = '#3d2b1f';
-                }}
-              }});
-            }})();
-            </script>
         </div>
         <div class="card">
             <h2>Approved Weeks</h2>
