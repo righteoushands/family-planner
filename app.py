@@ -985,34 +985,72 @@ class Handler(BaseHTTPRequestHandler):
             form = parse_multipart_form(self)
 
             if path == "/school-upload":
+                import urllib.parse as _up, urllib.request as _ur, re as _re
                 child = clean_child(form.getfirst("child",""))
                 raw_text = clean_text(form.getfirst("raw_text",""))
+                gdrive_url = clean_text(form.getfirst("gdrive_url",""))
                 filename = "pasted_text"
                 uploaded = form["file"] if "file" in form else None
                 file_bytes = b""; uploaded_name = ""
-                if uploaded is not None and getattr(uploaded,"filename",""):
-                    uploaded_name = uploaded.filename
-                    file_bytes = uploaded.file.read() if uploaded.file else b""
-                if uploaded_name: filename = uploaded_name
+                # --- Google Drive URL fetch ---
+                if not raw_text and gdrive_url and "drive.google.com" in gdrive_url:
+                    try:
+                        m = _re.search(r'/d/([a-zA-Z0-9_-]+)', gdrive_url) or \
+                            _re.search(r'[?&]id=([a-zA-Z0-9_-]+)', gdrive_url)
+                        if m:
+                            fid = m.group(1)
+                            dl_url = f"https://drive.google.com/uc?export=download&id={fid}"
+                            req = _ur.Request(dl_url, headers={"User-Agent": "Mozilla/5.0"})
+                            with _ur.urlopen(req, timeout=20) as resp:
+                                ct = resp.headers.get("Content-Type","")
+                                body = resp.read(8*1024*1024)
+                            # Handle virus-scan confirmation page
+                            if b"virus scan warning" in body.lower() or b"confirm" in body[:2000].lower():
+                                conf = _re.search(rb'confirm=([a-zA-Z0-9_-]+)', body)
+                                if conf:
+                                    dl_url2 = dl_url + "&confirm=" + conf.group(1).decode()
+                                    req2 = _ur.Request(dl_url2, headers={"User-Agent":"Mozilla/5.0"})
+                                    with _ur.urlopen(req2, timeout=20) as resp2:
+                                        body = resp2.read(8*1024*1024)
+                            if body[:4] == b'%PDF' or b'%PDF' in body[:20]:
+                                file_bytes = body
+                                uploaded_name = "google_drive.pdf"
+                                filename = "google_drive.pdf"
+                            else:
+                                raw_text = body.decode("utf-8", errors="ignore")
+                                filename = "google_drive_text"
+                        else:
+                            raw_text = ""; file_bytes = b""
+                    except Exception as _e:
+                        raw_text = ""
+                        file_bytes = b""
+                        uploaded_name = "_gdrive_error:" + str(_e)[:120]
+                # --- Local file upload ---
+                if not file_bytes and not raw_text:
+                    if uploaded is not None and getattr(uploaded,"filename",""):
+                        uploaded_name = uploaded.filename
+                        file_bytes = uploaded.file.read() if uploaded.file else b""
+                    if uploaded_name and not uploaded_name.startswith("_"): filename = uploaded_name
                 upload_msg = ""
                 if not raw_text and file_bytes:
-                    if uploaded_name.lower().endswith(".pdf"):
+                    if filename.lower().endswith(".pdf") or file_bytes[:4] == b'%PDF':
                         raw_text = extract_pdf_text(file_bytes)
                         if not raw_text:
-                            upload_msg = "error:PDF was received but no text could be extracted — it may be scanned/image-based. Try copying the text and pasting it below instead."
+                            upload_msg = "error:PDF was received but no text could be extracted — it may be image-based/scanned. Try opening the PDF in Google Drive on your phone, copying all the text, and pasting it in the text box below."
                     else:
                         try:    raw_text = file_bytes.decode("utf-8")
                         except: raw_text = file_bytes.decode("latin-1", errors="ignore")
                 if not child:
                     upload_msg = "error:Please select a child before uploading."
-                elif not raw_text and not file_bytes:
-                    upload_msg = "error:No file was received by the server. Please try again — tap the dashed box, select the PDF, then tap Create Preview."
+                elif uploaded_name.startswith("_gdrive_error:"):
+                    upload_msg = "error:Could not fetch from Google Drive — make sure the link is set to 'Anyone with the link can view'. Error: " + uploaded_name[14:]
+                elif not gdrive_url and not raw_text and not file_bytes:
+                    upload_msg = "error:No file or text received. Paste a Google Drive link or the school list text directly."
                 elif not raw_text:
-                    upload_msg = upload_msg or "error:Could not read text from the uploaded file."
+                    upload_msg = upload_msg or "error:Could not read text from the file."
                 else:
                     save_school_preview(child, filename, raw_text, parse_school_pdf_text(raw_text, child))
-                    upload_msg = "ok:School list uploaded and preview created for " + child + "!"
-                import urllib.parse as _up
+                    upload_msg = "ok:School list imported and preview created for " + child + "!"
                 redirect = "/school?msg=" + _up.quote(upload_msg) + "#top"
 
             elif path == "/prayer-intention-add":

@@ -4078,14 +4078,30 @@ def render_school_page(status_message: str = "") -> str:
             <form method="POST" action="/school-upload" enctype="multipart/form-data">
                 <label>Child</label>
                 <select name="child">{child_options}</select>
-                <label>Choose PDF file</label>
+                <div style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;
+                            padding:14px 16px;margin-bottom:16px;">
+                  <div style="font-weight:700;font-size:0.88em;color:#1e40af;margin-bottom:8px;">
+                    📁 Import from Google Drive
+                  </div>
+                  <div style="font-size:0.82em;color:#374151;margin-bottom:10px;">
+                    In Google Drive, tap the three dots next to the PDF → Share → Copy link. Paste it below.
+                  </div>
+                  <input type="text" name="gdrive_url"
+                         placeholder="Paste Google Drive link here..."
+                         style="font-size:15px;margin-bottom:0;">
+                </div>
+                <label style="color:var(--ink-faint);font-size:0.8em;">
+                  — or choose a local file —
+                </label>
                 <input type="file" name="file"
                        style="display:block;width:100%;font-size:16px;
                               margin-bottom:16px;cursor:pointer;">
-                <label>Or paste text instead</label>
-                <textarea name="raw_text" rows="8"
+                <label style="color:var(--ink-faint);font-size:0.8em;">
+                  — or paste text —
+                </label>
+                <textarea name="raw_text" rows="6"
                           placeholder="Paste the school list text here..."></textarea>
-                <button type="submit">Upload &amp; Create Preview</button>
+                <button type="submit">Import &amp; Create Preview</button>
             </form>
         </div>
         <div class="card">
