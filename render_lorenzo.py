@@ -1596,7 +1596,7 @@ function lzStartPlan() {{
         _lzPlanActive = true;
         _lzUpdatePlanUI(info);
         // Clear chat history display
-        var feed = document.getElementById('lz-feed');
+        var feed = document.getElementById('lz-history');
         if (feed) feed.innerHTML = '';
         _lzHistory = [];
         // Send the opener message automatically

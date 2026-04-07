@@ -23,7 +23,7 @@ COMPANIONS = {
         "route": "/lorenzo",
         "emoji": "🍳",
         "input_id": "lz-input",
-        "chat_id": "lz-feed",
+        "chat_id": "lz-history",
         "bg": "#92400e",
         "desc": "personal chef, meal planning, grocery lists, recipe ideas, kitchen management",
     },
@@ -161,7 +161,7 @@ function _renderHandoffBtns(full, wrapEl) {{
 }}
 
 // Prefill from ?q= URL param (handoff from another companion)
-(function() {{
+window.addEventListener('load', function() {{
     var params = new URLSearchParams(window.location.search);
     var q    = params.get('q');
     var from = params.get('from');
@@ -174,12 +174,12 @@ function _renderHandoffBtns(full, wrapEl) {{
     inp.focus();
     var sender = from ? from : 'A companion';
     var banner = document.createElement('div');
-    banner.textContent = '\\u{{1F4CB}} ' + sender + ' has a note for {self_name}. Review and hit Send, or edit first.';
+    banner.innerHTML = '&#128203; <strong>' + sender + ' has a note for {self_name}.</strong> Review it below and hit Send, or edit first.';
     banner.style.cssText = 'background:#dbeafe;color:#1e3a8a;font-size:0.82em;padding:8px 14px;'
         + 'border-radius:8px;margin:10px 14px;border:1px solid #93c5fd;';
     var chat = document.getElementById('{chat_id}');
     if (chat) {{
         chat.parentNode ? chat.parentNode.insertBefore(banner, chat) : chat.appendChild(banner);
     }}
-}})();
+}});
 """
