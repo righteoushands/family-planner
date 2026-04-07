@@ -1164,25 +1164,30 @@ def print_page_html(title: str, body: str) -> str:
 <style>
   *{{box-sizing:border-box;margin:0;padding:0;}}
   body{{font-family:Georgia,'Times New Roman',serif;font-size:10pt;color:#111;background:white;}}
-  .child-page{{page-break-after:always;padding:0.6in 0.7in 0.5in;min-height:100vh;}}
+  .child-page{{page-break-after:always;padding:0.55in 0.65in 0.45in;min-height:100vh;}}
   .child-page:last-child{{page-break-after:avoid;}}
-  .page-header{{border-bottom:3px solid var(--child-color);padding-bottom:8px;margin-bottom:14px;}}
-  .child-name{{font-size:22pt;font-weight:bold;color:var(--child-color);letter-spacing:.5px;}}
-  .date-line{{font-size:10pt;color:#555;margin-top:2px;}}
-  .section-title{{font-size:9pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#777;border-bottom:1px solid #ddd;padding-bottom:3px;margin:14px 0 6px;}}
-  .subject-name{{font-size:10pt;font-weight:bold;color:#222;margin:10px 0 3px;}}
-  .assignment-text{{font-size:9.5pt;color:#444;margin:0 0 5px 14px;line-height:1.45;white-space:pre-wrap;}}
-  .math-note{{font-size:9pt;color:#555;font-style:italic;margin:0 0 5px 14px;}}
-  .check-item{{display:flex;align-items:flex-start;gap:8px;margin:4px 0 4px 14px;font-size:9.5pt;line-height:1.4;}}
-  .checkbox{{width:13px;height:13px;border:1.5px solid #555;border-radius:2px;flex-shrink:0;margin-top:2px;display:inline-block;}}
-  .carryover-item{{display:flex;align-items:flex-start;gap:8px;margin:4px 0 4px 14px;font-size:9.5pt;color:#666;font-style:italic;}}
-  .page-footer{{margin-top:20px;border-top:1px solid #ddd;padding-top:6px;font-size:8pt;color:#aaa;text-align:right;}}
+  .page-header{{border-bottom:3px solid var(--child-color);padding-bottom:7px;margin-bottom:12px;}}
+  .child-name{{font-size:20pt;font-weight:bold;color:var(--child-color);letter-spacing:.5px;}}
+  .date-line{{font-size:9pt;color:#555;margin-top:2px;}}
+  .page-footer{{margin-top:18px;border-top:1px solid #ddd;padding-top:5px;font-size:7.5pt;color:#aaa;text-align:right;}}
+  .blk-header{{display:flex;align-items:baseline;gap:5px;background:rgba(0,0,0,0.04);border-left:3px solid var(--blk-color,#333);padding:4px 8px;margin:9px 0 2px;border-radius:0 3px 3px 0;}}
+  .blk-time{{font-size:7pt;color:#999;min-width:62px;padding-top:1px;white-space:nowrap;}}
+  .blk-label{{font-size:11pt;font-weight:bold;color:var(--blk-color,#333);}}
+  .blk-count{{font-size:7pt;color:#bbb;white-space:nowrap;margin-left:2px;}}
+  .sub-sect{{font-size:7pt;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#aaa;margin:5px 0 1px 68px;}}
+  .sub-item{{display:flex;align-items:flex-start;gap:6px;margin:2px 0;padding-left:68px;font-size:8.5pt;line-height:1.4;color:#222;}}
+  .sub-box{{width:10px;height:10px;border:1.5px solid #777;border-radius:2px;flex-shrink:0;display:inline-block;margin-top:3px;}}
+  .sub-note{{padding-left:80px;font-size:8pt;color:#888;margin:1px 0;}}
+  .info-row{{display:flex;align-items:baseline;gap:5px;padding:2px 8px;margin:2px 0;opacity:.55;}}
+  .info-time{{font-size:7pt;color:#999;min-width:62px;white-space:nowrap;}}
+  .info-label{{font-size:9pt;color:#555;}}
   @media print{{body{{background:white;}}.no-print{{display:none!important;}}}}
-  @media screen{{body{{background:#f0f0f0;}}.child-page{{background:white;margin:20px auto;max-width:8.5in;box-shadow:0 2px 8px rgba(0,0,0,0.15);}}}}
+  @media screen{{body{{background:#e8e8e8;}}.child-page{{background:white;margin:20px auto;max-width:8.5in;box-shadow:0 2px 10px rgba(0,0,0,0.18);}}}}
 </style></head><body>
-<div class="no-print" style="background:#333;color:white;padding:10px 20px;font-family:sans-serif;font-size:13px;">
-    <button onclick="window.print()" style="background:#8b5a3c;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;margin-right:12px;">🖨 Print</button>
-    <a href="/" style="color:#ccc;">← Back to Dashboard</a>
+<div class="no-print" style="background:#2a2a2a;color:white;padding:10px 18px;font-family:sans-serif;font-size:13px;display:flex;align-items:center;gap:14px;">
+    <button onclick="setTimeout(function(){{window.print();}},100)" style="background:#8b5a3c;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;">🖨 Print</button>
+    <span style="color:#aaa;font-size:11px;">On iPhone: tap the Share button ↑ then "Print"</span>
+    <a href="/" style="color:#aaa;margin-left:auto;font-size:12px;">← Dashboard</a>
 </div>
 {body}</body></html>"""
 
@@ -1342,11 +1347,6 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
         if s.get("checkable") and s.get("task_id")
     )
 
-    # Layout constants
-    T_COL  = "width:62px;min-width:62px;font-size:7.5pt;color:#999;padding-top:2px;line-height:1.3;"
-    H_SIZE = "font-size:11pt;"
-    S_SIZE = "font-size:8.5pt;"
-
     rows_html = ""
     for item in day_list:
         kind   = item.get("kind", "routine")
@@ -1360,64 +1360,46 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
 
         if subs:
             checkable_subs = [s for s in subs if s.get("checkable") and not s.get("is_header")]
-            # Skip the whole block if all subitems are done and there are pending tasks elsewhere
             if _has_any_pending and all(s.get("done", False) for s in checkable_subs if checkable_subs):
                 continue
             tot = len(checkable_subs)
-            # Block header row: time col | bold colored label + count
             rows_html += (
-                f'<div style="display:flex;align-items:baseline;gap:6px;'
-                f'margin:10px 0 3px;border-left:3px solid {kcolor};padding-left:6px;">'
-                f'<span style="{T_COL}">{escape(t_disp)}</span>'
-                f'<strong style="{H_SIZE}color:{kcolor};">{icon} {label}</strong>'
-                f'<span style="font-size:7.5pt;color:#bbb;white-space:nowrap;">'
-                f'— {tot} item{"s" if tot != 1 else ""}</span>'
+                f'<div class="blk-header" style="--blk-color:{kcolor};">'
+                f'<span class="blk-time">{escape(t_disp)}</span>'
+                f'<span class="blk-label">{icon} {label}</span>'
+                f'<span class="blk-count">— {tot} item{"s" if tot != 1 else ""}</span>'
                 f'</div>'
             )
             for sub in subs:
                 if sub.get("is_header"):
-                    rows_html += (
-                        f'<div style="font-size:7.5pt;font-weight:800;letter-spacing:.08em;'
-                        f'text-transform:uppercase;color:#999;margin:5px 0 2px 68px;">'
-                        f'{escape(sub.get("text",""))}</div>'
-                    )
+                    rows_html += f'<div class="sub-sect">{escape(sub.get("text",""))}</div>'
                 elif sub.get("checkable") and sub.get("task_id"):
                     if _has_any_pending and sub.get("done", False):
                         continue
                     carry_mark = "↩ " if sub.get("is_carryover") else ""
                     rows_html += (
-                        f'<div style="display:flex;align-items:flex-start;gap:7px;'
-                        f'margin:3px 0;padding-left:68px;{S_SIZE}line-height:1.4;">'
-                        f'<span style="width:11px;height:11px;border:1.5px solid #666;'
-                        f'border-radius:2px;flex-shrink:0;display:inline-block;margin-top:2px;"></span>'
-                        f'<span style="color:#222;">{carry_mark}{escape(sub.get("text",""))}</span>'
+                        f'<div class="sub-item">'
+                        f'<span class="sub-box"></span>'
+                        f'<span>{carry_mark}{escape(sub.get("text",""))}</span>'
                         f'</div>'
                     )
                 else:
-                    rows_html += (
-                        f'<div style="padding-left:80px;{S_SIZE}color:#777;margin:1px 0;">'
-                        f'• {escape(sub.get("text",""))}</div>'
-                    )
+                    rows_html += f'<div class="sub-note">• {escape(sub.get("text",""))}</div>'
         elif item.get("task_id") and item.get("checkable"):
             if _has_any_pending and item.get("done", False):
                 continue
-            # Single checkable row: time col | checkbox | label
             rows_html += (
-                f'<div style="display:flex;align-items:center;gap:6px;'
-                f'border-left:3px solid {kcolor};padding-left:6px;margin:4px 0;">'
-                f'<span style="{T_COL}">{escape(t_disp)}</span>'
-                f'<span style="width:11px;height:11px;border:1.5px solid #666;'
-                f'border-radius:2px;flex-shrink:0;display:inline-block;"></span>'
-                f'<span style="{H_SIZE}color:{kcolor};">{icon} {label}</span>'
+                f'<div class="blk-header" style="--blk-color:{kcolor};">'
+                f'<span class="blk-time">{escape(t_disp)}</span>'
+                f'<span class="sub-box" style="margin-right:4px;margin-top:1px;"></span>'
+                f'<span class="blk-label">{icon} {label}</span>'
                 f'</div>'
             )
         else:
-            # Info-only row (meal, break, free, etc.)
             rows_html += (
-                f'<div style="display:flex;align-items:baseline;gap:6px;'
-                f'padding-left:6px;margin:3px 0;opacity:.6;">'
-                f'<span style="{T_COL}">{escape(t_disp)}</span>'
-                f'<span style="font-size:9pt;color:#555;">{icon} {label}</span>'
+                f'<div class="info-row">'
+                f'<span class="info-time">{escape(t_disp)}</span>'
+                f'<span class="info-label">{icon} {label}</span>'
                 f'</div>'
             )
 
