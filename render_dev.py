@@ -175,7 +175,7 @@ REPLACE:
 
 
 # ── Render page ───────────────────────────────────────────────────────────────
-def render_dev_page(history: list) -> str:
+def render_dev_page(history: list, q: str = "", from_: str = "") -> str:
     from ui_helpers import html_page, top_nav
 
     # Build prior messages HTML
@@ -188,6 +188,10 @@ def render_dev_page(history: list) -> str:
             msg_html += _user_bubble(content, ts)
         elif role == "assistant":
             msg_html += _felix_bubble(content, ts)
+
+    # Server-side handoff pre-fill
+    from companion_handoffs import handoff_prefill as _handoff_prefill
+    q_safe, handoff_banner_html = _handoff_prefill("IZZY", q, from_)
 
     _ho_js = handoff_js("IZZY")
 
@@ -286,6 +290,8 @@ def render_dev_page(history: list) -> str:
     .q-chip:hover {{ background:#bae6fd; }}
   </style>
 
+  {handoff_banner_html}
+
   <!-- Chat messages -->
   <div id="felix-msgs" style="display:flex;flex-direction:column;gap:14px;margin-bottom:8px;">
     {msg_html if msg_html else _welcome_bubble()}
@@ -346,7 +352,7 @@ def render_dev_page(history: list) -> str:
                 style="flex:1;padding:10px 12px;border:1.5px solid #dbeafe;border-radius:12px;
                        font-family:inherit;font-size:0.88em;resize:none;outline:none;
                        background:#fff;max-height:120px;"
-                onkeydown="if(event.key==='Enter'&&!event.shiftKey){{event.preventDefault();sendToFelix();}}"></textarea>
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){{event.preventDefault();sendToFelix();}}">{ q_safe}</textarea>
       <button onclick="sendToFelix()" id="felix-send"
               style="padding:10px 18px;background:#1e3a8a;color:white;border:none;border-radius:12px;
                      font-family:inherit;font-size:0.88em;font-weight:700;cursor:pointer;white-space:nowrap;">

@@ -194,12 +194,14 @@ def build_monica_context(iso: str, weekday: str, date_label: str) -> str:
 # Page renderer
 # ─────────────────────────────────────────────────────────────────────────────
 
-def render_monica_page() -> str:
+def render_monica_page(q: str = "", from_: str = "") -> str:
     today      = _today_eastern()
     iso        = today.isoformat()
     weekday    = today.strftime("%A")
     date_label = today.strftime("%B %d, %Y")
     h          = _hour_eastern()
+    from companion_handoffs import handoff_prefill as _hp
+    q_safe, ho_banner = _hp("MONICA", q, from_)
 
     if h < 12:
         greeting    = "Good morning. How are the children?"
@@ -343,6 +345,8 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
         {quick_buttons}
     </div>
 
+    {ho_banner}
+
     <!-- Conversation -->
     <div id="mo-chat" class="mo-bubble-wrap" style="margin-bottom:20px;"></div>
 
@@ -362,7 +366,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
         <textarea id="mo-input" rows="1" placeholder="Ask Dr. Monica…"
             style="flex:1;border:1px solid #e0b0c8;border-radius:12px;
                    padding:10px 14px;font-size:0.95em;font-family:inherit;
-                   resize:none;outline:none;background:#fdf5f9;max-height:120px;"></textarea>
+                   resize:none;outline:none;background:#fdf5f9;max-height:120px;">{q_safe}</textarea>
         <button id="mo-send" onclick="monicaSend()"
             style="width:44px;height:44px;border-radius:50%;background:{accent};
                    border:none;color:white;font-size:1.1em;cursor:pointer;flex-shrink:0;">

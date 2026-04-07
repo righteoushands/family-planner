@@ -1447,12 +1447,14 @@ def _render_history_html(messages: list) -> str:
     )
 
 
-def render_lucy_page(iso: str = "") -> str:
+def render_lucy_page(iso: str = "", q: str = "", from_: str = "") -> str:
     today    = _today_eastern()
     iso      = iso or today.isoformat()
     weekday  = today.strftime("%A")
     date_label = today.strftime("%B %d, %Y")
     phase    = _get_phase()
+    from companion_handoffs import handoff_prefill as _hp
+    q_safe, ho_banner = _hp("LUCY", q, from_)
 
     # Load server-side history
     import json as _json
@@ -1594,6 +1596,8 @@ def render_lucy_page(iso: str = "") -> str:
         <span id="cap-note" style="font-size:0.78em;color:#aaa;font-style:italic;"></span>
     </div>
 
+    {ho_banner}
+
     <!-- Chat history (pre-rendered from server + new messages from JS) -->
     {_render_history_html(_history)}
     <div id="lucy-history" class="lucy-bubble-wrap"
@@ -1726,8 +1730,7 @@ def render_lucy_page(iso: str = "") -> str:
                   oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';"
                   style="flex:1;resize:none;overflow:hidden;font-family:inherit;font-size:16px;
                          padding:10px 14px;border:1.5px solid #e4dbd2;border-radius:12px;
-                         outline:none;line-height:1.5;max-height:120px;background:white;">
-        </textarea>
+                         outline:none;line-height:1.5;max-height:120px;background:white;">{q_safe}</textarea>
         <button onclick="lucySend()"
                 style="padding:10px 18px;background:#3b2a1a;color:white;border:none;
                        border-radius:12px;cursor:pointer;font-size:0.88em;font-weight:600;

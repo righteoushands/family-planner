@@ -66,6 +66,28 @@ COMPANIONS = {
 }
 
 
+def handoff_prefill(self_tag: str, q: str, from_: str) -> tuple:
+    """
+    Given raw ?q= and ?from= URL params, return (q_safe, banner_html).
+    q_safe is HTML-escaped text for pre-filling the textarea.
+    banner_html is a ready-to-insert HTML div (empty string if no handoff).
+    """
+    import html as _html
+    self_name  = COMPANIONS[self_tag]["name"]
+    q_safe     = _html.escape(q.strip()) if q else ""
+    from_label = _html.escape(from_.strip()) if from_ else ""
+    banner_html = ""
+    if q_safe:
+        sender = from_label if from_label else "A companion"
+        banner_html = (
+            f'<div style="background:#dbeafe;color:#1e3a8a;font-size:0.82em;'
+            f'padding:8px 14px;border-radius:8px;margin:0 0 10px;border:1px solid #93c5fd;">'
+            f'&#128203; <strong>{sender} has a note for {self_name}.</strong> '
+            f'Review it below and hit Send, or edit first.</div>'
+        )
+    return q_safe, banner_html
+
+
 def companion_system_block(self_tag: str) -> list:
     """Return system prompt lines about the other companions for the given companion."""
     others = {tag: c for tag, c in COMPANIONS.items() if tag != self_tag}
@@ -161,25 +183,16 @@ function _renderHandoffBtns(full, wrapEl) {{
 }}
 
 // Prefill from ?q= URL param (handoff from another companion)
+// The banner is rendered server-side; this only ensures the input is filled.
 window.addEventListener('load', function() {{
     var params = new URLSearchParams(window.location.search);
-    var q    = params.get('q');
-    var from = params.get('from');
+    var q = params.get('q');
     if (!q || !q.trim()) return;
     var inp = document.getElementById('{input_id}');
     if (!inp) return;
-    inp.value = q.trim();
+    if (!inp.value) inp.value = q.trim();
     inp.style.height = 'auto';
     inp.style.height = Math.min(inp.scrollHeight, 120) + 'px';
     inp.focus();
-    var sender = from ? from : 'A companion';
-    var banner = document.createElement('div');
-    banner.innerHTML = '&#128203; <strong>' + sender + ' has a note for {self_name}.</strong> Review it below and hit Send, or edit first.';
-    banner.style.cssText = 'background:#dbeafe;color:#1e3a8a;font-size:0.82em;padding:8px 14px;'
-        + 'border-radius:8px;margin:10px 14px;border:1px solid #93c5fd;';
-    var chat = document.getElementById('{chat_id}');
-    if (chat) {{
-        chat.parentNode ? chat.parentNode.insertBefore(banner, chat) : chat.appendChild(banner);
-    }}
 }});
 """

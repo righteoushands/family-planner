@@ -556,7 +556,7 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/planner":         body = render_planner_page()
         elif path == "/readings":         body = render_readings_page(date_str=query.get("date",[""])[0])
         elif path == "/lucy":
-            html = render_lucy_page(iso=query.get("date",[""])[0])
+            html = render_lucy_page(iso=query.get("date",[""])[0], q=query.get("q",[""])[0], from_=query.get("from",[""])[0])
             self.send_response(200)
             self.send_header("Content-Type","text/html; charset=utf-8")
             self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
@@ -578,7 +578,7 @@ class Handler(BaseHTTPRequestHandler):
             except BrokenPipeError: pass
             return
         elif path == "/lorenzo":
-            html = render_lorenzo_page()
+            html = render_lorenzo_page(q=query.get("q",[""])[0], from_=query.get("from",[""])[0])
             self.send_response(200)
             self.send_header("Content-Type","text/html; charset=utf-8")
             self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
@@ -588,7 +588,7 @@ class Handler(BaseHTTPRequestHandler):
             except BrokenPipeError: pass
             return
         elif path == "/headmaster":
-            html = render_gregory_page()
+            html = render_gregory_page(q=query.get("q",[""])[0], from_=query.get("from",[""])[0])
             self.send_response(200)
             self.send_header("Content-Type","text/html; charset=utf-8")
             self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
@@ -598,7 +598,7 @@ class Handler(BaseHTTPRequestHandler):
             except BrokenPipeError: pass
             return
         elif path == "/coach":
-            html = render_coach_page()
+            html = render_coach_page(q=query.get("q",[""])[0], from_=query.get("from",[""])[0])
             self.send_response(200)
             self.send_header("Content-Type","text/html; charset=utf-8")
             self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
@@ -608,7 +608,7 @@ class Handler(BaseHTTPRequestHandler):
             except BrokenPipeError: pass
             return
         elif path == "/dr-monica":
-            html = render_monica_page()
+            html = render_monica_page(q=query.get("q",[""])[0], from_=query.get("from",[""])[0])
             self.send_response(200)
             self.send_header("Content-Type","text/html; charset=utf-8")
             self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
@@ -642,7 +642,9 @@ class Handler(BaseHTTPRequestHandler):
                 return
             from render_dev import render_dev_page
             from data_helpers import load_dev_history
-            html = render_dev_page(load_dev_history())
+            _dv_q    = query.get("q",    [""])[0]
+            _dv_from = query.get("from", [""])[0]
+            html = render_dev_page(load_dev_history(), q=_dv_q, from_=_dv_from)
             self.send_response(200)
             self.send_header("Content-Type","text/html; charset=utf-8")
             self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")

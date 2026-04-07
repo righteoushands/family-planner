@@ -479,12 +479,14 @@ def _week_sunday(d: date) -> date:
     """Return the Sunday that starts the week containing d."""
     return d - timedelta(days=(d.weekday() + 1) % 7)
 
-def render_lorenzo_page() -> str:
+def render_lorenzo_page(q: str = "", from_: str = "") -> str:
     today      = _today_eastern()
     iso        = today.isoformat()
     weekday    = today.strftime("%A")
     date_label = today.strftime("%B %d, %Y")
     h          = _hour_eastern()
+    from companion_handoffs import handoff_prefill as _hp
+    q_safe, ho_banner = _hp("LORENZO", q, from_)
 
     # ── Planning session state ────────────────────────────────────────────────
     from data_helpers import (load_planning_session, planning_session_summary,
@@ -712,6 +714,8 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
         <span id="cap-note" style="font-size:0.78em;color:#aaa;font-style:italic;"></span>
     </div>
 
+    {ho_banner}
+
     <!-- Chat history -->
     <div id="lz-history" class="lz-bubble-wrap" style="min-height:40px;margin-bottom:20px;"></div>
 
@@ -826,8 +830,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
                   oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';"
                   style="flex:1;resize:none;overflow:hidden;font-family:inherit;font-size:16px;
                          padding:10px 14px;border:1.5px solid #e4dbd2;border-radius:12px;
-                         outline:none;line-height:1.5;max-height:120px;background:white;">
-        </textarea>
+                         outline:none;line-height:1.5;max-height:120px;background:white;">{q_safe}</textarea>
         <button onclick="lzSend()"
                 style="padding:10px 18px;background:#8b3a1a;color:white;border:none;
                        border-radius:12px;cursor:pointer;font-size:0.88em;font-weight:600;
