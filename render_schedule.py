@@ -480,7 +480,7 @@ def _render_child_profile_section(child: str, c_bg: str, c_light: str) -> str:
 
 def render_child_schedule(child: str, target_date_str: str = "") -> str:
     normalized_date = normalize_date_query(target_date_str)
-    body = f"{page_header(child)}{render_child_schedule_card(child, normalized_date)}"
+    body = f"{page_header(child)}{render_child_schedule_card(child, normalized_date)}{_DASH_JS}"
     return html_page(child, body)
 
 
