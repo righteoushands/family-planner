@@ -483,5 +483,6 @@
   "CARRY::Joseph::2026-04-07::[MEDIUM] Find plain black pants for CAP": true,
   "CARRY::Joseph::2026-04-07::[MEDIUM] Find white t-shirt for CAP": true,
   "CARRY::Joseph::2026-04-07::[MEDIUM] Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash": true,
-  "CARRY::Joseph::2026-04-07::[MEDIUM] Check Sea Cadet email": true
+  "CARRY::Joseph::2026-04-07::[MEDIUM] Check Sea Cadet email": true,
+  "MANUAL::Joseph::2026-04-07::11:00 AM Exercise": true
 }

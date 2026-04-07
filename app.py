@@ -3262,7 +3262,28 @@ class Handler(BaseHTTPRequestHandler):
                 # Replace lines w_start..w_end (1-indexed inclusive) with new content
                 new_block = w_content if w_content.endswith("\n") else w_content + "\n"
                 new_lines = w_lines[:w_start - 1] + [new_block] + w_lines[w_end:]
-                w_fpath.write_text("".join(new_lines), encoding="utf-8")
+                new_text = "".join(new_lines)
+
+                # Syntax-check .py files BEFORE writing — reject and report error if broken
+                if w_fpath.suffix == ".py":
+                    import subprocess as _wsp
+                    import tempfile as _wtmp
+                    with _wtmp.NamedTemporaryFile(suffix=".py", mode="w", encoding="utf-8", delete=False) as _tf:
+                        _tf.write(new_text)
+                        _tf_name = _tf.name
+                    _syn = _wsp.run(
+                        ["python3", "-m", "py_compile", _tf_name],
+                        capture_output=True, text=True
+                    )
+                    import os as _wos2; _wos2.unlink(_tf_name)
+                    if _syn.returncode != 0:
+                        err_msg = (_syn.stderr or "syntax error").replace(_tf_name, w_filename)
+                        self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                        try: self.wfile.write(f"SYNTAX ERROR — file NOT saved:\n{err_msg}".encode())
+                        except BrokenPipeError: pass
+                        return
+
+                w_fpath.write_text(new_text, encoding="utf-8")
 
                 self.send_response(200); self.send_header("Content-Type","text/plain"); self.end_headers()
                 try: self.wfile.write(f"Written lines {w_start}-{w_end} of {w_filename}".encode())
