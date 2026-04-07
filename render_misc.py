@@ -3903,7 +3903,22 @@ def render_tasks() -> str:
         </div>"""
         if status == "done":    done_cards   += card_html
         elif status == "active": active_cards += card_html
-    assignable_options = "".join(f'<option value="{escape(p)}">{escape(p)}</option>' for p in ASSIGNABLE_TO)
+    def _assignee_checkboxes() -> str:
+        boxes = ""
+        for p in ASSIGNABLE_TO:
+            ep = escape(p)
+            boxes += (
+                f'<label style="display:flex;align-items:center;gap:5px;'
+                f'font-size:.88em;font-weight:400;cursor:pointer;margin-bottom:0;">'
+                f'<input type="checkbox" name="assigned_to" value="{ep}"'
+                f' style="width:auto;margin:0;accent-color:#8b5a3c;"> {ep}</label>'
+            )
+        return (
+            f'<div style="display:flex;flex-wrap:wrap;gap:10px 18px;'
+            f'padding:6px 0 10px 0;">{boxes}</div>'
+            f'<p style="font-size:.78em;color:#999;margin:-6px 0 10px;">'
+            f'Leave all unchecked to assign to Anyone.</p>'
+        )
     body = f"""
     {page_header("Tasks")}
     <div class="two-col">
@@ -3912,7 +3927,7 @@ def render_tasks() -> str:
             <form method="POST" action="/add-task">
                 <label>Task</label><input type="text" name="text">
                 <label>Assign to</label>
-                <select name="assigned_to"><option value="">Anyone</option>{assignable_options}</select>
+                {_assignee_checkboxes()}
                 <label>Due date</label><input type="date" name="due_date">
                 <label>Priority</label>
                 <select name="priority"><option value="HIGH">HIGH</option><option value="MEDIUM" selected>MEDIUM</option><option value="LOW">LOW</option></select>
@@ -3925,7 +3940,7 @@ def render_tasks() -> str:
                 <input type="hidden" name="recurring" value="true">
                 <label>Task</label><input type="text" name="text">
                 <label>Assign to</label>
-                <select name="assigned_to"><option value="">Anyone</option>{assignable_options}</select>
+                {_assignee_checkboxes()}
                 <label>First due date</label><input type="date" name="due_date">
                 <label>Priority</label>
                 <select name="priority"><option value="HIGH">HIGH</option><option value="MEDIUM" selected>MEDIUM</option><option value="LOW">LOW</option></select>

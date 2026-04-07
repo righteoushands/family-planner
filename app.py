@@ -1307,7 +1307,8 @@ class Handler(BaseHTTPRequestHandler):
                 save_manual_tasks(tasks); save_notes(notes); redirect="/notes"
 
             elif path == "/add-task":
-                text=clean_text(data.get("text",[""])[0]); assigned_to=clean_text(data.get("assigned_to",[""])[0])
+                text=clean_text(data.get("text",[""])[0])
+                assigned_to_list=[clean_text(v) for v in data.get("assigned_to",[]) if clean_text(v)]
                 due_date=clean_text(data.get("due_date",[""])[0]); priority=clean_priority(data.get("priority",["MEDIUM"])[0])
                 is_recurring=data.get("recurring",[""])[0]=="true"
                 iv=safe_int(data.get("interval_value",["1"])[0],1); iu=clean_text(data.get("interval_unit",["weeks"])[0])
@@ -1316,9 +1317,12 @@ class Handler(BaseHTTPRequestHandler):
                 if iv<1: iv=1
                 if text:
                     tasks=load_manual_tasks()
-                    t={"text":text,"assigned_to":assigned_to,"due_date":due_date,"priority":priority,"status":"active","recurring":is_recurring}
-                    if is_recurring: t["interval_value"]=iv; t["interval_unit"]=iu
-                    tasks.append(t); save_manual_tasks(tasks)
+                    targets = assigned_to_list if assigned_to_list else [""]
+                    for _who in targets:
+                        t={"text":text,"assigned_to":_who,"due_date":due_date,"priority":priority,"status":"active","recurring":is_recurring}
+                        if is_recurring: t["interval_value"]=iv; t["interval_unit"]=iu
+                        tasks.append(t)
+                    save_manual_tasks(tasks)
                 ru=data.get("return_url",["/tasks"])[0]
                 redirect=(ru if ru in ("/tasks","/mom") else "/tasks") + "#top"
 
