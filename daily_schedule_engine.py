@@ -234,6 +234,36 @@ def weekday_chores_for_child(child: str, weekday: str):
     return daily + weekly
 
 
+def get_meal_helper_task_for_child(child: str, weekday: str, iso: str):
+    """
+    Return a chore-text string like "Dinner helper: Brown the meat, lead sauce"
+    for this child on this day, pulled from the meal plan's helpers/boys_help field.
+    Returns None if no helper entry exists for this child today.
+    """
+    try:
+        from render_meals import load_meal_plan
+        from datetime import date as _date, timedelta as _td
+        d      = _date.fromisoformat(iso)
+        monday = d - _td(days=d.weekday())          # load by Monday ISO date so the
+        plan   = load_meal_plan(monday.isoformat())  # filename-based lookup hits the right file
+        day    = plan.get("days", {}).get(weekday, {})
+        raw    = (day.get("helpers") or day.get("boys_help") or "").strip()
+        if not raw:
+            return None
+        sep   = "|" if "|" in raw else "\u00b7"
+        parts = [p.strip() for p in raw.split(sep) if p.strip()]
+        for part in parts:
+            if ":" in part:
+                name, _, task = part.partition(":")
+                if name.strip().lower() == child.lower():
+                    task = task.strip()
+                    if task:
+                        return f"Dinner helper: {task}"
+        return None
+    except Exception:
+        return None
+
+
 # -------------------------
 # MANUAL TASKS
 # -------------------------
@@ -453,8 +483,13 @@ def carryover_sort_key(task_text: str):
 
 def build_task_texts_for_day(child: str, weekday: str, iso: str):
     school_tasks = extract_school_tasks_for_child(child, weekday)
-    chore_tasks = weekday_chores_for_child(child, weekday)
+    chore_tasks = list(weekday_chores_for_child(child, weekday))
     manual_tasks = get_manual_tasks_for_child_and_date(child, iso)
+
+    # Append meal helper role if the meal plan has one for this child today
+    meal_helper = get_meal_helper_task_for_child(child, weekday, iso)
+    if meal_helper:
+        chore_tasks.append(meal_helper)
 
     all_task_texts = []
 

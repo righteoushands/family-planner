@@ -515,6 +515,7 @@
       "CHORE::Check Sea Cadet email",
       "CHORE::Clean kids bathroom",
       "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
+      "CHORE::Dinner helper: Assemble the buffet platters",
       "CHORE::Exercise (non-PE days)",
       "CHORE::KITCHEN (Evening — Role B):",
       "CHORE::KITCHEN (Morning — Role B):",
@@ -544,6 +545,7 @@
       "CHORE::Clean basement full bath",
       "CHORE::Clean half bath",
       "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
+      "CHORE::Dinner helper: Lead reheating leftover proteins and sides",
       "CHORE::Exercise (non-PE days)",
       "CHORE::KITCHEN (Evening — Role A):",
       "CHORE::KITCHEN (Morning — Role A):",
@@ -561,7 +563,8 @@
       "SCHOOL::Spelling & Vocabulary 8::Done"
     ],
     "Michael": [
-      "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash"
+      "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
+      "CHORE::Dinner helper: Pour drinks, set out napkins"
     ],
     "James": [],
     "Mom": [
