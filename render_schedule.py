@@ -1160,7 +1160,10 @@ def render_week() -> str:
 # ── Print ─────────────────────────────────────────────────────────────────────
 def print_page_html(title: str, body: str) -> str:
     return f"""<!doctype html>
-<html><head><meta charset="utf-8"><title>{escape(title)}</title>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{escape(title)}</title>
 <style>
   *{{box-sizing:border-box;margin:0;padding:0;}}
   body{{font-family:'Helvetica Neue',Arial,sans-serif;font-size:10pt;color:#111;background:white;}}
@@ -1188,11 +1191,33 @@ def print_page_html(title: str, body: str) -> str:
              margin:4px 0;color:#999;}}
   .info-time{{font-size:7.5pt;min-width:60px;white-space:nowrap;flex-shrink:0;}}
   .info-label{{font-size:8.5pt;font-style:italic;}}
-  @media print{{body{{background:white;}}.no-print{{display:none!important;}}
+  @media print{{
+    body{{background:white;font-size:10pt;}}
+    .no-print{{display:none!important;}}
     .sub-item{{border-bottom:none;}}
   }}
-  @media screen{{body{{background:#d8d8d8;}}.child-page{{background:white;margin:24px auto;
-    max-width:8.5in;box-shadow:0 2px 12px rgba(0,0,0,0.2);}}}}
+  @media screen{{
+    body{{background:#d0d0d0;}}
+    .child-page{{background:white;margin:0 auto;max-width:8.5in;
+      box-shadow:0 2px 12px rgba(0,0,0,0.2);}}
+  }}
+  @media screen and (max-width:700px){{
+    body{{font-size:14px;}}
+    .child-page{{padding:20px 18px 24px;box-shadow:none;margin:0;}}
+    .child-name{{font-size:24px;}}
+    .date-line{{font-size:13px;}}
+    .blk-header{{padding:6px 0 4px 10px;margin:14px 0 0;}}
+    .blk-time{{font-size:11px;min-width:72px;}}
+    .blk-label{{font-size:15px;}}
+    .blk-count{{font-size:11px;}}
+    .sub-item{{padding:5px 0 5px 82px;font-size:13px;}}
+    .sub-box{{width:14px;height:14px;margin-top:3px;}}
+    .sub-sect{{margin-left:82px;font-size:10px;}}
+    .sub-note{{padding-left:96px;font-size:11px;}}
+    .info-row{{padding:3px 0 3px 10px;margin:5px 0;}}
+    .info-time{{font-size:11px;min-width:72px;}}
+    .info-label{{font-size:13px;}}
+  }}
 </style></head><body>
 <div class="no-print" style="background:#2a2a2a;color:white;padding:10px 18px;font-family:sans-serif;font-size:13px;display:flex;align-items:center;gap:14px;">
     <button onclick="setTimeout(function(){{window.print();}},100)" style="background:#8b5a3c;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;">🖨 Print</button>
@@ -1349,12 +1374,7 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
     }
 
     def _is_print_done(s: dict) -> bool:
-        """Item is done if the progress flag is set OR the text was marked done
-        by the curriculum system (appends '— Done' or '—Done')."""
-        if s.get("done", False):
-            return True
-        txt = s.get("text", "").strip()
-        return txt.endswith("— Done") or txt.endswith("—Done") or txt.endswith("- Done")
+        return bool(s.get("done", False))
 
     # Only show pending (unchecked) items on the printout.
     # If everything is already done, show all items so the sheet isn't blank.
