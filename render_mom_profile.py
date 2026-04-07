@@ -114,38 +114,72 @@ def _list_section_html(key: str, label: str, hint: str, items: list) -> str:
 
 def render_lauren_schedule_card(target_date_str: str = "") -> str:
     """
-    Full daily schedule card for Lauren — same structure as the boys' pages.
-    Task lookups use 'Mom' as the engine key (matching assigned_to in manual_tasks).
+    Full daily schedule card for Lauren — time-blocked Day List from the Family
+    Rule of Life (same source as Now/Next cards and the boys' day lists).
     """
     from datetime import date as _date
     from html import escape as _e
     from daily_schedule_engine import (
-        build_schedule_payload, generate_day_packet,
-        load_progress, get_task_done,
+        build_day_list, day_list_stats, generate_day_packet,
+        load_progress, fmt_time_12h,
     )
     from data_helpers import normalize_date_query
     from config import parent_color
-    from render_schedule import render_day_nav
+    from render_schedule import render_day_nav, _render_day_list_html, _DL_CSS
 
     normalized_date = normalize_date_query(target_date_str)
-    packet      = generate_day_packet(normalized_date)
-    iso         = packet["iso"]
-    weekday     = packet["weekday"]
-    date_label  = packet["date_label"]
-
-    payload      = build_schedule_payload("Mom", weekday, date_label, iso)
-    carryover    = payload.get("carryover_items", [])
-    manual_items = payload.get("manual_task_items", [])
-    chore_items  = payload.get("chore_items", [])
+    packet     = generate_day_packet(normalized_date)
+    iso        = packet["iso"]
+    weekday    = packet["weekday"]
+    date_label = packet["date_label"]
 
     try:
         target_iso = _date.fromisoformat(iso)
     except Exception:
         target_iso = _date.today()
 
-    carry_count  = len(carryover)
-    manual_count = len(manual_items)
-    chore_count  = len(chore_items)
+    # Build the Day List from the Family Rule of Life schedule
+    day_list = build_day_list("Lauren", weekday, iso)
+
+    # Merge in calendar events
+    try:
+        from render_calendar import get_calendar_events_for_boys, render_calendar_today_strip
+        cal_items = get_calendar_events_for_boys(iso)
+        for ev in cal_items:
+            ev_time   = ev.get("time")
+            time_sort = ev_time or "00:00"
+            disp_time = fmt_time_12h(ev_time) if ev_time else "All day"
+            loc       = ev.get("location", "")
+            lbl       = ev["title"] + (f" \u2022 {loc}" if loc else "")
+            day_list.append({
+                "time": disp_time, "time_sort": time_sort,
+                "end_time": fmt_time_12h(ev.get("end_time")) if ev.get("end_time") else disp_time,
+                "label": lbl, "kind": "event",
+                "checkable": False, "task_id": None,
+                "done": False, "sub_items": [],
+                "is_event": True,
+                "event_id": ev.get("id", ""),
+                "event_calendar": ev.get("calendar", ""),
+            })
+        day_list.sort(key=lambda x: x.get("time_sort", "00:00"))
+        cal_strip_html = render_calendar_today_strip(iso)
+    except Exception:
+        cal_strip_html = ""
+
+    stats    = day_list_stats(day_list)
+    total    = stats["total"]
+    done_cnt = stats["done"]
+    pct      = stats["pct"]
+
+    # Meals
+    meals = {}
+    try:
+        from render_meals import load_meal_plan, _week_key, render_meal_today_card
+        _plan = load_meal_plan(_week_key(target_iso))
+        meals = _plan.get("days", {}).get(weekday, {})
+        meal_html = render_meal_today_card(target_iso)
+    except Exception:
+        meal_html = ""
 
     c_bg    = parent_color("Lauren", "bg")
     c_light = parent_color("Lauren", "light")
@@ -156,42 +190,16 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
     except Exception:
         daily_bar = ""
 
-    day_nav = render_day_nav("/mom-profile", iso)
-
     try:
         from render_schedule_support import render_now_next_strip
-        from render_calendar import render_calendar_today_strip
-        now_next_html  = render_now_next_strip()
-        cal_strip_html = render_calendar_today_strip(iso)
+        now_next_html = render_now_next_strip()
     except Exception:
-        now_next_html  = ""
-        cal_strip_html = ""
+        now_next_html = ""
 
-    progress = load_progress()
+    day_nav  = render_day_nav("/mom-profile", iso)
+    bar_col  = "#22c55e" if pct == 100 else ("#f59e0b" if pct >= 50 else c_bg)
 
-    def _task_row(item):
-        tid     = _e(item.get("task_id", ""))
-        done    = get_task_done(progress, item.get("task_id", ""))
-        checked = "checked" if done else ""
-        dc      = "done"    if done else ""
-        tid_js  = escape(item.get("task_id", ""), quote=False).replace("'", "\\'")
-        return (
-            f'<div class="task {dc}" id="task-{tid}">'
-            f'<input type="checkbox" id="lbl-{tid}" {checked}'
-            f' onchange="toggleTask(this,\'{tid_js}\',\'/mom-profile?date={_e(iso)}\')">'
-            f'<label for="lbl-{tid}">{_e(item.get("text", ""))}</label>'
-            f'</div>'
-        )
-
-    carry_html  = ("".join(_task_row(i) for i in carryover)   if carryover   else "<p class='muted'>None.</p>")
-    manual_html = ("".join(_task_row(i) for i in manual_items) if manual_items else "<p class='muted'>None.</p>")
-    chore_html  = ("".join(_task_row(i) for i in chore_items)  if chore_items  else "<p class='muted'>None.</p>")
-
-    try:
-        from render_meals import render_meal_today_card
-        meal_html = render_meal_today_card(target_iso)
-    except Exception:
-        meal_html = ""
+    day_list_html = _render_day_list_html(day_list, "Lauren", iso, c_bg, meals)
 
     lucy_panel = (
         f'<div class="card card-tight no-print"'
@@ -206,25 +214,28 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
         f'</div></div>'
     )
 
-    return f"""
+    return f"""{_DL_CSS}
 <div class="card" style="border-left:5px solid {c_bg};background:{c_light};margin-bottom:18px;">
     {daily_bar}
     <div class="page-header">
         <h2 style="color:{c_bg};margin:0 0 4px;">Lauren — {_e(date_label)}</h2>
         <div class="no-print">{day_nav}</div>
-        <div class="summary-row">
-            <span class="badge">Carryover: {carry_count}</span>
-            <span class="badge">Tasks: {manual_count}</span>
-            <span class="badge">Chores: {chore_count}</span>
+        <div class="dl-progress-bar no-print">
+            <div class="dl-progress-fill" style="width:{pct}%;background:{bar_col};"></div>
+        </div>
+        <div class="summary-row no-print">
+            <span class="badge" style="background:{bar_col};color:#fff;">{done_cnt}/{total} done</span>
+            <span class="badge">{_e(weekday)}</span>
+        </div>
+        <div class="link-row no-print">
+            <a class="link-button" href="/print/day/Lauren?date={_e(iso)}">Print Day List</a>
         </div>
         <div style="margin-top:8px;">{now_next_html}</div>
         <div style="margin-top:8px;">{cal_strip_html}</div>
     </div>
-    <div class="section-stack">
-        {lucy_panel}
-        <div class="card card-tight"><h3>Carryover</h3>{carry_html}</div>
-        <div class="card card-tight"><h3>Tasks</h3>{manual_html}</div>
-        <div class="card card-tight"><h3>Chores</h3>{chore_html}</div>
+    {lucy_panel}
+    <div class="day-list">
+        {day_list_html}
     </div>
     {meal_html}
 </div>
