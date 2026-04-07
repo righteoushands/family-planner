@@ -525,5 +525,11 @@
   "CARRY::JP::2026-04-07::[MEDIUM] Sweep indoor stairs": true,
   "CARRY::JP::2026-04-07::[MEDIUM] Trim nails": true,
   "CARRY::JP::2026-04-07::[MEDIUM] Wash CAP uniform for tonight's meeting": true,
-  "ROUTINE::JP::2026-04-07::School or Video Games": true
+  "ROUTINE::JP::2026-04-07::School or Video Games": true,
+  "2026-04-07::Joseph::SCHOOL::Math 87::Assignment completed": true,
+  "2026-04-07::Joseph::SCHOOL::Math 87::Given to checker": true,
+  "2026-04-07::JP::SCHOOL::Algebra 1/2::Assignment completed": true,
+  "2026-04-07::JP::SCHOOL::Algebra 1/2::Given to checker": true,
+  "2026-04-07::JP::SCHOOL::Algebra 1/2::Received brother's math": true,
+  "2026-04-07::Joseph::SCHOOL::Math 87::Received brother's math": true
 }

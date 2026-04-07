@@ -1068,8 +1068,14 @@ def _school_sub_items(school_raw: list, subjects_used: set,
         subj = block.get("subject", "").strip()
         subj_low = subj.lower()
         hint_low = hint.lower()
-        if hint and not (hint_low in subj_low or subj_low in hint_low):
-            continue
+        if hint:
+            name_match = (hint_low in subj_low or subj_low in hint_low)
+            # "School — Math" slots should capture subjects flagged is_math even
+            # when the subject name (e.g. "Algebra 1/2") doesn't contain "math"
+            math_hint  = "math" in hint_low
+            is_math    = bool(block.get("is_math") or block.get("is_math_test"))
+            if not name_match and not (math_hint and is_math):
+                continue
         if subj_low in subjects_used:
             continue
         subjects_used.add(subj_low)
