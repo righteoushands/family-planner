@@ -563,6 +563,10 @@
     "Michael": [
       "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash"
     ],
-    "James": []
+    "James": [],
+    "Mom": [
+      "MANUAL::MEDIUM::Change air filters",
+      "MANUAL::MEDIUM::Sharpen knives"
+    ]
   }
 }

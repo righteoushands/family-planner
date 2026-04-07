@@ -675,59 +675,92 @@ def render_child_schedule(child: str, target_date_str: str = "") -> str:
 
 
 def render_child_dash_card(child: str, target_date_str: str = "") -> str:
-    """Compact dashboard card: carryover + first unchecked task, auto-advance on check."""
+    """
+    Compact dashboard card — uses build_day_list (same source as the full Day
+    List page) so task IDs are identical and check-offs synchronise instantly.
+    Shows: carryover ↩, then school/manual tasks (2-at-a-time), then chores.
+    """
     normalized_date = normalize_date_query(target_date_str)
     packet     = generate_day_packet(normalized_date)
     iso        = packet["iso"]
     weekday    = packet["weekday"]
     date_label = packet["date_label"]
 
-    payload  = build_schedule_payload(child, weekday, date_label, iso)
+    day_list = build_day_list(child, weekday, iso)
     progress = load_progress()
 
     c_bg    = child_color(child, "bg")
     c_light = child_color(child, "light")
     c_id    = child.lower().replace(" ", "-")
 
-    # ── Gather tasks ────────────────────────────────────────────────────────
-    carryover   = payload.get("carryover_items", [])
-    chore_items = payload.get("chore_items", [])
+    # ── Extract task groups from the Day List ──────────────────────────────
+    carryover:  list = []   # sub_items from "task" block with CARRY:: IDs
+    queue:      list = []   # school steps + manual tasks (non-carry)
+    chore_items:list = []   # flat list of all chore sub_items
 
-    # School/task queue (2-at-a-time advance model)
-    queue = []
-    for item in payload.get("manual_task_items", []):
-        queue.append(dict(item, _section="Task"))
-    for block in payload.get("school_blocks", []):
-        subj = block.get("subject", "School")
-        for item in block.get("items", []):
-            queue.append(dict(item, _section=subj))
+    # Calendar events from day_list blocks (kind="event")
+    cal_events: list = []
 
-    total     = (len(carryover) + len(queue) + len(chore_items))
-    done_cnt  = (sum(1 for i in carryover   if _item_done(i, progress)) +
-                 sum(1 for i in queue       if _item_done(i, progress)) +
-                 sum(1 for i in chore_items if _item_done(i, progress)))
-    remaining = total - done_cnt
-    pct       = round(done_cnt / total * 100) if total else 0
-    all_done  = total > 0 and done_cnt == total
+    for blk in day_list:
+        kind  = blk.get("kind", "")
+        subs  = blk.get("sub_items") or []
 
-    bar_col = "#22c55e" if all_done else ("#f59e0b" if pct >= 50 else c_bg)
+        if kind == "event" or blk.get("is_event"):
+            cal_events.append(blk)
+            continue
 
-    cb_url = f"/today?date={escape(iso)}"
+        if kind == "task":
+            # sub_items are carry-over tasks and/or manual tasks
+            for sub in subs:
+                if not isinstance(sub, dict):
+                    continue
+                if sub.get("is_header"):
+                    continue
+                tid = sub.get("task_id", "")
+                if tid.startswith("CARRY::"):
+                    carryover.append(sub)
+                else:
+                    queue.append(dict(sub, _section="Task"))
 
-    def _dash_row(item, extra_style="", is_chore=False):
+        elif kind == "school":
+            # sub_items are individual school steps; label is the subject block
+            subj = blk.get("label", "School")
+            for sub in subs:
+                if not isinstance(sub, dict) or sub.get("is_header"):
+                    continue
+                queue.append(dict(sub, _section=subj, _time_sort=blk.get("time_sort", "10:00")))
+
+        elif kind == "chore":
+            for sub in subs:
+                if not isinstance(sub, dict) or sub.get("is_header"):
+                    continue
+                if sub.get("task_id"):
+                    chore_items.append(sub)
+
+    # ── Counts ─────────────────────────────────────────────────────────────
+    all_tasks  = carryover + queue + chore_items
+    total      = len(all_tasks)
+    done_cnt   = sum(1 for i in all_tasks if _item_done(i, progress))
+    remaining  = total - done_cnt
+    pct        = round(done_cnt / total * 100) if total else 0
+    all_done   = total > 0 and done_cnt == total
+    bar_col    = "#22c55e" if all_done else ("#f59e0b" if pct >= 50 else c_bg)
+
+    def _dash_row(item, extra_style="", is_chore=False, section=""):
         tid     = escape(item.get("task_id", ""))
         tid_js  = escape(item.get("task_id", ""), quote=False).replace("'", "\\'")
         is_done = _item_done(item, progress)
         checked = "checked" if is_done else ""
         done_st = "opacity:.5;text-decoration:line-through;" if is_done else ""
         done_d  = "1" if is_done else "0"
-        section = escape(item.get("_section", ""))
+        sec     = section or item.get("_section", "")
         sec_div = (
             f'<div style="font-size:.62em;font-weight:800;letter-spacing:.07em;'
-            f'text-transform:uppercase;color:{c_bg};margin-bottom:1px;">{section}</div>'
-            if section else ""
+            f'text-transform:uppercase;color:{c_bg};margin-bottom:1px;">{escape(sec)}</div>'
+            if sec else ""
         )
         chore_attr = ' data-chore="1"' if is_chore else ""
+        lbl_text = item.get("text") or item.get("label") or ""
         return (
             f'<div class="dash-task" data-dash-child="{c_id}" data-done="{done_d}"{chore_attr}'
             f' id="task-{tid}" style="display:flex;align-items:flex-start;gap:8px;'
@@ -738,11 +771,11 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
             f'<div style="flex:1;min-width:0;">'
             f'{sec_div}'
             f'<label for="lbl-{tid}" style="font-size:.88em;line-height:1.3;'
-            f'cursor:pointer;{done_st}">{escape(item.get("text",""))}</label>'
+            f'cursor:pointer;{done_st}">{escape(lbl_text)}</label>'
             f'</div></div>'
         )
 
-    # ── Carryover rows (show up to 3; indicate extras) ───────────────────────
+    # ── Carryover rows (up to 3; extras linked) ─────────────────────────────
     _CARRY_MAX = 3
     carry_html = ""
     if carryover:
@@ -757,16 +790,20 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
             carry_html += (
                 f'<div style="font-size:.75em;color:#a07040;padding:3px 0 4px;">'
                 f'<a href="/schedule/{escape(child)}?date={escape(iso)}"'
-                f' style="color:#a07040;text-decoration:none;">+{_carry_extra} more carryover →</a>'
+                f' style="color:#a07040;text-decoration:none;">+{_carry_extra} more →</a>'
                 f'</div>'
             )
 
-    # ── Calendar events for today ─────────────────────────────────────────────
-    cal_items = payload.get("calendar_items", [])
-
-    def _event_row(ev):
-        tl  = fmt_time_12h(ev["time"]) if ev["time"] else "All day"
-        loc = f' · <em>{escape(ev["location"])}</em>' if ev.get("location") else ""
+    # ── Calendar event rows ──────────────────────────────────────────────────
+    def _event_row(blk):
+        tl  = blk.get("time", "All day")
+        loc_raw = blk.get("label", "")
+        # strip the " • location" suffix from the label if present
+        title = blk.get("label", "")
+        loc   = ""
+        if " \u2022 " in title:
+            title, loc = title.split(" \u2022 ", 1)
+        loc_html = f' · <em>{escape(loc)}</em>' if loc else ""
         return (
             f'<div style="display:flex;align-items:center;gap:8px;'
             f'padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);">'
@@ -776,52 +813,44 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
             f'text-transform:uppercase;color:#7c3aed;margin-bottom:1px;">'
             f'{escape(tl)}</div>'
             f'<div style="font-size:.88em;line-height:1.3;color:#1e1b4b;">'
-            f'{escape(ev["title"])}{loc}</div>'
+            f'{escape(title)}{loc_html}</div>'
             f'</div></div>'
         )
 
-    # ── Build combined chronological list: events + tasks + chores ────────────
-    # Each entry: {"kind": "event"|"task"|"chore", "sort_time": "HH:MM", "data": ...}
-    # Deduplicate: remove manual tasks whose text matches a chore item
-    _dash_chore_texts = {i.get("text", "").lower().strip() for i in chore_items}
+    # ── Combined chronological list ──────────────────────────────────────────
     combined = []
-    for ev in cal_items:
-        t = "00:00" if ev.get("all_day") else (ev["time"] or "23:59")
-        combined.append({"kind": "event",  "sort_time": t, "data": ev})
+    for blk in cal_events:
+        combined.append({"kind": "event", "sort_time": blk.get("time_sort", "00:00"), "data": blk})
     for item in queue:
-        if item.get("_section") == "Task" and item.get("text", "").lower().strip() in _dash_chore_texts:
-            continue  # skip manual tasks that duplicate a chore
-        sec = item.get("_section", "")
-        pri = item.get("priority", "MEDIUM")
-        if sec == "Task":
-            t = RULE_OF_LIFE_ANCHORS.get(f"manual_{pri}", "09:00")
-        else:
-            t = RULE_OF_LIFE_ANCHORS["school"]
-        combined.append({"kind": "task",   "sort_time": t, "data": item})
+        t = item.get("_time_sort") or RULE_OF_LIFE_ANCHORS.get("school", "10:00")
+        combined.append({"kind": "task",  "sort_time": t, "data": item})
     for item in chore_items:
-        combined.append({"kind": "chore",  "sort_time": RULE_OF_LIFE_ANCHORS["chore"], "data": item})
+        combined.append({"kind": "chore", "sort_time": RULE_OF_LIFE_ANCHORS.get("chore", "07:30"), "data": item})
     combined.sort(key=lambda x: x["sort_time"])
 
-    # ── Render combined list (2-at-a-time for tasks; events+chores always show) ─
+    # ── Render combined (2-at-a-time reveal for tasks; chores always shown) ──
     combined_html = ""
     pending_shown = 0
     chore_done    = sum(1 for i in chore_items if _item_done(i, progress))
     chore_shown   = False
+
     for entry in combined:
         kind = entry["kind"]
         if kind == "event":
             combined_html += _event_row(entry["data"])
+
         elif kind == "task":
             item    = entry["data"]
             is_done = _item_done(item, progress)
             if is_done:
                 vis = "display:none;"
             elif pending_shown < 2:
-                vis = ""
-                pending_shown += 1
+                vis = ""; pending_shown += 1
             else:
                 vis = "display:none;"
-            combined_html += _dash_row(item, extra_style=vis)
+            combined_html += _dash_row(item, extra_style=vis,
+                                       section=item.get("_section", ""))
+
         elif kind == "chore":
             if not chore_shown and chore_items:
                 chore_lbl = f"{chore_done}/{len(chore_items)}"
@@ -829,7 +858,8 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
                     f'<div id="dash-chore-hdr-{c_id}"'
                     f' style="font-size:0.65em;font-weight:800;letter-spacing:.08em;'
                     f'text-transform:uppercase;color:{c_bg};margin:10px 0 3px;">'
-                    f'Chores <span id="dash-chore-cnt-{c_id}" style="font-weight:500;color:#888;">({chore_lbl})</span></div>'
+                    f'Chores <span id="dash-chore-cnt-{c_id}"'
+                    f' style="font-weight:500;color:#888;">({chore_lbl})</span></div>'
                 )
                 chore_shown = True
             combined_html += _dash_row(entry["data"], is_chore=True)
@@ -845,7 +875,6 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
         f' style="border-left:4px solid {c_bg};background:{c_light};'
         f'margin-bottom:10px;padding:12px 14px;">'
 
-        # Header
         f'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'
         f'<a href="/schedule/{escape(child)}?date={escape(iso)}"'
         f' style="font-weight:700;color:{c_bg};font-size:1.05em;text-decoration:none;">'
@@ -858,7 +887,6 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
         f'Full list →</a>'
         f'</div></div>'
 
-        # Progress bar
         f'<div style="height:4px;background:#e0d8d0;border-radius:2px;margin-bottom:8px;">'
         f'<div id="dash-bar-{c_id}" style="height:100%;width:{pct}%;'
         f'background:{bar_col};border-radius:2px;transition:width .3s;"></div></div>'
