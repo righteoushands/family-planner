@@ -620,8 +620,8 @@ function escHtml(str) {{
 // ── Parse [FIX:...], [WRITE:...] and [READ:...] blocks ───────────────────
 // All fixes/writes → ONE card, ONE button. READ tags stripped silently.
 function parseFixes(bubble, fullText) {{
-  const fixPattern   = /\[FIX:\s*([^\]]+)\]\s*[\r\n]+(?:WHAT:\s*([^\r\n]*)[\r\n]+)?FIND:[\r\n]+([\s\S]*?)[\r\n]+REPLACE:[\r\n]+([\s\S]*?)[\r\n]+\[\/FIX\]/g;
-  const writePattern = /\[WRITE:\s*([^\]]+):(\d+)-(\d+)\]\s*[\r\n]+(?:WHAT:\s*([^\r\n]*)[\r\n]+)?([\s\S]*?)[\r\n]*\[\/WRITE\]/g;
+  const fixPattern   = /\[FIX:\s*([^\]]+)\]\s*[\\r\\n]+(?:WHAT:\s*([^\\r\\n]*)[\\r\\n]+)?FIND:[\\r\\n]+([\s\S]*?)[\\r\\n]+REPLACE:[\\r\\n]+([\s\S]*?)[\\r\\n]+\[\/FIX\]/g;
+  const writePattern = /\[WRITE:\s*([^\]]+):(\d+)-(\d+)\]\s*[\\r\\n]+(?:WHAT:\s*([^\\r\\n]*)[\\r\\n]+)?([\s\S]*?)[\\r\\n]*\[\/WRITE\]/g;
   const readPattern  = /\[READ:\s*([^:\]]+)(?::(\d+)-(\d+))?\]/g;
   const rawEl   = bubble.querySelector('.felix-raw');
   const fixesEl = bubble.querySelector('.felix-fixes');
