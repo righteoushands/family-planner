@@ -968,19 +968,26 @@ _SLOT_KIND_MAP: list = [
     ("prayer",   ["prayer", "rosary", "angelus", "lauds", "vespers"]),
     ("mass",     ["holy mass", "mass"]),
     ("wakeup",   ["up & moving", "wake", "rising"]),
-    ("meal",     ["breakfast", "brunch", "lunch", "dinner", "snack"]),
-    ("exercise", ["exercise", "pe ", "physical ed", "workout"]),
+    ("meal",     ["breakfast", "brunch", "lunch", "dinner", "snack",
+                  "bible study / lunch"]),
+    ("exercise", ["exercise", "pe ", "physical ed", "workout", "hspe"]),
+    # travel/prep phrases come BEFORE school so "prepare to leave for..." doesn't
+    # match "school" buried later in the sentence
+    ("routine",  ["prepare to leave", "leave for", "travel /", "travel time",
+                  "showers", "shower", "bath", "hygiene", "groom",
+                  "get ready for", "prep mass clothes", "bible study / play",
+                  "buffer"]),
     ("school",   ["school", "math", "writing", "reading", "science", "history",
-                  "grammar", "latin", "logic", "religion", "english"]),
-    ("chore",    ["morning jobs", "weekly job", "weekly jobs", "room clean",
-                  "clean the kitchen", "clean the", "prep mass", "prep for sunday",
+                  "grammar", "latin", "logic", "religion", "english",
+                  "bible study / school"]),
+    ("chore",    ["morning jobs", "weekly job", "weekly jobs", "jobs — weekly",
+                  "room clean", "clean the kitchen", "clean the",
+                  "prep mass", "prep for sunday",
                   "laundry", "trash", "sweep", "mop"]),
     ("task",     ["lists with mom", "go over lists"]),
-    ("routine",  ["showers", "shower", "bath", "hygiene", "groom",
-                  "get ready for", "prep mass clothes"]),
     ("free",     ["free time", "video game", "hw or free", "screen",
                   "leisure", "rest", "family time", "week prep",
-                  "school or video"]),
+                  "school or video", "hw"]),
 ]
 
 
@@ -1084,22 +1091,40 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
 
     Returns a list of time-block dicts, each with:
       time, time_sort, end_time, label, kind, checkable, task_id, done, sub_items
+
+    Primary source: family schedule (load_family_schedule) — same data that
+    powers the Now/Next cards on the dashboard.  This is the Family Rule of Life.
+    Fallback:       per-child day template (data/day_templates/Weekday.json).
     """
-    # Load Rule of Life template
-    person_grid = {}
-    for candidate in [f"{weekday}.json", "Friday.json"]:
-        try:
-            path = _DAY_TEMPLATES_DIR / candidate
-            if path.exists():
-                data = json.loads(path.read_text(encoding="utf-8"))
-                grid = data.get("grid", {})
-                person_grid = (grid.get(child)
-                               or grid.get("Mom")
-                               or (next(iter(grid.values())) if grid else {}))
-                if person_grid:
-                    break
-        except Exception:
-            pass
+    # ── Primary: Family Rule of Life (family schedule / Now+Next source) ──────
+    person_grid: dict = {}
+    try:
+        from data_helpers import load_family_schedule
+        from render_schedule_support import generate_half_hour_times as _ghht
+        _fam_sched = load_family_schedule()
+        _fam_times = _fam_sched.get("times", []) or _ghht()
+        _fam_day   = _fam_sched.get("days", {}).get(weekday, {})
+        # Build an ordered dict preserving the schedule's canonical time order
+        person_grid = {t: _fam_day[t] for t in _fam_times if (_fam_day.get(t) or "").strip()}
+    except Exception:
+        person_grid = {}
+
+    # ── Fallback: per-child day template ──────────────────────────────────────
+    if not person_grid:
+        for candidate in [f"{weekday}.json", "Friday.json"]:
+            try:
+                path = _DAY_TEMPLATES_DIR / candidate
+                if path.exists():
+                    data = json.loads(path.read_text(encoding="utf-8"))
+                    grid = data.get("grid", {})
+                    person_grid = (grid.get(child)
+                                   or grid.get("Mom")
+                                   or (next(iter(grid.values())) if grid else {}))
+                    if person_grid:
+                        break
+            except Exception:
+                pass
+
     if not person_grid:
         return []
 
@@ -1114,7 +1139,7 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
         if not label:
             continue
         if merged and merged[-1]["label"] == label:
-            pass   # same block continues; end_time updated next
+            pass   # same block continues; end_time updated by next iteration
         else:
             merged.append({"time": time_str, "time_sort": time_sort,
                            "end_time": time_str, "label": label})
@@ -1315,7 +1340,7 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
             item["done"]    = _dl_done(progress, tid)
 
         # ── Weekly Job(s) — expand only the FIRST occurrence ────────────
-        elif "weekly job" in label_low:
+        elif "weekly job" in label_low or "jobs — weekly" in label_low or "jobs--weekly" in label_low:
             if not weekly_expanded:
                 weekly_expanded = True
                 item["sub_items"] = _lines_to_sub_items(
