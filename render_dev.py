@@ -329,7 +329,7 @@ def render_dev_page(history: list, q: str = "", from_: str = "") -> str:
   <!-- Restart toast -->
   <div id="restart-toast" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);
        background:#1e3a8a;color:white;padding:10px 20px;border-radius:12px;z-index:9999;
-       font-size:0.85em;font-weight:600;">Server restarting&hellip; refresh in 5 seconds.</div>
+       font-size:0.85em;font-weight:600;">Server restarting&hellip; reloading in ~10 seconds.</div>
 
 </div>
 
@@ -947,7 +947,7 @@ async function restartServer() {{
   try {{
     await fetch('/dev-restart', {{method:'POST'}});
   }} catch(e) {{}}
-  setTimeout(() => {{ window.location.reload(); }}, 5000);
+  setTimeout(() => {{ window.location.reload(); }}, 10000);
 }}
 </script>
 """
