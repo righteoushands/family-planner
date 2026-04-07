@@ -3874,7 +3874,20 @@ def render_tasks() -> str:
         is_recurring = task.get("recurring", False)
         recur_badge = ""
         if is_recurring:
-            recur_badge = f" <span class='badge'>↻ every {escape(str(task.get('interval_value',1)))} {escape(task.get('interval_unit','weeks'))}</span>"
+            _ru = task.get('interval_unit','weeks')
+            _rv = task.get('interval_value', 1)
+            _pattern_labels = {
+                "monthly_last_sat": "last Sat of each month",
+                "monthly_last_sun": "last Sun of each month",
+                "monthly_last_fri": "last Fri of each month",
+                "monthly_first_sat": "1st Sat of each month",
+                "monthly_first_sun": "1st Sun of each month",
+                "monthly_first_fri": "1st Fri of each month",
+            }
+            if _ru in _pattern_labels:
+                recur_badge = f" <span class='badge'>↻ {_pattern_labels[_ru]}</span>"
+            else:
+                recur_badge = f" <span class='badge'>↻ every {escape(str(_rv))} {escape(_ru)}</span>"
         card_html = f"""
         <div class="card">
             <h3>{text}{recur_badge}</h3>
@@ -3916,13 +3929,23 @@ def render_tasks() -> str:
                 <label>First due date</label><input type="date" name="due_date">
                 <label>Priority</label>
                 <select name="priority"><option value="HIGH">HIGH</option><option value="MEDIUM" selected>MEDIUM</option><option value="LOW">LOW</option></select>
-                <label>Repeat every</label>
-                <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;">
-                    <input type="number" name="interval_value" value="1" min="1" style="width:80px;max-width:80px;margin-bottom:0;">
-                    <select name="interval_unit" style="margin-bottom:0;">
+                <label>Repeat</label>
+                <div id="recur-row" style="display:flex;gap:10px;align-items:center;margin-bottom:12px;">
+                    <span id="recur-every-label" style="white-space:nowrap;font-size:0.9em;">every</span>
+                    <input id="recur-n" type="number" name="interval_value" value="1" min="1" style="width:70px;max-width:70px;margin-bottom:0;">
+                    <select id="recur-unit" name="interval_unit" style="margin-bottom:0;"
+                            onchange="(function(s){{var n=document.getElementById('recur-n'),lbl=document.getElementById('recur-every-label');var isPattern=['monthly_last_sat','monthly_last_sun','monthly_last_fri','monthly_first_sat','monthly_first_sun','monthly_first_fri'].includes(s.value);n.style.display=isPattern?'none':'';lbl.style.display=isPattern?'none':'';}})(this)">
                         <option value="days">Days</option>
                         <option value="weeks" selected>Weeks</option>
-                        <option value="months">Months</option>
+                        <option value="months">Months (same date)</option>
+                        <optgroup label="── Monthly patterns ──">
+                        <option value="monthly_last_sat">Last Saturday of each month</option>
+                        <option value="monthly_last_sun">Last Sunday of each month</option>
+                        <option value="monthly_last_fri">Last Friday of each month</option>
+                        <option value="monthly_first_sat">First Saturday of each month</option>
+                        <option value="monthly_first_sun">First Sunday of each month</option>
+                        <option value="monthly_first_fri">First Friday of each month</option>
+                        </optgroup>
                     </select>
                 </div>
                 <button type="submit">Add Recurring Task</button>

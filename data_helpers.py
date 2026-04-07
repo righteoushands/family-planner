@@ -126,7 +126,35 @@ def advance_recurring_task(task: dict) -> dict:
         base = date.fromisoformat(base_str)
     except Exception:
         base = date.today()
-    if unit == "days":
+
+    # ── Monthly "Nth weekday" patterns ─────────────────────────────────────
+    _weekday_patterns = {
+        "monthly_last_sat": (5, -1),  # Saturday, last occurrence
+        "monthly_last_sun": (6, -1),  # Sunday, last occurrence
+        "monthly_last_fri": (4, -1),  # Friday, last occurrence
+        "monthly_first_sat": (5, 1),  # Saturday, first occurrence
+        "monthly_first_sun": (6, 1),  # Sunday, first occurrence
+        "monthly_first_fri": (4, 1),  # Friday, first occurrence
+    }
+    if unit in _weekday_patterns:
+        wd, nth = _weekday_patterns[unit]
+        # Advance to the next calendar month
+        nm = base.month + 1
+        ny = base.year + (nm - 1) // 12
+        nm = (nm - 1) % 12 + 1
+        last_day = _cal.monthrange(ny, nm)[1]
+        if nth == -1:
+            # Last occurrence: start from end of month, walk back
+            d = date(ny, nm, last_day)
+            while d.weekday() != wd:
+                d -= timedelta(days=1)
+        else:
+            # First occurrence: start from day 1, walk forward
+            d = date(ny, nm, 1)
+            while d.weekday() != wd:
+                d += timedelta(days=1)
+        next_due = d
+    elif unit == "days":
         next_due = base + timedelta(days=value)
     elif unit == "months":
         month = base.month - 1 + value
@@ -136,6 +164,7 @@ def advance_recurring_task(task: dict) -> dict:
         next_due = base.replace(year=year, month=month, day=day)
     else:
         next_due = base + timedelta(weeks=value)
+
     task = dict(task)
     task["due_date"] = next_due.isoformat()
     task["status"]   = "active"

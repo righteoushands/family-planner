@@ -1311,7 +1311,8 @@ class Handler(BaseHTTPRequestHandler):
                 due_date=clean_text(data.get("due_date",[""])[0]); priority=clean_priority(data.get("priority",["MEDIUM"])[0])
                 is_recurring=data.get("recurring",[""])[0]=="true"
                 iv=safe_int(data.get("interval_value",["1"])[0],1); iu=clean_text(data.get("interval_unit",["weeks"])[0])
-                if iu not in ("days","weeks","months"): iu="weeks"
+                _pattern_units = {"monthly_last_sat","monthly_last_sun","monthly_first_sat","monthly_first_sun","monthly_last_fri","monthly_first_fri"}
+                if iu not in ("days","weeks","months") and iu not in _pattern_units: iu="weeks"
                 if iv<1: iv=1
                 if text:
                     tasks=load_manual_tasks()

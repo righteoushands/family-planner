@@ -655,13 +655,23 @@ def render_plan_week_page(week_key=None, status=""):
     <div id="recur-task-name" style="font-size:0.88em;color:var(--ink-muted);margin-bottom:12px;padding:8px 10px;background:var(--parchment);border-radius:8px;"></div>
     <label style="font-size:0.75em;">First due date</label>
     <input type="date" id="recur-due" style="margin-bottom:10px;">
-    <label style="font-size:0.75em;">Repeat every</label>
-    <div style="display:flex;gap:8px;margin-bottom:10px;">
-      <input type="number" id="recur-iv" value="1" min="1" style="width:70px;margin-bottom:0;font-size:0.85em;">
-      <select id="recur-iu" style="flex:1;margin-bottom:0;font-size:0.85em;">
+    <label style="font-size:0.75em;">Repeat</label>
+    <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
+      <span id="recur-every-lbl" style="font-size:0.82em;white-space:nowrap;">every</span>
+      <input type="number" id="recur-iv" value="1" min="1" style="width:60px;margin-bottom:0;font-size:0.85em;">
+      <select id="recur-iu" style="flex:1;margin-bottom:0;font-size:0.85em;"
+              onchange="(function(s){{var n=document.getElementById('recur-iv'),lbl=document.getElementById('recur-every-lbl');var p=['monthly_last_sat','monthly_last_sun','monthly_last_fri','monthly_first_sat','monthly_first_sun','monthly_first_fri'].includes(s.value);n.style.display=p?'none':'';lbl.style.display=p?'none':'';}})(this)">
         <option value="days">Days</option>
         <option value="weeks" selected>Weeks</option>
-        <option value="months">Months</option>
+        <option value="months">Months (same date)</option>
+        <optgroup label="── Monthly patterns ──">
+        <option value="monthly_last_sat">Last Saturday of each month</option>
+        <option value="monthly_last_sun">Last Sunday of each month</option>
+        <option value="monthly_last_fri">Last Friday of each month</option>
+        <option value="monthly_first_sat">First Saturday of each month</option>
+        <option value="monthly_first_sun">First Sunday of each month</option>
+        <option value="monthly_first_fri">First Friday of each month</option>
+        </optgroup>
       </select>
     </div>
     <label style="font-size:0.75em;">Assign to</label>

@@ -3021,5 +3021,15 @@
     "status": "active",
     "source": "lucy",
     "recurring": false
+  },
+  {
+    "text": "CAPTask: Wash the most used uniform of the month.",
+    "assigned_to": "JP",
+    "due_date": "2026-04-25",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": true,
+    "interval_value": 1,
+    "interval_unit": "months"
   }
 ]
