@@ -639,6 +639,37 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
                 "<span style='color:#bbb;font-style:italic;'>Could not load.</span>";
         }});
 }})();
+/* Live progress sync: keeps this page in step with other open pages */
+(function() {{
+    var _iso = '{escape(iso)}';
+    function _syncPlan() {{
+        fetch('/api/today-progress?date=' + _iso)
+            .then(function(r) {{ return r.ok ? r.json() : null; }})
+            .then(function(data) {{
+                if (!data) return;
+                document.querySelectorAll('[id^="task-"]').forEach(function(row) {{
+                    var tid    = row.id.replace(/^task-/, '');
+                    var isDone = data[tid] === true;
+                    var wasDone= row.getAttribute('data-done') === '1';
+                    if (isDone === wasDone) return;
+                    var cb  = row.querySelector('input[type="checkbox"]');
+                    var lbl = row.querySelector('label,.dl-sub-label,.dl-label');
+                    if (isDone) {{
+                        row.setAttribute('data-done','1');
+                        row.classList.add('done');
+                        if (cb) cb.checked = true;
+                        if (lbl) {{ lbl.style.opacity='0.4';lbl.style.textDecoration='line-through'; }}
+                    }} else {{
+                        row.setAttribute('data-done','0');
+                        row.classList.remove('done');
+                        if (cb) cb.checked = false;
+                        if (lbl) {{ lbl.style.opacity='1';lbl.style.textDecoration='none'; }}
+                    }}
+                }});
+            }}).catch(function() {{}});
+    }}
+    setInterval(_syncPlan, 15000);
+}})();
 </script>"""
 
 

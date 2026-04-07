@@ -1350,6 +1350,43 @@ def render_dashboard() -> str:
     window.addEventListener('pageshow', function(e) {{
       if (e.persisted) {{ window.location.reload(); }}
     }});
+    /* Live progress sync — polls every 15 s so checkboxes stay in sync
+       with the plan-of-day pages without needing a manual refresh. */
+    (function() {{
+      var _iso = '{escape(iso)}';
+      function _syncProgress() {{
+        fetch('/api/today-progress?date=' + _iso)
+          .then(function(r) {{ return r.ok ? r.json() : null; }})
+          .then(function(data) {{
+            if (!data) return;
+            document.querySelectorAll('[id^="task-"]').forEach(function(row) {{
+              var tid     = row.id.replace(/^task-/, '');
+              var isDone  = data[tid] === true;
+              var wasDone = row.getAttribute('data-done') === '1';
+              if (isDone === wasDone) return;   // already in sync
+              var cb  = row.querySelector('input[type="checkbox"]');
+              var lbl = row.querySelector('label, .dl-sub-label, .dl-label');
+              if (isDone) {{
+                row.setAttribute('data-done', '1');
+                if (cb) cb.checked = true;
+                if (lbl) {{ lbl.style.opacity = '0.4'; lbl.style.textDecoration = 'line-through'; }}
+                /* Fade out dashboard items that just became done */
+                if (row.classList.contains('dash-task')) {{
+                  row.style.transition = 'opacity .3s';
+                  row.style.opacity    = '0';
+                  setTimeout(function() {{ row.style.display = 'none'; }}, 320);
+                }}
+              }} else {{
+                row.setAttribute('data-done', '0');
+                if (cb) cb.checked = false;
+                if (lbl) {{ lbl.style.opacity = '1'; lbl.style.textDecoration = 'none'; }}
+                row.style.display = ''; row.style.opacity = '1'; row.style.transition = '';
+              }}
+            }});
+          }}).catch(function() {{}});
+      }}
+      setInterval(_syncProgress, 15000);
+    }})();
     </script>
     """
     return html_page("Dashboard", body)

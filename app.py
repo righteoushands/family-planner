@@ -399,6 +399,19 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/now":             body = render_now_page()
         elif path == "/week":            body = render_week()
         elif path == "/school":          body = render_school_page(status_message=clean_text(query.get("msg",[""])[0]))
+        elif path == "/api/today-progress":
+            # Lightweight progress-sync endpoint used by homepage polling.
+            # Returns {task_id: bool} for all tasks whose key contains today's ISO date.
+            _tp_date = clean_text(query.get("date", [""])[0]) or normalize_date_query("")
+            try:
+                from daily_schedule_engine import load_progress
+                _prog = load_progress()
+                # Filter to only keys that contain this date string so the payload is small
+                self._send_json({k: bool(v) for k, v in _prog.items()
+                                 if _tp_date in k and v})
+            except Exception as _tpe:
+                self._send_json({"error": str(_tpe)}, 500)
+            return
         elif path == "/api/boys-tasks":
             if not _auth.is_admin(user):
                 self._send_json({"error": "unauthorized"}, 403); return
