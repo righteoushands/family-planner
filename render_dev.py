@@ -138,8 +138,10 @@ GOOD: (just show the [FIX:] block — no explanation needed)
 
 ════════════ YOUR TOOLS ════════════
 READ FILES: [READ: filename.py:start_line-end_line]
-  ALWAYS include line numbers. Example: [READ: app.py:100-200]
-  Read 50-100 lines at a time. ONE [READ:] tag per response maximum — never two in the same reply.
+  ALWAYS include line numbers. Example: [READ: app.py:100-500]
+  Read 200-400 lines at a time. For large files (app.py is ~5800 lines) use wide ranges.
+  You may use UP TO TWO [READ:] tags per response to fetch two sections simultaneously.
+  The system will fetch both and give you all the content before your next reply.
 
 APPLY FIXES — TWO METHODS (prefer WRITE):
 
@@ -550,8 +552,8 @@ async function streamFelix(payload, isAutoRead, image, depth) {{
     _renderHandoffBtns(full, bubble.lastElementChild || bubble);
     box.scrollTop = box.scrollHeight;
 
-    // ── Auto-process [READ:] tags — chain up to 4 rounds so Izzy can work through complex tasks ──
-    if (full && depth < 4) await autoHandleReads(full, depth + 1);
+    // ── Auto-process [READ:] tags — chain up to 6 rounds so Izzy can work through complex tasks ──
+    if (full && depth < 6) await autoHandleReads(full, depth + 1);
 
   }} catch(err) {{
     thinkEl.style.display = 'none';
@@ -596,7 +598,7 @@ async function autoHandleReads(fullText, depth) {{
     parts.join('\\n\\n\u2500\u2500\u2500\\n\\n') +
     '\\n\\n[END OF FILE SECTIONS]';
 
-  const passNote = depth > 1 ? ' (round ' + depth + ' of 4)' : '';
+  const passNote = depth > 1 ? ' (round ' + depth + ' of 6)' : '';
   setThinking('Izzy is reading the code\u2026' + passNote);
   await streamFelix(contextPayload, true, null, depth);
 }}
