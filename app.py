@@ -3075,30 +3075,46 @@ class Handler(BaseHTTPRequestHandler):
                     data=payload,
                     headers={"x-api-key": api_key, "anthropic-version": "2023-06-01",
                              "content-type": "application/json"})
-                import urllib.error as _uerr
-                try:
-                    resp = _req.urlopen(req, timeout=90)
-                except _uerr.HTTPError as e:
-                    err_body = ""
-                    try: err_body = e.read().decode("utf-8")
-                    except Exception: pass
-                    # Try to extract Anthropic's human-readable error message
+                import urllib.error as _uerr, time as _time_mod
+                resp = None
+                _iz_retry_wait = 30   # seconds to wait on first rate-limit hit
+                for _iz_attempt in range(3):
                     try:
-                        err_obj = _json.loads(err_body)
-                        err_msg = err_obj.get("error", {}).get("message", "") or err_body
-                    except Exception:
-                        err_msg = err_body or str(e)
-                    self.send_response(400)
+                        resp = _req.urlopen(req, timeout=90)
+                        break  # success
+                    except _uerr.HTTPError as e:
+                        err_body = ""
+                        try: err_body = e.read().decode("utf-8")
+                        except Exception: pass
+                        is_rate_limit = (e.code == 429 or "rate limit" in err_body.lower())
+                        if is_rate_limit and _iz_attempt < 2:
+                            _time_mod.sleep(_iz_retry_wait)
+                            _iz_retry_wait *= 2   # 30s → 60s on second retry
+                            continue
+                        # Not a rate-limit, or retries exhausted — surface the error
+                        try:
+                            err_obj = _json.loads(err_body)
+                            err_msg = err_obj.get("error", {}).get("message", "") or err_body
+                        except Exception:
+                            err_msg = err_body or str(e)
+                        self.send_response(400)
+                        self.send_header("Content-Type","text/plain; charset=utf-8")
+                        self.end_headers()
+                        try: self.wfile.write(f"Anthropic API error: {err_msg}".encode("utf-8"))
+                        except BrokenPipeError: pass
+                        return
+                    except Exception as e:
+                        self.send_response(500)
+                        self.send_header("Content-Type","text/plain; charset=utf-8")
+                        self.end_headers()
+                        try: self.wfile.write(f"Server error: {e}".encode("utf-8"))
+                        except BrokenPipeError: pass
+                        return
+                if resp is None:
+                    self.send_response(503)
                     self.send_header("Content-Type","text/plain; charset=utf-8")
                     self.end_headers()
-                    try: self.wfile.write(f"Anthropic API error: {err_msg}".encode("utf-8"))
-                    except BrokenPipeError: pass
-                    return
-                except Exception as e:
-                    self.send_response(500)
-                    self.send_header("Content-Type","text/plain; charset=utf-8")
-                    self.end_headers()
-                    try: self.wfile.write(f"Server error: {e}".encode("utf-8"))
+                    try: self.wfile.write(b"Rate limit retries exhausted - please try again in a minute.")
                     except BrokenPipeError: pass
                     return
 
