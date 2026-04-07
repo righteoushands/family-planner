@@ -1163,20 +1163,20 @@ def print_page_html(title: str, body: str) -> str:
 <html><head><meta charset="utf-8"><title>{escape(title)}</title>
 <style>
   *{{box-sizing:border-box;margin:0;padding:0;}}
-  body{{font-family:Georgia,'Times New Roman',serif;font-size:13pt;color:#111;background:white;}}
+  body{{font-family:Georgia,'Times New Roman',serif;font-size:10pt;color:#111;background:white;}}
   .child-page{{page-break-after:always;padding:0.6in 0.7in 0.5in;min-height:100vh;}}
   .child-page:last-child{{page-break-after:avoid;}}
-  .page-header{{border-bottom:4px solid var(--child-color);padding-bottom:10px;margin-bottom:18px;}}
-  .child-name{{font-size:28pt;font-weight:bold;color:var(--child-color);letter-spacing:1px;}}
-  .date-line{{font-size:13pt;color:#555;margin-top:2px;}}
-  .section-title{{font-size:11pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#777;border-bottom:1px solid #ddd;padding-bottom:3px;margin:16px 0 8px;}}
-  .subject-name{{font-size:14pt;font-weight:bold;color:#222;margin:12px 0 4px;}}
-  .assignment-text{{font-size:11pt;color:#444;margin:0 0 6px 16px;line-height:1.5;white-space:pre-wrap;}}
-  .math-note{{font-size:10.5pt;color:#555;font-style:italic;margin:0 0 6px 16px;}}
-  .check-item{{display:flex;align-items:flex-start;gap:10px;margin:5px 0 5px 16px;font-size:12pt;line-height:1.4;}}
-  .checkbox{{width:16px;height:16px;border:2px solid #555;border-radius:3px;flex-shrink:0;margin-top:2px;display:inline-block;}}
-  .carryover-item{{display:flex;align-items:flex-start;gap:10px;margin:5px 0 5px 16px;font-size:12pt;color:#666;font-style:italic;}}
-  .page-footer{{margin-top:24px;border-top:1px solid #ddd;padding-top:8px;font-size:9pt;color:#aaa;text-align:right;}}
+  .page-header{{border-bottom:3px solid var(--child-color);padding-bottom:8px;margin-bottom:14px;}}
+  .child-name{{font-size:22pt;font-weight:bold;color:var(--child-color);letter-spacing:.5px;}}
+  .date-line{{font-size:10pt;color:#555;margin-top:2px;}}
+  .section-title{{font-size:9pt;font-weight:bold;text-transform:uppercase;letter-spacing:2px;color:#777;border-bottom:1px solid #ddd;padding-bottom:3px;margin:14px 0 6px;}}
+  .subject-name{{font-size:10pt;font-weight:bold;color:#222;margin:10px 0 3px;}}
+  .assignment-text{{font-size:9.5pt;color:#444;margin:0 0 5px 14px;line-height:1.45;white-space:pre-wrap;}}
+  .math-note{{font-size:9pt;color:#555;font-style:italic;margin:0 0 5px 14px;}}
+  .check-item{{display:flex;align-items:flex-start;gap:8px;margin:4px 0 4px 14px;font-size:9.5pt;line-height:1.4;}}
+  .checkbox{{width:13px;height:13px;border:1.5px solid #555;border-radius:2px;flex-shrink:0;margin-top:2px;display:inline-block;}}
+  .carryover-item{{display:flex;align-items:flex-start;gap:8px;margin:4px 0 4px 14px;font-size:9.5pt;color:#666;font-style:italic;}}
+  .page-footer{{margin-top:20px;border-top:1px solid #ddd;padding-top:6px;font-size:8pt;color:#aaa;text-align:right;}}
   @media print{{body{{background:white;}}.no-print{{display:none!important;}}}}
   @media screen{{body{{background:#f0f0f0;}}.child-page{{background:white;margin:20px auto;max-width:8.5in;box-shadow:0 2px 8px rgba(0,0,0,0.15);}}}}
 </style></head><body>
@@ -1319,7 +1319,7 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
         target_iso = date.today()
 
     age_strip = render_child_age_strip(child, target_iso)
-    age_html  = (f'<div style="font-size:9pt;color:#888;margin-top:2px;">{age_strip}</div>'
+    age_html  = (f'<div style="font-size:8pt;color:#888;margin-top:2px;">{age_strip}</div>'
                  if age_strip else "")
 
     _kind_icons_print = {
@@ -1360,17 +1360,17 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
                 continue
             tot = len(checkable_subs)
             rows_html += (
-                f'<div style="margin:10px 0 2px;border-left:3px solid {kcolor};padding-left:7px;">'
+                f'<div style="margin:8px 0 2px;border-left:3px solid {kcolor};padding-left:7px;">'
                 f'<span style="font-size:8pt;color:#888;">{escape(t_disp)}</span> '
-                f'<strong style="font-size:11pt;color:{kcolor};">{icon} {label}</strong>'
+                f'<strong style="font-size:10pt;color:{kcolor};">{icon} {label}</strong>'
                 f'<span style="font-size:8pt;color:#aaa;"> — {tot} item{"s" if tot != 1 else ""}</span>'
                 f'</div>'
             )
             for sub in subs:
                 if sub.get("is_header"):
                     rows_html += (
-                        f'<div style="font-size:7.5pt;font-weight:800;letter-spacing:.08em;'
-                        f'text-transform:uppercase;color:#888;margin:6px 0 2px 14px;">'
+                        f'<div style="font-size:8pt;font-weight:800;letter-spacing:.07em;'
+                        f'text-transform:uppercase;color:#888;margin:5px 0 2px 14px;">'
                         f'{escape(sub.get("text",""))}</div>'
                     )
                 elif sub.get("checkable") and sub.get("task_id"):
@@ -1380,17 +1380,16 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
                     carry_mark = "↩ " if sub.get("is_carryover") else ""
                     rows_html += (
                         f'<div style="display:flex;align-items:flex-start;gap:8px;'
-                        f'margin:3px 0 3px 22px;font-size:10.5pt;">'
-                        f'<span style="width:15px;height:15px;border:1.5px solid #555;'
-                        f'border-radius:3px;flex-shrink:0;display:inline-flex;'
-                        f'align-items:center;justify-content:center;font-size:9pt;'
+                        f'margin:3px 0 3px 22px;font-size:9.5pt;line-height:1.4;">'
+                        f'<span style="width:13px;height:13px;border:1.5px solid #555;'
+                        f'border-radius:2px;flex-shrink:0;display:inline-block;'
                         f'margin-top:2px;"></span>'
                         f'<span>{carry_mark}{escape(sub.get("text",""))}</span>'
                         f'</div>'
                     )
                 else:
                     rows_html += (
-                        f'<div style="margin:2px 0 2px 30px;font-size:10pt;color:#666;">'
+                        f'<div style="margin:2px 0 2px 30px;font-size:9.5pt;color:#666;">'
                         f'{escape(sub.get("text",""))}</div>'
                     )
         elif item.get("task_id") and item.get("checkable"):
@@ -1398,23 +1397,22 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
             if _has_any_pending and item.get("done", False):
                 continue
             rows_html += (
-                f'<div style="display:flex;align-items:center;gap:10px;'
-                f'border-left:3px solid {kcolor};padding:5px 6px;margin:3px 0;">'
+                f'<div style="display:flex;align-items:center;gap:8px;'
+                f'border-left:3px solid {kcolor};padding:4px 6px;margin:3px 0;">'
                 f'<span style="font-size:8pt;color:#888;min-width:68px;">{escape(t_disp)}</span>'
                 f'<span style="font-size:9pt;">{icon}</span>'
-                f'<span style="flex:1;font-size:11pt;">{label}</span>'
-                f'<span style="width:16px;height:16px;border:1.5px solid #555;'
-                f'border-radius:3px;display:inline-flex;align-items:center;'
-                f'justify-content:center;font-size:9pt;"></span>'
+                f'<span style="flex:1;font-size:10pt;">{label}</span>'
+                f'<span style="width:13px;height:13px;border:1.5px solid #555;'
+                f'border-radius:2px;display:inline-block;flex-shrink:0;"></span>'
                 f'</div>'
             )
         else:
             rows_html += (
-                f'<div style="display:flex;align-items:center;gap:10px;'
+                f'<div style="display:flex;align-items:center;gap:8px;'
                 f'padding:4px 6px;margin:2px 0;opacity:.65;">'
                 f'<span style="font-size:8pt;color:#888;min-width:68px;">{escape(t_disp)}</span>'
                 f'<span style="font-size:9pt;">{icon}</span>'
-                f'<span style="flex:1;font-size:11pt;color:#777;">{label}</span>'
+                f'<span style="flex:1;font-size:10pt;color:#777;">{label}</span>'
                 f'</div>'
             )
 
@@ -1426,7 +1424,7 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
             <div class="date-line">{escape(weekday)}, {escape(date_label)}</div>
             {age_html}
         </div>
-        <div style="font-size:8.5pt;color:#888;margin-bottom:10px;">
+        <div style="font-size:8pt;color:#888;margin-bottom:8px;">
             {stats['done']}/{stats['total']} complete · Rule of Life Day List
         </div>
         {rows_html or '<p style="color:#aaa;font-style:italic;">No schedule data for today.</p>'}

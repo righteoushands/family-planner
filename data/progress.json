@@ -531,5 +531,21 @@
   "2026-04-07::JP::SCHOOL::Algebra 1/2::Assignment completed": true,
   "2026-04-07::JP::SCHOOL::Algebra 1/2::Given to checker": true,
   "2026-04-07::JP::SCHOOL::Algebra 1/2::Received brother's math": true,
-  "2026-04-07::Joseph::SCHOOL::Math 87::Received brother's math": true
+  "2026-04-07::Joseph::SCHOOL::Math 87::Received brother's math": true,
+  "ROUTINE::JP::2026-04-07::Bible Study / Play": true,
+  "ROUTINE::JP::2026-04-07::Travel": true,
+  "ROUTINE::JP::2026-04-07::HSPE / errands": true,
+  "CHORE::Joseph::2026-04-07::morning::Unload dishwasher": true,
+  "CHORE::Joseph::2026-04-07::morning::Load dishwasher": true,
+  "CHORE::Joseph::2026-04-07::morning::Clean sink": true,
+  "ROUTINE::Joseph::2026-04-07::Morning Prayer (with family or on your own)": true,
+  "ROUTINE::Joseph::2026-04-07::Prepare to leave for Bible Study. Pack everything you need for school and Homeschool PE. Confirm who has the Y card.": true,
+  "ROUTINE::Joseph::2026-04-07::Leave for Bible Study": true,
+  "ROUTINE::Joseph::2026-04-07::Bible Study / Play": true,
+  "ROUTINE::Joseph::2026-04-07::Travel": true,
+  "ROUTINE::Joseph::2026-04-07::HSPE / errands": true,
+  "ROUTINE::Joseph::2026-04-07::Prep for Religious Education (RE)": true,
+  "ROUTINE::Joseph::2026-04-07::Leave for RE": true,
+  "ROUTINE::Joseph::2026-04-07::RE / downtown errands vs. farm": true,
+  "ROUTINE::Joseph::2026-04-07::Travel / Buffer": true
 }
