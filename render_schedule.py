@@ -1242,7 +1242,6 @@ def _render_meal_print_section(target_date, weekday: str) -> str:
         f'</div>'
     )
 
-
 def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
     """Print a single child's complete chronological Day List — clean, checkable."""
     normalized_date = normalize_date_query(target_date_str)
@@ -1275,6 +1274,15 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
         "meal": "#5a1a3a",
     }
 
+    # Only show pending (unchecked) items on the printout.
+    # If everything is already done, show all items so the sheet isn't blank.
+    _has_any_pending = any(
+        not s.get("done", False)
+        for item in day_list
+        for s in ([item] + item.get("sub_items", []))
+        if s.get("checkable") and s.get("task_id")
+    )
+
     rows_html = ""
     for item in day_list:
         kind   = item.get("kind", "routine")
@@ -1288,6 +1296,9 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
 
         if subs:
             checkable_subs = [s for s in subs if s.get("checkable") and not s.get("is_header")]
+            # Skip the whole block if all subitems are done and there are pending tasks elsewhere
+            if _has_any_pending and all(s.get("done", False) for s in checkable_subs if checkable_subs):
+                continue
             tot = len(checkable_subs)
             rows_html += (
                 f'<div style="margin:10px 0 2px;border-left:3px solid {kcolor};padding-left:7px;">'
@@ -1304,18 +1315,18 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
                         f'{escape(sub.get("text",""))}</div>'
                     )
                 elif sub.get("checkable") and sub.get("task_id"):
+                    # Skip done subitems when there are still pending tasks
+                    if _has_any_pending and sub.get("done", False):
+                        continue
                     carry_mark = "↩ " if sub.get("is_carryover") else ""
-                    done  = sub.get("done", False)
-                    done_style = "opacity:.4;text-decoration:line-through;" if done else ""
-                    done_check = "✓" if done else ""
                     rows_html += (
                         f'<div style="display:flex;align-items:flex-start;gap:8px;'
                         f'margin:3px 0 3px 22px;font-size:10.5pt;">'
                         f'<span style="width:15px;height:15px;border:1.5px solid #555;'
                         f'border-radius:3px;flex-shrink:0;display:inline-flex;'
                         f'align-items:center;justify-content:center;font-size:9pt;'
-                        f'margin-top:2px;">{done_check}</span>'
-                        f'<span style="{done_style}">{carry_mark}{escape(sub.get("text",""))}</span>'
+                        f'margin-top:2px;"></span>'
+                        f'<span>{carry_mark}{escape(sub.get("text",""))}</span>'
                         f'</div>'
                     )
                 else:
@@ -1324,18 +1335,18 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
                         f'{escape(sub.get("text",""))}</div>'
                     )
         elif item.get("task_id") and item.get("checkable"):
-            done  = item.get("done", False)
-            done_style = "opacity:.4;text-decoration:line-through;" if done else ""
-            done_check = "✓" if done else ""
+            # Skip done top-level tasks when there are still pending tasks
+            if _has_any_pending and item.get("done", False):
+                continue
             rows_html += (
                 f'<div style="display:flex;align-items:center;gap:10px;'
                 f'border-left:3px solid {kcolor};padding:5px 6px;margin:3px 0;">'
                 f'<span style="font-size:8pt;color:#888;min-width:68px;">{escape(t_disp)}</span>'
                 f'<span style="font-size:9pt;">{icon}</span>'
-                f'<span style="flex:1;font-size:11pt;{done_style}">{label}</span>'
+                f'<span style="flex:1;font-size:11pt;">{label}</span>'
                 f'<span style="width:16px;height:16px;border:1.5px solid #555;'
                 f'border-radius:3px;display:inline-flex;align-items:center;'
-                f'justify-content:center;font-size:9pt;">{done_check}</span>'
+                f'justify-content:center;font-size:9pt;"></span>'
                 f'</div>'
             )
         else:

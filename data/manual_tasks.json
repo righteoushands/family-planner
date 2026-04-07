@@ -3021,5 +3021,689 @@
     "status": "active",
     "source": "lucy",
     "recurring": false
+  },
+  {
+    "text": "7:30 AM Morning Jobs — Daily Room Reset: make bed, pick up clothes, return items, trash",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:00 AM School — Math — Assignment completed",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:00 AM School — Math — Given to checker",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:00 AM School — Math — Received brother's math",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:00 AM School — Math — Fixed missed problems",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:00 AM School — Math — Checked brother's math",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:30 AM School — Editing 7",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:30 AM School — Spelling & Vocabulary 8",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:30 AM School — Beginning Latin III",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:30 AM School — Science 7",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:30 AM School — History & Geog 8",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:30 AM School — Poetry 8",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:30 AM School — Reading 8",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:30 AM School — Religion 8",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:30 AM School — Art 7",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "9:00 AM Go over Lists with Mom",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "9:00 AM Weekly Job",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "9:30 AM School (continue as needed)",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "11:00 AM Exercise",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "12:00 PM Lunch",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "12:30 PM Clean the Kitchen — KITCHEN (Morning — Role A): Put food away, clear table + counters, spray + wipe table and counters, take out trash + recycling, sweep kitchen / dining room / foyer",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "1:00 PM Weekly Jobs — LAUNDRY — Mom's laundry: Start load after breakfast kitchen jobs, switch load before lunch, bring upstairs after lunch, family fold block (audiobook/read-aloud), put away completely before evening",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "1:00 PM Weekly Jobs — Sweep indoor stairs",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "1:00 PM Weekly Jobs — VAN — Interior Reset Lead (Role A)",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "1:00 PM Weekly Jobs — VAN — Shared (both boys)",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "1:00 PM Weekly Jobs — Trim nails",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "1:00 PM Weekly Jobs — Check CAP email",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "1:00 PM Weekly Jobs — Check Sea Cadet email",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "1:00 PM Weekly Jobs — Finish next Sea Cadet Recruit Orientation",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "2:00 PM - 4:30 PM Jobs from earlier today, Homework or Free Time",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "5:00 PM Dinner",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "5:30 PM Clean the Kitchen — KITCHEN (Evening — Role A): Unload dishwasher, load dishwasher, clean sink",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "6:00 PM Showers",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "6:30 PM Wash CAP uniform for tonight's meeting",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "7:00 PM HW or Free Time",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "7:30 PM HW or Free Time",
+    "assigned_to": "JP",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "7:30 AM Morning Jobs — Daily Room Reset: make bed, pick up clothes, return items, trash",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:00 AM School — Math — Assignment completed",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:00 AM School — Math — Given to checker",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:00 AM School — Math — Received brother's math",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:00 AM School — Math — Fixed missed problems",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:00 AM School — Math — Checked brother's math",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:30 AM School — English 8",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:30 AM School — Spelling & Vocabulary 8",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:30 AM School — Beginning Latin III",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:30 AM School — History & Geog 7",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:30 AM School — Reading 7",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "8:30 AM School — Religion 7",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "9:00 AM Go over Lists with Mom",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "9:00 AM Weekly Job",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "9:00 AM Find plain black pants for CAP",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "9:00 AM Find white t-shirt for CAP",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "9:30 AM School (continue as needed)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "11:00 AM Exercise",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "12:00 PM Lunch",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "12:30 PM Clean the Kitchen — KITCHEN (Morning — Role B): Unload dishwasher, load dishwasher, clean sink",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "1:00 PM Weekly Jobs — Review irregular verbs",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "1:00 PM Weekly Jobs — VAN — Bin & Organization Lead (Role B)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "1:00 PM Weekly Jobs — VAN — Shared (both boys)",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "1:00 PM Weekly Jobs — Trim nails",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "1:00 PM Weekly Jobs — Check Sea Cadet email",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "1:00 PM Weekly Jobs — Finish next Sea Cadet Recruit Orientation",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "2:00 PM - 4:30 PM Jobs from earlier today, Homework or Free Time",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "5:00 PM Dinner",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "5:30 PM Clean the Kitchen — KITCHEN (Evening — Role B): Put food away, clear table + counters, spray + wipe table and counters, take out trash + recycling, sweep kitchen / dining room / foyer",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "5:30 PM Clean kids bathroom",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "6:00 PM Showers",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "7:00 PM HW or Free Time",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "7:30 PM HW or Free Time",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "7:30 AM Morning Jobs — Daily Room Reset: make bed, pick up clothes, return items, trash",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "9:00 AM Go over Lists with Mom",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "12:00 PM Lunch — Help with lunch prep",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "2:00 PM - 4:30 PM Jobs from earlier today, Homework or Free Time",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "9:00 AM Go over Lists with Mom",
+    "assigned_to": "James",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "12:00 PM Lunch",
+    "assigned_to": "James",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
+  },
+  {
+    "text": "2:00 PM - 4:30 PM Play with blocks or Free Time",
+    "assigned_to": "James",
+    "due_date": "2026-04-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "lucy",
+    "recurring": false
   }
 ]
