@@ -501,5 +501,34 @@
       "MANUAL::MEDIUM::Make WCC for Joe",
       "MANUAL::MEDIUM::Sharpen knives"
     ]
+  },
+  "2026-04-07": {
+    "Joseph": [
+      "CHORE::  → Clean sink",
+      "CHORE::  → Clear table + counters",
+      "CHORE::  → Load dishwasher",
+      "CHORE::  → Put food away",
+      "CHORE::  → Spray + wipe table and counters",
+      "CHORE::  → Sweep kitchen / dining room / foyer",
+      "CHORE::  → Take out trash + recycling",
+      "CHORE::  → Unload dishwasher",
+      "CHORE::Check Sea Cadet email",
+      "CHORE::Clean kids bathroom",
+      "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
+      "CHORE::Exercise (non-PE days)",
+      "CHORE::KITCHEN (Evening — Role B):",
+      "CHORE::KITCHEN (Morning — Role B):",
+      "CHORE::Review irregular verbs",
+      "SCHOOL::Beginning Latin III::Done",
+      "SCHOOL::English 8::Done",
+      "SCHOOL::History & Geog 7::Done",
+      "SCHOOL::Math 87::Assignment completed",
+      "SCHOOL::Math 87::Checked brother's math",
+      "SCHOOL::Math 87::Fixed missed problems",
+      "SCHOOL::Math 87::Given to checker",
+      "SCHOOL::Math 87::Received brother's math",
+      "SCHOOL::Reading 7::Done",
+      "SCHOOL::Spelling & Vocabulary 8::Done"
+    ]
   }
 }
