@@ -484,7 +484,8 @@ async function sendToFelix() {{
 }}
 
 // ── Core streaming function (reusable for auto-reads) ─────────────────
-async function streamFelix(payload, isAutoRead, image) {{
+async function streamFelix(payload, isAutoRead, image, depth) {{
+  depth = depth || 0;
   const box    = document.getElementById('felix-msgs');
   const errEl  = document.getElementById('felix-error');
   const thinkEl= document.getElementById('felix-thinking');
@@ -549,8 +550,8 @@ async function streamFelix(payload, isAutoRead, image) {{
     _renderHandoffBtns(full, bubble.lastElementChild || bubble);
     box.scrollTop = box.scrollHeight;
 
-    // ── Auto-process [READ:] tags — only on user-initiated turns, never recursively ──
-    if (full && !isAutoRead) await autoHandleReads(full);
+    // ── Auto-process [READ:] tags — chain up to 4 rounds so Izzy can work through complex tasks ──
+    if (full && depth < 4) await autoHandleReads(full, depth + 1);
 
   }} catch(err) {{
     thinkEl.style.display = 'none';
@@ -564,7 +565,8 @@ async function streamFelix(payload, isAutoRead, image) {{
 // ── ?q= URL param prefill is handled by _ho_js above ──────────────────
 
 // ── Auto-handle [READ:] tags — silently fetch, never show status to user ──
-async function autoHandleReads(fullText) {{
+async function autoHandleReads(fullText, depth) {{
+  depth = depth || 1;
   const readPattern = /\[READ:\s*([^:\]]+)(?::(\d+)-(\d+))?\]/g;
   const sections = [];
   let m;
@@ -594,8 +596,9 @@ async function autoHandleReads(fullText) {{
     parts.join('\\n\\n\u2500\u2500\u2500\\n\\n') +
     '\\n\\n[END OF FILE SECTIONS]';
 
-  setThinking('Izzy is reading the code\u2026');
-  await streamFelix(contextPayload, true);
+  const passNote = depth > 1 ? ' (round ' + depth + ' of 4)' : '';
+  setThinking('Izzy is reading the code\u2026' + passNote);
+  await streamFelix(contextPayload, true, null, depth);
 }}
 
 function setThinking(msg) {{
