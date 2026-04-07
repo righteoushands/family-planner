@@ -193,6 +193,5 @@ window.addEventListener('load', function() {{
     if (!inp.value) inp.value = q.trim();
     inp.style.height = 'auto';
     inp.style.height = Math.min(inp.scrollHeight, 120) + 'px';
-    inp.focus();
 }});
 """
