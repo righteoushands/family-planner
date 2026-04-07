@@ -124,6 +124,24 @@ def _gather_tomorrow_data(tomorrow: date) -> dict:
         result["schedule_start"] = 6
         result["schedule_end"]   = 21
 
+    # ── Family Rule of Life (weekly schedule grid) ────────────────────────────
+    try:
+        from data_helpers import load_family_schedule
+        from render_schedule_support import generate_half_hour_times
+        schedule   = load_family_schedule()
+        times      = schedule.get("times", []) or generate_half_hour_times()
+        day_slots  = schedule.get("days", {}).get(weekday, {})
+        rol_items  = []
+        seen_text  = set()
+        for t in times:
+            text = day_slots.get(t, "").strip()
+            if text and text not in seen_text:
+                seen_text.add(text)
+                rol_items.append({"time": t, "text": text})
+        result["rol_schedule"] = rol_items
+    except Exception:
+        result["rol_schedule"] = []
+
     return result
 
 
@@ -226,6 +244,12 @@ def _data_summary_text(data: dict) -> str:
         lines.append(f"Mom-needed subjects: {fc['mom_needed'][:100]}")
     if fc.get("exercise"):
         lines.append(f"Family exercise: {fc['exercise']}")
+
+    rol = data.get("rol_schedule", [])
+    if rol:
+        lines.append("Family Rule of Life schedule for this day:")
+        for item in rol:
+            lines.append(f"  {item['time']}: {item['text']}")
 
     lines.append(f"Day runs: {data.get('schedule_start',6)}am – {data.get('schedule_end',21) - 12}pm")
 
@@ -500,7 +524,10 @@ def render_plan_tomorrow_page(status: str = "", for_date: date = None) -> str:
         if chores:
             chore_items.append(f"{child}: {', '.join(str(c) for c in chores[:4])}")
 
+    rol_items_disp = [f"{r['time']} — {r['text']}" for r in data.get("rol_schedule", [])]
+
     summary_cards = (
+        _render_data_card("Family Rule of Life", rol_items_disp or ["No schedule set for this day"], "#c0392b") +
         _render_data_card("Calendar events", events_list or ["None"], "#4a6a9e") +
         _render_data_card("Meals", meal_list or ["Not planned"], "#27ae60") +
         _render_data_card("School", school_items, "#8b5a3c") +
