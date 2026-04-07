@@ -441,5 +441,21 @@
   "2026-04-06::Joseph::CHORE::KITCHEN (Morning — Role B):": true,
   "2026-04-06::Joseph::MANUAL::MEDIUM::KITCHEN (Evening — Role B): Put food away, clear table + counters, spray + wipe table and counters, take out trash + recycling, sweep kitchen / dining room / foyer": true,
   "2026-04-06::Joseph::CHORE::Check Sea Cadet email": true,
-  "2026-04-06::Joseph::CHORE::Review irregular verbs": true
+  "2026-04-06::Joseph::CHORE::Review irregular verbs": true,
+  "ROUTINE::Joseph::2026-04-06::Morning Prayer (with family or on your own)": true,
+  "CHORE::Joseph::2026-04-06::morning::Unload dishwasher": true,
+  "CHORE::Joseph::2026-04-06::morning::Load dishwasher": true,
+  "CHORE::Joseph::2026-04-06::morning::Clean sink": true,
+  "SCHOOL::Joseph::2026-04-06::Math 87::Assignment completed": true,
+  "SCHOOL::Joseph::2026-04-06::Math 87::Given to checker": true,
+  "SCHOOL::Joseph::2026-04-06::Poetry 8::Done": true,
+  "SCHOOL::Joseph::2026-04-06::History & Geog 7::Done": true,
+  "SCHOOL::Joseph::2026-04-06::Spelling & Vocabulary 8::Done": true,
+  "SCHOOL::Joseph::2026-04-06::Editing 7::Done": true,
+  "ROUTINE::Joseph::2026-04-06::Exercise": true,
+  "MANUAL::Joseph::2026-04-06::Find plain black pants for CAP": true,
+  "MANUAL::Joseph::2026-04-06::Find white t-shirt for CAP": true,
+  "ROUTINE::Joseph::2026-04-06::CAP": true,
+  "ROUTINE::Joseph::2026-04-06::Break / CAP Prep": true,
+  "ROUTINE::Joseph::2026-04-06::CAP Prep": true
 }

@@ -1266,6 +1266,28 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
                 self.wfile.write(b'{"ok":true}'); return
 
+            elif path == "/schedule-template-save":
+                import json as _json
+                from pathlib import Path as _Path
+                _child   = clean_child(data.get("child",[""])[0])
+                _weekday = clean_weekday(data.get("weekday",[""])[0])
+                _n       = safe_int(data.get("slot_count",["0"])[0], 0)
+                if _child and _weekday:
+                    _tmpl_path = _Path(f"data/day_templates/{_weekday}.json")
+                    try:
+                        _tmpl = _json.loads(_tmpl_path.read_text(encoding="utf-8"))
+                    except Exception:
+                        _tmpl = {"weekday": _weekday, "grid": {}}
+                    _new_slots = {}
+                    for _i in range(_n):
+                        _ts  = clean_text(data.get(f"slot_time_{_i}",[""])[0]).strip()
+                        _lbl = clean_text(data.get(f"slot_label_{_i}",[""])[0]).strip()
+                        if _ts and _lbl:
+                            _new_slots[_ts] = _lbl
+                    _tmpl.setdefault("grid", {})[_child] = _new_slots
+                    safe_save_json(str(_tmpl_path), _tmpl)
+                redirect = f"/schedule/{_child}?date={date.today().isoformat()}&msg=saved"
+
             elif path == "/add-note":
                 text = clean_text(data.get("text",[""])[0])
                 if text: add_note(text)
@@ -4252,6 +4274,15 @@ class Handler(BaseHTTPRequestHandler):
                     })
                     save_calendar_cache({"events": events, "fetched_at": datetime.now().isoformat()})
                 redirect = "/mom#calendar"
+
+            elif path == "/calendar-event-delete":
+                _ev_id = clean_text(data.get("id",[""])[0])
+                if _ev_id:
+                    from data_helpers import load_calendar_cache, save_calendar_cache
+                    _cache  = load_calendar_cache()
+                    _events = [e for e in _cache.get("events",[]) if e.get("id","") != _ev_id]
+                    save_calendar_cache({"events": _events, "fetched_at": datetime.now().isoformat()})
+                redirect = clean_text(data.get("return_url",["/"])[0]) or "/"
 
             elif path == "/cycle-log-add":
                 import json as _json, os as _os

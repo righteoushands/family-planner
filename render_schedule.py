@@ -158,13 +158,16 @@ def render_day_nav(base_url: str, iso: str) -> str:
     next_iso      = (d + timedelta(days=1)).isoformat()
     today_iso_val = date.today().isoformat()
     today_style   = "opacity:0.4;pointer-events:none;" if iso == today_iso_val else ""
-    _nav_date_label = escape(d.strftime("%A, %B %d"))
+    base_esc      = escape(base_url, quote=False)
     return f"""
-    <div style="display:flex;align-items:center;gap:8px;margin:6px 0;">
-        <a class="link-button" href="{base_url}?date={prev_iso}" style="font-size:1.1em;padding:4px 12px;">‹</a>
+    <div style="display:flex;align-items:center;gap:8px;margin:6px 0;flex-wrap:wrap;">
+        <a class="link-button" href="{base_url}?date={prev_iso}" style="font-size:1.1em;padding:4px 12px;">&#8249;</a>
         <a class="link-button" href="{base_url}?date={today_iso_val}" style="{today_style}">Today</a>
-        <a class="link-button" href="{base_url}?date={next_iso}" style="font-size:1.1em;padding:4px 12px;">›</a>
-        <span style="font-size:0.85em;color:#888;margin-left:4px;">{_nav_date_label}</span>
+        <a class="link-button" href="{base_url}?date={next_iso}" style="font-size:1.1em;padding:4px 12px;">&#8250;</a>
+        <input type="date" value="{iso}"
+               onchange="window.location.href='{base_esc}?date='+this.value"
+               style="font-size:0.82em;padding:4px 8px;border:1px solid #d1d5db;border-radius:8px;
+                      background:#fff;color:#333;cursor:pointer;max-width:140px;">
     </div>"""
 
 
@@ -287,8 +290,12 @@ def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str) -> str:
 
 
 def _render_day_list_html(day_list: list, child: str, iso: str,
-                           c_bg: str) -> str:
+                           c_bg: str, meals: dict = None) -> str:
     c_id = child.lower().replace(" ", "-")
+    _meal_slot_map = {
+        "breakfast": "breakfast", "brunch": "breakfast",
+        "lunch": "lunch", "dinner": "dinner", "snack": "snacks", "snacks": "snacks",
+    }
     rows = []
     for item in day_list:
         kind  = item.get("kind", "routine")
@@ -299,6 +306,36 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
         t_disp = f"{t_st} – {t_en}" if t_en and t_en != t_st else t_st
         label  = escape(item.get("label", ""))
         subs   = item.get("sub_items", [])
+
+        # ── Calendar event row ───────────────────────────────────────────────
+        if kind == "event":
+            ev_id  = item.get("event_id", "")
+            is_man = item.get("event_calendar", "") == "Manual"
+            del_btn = ""
+            if is_man and ev_id:
+                ev_id_esc = escape(ev_id)
+                iso_esc   = escape(iso)
+                ch_esc    = escape(child)
+                del_btn = (
+                    f'<form method="POST" action="/calendar-event-delete"'
+                    f' style="display:inline;margin-left:auto;">'
+                    f'<input type="hidden" name="id" value="{ev_id_esc}">'
+                    f'<input type="hidden" name="return_url"'
+                    f' value="/schedule/{ch_esc}?date={iso_esc}">'
+                    f'<button type="submit" title="Delete event"'
+                    f' style="background:none;border:none;color:#ccc;cursor:pointer;'
+                    f'font-size:.85em;padding:0 4px;line-height:1;">&times;</button>'
+                    f'</form>'
+                )
+            rows.append(
+                f'<div class="dl-row" style="border-left:3px solid #7c3aed;">'
+                f'<span class="dl-time">{t_disp}</span>'
+                f'<span class="dl-kind-icon">&#128197;</span>'
+                f'<span class="dl-label" style="color:#7c3aed;flex:1;">{label}</span>'
+                f'{del_btn}'
+                f'</div>'
+            )
+            continue
 
         if subs:
             # Expanded block — header row + sub-items
@@ -340,15 +377,133 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
                 f'</div></div>'
             )
         else:
-            # Informational / free slot
+            # Informational / free / meal slot
+            # For meal slots: inject the menu if available
+            meal_note = ""
+            if kind == "meal" and meals:
+                label_low = item.get("label", "").lower()
+                for keyword, slot_key in _meal_slot_map.items():
+                    if keyword in label_low:
+                        meal_text = (meals.get(slot_key) or "").strip()
+                        if meal_text:
+                            meal_note = (
+                                f'<span style="font-size:.75em;color:#8b3a5c;'
+                                f'margin-left:6px;font-style:italic;">'
+                                f'&#8212; {escape(meal_text)}</span>'
+                            )
+                        break
+            lbl_color = "#999" if kind in ("free", "wakeup") else color
             rows.append(
                 f'<div class="dl-row dl-info" style="border-left:3px solid {color};">'
                 f'<span class="dl-time">{t_disp}</span>'
                 f'<span class="dl-kind-icon">{icon}</span>'
-                f'<span class="dl-label" style="color:#999;">{label}</span>'
+                f'<span class="dl-label" style="color:{lbl_color};">{label}{meal_note}</span>'
                 f'</div>'
             )
     return "".join(rows)
+
+
+def _render_template_editor(child: str, weekday: str, c_bg: str) -> str:
+    """Collapsible in-page editor for a child's Rule of Life time slots on a given weekday."""
+    import json as _json
+    from pathlib import Path as _Path
+
+    tmpl_path = _Path(f"data/day_templates/{weekday}.json")
+    try:
+        tmpl = _json.loads(tmpl_path.read_text(encoding="utf-8"))
+        grid = tmpl.get("grid", {})
+        child_slots = dict(grid.get(child, {}))
+    except Exception:
+        child_slots = {}
+
+    # Sort by time
+    def _sort_key(ts):
+        try:
+            from datetime import datetime as _dt
+            return _dt.strptime(ts.strip(), "%I:%M %p").strftime("%H:%M")
+        except Exception:
+            return ts
+    sorted_slots = sorted(child_slots.items(), key=lambda kv: _sort_key(kv[0]))
+
+    slot_rows = ""
+    for i, (ts, lbl) in enumerate(sorted_slots):
+        ts_esc  = escape(ts)
+        lbl_esc = escape(lbl)
+        slot_rows += (
+            f'<div class="tmpl-row" id="tmpl-row-{i}">'
+            f'<input name="slot_time_{i}" value="{ts_esc}" placeholder="9:00 AM"'
+            f' style="width:95px;font-size:.82em;padding:4px 6px;border:1px solid #ddd;border-radius:6px;">'
+            f'<input name="slot_label_{i}" value="{lbl_esc}" placeholder="Label"'
+            f' style="flex:1;font-size:.82em;padding:4px 6px;border:1px solid #ddd;border-radius:6px;">'
+            f'<button type="button" onclick="this.closest(\'.tmpl-row\').remove();_tmplRecount()"'
+            f' style="background:none;border:none;color:#ccc;cursor:pointer;font-size:1em;'
+            f'padding:2px 6px;">&times;</button>'
+            f'</div>'
+        )
+
+    n = len(sorted_slots)
+    child_esc   = escape(child)
+    weekday_esc = escape(weekday)
+    editor_id   = f"tmpl-editor-{escape(child).lower()}"
+    return f"""
+<style>
+#{editor_id}{{display:none;}}
+#{editor_id}.open{{display:block;}}
+.tmpl-row{{display:flex;align-items:center;gap:6px;margin-bottom:6px;}}
+</style>
+<div id="{editor_id}" class="card card-tight no-print"
+     style="border-left:4px solid {c_bg};margin-top:8px;">
+  <h3 style="color:{c_bg};margin-bottom:10px;">&#9965; Edit {child_esc}'s {weekday_esc} Template</h3>
+  <form method="POST" action="/schedule-template-save" id="tmpl-form-{child_esc.lower()}">
+    <input type="hidden" name="child"   value="{child_esc}">
+    <input type="hidden" name="weekday" value="{weekday_esc}">
+    <input type="hidden" name="slot_count" id="tmpl-count-{child_esc.lower()}" value="{n}">
+    <div id="tmpl-rows-{child_esc.lower()}">
+      {slot_rows}
+    </div>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button type="button"
+              onclick="_tmplAddRow('{child_esc.lower()}')"
+              style="font-size:.82em;padding:5px 14px;background:#f3f4f6;border:1px solid #ddd;
+                     border-radius:8px;cursor:pointer;">+ Add Slot</button>
+      <button type="submit"
+              style="font-size:.82em;padding:5px 14px;background:{c_bg};color:#fff;
+                     border:none;border-radius:8px;cursor:pointer;font-weight:700;">
+        &#10003; Save to Template</button>
+    </div>
+  </form>
+</div>
+<script>
+function _tmplRecount(){{
+  var rows=document.querySelectorAll('.tmpl-row');
+  rows.forEach(function(r,i){{
+    r.querySelectorAll('input').forEach(function(inp){{
+      var nm=inp.name;
+      if(nm.startsWith('slot_time_')||nm.startsWith('slot_label_')){{
+        inp.name=nm.replace(/\\d+$/,i);
+      }}
+    }});
+  }});
+  var cc=document.querySelector('[id^="tmpl-count-"]');
+  if(cc)cc.value=rows.length;
+}}
+function _tmplAddRow(childKey){{
+  var cont=document.getElementById('tmpl-rows-'+childKey);
+  var n=cont.querySelectorAll('.tmpl-row').length;
+  var d=document.createElement('div');
+  d.className='tmpl-row';
+  d.id='tmpl-row-'+n;
+  d.innerHTML='<input name="slot_time_'+n+'" value="" placeholder="9:00 AM"'
+    +' style="width:95px;font-size:.82em;padding:4px 6px;border:1px solid #ddd;border-radius:6px;">'
+    +'<input name="slot_label_'+n+'" value="" placeholder="Label"'
+    +' style="flex:1;font-size:.82em;padding:4px 6px;border:1px solid #ddd;border-radius:6px;">'
+    +'<button type="button" onclick="this.closest(\\'.tmpl-row\\').remove();_tmplRecount()"'
+    +' style="background:none;border:none;color:#ccc;cursor:pointer;font-size:1em;padding:2px 6px;">&times;</button>';
+  cont.appendChild(d);
+  var cc=document.querySelector('[id^="tmpl-count-"]');
+  if(cc)cc.value=n+1;
+}}
+</script>"""
 
 
 def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
@@ -363,18 +518,52 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
 
     # Build the Day List (Rule-of-Life-anchored chronological schedule)
     day_list = build_day_list(child, weekday, iso)
+
+    # Load calendar events and merge into the Day List chronologically
+    try:
+        cal_items = get_calendar_events_for_boys(iso)
+    except Exception:
+        cal_items = []
+    for ev in cal_items:
+        ev_time    = ev.get("time")          # "HH:MM" or None
+        time_sort  = ev_time or "00:00"      # all-day events sort to top
+        from daily_schedule_engine import fmt_time_12h as _fmt12
+        disp_time  = _fmt12(ev_time) if ev_time else "All day"
+        loc        = ev.get("location", "")
+        lbl        = ev["title"] + (f" \u2022 {loc}" if loc else "")
+        day_list.append({
+            "time":      disp_time,
+            "time_sort": time_sort,
+            "end_time":  _fmt12(ev.get("end_time")) if ev.get("end_time") else disp_time,
+            "label":     lbl,
+            "kind":      "event",
+            "checkable": False,
+            "task_id":   None,
+            "done":      False,
+            "sub_items": [],
+            "is_event":  True,
+            "event_id":  ev.get("id", ""),
+            "event_calendar": ev.get("calendar", ""),
+        })
+    day_list.sort(key=lambda x: x.get("time_sort", "00:00"))
+
     stats    = day_list_stats(day_list)
     total    = stats["total"]
     done_cnt = stats["done"]
     pct      = stats["pct"]
 
-    # Also load calendar events to show at top
+    # Load meal plan for inline display
+    meals = {}
     try:
-        cal_items = get_calendar_events_for_boys(iso)
+        from render_meals import load_meal_plan, _week_key
+        from datetime import date as _date2
+        _td = _date2.fromisoformat(iso)
+        _plan = load_meal_plan(_week_key(_td))
+        meals = _plan.get("days", {}).get(weekday, {})
     except Exception:
-        cal_items = []
+        meals = {}
 
-    c_bg   = child_color(child, "bg")
+    c_bg    = child_color(child, "bg")
     c_light = child_color(child, "light")
 
     try:
@@ -387,8 +576,8 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
     all_done  = total > 0 and pct == 100
     celebration_html = render_confetti_celebration(child) if all_done else ""
 
-    day_list_html  = _render_day_list_html(day_list, child, iso, c_bg)
-    events_html    = _render_schedule_events_section(cal_items)
+    day_list_html = _render_day_list_html(day_list, child, iso, c_bg, meals)
+    template_html = _render_template_editor(child, weekday, c_bg)
 
     return f"""{_DL_CSS}
     <div class="card" style="border-left:5px solid {c_bg};background:{c_light};">
@@ -410,29 +599,30 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
             </div>
             <div class="link-row no-print">
                 <a class="link-button" href="/print/day/{escape(child)}?date={escape(iso)}">Print Day List</a>
+                <button onclick="document.getElementById('tmpl-editor-{escape(child).lower()}').classList.toggle('open')"
+                        class="link-button" style="background:{c_bg};color:#fff;">&#9965; Edit Template</button>
             </div>
             <div style="margin-top:8px;">{render_now_next_strip()}</div>
             <div style="margin-top:8px;">{render_calendar_today_strip(iso)}</div>
         </div>
-        {events_html}
         <div class="card card-tight no-print" id="lucy-child-panel-{child.lower()}"
              style="border-left:4px solid {c_bg};background:{c_light};margin-bottom:8px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                <span style="font-size:1em;">✦</span>
+                <span style="font-size:1em;">&#10022;</span>
                 <span style="font-size:.85em;font-weight:700;color:{c_bg};">
                     Lucy's notes for {escape(child)}</span>
             </div>
             <div id="lucy-child-brief-{child.lower()}"
                  style="font-size:.85em;line-height:1.55;color:#444;min-height:32px;">
-                <span style="color:#bbb;font-style:italic;">Loading…</span>
+                <span style="color:#bbb;font-style:italic;">Loading&#8230;</span>
             </div>
         </div>
         <div class="day-list">
             {day_list_html}
         </div>
-        {_render_meal_card_for_child(target_iso)}
         {_render_child_goals_section(child)}
         {_render_child_profile_section(child, c_bg, c_light)}
+        {template_html}
     </div>
 <script>
 (function() {{
