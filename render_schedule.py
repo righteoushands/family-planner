@@ -1348,10 +1348,18 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
         "meal": "#5a1a3a",
     }
 
+    def _is_print_done(s: dict) -> bool:
+        """Item is done if the progress flag is set OR the text was marked done
+        by the curriculum system (appends '— Done' or '—Done')."""
+        if s.get("done", False):
+            return True
+        txt = s.get("text", "").strip()
+        return txt.endswith("— Done") or txt.endswith("—Done") or txt.endswith("- Done")
+
     # Only show pending (unchecked) items on the printout.
     # If everything is already done, show all items so the sheet isn't blank.
     _has_any_pending = any(
-        not s.get("done", False)
+        not _is_print_done(s)
         for item in day_list
         for s in ([item] + item.get("sub_items", []))
         if s.get("checkable") and s.get("task_id")
@@ -1370,9 +1378,11 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
 
         if subs:
             checkable_subs = [s for s in subs if s.get("checkable") and not s.get("is_header")]
-            if _has_any_pending and all(s.get("done", False) for s in checkable_subs if checkable_subs):
+            pending_subs   = [s for s in checkable_subs if not _is_print_done(s)]
+            # Skip entire block if all its checkable sub-items are done
+            if _has_any_pending and not pending_subs:
                 continue
-            tot = len(checkable_subs)
+            tot = len(pending_subs)
             rows_html += (
                 f'<div class="blk-header" style="--blk-color:{kcolor};">'
                 f'<span class="blk-time">{escape(t_disp)}</span>'
@@ -1384,7 +1394,7 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
                 if sub.get("is_header"):
                     rows_html += f'<div class="sub-sect">{escape(sub.get("text",""))}</div>'
                 elif sub.get("checkable") and sub.get("task_id"):
-                    if _has_any_pending and sub.get("done", False):
+                    if _has_any_pending and _is_print_done(sub):
                         continue
                     carry_mark = "↩ " if sub.get("is_carryover") else ""
                     rows_html += (
@@ -1396,7 +1406,7 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
                 else:
                     rows_html += f'<div class="sub-note">• {escape(sub.get("text",""))}</div>'
         elif item.get("task_id") and item.get("checkable"):
-            if _has_any_pending and item.get("done", False):
+            if _has_any_pending and _is_print_done(item):
                 continue
             rows_html += (
                 f'<div class="blk-header" style="--blk-color:{kcolor};">'
