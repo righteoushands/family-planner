@@ -774,19 +774,22 @@ def _render_boys_now_blocks(iso: str, weekday: str) -> str:
                             f'margin:4px 0 2px 2px;">{subj}</div>'
                         )
                         for item in items:
-                            tid      = escape(item.get("task_id",""), quote=False).replace("'", "\\'")
+                            tid_raw  = item.get("task_id","")
+                            tid_html = escape(tid_raw, quote=False)
+                            tid_js   = tid_html.replace("'", "\\'")
                             is_done  = _item_done(item, progress)
                             checked  = "checked" if is_done else ""
                             txt      = escape(item.get("text","") or subj)
                             done_sty = "opacity:0.45;text-decoration:line-through;" if is_done else ""
-                            cb_url   = f"/schedule/{c_id}?date={escape(iso)}"
+                            data_done = "1" if is_done else "0"
                             status_line += (
-                                f'<div style="display:flex;align-items:flex-start;gap:6px;'
-                                f'padding:2px 0 2px 6px;{done_sty}">'
+                                f'<div id="task-{tid_html}" data-done="{data_done}" '
+                                f'style="display:flex;align-items:flex-start;gap:6px;'
+                                f'padding:2px 0 2px 6px;">'
                                 f'<input type="checkbox" {checked} '
-                                f'onchange="toggleTask(this,\'{tid}\',\'{cb_url}\')" '
+                                f'onchange="dashBoyToggle(this,\'{tid_js}\',\'{c_id}\')" '
                                 f'style="accent-color:{c_bg};flex-shrink:0;margin-top:2px;">'
-                                f'<span style="font-size:0.82em;color:var(--ink);">{txt}</span>'
+                                f'<label class="dl-label" style="font-size:0.82em;color:var(--ink);{done_sty}">{txt}</label>'
                                 f'</div>'
                             )
                     else:
@@ -806,23 +809,25 @@ def _render_boys_now_blocks(iso: str, weekday: str) -> str:
                     f'text-transform:uppercase;color:{c_bg};margin:6px 0 3px;">Chores &amp; Tasks</div>'
                 )
                 for item in other_items[:8]:
-                    _raw_tid = item.get("task_id","") if isinstance(item,dict) else ""
-                    tid      = escape(_raw_tid, quote=False).replace("'", "\\'")
-                    is_done  = _item_done(item, progress)
-                    checked  = "checked" if is_done else ""
-                    txt      = escape(item.get("text","") if isinstance(item,dict) else str(item))
-                    done_sty = "opacity:0.45;text-decoration:line-through;" if is_done else ""
-                    cb_url   = f"/schedule/{c_id}?date={escape(iso)}"
-                    onchange = (
-                        f'onchange="toggleTask(this,\'{tid}\',\'{cb_url}\')"'
-                        if tid else ""
+                    _raw_tid  = item.get("task_id","") if isinstance(item,dict) else ""
+                    tid_html  = escape(_raw_tid, quote=False)
+                    tid_js    = tid_html.replace("'", "\\'")
+                    is_done   = _item_done(item, progress)
+                    checked   = "checked" if is_done else ""
+                    txt       = escape(item.get("text","") if isinstance(item,dict) else str(item))
+                    done_sty  = "opacity:0.45;text-decoration:line-through;" if is_done else ""
+                    data_done = "1" if is_done else "0"
+                    id_attr   = f'id="task-{tid_html}" data-done="{data_done}" ' if tid_html else ""
+                    onchange  = (
+                        f'onchange="dashBoyToggle(this,\'{tid_js}\',\'{c_id}\')"'
+                        if tid_html else ""
                     )
                     status_line += (
-                        f'<div style="display:flex;align-items:flex-start;gap:6px;'
-                        f'padding:2px 0 2px 2px;{done_sty}">'
+                        f'<div {id_attr}style="display:flex;align-items:flex-start;gap:6px;'
+                        f'padding:2px 0 2px 2px;">'
                         f'<input type="checkbox" {checked} {onchange}'
                         f' style="accent-color:{c_bg};flex-shrink:0;margin-top:2px;">'
-                        f'<span style="font-size:0.82em;color:var(--ink);">{txt}</span>'
+                        f'<label class="dl-label" style="font-size:0.82em;color:var(--ink);{done_sty}">{txt}</label>'
                         f'</div>'
                     )
 
@@ -1350,6 +1355,42 @@ def render_dashboard() -> str:
     window.addEventListener('pageshow', function(e) {{
       if (e.persisted) {{ window.location.reload(); }}
     }});
+    /* Toggle a checkbox in the Boys Right Now cards and persist to server */
+    function dashBoyToggle(cb, tid, childId) {{
+      var row    = document.getElementById('task-' + tid);
+      var isDone = cb.checked;
+      if (row) {{
+        row.setAttribute('data-done', isDone ? '1' : '0');
+        var lbl = row.querySelector('label, .dl-label');
+        if (lbl) {{
+          lbl.style.opacity        = isDone ? '0.45' : '1';
+          lbl.style.textDecoration = isDone ? 'line-through' : 'none';
+        }}
+      }}
+      fetch('/toggle-task', {{
+        method: 'POST',
+        headers: {{'Content-Type': 'application/x-www-form-urlencoded'}},
+        body: 'task_id=' + encodeURIComponent(tid) +
+              '&new_value=' + encodeURIComponent(isDone ? 'true' : 'false') +
+              '&return_url=' + encodeURIComponent('/today')
+      }}).then(function(r) {{
+        if (!r.ok) {{
+          cb.checked = !cb.checked;
+          if (row) {{
+            row.setAttribute('data-done', isDone ? '0' : '1');
+            var lbl2 = row.querySelector('label, .dl-label');
+            if (lbl2) {{ lbl2.style.opacity = '1'; lbl2.style.textDecoration = 'none'; }}
+          }}
+        }}
+      }}).catch(function() {{
+        cb.checked = !cb.checked;
+        if (row) {{
+          row.setAttribute('data-done', isDone ? '0' : '1');
+          var lbl3 = row.querySelector('label, .dl-label');
+          if (lbl3) {{ lbl3.style.opacity = '1'; lbl3.style.textDecoration = 'none'; }}
+        }}
+      }});
+    }}
     /* Live progress sync — polls every 15 s so checkboxes stay in sync
        with the plan-of-day pages without needing a manual refresh. */
     (function() {{
