@@ -1163,14 +1163,36 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
         | _chore_line_texts(chores_data.get("daily", []))
     )
 
-    # Normalize text for robust deduplication (strip, lowercase, normalize apostrophes/quotes)
+    import re as _re
+
+    # Normalize text for robust deduplication (strip, lowercase, normalize apostrophes/quotes,
+    # and remove leading [PRIORITY] brackets so "[MEDIUM] Trim nails" == "Trim nails")
+    _priority_bracket_pat = _re.compile(r'^\[(?:HIGH|MEDIUM|LOW|URGENT)\]\s*', _re.IGNORECASE)
+    _time_prefix_pat      = _re.compile(r'^\d{1,2}:\d{2} (?:AM|PM)\b')
+    _school_progress_pat  = _re.compile(
+        r' — (?:Done|Assignment completed|Given to checker|Fixed missed problems'
+        r'|Received brother\'s math|Checked brother\'s math|Test completed)\s*$'
+    )
+
     def _norm(s: str) -> str:
-        return (s.strip()
-                .lower()
+        s = _priority_bracket_pat.sub("", s.strip())
+        return (s.lower()
                 .replace("\u2019", "'")   # curly right single quote → straight
                 .replace("\u2018", "'")   # curly left single quote → straight
                 .replace("\u201c", '"')   # curly left double quote → straight
                 .replace("\u201d", '"'))  # curly right double quote → straight
+
+    def _is_schedule_export(text: str) -> bool:
+        """Return True if this text is a schedule slot or sub-item, not a genuine task."""
+        if _time_prefix_pat.match(text):        # "7:30 AM Morning Jobs …"
+            return True
+        if text.startswith(("\u2192", "->")):   # "→ Clean sink", "-> Load dishwasher"
+            return True
+        if text.rstrip().endswith(":"):          # "KITCHEN (Morning — Role A):"
+            return True
+        if _school_progress_pat.search(text):   # "Math 87 — Assignment completed"
+            return True
+        return False
 
     # Patterns that should NEVER appear as manual tasks (they live in their own Day List slots)
     _rol_skip_prefixes = (
@@ -1191,6 +1213,9 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
         for t in get_manual_tasks_for_child_and_date(child, iso):
             txt = t.get("text", "").strip()
             if not txt:
+                continue
+            # Reject schedule exports (time-prefixed lines, sub-step arrows, etc.)
+            if _is_schedule_export(txt):
                 continue
             norm = _norm(txt)
             # Skip if it duplicates a chore already shown elsewhere
@@ -1214,8 +1239,16 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
         for txt in get_carryover_tasks(child, normalize_target_date(iso)):
             if not txt:
                 continue
+            # Reject schedule exports from carryover too
+            if _is_schedule_export(txt):
+                continue
             norm = _norm(txt)
             if norm in known_chore_texts or norm in _seen_carry_texts:
+                continue
+            # Apply the same chore/RoL filters as manual tasks
+            if any(norm.startswith(p) for p in _rol_skip_prefixes):
+                continue
+            if any(skip in norm for skip in _rol_skip_exact):
                 continue
             _seen_carry_texts.add(norm)
             tid = f"CARRY::{child}::{iso}::{txt}"
