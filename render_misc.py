@@ -1346,6 +1346,11 @@ def render_dashboard() -> str:
 
     <a class="link-button no-print" href="/more"
        style="font-size:0.82em;margin-bottom:8px;display:inline-block;">More &rarr;</a>
+    <script>
+    window.addEventListener('pageshow', function(e) {{
+      if (e.persisted) {{ window.location.reload(); }}
+    }});
+    </script>
     """
     return html_page("Dashboard", body)
 
