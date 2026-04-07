@@ -298,9 +298,26 @@ def render_dev_page(history: list, q: str = "", from_: str = "") -> str:
   </div>
 
   <!-- Thinking indicator -->
-  <div id="felix-thinking" style="display:none;padding:12px 16px;background:#eff6ff;
-       border-radius:12px;font-size:0.85em;color:#1d4ed8;margin-bottom:8px;">
-    <span>&#9679;&#9679;&#9679;</span> Izzy is reading the code&hellip;
+  <style>
+    @keyframes iz-pulse {{
+      0%,80%,100% {{ opacity:0.15; transform:scale(0.7); }}
+      40%          {{ opacity:1;    transform:scale(1.1); }}
+    }}
+    .iz-dot {{
+      display:inline-block; width:9px; height:9px; border-radius:50%;
+      background:#1d4ed8; margin:0 2px;
+      animation:iz-pulse 1.3s ease-in-out infinite;
+    }}
+    .iz-dot:nth-child(2) {{ animation-delay:0.22s; }}
+    .iz-dot:nth-child(3) {{ animation-delay:0.44s; }}
+  </style>
+  <div id="felix-thinking" style="display:none;align-items:center;gap:10px;
+       padding:12px 16px;background:#eff6ff;border-radius:12px;
+       font-size:0.85em;color:#1d4ed8;margin-bottom:8px;">
+    <span style="display:inline-flex;align-items:center;">
+      <span class="iz-dot"></span><span class="iz-dot"></span><span class="iz-dot"></span>
+    </span>
+    <span id="felix-thinking-msg">Izzy is thinking&hellip;</span>
   </div>
 
   <!-- Error -->
@@ -489,6 +506,13 @@ async function streamFelix(payload, isAutoRead, image) {{
 
     thinkEl.style.display = 'none';
     const bubble = buildFelixBubble('');
+    if (isAutoRead) {{
+      const lbl = document.createElement('div');
+      lbl.style.cssText = 'font-size:0.72em;color:#94a3b8;margin-bottom:6px;font-style:italic;';
+      lbl.textContent = '\U0001F4C4 After reading the code\u2026';
+      const raw = bubble.querySelector('.felix-raw');
+      if (raw) raw.parentElement.insertBefore(lbl, raw);
+    }}
     box.appendChild(bubble);
     box.scrollTop = box.scrollHeight;
 
@@ -534,7 +558,6 @@ async function streamFelix(payload, isAutoRead, image) {{
     errEl.style.display = 'block';
   }} finally {{
     document.getElementById('felix-send').disabled = false;
-    document.getElementById('felix-input').focus();
   }}
 }}
 
@@ -576,9 +599,10 @@ async function autoHandleReads(fullText) {{
 }}
 
 function setThinking(msg) {{
-  const el = document.getElementById('felix-thinking');
-  el.innerHTML = '<span style="opacity:0.6">\u25cf\u25cf\u25cf</span> ' + escHtml(msg);
-  el.style.display = 'block';
+  const el  = document.getElementById('felix-thinking');
+  const txt = document.getElementById('felix-thinking-msg');
+  if (txt) txt.textContent = msg;
+  el.style.display = 'flex';
 }}
 
 // ── Bubble builders ────────────────────────────────────────────────────────
