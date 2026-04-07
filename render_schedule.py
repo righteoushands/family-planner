@@ -1342,6 +1342,11 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
         if s.get("checkable") and s.get("task_id")
     )
 
+    # Layout constants
+    T_COL  = "width:62px;min-width:62px;font-size:7.5pt;color:#999;padding-top:2px;line-height:1.3;"
+    H_SIZE = "font-size:11pt;"
+    S_SIZE = "font-size:8.5pt;"
+
     rows_html = ""
     for item in day_list:
         kind   = item.get("kind", "routine")
@@ -1350,7 +1355,7 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
         t_disp = f"{t_st}\u2013{t_en}" if t_en and t_en != t_st else t_st
         label  = escape(item.get("label", ""))
         icon   = _kind_icons_print.get(kind, "")
-        kcolor = _kind_colors_print.get(kind, "#333")
+        kcolor = _kind_colors_print.get(kind, "#444")
         subs   = item.get("sub_items", [])
 
         if subs:
@@ -1359,60 +1364,60 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
             if _has_any_pending and all(s.get("done", False) for s in checkable_subs if checkable_subs):
                 continue
             tot = len(checkable_subs)
+            # Block header row: time col | bold colored label + count
             rows_html += (
-                f'<div style="margin:8px 0 2px;border-left:3px solid {kcolor};padding-left:7px;">'
-                f'<span style="font-size:8pt;color:#888;">{escape(t_disp)}</span> '
-                f'<strong style="font-size:10pt;color:{kcolor};">{icon} {label}</strong>'
-                f'<span style="font-size:8pt;color:#aaa;"> — {tot} item{"s" if tot != 1 else ""}</span>'
+                f'<div style="display:flex;align-items:baseline;gap:6px;'
+                f'margin:10px 0 3px;border-left:3px solid {kcolor};padding-left:6px;">'
+                f'<span style="{T_COL}">{escape(t_disp)}</span>'
+                f'<strong style="{H_SIZE}color:{kcolor};">{icon} {label}</strong>'
+                f'<span style="font-size:7.5pt;color:#bbb;white-space:nowrap;">'
+                f'— {tot} item{"s" if tot != 1 else ""}</span>'
                 f'</div>'
             )
             for sub in subs:
                 if sub.get("is_header"):
                     rows_html += (
-                        f'<div style="font-size:8pt;font-weight:800;letter-spacing:.07em;'
-                        f'text-transform:uppercase;color:#888;margin:5px 0 2px 14px;">'
+                        f'<div style="font-size:7.5pt;font-weight:800;letter-spacing:.08em;'
+                        f'text-transform:uppercase;color:#999;margin:5px 0 2px 68px;">'
                         f'{escape(sub.get("text",""))}</div>'
                     )
                 elif sub.get("checkable") and sub.get("task_id"):
-                    # Skip done subitems when there are still pending tasks
                     if _has_any_pending and sub.get("done", False):
                         continue
                     carry_mark = "↩ " if sub.get("is_carryover") else ""
                     rows_html += (
-                        f'<div style="display:flex;align-items:flex-start;gap:8px;'
-                        f'margin:3px 0 3px 22px;font-size:9.5pt;line-height:1.4;">'
-                        f'<span style="width:13px;height:13px;border:1.5px solid #555;'
-                        f'border-radius:2px;flex-shrink:0;display:inline-block;'
-                        f'margin-top:2px;"></span>'
-                        f'<span>{carry_mark}{escape(sub.get("text",""))}</span>'
+                        f'<div style="display:flex;align-items:flex-start;gap:7px;'
+                        f'margin:3px 0;padding-left:68px;{S_SIZE}line-height:1.4;">'
+                        f'<span style="width:11px;height:11px;border:1.5px solid #666;'
+                        f'border-radius:2px;flex-shrink:0;display:inline-block;margin-top:2px;"></span>'
+                        f'<span style="color:#222;">{carry_mark}{escape(sub.get("text",""))}</span>'
                         f'</div>'
                     )
                 else:
                     rows_html += (
-                        f'<div style="margin:2px 0 2px 30px;font-size:9.5pt;color:#666;">'
-                        f'{escape(sub.get("text",""))}</div>'
+                        f'<div style="padding-left:80px;{S_SIZE}color:#777;margin:1px 0;">'
+                        f'• {escape(sub.get("text",""))}</div>'
                     )
         elif item.get("task_id") and item.get("checkable"):
-            # Skip done top-level tasks when there are still pending tasks
             if _has_any_pending and item.get("done", False):
                 continue
+            # Single checkable row: time col | checkbox | label
             rows_html += (
-                f'<div style="display:flex;align-items:center;gap:8px;'
-                f'border-left:3px solid {kcolor};padding:4px 6px;margin:3px 0;">'
-                f'<span style="font-size:8pt;color:#888;min-width:68px;">{escape(t_disp)}</span>'
-                f'<span style="font-size:9pt;">{icon}</span>'
-                f'<span style="flex:1;font-size:10pt;">{label}</span>'
-                f'<span style="width:13px;height:13px;border:1.5px solid #555;'
-                f'border-radius:2px;display:inline-block;flex-shrink:0;"></span>'
+                f'<div style="display:flex;align-items:center;gap:6px;'
+                f'border-left:3px solid {kcolor};padding-left:6px;margin:4px 0;">'
+                f'<span style="{T_COL}">{escape(t_disp)}</span>'
+                f'<span style="width:11px;height:11px;border:1.5px solid #666;'
+                f'border-radius:2px;flex-shrink:0;display:inline-block;"></span>'
+                f'<span style="{H_SIZE}color:{kcolor};">{icon} {label}</span>'
                 f'</div>'
             )
         else:
+            # Info-only row (meal, break, free, etc.)
             rows_html += (
-                f'<div style="display:flex;align-items:center;gap:8px;'
-                f'padding:4px 6px;margin:2px 0;opacity:.65;">'
-                f'<span style="font-size:8pt;color:#888;min-width:68px;">{escape(t_disp)}</span>'
-                f'<span style="font-size:9pt;">{icon}</span>'
-                f'<span style="flex:1;font-size:10pt;color:#777;">{label}</span>'
+                f'<div style="display:flex;align-items:baseline;gap:6px;'
+                f'padding-left:6px;margin:3px 0;opacity:.6;">'
+                f'<span style="{T_COL}">{escape(t_disp)}</span>'
+                f'<span style="font-size:9pt;color:#555;">{icon} {label}</span>'
                 f'</div>'
             )
 
