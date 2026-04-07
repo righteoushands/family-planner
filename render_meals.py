@@ -679,6 +679,16 @@ def render_meal_print_page(week_key: str = None) -> str:
             prep_cells += f"<td style='border:1px solid #ddd;padding:3pt 5pt;font-size:7.5pt;background:#f0fdf9;vertical-align:top;color:#1a6050;'>{escape(note)}</td>"
         rows += f"<tr>{prep_cells}</tr>"
 
+    # Helper job assignments row (JP, Joseph, Michael kitchen roles per day)
+    helper_vals = {day: days_data.get(day, {}).get("helpers", "").strip() for day in DAYS}
+    if any(helper_vals.values()):
+        helper_cells = "<td style='border:1px solid #ddd;padding:4pt 5pt;font-size:8pt;font-weight:700;color:#92400e;background:#fffbeb;white-space:nowrap;'>Helpers</td>"
+        for day in DAYS:
+            val = helper_vals[day]
+            bg = "#fffbeb" if val else "white"
+            helper_cells += f"<td style='border:1px solid #ddd;padding:3pt 5pt;font-size:7.5pt;background:{bg};vertical-align:top;color:#92400e;'>{escape(val)}</td>"
+        rows += f"<tr>{helper_cells}</tr>"
+
     # Grocery list section — shown below the table
     grocery_gaps = plan.get("grocery_gaps", [])
     grocery_html = ""
