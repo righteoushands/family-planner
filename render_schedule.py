@@ -1163,26 +1163,36 @@ def print_page_html(title: str, body: str) -> str:
 <html><head><meta charset="utf-8"><title>{escape(title)}</title>
 <style>
   *{{box-sizing:border-box;margin:0;padding:0;}}
-  body{{font-family:Georgia,'Times New Roman',serif;font-size:10pt;color:#111;background:white;}}
-  .child-page{{page-break-after:always;padding:0.55in 0.65in 0.45in;min-height:100vh;}}
+  body{{font-family:'Helvetica Neue',Arial,sans-serif;font-size:10pt;color:#111;background:white;}}
+  .child-page{{page-break-after:always;padding:0.5in 0.6in 0.4in;min-height:100vh;}}
   .child-page:last-child{{page-break-after:avoid;}}
-  .page-header{{border-bottom:3px solid var(--child-color);padding-bottom:7px;margin-bottom:12px;}}
-  .child-name{{font-size:20pt;font-weight:bold;color:var(--child-color);letter-spacing:.5px;}}
-  .date-line{{font-size:9pt;color:#555;margin-top:2px;}}
-  .page-footer{{margin-top:18px;border-top:1px solid #ddd;padding-top:5px;font-size:7.5pt;color:#aaa;text-align:right;}}
-  .blk-header{{display:flex;align-items:baseline;gap:5px;background:rgba(0,0,0,0.04);border-left:3px solid var(--blk-color,#333);padding:4px 8px;margin:9px 0 2px;border-radius:0 3px 3px 0;}}
-  .blk-time{{font-size:7pt;color:#999;min-width:62px;padding-top:1px;white-space:nowrap;}}
-  .blk-label{{font-size:11pt;font-weight:bold;color:var(--blk-color,#333);}}
-  .blk-count{{font-size:7pt;color:#bbb;white-space:nowrap;margin-left:2px;}}
-  .sub-sect{{font-size:7pt;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#aaa;margin:5px 0 1px 68px;}}
-  .sub-item{{display:flex;align-items:flex-start;gap:6px;margin:2px 0;padding-left:68px;font-size:8.5pt;line-height:1.4;color:#222;}}
-  .sub-box{{width:10px;height:10px;border:1.5px solid #777;border-radius:2px;flex-shrink:0;display:inline-block;margin-top:3px;}}
-  .sub-note{{padding-left:80px;font-size:8pt;color:#888;margin:1px 0;}}
-  .info-row{{display:flex;align-items:baseline;gap:5px;padding:2px 8px;margin:2px 0;opacity:.55;}}
-  .info-time{{font-size:7pt;color:#999;min-width:62px;white-space:nowrap;}}
-  .info-label{{font-size:9pt;color:#555;}}
-  @media print{{body{{background:white;}}.no-print{{display:none!important;}}}}
-  @media screen{{body{{background:#e8e8e8;}}.child-page{{background:white;margin:20px auto;max-width:8.5in;box-shadow:0 2px 10px rgba(0,0,0,0.18);}}}}
+  .page-header{{border-bottom:2px solid var(--child-color);padding-bottom:6px;margin-bottom:10px;}}
+  .child-name{{font-size:18pt;font-weight:700;color:var(--child-color);}}
+  .date-line{{font-size:8.5pt;color:#666;margin-top:1px;}}
+  .page-footer{{margin-top:16px;border-top:1px solid #e0e0e0;padding-top:4px;font-size:7pt;color:#bbb;text-align:right;}}
+  /* Block header: just a colored left rule, no background band */
+  .blk-header{{display:flex;align-items:baseline;gap:8px;border-left:3px solid var(--blk-color,#333);padding:5px 0 3px 8px;margin:10px 0 0;}}
+  .blk-time{{font-size:7.5pt;color:#aaa;min-width:60px;white-space:nowrap;flex-shrink:0;}}
+  .blk-label{{font-size:10.5pt;font-weight:700;color:var(--blk-color,#222);}}
+  .blk-count{{font-size:7pt;color:#bbb;margin-left:3px;}}
+  /* Sub-items: clearly indented under the block header */
+  .sub-sect{{font-size:7pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+             color:#bbb;margin:4px 0 1px 72px;}}
+  .sub-item{{display:flex;align-items:flex-start;gap:7px;padding:3px 0 3px 72px;
+             font-size:9.5pt;line-height:1.45;color:#222;border-bottom:1px solid #f0f0f0;}}
+  .sub-box{{width:12px;height:12px;border:1.5px solid #888;border-radius:2px;
+            flex-shrink:0;display:inline-block;margin-top:2px;}}
+  .sub-note{{padding-left:84px;font-size:8pt;color:#999;margin:1px 0;font-style:italic;}}
+  /* Info-only rows (meals, breaks) — clearly secondary */
+  .info-row{{display:flex;align-items:baseline;gap:8px;padding:2px 0 2px 8px;
+             margin:4px 0;color:#999;}}
+  .info-time{{font-size:7.5pt;min-width:60px;white-space:nowrap;flex-shrink:0;}}
+  .info-label{{font-size:8.5pt;font-style:italic;}}
+  @media print{{body{{background:white;}}.no-print{{display:none!important;}}
+    .sub-item{{border-bottom:none;}}
+  }}
+  @media screen{{body{{background:#d8d8d8;}}.child-page{{background:white;margin:24px auto;
+    max-width:8.5in;box-shadow:0 2px 12px rgba(0,0,0,0.2);}}}}
 </style></head><body>
 <div class="no-print" style="background:#2a2a2a;color:white;padding:10px 18px;font-family:sans-serif;font-size:13px;display:flex;align-items:center;gap:14px;">
     <button onclick="setTimeout(function(){{window.print();}},100)" style="background:#8b5a3c;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;">🖨 Print</button>
@@ -1409,10 +1419,6 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
         <div class="page-header">
             <div class="child-name">{escape(child)}</div>
             <div class="date-line">{escape(weekday)}, {escape(date_label)}</div>
-            {age_html}
-        </div>
-        <div style="font-size:8pt;color:#888;margin-bottom:8px;">
-            {stats['done']}/{stats['total']} complete · Rule of Life Day List
         </div>
         {rows_html or '<p style="color:#aaa;font-style:italic;">No schedule data for today.</p>'}
         {meal_print}
