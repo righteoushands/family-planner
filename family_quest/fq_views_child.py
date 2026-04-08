@@ -20,6 +20,7 @@ def render_child_board(child_key: str, viewer: str) -> str:
     emoji   = R.CHILD_EMOJI.get(child_key, "⭐")
     colors  = R.CHILD_COLORS.get(child_key, {"bg": "#1f2937", "light": "#f9fafb", "text": "#fff"})
     total   = state["total_xp"]
+    coins   = state.get("coins", 0)
     lvl     = state["level"]
     nxt     = state["next_level"]
     pct     = state["progress_pct"]
@@ -79,6 +80,11 @@ def render_child_board(child_key: str, viewer: str) -> str:
     <div style="text-align:right;flex-shrink:0;">
       <div id="xp-total" style="font-size:2em;font-weight:900;line-height:1;">{total}</div>
       <div style="font-size:0.7em;opacity:.8;letter-spacing:.08em;text-transform:uppercase;">XP</div>
+      <div style="margin-top:6px;background:rgba(255,255,255,.18);border-radius:8px;
+                  padding:3px 8px;display:inline-block;">
+        <span style="font-size:1em;">🪙</span>
+        <span id="coin-total" style="font-size:0.9em;font-weight:800;">{coins}</span>
+      </div>
     </div>
   </div>
   <div style="margin-top:14px;">
@@ -199,39 +205,57 @@ def render_child_board(child_key: str, viewer: str) -> str:
     else:
         summary = ""
 
-    # ── Rewards panel ───────────────────────────────────────────────────────────
+    # ── Rewards / Store panel ────────────────────────────────────────────────────
     cur_level = lvl["level"]
+    pending_redemptions = {r["reward_id"] for r in D.load_redemptions()
+                           if r.get("child") == child_key and r.get("status") == "pending"}
     reward_cards = ""
     for r in rewards:
+        rid     = r.get("id", "")
         xp_req  = r.get("xp_threshold", 0)
         lvl_req = r.get("level_threshold", 0)
+        price   = r.get("coin_price", 10)
         unlocked = (xp_req == 0 or total >= xp_req) and (lvl_req == 0 or cur_level >= lvl_req)
-        threshold_txt = ""
-        if xp_req:
-            threshold_txt += f"{xp_req} XP"
-        if lvl_req:
-            threshold_txt += (" · " if threshold_txt else "") + f"Level {lvl_req}"
-        if not threshold_txt:
-            threshold_txt = "Always available"
+        can_buy  = unlocked and coins >= price
+        pending  = rid in pending_redemptions
 
-        lock_icon = "&#128275;" if unlocked else "&#128274;"
-        bg = "#f0fdf4" if unlocked else "#f9fafb"
-        border = "#86efac" if unlocked else "#e5e7eb"
+        if pending:
+            action = """<div style="font-size:0.75em;color:#d97706;font-weight:700;
+                            background:#fef3c7;padding:4px 10px;border-radius:8px;">
+              ⏳ Pending mom's OK
+            </div>"""
+        elif can_buy and is_self:
+            action = f"""<button onclick="redeemReward('{rid}', '{_esc(r.get('label',''))}', {price}, this)"
+              style="background:#15803d;color:white;border:none;border-radius:10px;
+                     padding:6px 12px;font-size:0.8em;font-weight:700;cursor:pointer;">
+              Buy 🪙{price}
+            </button>"""
+        elif not unlocked:
+            action = f"""<div style="font-size:0.72em;color:#9ca3af;">
+              {'🔒 Need ' + str(xp_req) + ' XP' if xp_req else ''}
+              {(' · ' if xp_req and lvl_req else '') + ('Lvl ' + str(lvl_req) if lvl_req else '')}
+            </div>"""
+        else:
+            action = f"""<div style="font-size:0.78em;color:#9ca3af;">Need 🪙{price - coins} more</div>"""
+
+        bg     = "#f0fdf4" if can_buy else "#f9fafb"
+        border = "#86efac" if can_buy else "#e5e7eb"
         reward_cards += f"""
 <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;
             background:{bg};border:1px solid {border};border-radius:12px;margin-bottom:8px;">
-  <span style="font-size:1.4em;">{lock_icon}</span>
+  <span style="font-size:1.4em;">{"🎁" if can_buy else "🔒"}</span>
   <div style="flex:1;">
     <div style="font-weight:700;color:var(--ink);font-size:0.95em;">{_esc(r.get('label',''))}</div>
-    <div style="font-size:0.74em;color:var(--ink-muted);">{threshold_txt}</div>
+    <div style="font-size:0.78em;color:var(--ink-muted);margin-top:2px;">🪙 {price} coins</div>
   </div>
+  {action}
 </div>"""
 
     rewards_section = ""
     if rewards:
         rewards_section = f"""
 <div class="card" style="margin-top:8px;">
-  <div class="card-title">&#127873; Rewards</div>
+  <div class="card-title">🛒 Reward Store &nbsp;<span style="font-size:0.75em;color:var(--ink-muted);">You have 🪙{coins}</span></div>
   {reward_cards}
 </div>"""
 
@@ -290,8 +314,12 @@ function completeQuest(questId, btn) {{
     var circle = btn.parentElement;
     circle.innerHTML = '<div style="width:52px;height:52px;border-radius:50%;background:currentColor;display:flex;align-items:center;justify-content:center;font-size:1.3em;flex-shrink:0;animation:check-pop .3s ease;">&#10003;</div>';
 
+    // Update coin display
+    var coinEl = document.getElementById('coin-total');
+    if (coinEl && data.coins !== undefined) coinEl.textContent = data.coins;
+
     // XP toast
-    var toastMsg = '+' + data.xp_earned + ' XP';
+    var toastMsg = '+' + data.xp_earned + ' XP  🪙+' + data.xp_earned;
     showToast(toastMsg, '#1a1a2e', '#f9d77e');
 
     // Streak milestone bonus toast
@@ -316,6 +344,23 @@ function completeQuest(questId, btn) {{
     }}
   }})
   .catch(() => {{ btn.disabled = false; btn.style.opacity = '1'; }});
+}}
+
+function redeemReward(rewardId, label, price, btn) {{
+  if (!confirm('Spend 🪙' + price + ' coins on "' + label + '"?\nMom will need to approve it.')) return;
+  btn.disabled = true; btn.textContent = '⏳';
+  fetch('/quest/api/redeem-reward', {{
+    method: 'POST',
+    headers: {{'Content-Type': 'application/json'}},
+    body: JSON.stringify({{reward_id: rewardId, child: _childKey}})
+  }})
+  .then(r => r.json())
+  .then(data => {{
+    if (data.error) {{ btn.disabled = false; btn.textContent = 'Buy 🪙' + price; alert(data.error); return; }}
+    btn.parentElement.innerHTML = '<div style="font-size:0.75em;color:#d97706;font-weight:700;background:#fef3c7;padding:4px 10px;border-radius:8px;">⏳ Pending mom\'s OK</div>';
+    showToast('Request sent! Mom will approve ✅', '#14532d', '#d1fae5');
+  }})
+  .catch(() => {{ btn.disabled = false; btn.textContent = 'Buy 🪙' + price; }});
 }}
 
 function showToast(msg, bg, color) {{

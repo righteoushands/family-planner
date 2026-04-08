@@ -438,15 +438,36 @@ def handle_post(h) -> bool:
         if not is_parent:
             _redirect(h, "/quest/"); return True
         form = _parse_form_multi(h)
-        label   = str(form.get("label", "")).strip()
-        xp_raw  = str(form.get("xp_threshold", "0"))
-        lvl_raw = str(form.get("level_threshold", "0"))
-        xp_thr  = int(xp_raw) if xp_raw.lstrip("-").isdigit() else 0
-        lvl_thr = int(lvl_raw) if lvl_raw.lstrip("-").isdigit() else 0
+        label      = str(form.get("label", "")).strip()
+        xp_raw     = str(form.get("xp_threshold", "0"))
+        lvl_raw    = str(form.get("level_threshold", "0"))
+        price_raw  = str(form.get("coin_price", "25"))
+        xp_thr     = int(xp_raw) if xp_raw.lstrip("-").isdigit() else 0
+        lvl_thr    = int(lvl_raw) if lvl_raw.lstrip("-").isdigit() else 0
+        coin_price = max(1, int(price_raw) if price_raw.lstrip("-").isdigit() else 25)
         if not label:
             _redirect(h, "/quest/rewards?err=Label+is+required"); return True
-        D.create_reward(label, xp_thr, lvl_thr)
+        D.create_reward(label, xp_thr, lvl_thr, coin_price)
         _redirect(h, "/quest/rewards?msg=Reward+added"); return True
+
+    # ── Approve redemption ─────────────────────────────────────────────────────
+    if path == "/quest/redemptions/approve":
+        if not is_parent:
+            _redirect(h, "/quest/"); return True
+        form = _parse_form_multi(h)
+        result = D.approve_redemption(str(form.get("redemption_id", "")))
+        if "error" in result:
+            _redirect(h, f"/quest/rewards?err={result['error'].replace(' ', '+')}"); return True
+        child_name = D.CHILDREN_NAMES.get(result.get("child",""), "")
+        _redirect(h, f"/quest/rewards?msg=Approved+for+{child_name.replace(' ', '+')}"); return True
+
+    # ── Reject redemption ──────────────────────────────────────────────────────
+    if path == "/quest/redemptions/reject":
+        if not is_parent:
+            _redirect(h, "/quest/"); return True
+        form = _parse_form_multi(h)
+        D.reject_redemption(str(form.get("redemption_id", "")))
+        _redirect(h, "/quest/rewards?msg=Request+rejected"); return True
 
     # ── Delete reward ──────────────────────────────────────────────────────────
     if path == "/quest/rewards/delete":
@@ -473,6 +494,37 @@ def handle_post(h) -> bool:
             _send_json(h, result, 400); return True
         if "xp_earned" not in result:
             result["xp_earned"] = quest_xp
+        # Include current coin balance for client-side update
+        result["coins"] = D.get_coins(child_key)
+        _send_json(h, result); return True
+
+    # ── API: redeem reward (child requests purchase) ────────────────────────────
+    if path == "/quest/api/redeem-reward":
+        data = _read_json(h)
+        reward_id = str(data.get("reward_id", ""))
+        child_key = str(data.get("child", ""))
+        if child_key not in D.CHILDREN_KEYS:
+            _send_json(h, {"error": "invalid child"}, 400); return True
+        if not (viewer == child_key or is_parent):
+            _send_json(h, {"error": "unauthorized"}, 403); return True
+        # Check reward exists
+        rewards = D.load_rewards()
+        reward = next((r for r in rewards if r.get("id") == reward_id), None)
+        if not reward:
+            _send_json(h, {"error": "Reward not found"}, 404); return True
+        # Check not already pending
+        already = [r for r in D.load_redemptions()
+                   if r.get("child") == child_key and r.get("reward_id") == reward_id
+                   and r.get("status") == "pending"]
+        if already:
+            _send_json(h, {"error": "Already requested — waiting for approval"}); return True
+        # Check coins (don't deduct yet — approval deducts)
+        price = reward.get("coin_price", 10)
+        current_coins = D.get_coins(child_key)
+        if current_coins < price:
+            _send_json(h, {"error": f"Not enough coins (have {current_coins}, need {price})"}); return True
+        result = D.create_redemption(child_key, reward_id, reward.get("label",""), price)
+        result["coins"] = D.get_coins(child_key)
         _send_json(h, result); return True
 
     # ── API: sync chores from Sancta Familia ──────────────────────────────────

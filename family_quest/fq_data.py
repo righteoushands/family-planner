@@ -14,10 +14,11 @@ from datetime import date
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 _DIR = os.path.join(os.path.dirname(__file__), "data")
-QUESTS_FILE  = os.path.join(_DIR, "quests.json")
-XP_FILE      = os.path.join(_DIR, "xp.json")
-REWARDS_FILE = os.path.join(_DIR, "rewards.json")
-STREAKS_FILE = os.path.join(_DIR, "streaks.json")
+QUESTS_FILE      = os.path.join(_DIR, "quests.json")
+XP_FILE          = os.path.join(_DIR, "xp.json")
+REWARDS_FILE     = os.path.join(_DIR, "rewards.json")
+STREAKS_FILE     = os.path.join(_DIR, "streaks.json")
+REDEMPTIONS_FILE = os.path.join(_DIR, "redemptions.json")
 
 # ── Children (canonical display names, lowercase key) ─────────────────────────
 CHILDREN_KEYS  = ["jp", "joseph", "michael", "james"]
@@ -170,6 +171,119 @@ def level_progress_pct(total_xp: int) -> int:
     return min(100, int(done * 100 / span)) if span > 0 else 100
 
 
+# ── Coins ─────────────────────────────────────────────────────────────────────
+
+def get_coins(child_key: str) -> int:
+    """Return current coin balance for a child."""
+    xp_data = load_xp()
+    return xp_data.get(child_key, {}).get("coins", 0)
+
+
+def award_coins(child_key: str, amount: int, quest_title: str = "", iso: str = "") -> int:
+    """Add coins to a child's balance. Returns new balance."""
+    if amount <= 0:
+        return get_coins(child_key)
+    xp_data = load_xp()
+    child_xp = xp_data.setdefault(child_key, {"total_xp": 0, "coins": 0, "history": []})
+    child_xp["coins"] = child_xp.get("coins", 0) + amount
+    child_xp.setdefault("coin_history", []).append({
+        "type":   "earned",
+        "amount": amount,
+        "from":   quest_title,
+        "date":   iso or date.today().isoformat(),
+        "ts":     _now_ts(),
+    })
+    save_xp(xp_data)
+    return child_xp["coins"]
+
+
+def spend_coins(child_key: str, amount: int, label: str = "") -> bool:
+    """
+    Deduct coins from a child's balance.
+    Returns True if successful, False if insufficient balance.
+    """
+    xp_data = load_xp()
+    child_xp = xp_data.setdefault(child_key, {"total_xp": 0, "coins": 0, "history": []})
+    current = child_xp.get("coins", 0)
+    if current < amount:
+        return False
+    child_xp["coins"] = current - amount
+    child_xp.setdefault("coin_history", []).append({
+        "type":   "spent",
+        "amount": -amount,
+        "from":   label,
+        "date":   date.today().isoformat(),
+        "ts":     _now_ts(),
+    })
+    save_xp(xp_data)
+    return True
+
+
+# ── Redemptions ───────────────────────────────────────────────────────────────
+
+def load_redemptions() -> list:
+    data = _load(REDEMPTIONS_FILE, [])
+    return data if isinstance(data, list) else []
+
+
+def save_redemptions(redemptions: list):
+    _save(REDEMPTIONS_FILE, redemptions)
+
+
+def create_redemption(child_key: str, reward_id: str,
+                      reward_label: str, coin_price: int) -> dict:
+    """Child requests a reward redemption (pending parent approval)."""
+    r = {
+        "id":           str(uuid.uuid4())[:8],
+        "child":        child_key,
+        "reward_id":    reward_id,
+        "reward_label": reward_label,
+        "coin_price":   coin_price,
+        "status":       "pending",
+        "created_at":   date.today().isoformat(),
+    }
+    redemptions = load_redemptions()
+    redemptions.append(r)
+    save_redemptions(redemptions)
+    return r
+
+
+def approve_redemption(redemption_id: str) -> dict:
+    """
+    Parent approves a pending redemption.
+    Deducts coins from child's balance.
+    Returns {"ok": True} or {"error": "..."}.
+    """
+    redemptions = load_redemptions()
+    r = next((x for x in redemptions if x.get("id") == redemption_id), None)
+    if not r:
+        return {"error": "not_found"}
+    if r.get("status") != "pending":
+        return {"error": "already_resolved"}
+    child_key  = r["child"]
+    coin_price = r.get("coin_price", 0)
+    if not spend_coins(child_key, coin_price, r.get("reward_label", "")):
+        return {"error": "insufficient_coins"}
+    r["status"] = "approved"
+    save_redemptions(redemptions)
+    return {"ok": True, "reward_label": r.get("reward_label", ""), "child": child_key}
+
+
+def reject_redemption(redemption_id: str) -> dict:
+    """Parent rejects a pending redemption (no coins are deducted)."""
+    redemptions = load_redemptions()
+    r = next((x for x in redemptions if x.get("id") == redemption_id), None)
+    if not r:
+        return {"error": "not_found"}
+    r["status"] = "rejected"
+    save_redemptions(redemptions)
+    return {"ok": True}
+
+
+def get_pending_redemptions() -> list:
+    return [r for r in load_redemptions() if r.get("status") == "pending"]
+
+
 def complete_quest(quest_id: str, child_key: str) -> dict:
     """
     Mark a quest complete for this child, award XP, return updated XP state.
@@ -201,10 +315,15 @@ def complete_quest(quest_id: str, child_key: str) -> dict:
     quest.setdefault("completions", {})[child_key] = True
     save_quests(quests)
 
-    # Award base XP
+    # Award base XP + coins (1 coin per XP point)
     xp_data = load_xp()
-    child_xp = xp_data.setdefault(child_key, {"total_xp": 0, "history": []})
+    child_xp = xp_data.setdefault(child_key, {"total_xp": 0, "coins": 0, "history": []})
     child_xp["total_xp"] = child_xp.get("total_xp", 0) + quest["xp_value"]
+    child_xp["coins"]    = child_xp.get("coins", 0) + quest["xp_value"]
+    child_xp.setdefault("coin_history", []).append({
+        "type": "earned", "amount": quest["xp_value"],
+        "from": quest["title"], "date": quest.get("date", today), "ts": _now_ts(),
+    })
     child_xp.setdefault("history", []).append({
         "quest_id":    quest_id,
         "quest_title": quest["title"],
@@ -278,8 +397,13 @@ def _try_auto_complete_bonus(child_key: str, today: str) -> int:
     xp_data = load_xp()
     for bq in bonus_list:
         bq.setdefault("completions", {})[child_key] = True
-        child_xp = xp_data.setdefault(child_key, {"total_xp": 0, "history": []})
+        child_xp = xp_data.setdefault(child_key, {"total_xp": 0, "coins": 0, "history": []})
         child_xp["total_xp"] = child_xp.get("total_xp", 0) + bq["xp_value"]
+        child_xp["coins"]    = child_xp.get("coins", 0) + bq["xp_value"]
+        child_xp.setdefault("coin_history", []).append({
+            "type": "earned", "amount": bq["xp_value"],
+            "from": bq["title"], "date": today, "ts": _now_ts(),
+        })
         child_xp.setdefault("history", []).append({
             "quest_id":    bq["id"],
             "quest_title": bq["title"],
@@ -294,10 +418,12 @@ def _try_auto_complete_bonus(child_key: str, today: str) -> int:
 
 
 def _xp_state(xp_data: dict, child_key: str) -> dict:
-    total = xp_data[child_key].get("total_xp", 0)
+    total = xp_data.get(child_key, {}).get("total_xp", 0)
+    coins = xp_data.get(child_key, {}).get("coins", 0)
     return {
         "child":        child_key,
         "total_xp":     total,
+        "coins":        coins,
         "level":        get_level(total),
         "next_level":   get_next_level(total),
         "progress_pct": level_progress_pct(total),
@@ -414,10 +540,12 @@ def save_rewards(rewards: list):
     _save(REWARDS_FILE, rewards)
 
 
-def create_reward(label: str, xp_threshold: int = 0, level_threshold: int = 0) -> dict:
+def create_reward(label: str, xp_threshold: int = 0,
+                  level_threshold: int = 0, coin_price: int = 10) -> dict:
     reward = {
         "id":              str(uuid.uuid4())[:8],
         "label":           label.strip(),
+        "coin_price":      max(1, int(coin_price)),
         "xp_threshold":    max(0, int(xp_threshold)),
         "level_threshold": max(0, int(level_threshold)),
     }

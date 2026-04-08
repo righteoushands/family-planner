@@ -337,33 +337,74 @@ def render_rewards_page(viewer: str, msg: str = "", err: str = "") -> str:
         <input type="text" name="label" placeholder="Ice cream night" required maxlength="120">
       </div>
       <div class="form-group" style="margin-bottom:0;">
+        <label>🪙 Coin Price</label>
+        <input type="number" name="coin_price" value="25" min="1" placeholder="25">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="margin-bottom:0;">
         <label>Unlock at XP (0 = any)</label>
         <input type="number" name="xp_threshold" value="0" min="0">
       </div>
-    </div>
-    <div class="form-group">
-      <label>Unlock at Level (0 = any)</label>
-      <select name="level_threshold">
-        <option value="0">Any level</option>
-        <option value="2">Level 2 — Apprentice</option>
-        <option value="3">Level 3 — Knight</option>
-        <option value="4">Level 4 — Champion</option>
-        <option value="5">Level 5 — Legend</option>
-      </select>
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Unlock at Level (0 = any)</label>
+        <select name="level_threshold">
+          <option value="0">Any level</option>
+          <option value="2">Level 2 — Apprentice</option>
+          <option value="3">Level 3 — Knight</option>
+          <option value="4">Level 4 — Champion</option>
+          <option value="5">Level 5 — Legend</option>
+        </select>
+      </div>
     </div>
     <button type="submit" class="btn btn-primary">Add Reward</button>
   </form>
 </div>"""
 
+    # ── Pending redemptions from children ─────────────────────────────────────
+    pending = D.get_pending_redemptions()
+    redemption_rows = ""
+    for red in pending:
+        child_name = D.CHILDREN_NAMES.get(red.get("child",""), red.get("child","").title())
+        redemption_rows += f"""
+<div class="card" style="padding:14px 16px;border-left:4px solid #f59e0b;">
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <span style="font-size:1.4em;">🪙</span>
+    <div style="flex:1;">
+      <div style="font-weight:700;color:var(--ink);">{_esc(child_name)} wants: {_esc(red.get('reward_label',''))}</div>
+      <div style="font-size:0.8em;color:var(--ink-muted);">
+        Cost: 🪙{red.get('coin_price',0)} &nbsp;·&nbsp; Requested: {_esc(red.get('created_at',''))}
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <form method="POST" action="/quest/redemptions/approve" style="display:inline;">
+        <input type="hidden" name="redemption_id" value="{red['id']}">
+        <button type="submit" class="btn btn-primary btn-sm">✓ Approve</button>
+      </form>
+      <form method="POST" action="/quest/redemptions/reject" style="display:inline;"
+            onsubmit="return confirm('Reject this request?')">
+        <input type="hidden" name="redemption_id" value="{red['id']}">
+        <button type="submit" class="btn btn-danger btn-sm">✗ Reject</button>
+      </form>
+    </div>
+  </div>
+</div>"""
+    if not pending:
+        redemption_rows = '<div style="color:var(--ink-muted);font-size:0.88em;padding:10px 0;">No pending requests.</div>'
+    redemption_section = f"""
+<div class="card" style="margin-bottom:18px;border-color:#f59e0b;">
+  <div class="card-title" style="color:#92400e;">⏳ Pending Reward Requests ({len(pending)})</div>
+  {redemption_rows}
+</div>"""
+
     rows = ""
     for r in rewards:
-        threshold = ""
+        price = r.get("coin_price", 10)
+        threshold = f"<span class='badge' style='background:#fef9c3;color:#713f12;'>🪙 {price} coins</span> "
         if r.get("xp_threshold"):
-            threshold += f"<span class='badge' style='background:#fef3c7;color:#92400e;'>{r['xp_threshold']} XP</span> "
+            threshold += f"<span class='badge' style='background:#fef3c7;color:#92400e;'>{r['xp_threshold']} XP unlock</span> "
         if r.get("level_threshold"):
-            threshold += f"<span class='badge' style='background:#eff6ff;color:#1d4ed8;'>Level {r['level_threshold']}</span>"
-        if not threshold:
-            threshold = "<span style='color:var(--ink-muted);font-size:0.82em;'>No threshold</span>"
+            threshold += f"<span class='badge' style='background:#eff6ff;color:#1d4ed8;'>Level {r['level_threshold']} unlock</span>"
 
         rows += f"""
 <div class="card" style="padding:14px 16px;">
@@ -388,6 +429,7 @@ def render_rewards_page(viewer: str, msg: str = "", err: str = "") -> str:
 {R.topbar(viewer, True)}
 <div class="fq-main">
   {alert}
+  {redemption_section}
   {streak_ref}
   {form_html}
   <h2>Rewards ({len(rewards)})</h2>
