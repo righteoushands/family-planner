@@ -323,6 +323,7 @@ def extract_school_tasks_for_child(child: str, weekday: str):
     assignments = get_school_assignments_for_weekday(weekday)
     day = assignments.get(child, {})
     tasks = []
+    seen_subjects = set()
 
     for block in day.get("blocks", []):
         subject = block.get("subject", "").strip()
@@ -332,7 +333,6 @@ def extract_school_tasks_for_child(child: str, weekday: str):
 
         checklist = []
         if is_math_test:
-            # Tests get a single done checkbox — no peer-checking workflow
             checklist.append("Test completed — given to Mom")
         elif is_math:
             checklist.extend([
@@ -343,7 +343,6 @@ def extract_school_tasks_for_child(child: str, weekday: str):
                 "Checked brother's math",
             ])
         else:
-            # Every other subject gets at least a simple Done checkbox
             checklist.append("Done")
 
         tasks.append({
@@ -353,6 +352,34 @@ def extract_school_tasks_for_child(child: str, weekday: str):
             "is_math_test": is_math_test,
             "checklist": checklist,
         })
+        if subject:
+            seen_subjects.add(subject.lower())
+
+    # Merge curriculum assignments for subjects not covered by the weekly plan
+    try:
+        from data_helpers import get_curriculum_week_assignments, get_curriculum_week
+        cur_week = get_curriculum_week()
+        cur_assignments = get_curriculum_week_assignments(child, cur_week)
+        for subject, text in cur_assignments.items():
+            if subject.lower() not in seen_subjects:
+                is_math = "math" in subject.lower()
+                checklist = [
+                    "Assignment completed",
+                    "Given to checker",
+                    "Fixed missed problems",
+                    "Received brother's math",
+                    "Checked brother's math",
+                ] if is_math else ["Done"]
+                tasks.append({
+                    "subject": subject,
+                    "assignment_text": text,
+                    "is_math": is_math,
+                    "is_math_test": False,
+                    "checklist": checklist,
+                    "from_curriculum": True,
+                })
+    except Exception:
+        pass
 
     return tasks
 

@@ -25,6 +25,7 @@ CALENDAR_RULES_FILE  = "data/calendar_rules.json"
 SUBSCRIBED_CALS_FILE  = "data/subscribed_calendars.json"
 SUBSCRIBED_CACHE_FILE = "data/subscribed_calendar_cache.json"
 APP_SETTINGS_FILE    = "data/app_settings.json"
+CURRICULUM_FILE      = "data/curriculum.json"
 
 # ── Validation sets ──────────────────────────────────────────────────────────
 VALID_PRIORITIES = {"HIGH", "MEDIUM", "LOW"}

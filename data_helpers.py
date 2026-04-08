@@ -11,7 +11,7 @@ from config import (
     LITURGICAL_FILE, FAMILY_SCHEDULE_FILE, CALENDAR_CONFIG_FILE,
     CALENDAR_CACHE_FILE, MONTHLY_PLANNER_FILE, CALENDAR_RULES_FILE,
     SUBSCRIBED_CALS_FILE, SUBSCRIBED_CACHE_FILE, VALID_PRIORITIES, VALID_STATUSES, WEEKDAYS,
-    WEEKDAY_ORDER,
+    WEEKDAY_ORDER, CURRICULUM_FILE,
 )
 
 
@@ -545,3 +545,53 @@ def planning_session_summary(session: dict) -> dict:
 # ── Monthly planner ──────────────────────────────────────────────────────────
 def load_monthly_planner() -> dict:
     return ensure_file(MONTHLY_PLANNER_FILE, {})
+
+
+# ── Curriculum (full-year MODG subject plans) ─────────────────────────────────
+def load_curriculum() -> dict:
+    """
+    Returns the curriculum store.  Shape:
+    {
+      "current_week": 1,          # school week number (int)
+      "JP":    { "Latin": {"1": "...", "2": "..."}, ... },
+      "Joseph": { ... },
+      ...
+    }
+    """
+    return ensure_file(CURRICULUM_FILE, {"current_week": 1})
+
+
+def save_curriculum(data: dict):
+    safe_save_json(CURRICULUM_FILE, data)
+
+
+def get_curriculum_week() -> int:
+    """Return the current school week number (1-indexed)."""
+    try:
+        return int(load_curriculum().get("current_week", 1))
+    except (TypeError, ValueError):
+        return 1
+
+
+def get_curriculum_subjects(child: str) -> dict:
+    """
+    Return {subject: {week_str: assignment_text}} for a child.
+    Returns empty dict if no curriculum exists.
+    """
+    cur = load_curriculum()
+    return cur.get(child, {})
+
+
+def get_curriculum_week_assignments(child: str, week: int) -> dict:
+    """
+    Return {subject: assignment_text} for a child on a specific week.
+    Only includes subjects that have an assignment for that week.
+    """
+    subjects = get_curriculum_subjects(child)
+    result = {}
+    week_str = str(week)
+    for subject, weeks in subjects.items():
+        text = weeks.get(week_str, "").strip()
+        if text:
+            result[subject] = text
+    return result

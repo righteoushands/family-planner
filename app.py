@@ -108,6 +108,7 @@ from render_plan_importer import (
     render_plan_import_page, build_analysis_system_prompt,
     _load_upcoming_events, _format_events_summary,
 )
+from render_curriculum import render_curriculum_page, parse_modg_paste
 from render_memory_book import render_memory_book_page, add_memory_entry, delete_memory_entry
 from render_chores import render_chores_page, render_van_roles_page, apply_laundry_defaults, apply_van_rotation
 from render_misc import (
@@ -633,6 +634,21 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Type","text/html; charset=utf-8")
             self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
             self.send_header("Pragma","no-cache")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
+        elif path == "/curriculum":
+            _cur_viewer = self._get_viewer()
+            if not (_cur_viewer and _auth.is_admin(_cur_viewer)):
+                self.send_response(302)
+                self.send_header("Location", "/")
+                self.end_headers()
+                return
+            html = render_curriculum_page()
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
             self.end_headers()
             try: self.wfile.write(html.encode())
             except BrokenPipeError: pass
@@ -1278,7 +1294,7 @@ class Handler(BaseHTTPRequestHandler):
 
         else:
             # /plan-import-apply reads its own raw JSON body — don't consume it with URL form parse
-            _JSON_PATHS = {"/plan-import-apply"}
+            _JSON_PATHS = {"/plan-import-apply", "/curriculum-save"}
             data = {} if path in _JSON_PATHS else parse_urlencoded_body(self)
 
             if path == "/toggle-task":
@@ -3529,6 +3545,103 @@ class Handler(BaseHTTPRequestHandler):
                 from data_helpers import clear_monica_history
                 clear_monica_history()
                 redirect = "/dr-monica"
+
+            # ── Curriculum Importer ───────────────────────────────────────────
+            elif path == "/curriculum-parse":
+                import json as _curj
+                _cur_v = self._get_viewer()
+                if not (_cur_v and _auth.is_admin(_cur_v)):
+                    self.send_response(403); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(_curj.dumps({"error":"Forbidden"}).encode())
+                    except BrokenPipeError: pass
+                    return
+                _child   = clean_text(data.get("child",   [""])[0])
+                _subject = clean_text(data.get("subject", [""])[0])
+                _paste   = data.get("paste", [""])[0]
+                if not _subject or not _paste.strip():
+                    self.send_response(400); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(_curj.dumps({"error":"Missing subject or paste."}).encode())
+                    except BrokenPipeError: pass
+                    return
+                try:
+                    _weeks = parse_modg_paste(_subject, _paste)
+                    if not _weeks:
+                        resp_data = _curj.dumps({"error": "Could not parse — check API key in Settings, or try again."})
+                    else:
+                        resp_data = _curj.dumps({"weeks": _weeks})
+                    self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(resp_data.encode())
+                    except BrokenPipeError: pass
+                except Exception as _cure:
+                    self.send_response(500); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(_curj.dumps({"error": str(_cure)}).encode())
+                    except BrokenPipeError: pass
+                return
+
+            elif path == "/curriculum-save":
+                import json as _curj2
+                _cur_v2 = self._get_viewer()
+                if not (_cur_v2 and _auth.is_admin(_cur_v2)):
+                    self.send_response(403); self.end_headers(); return
+                try:
+                    _body_raw = self.rfile.read(int(self.headers.get("Content-Length", 0)))
+                    _body = _curj2.loads(_body_raw)
+                    _child2   = str(_body.get("child", "")).strip()
+                    _subject2 = str(_body.get("subject", "")).strip()
+                    _weeks2   = _body.get("weeks", {})
+                    if not _child2 or not _subject2 or not _weeks2:
+                        self.send_response(400); self.end_headers(); return
+                    from data_helpers import load_curriculum, save_curriculum
+                    _cur_data = load_curriculum()
+                    if _child2 not in _cur_data:
+                        _cur_data[_child2] = {}
+                    _cur_data[_child2][_subject2] = {str(k): str(v) for k, v in _weeks2.items()}
+                    save_curriculum(_cur_data)
+                    self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(_curj2.dumps({"ok": True}).encode())
+                    except BrokenPipeError: pass
+                except Exception as _cure2:
+                    self.send_response(500); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(b'{"error":"save failed"}')
+                    except BrokenPipeError: pass
+                return
+
+            elif path == "/curriculum-week":
+                _cur_v3 = self._get_viewer()
+                if not (_cur_v3 and _auth.is_admin(_cur_v3)):
+                    self.send_response(403); self.end_headers(); return
+                try:
+                    _wk = int(data.get("week", [1])[0])
+                    _wk = max(1, min(40, _wk))
+                    from data_helpers import load_curriculum, save_curriculum
+                    _cur_data3 = load_curriculum()
+                    _cur_data3["current_week"] = _wk
+                    save_curriculum(_cur_data3)
+                    self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(b'{"ok":true}')
+                    except BrokenPipeError: pass
+                except Exception:
+                    self.send_response(500); self.end_headers()
+                return
+
+            elif path == "/curriculum-delete":
+                _cur_v4 = self._get_viewer()
+                if not (_cur_v4 and _auth.is_admin(_cur_v4)):
+                    self.send_response(403); self.end_headers(); return
+                try:
+                    _child4   = clean_text(data.get("child",   [""])[0])
+                    _subject4 = clean_text(data.get("subject", [""])[0])
+                    from data_helpers import load_curriculum, save_curriculum
+                    _cur_data4 = load_curriculum()
+                    if _child4 in _cur_data4 and _subject4 in _cur_data4[_child4]:
+                        del _cur_data4[_child4][_subject4]
+                        save_curriculum(_cur_data4)
+                    self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(b'{"ok":true}')
+                    except BrokenPipeError: pass
+                except Exception:
+                    self.send_response(500); self.end_headers()
+                return
 
             # ── Plan Import — Analyze ─────────────────────────────────────────
             elif path == "/plan-import-analyze":
