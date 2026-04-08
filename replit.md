@@ -86,6 +86,9 @@ The Day List is the primary per-person view — a complete chronological schedul
 ## Active Integrations
 - **Google Drive**: Connected via Replit connector (`connection:conn_google-drive_01KNHERVT8AX027AZFJWRZ4H93`). Uses `@replit/connectors-sdk` (Node.js) via `gdrive_helper.js` + Python wrapper `gdrive.py`. School page has a Drive file browser at `/gdrive-files` (GET, admin only). Files are browsable and PDFs/Google Docs import directly. To refresh auth if token expires: call `proposeIntegration("connection:conn_google-drive_01KNHERVT8AX027AZFJWRZ4H93")` then restart.
 
+## Pending Integrations
+- **Notion** (`connector:ccfg_notion_01K49R392Z3CSNMXCPWSV67AF4`): User expressed interest in connecting Notion to improve relational data management (linking recipes to meal plans, managing roadmap/recipe book with better UI). OAuth was dismissed — when Lauren is ready to proceed, call `proposeIntegration("connector:ccfg_notion_01K49R392Z3CSNMXCPWSV67AF4")` to restart the OAuth flow, then `addIntegration` once it becomes a connection. Planned use cases: recipe ↔ meal plan linking, roadmap board, family history/memory book archival.
+
 ## Standing Rules (Lauren's Preferences)
 These apply automatically to every new feature built — no need to ask each time.
 
