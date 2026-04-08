@@ -355,31 +355,32 @@ def extract_school_tasks_for_child(child: str, weekday: str):
         if subject:
             seen_subjects.add(subject.lower())
 
-    # Merge curriculum assignments for subjects not covered by the weekly plan
-    try:
-        from data_helpers import get_curriculum_week_assignments, get_curriculum_week
-        cur_week = get_curriculum_week()
-        cur_assignments = get_curriculum_week_assignments(child, cur_week)
-        for subject, text in cur_assignments.items():
-            if subject.lower() not in seen_subjects:
-                is_math = "math" in subject.lower()
-                checklist = [
-                    "Assignment completed",
-                    "Given to checker",
-                    "Fixed missed problems",
-                    "Received brother's math",
-                    "Checked brother's math",
-                ] if is_math else ["Done"]
-                tasks.append({
-                    "subject": subject,
-                    "assignment_text": text,
-                    "is_math": is_math,
-                    "is_math_test": False,
-                    "checklist": checklist,
-                    "from_curriculum": True,
-                })
-    except Exception:
-        pass
+    # Curriculum merge disabled — curriculum.json is still being set up.
+    # Re-enable this block once the curriculum data is complete.
+    # try:
+    #     from data_helpers import get_curriculum_week_assignments, get_curriculum_week
+    #     cur_week = get_curriculum_week()
+    #     cur_assignments = get_curriculum_week_assignments(child, cur_week)
+    #     for subject, text in cur_assignments.items():
+    #         if subject.lower() not in seen_subjects:
+    #             is_math = "math" in subject.lower()
+    #             checklist = [
+    #                 "Assignment completed",
+    #                 "Given to checker",
+    #                 "Fixed missed problems",
+    #                 "Received brother's math",
+    #                 "Checked brother's math",
+    #             ] if is_math else ["Done"]
+    #             tasks.append({
+    #                 "subject": subject,
+    #                 "assignment_text": text,
+    #                 "is_math": is_math,
+    #                 "is_math_test": False,
+    #                 "checklist": checklist,
+    #                 "from_curriculum": True,
+    #             })
+    # except Exception:
+    #     pass
 
     return tasks
 

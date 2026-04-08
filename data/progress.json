@@ -700,5 +700,7 @@
   "ROUTINE::Joseph::2026-04-08::Piano Lessons": true,
   "SCHOOL::Joseph::2026-04-08::Religion 7::Done": true,
   "SCHOOL::Joseph::2026-04-08::Beginning Latin III::Done": true,
-  "SCHOOL::Joseph::2026-04-08::Beginning Latin III (LS)::Done": true
+  "SCHOOL::Joseph::2026-04-08::Beginning Latin III (LS)::Done": true,
+  "CHORE::Joseph::2026-04-08::weekly::LAUNDRY — Joseph's own laundry (may be multiple loads)": true,
+  "CHORE::Joseph::2026-04-08::weekly::Switch load before lunch": true
 }
