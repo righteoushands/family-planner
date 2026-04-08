@@ -3,6 +3,18 @@
 ## Overview
 A Python HTTP server (no framework) running on port 5000. A Catholic family dashboard for the McAdams family: Lauren (Mom), John (Dad), JP (14), Joseph (12), Michael (5), James (13 months). Features Mass readings, weather, meal plans, calendar, chores, and a five-companion AI ecosystem: Lucy (Catholic friend/integrator), Lorenzo (personal chef), Father Gregory (academic headmaster), Coach (family fitness), Dr. Monica (child development + pediatric health). Full authentication with per-user access control.
 
+## Family Quest App (Phase 1)
+A separate gamification app running on **port 8080** at the `/quest/` path prefix. Built in `family_quest/` directory.
+
+- **Entry point**: `family_quest/app.py` — its own HTTP server and router (port 8080, $FQ_PORT)
+- **Auth**: Reuses the same `auth.py` PIN system and sessions from the main app via `family_quest/fq_auth.py`
+- **Data**: `family_quest/data/` — `quests.json`, `xp.json`, `rewards.json`
+- **Modules**: `fq_data.py` (data/XP engine), `fq_render.py` (HTML shell), `fq_views_parent.py` (parent views), `fq_views_child.py` (child board)
+- **Quest types**: daily, side, boss, event; each with XP value, assigned children, date
+- **Level thresholds**: L1=0 (Novice), L2=100 (Apprentice), L3=250 (Knight), L4=500 (Champion), L5=1000 (Legend)
+- **XP API**: `POST /quest/api/complete-quest` — JSON `{quest_id, child}` → returns updated XP state; idempotent
+- **Sessions**: Separate cookie `fq_session` (Path=/quest) so it doesn't conflict with main app session
+
 ## Architecture
 - **Entry point**: `app.py` — single HTTP handler routing all GET/POST requests
 - **Rendering**: each feature area has a `render_*.py` module returning HTML strings
