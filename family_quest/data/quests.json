@@ -1,1 +1,340 @@
-[]
+[
+  {
+    "id": "a616ddb5",
+    "title": "Morning Jobs",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": true
+  },
+  {
+    "id": "718c74d3",
+    "title": "Jobs — weekly",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": true
+  },
+  {
+    "id": "0fda5942",
+    "title": "Morning Jobs",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": true
+  },
+  {
+    "id": "916b76ac",
+    "title": "Jobs — weekly",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": true
+  },
+  {
+    "id": "ba03964d",
+    "title": "Morning Jobs",
+    "type": "daily",
+    "assigned_to": [
+      "michael"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-08",
+    "active": false,
+    "completions": {},
+    "synced": true
+  },
+  {
+    "id": "db3999ca",
+    "title": "Jobs — weekly",
+    "type": "daily",
+    "assigned_to": [
+      "michael"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-08",
+    "active": false,
+    "completions": {},
+    "synced": true
+  },
+  {
+    "id": "b2ee1aa3",
+    "title": "Morning Jobs",
+    "type": "daily",
+    "assigned_to": [
+      "james"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-08",
+    "active": false,
+    "completions": {},
+    "synced": true
+  },
+  {
+    "id": "d711d864",
+    "title": "Jobs — weekly",
+    "type": "daily",
+    "assigned_to": [
+      "james"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-08",
+    "active": false,
+    "completions": {},
+    "synced": true
+  },
+  {
+    "id": "30aea07a",
+    "title": "Math 8 — Lesson 71 (+ check Joseph)",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 20,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": false
+  },
+  {
+    "id": "9243417e",
+    "title": "Religion 8 — Review questions",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": false
+  },
+  {
+    "id": "74a85ad1",
+    "title": "English 8 — Noun Review pp. 140–143",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": false
+  },
+  {
+    "id": "18e23373",
+    "title": "Latin III — Lesson 23 / Quiz 23",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 15,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": false
+  },
+  {
+    "id": "479ea125",
+    "title": "Science 7 — Biology §7.4",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 15,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": false
+  },
+  {
+    "id": "808c255a",
+    "title": "History 8 — Canada Ch. 4 §3",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 15,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": false
+  },
+  {
+    "id": "a669df66",
+    "title": "Music 8 — Mozart Clarinet Quintet",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": false
+  },
+  {
+    "id": "5463e0e6",
+    "title": "Reading 8 — 1 hour",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": false
+  },
+  {
+    "id": "d0cb45d0",
+    "title": "Complete Your Entire School Day",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 50,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": false
+  },
+  {
+    "id": "6a695ea6",
+    "title": "Math 7 — Quarterly Assessment 2",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 25,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": false
+  },
+  {
+    "id": "2723f8f4",
+    "title": "Religion 7 — Acts Ch. 19 + Defender",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": false
+  },
+  {
+    "id": "97081243",
+    "title": "Spelling & Vocab 8 — Lesson 7/8 para.",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": false
+  },
+  {
+    "id": "564a45d0",
+    "title": "Latin III — Lesson 19 / Quiz 19",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 15,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": false
+  },
+  {
+    "id": "e40c7987",
+    "title": "History 7 — Read pp. 51–71",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 15,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": false
+  },
+  {
+    "id": "ebf32e2f",
+    "title": "Science 6 — Geology §16.3",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 15,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": false
+  },
+  {
+    "id": "a4ae19d5",
+    "title": "Poetry 8 — Next 4½ lines",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 15,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": false
+  },
+  {
+    "id": "7d6d5a41",
+    "title": "Reading 7 — 1 hour",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": false
+  },
+  {
+    "id": "2486ba29",
+    "title": "Complete Your Entire School Day",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 50,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": false
+  }
+]
