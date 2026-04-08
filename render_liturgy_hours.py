@@ -3,7 +3,9 @@ render_liturgy_hours.py — Liturgy of the Hours
 
 Fetches Universalis pages for each office once per week (auto on Sundays if
 setting is on, or manually). Stores per-day JSON in data/liturgy_hours/.
-Cleans up files older than yesterday on each startup.
+Keeps at most one week of files (Mon–Sun); older files are deleted on every
+fetch and on app startup. A background thread checks every hour so the
+download happens even if the app is never restarted on a Sunday.
 
 Routes:
   GET  /liturgy-hours              — today
@@ -57,16 +59,17 @@ def save_day_hours(data: dict):
 
 
 def cleanup_old_files():
-    """Delete day files older than yesterday."""
+    """Delete day files outside the current Mon–Sun week. At most 7 files kept."""
     _ensure_dir()
-    yesterday = date.today() - timedelta(days=1)
+    monday = _week_monday(date.today())
+    sunday = monday + timedelta(days=6)
     try:
         for fn in os.listdir(HOURS_DIR):
             if not fn.endswith(".json"):
                 continue
             try:
                 file_date = date.fromisoformat(fn.replace(".json", ""))
-                if file_date < yesterday:
+                if file_date < monday or file_date > sunday:
                     os.remove(f"{HOURS_DIR}/{fn}")
             except Exception:
                 pass
@@ -244,12 +247,19 @@ def fetch_week(monday: date = None, offices_to_fetch=None):
         save_day_hours(rec)
 
 
+def _fetch_and_clean(monday: date):
+    """Cleanup old files then fetch the full week. Runs in a background thread."""
+    cleanup_old_files()
+    fetch_week(monday)
+
+
 def maybe_auto_fetch():
     """
     Called at app startup. Fetches this week if:
       - auto_fetch_hours setting is True
       - today is Sunday
       - week not already fetched
+    Also cleans up old files whenever a fresh fetch is triggered.
     """
     try:
         settings = load_app_settings()
@@ -262,9 +272,43 @@ def maybe_auto_fetch():
         if _week_already_fetched(monday):
             return
         import threading
-        threading.Thread(target=fetch_week, args=(monday,), daemon=True).start()
+        threading.Thread(target=_fetch_and_clean, args=(monday,), daemon=True).start()
     except Exception:
         pass
+
+
+def start_weekly_scheduler():
+    """
+    Long-running background thread that fires once a week on Sunday.
+    Handles the case where the app stays up across a Sunday without restarting.
+    Checks every hour; on Sunday morning triggers fetch+cleanup if not done yet.
+    """
+    import threading, time
+    from datetime import datetime
+
+    def _run():
+        while True:
+            try:
+                now = datetime.now()
+                # Sleep until the next top-of-hour
+                secs_to_next_hour = 3600 - (now.minute * 60 + now.second)
+                time.sleep(max(secs_to_next_hour, 60))
+
+                settings = load_app_settings()
+                if not settings.get("auto_fetch_hours", False):
+                    continue
+                today = date.today()
+                if today.weekday() != 6:   # only on Sunday
+                    continue
+                monday = _week_monday(today)
+                if _week_already_fetched(monday):
+                    continue
+                _fetch_and_clean(monday)
+            except Exception:
+                time.sleep(3600)
+
+    t = threading.Thread(target=_run, daemon=True, name="universalis-weekly")
+    t.start()
 
 
 def _current_office() -> str:

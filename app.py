@@ -5936,9 +5936,10 @@ if __name__ == "__main__":
         pass
     # Auto-fetch Liturgy of the Hours on Sundays if enabled
     try:
-        from render_liturgy_hours import maybe_auto_fetch, cleanup_old_files
+        from render_liturgy_hours import maybe_auto_fetch, cleanup_old_files, start_weekly_scheduler
         cleanup_old_files()
         maybe_auto_fetch()
+        start_weekly_scheduler()
     except Exception:
         pass
 
