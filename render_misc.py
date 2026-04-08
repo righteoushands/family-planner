@@ -3986,14 +3986,14 @@ def render_tasks() -> str:
                 recur_badge = f" <span class='badge'>↻ every {escape(str(_rv))} {escape(_ru)}</span>"
         if status == "active":
             card_html = f"""
-        <div class="card">
+        <div class="card" id="task-card-{index}">
             <h3>{text}{recur_badge}</h3>
             <p class="small">Assigned: {assigned_to} | Due: {due_date} | Priority: {priority}</p>
-            <form method="POST" action="/task-done">
+            <form method="POST" action="/task-done" onsubmit="_fadeCard('{index}',this)">
                 <input type="hidden" name="index" value="{index}">
                 <button type="submit">&#10003; Done</button>
             </form>
-            <form method="POST" action="/task-delete">
+            <form method="POST" action="/task-delete" onsubmit="_fadeCard('{index}',this)">
                 <input type="hidden" name="index" value="{index}">
                 <button type="submit" class="ghost">Archive</button>
             </form>
@@ -4101,7 +4101,16 @@ def render_tasks() -> str:
         </div>
     </div>
     <h2>Active Tasks</h2>{active_cards or "<div class='card'><p class='muted'>No active tasks.</p></div>"}
-    {inactive_section}"""
+    {inactive_section}
+    <script>
+    function _fadeCard(idx, form) {{
+      var card = document.getElementById('task-card-' + idx);
+      if (card) {{
+        card.style.transition = 'opacity .25s';
+        card.style.opacity    = '0';
+      }}
+    }}
+    </script>"""
     return html_page("Tasks", body)
 
 

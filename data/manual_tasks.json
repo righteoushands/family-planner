@@ -1278,15 +1278,6 @@
     "recurring": false
   },
   {
-    "text": "Wake up",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-03",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
     "text": "Eat breakfast",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
@@ -1305,33 +1296,6 @@
     "recurring": false
   },
   {
-    "text": "Complete Sea Cadets Lesson 6 (recruit orientation)",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-03",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "Mind Michael while Mom is at PT (10:00 AM–12:00 PM)",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-03",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "Remember: screen fast today — resist screens even if Michael watches TV",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-03",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
     "text": "Lunch (you may have meat if you wish; meatless option available)",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
@@ -1341,43 +1305,7 @@
     "recurring": false
   },
   {
-    "text": "Way of the Cross with Mom",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-03",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "James naps 2:00–4:00 PM (Mom will try walking to help him sleep)",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-03",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "Review your weekly jobs — confirm all complete",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-03",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
     "text": "Dinner: Cheese pizza",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-03",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "Remember: No treats today — it is Good Friday",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1405,15 +1333,6 @@
   },
   {
     "text": "Exercise (non-PE days)",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-03",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "Tidy the basement for 10 minutes",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1714,14 +1633,6 @@
   },
   {
     "text": "Finish next Sea Cadet Recruit Orientation",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Finish next Sea Cadet Recruit Orientation",
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2927,15 +2838,6 @@
     "recurring": false
   },
   {
-    "text": "Trim nails",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
     "text": "VAN — Shared (both boys)",
     "assigned_to": "Joseph",
     "due_date": "2026-04-06",
@@ -2946,24 +2848,6 @@
   },
   {
     "text": "Check Sea Cadet email",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "Find plain black pants for CAP",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "Find white t-shirt for CAP",
     "assigned_to": "Joseph",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
