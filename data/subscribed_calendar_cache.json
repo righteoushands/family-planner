@@ -122,6 +122,17 @@
       "source": "subscribed"
     },
     {
+      "title": "Piano Lessons",
+      "start": "2026-04-13T13:00",
+      "end": "2026-04-13T14:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "Bible Study",
       "start": "2026-04-14T10:00",
       "end": "2026-04-14T12:00",
@@ -1662,5 +1673,5 @@
       "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-04-08T14:22:50.067585"
+  "fetched_at": "2026-04-08T15:02:28.946030"
 }
