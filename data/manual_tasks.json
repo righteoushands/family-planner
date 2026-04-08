@@ -2873,5 +2873,35 @@
     "recurring": true,
     "interval_value": 1,
     "interval_unit": "months"
+  },
+  {
+    "text": "Gather your clean clothes from Mom’s room and put them away.",
+    "assigned_to": "JP",
+    "due_date": "2026-04-10",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": true,
+    "interval_value": 1,
+    "interval_unit": "weeks"
+  },
+  {
+    "text": "Gather your clean clothes from Mom’s room and put them away.",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-10",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": true,
+    "interval_value": 1,
+    "interval_unit": "weeks"
+  },
+  {
+    "text": "Gather your clean clothes from Mom’s room and put them away.",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-10",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": true,
+    "interval_value": 1,
+    "interval_unit": "weeks"
   }
 ]

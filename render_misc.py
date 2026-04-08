@@ -4144,31 +4144,23 @@ def render_tasks() -> str:
 
     body = f"""
     {page_header("Tasks")}
-    <div class="two-col">
-        <div class="card">
-            <h3>Add a One-Time Task</h3>
-            <form method="POST" action="/add-task">
-                <label>Task</label><input type="text" name="text">
-                <label>Assign to</label>
-                {_assignee_checkboxes()}
-                <label>Due date</label><input type="date" name="due_date">
-                <label>Priority</label>
-                <select name="priority"><option value="HIGH">HIGH</option><option value="MEDIUM" selected>MEDIUM</option><option value="LOW">LOW</option></select>
-                <button type="submit">Add Task</button>
-            </form>
-        </div>
-        <div class="card">
-            <h3>Add a Recurring Task</h3>
-            <form method="POST" action="/add-task">
-                <input type="hidden" name="recurring" value="true">
-                <label>Task</label><input type="text" name="text">
-                <label>Assign to</label>
-                {_assignee_checkboxes()}
-                <label>First due date</label><input type="date" name="due_date">
-                <label>Priority</label>
-                <select name="priority"><option value="HIGH">HIGH</option><option value="MEDIUM" selected>MEDIUM</option><option value="LOW">LOW</option></select>
-                <label>Repeat</label>
-                <div id="recur-row" style="display:flex;gap:10px;align-items:center;margin-bottom:12px;">
+    <div class="card">
+        <h3>Add Task</h3>
+        <form method="POST" action="/add-task">
+            <label>Task</label><input type="text" name="text" required>
+            <label>Assign to</label>
+            {_assignee_checkboxes()}
+            <label>Due date</label><input type="date" name="due_date">
+            <label>Priority</label>
+            <select name="priority"><option value="HIGH">HIGH</option><option value="MEDIUM" selected>MEDIUM</option><option value="LOW">LOW</option></select>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:4px;">
+                <input type="checkbox" id="recur-toggle" name="recurring" value="true"
+                       onchange="(function(cb){{document.getElementById('recur-fields').style.display=cb.checked?'':'none';}})(this)"
+                       style="width:auto;margin:0;">
+                <span>Repeat</span>
+            </label>
+            <div id="recur-fields" style="display:none;padding:10px 0 4px 0;">
+                <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;">
                     <span id="recur-every-label" style="white-space:nowrap;font-size:0.9em;">every</span>
                     <input id="recur-n" type="number" name="interval_value" value="1" min="1" style="width:70px;max-width:70px;margin-bottom:0;">
                     <select id="recur-unit" name="interval_unit" style="margin-bottom:0;"
@@ -4186,9 +4178,9 @@ def render_tasks() -> str:
                         </optgroup>
                     </select>
                 </div>
-                <button type="submit">Add Recurring Task</button>
-            </form>
-        </div>
+            </div>
+            <button type="submit">Add Task</button>
+        </form>
     </div>
     <h2>Active Tasks</h2>{active_cards or "<div class='card'><p class='muted'>No active tasks.</p></div>"}
     {inactive_section}
