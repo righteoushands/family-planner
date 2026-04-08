@@ -2,41 +2,8 @@
   "events": [
     {
       "title": "John's class",
-      "start": "2026-04-07T08:00",
-      "end": "2026-04-07T17:00",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Bible Study",
-      "start": "2026-04-07T10:00",
-      "end": "2026-04-07T12:00",
-      "all_day": false,
-      "location": "Aletha house, 6712 Lakeland Way, Fredericksburg, VA 22407",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Homeschool PE",
-      "start": "2026-04-07T13:00",
-      "end": "2026-04-07T14:30",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "No Religious Education",
-      "start": "2026-04-07T16:45",
-      "end": "2026-04-07T18:00",
+      "start": "2026-04-08T08:00",
+      "end": "2026-04-08T17:00",
       "all_day": false,
       "location": "",
       "notes": "",
@@ -1660,7 +1627,40 @@
       "calendar": "Lauren's Proton Mail",
       "color": "#9b59b6",
       "source": "subscribed"
+    },
+    {
+      "title": "Justus Larsen's birthday (2020)",
+      "start": "2026-06-07",
+      "end": "2026-06-07",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Suzy Brown’s birthday",
+      "start": "2026-06-07",
+      "end": "2026-06-07",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "The Solemnity of the Most Precious Body and Blood of Jesus",
+      "start": "2026-06-07",
+      "end": "2026-06-07",
+      "all_day": true,
+      "location": "",
+      "notes": "//thelittleroseshop.com/pages/vault  ------   Powered by addevent.com  Share your next event with us!  ",
+      "calendar": "Liturgical Calendar (Little Rose Shop)",
+      "color": "#e91e8c",
+      "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-04-07T22:03:25.376642"
+  "fetched_at": "2026-04-08T07:22:54.038253"
 }

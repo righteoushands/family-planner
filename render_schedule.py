@@ -945,8 +945,8 @@ function toggleDashTask(cb, tid, childId, iso) {
             lbl.style.opacity        = isDone ? '0.4' : '1';
             lbl.style.textDecoration = isDone ? 'line-through' : 'none';
         }
-        if (isDone && isDashItem) {
-            /* Dashboard items fade out and disappear */
+        if (isDone) {
+            /* All checked items fade out and disappear */
             setTimeout(function() {
                 row.style.transition = 'opacity .25s';
                 row.style.opacity    = '0';

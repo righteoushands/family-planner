@@ -1144,7 +1144,7 @@
     "assigned_to": "JP",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
-    "status": "active",
+    "status": "done",
     "source": "lucy",
     "recurring": false
   },
