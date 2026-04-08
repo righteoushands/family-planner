@@ -475,5 +475,13 @@ def handle_post(h) -> bool:
             result["xp_earned"] = quest_xp
         _send_json(h, result); return True
 
+    # ── API: sync chores from Sancta Familia ──────────────────────────────────
+    if path == "/quest/sync-chores":
+        if not is_parent:
+            _send_json(h, {"error": "unauthorized"}, 403); return True
+        from fq_data import sync_chores_from_daily_schedule
+        result = sync_chores_from_daily_schedule()
+        _send_json(h, result); return True
+
     # 404
     _send_html(h, "<h1>Not found</h1>", 404); return True

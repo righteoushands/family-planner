@@ -14,6 +14,7 @@ def render_child_board(child_key: str, viewer: str) -> str:
     quests   = D.get_quests_for_child(child_key, today)
     state    = D.get_child_xp_state(child_key)
     rewards  = D.load_rewards()
+    streak   = D.get_streak(child_key)
 
     name    = D.CHILDREN_NAMES.get(child_key, child_key.title())
     emoji   = R.CHILD_EMOJI.get(child_key, "⭐")
@@ -26,6 +27,34 @@ def render_child_board(child_key: str, viewer: str) -> str:
     is_self = (viewer == child_key)
     from fq_auth import is_parent
     can_complete = is_self or is_parent(viewer)
+
+    # ── Streak display ──────────────────────────────────────────────────────────
+    cur_streak = streak.get("current", 0)
+    best_streak = streak.get("best", 0)
+    if cur_streak >= 3:
+        streak_color = "#dc2626"   # red flame for big streaks
+    elif cur_streak >= 1:
+        streak_color = "#d97706"   # amber for building
+    else:
+        streak_color = "#9ca3af"   # grey for none
+
+    streak_html = f"""
+<div style="display:flex;align-items:center;gap:6px;margin-top:10px;
+            background:rgba(255,255,255,.15);border-radius:10px;
+            padding:7px 12px;justify-content:space-between;">
+  <div style="display:flex;align-items:center;gap:6px;">
+    <span style="font-size:1.3em;">🔥</span>
+    <div>
+      <div id="streak-count" style="font-size:1em;font-weight:800;color:white;line-height:1;">
+        {cur_streak} day{'s' if cur_streak != 1 else ''} streak
+      </div>
+      <div style="font-size:0.65em;opacity:.75;">Best: {best_streak}</div>
+    </div>
+  </div>
+  <div style="font-size:0.7em;opacity:.7;text-align:right;">
+    {'🔥 On fire!' if cur_streak >= 7 else ('Keep it up!' if cur_streak >= 3 else ('Start your streak!' if cur_streak == 0 else 'Building...'))}
+  </div>
+</div>"""
 
     # ── Header card ────────────────────────────────────────────────────────────
     next_line = (
@@ -62,6 +91,7 @@ def render_child_board(child_key: str, viewer: str) -> str:
            style="width:{pct}%;background:rgba(255,255,255,.7);"></div>
     </div>
   </div>
+  {streak_html}
 </div>"""
 
     # ── Group quests by type ────────────────────────────────────────────────────
@@ -85,6 +115,11 @@ def render_child_board(child_key: str, viewer: str) -> str:
             if done:
                 total_done += 1
             xp_val = q.get("xp_value", 0)
+            synced_badge = (
+                '<span style="font-size:0.65em;background:#e0f2fe;color:#0369a1;'
+                'border-radius:6px;padding:1px 6px;margin-left:4px;">⚡ synced</span>'
+                if q.get("synced") else ""
+            )
 
             if can_complete and not done:
                 action_btn = f"""
@@ -93,17 +128,17 @@ def render_child_board(child_key: str, viewer: str) -> str:
          background:white;color:{tc['bg']};font-size:1.3em;cursor:pointer;
          flex-shrink:0;transition:all .2s;display:flex;align-items:center;
          justify-content:center;"
-  title="Complete quest">○</button>"""
+  title="Complete quest">&#9675;</button>"""
             elif done:
                 action_btn = f"""
 <div style="width:52px;height:52px;border-radius:50%;background:{tc['bg']};
             display:flex;align-items:center;justify-content:center;
-            font-size:1.3em;flex-shrink:0;">✓</div>"""
+            font-size:1.3em;flex-shrink:0;">&#10003;</div>"""
             else:
                 action_btn = f"""
 <div style="width:52px;height:52px;border-radius:50%;border:3px solid #e5e7eb;
             display:flex;align-items:center;justify-content:center;
-            font-size:1em;flex-shrink:0;color:#9ca3af;">○</div>"""
+            font-size:1em;flex-shrink:0;color:#9ca3af;">&#9675;</div>"""
 
             done_style = "opacity:.5;text-decoration:line-through;" if done else ""
             cards += f"""
@@ -111,13 +146,15 @@ def render_child_board(child_key: str, viewer: str) -> str:
   <div style="display:flex;align-items:center;gap:14px;">
     {action_btn}
     <div style="flex:1;min-width:0;">
-      <div style="font-size:1em;font-weight:700;color:var(--ink);">{_esc(q.get('title',''))}</div>
+      <div style="font-size:1em;font-weight:700;color:var(--ink);">
+        {_esc(q.get('title',''))}{synced_badge}
+      </div>
       <div style="margin-top:4px;">
         <span class="badge" style="background:{tc['bg']}22;color:{tc['bg']};font-size:0.75em;">
           {tc['icon']} {tc['label']}
         </span>
         <span style="margin-left:8px;font-size:0.8em;font-weight:700;color:{'#15803d' if done else '#d97706'};">
-          {'✓ +' if done else '+'}{xp_val} XP
+          {'&#10003; +' if done else '+'}{xp_val} XP
         </span>
       </div>
     </div>
@@ -140,7 +177,7 @@ def render_child_board(child_key: str, viewer: str) -> str:
     if not quests:
         quest_sections = """
 <div class="card" style="text-align:center;padding:40px 20px;">
-  <div style="font-size:3em;margin-bottom:12px;">🗡️</div>
+  <div style="font-size:3em;margin-bottom:12px;">&#9939;</div>
   <div style="font-size:1.1em;font-weight:700;color:var(--ink);margin-bottom:6px;">No quests assigned for today</div>
   <div style="font-size:0.88em;color:var(--ink-muted);">Check back later — your parents are preparing your quests!</div>
 </div>"""
@@ -157,7 +194,7 @@ def render_child_board(child_key: str, viewer: str) -> str:
   <div class="xp-bar-wrap" style="height:14px;">
     <div class="xp-bar-fill" style="width:{prog_pct}%;background:{colors['bg']};"></div>
   </div>
-  {'<div style="text-align:center;margin-top:10px;font-size:1.2em;">🎉 All done!</div>' if total_done == total_quests and total_quests > 0 else ''}
+  {'<div style="text-align:center;margin-top:10px;font-size:1.2em;">&#127881; All done!</div>' if total_done == total_quests and total_quests > 0 else ''}
 </div>"""
     else:
         summary = ""
@@ -177,7 +214,7 @@ def render_child_board(child_key: str, viewer: str) -> str:
         if not threshold_txt:
             threshold_txt = "Always available"
 
-        lock_icon = "🔓" if unlocked else "🔒"
+        lock_icon = "&#128275;" if unlocked else "&#128274;"
         bg = "#f0fdf4" if unlocked else "#f9fafb"
         border = "#86efac" if unlocked else "#e5e7eb"
         reward_cards += f"""
@@ -194,7 +231,7 @@ def render_child_board(child_key: str, viewer: str) -> str:
     if rewards:
         rewards_section = f"""
 <div class="card" style="margin-top:8px;">
-  <div class="card-title">🎁 Rewards</div>
+  <div class="card-title">&#127873; Rewards</div>
   {reward_cards}
 </div>"""
 
@@ -210,64 +247,86 @@ def render_child_board(child_key: str, viewer: str) -> str:
   70%  { transform: scale(1.2); opacity: 1; }
   100% { transform: scale(1); }
 }
+@keyframes toast-in {
+  0%   { opacity:0; transform:translateY(20px) scale(.9); }
+  100% { opacity:1; transform:translateY(0) scale(1); }
+}
 """
 
-    extra_head = """
+    extra_head = f"""
 <script>
-function completeQuest(questId, btn) {
+var _childKey = '{child_key}';
+
+function completeQuest(questId, btn) {{
   btn.disabled = true;
   btn.style.opacity = '0.5';
-  fetch('/quest/api/complete-quest', {
+  fetch('/quest/api/complete-quest', {{
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({quest_id: questId, child: '""" + child_key + """'})
-  })
+    headers: {{'Content-Type': 'application/json'}},
+    body: JSON.stringify({{quest_id: questId, child: _childKey}})
+  }})
   .then(r => r.json())
-  .then(data => {
-    if (data.error) {
+  .then(data => {{
+    if (data.error) {{
       btn.disabled = false; btn.style.opacity = '1';
       alert('Error: ' + data.error); return;
-    }
+    }}
     // Update XP display
     var xpEl = document.getElementById('xp-total');
     var barEl = document.getElementById('xp-bar');
-    if (xpEl) {
+    if (xpEl) {{
       xpEl.textContent = data.total_xp;
       xpEl.classList.remove('xp-pop');
       void xpEl.offsetWidth;
       xpEl.classList.add('xp-pop');
-    }
-    if (barEl) {
-      barEl.style.width = data.progress_pct + '%';
-    }
+    }}
+    if (barEl) barEl.style.width = data.progress_pct + '%';
+
     // Mark quest card as done visually
     var card = btn.closest('.card');
-    if (card) {
-      card.style.opacity = '.5';
-      card.style.textDecoration = 'line-through';
-    }
+    if (card) {{ card.style.opacity = '.5'; card.style.textDecoration = 'line-through'; }}
+
     // Replace button with checkmark
     var circle = btn.parentElement;
-    circle.innerHTML = '<div style="width:52px;height:52px;border-radius:50%;background:currentColor;display:flex;align-items:center;justify-content:center;font-size:1.3em;flex-shrink:0;animation:check-pop .3s ease;">✓</div>';
-    // Show XP toast
-    showXpToast('+' + data.xp_earned + ' XP');
-    // Update level if changed
-    if (data.level) {
-      document.title = 'Level ' + data.level.level + ' — Family Quest';
-    }
-  })
-  .catch(() => { btn.disabled = false; btn.style.opacity = '1'; });
-}
+    circle.innerHTML = '<div style="width:52px;height:52px;border-radius:50%;background:currentColor;display:flex;align-items:center;justify-content:center;font-size:1.3em;flex-shrink:0;animation:check-pop .3s ease;">&#10003;</div>';
 
-function showXpToast(msg) {
+    // XP toast
+    var toastMsg = '+' + data.xp_earned + ' XP';
+    showToast(toastMsg, '#1a1a2e', '#f9d77e');
+
+    // Streak milestone bonus toast
+    if (data.streak_bonus && data.streak_bonus > 0) {{
+      setTimeout(function() {{
+        showToast('&#128293; ' + data.streak.current + '-Day Streak! +' + data.streak_bonus + ' Bonus XP', '#7c2d12', '#fef3c7');
+      }}, 600);
+    }}
+
+    // Streak count update
+    if (data.streak) {{
+      var sc = document.getElementById('streak-count');
+      if (sc) {{
+        var n = data.streak.current;
+        sc.textContent = n + ' day' + (n !== 1 ? 's' : '') + ' streak';
+      }}
+    }}
+
+    // Level up?
+    if (data.level) {{
+      document.title = 'Level ' + data.level.level + ' \u2014 Family Quest';
+    }}
+  }})
+  .catch(() => {{ btn.disabled = false; btn.style.opacity = '1'; }});
+}}
+
+function showToast(msg, bg, color) {{
   var toast = document.createElement('div');
-  toast.textContent = msg;
-  toast.style.cssText = 'position:fixed;top:80px;right:20px;background:#1a1a2e;color:#f9d77e;' +
-    'padding:10px 18px;border-radius:12px;font-weight:800;font-size:1em;z-index:999;' +
-    'animation:xp-pop .4s ease;box-shadow:0 4px 16px rgba(0,0,0,.3);';
+  toast.innerHTML = msg;
+  toast.style.cssText = 'position:fixed;top:80px;right:20px;background:' + bg + ';color:' + color + ';' +
+    'padding:12px 20px;border-radius:14px;font-weight:800;font-size:1em;z-index:999;' +
+    'animation:toast-in .3s ease;box-shadow:0 4px 20px rgba(0,0,0,.3);max-width:260px;';
   document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 2200);
-}
+  setTimeout(() => toast.remove(), 2800);
+}}
 </script>"""
 
     body = f"""
