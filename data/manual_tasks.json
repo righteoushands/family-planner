@@ -33,9 +33,9 @@
   {
     "text": "Re-take a Latin Quiz every school day until all quizes are an 85% or higher",
     "assigned_to": "Joseph",
-    "due_date": "2026-03-27",
+    "due_date": "2026-03-28",
     "priority": "MEDIUM",
-    "status": "active",
+    "status": "inactive",
     "recurring": true,
     "interval_value": 1,
     "interval_unit": "days"
@@ -45,7 +45,7 @@
     "assigned_to": "JP",
     "due_date": "2026-03-27",
     "priority": "MEDIUM",
-    "status": "active",
+    "status": "inactive",
     "recurring": true,
     "interval_value": 1,
     "interval_unit": "days"
@@ -1153,7 +1153,7 @@
     "assigned_to": "JP",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
-    "status": "active",
+    "status": "inactive",
     "source": "lucy",
     "recurring": false
   },

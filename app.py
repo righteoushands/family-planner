@@ -1354,6 +1354,20 @@ class Handler(BaseHTTPRequestHandler):
                     tasks[idx]["status"]="inactive"; save_manual_tasks(tasks)
                 redirect="/tasks#top"
 
+            elif path == "/task-hard-delete":
+                # Permanently remove a single task by index (regardless of status)
+                idx=safe_int(data.get("index",["0"])[0],0); tasks=load_manual_tasks()
+                if 0<=idx<len(tasks) and isinstance(tasks[idx],dict):
+                    tasks.pop(idx); save_manual_tasks(tasks)
+                redirect="/tasks#top"
+
+            elif path == "/task-purge-inactive":
+                # Permanently delete ALL inactive/archived tasks
+                tasks=load_manual_tasks()
+                tasks=[t for t in tasks if not (isinstance(t,dict) and t.get("status")=="inactive")]
+                save_manual_tasks(tasks)
+                redirect="/tasks#top"
+
             elif path == "/approve-school-preview":
                 child=clean_child(data.get("child",[""])[0])
                 if child: approve_school_preview(child)

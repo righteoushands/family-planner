@@ -3943,9 +3943,11 @@ def render_notes() -> str:
 
 # ── Tasks ─────────────────────────────────────────────────────────────────────
 def render_tasks() -> str:
-    tasks        = load_manual_tasks()
-    active_cards = ""
-    done_cards   = ""
+    tasks         = load_manual_tasks()
+    active_cards  = ""
+    done_cards    = ""
+    inactive_cards = ""
+    inactive_count = 0
     for index, task in enumerate(tasks):
         if not isinstance(task, dict): continue
         status      = clean_status(task.get("status","active"))
@@ -3970,7 +3972,8 @@ def render_tasks() -> str:
                 recur_badge = f" <span class='badge'>↻ {_pattern_labels[_ru]}</span>"
             else:
                 recur_badge = f" <span class='badge'>↻ every {escape(str(_rv))} {escape(_ru)}</span>"
-        card_html = f"""
+        if status in ("active", "done"):
+            card_html = f"""
         <div class="card">
             <h3>{text}{recur_badge}</h3>
             <p class="small">Assigned: {assigned_to} | Due: {due_date} | Priority: {priority}</p>
@@ -3980,11 +3983,26 @@ def render_tasks() -> str:
             </form>
             <form method="POST" action="/task-delete">
                 <input type="hidden" name="index" value="{index}">
-                <button type="submit" class="ghost">Remove</button>
+                <button type="submit" class="ghost">Archive</button>
             </form>
         </div>"""
-        if status == "done":    done_cards   += card_html
-        elif status == "active": active_cards += card_html
+            if status == "done":    done_cards   += card_html
+            else:                   active_cards += card_html
+        elif status == "inactive":
+            inactive_count += 1
+            inactive_cards += f"""
+        <div class="card" style="opacity:0.65;background:#f8f6f3;">
+            <h3 style="text-decoration:line-through;font-size:0.95em;">{text}</h3>
+            <p class="small">Assigned: {assigned_to} | Due: {due_date} | Priority: {priority}</p>
+            <form method="POST" action="/task-hard-delete" style="display:inline;">
+                <input type="hidden" name="index" value="{index}">
+                <button type="submit" class="ghost"
+                        style="color:#dc2626;border-color:#dc2626;"
+                        onclick="return confirm('Permanently delete this task?')">
+                    🗑 Delete permanently
+                </button>
+            </form>
+        </div>"""
     def _assignee_checkboxes() -> str:
         boxes = ""
         for p in ASSIGNABLE_TO:
@@ -4001,6 +4019,28 @@ def render_tasks() -> str:
             f'<p style="font-size:.78em;color:#999;margin:-6px 0 10px;">'
             f'Leave all unchecked to assign to Anyone.</p>'
         )
+    # Build inactive section separately to avoid nested triple-quote conflicts
+    if inactive_count:
+        _ic = str(inactive_count)
+        inactive_section = (
+            '<h2 style="margin-top:32px;color:#9ca3af;">Archived / Inactive'
+            ' <span style="font-size:0.65em;font-weight:600;background:#f3f4f6;color:#6b7280;'
+            'border-radius:10px;padding:2px 8px;margin-left:6px;">' + _ic + '</span></h2>'
+            '<div class="card" style="background:#fdf6f0;border:1px solid #e9d8c8;margin-bottom:12px;">'
+            '<p style="margin:0 0 10px;font-size:0.88em;color:#6b7280;">'
+            'These tasks were archived using the Archive button. '
+            'Permanently delete them to clean up your list.</p>'
+            '<form method="POST" action="/task-purge-inactive"'
+            ' onsubmit="return confirm(\'Permanently delete all ' + _ic + ' archived tasks? This cannot be undone.\');">'
+            '<button type="submit"'
+            ' style="background:#dc2626;color:white;border:none;border-radius:8px;'
+            'padding:9px 18px;font-size:0.88em;font-weight:700;cursor:pointer;">'
+            '\U0001f5d1\xa0 Delete all ' + _ic + ' archived tasks</button></form></div>'
+            + inactive_cards
+        )
+    else:
+        inactive_section = ""
+
     body = f"""
     {page_header("Tasks")}
     <div class="two-col">
@@ -4050,7 +4090,8 @@ def render_tasks() -> str:
         </div>
     </div>
     <h2>Active Tasks</h2>{active_cards or "<div class='card'><p class='muted'>No active tasks.</p></div>"}
-    <h2>Done Tasks</h2>{done_cards or "<div class='card'><p class='muted'>No done tasks yet.</p></div>"}"""
+    <h2>Done Tasks</h2>{done_cards or "<div class='card'><p class='muted'>No done tasks yet.</p></div>"}
+    {inactive_section}"""
     return html_page("Tasks", body)
 
 

@@ -297,8 +297,8 @@ def get_manual_tasks_for_child_and_date(child: str, iso: str):
         if task_child and task_child != child:
             continue
 
-        if task_date and task_date != iso:
-            continue
+        if task_date and task_date > iso:
+            continue  # future-dated tasks: wait until their due date
 
         text = str(task.get("text", "")).strip()
         if not text:
