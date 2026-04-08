@@ -1618,6 +1618,93 @@ def render_now_page() -> str:
     return html_page("Right Now", body)
 
 
+def _render_rule_of_life_strip(weekday: str) -> str:
+    """
+    Compact scrollable strip showing today's Rule of Life time anchors.
+    Reads live from data/family_schedule.json on every call so edits to the
+    schedule grid in Settings appear immediately on the next page load.
+    Current slot is highlighted in gold; past slots are faded.
+    """
+    from html import escape as _e
+    try:
+        from data_helpers import load_family_schedule
+        from render_schedule_support import _slot_minutes, get_eastern_now
+
+        schedule  = load_family_schedule()
+        times     = schedule.get("times", [])
+        day_slots = schedule.get("days", {}).get(weekday, {})
+        if not day_slots:
+            return ""
+
+        now     = get_eastern_now()
+        now_min = now.hour * 60 + now.minute
+
+        # Build ordered list of non-empty slots, merging consecutive duplicates
+        entries = []
+        prev_label = None
+        for t in times:
+            label = (day_slots.get(t) or "").strip()
+            if not label:
+                prev_label = None
+                continue
+            if label == prev_label:
+                continue          # skip consecutive duplicates (merged block)
+            entries.append((t, _slot_minutes(t), label))
+            prev_label = label
+
+        if not entries:
+            return ""
+
+        # Find current slot index
+        cur_idx = -1
+        for i, (_, sm, _) in enumerate(entries):
+            if sm <= now_min:
+                cur_idx = i
+
+        chips = ""
+        for i, (t, sm, label) in enumerate(entries):
+            is_now  = (i == cur_idx)
+            is_past = (i < cur_idx)
+            if is_now:
+                bg = "var(--gold-light)"; border = "2px solid var(--brown)"
+                tc = "var(--ink)";        fw = "700"
+            elif is_past:
+                bg = "transparent";                 border = "1px solid var(--border-light)"
+                tc = "var(--ink-faint)";  fw = "400"
+            else:
+                bg = "var(--warm-white)"; border = "1px solid var(--border)"
+                tc = "var(--ink-muted)";  fw = "400"
+            chips += (
+                f'<div style="flex-shrink:0;background:{bg};border:{border};'
+                f'border-radius:8px;padding:5px 10px;text-align:center;min-width:72px;max-width:130px;">'
+                f'<div style="font-size:0.62em;color:{tc};opacity:0.75;white-space:nowrap;">{_e(t)}</div>'
+                f'<div style="font-size:0.72em;color:{tc};font-weight:{fw};'
+                f'line-height:1.2;margin-top:2px;word-break:break-word;">{_e(label)}</div>'
+                f'</div>'
+            )
+
+        return (
+            f'<div style="margin-bottom:14px;">'
+            f'<div style="font-size:0.6em;font-weight:800;letter-spacing:.14em;'
+            f'text-transform:uppercase;color:var(--ink-faint);margin-bottom:6px;">'
+            f'Rule of Life — {_e(weekday)}</div>'
+            f'<div id="rol-strip" style="display:flex;gap:6px;overflow-x:auto;'
+            f'scrollbar-width:none;padding-bottom:4px;">'
+            f'{chips}'
+            f'</div>'
+            f'</div>'
+            f'<script>'
+            f'(function(){{'
+            f'  var el=document.getElementById("rol-strip");'
+            f'  var now=el&&el.querySelector("[style*=\'var(--gold\']");'
+            f'  if(now)now.scrollIntoView({{behavior:"smooth",inline:"center",block:"nearest"}});'
+            f'}})();'
+            f'</script>'
+        )
+    except Exception:
+        return ""
+
+
 # ── Mom page (step-by-step pages) ───────────────────────────────────────────
 def render_mom_page(status_message: str = "", target_date_str: str = "") -> str:
     """
@@ -1853,6 +1940,9 @@ def render_mom_page(status_message: str = "", target_date_str: str = "") -> str:
             {day_nav}
         </div>
     </div>
+
+    <!-- Rule of Life strip — live from family_schedule.json -->
+    {_render_rule_of_life_strip(weekday)}
 
     <!-- Step chips — horizontal scroll -->
     <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;
