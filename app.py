@@ -3564,9 +3564,9 @@ class Handler(BaseHTTPRequestHandler):
                     except BrokenPipeError: pass
                     return
                 try:
-                    _weeks = parse_modg_paste(_subject, _paste)
-                    if not _weeks:
-                        resp_data = _curj.dumps({"error": "Could not parse — check API key in Settings, or try again."})
+                    _weeks, _cur_err = parse_modg_paste(_subject, _paste)
+                    if _cur_err or not _weeks:
+                        resp_data = _curj.dumps({"error": _cur_err or "Could not extract any weeks — check the paste and try again."})
                     else:
                         resp_data = _curj.dumps({"weeks": _weeks})
                     self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()

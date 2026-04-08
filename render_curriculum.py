@@ -27,51 +27,62 @@ def _load_app_settings() -> dict:
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _get_api_key() -> str:
-    settings = _load_app_settings()
-    return (settings.get("family_constraints", {}).get("anthropic_api_key", "")
-            or settings.get("anthropic_api_key", "")).strip()
+def _get_openai_key() -> str:
+    """Read OPENAI_API_KEY from environment."""
+    return _os.environ.get("OPENAI_API_KEY", "").strip()
 
 
-def _call_claude(system: str, user: str, max_tokens: int = 2000) -> str:
-    api_key = _get_api_key()
+def _call_gpt(system: str, user: str, max_tokens: int = 2000) -> tuple:
+    """
+    Call OpenAI GPT-4o-mini and return (text, error_msg).
+    On success: (text, "")
+    On failure: ("", error description)
+    """
+    import urllib.error as _uerr
+    api_key = _get_openai_key()
     if not api_key:
-        return ""
+        return "", "OPENAI_API_KEY is not set."
     payload = {
-        "model": "claude-haiku-4-5-20251001",
+        "model": "gpt-4o-mini",
         "max_tokens": max_tokens,
-        "system": system,
-        "messages": [{"role": "user", "content": user}],
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user",   "content": user},
+        ],
     }
     try:
         req = _req.Request(
-            "https://api.anthropic.com/v1/messages",
+            "https://api.openai.com/v1/chat/completions",
             data=_json.dumps(payload).encode(),
             headers={
-                "Content-Type":      "application/json",
-                "x-api-key":         api_key,
-                "anthropic-version": "2023-06-01",
+                "Content-Type":  "application/json",
+                "Authorization": f"Bearer {api_key}",
             },
         )
-        with _req.urlopen(req, timeout=30) as resp:
+        with _req.urlopen(req, timeout=45) as resp:
             result = _json.loads(resp.read())
-        return result["content"][0]["text"].strip()
-    except Exception:
-        return ""
+        return result["choices"][0]["message"]["content"].strip(), ""
+    except _uerr.HTTPError as e:
+        body = e.read()[:300]
+        return "", f"OpenAI error {e.code}: {body}"
+    except Exception as e:
+        return "", str(e)
 
 
 # ── Parse MODG paste ──────────────────────────────────────────────────────────
 
-def parse_modg_paste(subject: str, raw_text: str) -> dict:
+def parse_modg_paste(subject: str, raw_text: str) -> tuple:
     """
-    Call Claude to extract week-by-week assignments from a MODG syllabus paste.
-    Returns {week_number_str: assignment_text} dict, e.g. {"1": "Lesson 1...", "2": "..."}
+    Call GPT-4o-mini to extract week-by-week assignments from a MODG syllabus paste.
+    Returns (weeks_dict, error_str).
+    On success: ({"1": "...", "2": "..."}, "")
+    On failure: ({}, "error message")
     """
     system = (
         "You are a curriculum parser for a Catholic homeschool family using Mother of Divine Grace (MODG) curriculum. "
         "The user will paste the full-year syllabus for a single subject. "
         "Your job is to extract the assignments week by week and return ONLY valid JSON — nothing else. "
-        "Format: {\"1\": \"assignment for week 1\", \"2\": \"assignment for week 2\", ...} "
+        'Format: {"1": "assignment for week 1", "2": "assignment for week 2", ...} '
         "Use the week number as the key (as a string). "
         "Keep assignment text concise but complete — preserve lesson numbers, page numbers, exercise labels. "
         "If a week has multiple days or items, combine them into one clear string. "
@@ -82,9 +93,11 @@ def parse_modg_paste(subject: str, raw_text: str) -> dict:
         f"Subject: {subject}\n\n"
         f"Paste from MODG planner:\n\n{raw_text}"
     )
-    raw = _call_claude(system, user, max_tokens=3000)
+    raw, err = _call_gpt(system, user, max_tokens=3000)
+    if err:
+        return {}, err
     if not raw:
-        return {}
+        return {}, "AI returned empty response."
     # Strip markdown code fences if present
     raw = raw.strip()
     if raw.startswith("```"):
@@ -95,10 +108,10 @@ def parse_modg_paste(subject: str, raw_text: str) -> dict:
     try:
         parsed = _json.loads(raw)
         if isinstance(parsed, dict):
-            return {str(k): str(v) for k, v in parsed.items()}
-    except Exception:
-        pass
-    return {}
+            return {str(k): str(v) for k, v in parsed.items()}, ""
+    except Exception as e:
+        return {}, f"Could not parse AI output as JSON: {e}\n\nRaw output: {raw[:200]}"
+    return {}, "Unexpected response format from AI."
 
 
 # ── Page render ───────────────────────────────────────────────────────────────
@@ -106,7 +119,7 @@ def parse_modg_paste(subject: str, raw_text: str) -> dict:
 def render_curriculum_page() -> str:
     cur = load_curriculum()
     current_week = int(cur.get("current_week", 1))
-    api_key = _get_api_key()
+    api_key = _get_openai_key()
     school_children = ["JP", "Joseph", "Michael"]
 
     # Build per-child summary of imported subjects
@@ -153,7 +166,7 @@ def render_curriculum_page() -> str:
 
     no_key_warning = "" if api_key else """
     <div class="cur-warning">
-      ⚠ No AI key configured — go to Settings and enter your Anthropic API key before importing.
+      ⚠ OPENAI_API_KEY not found — contact your Replit admin to add the secret before importing.
     </div>"""
 
     return f"""<!DOCTYPE html>
