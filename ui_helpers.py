@@ -1068,6 +1068,11 @@ document.addEventListener('click', function(e) {{
                   border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
           &#128218; School
         </a>
+        <a href="/week-school" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#eef1f8;
+                  border-radius:12px;text-decoration:none;color:#1e3566;font-size:0.9em;font-weight:700;">
+          &#128200; Week Progress
+        </a>
         <a href="/chores" onclick="closeMobileMore()"
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
                   border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">

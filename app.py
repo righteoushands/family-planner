@@ -101,6 +101,7 @@ from render_readings import render_readings_page
 from render_lucy import render_lucy_page, build_lucy_context
 from render_lorenzo import render_lorenzo_page, build_lorenzo_context
 from render_gregory import render_gregory_page, build_gregory_context
+from render_week_school import render_week_school_page
 from render_coach import render_coach_page, build_coach_context
 from render_monica import render_monica_page, build_monica_context
 from render_plan_importer import (
@@ -398,6 +399,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         elif path == "/now":             body = render_now_page()
         elif path == "/week":            body = render_week()
+        elif path == "/week-school":     body = render_week_school_page(iso=clean_text(query.get("date",[""])[0]) or None)
         elif path == "/school":          body = render_school_page(status_message=clean_text(query.get("msg",[""])[0]))
         elif path == "/api/today-progress":
             # Lightweight progress-sync endpoint used by homepage polling.

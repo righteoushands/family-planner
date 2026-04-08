@@ -356,8 +356,15 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
         </div>
     </div>
 
-    <!-- Quick prompts -->
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;">
+    <!-- Weekly progress link + Quick prompts -->
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:20px;">
+        <a href="/week-school"
+           style="display:inline-flex;align-items:center;gap:5px;font-size:0.78em;
+                  font-weight:700;color:#1e3566;text-decoration:none;background:#eef1f8;
+                  padding:7px 14px;border-radius:20px;border:1px solid #c5d0e8;flex-shrink:0;">
+            &#128200; Week Progress
+        </a>
+        <div style="width:1px;height:22px;background:#e0e5f0;flex-shrink:0;"></div>
         {quick_buttons}
     </div>
 
