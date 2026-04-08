@@ -123,8 +123,8 @@
     },
     {
       "title": "USNSCC Pentagon Division - April Drill (#1)",
-      "start": "2026-04-11T07:30",
-      "end": "2026-04-11T15:30",
+      "start": "2026-04-11T07:00",
+      "end": "2026-04-11T15:00",
       "all_day": false,
       "location": "6000 Strathmore Rd\\nNorth Chesterfield VA 23234\\nUnited States",
       "notes": "6000 Strathmore Rd - America Division-Richmond  Co-d",
@@ -1662,5 +1662,5 @@
       "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-04-07T18:15:39.681511"
+  "fetched_at": "2026-04-07T21:29:34.253907"
 }

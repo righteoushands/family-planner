@@ -1311,7 +1311,6 @@ def render_dashboard() -> str:
       Right Now
     </div>
     {_render_mom_now_block(iso, weekday)}
-    {_render_boys_now_blocks(iso, weekday)}
     {__render_meal_card_safe(today_d)}
 
     <!-- Calendar events -->
