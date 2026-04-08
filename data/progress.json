@@ -695,5 +695,10 @@
   "ROUTINE::JP::2026-04-08::Exercise": true,
   "SCHOOL::JP::2026-04-08::Religion 8::Done": true,
   "SCHOOL::JP::2026-04-08::Beginning Latin III::Done": true,
-  "SCHOOL::JP::2026-04-08::History & Geog 8::Done": true
+  "SCHOOL::JP::2026-04-08::History & Geog 8::Done": true,
+  "ROUTINE::Joseph::2026-04-08::Morning Prayer (with family or on your own)": true,
+  "ROUTINE::Joseph::2026-04-08::Piano Lessons": true,
+  "SCHOOL::Joseph::2026-04-08::Religion 7::Done": true,
+  "SCHOOL::Joseph::2026-04-08::Beginning Latin III::Done": true,
+  "SCHOOL::Joseph::2026-04-08::Beginning Latin III (LS)::Done": true
 }

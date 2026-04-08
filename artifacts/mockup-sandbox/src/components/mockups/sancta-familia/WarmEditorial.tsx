@@ -52,7 +52,7 @@ export function WarmEditorial() {
           <div>
             <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "#7C5C2E" }}>Lucy · AI Family Companion</p>
             <h1 className="text-3xl leading-tight" style={{ fontFamily: "Playfair Display, serif" }}>Good evening.</h1>
-            <p className="text-xs" style={{ color: "#9CA3AF" }}>Saturday · April 4, 2026</p>
+            <p className="text-xs" style={{ color: "#9CA3AF" }}>Wednesday · April 8, 2026</p>
           </div>
         </div>
 
@@ -160,8 +160,8 @@ export function WarmEditorial() {
 
         {/* CHILDREN */}
         {[
-          { name: "JP",      color: "#DC2626", pct: 30,  tasks: [{ subject: "Math",    title: "Lesson 42: Fractions",  done: false }, { subject: "Reading", title: "Read aloud 20 mins",  done: true  }] },
-          { name: "Joseph",  color: "#16A34A", pct: 0,   tasks: [{ subject: "History", title: "Chapter 5 Review",      done: false }, { subject: "Science", title: "Nature Walk",          done: false }] },
+          { name: "JP",      color: "#DC2626", pct: 30,  tasks: [{ subject: "Math",    title: "Lesson 71",  done: false }, { subject: "Reading", title: "Read for about 1 hour",  done: true  }] },
+          { name: "Joseph",  color: "#16A34A", pct: 0,   tasks: [{ subject: "Math 87", title: "Quarterly Assessment 2 (replaces Test 11)", done: false }, { subject: "Religion 7", title: "Read Chapter 19 of Acts; Friendly Defender cards", done: false }, { subject: "Latin III", title: "Lesson 19 — Take Quiz 19", done: false }, { subject: "History & Geog 7", title: "Read pp. 51–59 Old World & America and pp. 64–71 The Greeks", done: false }, { subject: "Science 6", title: "Read Geology Ch. 16 § 16.3; answer workbook questions", done: false }, { subject: "Spelling & Vocab 8", title: "Write one paragraph using as many Lessons 7 & 8 Key Words as possible", done: false }, { subject: "Poetry 8", title: "Work on next 4½ lines up to '…justice'; review 5th grade poems", done: false }, { subject: "Reading 7", title: "Read for about 1 hour", done: false }] },
           { name: "Michael", color: "#EA580C", pct: 100, tasks: [{ subject: "Phonics", title: "Letter M worksheet",    done: true  }, { subject: "Art",     title: "Coloring page",         done: true  }] },
         ].map(({ name, color, pct, tasks }) => (
           <div
