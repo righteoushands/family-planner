@@ -5,6 +5,7 @@ stores it so the school tab automatically shows the right week.
 """
 import json as _json
 import os as _os
+import re as _re
 import urllib.request as _req
 
 from data_helpers import (
@@ -71,34 +72,75 @@ def _call_gpt(system: str, user: str, max_tokens: int = 2000) -> tuple:
 
 # ── Parse MODG paste ──────────────────────────────────────────────────────────
 
-def parse_modg_paste(subject: str, raw_text: str) -> tuple:
+
+def _parse_modg_locally(raw_text: str) -> dict:
     """
-    Call GPT-4o-mini to extract week-by-week assignments from a MODG syllabus paste.
-    Returns (weeks_dict, error_str).
-    On success: ({"1": "...", "2": "..."}, "")
-    On failure: ({}, "error message")
+    Fast regex parser for MODG's predictable 'Week N' structure.
+    No API call needed. Returns {week_str: assignment_text} or {} if
+    fewer than 3 week boundaries are found.
     """
+    # Match "Week" (case-insensitive) + optional colon/space + digits
+    # Allow it anywhere on a line — not just at the start
+    week_re = _re.compile(
+        r'(?i)(?:^|\n)[^\n]*?(?<!\w)week\s*:?\s*(\d+)\b',
+        _re.MULTILINE,
+    )
+    matches = list(week_re.finditer(raw_text))
+    if len(matches) < 3:
+        return {}
+
+    result = {}
+    for i, m in enumerate(matches):
+        week_num = str(int(m.group(1)))
+        # Everything from end of "Week N" match to start of next week
+        content_raw = raw_text[m.end() : (matches[i + 1].start() if i + 1 < len(matches) else len(raw_text))]
+
+        first_nl = content_raw.find('\n')
+        if first_nl == -1:
+            # Single-line: "Week N: Lesson text here" — strip leading separators
+            chunk = _re.sub(r'^[\s,\-:;.]+', '', content_raw).strip()
+        else:
+            rest_of_header = content_raw[:first_nl]
+            after_header   = content_raw[first_nl + 1:]
+            # Keep inline content only if it's meaningful (not just ", Day: 1-4")
+            inline = _re.sub(r'^[\s,\-:;.]+', '', rest_of_header).strip()
+            # Strip "Day: 1-4", "Day 1:", "Day 1-5" type metadata patterns
+            inline = _re.sub(r'(?i)\bday\s*[:\s]*\d+(?:\s*[-–]\s*\d+)?[\s,;.]*', '', inline).strip()
+            inline = _re.sub(r'^[\s,\-:;.]+', '', inline).strip()
+            chunk = ((inline + ' ') if len(inline) > 8 else '') + after_header
+
+        # Strip "Day N:" prefixes and collapse whitespace
+        chunk = _re.sub(r'(?im)^\s*day\s*\d+[\s\-:]*', ' ', chunk)
+        chunk = _re.sub(r'\s+', ' ', chunk).strip()
+
+        if len(chunk) > 5:
+            result[week_num] = chunk
+
+    return result
+
+
+def _parse_with_ai(subject: str, raw_text: str) -> tuple:
+    """AI fallback — only called when regex finds < 3 weeks."""
     system = (
-        "You are a curriculum parser for a Catholic homeschool family using Mother of Divine Grace (MODG) curriculum. "
+        "You are a curriculum parser for a Catholic homeschool family using "
+        "Mother of Divine Grace (MODG) curriculum. "
         "The user will paste the full-year syllabus for a single subject. "
-        "Your job is to extract the assignments week by week and return ONLY valid JSON — nothing else. "
+        "Your job is to extract the assignments week by week and return ONLY valid JSON. "
         'Format: {"1": "assignment for week 1", "2": "assignment for week 2", ...} '
-        "Use the week number as the key (as a string). "
-        "Keep assignment text concise but complete — preserve lesson numbers, page numbers, exercise labels. "
-        "If a week has multiple days or items, combine them into one clear string. "
+        "Use the week number as the key (string). "
+        "Keep text concise but complete — preserve lesson numbers, page numbers, exercise labels. "
+        "If multiple days exist in a week, combine them into one string. "
         "If the week number is unclear, infer it from the sequence. "
-        "Do not add any explanation — output ONLY the JSON object."
+        "Output ONLY the JSON object, no explanation."
     )
-    user = (
-        f"Subject: {subject}\n\n"
-        f"Paste from MODG planner:\n\n{raw_text}"
-    )
+    user = f"Subject: {subject}\n\nPaste from MODG planner:\n\n{raw_text}"
+
     raw, err = _call_gpt(system, user, max_tokens=3000)
     if err:
         return {}, err
     if not raw:
         return {}, "AI returned empty response."
-    # Strip markdown code fences if present
+
     raw = raw.strip()
     if raw.startswith("```"):
         raw = raw.split("```")[1]
@@ -110,8 +152,23 @@ def parse_modg_paste(subject: str, raw_text: str) -> tuple:
         if isinstance(parsed, dict):
             return {str(k): str(v) for k, v in parsed.items()}, ""
     except Exception as e:
-        return {}, f"Could not parse AI output as JSON: {e}\n\nRaw output: {raw[:200]}"
-    return {}, "Unexpected response format from AI."
+        return {}, f"Could not read AI output: {e}. Raw: {raw[:200]}"
+    return {}, "Unexpected AI response format."
+
+
+def parse_modg_paste(subject: str, raw_text: str) -> tuple:
+    """
+    Parse a MODG full-year subject paste into {week_str: assignment_text}.
+    Tries fast local regex first; falls back to AI only if that fails.
+    Returns (weeks_dict, error_str).
+    """
+    # 1. Try instant local parse (no network, no timeout)
+    local = _parse_modg_locally(raw_text)
+    if len(local) >= 3:
+        return local, ""
+
+    # 2. AI fallback for unusual formats
+    return _parse_with_ai(subject, raw_text)
 
 
 # ── Page render ───────────────────────────────────────────────────────────────
