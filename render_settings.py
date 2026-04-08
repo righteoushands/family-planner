@@ -1253,7 +1253,7 @@ def render_settings_page(status_message: str = "") -> str:
   <div style="padding:8px 0;border-top:1px solid var(--border-light);">
     <button type="submit" style="padding:9px 22px;font-size:0.95em;">Save Schedule Grid</button>
     <span style="font-size:0.78em;color:var(--ink-faint);margin-left:10px;">
-      The schedule grid requires manual save
+      Auto-saves as you type &mdash; or click to save immediately
     </span>
   </div>
 </form>"""
@@ -1529,7 +1529,7 @@ function autoSaveSettings() {
   if (!_userHasTouched) return;
   var formData = new URLSearchParams();
   document.querySelectorAll('input[name], select[name], textarea[name]').forEach(function(el) {
-    if (el.closest('#form-systems')) return;
+    /* #form-systems (schedule grid) is now included in autosave */
     if (el.closest('form[action="/calendar-save-config"]')) return;
     if (el.closest('form[action="/subscribed-cal-add"]')) return;
     if (el.closest('form[action="/subscribed-cal-delete"]')) return;
@@ -1561,7 +1561,7 @@ function autoSaveSettings() {
 
 function _wireAutosave() {
   document.querySelectorAll('input[name], select[name], textarea[name]').forEach(function(el) {
-    if (el.closest('#form-systems')) return;
+    /* #form-systems (schedule grid) is now included — autosave covers all fields */
     if (el.closest('form[action="/calendar-save-config"]')) return;
     if (el.closest('form[action="/subscribed-cal-add"]')) return;
     if (el.closest('form[action="/subscribed-cal-delete"]')) return;
