@@ -1,25 +1,10 @@
 [
   {
-    "text": "Cook baked potatoes, broccoli to bring to Bible Study",
-    "assigned_to": "",
-    "due_date": "2026-03-24",
-    "priority": "HIGH",
-    "status": "done"
-  },
-  {
     "text": "Change air filters",
     "assigned_to": "Mom",
     "due_date": "",
     "priority": "MEDIUM",
     "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Make WCC for Joe",
-    "assigned_to": "Mom",
-    "due_date": "",
-    "priority": "MEDIUM",
-    "status": "done",
     "recurring": false
   },
   {
@@ -96,7 +81,7 @@
     "recurring": false
   },
   {
-    "text": "Mind Michael while Mom is at PT (10:00 AM–12:00 PM)",
+    "text": "Mind Michael while Mom is at PT (10:00 AM\u201312:00 PM)",
     "assigned_to": "JP",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -105,7 +90,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: screen fast today — resist screens even if Michael watches TV",
+    "text": "Remember: screen fast today \u2014 resist screens even if Michael watches TV",
     "assigned_to": "JP",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -150,7 +135,7 @@
     "recurring": false
   },
   {
-    "text": "Review your weekly jobs — confirm all complete",
+    "text": "Review your weekly jobs \u2014 confirm all complete",
     "assigned_to": "JP",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -186,7 +171,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: No treats today — it is Good Friday",
+    "text": "Remember: No treats today \u2014 it is Good Friday",
     "assigned_to": "JP",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -231,7 +216,7 @@
     "recurring": false
   },
   {
-    "text": "Mind Michael while Mom is at PT (10:00 AM–12:00 PM)",
+    "text": "Mind Michael while Mom is at PT (10:00 AM\u201312:00 PM)",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -240,7 +225,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: screen fast today — resist screens even if Michael watches TV",
+    "text": "Remember: screen fast today \u2014 resist screens even if Michael watches TV",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -267,7 +252,7 @@
     "recurring": false
   },
   {
-    "text": "Review your weekly jobs — confirm all complete",
+    "text": "Review your weekly jobs \u2014 confirm all complete",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -285,7 +270,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: No treats today — it is Good Friday",
+    "text": "Remember: No treats today \u2014 it is Good Friday",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -321,7 +306,7 @@
     "recurring": false
   },
   {
-    "text": "Play while JP and Joseph mind you (10:00 AM–12:00 PM)",
+    "text": "Play while JP and Joseph mind you (10:00 AM\u201312:00 PM)",
     "assigned_to": "Michael",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -348,7 +333,7 @@
     "recurring": false
   },
   {
-    "text": "James naps 2:00–4:00 PM",
+    "text": "James naps 2:00\u20134:00 PM",
     "assigned_to": "Michael",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -366,7 +351,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: No treats today — it is Good Friday",
+    "text": "Remember: No treats today \u2014 it is Good Friday",
     "assigned_to": "Michael",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -420,7 +405,7 @@
     "recurring": false
   },
   {
-    "text": "Mind Michael while Mom is at PT (10:00 AM–12:00 PM)",
+    "text": "Mind Michael while Mom is at PT (10:00 AM\u201312:00 PM)",
     "assigned_to": "JP",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -429,7 +414,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: screen fast today — resist screens even if Michael watches TV",
+    "text": "Remember: screen fast today \u2014 resist screens even if Michael watches TV",
     "assigned_to": "JP",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -465,7 +450,7 @@
     "recurring": false
   },
   {
-    "text": "Review your weekly jobs — confirm all complete",
+    "text": "Review your weekly jobs \u2014 confirm all complete",
     "assigned_to": "JP",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -501,7 +486,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: No treats today — it is Good Friday",
+    "text": "Remember: No treats today \u2014 it is Good Friday",
     "assigned_to": "JP",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -546,7 +531,7 @@
     "recurring": false
   },
   {
-    "text": "Mind Michael while Mom is at PT (10:00 AM–12:00 PM)",
+    "text": "Mind Michael while Mom is at PT (10:00 AM\u201312:00 PM)",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -555,7 +540,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: screen fast today — resist screens even if Michael watches TV",
+    "text": "Remember: screen fast today \u2014 resist screens even if Michael watches TV",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -582,7 +567,7 @@
     "recurring": false
   },
   {
-    "text": "Review your weekly jobs — confirm all complete",
+    "text": "Review your weekly jobs \u2014 confirm all complete",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -600,7 +585,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: No treats today — it is Good Friday",
+    "text": "Remember: No treats today \u2014 it is Good Friday",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -636,7 +621,7 @@
     "recurring": false
   },
   {
-    "text": "Play while JP and Joseph mind you (10:00 AM–12:00 PM)",
+    "text": "Play while JP and Joseph mind you (10:00 AM\u201312:00 PM)",
     "assigned_to": "Michael",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -645,7 +630,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: screen fast today — no TV even if you want it",
+    "text": "Remember: screen fast today \u2014 no TV even if you want it",
     "assigned_to": "Michael",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -672,7 +657,7 @@
     "recurring": false
   },
   {
-    "text": "James naps 2:00–4:00 PM (Mom will try walking to help him sleep)",
+    "text": "James naps 2:00\u20134:00 PM (Mom will try walking to help him sleep)",
     "assigned_to": "Michael",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -690,7 +675,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: No treats today — it is Good Friday",
+    "text": "Remember: No treats today \u2014 it is Good Friday",
     "assigned_to": "Michael",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -780,7 +765,7 @@
     "recurring": false
   },
   {
-    "text": "Mind Michael while Mom is at PT (10:00 AM–12:00 PM)",
+    "text": "Mind Michael while Mom is at PT (10:00 AM\u201312:00 PM)",
     "assigned_to": "JP",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -789,7 +774,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: screen fast today — resist screens even if Michael watches TV",
+    "text": "Remember: screen fast today \u2014 resist screens even if Michael watches TV",
     "assigned_to": "JP",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -825,7 +810,7 @@
     "recurring": false
   },
   {
-    "text": "James naps 2:00–4:00 PM (Mom will try walking to help him sleep)",
+    "text": "James naps 2:00\u20134:00 PM (Mom will try walking to help him sleep)",
     "assigned_to": "JP",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -834,7 +819,7 @@
     "recurring": false
   },
   {
-    "text": "Review your weekly jobs — confirm all complete",
+    "text": "Review your weekly jobs \u2014 confirm all complete",
     "assigned_to": "JP",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -870,7 +855,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: No treats today — it is Good Friday",
+    "text": "Remember: No treats today \u2014 it is Good Friday",
     "assigned_to": "JP",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -951,7 +936,7 @@
     "recurring": false
   },
   {
-    "text": "Mind Michael while Mom is at PT (10:00 AM–12:00 PM)",
+    "text": "Mind Michael while Mom is at PT (10:00 AM\u201312:00 PM)",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -960,7 +945,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: screen fast today — resist screens even if Michael watches TV",
+    "text": "Remember: screen fast today \u2014 resist screens even if Michael watches TV",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -987,7 +972,7 @@
     "recurring": false
   },
   {
-    "text": "James naps 2:00–4:00 PM (Mom will try walking to help him sleep)",
+    "text": "James naps 2:00\u20134:00 PM (Mom will try walking to help him sleep)",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -996,7 +981,7 @@
     "recurring": false
   },
   {
-    "text": "Review your weekly jobs — confirm all complete",
+    "text": "Review your weekly jobs \u2014 confirm all complete",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1014,7 +999,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: No treats today — it is Good Friday",
+    "text": "Remember: No treats today \u2014 it is Good Friday",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1077,7 +1062,7 @@
     "recurring": false
   },
   {
-    "text": "Play while JP and Joseph mind you (10:00 AM–12:00 PM)",
+    "text": "Play while JP and Joseph mind you (10:00 AM\u201312:00 PM)",
     "assigned_to": "Michael",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1086,7 +1071,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: screen fast today — no TV even if you want it",
+    "text": "Remember: screen fast today \u2014 no TV even if you want it",
     "assigned_to": "Michael",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1113,7 +1098,7 @@
     "recurring": false
   },
   {
-    "text": "James naps 2:00–4:00 PM (Mom will try walking to help him sleep)",
+    "text": "James naps 2:00\u20134:00 PM (Mom will try walking to help him sleep)",
     "assigned_to": "Michael",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1131,20 +1116,11 @@
     "recurring": false
   },
   {
-    "text": "Remember: No treats today — it is Good Friday",
+    "text": "Remember: No treats today \u2014 it is Good Friday",
     "assigned_to": "Michael",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
     "status": "inactive",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "Wake up",
-    "assigned_to": "JP",
-    "due_date": "2026-04-03",
-    "priority": "MEDIUM",
-    "status": "done",
     "source": "lucy",
     "recurring": false
   },
@@ -1185,7 +1161,7 @@
     "recurring": false
   },
   {
-    "text": "Mind Michael while Mom is at PT (10:00 AM–12:00 PM)",
+    "text": "Mind Michael while Mom is at PT (10:00 AM\u201312:00 PM)",
     "assigned_to": "JP",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1194,7 +1170,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: screen fast today — resist screens even if Michael watches TV",
+    "text": "Remember: screen fast today \u2014 resist screens even if Michael watches TV",
     "assigned_to": "JP",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1230,7 +1206,7 @@
     "recurring": false
   },
   {
-    "text": "Review your weekly jobs — confirm all complete",
+    "text": "Review your weekly jobs \u2014 confirm all complete",
     "assigned_to": "JP",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1266,7 +1242,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: No treats today — it is Good Friday",
+    "text": "Remember: No treats today \u2014 it is Good Friday",
     "assigned_to": "JP",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1356,7 +1332,7 @@
     "recurring": false
   },
   {
-    "text": "Mind Michael while Mom is at PT (10:00 AM–12:00 PM)",
+    "text": "Mind Michael while Mom is at PT (10:00 AM\u201312:00 PM)",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1365,7 +1341,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: screen fast today — resist screens even if Michael watches TV",
+    "text": "Remember: screen fast today \u2014 resist screens even if Michael watches TV",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1392,7 +1368,7 @@
     "recurring": false
   },
   {
-    "text": "James naps 2:00–4:00 PM (Mom will try walking to help him sleep)",
+    "text": "James naps 2:00\u20134:00 PM (Mom will try walking to help him sleep)",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1401,7 +1377,7 @@
     "recurring": false
   },
   {
-    "text": "Review your weekly jobs — confirm all complete",
+    "text": "Review your weekly jobs \u2014 confirm all complete",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1419,7 +1395,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: No treats today — it is Good Friday",
+    "text": "Remember: No treats today \u2014 it is Good Friday",
     "assigned_to": "Joseph",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1491,7 +1467,7 @@
     "recurring": false
   },
   {
-    "text": "Play while JP and Joseph mind you (10:00 AM–12:00 PM)",
+    "text": "Play while JP and Joseph mind you (10:00 AM\u201312:00 PM)",
     "assigned_to": "Michael",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1500,7 +1476,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: screen fast today — no TV even if you want it",
+    "text": "Remember: screen fast today \u2014 no TV even if you want it",
     "assigned_to": "Michael",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1518,7 +1494,7 @@
     "recurring": false
   },
   {
-    "text": "James naps 2:00–4:00 PM (Mom will try walking to help him sleep)",
+    "text": "James naps 2:00\u20134:00 PM (Mom will try walking to help him sleep)",
     "assigned_to": "Michael",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1545,7 +1521,7 @@
     "recurring": false
   },
   {
-    "text": "Remember: No treats today — it is Good Friday",
+    "text": "Remember: No treats today \u2014 it is Good Friday",
     "assigned_to": "Michael",
     "due_date": "2026-04-03",
     "priority": "MEDIUM",
@@ -1739,7 +1715,7 @@
     "recurring": false
   },
   {
-    "text": "Wash CAP uniform for tonight’s meeting",
+    "text": "Wash CAP uniform for tonight\u2019s meeting",
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -1943,7 +1919,7 @@
     "recurring": false
   },
   {
-    "text": "KITCHEN (Morning — Role A)",
+    "text": "KITCHEN (Morning \u2014 Role A)",
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2105,7 +2081,7 @@
     "recurring": false
   },
   {
-    "text": "KITCHEN (Morning — Role B)",
+    "text": "KITCHEN (Morning \u2014 Role B)",
     "assigned_to": "Joseph",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2249,7 +2225,7 @@
     "recurring": false
   },
   {
-    "text": "KITCHEN (Morning — Role A)",
+    "text": "KITCHEN (Morning \u2014 Role A)",
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2384,7 +2360,7 @@
     "recurring": false
   },
   {
-    "text": "KITCHEN (Morning — Role B)",
+    "text": "KITCHEN (Morning \u2014 Role B)",
     "assigned_to": "Joseph",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2546,7 +2522,7 @@
     "recurring": false
   },
   {
-    "text": "KITCHEN (Morning — Role A): Put food away, clear table + counters, spray + wipe table and counters, take out trash + recycling, sweep kitchen / dining room / foyer",
+    "text": "KITCHEN (Morning \u2014 Role A): Put food away, clear table + counters, spray + wipe table and counters, take out trash + recycling, sweep kitchen / dining room / foyer",
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2555,7 +2531,7 @@
     "recurring": false
   },
   {
-    "text": "LAUNDRY — Mom's laundry: Start load after breakfast kitchen jobs, switch load before lunch, bring upstairs after lunch, family fold block (audiobook/read-aloud), put away completely before evening",
+    "text": "LAUNDRY \u2014 Mom's laundry: Start load after breakfast kitchen jobs, switch load before lunch, bring upstairs after lunch, family fold block (audiobook/read-aloud), put away completely before evening",
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2564,7 +2540,7 @@
     "recurring": false
   },
   {
-    "text": "KITCHEN (Evening — Role A): Unload dishwasher, load dishwasher, clean sink",
+    "text": "KITCHEN (Evening \u2014 Role A): Unload dishwasher, load dishwasher, clean sink",
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2591,7 +2567,7 @@
     "recurring": false
   },
   {
-    "text": "VAN — Shared (both boys)",
+    "text": "VAN \u2014 Shared (both boys)",
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2645,7 +2621,7 @@
     "recurring": false
   },
   {
-    "text": "KITCHEN (Morning — Role B): Unload dishwasher, load dishwasher, clean sink",
+    "text": "KITCHEN (Morning \u2014 Role B): Unload dishwasher, load dishwasher, clean sink",
     "assigned_to": "Joseph",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2654,7 +2630,7 @@
     "recurring": false
   },
   {
-    "text": "KITCHEN (Evening — Role B): Put food away, clear table + counters, spray + wipe table and counters, take out trash + recycling, sweep kitchen / dining room / foyer",
+    "text": "KITCHEN (Evening \u2014 Role B): Put food away, clear table + counters, spray + wipe table and counters, take out trash + recycling, sweep kitchen / dining room / foyer",
     "assigned_to": "Joseph",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2672,7 +2648,7 @@
     "recurring": false
   },
   {
-    "text": "VAN — Shared (both boys)",
+    "text": "VAN \u2014 Shared (both boys)",
     "assigned_to": "Joseph",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2753,7 +2729,7 @@
     "recurring": false
   },
   {
-    "text": "KITCHEN (Morning — Role A): Put food away, clear table + counters, spray + wipe table and counters, take out trash + recycling, sweep kitchen / dining room / foyer",
+    "text": "KITCHEN (Morning \u2014 Role A): Put food away, clear table + counters, spray + wipe table and counters, take out trash + recycling, sweep kitchen / dining room / foyer",
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2762,7 +2738,7 @@
     "recurring": false
   },
   {
-    "text": "KITCHEN (Evening — Role A): Unload dishwasher, load dishwasher, clean sink",
+    "text": "KITCHEN (Evening \u2014 Role A): Unload dishwasher, load dishwasher, clean sink",
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2771,7 +2747,7 @@
     "recurring": false
   },
   {
-    "text": "LAUNDRY — Mom's laundry: Start load after breakfast kitchen jobs, switch load before lunch, bring upstairs after lunch, family fold block (audiobook/read-aloud), put away completely before evening",
+    "text": "LAUNDRY \u2014 Mom's laundry: Start load after breakfast kitchen jobs, switch load before lunch, bring upstairs after lunch, family fold block (audiobook/read-aloud), put away completely before evening",
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2798,7 +2774,7 @@
     "recurring": false
   },
   {
-    "text": "VAN — Shared (both boys)",
+    "text": "VAN \u2014 Shared (both boys)",
     "assigned_to": "JP",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2852,7 +2828,7 @@
     "recurring": false
   },
   {
-    "text": "KITCHEN (Morning — Role B): Unload dishwasher, load dishwasher, clean sink",
+    "text": "KITCHEN (Morning \u2014 Role B): Unload dishwasher, load dishwasher, clean sink",
     "assigned_to": "Joseph",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2861,7 +2837,7 @@
     "recurring": false
   },
   {
-    "text": "KITCHEN (Evening — Role B): Put food away, clear table + counters, spray + wipe table and counters, take out trash + recycling, sweep kitchen / dining room / foyer",
+    "text": "KITCHEN (Evening \u2014 Role B): Put food away, clear table + counters, spray + wipe table and counters, take out trash + recycling, sweep kitchen / dining room / foyer",
     "assigned_to": "Joseph",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2879,7 +2855,7 @@
     "recurring": false
   },
   {
-    "text": "VAN — Shared (both boys)",
+    "text": "VAN \u2014 Shared (both boys)",
     "assigned_to": "Joseph",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2951,7 +2927,7 @@
     "recurring": false
   },
   {
-    "text": "KITCHEN (Morning — Role B): Unload dishwasher, load dishwasher, clean sink",
+    "text": "KITCHEN (Morning \u2014 Role B): Unload dishwasher, load dishwasher, clean sink",
     "assigned_to": "Joseph",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2960,7 +2936,7 @@
     "recurring": false
   },
   {
-    "text": "KITCHEN (Evening — Role B): Put food away, clear table + counters, spray + wipe table and counters, take out trash + recycling, sweep kitchen / dining room / foyer",
+    "text": "KITCHEN (Evening \u2014 Role B): Put food away, clear table + counters, spray + wipe table and counters, take out trash + recycling, sweep kitchen / dining room / foyer",
     "assigned_to": "Joseph",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
@@ -2978,7 +2954,7 @@
     "recurring": false
   },
   {
-    "text": "VAN — Shared (both boys)",
+    "text": "VAN \u2014 Shared (both boys)",
     "assigned_to": "Joseph",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",

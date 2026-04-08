@@ -3945,7 +3945,6 @@ def render_notes() -> str:
 def render_tasks() -> str:
     tasks         = load_manual_tasks()
     active_cards  = ""
-    done_cards    = ""
     inactive_cards = ""
     inactive_count = 0
     for index, task in enumerate(tasks):
@@ -3972,22 +3971,21 @@ def render_tasks() -> str:
                 recur_badge = f" <span class='badge'>↻ {_pattern_labels[_ru]}</span>"
             else:
                 recur_badge = f" <span class='badge'>↻ every {escape(str(_rv))} {escape(_ru)}</span>"
-        if status in ("active", "done"):
+        if status == "active":
             card_html = f"""
         <div class="card">
             <h3>{text}{recur_badge}</h3>
             <p class="small">Assigned: {assigned_to} | Due: {due_date} | Priority: {priority}</p>
             <form method="POST" action="/task-done">
                 <input type="hidden" name="index" value="{index}">
-                <button type="submit">Mark Done</button>
+                <button type="submit">&#10003; Done</button>
             </form>
             <form method="POST" action="/task-delete">
                 <input type="hidden" name="index" value="{index}">
                 <button type="submit" class="ghost">Archive</button>
             </form>
         </div>"""
-            if status == "done":    done_cards   += card_html
-            else:                   active_cards += card_html
+            active_cards += card_html
         elif status == "inactive":
             inactive_count += 1
             inactive_cards += f"""
@@ -4090,7 +4088,6 @@ def render_tasks() -> str:
         </div>
     </div>
     <h2>Active Tasks</h2>{active_cards or "<div class='card'><p class='muted'>No active tasks.</p></div>"}
-    <h2>Done Tasks</h2>{done_cards or "<div class='card'><p class='muted'>No done tasks yet.</p></div>"}
     {inactive_section}"""
     return html_page("Tasks", body)
 
