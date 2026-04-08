@@ -1324,6 +1324,31 @@ class Handler(BaseHTTPRequestHandler):
                             if _to_remove is not None:
                                 _ml.pop(_to_remove)
                                 _changed = True
+                            # Auto-refill: keep at least 5 active tasks for the child.
+                            # When the active count drops below 5, reactivate the oldest
+                            # inactive (non-recurring) tasks for that child.
+                            _REFILL_MIN = 5
+                            _active_count = sum(
+                                1 for t in _ml
+                                if isinstance(t, dict)
+                                and str(t.get("assigned_to","")).strip() == _tc
+                                and str(t.get("status","active")).strip().upper() == "ACTIVE"
+                            )
+                            if _active_count < _REFILL_MIN:
+                                _need = _REFILL_MIN - _active_count
+                                # Trivial/routine phrases to skip during refill
+                                _skip_phrases = {"wake up","eat breakfast","eat lunch","eat dinner","get dressed","brush teeth","go to bed","bedtime"}
+                                for _ri, _rt in enumerate(_ml):
+                                    if _need <= 0: break
+                                    if not isinstance(_rt, dict): continue
+                                    if str(_rt.get("assigned_to","")).strip() != _tc: continue
+                                    if str(_rt.get("status","active")).strip().upper() != "INACTIVE": continue
+                                    if _rt.get("recurring"): continue
+                                    _rtxt = str(_rt.get("text","")).strip().lower()
+                                    if any(_rtxt.startswith(p) for p in _skip_phrases): continue
+                                    _ml[_ri] = {**_rt, "status": "active"}
+                                    _changed = True
+                                    _need -= 1
                             if _changed:
                                 save_manual_tasks(_ml)
                 self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()

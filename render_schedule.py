@@ -937,6 +937,12 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
 
 _DASH_JS = """
 <script>
+/* Hide tasks already marked done so they don't reappear as visible checked items on reload */
+(function() {
+    document.querySelectorAll('[data-done="1"]').forEach(function(row) {
+        row.style.display = 'none';
+    });
+})();
 function toggleDashTask(cb, tid, childId, iso) {
     var row     = document.getElementById('task-' + tid);
     var isDone  = cb.checked;

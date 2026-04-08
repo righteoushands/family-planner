@@ -1354,6 +1354,12 @@ def render_dashboard() -> str:
     window.addEventListener('pageshow', function(e) {{
       if (e.persisted) {{ window.location.reload(); }}
     }});
+    /* Hide tasks already marked done on page load */
+    (function() {{
+      document.querySelectorAll('[data-done="1"]').forEach(function(row) {{
+        row.style.display = 'none';
+      }});
+    }})();
     /* Toggle a checkbox in the Boys Right Now cards and persist to server */
     function dashBoyToggle(cb, tid, childId) {{
       var row    = document.getElementById('task-' + tid);
@@ -1364,6 +1370,13 @@ def render_dashboard() -> str:
         if (lbl) {{
           lbl.style.opacity        = isDone ? '0.45' : '1';
           lbl.style.textDecoration = isDone ? 'line-through' : 'none';
+        }}
+        if (isDone) {{
+          setTimeout(function() {{
+            row.style.transition = 'opacity .25s';
+            row.style.opacity    = '0';
+            setTimeout(function() {{ row.style.display = 'none'; }}, 260);
+          }}, 320);
         }}
       }}
       fetch('/toggle-task', {{
