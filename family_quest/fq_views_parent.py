@@ -276,9 +276,9 @@ function syncChores(btn) {{
     <div style="display:flex;gap:6px;flex-shrink:0;">
       {'<form method="POST" action="/quest/quests/deactivate" style="display:inline;"><input type="hidden" name="quest_id" value="' + q['id'] + '"><button type="submit" class="btn btn-muted btn-sm" title="Deactivate">Pause</button></form>' if active else ''}
       <form method="POST" action="/quest/quests/delete" style="display:inline;"
-            onsubmit="return confirm('Delete this quest?')">
+            onsubmit="return confirm('Remove this quest? No XP will be awarded.')">
         <input type="hidden" name="quest_id" value="{q['id']}">
-        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+        <button type="submit" class="btn btn-danger btn-sm">Remove (no XP)</button>
       </form>
     </div>
   </div>

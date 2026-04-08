@@ -236,7 +236,61 @@ def complete_quest(quest_id: str, child_key: str) -> dict:
     state["xp_earned"]    = quest["xp_value"]
     state["streak_bonus"] = streak_bonus
     state["streak"]       = streak
+
+    # ── Auto-complete the full-day bonus if all other quests are now done ─────
+    bonus_xp = _try_auto_complete_bonus(child_key, today)
+    state["bonus_xp"] = bonus_xp
+
     return state
+
+
+def _is_bonus_quest(q: dict) -> bool:
+    return bool(q.get("is_bonus")) or "complete your entire school day" in q.get("title", "").lower()
+
+
+def _try_auto_complete_bonus(child_key: str, today: str) -> int:
+    """
+    If every non-bonus active quest for this child today is completed,
+    auto-award the 'Complete Your Entire School Day' bonus quest.
+    Returns the XP awarded (0 if not triggered or already done).
+    """
+    quests = load_quests()
+    today_quests = [q for q in quests
+                    if child_key in q.get("assigned_to", [])
+                    and q.get("date") == today
+                    and q.get("active", True)]
+
+    non_bonus = [q for q in today_quests if not _is_bonus_quest(q)]
+    if not non_bonus:
+        return 0
+
+    all_done = all(q.get("completions", {}).get(child_key) for q in non_bonus)
+    if not all_done:
+        return 0
+
+    bonus_list = [q for q in today_quests
+                  if _is_bonus_quest(q)
+                  and not q.get("completions", {}).get(child_key)]
+    if not bonus_list:
+        return 0
+
+    total_bonus_xp = 0
+    xp_data = load_xp()
+    for bq in bonus_list:
+        bq.setdefault("completions", {})[child_key] = True
+        child_xp = xp_data.setdefault(child_key, {"total_xp": 0, "history": []})
+        child_xp["total_xp"] = child_xp.get("total_xp", 0) + bq["xp_value"]
+        child_xp.setdefault("history", []).append({
+            "quest_id":    bq["id"],
+            "quest_title": bq["title"],
+            "xp":          bq["xp_value"],
+            "date":        today,
+            "ts":          _now_ts(),
+        })
+        total_bonus_xp += bq["xp_value"]
+    save_quests(quests)
+    save_xp(xp_data)
+    return total_bonus_xp
 
 
 def _xp_state(xp_data: dict, child_key: str) -> dict:
@@ -450,3 +504,99 @@ def _chore_xp(title: str) -> int:
     if any(w in t for w in ("bed", "tidy", "pick up", "sweep", "trash", "wipe")):
         return 10
     return 10
+
+
+def sync_all_quests_for_child(child_name: str, iso_date: str = "") -> dict:
+    """
+    Called when a parent prints (approves) a child's day list.
+    Creates daily quests for every school subject and chore block
+    not already on the board for that child/day.
+    Returns {"created": [...], "skipped": [...], "errors": [...]}.
+    """
+    if not iso_date:
+        iso_date = date.today().isoformat()
+
+    import sys as _sys
+    _root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if _root not in _sys.path:
+        _sys.path.insert(0, _root)
+
+    child_key = CHILD_NAME_TO_KEY.get(child_name)
+    if not child_key:
+        return {"created": [], "skipped": [], "errors": [f"Unknown child: {child_name}"]}
+
+    today_d = date.fromisoformat(iso_date)
+    weekday = today_d.strftime("%A")
+
+    created, skipped, errors = [], [], []
+
+    try:
+        from daily_schedule_engine import build_day_list, extract_school_tasks_for_child
+        existing        = get_quests_for_child(child_key, iso_date)
+        existing_titles = {q.get("title", "").strip().lower() for q in existing}
+
+        FULL_DAY_TITLE = "Complete Your Entire School Day"
+        school_quests_created = 0
+
+        # ── School subjects (one quest per subject) ──────────────────────────
+        subjects = extract_school_tasks_for_child(child_name, weekday)
+        for block in subjects:
+            subj = block.get("subject", "").strip()
+            assign = block.get("assignment_text", "").strip()
+            if not subj:
+                continue
+            # Build a concise title
+            if assign:
+                brief = assign[:45].rstrip()
+                if len(assign) > 45:
+                    brief += "…"
+                title = f"{subj} — {brief}"
+            else:
+                title = subj
+            if title.lower() in existing_titles:
+                skipped.append(f"{child_name}: {title}")
+                continue
+            q = create_quest(title, "daily", [child_key], xp_value=5, iso_date=iso_date)
+            _mark_synced(q["id"], from_print=True)
+            created.append(f"{child_name}: {title}")
+            existing_titles.add(title.lower())
+            school_quests_created += 1
+
+        # ── Chore blocks (one quest per chore slot) ──────────────────────────
+        day_list = build_day_list(child_name, weekday, iso_date)
+        for item in day_list:
+            if item.get("kind") != "chore":
+                continue
+            title = (item.get("label") or "").strip()
+            if not title or title.lower() in existing_titles:
+                skipped.append(f"{child_name}: {title}")
+                continue
+            q = create_quest(title, "daily", [child_key], xp_value=5, iso_date=iso_date)
+            _mark_synced(q["id"], from_print=True)
+            created.append(f"{child_name}: {title}")
+            existing_titles.add(title.lower())
+
+        # ── Full-day bonus ───────────────────────────────────────────────────
+        if school_quests_created > 0 and FULL_DAY_TITLE.lower() not in existing_titles:
+            q = create_quest(FULL_DAY_TITLE, "daily", [child_key],
+                             xp_value=50, iso_date=iso_date)
+            _mark_synced(q["id"], from_print=True, is_bonus=True)
+            created.append(f"{child_name}: {FULL_DAY_TITLE}")
+
+    except Exception as exc:
+        errors.append(str(exc))
+
+    return {"created": created, "skipped": skipped, "errors": errors}
+
+
+def _mark_synced(quest_id: str, from_print: bool = False, is_bonus: bool = False):
+    """Set synced/from_print/is_bonus flags on a just-created quest."""
+    quests = load_quests()
+    for q in quests:
+        if q.get("id") == quest_id:
+            q["synced"]     = True
+            q["from_print"] = from_print
+            if is_bonus:
+                q["is_bonus"] = True
+            break
+    save_quests(quests)

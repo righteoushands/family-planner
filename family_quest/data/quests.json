@@ -218,7 +218,8 @@
     "date": "2026-04-08",
     "active": true,
     "completions": {},
-    "synced": false
+    "synced": false,
+    "is_bonus": true
   },
   {
     "id": "6a695ea6",
@@ -335,6 +336,133 @@
     "date": "2026-04-08",
     "active": true,
     "completions": {},
-    "synced": false
+    "synced": false,
+    "is_bonus": true
+  },
+  {
+    "id": "ca93aa28",
+    "title": "Algebra 1/2 — Lesson 71",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "a616b4d9",
+    "title": "Religion 8 — Work for 5 minutes reviewing any of the quest…",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "0482862f",
+    "title": "English 8 — Do Noun Review, pages 140-143. (T.E. pages 27…",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "15354b2c",
+    "title": "Spelling & Vocabulary 8 — Take a spelling test on Lesson 9 Key words. I…",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "4017786e",
+    "title": "Beginning Latin III — Lesson 23. Take Quiz 23.",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "02c004fa",
+    "title": "Science 7 — Read Biology — Chapter 7: Section 7.4. Answer…",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "c43a2bdc",
+    "title": "History & Geog 8 — Geography: Complete Chapter 4, Section 3 (Can…",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "8fb9e404",
+    "title": "Music 8 — Listen to the Clarinet Quintet by Mozart.",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "f3524ad9",
+    "title": "Reading 8 — Read for about 1 hour.",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-08",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
   }
 ]

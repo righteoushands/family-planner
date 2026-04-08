@@ -421,12 +421,10 @@ def format_task_text(task_text: str) -> str:
 def get_carryover_tasks(child: str, target_day: date):
     progress = load_progress()
 
-    # Look back up to 7 days to find the most recent day that had registered tasks.
-    # This ensures Friday's unfinished tasks appear on Monday even after a weekend
-    # or holiday with no registered tasks.
+    # Look back 1 day only — tasks older than yesterday are expired.
     previous_tasks = []
     prev_iso = ""
-    for days_back in range(1, 8):
+    for days_back in range(1, 2):
         check_day = target_day - timedelta(days=days_back)
         check_iso = check_day.isoformat()
         found = get_registered_tasks_for_day(child, check_iso)

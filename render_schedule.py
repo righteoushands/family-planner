@@ -1365,6 +1365,21 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
     stats    = day_list_stats(day_list)
     c_color  = child_color(child, "bg")
 
+    # ── Approval via print: auto-create school + chore quests ─────────────────
+    # Printing the day list IS the parent's approval. Quests are created here
+    # (idempotent — duplicates are skipped if already approved).
+    _QUEST_CHILDREN = {"JP", "Joseph", "Michael", "James"}
+    if child in _QUEST_CHILDREN:
+        try:
+            import sys as _sys, os as _os
+            _fq_root = _os.path.join(_os.path.dirname(os.path.abspath(__file__)), "family_quest")
+            if _fq_root not in _sys.path:
+                _sys.path.insert(0, _fq_root)
+            from fq_data import sync_all_quests_for_child
+            sync_all_quests_for_child(child, iso)
+        except Exception:
+            pass
+
     try:
         target_iso = date.fromisoformat(iso)
     except Exception:
