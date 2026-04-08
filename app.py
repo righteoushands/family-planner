@@ -1277,7 +1277,29 @@ class Handler(BaseHTTPRequestHandler):
             data = {} if path in _JSON_PATHS else parse_urlencoded_body(self)
 
             if path == "/toggle-task":
-                set_task_done(data.get("task_id",[""])[0], data.get("new_value",["false"])[0]=="true")
+                _tid  = data.get("task_id",[""])[0]
+                _done = data.get("new_value",["false"])[0] == "true"
+                set_task_done(_tid, _done)
+                # When a MANUAL one-time task is checked off on a plan page,
+                # also mark it done (or advance if recurring) in manual_tasks.json
+                # so it stops reappearing on future plan pages.
+                if _done:
+                    _parts = _tid.split("::", 4)
+                    # task_id format: {iso}::{child}::MANUAL::{priority}::{text}
+                    if len(_parts) == 5 and _parts[2] == "MANUAL":
+                        _, _tc, _, _tp, _tt = _parts
+                        _ml = load_manual_tasks()
+                        _changed = False
+                        for _mi, _mt in enumerate(_ml):
+                            if not isinstance(_mt, dict): continue
+                            if str(_mt.get("status","active")).strip().upper() != "ACTIVE": continue
+                            if str(_mt.get("assigned_to","")).strip() != _tc: continue
+                            if str(_mt.get("text","")).strip().lower() != _tt.lower(): continue
+                            _ml[_mi] = advance_recurring_task(_mt) if _mt.get("recurring") else {**_mt,"status":"done"}
+                            _changed = True
+                            break
+                        if _changed:
+                            save_manual_tasks(_ml)
                 self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
                 self.wfile.write(b'{"ok":true}'); return
 
