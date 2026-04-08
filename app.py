@@ -133,6 +133,11 @@ from render_daily_plan import (
     get_or_seed_grid, publish_day_grid, render_grid_print_page,
 )
 
+# Lock protecting the load → modify → save cycle for manual_tasks.json.
+# The server is ThreadingMixIn so concurrent toggle-task requests would otherwise
+# race and overwrite each other's deletions.
+_MANUAL_TASKS_LOCK = threading.Lock()
+
 
 def _render_change_pin_page(viewer: str, error: str = "", ok: str = "") -> str:
     """Simple PIN-change page for children (and admins redirected to settings)."""
@@ -1288,23 +1293,28 @@ class Handler(BaseHTTPRequestHandler):
                     # task_id format: {iso}::{child}::MANUAL::{priority}::{text}
                     if len(_parts) == 5 and _parts[2] == "MANUAL":
                         _, _tc, _, _tp, _tt = _parts
-                        _ml = load_manual_tasks()
-                        _to_remove = None
-                        for _mi, _mt in enumerate(_ml):
-                            if not isinstance(_mt, dict): continue
-                            if str(_mt.get("status","active")).strip().upper() != "ACTIVE": continue
-                            # match by child (empty assigned_to means "anyone" — matches any child)
-                            _at = str(_mt.get("assigned_to","")).strip()
-                            if _at and _at != _tc: continue
-                            if str(_mt.get("text","")).strip().lower() != _tt.lower(): continue
-                            if _mt.get("recurring"):
-                                _ml[_mi] = advance_recurring_task(_mt)
-                            else:
-                                _to_remove = _mi
-                            break
-                        if _to_remove is not None:
-                            _ml.pop(_to_remove)
-                        save_manual_tasks(_ml)
+                        with _MANUAL_TASKS_LOCK:
+                            _ml = load_manual_tasks()
+                            _changed = False
+                            _to_remove = None
+                            for _mi, _mt in enumerate(_ml):
+                                if not isinstance(_mt, dict): continue
+                                if str(_mt.get("status","active")).strip().upper() != "ACTIVE": continue
+                                # match by child (empty assigned_to means "anyone" — matches any child)
+                                _at = str(_mt.get("assigned_to","")).strip()
+                                if _at and _at != _tc: continue
+                                if str(_mt.get("text","")).strip().lower() != _tt.lower(): continue
+                                if _mt.get("recurring"):
+                                    _ml[_mi] = advance_recurring_task(_mt)
+                                    _changed = True
+                                else:
+                                    _to_remove = _mi
+                                break
+                            if _to_remove is not None:
+                                _ml.pop(_to_remove)
+                                _changed = True
+                            if _changed:
+                                save_manual_tasks(_ml)
                 self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
                 self.wfile.write(b'{"ok":true}'); return
 
