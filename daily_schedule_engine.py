@@ -917,6 +917,98 @@ def boys_task_snapshot_text(iso: str = "") -> str:
 
 _DAY_TEMPLATES_DIR = Path("data/day_templates")
 
+# ---------------------------------------------------------------------------
+# Time-hint extraction — scans task/chore text for time-of-day language and
+# returns a "HH:MM" 24-hour sort key, or None if no hint is found.
+# ---------------------------------------------------------------------------
+import re as _re_hint
+
+_TIME_CLOCK_RE = _re_hint.compile(
+    r'(?:^|[\s(,;@])'               # word boundary / opening paren
+    r'(\d{1,2})(?::(\d{2}))?'       # hour, optional :minute
+    r'\s*([AaPp][Mm])',             # am/pm (case-insensitive)
+    _re_hint.IGNORECASE,
+)
+
+_TIME_RANGE_RE = _re_hint.compile(
+    r'(\d{1,2})(?::(\d{2}))?\s*([AaPp][Mm])'
+    r'\s*[–\-–to]+\s*'
+    r'(\d{1,2})(?::(\d{2}))?\s*([AaPp][Mm])',
+    _re_hint.IGNORECASE,
+)
+
+_TIME_PHRASE_MAP: list = [
+    (_re_hint.compile(r'before\s+breakfast',           _re_hint.I), "07:00"),
+    (_re_hint.compile(r'after\s+breakfast',            _re_hint.I), "08:30"),
+    (_re_hint.compile(r'around\s+breakfast',           _re_hint.I), "08:00"),
+    (_re_hint.compile(r'before\s+lunch|pre.?lunch',    _re_hint.I), "11:30"),
+    (_re_hint.compile(r'around\s+lunch(?:time)?|lunchtime', _re_hint.I), "12:00"),
+    (_re_hint.compile(r'after\s+lunch',                _re_hint.I), "13:00"),
+    (_re_hint.compile(r'before\s+dinner',              _re_hint.I), "16:30"),
+    (_re_hint.compile(r'around\s+dinner(?:time)?',     _re_hint.I), "17:00"),
+    (_re_hint.compile(r'after\s+dinner',               _re_hint.I), "18:30"),
+    (_re_hint.compile(r'before\s+school',              _re_hint.I), "07:30"),
+    (_re_hint.compile(r'after\s+school',               _re_hint.I), "15:30"),
+    (_re_hint.compile(r'before\s+bed(?:time)?',        _re_hint.I), "20:30"),
+    (_re_hint.compile(r'\bbedtime\b',                  _re_hint.I), "20:30"),
+    (_re_hint.compile(r'in\s+the\s+morning|this\s+morning', _re_hint.I), "09:00"),
+    (_re_hint.compile(r'this\s+afternoon|in\s+the\s+afternoon', _re_hint.I), "14:00"),
+    (_re_hint.compile(r'in\s+the\s+evening|this\s+evening', _re_hint.I), "19:00"),
+    (_re_hint.compile(r'\btonight\b',                  _re_hint.I), "19:00"),
+    (_re_hint.compile(r'\bnoon\b',                     _re_hint.I), "12:00"),
+]
+
+
+def _parse_time_hint(text: str) -> str | None:
+    """
+    Scan task/chore text for a time-of-day indicator.
+    Returns "HH:MM" (24-hour) or None.
+
+    Examples
+    --------
+    "Mind Michael (10:00 AM–12:00 PM)"  → "10:00"
+    "Switch laundry around lunchtime"   → "12:00"
+    "Clean up after breakfast"          → "08:30"
+    "Doctor at 3:30pm"                  → "15:30"
+    """
+    def _to_hhmm(h: str, m: str | None, meridiem: str) -> str:
+        hh = int(h)
+        mm = int(m) if m else 0
+        mer = meridiem.lower()
+        if mer == "pm" and hh != 12:
+            hh += 12
+        elif mer == "am" and hh == 12:
+            hh = 0
+        return f"{hh:02d}:{mm:02d}"
+
+    # 1. Time range "(10:00 AM–12:00 PM)" — use the start time
+    m = _TIME_RANGE_RE.search(text)
+    if m:
+        return _to_hhmm(m.group(1), m.group(2), m.group(3))
+
+    # 2. Single clock time "at 8am", "9:30 PM", etc.
+    m = _TIME_CLOCK_RE.search(text)
+    if m:
+        return _to_hhmm(m.group(1), m.group(2), m.group(3))
+
+    # 3. Named anchors (phrase matching)
+    for pattern, hhmm in _TIME_PHRASE_MAP:
+        if pattern.search(text):
+            return hhmm
+
+    return None
+
+
+def _hint_to_display(hhmm: str) -> str:
+    """Convert "HH:MM" to "h:MM AM/PM" for display."""
+    try:
+        h, m = int(hhmm[:2]), int(hhmm[3:])
+        meridiem = "AM" if h < 12 else "PM"
+        h12 = h % 12 or 12
+        return f"{h12}:{m:02d} {meridiem}" if m else f"{h12}:{m:02d} {meridiem}"
+    except Exception:
+        return ""
+
 
 def _dl_done(progress: dict, tid: str) -> bool:
     """Read a Day List progress flag safely.
@@ -1354,6 +1446,29 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
     except Exception:
         pass
 
+    # ── Split tasks into timed (have explicit time hint) vs untimed ──────────
+    # Timed tasks are placed at their hinted time position in the day list;
+    # untimed tasks continue to use the "Lists with Mom" / Tasks-fallback slot.
+    timed_task_groups: dict = {}   # "HH:MM" -> [item, ...]
+    untimed_manual:    list = []
+    for _it in manual_items:
+        _hint = _parse_time_hint(_it["text"])
+        if _hint:
+            timed_task_groups.setdefault(_hint, []).append(_it)
+        else:
+            untimed_manual.append(_it)
+    manual_items = untimed_manual
+
+    timed_carry_groups: dict = {}  # same idea for carryover items
+    untimed_carry:      list = []
+    for _it in carryover_items:
+        _hint = _parse_time_hint(_it["text"])
+        if _hint:
+            timed_carry_groups.setdefault(_hint, []).append(_it)
+        else:
+            untimed_carry.append(_it)
+    carryover_items = untimed_carry
+
     # Build the result list
     subjects_used: set = set()
     weekly_expanded: bool = False        # prevent double-expansion of weekly chores
@@ -1456,6 +1571,29 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
                 "checkable": False, "task_id": None, "done": False,
                 "sub_items": extra,
             })
+
+    # ── Insert timed task groups at their correct time positions ─────────────
+    # Tasks/chores whose text contained a time indicator (e.g. "at 10:00 AM",
+    # "after breakfast") are placed as their own block at that time, so they
+    # appear in the right spot in the chronological day list rather than being
+    # lumped into the generic "Lists with Mom" / Tasks slot.
+    all_hint_times = set(timed_task_groups) | set(timed_carry_groups)
+    for _hint in sorted(all_hint_times):
+        _carry  = [dict(i, is_carryover=True) for i in timed_carry_groups.get(_hint, [])]
+        _manual = list(timed_task_groups.get(_hint, []))
+        result.append({
+            "time":      _hint_to_display(_hint),
+            "time_sort": _hint,
+            "end_time":  "",
+            "label":     "Tasks",
+            "kind":      "task",
+            "checkable": False,
+            "task_id":   None,
+            "done":      False,
+            "sub_items": _carry + _manual,
+        })
+    if all_hint_times:
+        result.sort(key=lambda b: b["time_sort"])
 
     return result
 
