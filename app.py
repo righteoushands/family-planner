@@ -638,6 +638,19 @@ class Handler(BaseHTTPRequestHandler):
             try: self.wfile.write(html.encode())
             except BrokenPipeError: pass
             return
+        elif path == "/quest-launch":
+            import os as _osenv
+            _ql_domain = _osenv.environ.get("REPLIT_DEV_DOMAIN", "")
+            if _ql_domain:
+                # Replit dev domains use -00- for port 5000; swap to -8080- for Family Quest
+                _ql_quest_domain = _ql_domain.replace("-00-", "-8080-")
+                _ql_url = f"https://{_ql_quest_domain}/quest/"
+            else:
+                _ql_url = "http://localhost:8080/quest/"
+            self.send_response(302)
+            self.send_header("Location", _ql_url)
+            self.end_headers()
+            return
         elif path == "/curriculum":
             _cur_viewer = self._get_viewer()
             if not (_cur_viewer and _auth.is_admin(_cur_viewer)):
