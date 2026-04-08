@@ -655,12 +655,9 @@ def render_chores_page(status_message: str = "") -> str:
   </script>
 </div>""" if _api_key else ""
 
-    status_today = _render_chore_status_today()
-
     body = f"""
     {page_header("Chores")}
     {render_status_message(status_message)}
-    {status_today}
     {ai_chore_btn}
     {van_badge}
     {kitchen_card}

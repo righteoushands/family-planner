@@ -702,5 +702,15 @@
   "SCHOOL::Joseph::2026-04-08::Beginning Latin III::Done": true,
   "SCHOOL::Joseph::2026-04-08::Beginning Latin III (LS)::Done": true,
   "CHORE::Joseph::2026-04-08::weekly::LAUNDRY — Joseph's own laundry (may be multiple loads)": true,
-  "CHORE::Joseph::2026-04-08::weekly::Switch load before lunch": true
+  "CHORE::Joseph::2026-04-08::weekly::Switch load before lunch": true,
+  "SCHOOL::Joseph::2026-04-08::Science 6::Done": true,
+  "CHORE::JP::2026-04-08::morning::Take out trash + recycling": true,
+  "ROUTINE::JP::2026-04-08::Piano Lessons": true,
+  "CARRY::JP::2026-04-08::[MEDIUM] Mind Michael while Mom is at PT (10:00 AM–12:00 PM)": true,
+  "SCHOOL::JP::2026-04-08::English 8::Done": true,
+  "SCHOOL::JP::2026-04-08::Science 7::Done": true,
+  "SCHOOL::JP::2026-04-08::Music 8::Done": true,
+  "SCHOOL::JP::2026-04-08::Reading 8::Done": true,
+  "CHORE::JP::2026-04-08::weekly::Switch basement zone (TV/Game + guest room)": true,
+  "ROUTINE::JP::2026-04-08::Showers": true
 }

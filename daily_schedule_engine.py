@@ -1173,12 +1173,8 @@ def _parse_slot_time(time_str: str) -> str:
 
 
 def _split_daily_chores(daily: list) -> dict:
-    morning, evening = [], []
+    general, morning, evening = [], [], []
     current = None   # start outside any kitchen section
-    # Only collect items that are *within* a KITCHEN section.
-    # Items before the first KITCHEN header are general daily tasks
-    # (e.g. "Check CAP email", "Daily Room Reset") — those should NOT
-    # appear inside Morning Jobs; they belong in their own slots elsewhere.
     for line in daily:
         low = line.lower() if isinstance(line, str) else ""
         if "kitchen (morning" in low or "kitchen (am" in low:
@@ -1193,8 +1189,11 @@ def _split_daily_chores(daily: list) -> dict:
                 current = None
             else:
                 current.append(line)
-        # else: pre-kitchen general daily items — intentionally ignored here
-    return {"morning": morning, "evening": evening}
+        else:
+            # Pre-kitchen general daily items (email checks, room reset, etc.)
+            if isinstance(line, str) and line.strip():
+                general.append(line)
+    return {"general": general, "morning": morning, "evening": evening}
 
 
 def _lines_to_sub_items(lines: list, child: str, iso: str, prefix: str,
@@ -1542,8 +1541,9 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
 
         # ── Morning Jobs ────────────────────────────────────────────────
         elif "morning jobs" in label_low:
+            all_morning = daily_split.get("general", []) + daily_split["morning"]
             item["sub_items"] = _lines_to_sub_items(
-                daily_split["morning"], child, iso, "morning", progress)
+                all_morning, child, iso, "morning", progress)
             item["checkable"] = False
 
         # ── Evening kitchen clean ───────────────────────────────────────
