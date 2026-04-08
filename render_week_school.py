@@ -63,28 +63,28 @@ def _registered_school_subjects(child: str, iso: str):
 
 
 def _cell_status(child: str, iso: str, subject: str, items: list,
-                 progress: dict, is_future: bool):
+                 progress: dict, is_future: bool, is_today: bool = False):
     """
-    Return 'done' | 'partial' | 'missed' | 'skip' | 'future'
+    Return 'done' | 'partial' | 'missed' | 'pending' | 'skip' | 'future'
     for a single (child, day, subject) cell.
+
+    Task IDs for school are stored as SCHOOL::{child}::{iso}::{subject}::{item}
+    (NOT via make_task_id which produces the old {iso}::{child}:: prefix order).
     """
     if is_future:
         return "future"
     if not items:
         return "skip"
-    try:
-        from daily_schedule_engine import make_task_id, get_task_done
-        done = sum(
-            1 for item in items
-            if get_task_done(progress, make_task_id(child, iso, f"SCHOOL::{subject}::{item}"))
-        )
-        if done == len(items):
-            return "done"
-        if done > 0:
-            return "partial"
-        return "missed"
-    except Exception:
-        return "skip"
+    done = sum(
+        1 for item in items
+        if progress.get(f"SCHOOL::{child}::{iso}::{subject}::{item}", False)
+    )
+    if done == len(items):
+        return "done"
+    if done > 0:
+        return "partial"
+    # If today's class hasn't been checked yet — show as in-progress, not missed
+    return "pending" if is_today else "missed"
 
 
 def _build_child_week(child: str, days: list, today: date):
@@ -145,7 +145,8 @@ def _build_child_week(child: str, days: list, today: date):
         for subj in subject_order:
             if subj in reg:
                 cells[subj] = _cell_status(child, iso, subj, reg[subj],
-                                            progress, is_future=False)
+                                            progress, is_future=False,
+                                            is_today=is_today)
             else:
                 cells[subj] = "skip"
         day_cells[iso] = cells
@@ -165,6 +166,7 @@ def _week_stats(child_data: dict, days: list):
             if status == "done":
                 done += 1
             elif status in ("missed", "partial"):
+                # "pending" (today's not-yet-done) is excluded from missed count
                 missed += 1
     return done, missed
 
@@ -181,6 +183,9 @@ _STATUS_CELL = {
     "missed":  ('<div style="width:22px;height:22px;border-radius:50%;'
                 'background:#fef2f2;display:flex;align-items:center;justify-content:center;">'
                 '<span style="font-size:0.65em;color:#ef4444;font-weight:700;">✗</span></div>'),
+    "pending": ('<div style="width:22px;height:22px;border-radius:50%;'
+                'background:#f0f4ff;display:flex;align-items:center;justify-content:center;">'
+                '<span style="font-size:0.65em;color:#6b7280;font-weight:700;">○</span></div>'),
     "skip":    '<span style="font-size:0.72em;color:#d1d5db;">—</span>',
     "future":  '<span style="font-size:0.65em;color:#e5e7eb;">·</span>',
 }
@@ -303,6 +308,7 @@ def render_week_school_page(iso: str = None) -> str:
         ("✓", "#15803d", "#dcfce7", "Done"),
         ("½", "#a16207", "#fef9c3", "Partial"),
         ("✗", "#ef4444", "#fef2f2", "Missed"),
+        ("○", "#6b7280", "#f0f4ff", "Today/pending"),
         ("—", "#d1d5db", "transparent", "No class"),
         ("·", "#e5e7eb", "transparent", "Upcoming"),
     ]
