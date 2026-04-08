@@ -21,13 +21,6 @@
     "level_threshold": 0
   },
   {
-    "id": "rwd00004",
-    "label": "Dad teaches you a skill you want to learn",
-    "coin_price": 200,
-    "xp_threshold": 0,
-    "level_threshold": 0
-  },
-  {
     "id": "rwd00005",
     "label": "Extra 30 min screen time (one day)",
     "coin_price": 75,
