@@ -4079,14 +4079,8 @@ def render_tasks() -> str:
         <div class="card" id="task-card-{index}">
             <h3>{text}{recur_badge}</h3>
             <p class="small">Assigned: {assigned_to} | Due: {due_date} | Priority: {priority}</p>
-            <form method="POST" action="/task-done" onsubmit="_fadeCard('{index}',this)">
-                <input type="hidden" name="index" value="{index}">
-                <button type="submit">&#10003; Done</button>
-            </form>
-            <form method="POST" action="/task-delete" onsubmit="_fadeCard('{index}',this)">
-                <input type="hidden" name="index" value="{index}">
-                <button type="submit" class="ghost">Archive</button>
-            </form>
+            <button type="button" onclick="_taskAction(this,'/task-done',{index})">&#10003; Done</button>
+            <button type="button" class="ghost" onclick="_taskAction(this,'/task-delete',{index})">Archive</button>
         </div>"""
             active_cards += card_html
         elif status == "inactive":
@@ -4185,12 +4179,22 @@ def render_tasks() -> str:
     <h2>Active Tasks</h2>{active_cards or "<div class='card'><p class='muted'>No active tasks.</p></div>"}
     {inactive_section}
     <script>
-    function _fadeCard(idx, form) {{
+    function _taskAction(btn, url, idx) {{
       var card = document.getElementById('task-card-' + idx);
-      if (card) {{
-        card.style.transition = 'opacity .25s';
-        card.style.opacity    = '0';
-      }}
+      btn.disabled = true;
+      if (card) {{ card.style.transition='opacity .3s'; card.style.opacity='0'; }}
+      fetch(url, {{
+        method: 'POST',
+        headers: {{'Content-Type':'application/x-www-form-urlencoded'}},
+        body: 'index=' + encodeURIComponent(idx),
+        redirect: 'manual'
+      }}).then(function() {{
+        setTimeout(function() {{ window.location.reload(); }}, 200);
+      }}).catch(function() {{
+        if (card) {{ card.style.opacity='1'; }}
+        btn.disabled = false;
+        window.location.reload();
+      }});
     }}
     </script>"""
     return html_page("Tasks", body)
