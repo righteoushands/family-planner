@@ -953,9 +953,15 @@ _TIME_PHRASE_MAP: list = [
     (_re_hint.compile(r'\bbedtime\b',                  _re_hint.I), "20:30"),
     (_re_hint.compile(r'in\s+the\s+morning|this\s+morning', _re_hint.I), "09:00"),
     (_re_hint.compile(r'this\s+afternoon|in\s+the\s+afternoon', _re_hint.I), "14:00"),
+    # ── Deadline phrases must come before "this evening" / "tonight" rules ──────
+    # "for tonight's meeting", "for this evening" = have it READY by tonight,
+    # so the task should start in the morning, not be done at 7 PM.
+    (_re_hint.compile(r'for\s+tonight|ready.*tonight',   _re_hint.I), "09:00"),
+    (_re_hint.compile(r'for\s+this\s+evening',           _re_hint.I), "09:00"),
+    # ── Action phrases: the thing IS done in the evening / tonight ────────────
     (_re_hint.compile(r'in\s+the\s+evening|this\s+evening', _re_hint.I), "19:00"),
-    (_re_hint.compile(r'\btonight\b',                  _re_hint.I), "19:00"),
-    (_re_hint.compile(r'\bnoon\b',                     _re_hint.I), "12:00"),
+    (_re_hint.compile(r'\btonight\b',                    _re_hint.I), "19:00"),
+    (_re_hint.compile(r'\bnoon\b',                       _re_hint.I), "12:00"),
 ]
 
 
