@@ -1,0 +1,86 @@
+[
+  {
+    "id": "rwd00001",
+    "label": "$1 cash",
+    "coin_price": 120,
+    "xp_threshold": 0,
+    "level_threshold": 0
+  },
+  {
+    "id": "rwd00002",
+    "label": "Pick the weekend movie or show",
+    "coin_price": 80,
+    "xp_threshold": 0,
+    "level_threshold": 0
+  },
+  {
+    "id": "rwd00003",
+    "label": "Sleep in Saturday — skip morning jobs",
+    "coin_price": 150,
+    "xp_threshold": 0,
+    "level_threshold": 0
+  },
+  {
+    "id": "rwd00004",
+    "label": "Dad teaches you a skill you want to learn",
+    "coin_price": 200,
+    "xp_threshold": 0,
+    "level_threshold": 0
+  },
+  {
+    "id": "rwd00005",
+    "label": "Extra 30 min screen time (one day)",
+    "coin_price": 75,
+    "xp_threshold": 0,
+    "level_threshold": 0
+  },
+  {
+    "id": "rwd00006",
+    "label": "Pick the family game night game",
+    "coin_price": 100,
+    "xp_threshold": 0,
+    "level_threshold": 0
+  },
+  {
+    "id": "rwd00007",
+    "label": "No chores for one day",
+    "coin_price": 250,
+    "xp_threshold": 0,
+    "level_threshold": 0
+  },
+  {
+    "id": "rwd00008",
+    "label": "$5 cash",
+    "coin_price": 550,
+    "xp_threshold": 0,
+    "level_threshold": 0
+  },
+  {
+    "id": "rwd00009",
+    "label": "Pick the restaurant for family dinner",
+    "coin_price": 800,
+    "xp_threshold": 0,
+    "level_threshold": 0
+  },
+  {
+    "id": "rwd00010",
+    "label": "$10 cash",
+    "coin_price": 1100,
+    "xp_threshold": 0,
+    "level_threshold": 0
+  },
+  {
+    "id": "rwd00011",
+    "label": "New book or small game (up to $20)",
+    "coin_price": 1500,
+    "xp_threshold": 0,
+    "level_threshold": 0
+  },
+  {
+    "id": "rwd00012",
+    "label": "$20 cash",
+    "coin_price": 2500,
+    "xp_threshold": 0,
+    "level_threshold": 0
+  }
+]
