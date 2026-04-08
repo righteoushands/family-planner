@@ -563,9 +563,8 @@ def _section_systems(settings: dict) -> str:
             <h3 style="margin-bottom:14px;">📅 Weekly Schedule Grid <span class="small" style="font-weight:400;">— half-hour slots</span></h3>
             <div>
                 <p class="small" style="margin-bottom:10px;">
-                    Edit any cell and click Save Schedule. Current time is highlighted in orange.
+                    Edit any cell — changes save automatically. Current time is highlighted in orange.
                 </p>
-                <form method="POST" action="/family-schedule-save">
                 <div style='overflow-x:auto;max-height:55vh;overflow-y:auto;
                             border:1px solid #e4dbd2;border-radius:10px;'>
                     <table style='border-collapse:collapse;width:100%;'>
@@ -576,9 +575,8 @@ def _section_systems(settings: dict) -> str:
                     </table>
                 </div>
                 <div style='padding:12px;background:#faf8f5;border-top:1px solid #e4dbd2;'>
-                    <button type="submit">Save Schedule</button>
+                    <button type="button" onclick="_userHasTouched=true;autoSaveSettings();">Save Schedule Now</button>
                 </div>
-                </form>
             </div>
             </div>
         </div>
