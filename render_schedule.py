@@ -625,6 +625,12 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
         {template_html}
     </div>
 <script>
+/* Hide tasks already marked done on page load so they don't reappear as visible checked items */
+(function() {{
+    document.querySelectorAll('[data-done="1"]').forEach(function(row) {{
+        row.style.display = 'none';
+    }});
+}})();
 (function() {{
     var el = document.getElementById('lucy-child-brief-{child.lower()}');
     if (!el) return;

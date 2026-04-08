@@ -1289,10 +1289,21 @@ class Handler(BaseHTTPRequestHandler):
                 # permanently delete it (or advance if recurring) in manual_tasks.json
                 # so it never reappears.
                 if _done:
-                    _parts = _tid.split("::", 4)
-                    # task_id format: {iso}::{child}::MANUAL::{priority}::{text}
-                    if len(_parts) == 5 and _parts[2] == "MANUAL":
-                        _, _tc, _, _tp, _tt = _parts
+                    # Detect task type from ID and permanently remove from source
+                    # Format A (plan page): MANUAL::{child}::{iso}::{text}  ← actual format
+                    # Format B (legacy):   {iso}::{child}::MANUAL::{pri}::{text}
+                    _tc = _tt = None
+                    _raw_parts = _tid.split("::", 3)
+                    if len(_raw_parts) >= 4 and _raw_parts[0] == "MANUAL":
+                        # Format A — plan page manual task
+                        _tc = _raw_parts[1]
+                        _tt = _raw_parts[3]
+                    else:
+                        _p5 = _tid.split("::", 4)
+                        if len(_p5) == 5 and _p5[2] == "MANUAL":
+                            # Format B — legacy
+                            _tc, _tt = _p5[1], _p5[4]
+                    if _tc is not None and _tt is not None:
                         with _MANUAL_TASKS_LOCK:
                             _ml = load_manual_tasks()
                             _changed = False
