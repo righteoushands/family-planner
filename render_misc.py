@@ -1261,7 +1261,7 @@ def render_dashboard() -> str:
         </a>
       </div>
       <div style="margin-top:6px;">
-        <a href="/quest-launch" target="_blank"
+        <a href="/quest/" target="_blank"
            style="display:flex;align-items:center;justify-content:center;gap:8px;
                   padding:10px 14px;background:linear-gradient(135deg,#7c3a1a 0%,#b85c20 100%);
                   color:rgba(245,240,232,1);border-radius:14px;text-decoration:none;

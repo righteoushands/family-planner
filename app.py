@@ -322,6 +322,15 @@ class Handler(BaseHTTPRequestHandler):
         query = parse_qs(route.query)
         body  = None
 
+        # ── Family Quest — served on same port via bridge ─────────────────────
+        if path.startswith("/quest"):
+            import sys as _fqsys, os as _fqos
+            _fqdir = _fqos.path.join(_fqos.path.dirname(_fqos.path.abspath(__file__)), "family_quest")
+            if _fqdir not in _fqsys.path:
+                _fqsys.path.insert(0, _fqdir)
+            from fq_bridge import handle_get as _fq_handle_get
+            _fq_handle_get(self); return
+
         # ── Login page (public) ───────────────────────────────────────────────
         if path == "/login":
             from render_login import render_login_page
@@ -637,19 +646,6 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             try: self.wfile.write(html.encode())
             except BrokenPipeError: pass
-            return
-        elif path == "/quest-launch":
-            import os as _osenv
-            _ql_domain = _osenv.environ.get("REPLIT_DEV_DOMAIN", "")
-            if _ql_domain:
-                # Replit dev domains use -00- for port 5000; swap to -8080- for Family Quest
-                _ql_quest_domain = _ql_domain.replace("-00-", "-8080-")
-                _ql_url = f"https://{_ql_quest_domain}/quest/"
-            else:
-                _ql_url = "http://localhost:8080/quest/"
-            self.send_response(302)
-            self.send_header("Location", _ql_url)
-            self.end_headers()
             return
         elif path == "/curriculum":
             _cur_viewer = self._get_viewer()
@@ -978,6 +974,15 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         path     = urlparse(self.path).path
         redirect = "/"
+
+        # ── Family Quest POST — served on same port via bridge ────────────────
+        if path.startswith("/quest"):
+            import sys as _fqsys, os as _fqos
+            _fqdir = _fqos.path.join(_fqos.path.dirname(_fqos.path.abspath(__file__)), "family_quest")
+            if _fqdir not in _fqsys.path:
+                _fqsys.path.insert(0, _fqdir)
+            from fq_bridge import handle_post as _fq_handle_post
+            _fq_handle_post(self); return
 
         # ── Login POST (public) ───────────────────────────────────────────────
         if path == "/login":
