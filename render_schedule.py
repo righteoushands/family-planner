@@ -256,8 +256,19 @@ def _dl_kind_color(kind: str) -> str:
     return _DL_KIND_COLORS.get(kind, "#888888")
 
 
-def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str) -> str:
+def _get_poetry_passage(child: str) -> dict:
+    """Return {title, text} for this child's current memorization passage, or {}."""
+    try:
+        from render_week_school import load_poetry_passages
+        return load_poetry_passages().get(child, {})
+    except Exception:
+        return {}
+
+
+def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str,
+                       child: str = "") -> str:
     rows = []
+    _poetry_passage_injected = False   # only inject once per block
     for sub in sub_items:
         if sub.get("is_header"):
             rows.append(
@@ -280,6 +291,36 @@ def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str) -> str:
                 f'<span class="dl-sub-label {dst}">{carry}{escape(sub.get("text",""))}</span>'
                 f'</div>'
             )
+            # If this is a poetry memorization step, inject the saved passage once
+            task_id = sub.get("task_id", "")
+            text_low = sub.get("text", "").lower()
+            is_poetry_memorize = (
+                "poetry" in task_id.lower() and
+                "memorize" in text_low and
+                not _poetry_passage_injected and
+                child
+            )
+            if is_poetry_memorize:
+                passage = _get_poetry_passage(child)
+                if passage.get("text"):
+                    _poetry_passage_injected = True
+                    p_title = escape(passage.get("title", ""))
+                    p_text  = escape(passage.get("text", ""))
+                    title_html = (
+                        f'<div style="font-size:.72em;font-weight:700;color:#7c3aed;'
+                        f'margin-bottom:4px;">{p_title}</div>'
+                        if p_title else ""
+                    )
+                    p_text_html = p_text.replace("&#10;", "<br>").replace("\n", "<br>")
+                    rows.append(
+                        f'<div style="margin:5px 0 3px 22px;padding:8px 12px;'
+                        f'background:#faf5ff;border-left:3px solid #7c3aed;'
+                        f'border-radius:0 6px 6px 0;">'
+                        f'{title_html}'
+                        f'<div style="font-family:Georgia,serif;font-size:.82em;'
+                        f'line-height:1.6;color:#4a1a6e;white-space:pre-wrap;">'
+                        f'{p_text_html}</div></div>'
+                    )
         else:
             rows.append(
                 f'<div class="dl-sub-row" style="padding-left:22px;">'
@@ -369,7 +410,7 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
                 f'{prog_label}</span></span>'
                 f'</div>'
                 f'<div class="dl-subitems">'
-                f'{_dl_sub_items_html(subs, c_id, iso, c_bg)}'
+                f'{_dl_sub_items_html(subs, c_id, iso, c_bg, child)}'
                 f'</div></div>'
             )
         elif item.get("task_id") and item.get("checkable"):

@@ -1315,7 +1315,7 @@ class Handler(BaseHTTPRequestHandler):
 
         else:
             # /plan-import-apply reads its own raw JSON body — don't consume it with URL form parse
-            _JSON_PATHS = {"/plan-import-apply", "/curriculum-save"}
+            _JSON_PATHS = {"/plan-import-apply", "/curriculum-save", "/poetry-passage-save"}
             data = {} if path in _JSON_PATHS else parse_urlencoded_body(self)
 
             if path == "/toggle-task":
@@ -3656,6 +3656,30 @@ class Handler(BaseHTTPRequestHandler):
                     try: self.wfile.write(_curj2.dumps({"ok": True}).encode())
                     except BrokenPipeError: pass
                 except Exception as _cure2:
+                    self.send_response(500); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(b'{"error":"save failed"}')
+                    except BrokenPipeError: pass
+                return
+
+            elif path == "/poetry-passage-save":
+                import json as _ppj
+                try:
+                    _pp_raw = self.rfile.read(int(self.headers.get("Content-Length", 0)))
+                    _pp_payload = _ppj.loads(_pp_raw)
+                    from render_week_school import load_poetry_passages, save_poetry_passages
+                    _pp_data = load_poetry_passages()
+                    for _pp_child, _pp_fields in _pp_payload.items():
+                        if not isinstance(_pp_fields, dict):
+                            continue
+                        _pp_data[_pp_child] = {
+                            "title": str(_pp_fields.get("title", "")).strip(),
+                            "text":  str(_pp_fields.get("text", "")).strip(),
+                        }
+                    save_poetry_passages(_pp_data)
+                    self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(_ppj.dumps({"ok": True}).encode())
+                    except BrokenPipeError: pass
+                except Exception as _ppe:
                     self.send_response(500); self.send_header("Content-Type","application/json"); self.end_headers()
                     try: self.wfile.write(b'{"error":"save failed"}')
                     except BrokenPipeError: pass

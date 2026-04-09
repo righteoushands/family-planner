@@ -7,6 +7,27 @@ Missed subjects carry forward via the existing carryover engine.
 
 from html import escape as _e
 from datetime import date, timedelta
+import json as _json
+import os as _os
+
+POETRY_PASSAGES_FILE = "data/poetry_passages.json"
+
+
+def load_poetry_passages() -> dict:
+    """Load {child: {title, text, shared}} from data/poetry_passages.json."""
+    try:
+        with open(POETRY_PASSAGES_FILE, encoding="utf-8") as f:
+            return _json.load(f)
+    except Exception:
+        return {}
+
+
+def save_poetry_passages(data: dict) -> None:
+    _os.makedirs("data", exist_ok=True)
+    tmp = POETRY_PASSAGES_FILE + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        _json.dump(data, f, ensure_ascii=False, indent=2)
+    _os.replace(tmp, POETRY_PASSAGES_FILE)
 
 CHILDREN_SCHOOL = ["JP", "Joseph"]
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
@@ -278,6 +299,88 @@ def _child_block_html(child: str, child_data: dict, days: list, today: date) -> 
     return html
 
 
+# ── Poetry / Memorization Passage Card ───────────────────────────────────────
+
+def _render_poetry_passages_card() -> str:
+    passages = load_poetry_passages()
+    child_blocks = ""
+    for child in CHILDREN_SCHOOL:
+        color = CHILD_COLORS.get(child, {}).get("bg", "#555")
+        p = passages.get(child, {})
+        title_val = _e(p.get("title", ""))
+        text_val  = _e(p.get("text", ""))
+        child_blocks += f'''
+<div style="margin-bottom:14px;">
+  <div style="font-size:0.75em;font-weight:800;letter-spacing:.06em;
+              text-transform:uppercase;color:{color};margin-bottom:6px;">{_e(child)}</div>
+  <input type="text"
+         name="title__{_e(child)}" value="{title_val}"
+         placeholder="Passage title / source (e.g. Macbeth, Act V, Scene V)"
+         style="width:100%;padding:6px 10px;border:1px solid #d4c9bc;border-radius:7px;
+                font-size:0.85em;font-family:inherit;margin-bottom:6px;
+                background:#faf8f5;color:#3b2a1a;">
+  <textarea name="text__{_e(child)}" rows="5"
+            placeholder="Paste the Shakespeare passage here…"
+            style="width:100%;padding:8px 10px;border:1px solid #d4c9bc;border-radius:7px;
+                   font-size:0.88em;font-family:Georgia,serif;line-height:1.6;
+                   background:#faf8f5;color:#3b2a1a;resize:vertical;">{text_val}</textarea>
+</div>'''
+
+    return f'''
+<div style="background:white;border-radius:10px;border:1px solid #e5e0d8;
+            border-left:4px solid #7c3aed;margin-bottom:14px;overflow:hidden;">
+  <div style="padding:10px 14px 8px;border-bottom:1px solid #f0ebe4;
+              display:flex;align-items:center;justify-content:space-between;gap:8px;">
+    <div>
+      <div style="font-size:0.62em;font-weight:800;letter-spacing:.1em;
+                  text-transform:uppercase;color:#7c3aed;margin-bottom:1px;">Poetry</div>
+      <div style="font-size:0.9em;font-weight:700;color:#3b2a1a;">
+        Memorization Passage</div>
+    </div>
+    <div style="font-size:0.72em;color:#9ca3af;line-height:1.3;text-align:right;">
+      Shown on each boy's schedule<br>on memorization days
+    </div>
+  </div>
+  <form id="poetry-passage-form"
+        style="padding:12px 14px 10px;">
+    {child_blocks}
+    <button type="button" onclick="savePoetryPassages()"
+            style="background:#7c3aed;color:white;border:none;border-radius:8px;
+                   padding:8px 20px;font-size:0.85em;font-weight:700;cursor:pointer;
+                   font-family:inherit;">
+      Save Passages
+    </button>
+    <span id="poetry-save-status"
+          style="font-size:0.78em;color:#6b7280;margin-left:10px;"></span>
+  </form>
+</div>
+<script>
+function savePoetryPassages() {{
+  var form = document.getElementById('poetry-passage-form');
+  var inputs = form.querySelectorAll('input[name^="title__"], textarea[name^="text__"]');
+  var payload = {{}};
+  inputs.forEach(function(el) {{
+    var parts = el.name.split('__');
+    var field = parts[0], child = parts[1];
+    if (!payload[child]) payload[child] = {{}};
+    payload[child][field] = el.value;
+  }});
+  var st = document.getElementById('poetry-save-status');
+  st.textContent = 'Saving…';
+  fetch('/poetry-passage-save', {{
+    method: 'POST',
+    headers: {{'Content-Type': 'application/json'}},
+    body: JSON.stringify(payload)
+  }}).then(function(r) {{ return r.json(); }})
+    .then(function(d) {{
+      st.textContent = d.ok ? '✓ Saved' : '✗ Error';
+      setTimeout(function() {{ st.textContent = ''; }}, 3000);
+    }})
+    .catch(function() {{ st.textContent = '✗ Error'; }});
+}}
+</script>'''
+
+
 # ── Page renderer ─────────────────────────────────────────────────────────────
 
 def render_week_school_page(iso: str = None) -> str:
@@ -377,6 +480,9 @@ def render_week_school_page(iso: str = None) -> str:
 
   <!-- Child blocks -->
   {child_blocks_html}
+
+  <!-- Poetry / Memorization Passages -->
+  {_render_poetry_passages_card()}
 
   <!-- Carryover note -->
   <div style="background:white;border-radius:10px;border:1px solid #e5e0d8;
