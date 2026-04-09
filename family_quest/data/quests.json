@@ -464,5 +464,188 @@
     "completions": {},
     "synced": true,
     "from_print": true
+  },
+  {
+    "id": "e921fa6e",
+    "title": "Algebra 1/2 — Lesson 72",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "d5329a35",
+    "title": "Religion 8 — Work for 5 minutes reviewing the seven capita…",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "5bb0ec08",
+    "title": "English 8 — Study for the Noun Test by reviewing any part…",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "95cee13b",
+    "title": "Spelling & Vocabulary 8 — Begin Lesson 10. First look at the meanings o…",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "0803dd6e",
+    "title": "Beginning Latin III — Attend Class. Do the Lesson XXIII Quia Games.",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "92fd761c",
+    "title": "Science 7 — Read Biology — Chapter 7: Section 7.5. Do the…",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "5c16c98e",
+    "title": "Poetry 8 — Start memorizing \"The Merchant of Venice\", Ac…",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "0dba1efd",
+    "title": "Reading 8 — Read for about 1 hour.",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "8ac678e6",
+    "title": "Morning Jobs",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "92dde3bb",
+    "title": "Laundry",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "c20a7ad3",
+    "title": "Jobs — weekly",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "2ca552d1",
+    "title": "Clean the Kitchen",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true
+  },
+  {
+    "id": "df8bb326",
+    "title": "Complete Your Entire School Day",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 50,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": true,
+    "is_bonus": true
   }
 ]
