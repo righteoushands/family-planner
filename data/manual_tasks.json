@@ -733,15 +733,6 @@
     "recurring": false
   },
   {
-    "text": "KITCHEN (Morning — Role A)",
-    "assigned_to": "JP",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "inactive",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
     "text": "Math 87",
     "assigned_to": "Joseph",
     "due_date": "2026-04-06",
@@ -841,15 +832,6 @@
     "recurring": false
   },
   {
-    "text": "KITCHEN (Morning — Role B)",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "inactive",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
     "text": "Daily Room Reset (after breakfast)",
     "assigned_to": "JP",
     "due_date": "2026-04-06",
@@ -870,24 +852,6 @@
   {
     "text": "Daily Room Reset (after breakfast)",
     "assigned_to": "Michael",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "inactive",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "KITCHEN (Morning — Role B): Unload dishwasher, load dishwasher, clean sink",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "inactive",
-    "source": "lucy",
-    "recurring": false
-  },
-  {
-    "text": "KITCHEN (Evening — Role B): Put food away, clear table + counters, spray + wipe table and counters, take out trash + recycling, sweep kitchen / dining room / foyer",
-    "assigned_to": "Joseph",
     "due_date": "2026-04-06",
     "priority": "MEDIUM",
     "status": "inactive",
