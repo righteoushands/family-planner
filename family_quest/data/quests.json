@@ -491,7 +491,9 @@
     "xp_value": 5,
     "date": "2026-04-09",
     "active": true,
-    "completions": {},
+    "completions": {
+      "jp": true
+    },
     "synced": true,
     "from_print": true
   },

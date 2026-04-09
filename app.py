@@ -1418,6 +1418,51 @@ class Handler(BaseHTTPRequestHandler):
                                     _need -= 1
                             if _changed:
                                 save_manual_tasks(_ml)
+                # ── Family Quest bridge: award XP when task checked off ────────
+                if _done:
+                    try:
+                        _FQ_CHILD_KEYS2 = {"JP":"jp","Joseph":"joseph",
+                                           "Michael":"michael","James":"james"}
+                        _tid_parts = _tid.split("::", 4)
+                        # Format: {iso}::{child}::{kind}::{subject_or_label}[::{step}]
+                        if len(_tid_parts) >= 4:
+                            _t_iso    = _tid_parts[0]
+                            _t_child  = _tid_parts[1]
+                            _t_kind   = _tid_parts[2]
+                            _t_label  = _tid_parts[3]  # subject (school) or chore text
+                            _t_ckey   = _FQ_CHILD_KEYS2.get(_t_child)
+                            if _t_ckey and _t_kind in ("SCHOOL", "CHORE"):
+                                import sys as _fqs, os as _fqo
+                                _fq_root3 = _fqo.path.join(
+                                    _fqo.path.dirname(_fqo.path.abspath(__file__)),
+                                    "family_quest")
+                                if _fq_root3 not in _fqs.path:
+                                    _fqs.path.insert(0, _fq_root3)
+                                from fq_data import (get_quests_for_child,
+                                                     complete_quest as _fq_complete,
+                                                     is_completed as _fq_done)
+                                _fq_quests = get_quests_for_child(_t_ckey, _t_iso)
+                                _matched_q = None
+                                if _t_kind == "CHORE":
+                                    # Exact title match
+                                    _matched_q = next(
+                                        (q for q in _fq_quests
+                                         if q.get("title","").lower() == _t_label.lower()),
+                                        None)
+                                elif _t_kind == "SCHOOL":
+                                    # Title starts with subject name
+                                    _subj_low = _t_label.lower()
+                                    _matched_q = next(
+                                        (q for q in _fq_quests
+                                         if q.get("title","").lower().startswith(
+                                             _subj_low + " —") or
+                                            q.get("title","").lower() == _subj_low),
+                                        None)
+                                if _matched_q and not _fq_done(_matched_q, _t_ckey):
+                                    _fq_complete(_matched_q["id"], _t_ckey)
+                    except Exception:
+                        pass  # never block a task toggle due to FQ errors
+                # ───────────────────────────────────────────────────────────────
                 self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
                 self.wfile.write(b'{"ok":true}'); return
 
