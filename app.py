@@ -94,6 +94,7 @@ from data_helpers import (
 )
 from ui_helpers import parse_urlencoded_body, parse_multipart_form
 from render_schedule import render_child_schedule, render_today_all, render_week, render_print_day, render_print_week, render_print_child_day_list
+from render_week_view import render_week_view
 from render_schedule_support import render_family_schedule_page, generate_half_hour_times
 from render_calendar import render_calendar_page, refresh_calendar
 from render_liturgical import render_liturgical_page, render_liturgical_edit_page
@@ -413,7 +414,9 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             return
         elif path == "/now":             body = render_now_page()
-        elif path == "/week":            body = render_week()
+        elif path == "/week":
+            _wk = clean_text(query.get("week", [""])[0]) or None
+            body = render_week_view(_wk)
         elif path == "/week-school":     body = render_week_school_page(iso=clean_text(query.get("date",[""])[0]) or None)
         elif path == "/school":          body = render_school_page(status_message=clean_text(query.get("msg",[""])[0]))
         elif path == "/api/today-progress":
