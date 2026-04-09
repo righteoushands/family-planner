@@ -1051,7 +1051,7 @@ document.addEventListener('click', function(e) {{
         <a href="/family-schedule" onclick="closeMobileMore()"
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
                   border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
-          &#128197; Schedule
+          &#128197; Today's Timeline
         </a>
         <a href="/settings" onclick="closeMobileMore()"
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
@@ -1250,7 +1250,7 @@ def top_nav() -> str:
           <div class="nav-dropdown" id="nav-dropdown">
             <div class="nav-drop-section">Plan</div>
             <a href="/calendar">📆 Calendar</a>
-            <a href="/family-schedule">📅 Schedule</a>
+            <a href="/family-schedule">📅 Today's Timeline</a>
             <a href="/tasks">✅ Tasks</a>
             <a href="/notes">📝 Notes</a>
             <a href="/planner">🗓 Monthly Planner</a>
