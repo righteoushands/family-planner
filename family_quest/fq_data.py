@@ -574,10 +574,7 @@ def sync_chores_from_daily_schedule(today_iso: str = "") -> dict:
     if not today_iso:
         today_iso = date.today().isoformat()
 
-    import sys as _sys
-    _root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    if _root not in _sys.path:
-        _sys.path.insert(0, _root)
+    import fq_api as _api
 
     from datetime import date as _d
     today_d = _d.fromisoformat(today_iso)
@@ -590,8 +587,7 @@ def sync_chores_from_daily_schedule(today_iso: str = "") -> dict:
     for child_key in CHILDREN_KEYS:
         child_name = CHILDREN_NAMES[child_key]
         try:
-            from daily_schedule_engine import build_day_list
-            day_list = build_day_list(child_name, weekday, today_iso)
+            day_list = _api.get_day_list(child_name, weekday, today_iso)
 
             existing        = get_quests_for_child(child_key, today_iso)
             existing_titles = {q.get("title", "").strip().lower() for q in existing}
@@ -644,10 +640,7 @@ def sync_all_quests_for_child(child_name: str, iso_date: str = "") -> dict:
     if not iso_date:
         iso_date = date.today().isoformat()
 
-    import sys as _sys
-    _root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    if _root not in _sys.path:
-        _sys.path.insert(0, _root)
+    import fq_api as _api
 
     child_key = CHILD_NAME_TO_KEY.get(child_name)
     if not child_key:
@@ -659,7 +652,6 @@ def sync_all_quests_for_child(child_name: str, iso_date: str = "") -> dict:
     created, skipped, errors = [], [], []
 
     try:
-        from daily_schedule_engine import build_day_list, extract_school_tasks_for_child
         existing        = get_quests_for_child(child_key, iso_date)
         existing_titles = {q.get("title", "").strip().lower() for q in existing}
 
@@ -667,7 +659,7 @@ def sync_all_quests_for_child(child_name: str, iso_date: str = "") -> dict:
         school_quests_created = 0
 
         # ── School subjects (one quest per subject) ──────────────────────────
-        subjects = extract_school_tasks_for_child(child_name, weekday)
+        subjects = _api.get_school_tasks(child_name, weekday)
         for block in subjects:
             subj = block.get("subject", "").strip()
             assign = block.get("assignment_text", "").strip()
@@ -691,7 +683,7 @@ def sync_all_quests_for_child(child_name: str, iso_date: str = "") -> dict:
             school_quests_created += 1
 
         # ── Chore blocks (one quest per chore slot) ──────────────────────────
-        day_list = build_day_list(child_name, weekday, iso_date)
+        day_list = _api.get_day_list(child_name, weekday, iso_date)
         for item in day_list:
             if item.get("kind") != "chore":
                 continue

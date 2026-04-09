@@ -2,6 +2,13 @@
 fq_bridge.py — makes Family Quest work inside the main Sancta Familia app
 (port 5000) by exposing handle_get(h) / handle_post(h) that accept the
 main app's BaseHTTPRequestHandler instance and do all routing.
+
+NOTE: This file intentionally lives on the boundary between the main app
+and Family Quest — it is imported by the main app's HTTP server, not by
+any Family Quest module.  It is the only exception to the rule that FQ
+modules must go through fq_api.py to reach the main app's internals.
+When Family Quest moves to a separate Repl, this file will be removed
+and the main app will instead proxy /quest/* requests to the FQ server.
 """
 
 import os

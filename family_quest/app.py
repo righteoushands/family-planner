@@ -7,12 +7,8 @@ import os
 import sys
 import json
 
-# ── Add parent directory to path so we can import auth.py etc ─────────────────
-_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if _ROOT not in sys.path:
-    sys.path.insert(0, _ROOT)
-
 # ── Add this directory to path for local imports ───────────────────────────────
+# (fq_api.py handles the parent-directory path setup)
 _SELF = os.path.dirname(os.path.abspath(__file__))
 if _SELF not in sys.path:
     sys.path.insert(0, _SELF)

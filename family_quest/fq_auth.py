@@ -1,36 +1,28 @@
 """
 fq_auth.py — Auth module for Family Quest.
-Reuses the same PIN-based system and user definitions from the main app's auth.py.
-Sessions are shared (same sessions.json file) so one login works across both apps.
+Uses fq_api as the single bridge to Sancta Familia's auth system.
 """
-import sys
-import os
+import fq_api as _api
 
-# Make sure the parent directory is importable
-_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if _ROOT not in sys.path:
-    sys.path.insert(0, _ROOT)
+# ── Re-export auth helpers ────────────────────────────────────────────────────
 
-import auth as _auth
-
-# Re-export the things we need
-USERS            = _auth.USERS
-check_pin        = _auth.check_pin
-create_session   = _auth.create_session
-get_session_user = _auth.get_session_user
-destroy_session  = _auth.destroy_session
-is_admin         = _auth.is_admin
-load_pins        = _auth.load_pins
+USERS            = _api.get_users()
+check_pin        = _api.check_pin
+create_session   = _api.create_session
+get_session_user = _api.get_session_user
+destroy_session  = _api.destroy_session
+is_admin         = _api.is_admin
+load_pins        = _api.load_pins
 
 CHILDREN_KEYS = ["jp", "joseph", "michael", "james"]
 
 
 def is_child(username: str) -> bool:
-    return USERS.get(username, {}).get("role") == "child"
+    return _api.get_users().get(username, {}).get("role") == "child"
 
 
 def is_parent(username: str) -> bool:
-    return is_admin(username)
+    return _api.is_admin(username)
 
 
 def can_view_child(viewer: str, child_key: str) -> bool:
