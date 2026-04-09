@@ -1648,6 +1648,56 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
             untimed_carry.append(_it)
     carryover_items = untimed_carry
 
+    # ── Pre-distribute school subjects across generic "School" slots ──────────
+    import math as _math
+
+    def _is_generic_school_slot(lbl: str) -> bool:
+        """True only for slots like 'School', 'School / HW' — not 'Latin Class' etc."""
+        lbl_low = lbl.strip().lower()
+        # Must begin with the word "school" to qualify as a generic school block
+        if not lbl_low.startswith("school"):
+            return False
+        return (_classify_slot(lbl) == "school"
+                and "or video" not in lbl_low
+                and "hw or"   not in lbl_low
+                and "\u2014"  not in lbl
+                and "—"       not in lbl)
+
+    # Find subjects that will be claimed by hinted slots (e.g. "School — Math")
+    _hinted_subjs: set = set()
+    for _blk in merged:
+        _lbl = _blk["label"]
+        # Only hinted slots — those that start with "School" AND have "—" separator
+        if (_classify_slot(_lbl) == "school"
+                and not _is_generic_school_slot(_lbl)
+                and ("\u2014" in _lbl or "—" in _lbl)):
+            _hint = (_lbl.split("\u2014", 1)[1] if "\u2014" in _lbl
+                     else _lbl.split("—", 1)[1]).strip()
+            _hint_low = _hint.lower()
+            for _b in school_raw:
+                _s = _b.get("subject", "").strip()
+                _s_low = _s.lower()
+                if _hint_low in _s_low or _s_low in _hint_low:
+                    _hinted_subjs.add(_s_low)
+                if "math" in _hint_low and (_b.get("is_math") or _b.get("is_math_test")):
+                    _hinted_subjs.add(_s_low)
+
+    # Remaining blocks destined for generic School slots
+    _generic_blocks = [b for b in school_raw
+                       if b.get("subject", "").strip().lower() not in _hinted_subjs]
+
+    # Identify generic School slot positions by index
+    _generic_school_idxs = [
+        i for i, b in enumerate(merged) if _is_generic_school_slot(b["label"])]
+
+    # Divide evenly: each generic slot gets roughly the same number of subjects
+    _generic_slot_map: dict = {}   # merged-list index -> [school_raw blocks]
+    if _generic_school_idxs and _generic_blocks:
+        _n    = len(_generic_school_idxs)
+        _per  = _math.ceil(len(_generic_blocks) / _n)
+        for _i, _idx in enumerate(_generic_school_idxs):
+            _generic_slot_map[_idx] = _generic_blocks[_i * _per: (_i + 1) * _per]
+
     # Build the result list
     subjects_used: set = set()
     weekly_expanded: bool = False        # prevent double-expansion of weekly chores
@@ -1657,7 +1707,7 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
     )
     result = []
 
-    for blk in merged:
+    for blk_idx, blk in enumerate(merged):
         label     = blk["label"]
         label_low = label.lower()
         kind      = _classify_slot(label)
@@ -1681,7 +1731,13 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
                 hint = label.split("\u2014", 1)[1].strip()
             elif "—" in label:
                 hint = label.split("—", 1)[1].strip()
-            subs = _school_sub_items(school_raw, subjects_used, child, iso, hint, progress)
+            if hint == "":
+                # Generic slot — use pre-assigned slice so subjects are
+                # distributed evenly across all generic School slots.
+                assigned = _generic_slot_map.get(blk_idx, [])
+                subs = _school_sub_items(assigned, subjects_used, child, iso, "", progress)
+            else:
+                subs = _school_sub_items(school_raw, subjects_used, child, iso, hint, progress)
             item["sub_items"] = subs
             item["checkable"] = False
 
