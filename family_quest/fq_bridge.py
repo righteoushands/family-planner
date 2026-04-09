@@ -295,7 +295,6 @@ def handle_get(h) -> bool:
     path  = route.path.rstrip("/") or "/quest"
     query = parse_qs(route.query)
 
-    # normalise trailing slash for matching
     path_bare = path.rstrip("/")
 
     # ── Login ──────────────────────────────────────────────────────────────────
@@ -350,6 +349,15 @@ def handle_get(h) -> bool:
         msg = query.get("msg", [""])[0]
         err = query.get("err", [""])[0]
         _send_html(h, render_rewards_page(viewer, msg=msg, err=err)); return True
+
+    # ── Parent: boss settings ──────────────────────────────────────────────────
+    if path_bare == "/quest/boss-settings":
+        if not is_parent:
+            _redirect(h, f"/quest/board/{viewer}"); return True
+        from fq_views_parent import render_boss_settings_page
+        msg = query.get("msg", [""])[0]
+        err = query.get("err", [""])[0]
+        _send_html(h, render_boss_settings_page(viewer, msg=msg, err=err)); return True
 
     # ── Child board ────────────────────────────────────────────────────────────
     if path.startswith("/quest/board/"):
@@ -412,6 +420,7 @@ def handle_post(h) -> bool:
         xp_raw = str(form.get("xp_value", "10"))
         xp_val = max(1, int(xp_raw) if xp_raw.isdigit() else 10)
         iso    = str(form.get("date", "")).strip()
+        item_reward = str(form.get("item_reward", "")).strip()
         assigned_raw = form.get("assigned_to", [])
         if isinstance(assigned_raw, str):
             assigned = [assigned_raw] if assigned_raw else []
@@ -421,7 +430,14 @@ def handle_post(h) -> bool:
             _redirect(h, "/quest/quests?err=Title+is+required"); return True
         if not assigned:
             _redirect(h, "/quest/quests?err=Select+at+least+one+child"); return True
-        D.create_quest(title, qtype, assigned, xp_val, iso)
+        q = D.create_quest(title, qtype, assigned, xp_val, iso)
+        # Store item reward on quest for later completion trigger
+        if item_reward and item_reward in D.ITEMS:
+            quests = D.load_quests()
+            for qu in quests:
+                if qu.get("id") == q["id"]:
+                    qu["item_reward"] = item_reward
+            D.save_quests(quests)
         _redirect(h, "/quest/quests?msg=Quest+created"); return True
 
     # ── Delete quest ───────────────────────────────────────────────────────────
@@ -449,12 +465,14 @@ def handle_post(h) -> bool:
         xp_raw     = str(form.get("xp_threshold", "0"))
         lvl_raw    = str(form.get("level_threshold", "0"))
         price_raw  = str(form.get("coin_price", "25"))
+        item_r     = str(form.get("item_reward", "")).strip()
         xp_thr     = int(xp_raw) if xp_raw.lstrip("-").isdigit() else 0
         lvl_thr    = int(lvl_raw) if lvl_raw.lstrip("-").isdigit() else 0
         coin_price = max(1, int(price_raw) if price_raw.lstrip("-").isdigit() else 25)
         if not label:
             _redirect(h, "/quest/rewards?err=Label+is+required"); return True
-        D.create_reward(label, xp_thr, lvl_thr, coin_price)
+        D.create_reward(label, xp_thr, lvl_thr, coin_price,
+                        item_reward=item_r if item_r in D.ITEMS else "")
         _redirect(h, "/quest/rewards?msg=Reward+added"); return True
 
     # ── Approve redemption ─────────────────────────────────────────────────────
@@ -466,6 +484,14 @@ def handle_post(h) -> bool:
         if "error" in result:
             _redirect(h, f"/quest/rewards?err={result['error'].replace(' ', '+')}"); return True
         child_name = D.CHILDREN_NAMES.get(result.get("child",""), "")
+        # Award item if attached to reward
+        redemptions = D.load_redemptions()
+        r = next((x for x in redemptions if x.get("id") == form.get("redemption_id","")), None)
+        if r:
+            rewards = D.load_rewards()
+            reward_obj = next((rw for rw in rewards if rw.get("id") == r.get("reward_id")), None)
+            if reward_obj and reward_obj.get("item_reward"):
+                D.award_item(r["child"], reward_obj["item_reward"])
         _redirect(h, f"/quest/rewards?msg=Approved+for+{child_name.replace(' ', '+')}"); return True
 
     # ── Reject redemption ──────────────────────────────────────────────────────
@@ -484,6 +510,50 @@ def handle_post(h) -> bool:
         D.delete_reward(str(form.get("reward_id", "")))
         _redirect(h, "/quest/rewards?msg=Reward+removed"); return True
 
+    # ── Boss settings: save ────────────────────────────────────────────────────
+    if path == "/quest/boss-settings/save":
+        if not is_parent:
+            _redirect(h, "/quest/"); return True
+        form = _parse_form_multi(h)
+        diff = str(form.get("difficulty", "medium"))
+        avail = str(form.get("available", "1"))
+        boss_type = str(form.get("boss_type", "orc"))
+        try:
+            exchange_rate = max(1, min(100, int(form.get("exchange_rate", 1))))
+        except (ValueError, TypeError):
+            exchange_rate = 1
+        settings = D.load_boss_settings()
+        if diff in D.BOSS_DIFFICULTIES:
+            settings["difficulty"] = diff
+        if boss_type in D.BOSS_TYPES:
+            settings["boss_type"] = boss_type
+        settings["available"] = (avail == "1")
+        settings["exchange_rate"] = exchange_rate
+        D.save_boss_settings(settings)
+        _redirect(h, "/quest/boss-settings?msg=Boss+settings+saved"); return True
+
+    # ── Boss settings: award item ──────────────────────────────────────────────
+    if path == "/quest/boss-settings/award-item":
+        if not is_parent:
+            _redirect(h, "/quest/"); return True
+        form = _parse_form_multi(h)
+        item_key = str(form.get("item_key", "")).strip()
+        assigned_raw = form.get("assigned_to", [])
+        if isinstance(assigned_raw, str):
+            assigned = [assigned_raw] if assigned_raw else []
+        else:
+            assigned = list(assigned_raw)
+        if not item_key or item_key not in D.ITEMS:
+            _redirect(h, "/quest/boss-settings?err=Invalid+item"); return True
+        if not assigned:
+            _redirect(h, "/quest/boss-settings?err=Select+at+least+one+child"); return True
+        for child_key in assigned:
+            if child_key in D.CHILDREN_KEYS:
+                D.award_item(child_key, item_key)
+        item_label = D.ITEMS[item_key]["label"]
+        names_str = "+".join(D.CHILDREN_NAMES.get(k, k) for k in assigned)
+        _redirect(h, f"/quest/boss-settings?msg={item_label.replace(' ', '+')}+awarded+to+{names_str}"); return True
+
     # ── API: complete quest (JSON) ─────────────────────────────────────────────
     if path == "/quest/api/complete-quest":
         data = _read_json(h)
@@ -496,13 +566,20 @@ def handle_post(h) -> bool:
         quests = D.load_quests()
         q = next((x for x in quests if x.get("id") == quest_id), None)
         quest_xp = q.get("xp_value", 0) if q else 0
+        # Check for item reward on this quest
+        item_reward_key = q.get("item_reward", "") if q else ""
         result = D.complete_quest(quest_id, child_key)
         if "error" in result:
             _send_json(h, result, 400); return True
         if "xp_earned" not in result:
             result["xp_earned"] = quest_xp
-        # Include current coin balance for client-side update
-        result["coins"] = D.get_coins(child_key)
+        # Award item if quest had one and this was a real completion (not idempotent)
+        if item_reward_key and item_reward_key in D.ITEMS and result.get("xp_earned", 0) > 0:
+            D.award_item(child_key, item_reward_key)
+            result["item_awarded"] = D.ITEMS[item_reward_key]["label"]
+        result["coins"]    = D.get_coins(child_key)
+        result["crystals"] = D.get_crystals(child_key)
+        result["diamonds"] = D.get_diamonds(child_key)
         _send_json(h, result); return True
 
     # ── API: redeem reward (child requests purchase) ────────────────────────────
@@ -514,24 +591,103 @@ def handle_post(h) -> bool:
             _send_json(h, {"error": "invalid child"}, 400); return True
         if not (viewer == child_key or is_parent):
             _send_json(h, {"error": "unauthorized"}, 403); return True
-        # Check reward exists
         rewards = D.load_rewards()
         reward = next((r for r in rewards if r.get("id") == reward_id), None)
         if not reward:
             _send_json(h, {"error": "Reward not found"}, 404); return True
-        # Check not already pending
         already = [r for r in D.load_redemptions()
                    if r.get("child") == child_key and r.get("reward_id") == reward_id
                    and r.get("status") == "pending"]
         if already:
             _send_json(h, {"error": "Already requested — waiting for approval"}); return True
-        # Check coins (don't deduct yet — approval deducts)
         price = reward.get("coin_price", 10)
         current_coins = D.get_coins(child_key)
         if current_coins < price:
             _send_json(h, {"error": f"Not enough coins (have {current_coins}, need {price})"}); return True
         result = D.create_redemption(child_key, reward_id, reward.get("label",""), price)
         result["coins"] = D.get_coins(child_key)
+        _send_json(h, result); return True
+
+    # ── API: set character ─────────────────────────────────────────────────────
+    if path == "/quest/api/set-character":
+        data = _read_json(h)
+        child_key = str(data.get("child", ""))
+        char_key  = str(data.get("character", ""))
+        if child_key not in D.CHILDREN_KEYS:
+            _send_json(h, {"error": "invalid child"}, 400); return True
+        if not (viewer == child_key or is_parent):
+            _send_json(h, {"error": "unauthorized"}, 403); return True
+        ok = D.set_character(child_key, char_key)
+        if not ok:
+            _send_json(h, {"error": "invalid character"}, 400); return True
+        _send_json(h, {"ok": True, "character": char_key}); return True
+
+    # ── API: upgrade equipment ─────────────────────────────────────────────────
+    if path == "/quest/api/upgrade-equipment":
+        data = _read_json(h)
+        child_key = str(data.get("child", ""))
+        slot      = str(data.get("slot", ""))
+        if child_key not in D.CHILDREN_KEYS:
+            _send_json(h, {"error": "invalid child"}, 400); return True
+        if not (viewer == child_key or is_parent):
+            _send_json(h, {"error": "unauthorized"}, 403); return True
+        result = D.upgrade_equipment(child_key, slot)
+        if "error" in result:
+            _send_json(h, result, 400); return True
+        result["slot_label"] = D.EQUIPMENT_SLOTS.get(slot, {}).get("label", slot)
+        result["crystals"]   = D.get_crystals(child_key)
+        result["diamonds"]   = D.get_diamonds(child_key)
+        _send_json(h, result); return True
+
+    # ── API: boss battle ───────────────────────────────────────────────────────
+    if path == "/quest/api/boss-battle":
+        data = _read_json(h)
+        child_key  = str(data.get("child", ""))
+        use_axe    = bool(data.get("use_battle_axe", False))
+        if child_key not in D.CHILDREN_KEYS:
+            _send_json(h, {"error": "invalid child"}, 400); return True
+        if not (viewer == child_key or is_parent):
+            _send_json(h, {"error": "unauthorized"}, 403); return True
+        # Enforce difficulty from parent settings — ignore client-supplied difficulty
+        boss_settings = D.load_boss_settings()
+        difficulty = boss_settings.get("difficulty", "medium")
+        result = D.start_boss_battle(child_key, difficulty, use_axe)
+        if "error" in result:
+            _send_json(h, result, 400); return True
+        result["stamina"] = D.get_stamina(child_key)
+        _send_json(h, result); return True
+
+    # ── API: start mine run ────────────────────────────────────────────────────
+    if path == "/quest/api/start-mine":
+        data = _read_json(h)
+        child_key  = str(data.get("child", ""))
+        mine_type  = str(data.get("mine_type", "gold"))
+        use_hammer = bool(data.get("use_hammer", False))
+        if child_key not in D.CHILDREN_KEYS:
+            _send_json(h, {"error": "invalid child"}, 400); return True
+        if not (viewer == child_key or is_parent):
+            _send_json(h, {"error": "unauthorized"}, 403); return True
+        result = D.start_mine_run(child_key, mine_type, use_hammer)
+        if "error" in result:
+            _send_json(h, result, 400); return True
+        result["stamina"] = D.get_stamina(child_key)
+        _send_json(h, result); return True
+
+    # ── API: collect mine run ──────────────────────────────────────────────────
+    if path == "/quest/api/collect-mine":
+        data = _read_json(h)
+        child_key = str(data.get("child", ""))
+        mine_id   = str(data.get("mine_id", ""))
+        if child_key not in D.CHILDREN_KEYS:
+            _send_json(h, {"error": "invalid child"}, 400); return True
+        if not (viewer == child_key or is_parent):
+            _send_json(h, {"error": "unauthorized"}, 403); return True
+        result = D.collect_mine_run(child_key, mine_id)
+        if "error" in result:
+            _send_json(h, result, 400); return True
+        result["coins"]    = D.get_coins(child_key)
+        result["crystals"] = D.get_crystals(child_key)
+        result["diamonds"] = D.get_diamonds(child_key)
         _send_json(h, result); return True
 
     # ── API: sync chores from Sancta Familia ──────────────────────────────────

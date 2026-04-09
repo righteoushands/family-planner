@@ -211,6 +211,7 @@ def topbar(viewer: str, is_parent: bool) -> str:
             f'<a href="/quest/">Dashboard</a>'
             f'<a href="/quest/quests">Quests</a>'
             f'<a href="/quest/rewards">Rewards</a>'
+            f'<a href="/quest/boss-settings">⚔️ Boss</a>'
         )
     return (
         f'<div class="fq-topbar">'

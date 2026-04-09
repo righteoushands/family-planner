@@ -3,19 +3,39 @@
 ## Overview
 A Python HTTP server (no framework) running on port 5000. A Catholic family dashboard for the McAdams family: Lauren (Mom), John (Dad), JP (14), Joseph (12), Michael (5), James (13 months). Features Mass readings, weather, meal plans, calendar, chores, and a five-companion AI ecosystem: Lucy (Catholic friend/integrator), Lorenzo (personal chef), Father Gregory (academic headmaster), Coach (family fitness), Dr. Monica (child development + pediatric health). Full authentication with per-user access control.
 
-## Family Quest App (Phase 1)
+## Family Quest App (Phase 2 — RPG Battle System)
 Lives in `family_quest/` directory, served at `/quest/*` by the main app via `fq_bridge.py`.
 
 - **Bridge**: `family_quest/fq_bridge.py` — imported by the main app; routes `/quest/*` GET/POST into FQ
-- **Adapter**: `family_quest/fq_api.py` — the ONLY file in FQ that imports from the main app (auth, daily schedule). All other FQ modules call through this adapter. To move FQ to a separate Repl, only this file needs to change (direct imports → HTTP calls)
+- **Adapter**: `family_quest/fq_api.py` — the ONLY file in FQ that imports from the main app (auth, daily schedule). All other FQ modules call through this adapter.
 - **Auth**: `fq_auth.py` delegates to `fq_api` (no direct parent imports)
-- **Data**: `family_quest/data/` — `quests.json`, `xp.json`, `rewards.json`, `streaks.json`, `redemptions.json`
-- **Modules**: `fq_data.py` (data/XP engine), `fq_render.py` (HTML shell), `fq_views_parent.py` (parent views), `fq_views_child.py` (child board)
-- **Quest types**: daily, side, boss, event; each with XP value, assigned children, date
+- **Data files**: `family_quest/data/` — `quests.json`, `xp.json`, `rewards.json`, `streaks.json`, `redemptions.json`, `characters.json`, `equipment.json`, `inventory.json`, `stamina.json`, `battles.json`, `mines.json`, `boss_settings.json`
+- **Modules**: `fq_data.py` (all data/engine logic), `fq_render.py` (HTML shell), `fq_views_parent.py` (parent views), `fq_views_child.py` (child board)
+- **Quest types**: daily, side, boss, event; each with XP value, assigned children, date, optional item_reward
 - **Level thresholds**: L1=0 (Novice), L2=100 (Apprentice), L3=250 (Knight), L4=500 (Champion), L5=1000 (Legend)
-- **XP API**: `POST /quest/api/complete-quest` — JSON `{quest_id, child}` → returns updated XP state; idempotent
 - **Sessions**: Separate cookie `fq_session` (Path=/quest) so it doesn't conflict with main app session
 - **Separation rule**: No FQ module (except `fq_api.py` and `fq_bridge.py`) may import from the parent directory
+
+### Phase 2 RPG Features
+- **Resources**: Coins (existing), Crystals, Diamonds — all tracked in xp.json per child; shown on board
+- **Characters**: Archer (high atk/low def), Fighter (balanced), Defender (high def/low atk) — selectable per child
+- **Equipment**: 4 slots (Sword, Shield, Armor, Ring) each 0–5 levels; upgraded using crystals/diamonds; modify attack/defense stats
+- **Stamina**: Max 10 ⚡; spent on boss battles/mine runs; refills +3 when all daily quests complete
+- **Boss Battle engine**: Quests completed → attack hits → damage vs boss HP; sword level reduces quests/hit; win awards coins+XP; lose adds penalty chores (reduced by defense); Battle Axe item doubles hits
+- **Mine Run engine**: Gold/Crystal/Diamond mines; 10-min runs; collect any time; cave-in on 3× overtime; speed bonus; Hammer item gives 1.5× yield
+- **Single-use items**: Battle Axe (boss) and Hammer (mine); awarded by parents via Boss Settings or via quest/reward item_reward field; consumed on use
+- **Equipment upgrades**: Children spend crystals/diamonds to upgrade slots; costs scale per level
+- **Parent controls**: Boss Settings page sets difficulty (easy/medium/hard/legendary) and enables/disables boss daily; parents can directly award items to any child
+
+### Key API Routes (Phase 2 additions)
+- `POST /quest/api/set-character` — `{child, character}`
+- `POST /quest/api/upgrade-equipment` — `{child, slot}`
+- `POST /quest/api/boss-battle` — `{child, difficulty, use_battle_axe}`
+- `POST /quest/api/start-mine` — `{child, mine_type, use_hammer}`
+- `POST /quest/api/collect-mine` — `{child, mine_id}`
+- `GET/POST /quest/boss-settings` — parent boss configuration page
+- `POST /quest/boss-settings/save` — saves difficulty/availability
+- `POST /quest/boss-settings/award-item` — directly awards item to child(ren)
 
 ## Architecture
 - **Entry point**: `app.py` — single HTTP handler routing all GET/POST requests

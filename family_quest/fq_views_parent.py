@@ -1,5 +1,6 @@
 """
 fq_views_parent.py — Parent-facing views for Family Quest.
+Phase 2: RPG — character/resource display, boss settings.
 """
 from html import escape as _esc
 from datetime import date
@@ -12,15 +13,23 @@ def _build_child_cards(xp_data: dict, today: str) -> str:
     """Build the per-child summary card HTML for the parent dashboard."""
     child_cards = ""
     for key in D.CHILDREN_KEYS:
-        name   = D.CHILDREN_NAMES[key]
-        emoji  = R.CHILD_EMOJI[key]
-        colors = R.CHILD_COLORS[key]
-        state  = D._xp_state(xp_data, key)
-        streak = D.get_streak(key)
-        total  = state["total_xp"]
-        lvl    = state["level"]
-        nxt    = state["next_level"]
-        pct    = state["progress_pct"]
+        name    = D.CHILDREN_NAMES[key]
+        emoji   = R.CHILD_EMOJI[key]
+        colors  = R.CHILD_COLORS[key]
+        state   = D._xp_state(xp_data, key)
+        streak  = D.get_streak(key)
+        char    = D.get_character(key)
+        eq      = D.get_equipment(key)
+        stamina = D.get_stamina(key)
+        total   = state["total_xp"]
+        coins   = state.get("coins", 0)
+        crystals = state.get("crystals", 0)
+        diamonds = state.get("diamonds", 0)
+        lvl     = state["level"]
+        nxt     = state["next_level"]
+        pct     = state["progress_pct"]
+        attack  = D.get_attack_stat(key)
+        defense = D.get_defense_stat(key)
 
         quests_today = D.get_quests_for_child(key, today)
         completed    = sum(1 for q in quests_today if D.is_completed(q, key))
@@ -31,6 +40,12 @@ def _build_child_cards(xp_data: dict, today: str) -> str:
         best_streak  = streak.get("best", 0)
         streak_color = "#dc2626" if cur_streak >= 7 else ("#d97706" if cur_streak >= 3 else "#9ca3af")
         streak_label = f"🔥 {cur_streak}" if cur_streak > 0 else "—"
+
+        char_name  = char.get("name", "Fighter")
+        char_emoji = char.get("emoji", "⚔️")
+
+        # Equipment level summary
+        eq_levels = "/".join(str(eq.get(s, 0)) for s in D.EQUIPMENT_SLOTS)
 
         child_cards += f"""
 <div class="card" style="border-top:4px solid {colors['bg']};">
@@ -47,6 +62,7 @@ def _build_child_cards(xp_data: dict, today: str) -> str:
         <a href="/quest/board/{key}" style="color:inherit;text-decoration:none;">{_esc(name)}</a>
       </div>
       <div style="font-size:0.8em;color:var(--ink-muted);">Level {lvl['level']} — {_esc(lvl['label'])}</div>
+      <div style="font-size:0.75em;color:var(--ink-muted);">{char_emoji} {_esc(char_name)} · ⚡{stamina}/{D.MAX_STAMINA}</div>
     </div>
     <div style="text-align:right;">
       <div style="font-size:1.4em;font-weight:800;color:{colors['bg']};">{total}
@@ -55,9 +71,23 @@ def _build_child_cards(xp_data: dict, today: str) -> str:
       <div style="font-size:0.72em;color:var(--ink-muted);">{completed}/{total_q} quests today</div>
     </div>
   </div>
-  <div style="margin-bottom:8px;">
+  <div style="margin-bottom:10px;">
     <div class="xp-bar-wrap">
       <div class="xp-bar-fill" style="width:{pct}%;background:{colors['bg']};"></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;">
+    <div style="text-align:center;background:#fffbeb;border-radius:8px;padding:6px 4px;">
+      <div style="font-size:1em;">🪙</div>
+      <div style="font-size:0.85em;font-weight:800;color:#d97706;">{coins}</div>
+    </div>
+    <div style="text-align:center;background:#f0f9ff;border-radius:8px;padding:6px 4px;">
+      <div style="font-size:1em;">💎</div>
+      <div style="font-size:0.85em;font-weight:800;color:#0ea5e9;">{crystals}</div>
+    </div>
+    <div style="text-align:center;background:#f5f3ff;border-radius:8px;padding:6px 4px;">
+      <div style="font-size:1em;">💠</div>
+      <div style="font-size:0.85em;font-weight:800;color:#8b5cf6;">{diamonds}</div>
     </div>
   </div>
   <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.72em;">
@@ -66,17 +96,21 @@ def _build_child_cards(xp_data: dict, today: str) -> str:
       {streak_label} streak
     </div>
   </div>
+  <div style="margin-top:8px;font-size:0.72em;color:var(--ink-muted);display:flex;gap:10px;">
+    <span>⚔️ {attack} atk</span>
+    <span>🛡️ {defense} def</span>
+    <span>🎒 Eq: {eq_levels}</span>
+  </div>
 </div>"""
     return child_cards
 
 
 def render_parent_dashboard(viewer: str) -> str:
-    """Parent dashboard showing all children's XP, level, streak, and today's quest progress."""
+    """Parent dashboard showing all children's XP, level, streak, resources, and character."""
     xp_data     = D.load_xp()
     today       = date.today().isoformat()
     child_cards = _build_child_cards(xp_data, today)
 
-    # Sync status pill
     all_quests_today = D.load_quests()
     synced_count = sum(1 for q in all_quests_today if q.get("date") == today and q.get("synced"))
     sync_pill = (
@@ -84,6 +118,31 @@ def render_parent_dashboard(viewer: str) -> str:
         f'border-radius:8px;padding:3px 10px;font-weight:700;">&#9889; {synced_count} synced from Sancta Familia</span>'
         if synced_count else ""
     )
+
+    # Boss settings quick view
+    boss_settings = D.load_boss_settings()
+    diff_key = boss_settings.get("difficulty", "medium")
+    diff = D.BOSS_DIFFICULTIES.get(diff_key, D.BOSS_DIFFICULTIES["medium"])
+    boss_type_key = boss_settings.get("boss_type", "orc")
+    boss_type_def = D.BOSS_TYPES.get(boss_type_key, D.BOSS_TYPES["orc"])
+    available = boss_settings.get("available", True)
+    exchange_rate = int(boss_settings.get("exchange_rate", 1))
+
+    boss_status = f"""
+<div class="card" style="margin-top:18px;border-color:{'#f59e0b' if available else '#e5e7eb'};">
+  <div class="card-title">⚔️ Boss Battle Settings</div>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+    <div style="font-size:2em;">{boss_type_def['emoji']}</div>
+    <div>
+      <div style="font-weight:700;">{boss_type_def['label']} · {diff['label']} <span style="color:{'#15803d' if available else '#9ca3af'};font-size:0.85em;">{'● Active' if available else '● Disabled'}</span></div>
+      <div style="font-size:0.8em;color:var(--ink-muted);">{boss_type_def['description']} · HP {diff['hp']} · ⚡{diff['stamina_cost']}</div>
+    </div>
+  </div>
+  <div style="font-size:0.78em;color:var(--ink-muted);margin-bottom:10px;">
+    💰 Exchange rate: {exchange_rate}¢/coin · 100 coins = ${exchange_rate:.0f}.00 (parent payout)
+  </div>
+  <a href="/quest/boss-settings" class="btn btn-muted btn-sm">⚙️ Configure Boss</a>
+</div>"""
 
     body = f"""
 {R.topbar(viewer, True)}
@@ -100,13 +159,156 @@ def render_parent_dashboard(viewer: str) -> str:
     {child_cards}
   </div>
 
-  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+  {boss_status}
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;">
     <a href="/quest/quests" class="btn btn-primary">+ New Quest</a>
     <a href="/quest/rewards" class="btn btn-muted">&#127873; Rewards</a>
+    <a href="/quest/boss-settings" class="btn btn-muted">⚔️ Boss Settings</a>
   </div>
 </div>"""
 
     return R.html_page("Parent Dashboard", body)
+
+
+def render_boss_settings_page(viewer: str, msg: str = "", err: str = "") -> str:
+    settings = D.load_boss_settings()
+    available = settings.get("available", True)
+    current_diff = settings.get("difficulty", "medium")
+    current_boss_type = settings.get("boss_type", "orc")
+    exchange_rate = int(settings.get("exchange_rate", 1))
+
+    alert = ""
+    if msg:
+        alert = f'<div class="alert alert-ok">&#10003; {_esc(msg)}</div>'
+    elif err:
+        alert = f'<div class="alert alert-err">{_esc(err)}</div>'
+
+    diff_opts = ""
+    for dk, dd in D.BOSS_DIFFICULTIES.items():
+        sel = "selected" if dk == current_diff else ""
+        diff_opts += f'<option value="{dk}" {sel}>{dd["emoji"]} {dd["label"]} — {dd["description"]}</option>'
+
+    boss_type_opts = ""
+    for btk, btd in D.BOSS_TYPES.items():
+        sel = "selected" if btk == current_boss_type else ""
+        boss_type_opts += f'<option value="{btk}" {sel}>{btd["emoji"]} {btd["label"]} — {btd["description"]}</option>'
+
+    boss_table_rows = ""
+    for dk, dd in D.BOSS_DIFFICULTIES.items():
+        boss_table_rows += f"""
+<tr style="{'background:#f0fdf4;' if dk == current_diff else ''}">
+  <td style="padding:8px 10px;">{dd['emoji']} {dd['label']}</td>
+  <td style="padding:8px 10px;text-align:center;">{dd['hp']}</td>
+  <td style="padding:8px 10px;text-align:center;">⚡{dd['stamina_cost']}</td>
+  <td style="padding:8px 10px;text-align:center;">🪙{dd['win_coins']} +{dd['win_xp']} XP</td>
+  <td style="padding:8px 10px;text-align:center;">{dd['lose_chores']} chores</td>
+</tr>"""
+
+    form_html = f"""
+<div class="card">
+  <div class="card-title">⚙️ Configure Boss Battle</div>
+  <form method="POST" action="/quest/boss-settings/save">
+    <div class="form-row">
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Boss Difficulty</label>
+        <select name="difficulty">{diff_opts}</select>
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Boss Type (today's enemy)</label>
+        <select name="boss_type">{boss_type_opts}</select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Boss Availability</label>
+        <select name="available">
+          <option value="1" {'selected' if available else ''}>✅ Available today</option>
+          <option value="0" {'' if available else 'selected'}>❌ Disabled today</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Coin Exchange Rate (¢ per coin)</label>
+        <input type="number" name="exchange_rate" value="{exchange_rate}" min="1" max="100"
+               style="width:100%;"
+               title="How many cents each coin is worth in real money. Parents track payouts manually.">
+        <div style="font-size:0.75em;color:var(--ink-muted);margin-top:4px;">
+          At {exchange_rate}¢/coin: 100 coins = ${exchange_rate:.0f}.00 (parents pay out manually)
+        </div>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary" style="margin-top:10px;">Save Settings</button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-title">📊 Boss Difficulty Reference</div>
+  <table style="width:100%;border-collapse:collapse;font-size:0.82em;">
+    <thead>
+      <tr style="background:var(--parchment);font-weight:700;">
+        <th style="padding:8px 10px;text-align:left;">Boss</th>
+        <th style="padding:8px 10px;text-align:center;">HP</th>
+        <th style="padding:8px 10px;text-align:center;">Stamina</th>
+        <th style="padding:8px 10px;text-align:center;">Win Reward</th>
+        <th style="padding:8px 10px;text-align:center;">Lose Penalty</th>
+      </tr>
+    </thead>
+    <tbody>
+      {boss_table_rows}
+    </tbody>
+  </table>
+  <p style="font-size:0.78em;color:var(--ink-muted);margin-top:10px;">
+    Attack stat (from character + equipment) multiplies hit damage.
+    Sword level reduces quests needed per hit.
+    Defense reduces penalty chores on loss.
+    Completing daily quests restores stamina.
+  </p>
+</div>"""
+
+    # Item award section
+    child_checks = "".join(
+        f'<label style="display:inline-flex;align-items:center;gap:6px;margin-right:14px;'
+        f'font-size:0.88em;font-weight:600;cursor:pointer;">'
+        f'<input type="checkbox" name="assigned_to" value="{k}" '
+        f'style="width:auto;accent-color:{R.CHILD_COLORS[k]["bg"]};"> '
+        f'{_esc(D.CHILDREN_NAMES[k])}</label>'
+        for k in D.CHILDREN_KEYS
+    )
+
+    item_opts = "".join(
+        f'<option value="{ik}">{iv["emoji"]} {iv["label"]} — {iv["description"]}</option>'
+        for ik, iv in D.ITEMS.items()
+    )
+
+    item_award_form = f"""
+<div class="card">
+  <div class="card-title">🎁 Award Special Items</div>
+  <p style="font-size:0.82em;color:var(--ink-muted);margin-bottom:14px;">
+    Award single-use Battle Axe (doubles boss hits) or Hammer (1.5× mine yield) to children.
+  </p>
+  <form method="POST" action="/quest/boss-settings/award-item">
+    <div class="form-group">
+      <label>Item</label>
+      <select name="item_key">{item_opts}</select>
+    </div>
+    <div class="form-group">
+      <label>Award To</label>
+      <div style="padding:8px 0;">{child_checks}</div>
+    </div>
+    <button type="submit" class="btn btn-primary">Award Item</button>
+  </form>
+</div>"""
+
+    body = f"""
+{R.topbar(viewer, True)}
+<div class="fq-main">
+  {alert}
+  <h2>⚔️ Boss Battle Settings</h2>
+  {form_html}
+  {item_award_form}
+</div>"""
+
+    return R.html_page("Boss Settings", body)
 
 
 def render_quests_page(viewer: str, msg: str = "", err: str = "") -> str:
@@ -119,7 +321,6 @@ def render_quests_page(viewer: str, msg: str = "", err: str = "") -> str:
     elif err:
         alert = f'<div class="alert alert-err">{_esc(err)}</div>'
 
-    # ── Quest creation form ─────────────────────────────────────────────────────
     type_opts = "".join(
         f'<option value="{t}">{R.TYPE_COLORS[t]["label"]}</option>'
         for t in D.QUEST_TYPES
@@ -132,6 +333,12 @@ def render_quests_page(viewer: str, msg: str = "", err: str = "") -> str:
         f'style="width:auto;accent-color:{R.CHILD_COLORS[k]["bg"]};"> '
         f'{_esc(D.CHILDREN_NAMES[k])}</label>'
         for k in D.CHILDREN_KEYS
+    )
+
+    item_opts_none = '<option value="">None</option>'
+    item_opts_items = "".join(
+        f'<option value="{ik}">{iv["emoji"]} {iv["label"]}</option>'
+        for ik, iv in D.ITEMS.items()
     )
 
     form_html = f"""
@@ -159,6 +366,10 @@ def render_quests_page(viewer: str, msg: str = "", err: str = "") -> str:
       </div>
     </div>
     <div class="form-group">
+      <label>Item Reward (optional — given immediately on complete)</label>
+      <select name="item_reward">{item_opts_none}{item_opts_items}</select>
+    </div>
+    <div class="form-group">
       <label>Assign To</label>
       <div style="padding:8px 0;">{child_checks}</div>
     </div>
@@ -166,7 +377,6 @@ def render_quests_page(viewer: str, msg: str = "", err: str = "") -> str:
   </form>
 </div>"""
 
-    # ── Chore sync card ─────────────────────────────────────────────────────────
     sync_card = f"""
 <div class="card" style="background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border-color:#7dd3fc;">
   <div class="card-title" style="color:#0369a1;">&#9889; Sync Today's Chores from Sancta Familia</div>
@@ -242,7 +452,6 @@ function syncChores(btn) {{
 }}
 </script>"""
 
-    # ── Quest list ──────────────────────────────────────────────────────────────
     sorted_q = sorted(quests, key=lambda q: q.get("date", ""), reverse=True)
 
     rows = ""
@@ -309,7 +518,6 @@ def render_rewards_page(viewer: str, msg: str = "", err: str = "") -> str:
     elif err:
         alert = f'<div class="alert alert-err">{_esc(err)}</div>'
 
-    # ── Streak milestone reference ──────────────────────────────────────────────
     milestone_rows = "".join(
         f'<div style="display:flex;justify-content:space-between;padding:5px 0;'
         f'border-bottom:1px solid var(--border-light);font-size:0.85em;">'
@@ -326,6 +534,12 @@ def render_rewards_page(viewer: str, msg: str = "", err: str = "") -> str:
   </p>
   {milestone_rows}
 </div>"""
+
+    item_opts_none = '<option value="">None (coin reward only)</option>'
+    item_opts_items = "".join(
+        f'<option value="{ik}">{iv["emoji"]} {iv["label"]} — {iv["description"]}</option>'
+        for ik, iv in D.ITEMS.items()
+    )
 
     form_html = f"""
 <div class="card">
@@ -357,11 +571,14 @@ def render_rewards_page(viewer: str, msg: str = "", err: str = "") -> str:
         </select>
       </div>
     </div>
+    <div class="form-group">
+      <label>Special Item Grant (optional)</label>
+      <select name="item_reward">{item_opts_none}{item_opts_items}</select>
+    </div>
     <button type="submit" class="btn btn-primary">Add Reward</button>
   </form>
 </div>"""
 
-    # ── Pending redemptions from children ─────────────────────────────────────
     pending = D.get_pending_redemptions()
     redemption_rows = ""
     for red in pending:
@@ -404,7 +621,10 @@ def render_rewards_page(viewer: str, msg: str = "", err: str = "") -> str:
         if r.get("xp_threshold"):
             threshold += f"<span class='badge' style='background:#fef3c7;color:#92400e;'>{r['xp_threshold']} XP unlock</span> "
         if r.get("level_threshold"):
-            threshold += f"<span class='badge' style='background:#eff6ff;color:#1d4ed8;'>Level {r['level_threshold']} unlock</span>"
+            threshold += f"<span class='badge' style='background:#eff6ff;color:#1d4ed8;'>Level {r['level_threshold']} unlock</span> "
+        if r.get("item_reward"):
+            idef = D.ITEMS.get(r["item_reward"], {})
+            threshold += f"<span class='badge' style='background:#f0fdf4;color:#15803d;'>{idef.get('emoji','')} {idef.get('label','Item')} included</span>"
 
         rows += f"""
 <div class="card" style="padding:14px 16px;">
