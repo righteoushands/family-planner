@@ -3,6 +3,12 @@ data/calendar_config.json
 data/calendar_cache.json
 data/calendar_rules.json
 data/subscribed_calendars.json
+data/auth/sessions.json
+family_quest/data/xp.json
+family_quest/data/battles.json
+family_quest/data/mines.json
+family_quest/data/stamina.json
+family_quest/data/inventory.json
 
 # Python cache
 __pycache__/

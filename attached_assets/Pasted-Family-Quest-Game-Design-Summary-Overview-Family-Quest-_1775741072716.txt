@@ -1,0 +1,32 @@
+Family Quest — Game Design Summary
+Overview
+Family Quest is a gamified chore and task app where completing real-world chores and goals drives progress in a fantasy battle/adventure game. Players earn coins exchangeable for real money and prizes, and build up characters, equipment, and a fortress over time.
+
+Characters (Guys)
+Players can choose and eventually unlock a roster of up to five fighters, each with unique combat styles and stats. Starting characters include an archer (fast, high attack, low defense), a fighter (Mario-style jump and strike combo), and a shield-and-sword defender (Link-style block then strike). Later unlockable characters include wizards (lightning bolt summons), benders, an avatar, and boxers. Each character has visible stats covering attack, defense, and health, and characters are purchased using a separate special points currency distinct from the standard coin rewards.
+
+Two Currency Systems
+The game runs on two parallel point/currency tracks. Standard coins are earned through chores and exchangeable for real-world money and prizes. A separate special currency is used to unlock new characters, summon fortress defenders, and access certain upgrades.
+
+Goal Battles and Mine Choices
+When a player sets a goal and completes their chores, they choose one of three rewards:
+Boss Battle — fight a monster. Chores completed translate into attack hits on the boss. Having an upgraded sword reduces the number of chores needed to win. If the player falls short, the monster attacks back and assigns extra chores as a penalty, with upgraded shields and armor reducing that penalty damage.
+Gold Mine — complete chores to mine coins. Base rate is 10 coins per minute for 10 minutes (100 coins total), but finishing chores faster increases the rate (e.g. finishing in an hour bumps it to 15 coins per minute). If the player takes too long, the mine caves in and they earn no coins, but receive a consolation loot roll: 50% chance of 5 diamonds or crystals, 25% chance of 20, and 5% chance of 100.
+Crystal Mine — mines crystals used primarily for sword upgrades, at 2 crystals per minute for 15 minutes (30 total). Caving in drops the rate to 1 per minute.
+Diamond Mine — mines diamonds used primarily for armor and shield upgrades, same structure as the crystal mine. Caving in applies the same penalty.
+
+Equipment and Upgrades
+Players upgrade four equipment slots: sword, shield, armor, and other items. Upgrades require increasing quantities of resources (e.g. 15 crystals for sword level 2, 100 for sword level 5, with diamond and iron requirements scaling up steeply at higher levels). Equipment directly affects gameplay: better sword means fewer chores to beat a boss, better shield and armor means less chore-penalty damage when the monster hits you.
+
+Side Quests
+Side quests are separate from regular chores and goals. They are optional challenge runs that reward rare items including armor, shields, and special equipment that cannot be obtained any other way. Completing side quests also earns stamina, which is required to take on harder bosses.
+
+Single-Use Special Weapons
+Battle Axe — equip before a boss battle to deal bonus damage, meaning fewer chores needed to defeat the boss. Breaks after one use and must be re-earned through a side quest.
+Hammer — equip before any mine run to multiply rewards by 1.5x. Breaks after one use and must be re-earned through a side quest. Adds strategic decision-making around when to deploy it for maximum benefit.
+
+The Fortress
+Players maintain a home base that is constantly under attack and generates passive coin income. The fortress starts as a small wooden fort earning 10 coins per day and can be upgraded over time into a massive metal fortress earning 100 coins per day. Players use their special currency to summon defender armies. Level 1 defenders are cheap and plentiful (e.g. 1,000 points buys 10,000 of them) but weak (3 attack damage each). Level 100 defenders are expensive and fewer in number but far more powerful (50 attack damage each). Upgrading the fortress is a long-term investment that pays off over months and years of consistent play.
+
+Stamina
+Stamina is required to take on bosses and complete certain quests. It is earned by completing daily tasks and finishing goals. Harder bosses require more stamina, creating a natural progression gate that prevents rushing ahead before you're ready. Completing a full day of chores automatically triggers one boss attack, so even slow progress still moves the needle.
