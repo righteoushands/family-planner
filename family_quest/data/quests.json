@@ -475,7 +475,9 @@
     "xp_value": 5,
     "date": "2026-04-09",
     "active": true,
-    "completions": {},
+    "completions": {
+      "jp": true
+    },
     "synced": true,
     "from_print": true
   },
@@ -584,7 +586,7 @@
     "assigned_to": [
       "jp"
     ],
-    "xp_value": 5,
+    "xp_value": 10,
     "date": "2026-04-09",
     "active": true,
     "completions": {},
@@ -598,7 +600,7 @@
     "assigned_to": [
       "jp"
     ],
-    "xp_value": 5,
+    "xp_value": 15,
     "date": "2026-04-09",
     "active": true,
     "completions": {},
@@ -612,7 +614,7 @@
     "assigned_to": [
       "jp"
     ],
-    "xp_value": 5,
+    "xp_value": 10,
     "date": "2026-04-09",
     "active": true,
     "completions": {},
@@ -626,7 +628,7 @@
     "assigned_to": [
       "jp"
     ],
-    "xp_value": 5,
+    "xp_value": 15,
     "date": "2026-04-09",
     "active": true,
     "completions": {},
@@ -647,5 +649,109 @@
     "synced": true,
     "from_print": true,
     "is_bonus": true
+  },
+  {
+    "id": "99299213",
+    "title": "Morning Jobs",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true
+  },
+  {
+    "id": "7d4cfe59",
+    "title": "Jobs — weekly",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true
+  },
+  {
+    "id": "f696b6a1",
+    "title": "Clean the Kitchen",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 15,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true
+  },
+  {
+    "id": "01b86de3",
+    "title": "Morning Jobs",
+    "type": "daily",
+    "assigned_to": [
+      "michael"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true
+  },
+  {
+    "id": "e7901063",
+    "title": "Jobs — weekly",
+    "type": "daily",
+    "assigned_to": [
+      "michael"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true
+  },
+  {
+    "id": "9fe719a8",
+    "title": "Morning Jobs",
+    "type": "daily",
+    "assigned_to": [
+      "james"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true
+  },
+  {
+    "id": "87a654e1",
+    "title": "Jobs — weekly",
+    "type": "daily",
+    "assigned_to": [
+      "james"
+    ],
+    "xp_value": 10,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true
+  },
+  {
+    "id": "1cbd8856",
+    "title": "Clean the Kitchen",
+    "type": "daily",
+    "assigned_to": [
+      "james"
+    ],
+    "xp_value": 15,
+    "date": "2026-04-09",
+    "active": true,
+    "completions": {},
+    "synced": true
   }
 ]

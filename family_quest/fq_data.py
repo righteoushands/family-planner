@@ -1573,7 +1573,7 @@ def sync_all_quests_for_child(child_name: str, iso_date: str = "") -> dict:
             if not title or title.lower() in existing_titles:
                 skipped.append(f"{child_name}: {title}")
                 continue
-            q = create_quest(title, "daily", [child_key], xp_value=5, iso_date=iso_date)
+            q = create_quest(title, "daily", [child_key], xp_value=_chore_xp(title), iso_date=iso_date)
             _mark_synced(q["id"], from_print=True)
             created.append(f"{child_name}: {title}")
             existing_titles.add(title.lower())
