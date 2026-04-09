@@ -1516,13 +1516,20 @@ class Handler(BaseHTTPRequestHandler):
                 redirect=f"/school/edit?child={child}"
 
             elif path == "/save-chores":
+                import json as _json
+                _is_ajax = data.get("_ajax",[""])[0] == "1"
                 def _split_lines(text):
                     return [line for line in str(text).splitlines() if line.strip()]
-                # Safety: if POST body arrived empty (encoding/session issue),
-                # refuse to overwrite with blank data and surface the error.
                 _expected_fields = {f"daily__{c}" for c in CHILDREN} | {"daily__Lauren"}
-                _received_fields  = set(data.keys())
+                _received_fields  = set(data.keys()) - {"_ajax"}
                 if not (_expected_fields & _received_fields):
+                    _err = "form data was empty"
+                    if _is_ajax:
+                        _out = _json.dumps({"ok": False, "error": _err}).encode()
+                        self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
+                        try: self.wfile.write(_out)
+                        except BrokenPipeError: pass
+                        return
                     redirect = "/chores?msg=error:Save+failed+%E2%80%94+form+data+was+empty.+Please+try+again.#top"
                 else:
                     chores={"boys":{},"lauren":{}}
@@ -1530,6 +1537,12 @@ class Handler(BaseHTTPRequestHandler):
                         chores["boys"][child]={"daily":_split_lines(data.get(f"daily__{child}",[""])[0]),"weekly":{wd:_split_lines(data.get(f"weekly__{child}__{wd}",[""])[0]) for wd in WEEKDAYS}}
                     chores["lauren"]={"daily":_split_lines(data.get("daily__Lauren",[""])[0]),"weekly":{wd:_split_lines(data.get(f"weekly__Lauren__{wd}",[""])[0]) for wd in WEEKDAYS}}
                     _ok = save_chores_data(chores)
+                    if _is_ajax:
+                        _out = _json.dumps({"ok": bool(_ok)}).encode()
+                        self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
+                        try: self.wfile.write(_out)
+                        except BrokenPipeError: pass
+                        return
                     if _ok:
                         redirect="/chores?msg=Chores+saved#top"
                     else:

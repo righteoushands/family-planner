@@ -661,32 +661,51 @@ def render_chores_page(status_message: str = "") -> str:
     {ai_chore_btn}
     {van_badge}
     {kitchen_card}
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+                gap:8px;margin-bottom:12px;">
         <h2 style="margin:0;">Weekly chore lists</h2>
-        <form method="POST" action="/apply-canonical-chores" style="display:inline;"
-              onsubmit="return confirm('This will REPLACE all your custom edits with the Family OS defaults. Are you sure?');">
-            <button type="submit" class="ghost" style="font-size:0.82em;padding:5px 12px;color:#b91c1c;border-color:#fca5a5;">
-                ↺ Reset to defaults
-            </button>
-        </form>
+        <span id="chore-save-status" style="font-size:0.82em;color:#9ca3af;font-style:italic;"></span>
     </div>
     <form method="POST" action="/save-chores" id="chore-form">
-        <div style="position:sticky;top:0;z-index:100;background:var(--parchment,#f7f3ee);
-                    padding:10px 0 10px;border-bottom:1px solid var(--border,#e4dbd2);
-                    display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-            <span style="font-size:0.85em;color:var(--ink-muted,#6b5e4e);font-style:italic;">
-                Edit any section below, then tap Save.
-            </span>
-            <button type="submit" style="background:#16a34a;color:#fff;border:none;
-                    border-radius:10px;padding:9px 22px;font-weight:700;font-size:0.95em;
-                    font-family:inherit;cursor:pointer;">
-                💾 Save Chores
-            </button>
-        </div>
+        <input type="hidden" name="_ajax" value="1">
         {lauren_section}
         {sections}
-        <button type="submit" style="width:100%;padding:14px;font-size:1.05em;margin-top:8px;">
-            💾 Save Chores
-        </button>
-    </form>"""
+    </form>
+    <script>
+    (function() {{
+      var timer = null;
+      var status = document.getElementById('chore-save-status');
+      function saveChores() {{
+        if (!status) return;
+        status.textContent = 'Saving\u2026';
+        status.style.color = '#9ca3af';
+        var form = document.getElementById('chore-form');
+        var body = new URLSearchParams(new FormData(form)).toString();
+        fetch('/save-chores', {{
+          method: 'POST',
+          headers: {{'Content-Type': 'application/x-www-form-urlencoded'}},
+          body: body
+        }}).then(function(r) {{
+          return r.json();
+        }}).then(function(d) {{
+          if (d.ok) {{
+            status.textContent = '\u2713 Saved';
+            status.style.color = '#16a34a';
+          }} else {{
+            status.textContent = '\u26a0 Save failed \u2014 ' + (d.error || 'unknown error');
+            status.style.color = '#b91c1c';
+          }}
+        }}).catch(function() {{
+          status.textContent = '\u26a0 Save failed \u2014 check connection';
+          status.style.color = '#b91c1c';
+        }});
+      }}
+      document.getElementById('chore-form').addEventListener('input', function() {{
+        if (timer) clearTimeout(timer);
+        status.textContent = 'Unsaved changes\u2026';
+        status.style.color = '#9ca3af';
+        timer = setTimeout(saveChores, 1200);
+      }});
+    }})();
+    </script>"""
     return html_page("Chores", body)
