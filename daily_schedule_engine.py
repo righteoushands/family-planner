@@ -1686,6 +1686,32 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
     _generic_blocks = [b for b in school_raw
                        if b.get("subject", "").strip().lower() not in _hinted_subjs]
 
+    def _subject_priority(block: dict) -> int:
+        """
+        Lower number = higher priority = goes into earlier School slots.
+          1 — Core subjects: Religion, Latin
+          2 — Difficult: has test/quiz/assessment flag, or assignment text
+                         signals a test, quiz, assessment, or heavy writing
+          3 — Everything else (reading, art, music, poetry…)
+        """
+        subj = block.get("subject", "").lower()
+        text = block.get("assignment_text", "").lower()
+        # Core
+        if "religion" in subj or "latin" in subj:
+            return 1
+        # Difficult — flagged or keyword-detected
+        _test_kws  = ("test", "quiz", "assessment", "exam")
+        _write_kws = ("essay", "composition", "write out", "written assignment",
+                      "writing assignment", "written report")
+        if (block.get("is_math_test")
+                or any(kw in text for kw in _test_kws)
+                or any(kw in text for kw in _write_kws)):
+            return 2
+        return 3
+
+    # Sort generic blocks: core first → difficult → other
+    _generic_blocks.sort(key=_subject_priority)
+
     # Identify generic School slot positions by index
     _generic_school_idxs = [
         i for i, b in enumerate(merged) if _is_generic_school_slot(b["label"])]
