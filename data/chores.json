@@ -7,14 +7,12 @@
         "Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
         "Exercise (non-PE days)",
         "Tidy basement zone — 10 minutes",
-        "",
         "KITCHEN (After Breakfast — Role A):",
         "  → Put food away",
         "  → Clear table + counters",
         "  → Spray + wipe table and counters",
         "  → Take out trash + recycling",
         "  → Sweep kitchen / dining room / foyer",
-        "",
         "KITCHEN (Evening — Role A):",
         "  → Unload dishwasher",
         "  → Load dishwasher",
@@ -24,7 +22,6 @@
         "Monday": [
           "Trim nails",
           "Sweep indoor stairs",
-          "",
           "LAUNDRY — Mom's laundry",
           "  → Start load after breakfast kitchen jobs",
           "  → Switch load before lunch",
@@ -44,7 +41,6 @@
         "Thursday": [
           "Tidy garage (10 min)",
           "Collect trash",
-          "",
           "LAUNDRY — JP's own laundry",
           "  → Start load after breakfast kitchen jobs",
           "  → Switch load before lunch",
@@ -69,12 +65,10 @@
         "Exercise (non-PE days)",
         "Tidy basement zone — 10 minutes",
         "Review irregular verbs",
-        "",
         "KITCHEN (After Breakfast — Role B):",
         "  → Unload dishwasher",
         "  → Load dishwasher",
         "  → Clean sink",
-        "",
         "KITCHEN (Evening — Role B):",
         "  → Put food away",
         "  → Clear table + counters",
@@ -85,7 +79,6 @@
       "weekly": {
         "Monday": [
           "Trim nails",
-          "",
           "VAN — Bin & Organization Lead (Role B)",
           "VAN — Shared (both boys)"
         ],
@@ -94,7 +87,6 @@
         ],
         "Wednesday": [
           "Switch basement zone (toy floor)",
-          "",
           "LAUNDRY — Joseph's own laundry (may be multiple loads)",
           "  → Towels go to downstairs hamper first",
           "  → Start load after breakfast kitchen jobs",
@@ -109,7 +101,6 @@
         ],
         "Friday": [
           "Bring back recycling",
-          "",
           "LAUNDRY — Assist Michael with his laundry",
           "  → Start load after breakfast kitchen jobs",
           "  → Switch load before lunch",
@@ -144,7 +135,6 @@
           "  → Bring upstairs after lunch",
           "  → Family fold block (audiobook/read-aloud)",
           "  → Put away completely before evening",
-          "",
           "→ Start load after breakfast kitchen jobs",
           "→ Switch load before lunch",
           "→ Bring upstairs after lunch",
@@ -172,6 +162,7 @@
     }
   },
   "lauren": {
+    "daily": [],
     "weekly": {
       "Monday": [
         "Trim nails — Lauren, Michael & James",

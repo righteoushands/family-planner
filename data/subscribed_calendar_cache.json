@@ -67,6 +67,17 @@
       "source": "subscribed"
     },
     {
+      "title": "Easter Egg hunt at Aletha’s house!",
+      "start": "2026-04-11T12:00",
+      "end": "2026-04-11T13:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "Divine Mercy Sunday (Second Sunday of Easter)",
       "start": "2026-04-12",
       "end": "2026-04-12",
@@ -1662,5 +1673,5 @@
       "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-04-09T07:20:41.368496"
+  "fetched_at": "2026-04-09T08:54:47.903835"
 }

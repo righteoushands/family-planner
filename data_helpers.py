@@ -177,7 +177,7 @@ def load_chores_data():
     return data if isinstance(data, dict) else {"boys": {}}
 
 def save_chores_data(data):
-    safe_save_json(CHORES_FILE, data)
+    return safe_save_json(CHORES_FILE, data)
 
 
 # ── Roadmap ──────────────────────────────────────────────────────────────────
