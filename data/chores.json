@@ -6,6 +6,7 @@
         "Check Sea Cadet email",
         "Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
         "Tidy basement zone — 10 minutes",
+        "Practice Piano for 15 minutes",
         "KITCHEN (After Breakfast — Role A):",
         "  → Put food away",
         "  → Clear table + counters",
@@ -64,6 +65,7 @@
         "Check Sea Cadet email",
         "Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
         "Tidy basement zone — 10 minutes",
+        "Practice piano for 15 minutes",
         "KITCHEN (After Breakfast — Role B):",
         "  → Unload dishwasher",
         "  → Load dishwasher",
@@ -79,8 +81,7 @@
       "weekly": {
         "Monday": [
           "Trim nails",
-          "VAN — Bin & Organization Lead (Role B)",
-          "VAN — Shared (both boys)"
+          "VAN — tidy-up"
         ],
         "Tuesday": [
           "Clean kids bathroom"

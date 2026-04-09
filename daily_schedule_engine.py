@@ -1342,6 +1342,35 @@ def _split_daily_chores(daily: list) -> dict:
     return {"general": general, "morning": morning, "evening": evening}
 
 
+def _split_laundry_lines(lines: list):
+    """
+    Split a list of weekly-chore lines into (laundry_lines, other_lines).
+    A laundry section begins at any line whose stripped text starts with
+    'laundry' (case-insensitive) and includes all immediately-following
+    sub-item lines (lines starting with → / -> / two leading spaces+→).
+    """
+    laundry_lines: list = []
+    other_lines:   list = []
+    in_laundry = False
+    for line in lines:
+        if not isinstance(line, str):
+            other_lines.append(line)
+            in_laundry = False
+            continue
+        stripped = line.strip()
+        is_sub   = (stripped.startswith("\u2192") or stripped.startswith("->")
+                    or line.startswith("  \u2192") or line.startswith("  ->"))
+        if stripped.lower().startswith("laundry"):
+            in_laundry = True
+            laundry_lines.append(line)
+        elif in_laundry and is_sub:
+            laundry_lines.append(line)
+        else:
+            in_laundry = False
+            other_lines.append(line)
+    return laundry_lines, other_lines
+
+
 def _lines_to_sub_items(lines: list, child: str, iso: str, prefix: str,
                          progress: dict) -> list:
     items = []
@@ -1732,6 +1761,7 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
         for b in merged
     )
     result = []
+    _laundry_extra_blocks: list = []     # laundry blocks to inject at 8:00 AM
 
     for blk_idx, blk in enumerate(merged):
         label     = blk["label"]
@@ -1790,8 +1820,27 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
         elif "weekly job" in label_low or "jobs — weekly" in label_low or "jobs--weekly" in label_low:
             if not weekly_expanded:
                 weekly_expanded = True
-                item["sub_items"] = _lines_to_sub_items(
-                    weekly_today, child, iso, "weekly", progress)
+                # Split laundry items out to a morning block (8:00 AM)
+                _laundry_lines, _other_lines = _split_laundry_lines(weekly_today)
+                if _laundry_lines:
+                    _laundry_subs = _lines_to_sub_items(
+                        _laundry_lines, child, iso, "weekly", progress)
+                    _laundry_extra_blocks.append({
+                        "time":      "8:00 AM",
+                        "time_sort": "08:00",
+                        "end_time":  "",
+                        "label":     "Laundry",
+                        "kind":      "chore",
+                        "checkable": False,
+                        "task_id":   None,
+                        "done":      False,
+                        "sub_items": _laundry_subs,
+                    })
+                    item["sub_items"] = _lines_to_sub_items(
+                        _other_lines, child, iso, "weekly", progress)
+                else:
+                    item["sub_items"] = _lines_to_sub_items(
+                        weekly_today, child, iso, "weekly", progress)
             else:
                 # Second occurrence: simple informational row, no duplication
                 item["sub_items"] = []
@@ -1854,7 +1903,10 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
             "done":      False,
             "sub_items": _carry + _manual,
         })
-    if all_hint_times:
+    if _laundry_extra_blocks:
+        result.extend(_laundry_extra_blocks)
+        result.sort(key=lambda b: b["time_sort"])
+    elif all_hint_times:
         result.sort(key=lambda b: b["time_sort"])
 
     return result
