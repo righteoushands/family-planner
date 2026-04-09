@@ -362,6 +362,36 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
+        # ── Family Quest SSO ─────────────────────────────────────────────────
+        # Already logged into main app → auto-create FQ session → no second login
+        if path == "/quest-sso":
+            _sso_user = self._get_viewer()
+            _FQ_CHILD_KEYS = {"jp", "joseph", "michael", "james"}
+            _sso_key = _sso_user.lower() if _sso_user else ""
+            if _sso_key in _FQ_CHILD_KEYS:
+                try:
+                    import sys as _ssys, os as _sos
+                    _fq_root2 = _sos.path.join(_sos.path.dirname(_sos.path.abspath(__file__)), "family_quest")
+                    if _fq_root2 not in _ssys.path:
+                        _ssys.path.insert(0, _fq_root2)
+                    from fq_api import create_session as _fq_create_session
+                    _fq_tok = _fq_create_session(_sso_key)
+                    self.send_response(302)
+                    self.send_header("Set-Cookie",
+                        f"fq_session={_fq_tok}; Path=/quest; HttpOnly; SameSite=Lax")
+                    self.send_header("Location", f"/quest/board/{_sso_key}")
+                    self.end_headers()
+                except Exception:
+                    self.send_response(302)
+                    self.send_header("Location", f"/quest/board/{_sso_key}")
+                    self.end_headers()
+            else:
+                # Parent or unknown — send to FQ login
+                self.send_response(302)
+                self.send_header("Location", "/quest/")
+                self.end_headers()
+            return
+
         # ── Static files (/static/*) ─────────────────────────────────────────
         if path.startswith("/static/"):
             import os, mimetypes
