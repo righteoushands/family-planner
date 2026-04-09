@@ -6,8 +6,9 @@
         "Check Sea Cadet email",
         "Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
         "Exercise (non-PE days)",
+        "Tidy basement zone — 10 minutes",
         "",
-        "KITCHEN (Morning — Role A):",
+        "KITCHEN (After Breakfast — Role A):",
         "  → Put food away",
         "  → Clear table + counters",
         "  → Spray + wipe table and counters",
@@ -66,9 +67,10 @@
         "Check Sea Cadet email",
         "Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
         "Exercise (non-PE days)",
+        "Tidy basement zone — 10 minutes",
         "Review irregular verbs",
         "",
-        "KITCHEN (Morning — Role B):",
+        "KITCHEN (After Breakfast — Role B):",
         "  → Unload dishwasher",
         "  → Load dishwasher",
         "  → Clean sink",
@@ -124,7 +126,8 @@
     },
     "Michael": {
       "daily": [
-        "Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash"
+        "Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
+        "Tidy basement zone — 10 minutes"
       ],
       "weekly": {
         "Monday": [],
@@ -166,6 +169,37 @@
         "Saturday": [],
         "Sunday": []
       }
+    }
+  },
+  "lauren": {
+    "weekly": {
+      "Monday": [
+        "Trim nails — Lauren, Michael & James",
+        "Bathe the Littles (Michael & James)",
+        "Tidy the van"
+      ],
+      "Tuesday": [
+        "James's laundry",
+        "Kitchen",
+        "Launder towels",
+        "Clean my bathroom",
+        "Clean the boys' tubs"
+      ],
+      "Wednesday": [
+        "Supervise basement zone cleaning",
+        "Vacuum the stairs"
+      ],
+      "Thursday": [
+        "Point out any extra trash & recycling to the boys"
+      ],
+      "Friday": [
+        "Wrap up the school week",
+        "Menu plan"
+      ],
+      "Saturday": [
+        "Tidy my room"
+      ],
+      "Sunday": []
     }
   }
 }
