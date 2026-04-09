@@ -418,6 +418,155 @@ def format_task_text(task_text: str) -> str:
     return task_text
 
 
+def _is_prev_task_done(progress: dict, child: str, iso: str, raw: str) -> bool:
+    """Check whether a registered task was completed, handling all key formats.
+
+    Progress keys use: TYPE::child::iso::... (new format)
+    make_task_id() used: iso::child::raw (old/legacy format)
+    Both are checked so old data still works.
+    """
+    raw = raw.strip()
+
+    # 1. Legacy format (old make_task_id)
+    if progress.get(f"{iso}::{child}::{raw}"):
+        return True
+
+    # 2. SCHOOL:: — registry stores the full progress key already
+    #    e.g. SCHOOL::JP::2026-04-08::Algebra 1/2::Assignment completed
+    if raw.startswith("SCHOOL::"):
+        if progress.get(raw):
+            return True
+        # Also try without child/iso prefix if the key was registered differently
+        parts = raw.split("::")
+        if len(parts) >= 5 and parts[1] == child and parts[2] == iso:
+            return bool(progress.get(raw))
+        # Build canonical new-format key
+        if len(parts) >= 3:
+            # SCHOOL::subject::item  (short form)
+            _, subject, *rest = parts
+            key = f"SCHOOL::{child}::{iso}::{subject}::{'::'.join(rest)}"
+            if progress.get(key):
+                return True
+        return False
+
+    # 3. MANUAL:: — raw is MANUAL::MEDIUM::text or MANUAL::HIGH::text or MANUAL::text
+    if raw.startswith("MANUAL::"):
+        parts = raw.split("::", 2)
+        text = ""
+        if len(parts) == 3:
+            _, second, text = parts
+            if second.upper() in ("HIGH", "MEDIUM", "LOW"):
+                text = text.strip()
+            else:
+                text = f"{second}::{text}".strip()
+            key = f"MANUAL::{child}::{iso}::{text}"
+            if progress.get(key):
+                return True
+        elif len(parts) == 2:
+            text = parts[1].strip()
+            for key in (
+                f"MANUAL::{child}::{iso}::{text}",
+                f"MANUAL::{child}::{iso}::MEDIUM::{text}",
+            ):
+                if progress.get(key):
+                    return True
+        # Cross-type fallback: task may have been saved as CHORE in progress
+        if text:
+            text_l = text.lower().strip()
+            # Extract first sentence (before first colon or newline)
+            core = text_l.split(":")[0].strip() if ":" in text_l else text_l
+            pfx = f"CHORE::{child}::{iso}::"
+            for k, v in progress.items():
+                if not v or not k.startswith(pfx):
+                    continue
+                tail = k[len(pfx):]
+                slot = ""
+                task_text = tail
+                if "::" in tail:
+                    slot, task_text = tail.split("::", 1)
+                task_l = task_text.strip().lower().lstrip("→ ").strip()
+                # Exact match on core description
+                if task_l == text_l.lstrip("→ ").strip():
+                    return True
+                # Slot-based match for block summaries (KITCHEN, LAUNDRY, VAN)
+                slot_hints = []
+                for word in ("morning", "evening", "night", "weekly",
+                             "afternoon", "laundry", "kitchen", "van"):
+                    if word in text_l:
+                        slot_hints.append(word)
+                if slot_hints:
+                    for hint in slot_hints:
+                        if hint in slot.lower() or hint in task_l:
+                            return True
+        return False
+
+    # 4. ROUTINE:: — raw is ROUTINE::label
+    if raw.startswith("ROUTINE::"):
+        parts = raw.split("::", 1)
+        label = parts[1] if len(parts) == 2 else raw
+        if progress.get(f"ROUTINE::{child}::{iso}::{label}"):
+            return True
+        # Fuzzy: progress key label might differ slightly
+        label_l = label.strip().lower()
+        pfx = f"ROUTINE::{child}::{iso}::"
+        for k, v in progress.items():
+            if v and k.startswith(pfx):
+                if k[len(pfx):].strip().lower() == label_l:
+                    return True
+        return False
+
+    # 5. CARRY:: — raw is CARRY::child::iso::text
+    if raw.startswith("CARRY::"):
+        parts = raw.split("::", 3)
+        if len(parts) == 4:
+            _, c, d, text = parts
+            if progress.get(f"CARRY::{c}::{d}::{text}"):
+                return True
+        return False
+
+    # 6. CHORE:: — raw is CHORE::display or CHORE::  → display
+    if raw.startswith("CHORE::"):
+        display = raw.split("::", 1)[1].strip().lstrip("→ ").strip()
+        if not display:
+            return False
+        # Section headers end with ':' — treat as done if ANY sub-task in the
+        # same named slot was completed (e.g. "KITCHEN (Morning — Role A):")
+        is_header = display.endswith(":")
+        display_l = display.rstrip(":").strip().lower()
+        pfx = f"CHORE::{child}::{iso}::"
+        for k, v in progress.items():
+            if v and k.startswith(pfx):
+                # key format: CHORE::child::iso::slot::display
+                tail = k[len(pfx):]
+                slot = ""
+                task_text = tail
+                if "::" in tail:
+                    slot, task_text = tail.split("::", 1)
+                if is_header:
+                    # Match if this slot had any completed sub-task.
+                    # Extract slot keywords from the header (e.g. "morning",
+                    # "evening" from "KITCHEN (Morning — Role A):")
+                    slot_hints = []
+                    for word in ("morning", "evening", "night", "weekly",
+                                 "afternoon", "laundry", "kitchen"):
+                        if word in display_l:
+                            slot_hints.append(word)
+                    if not slot_hints:
+                        # No hint — if any CHORE sub-task was done, mark done
+                        return True
+                    for hint in slot_hints:
+                        if hint in slot.lower() or hint in task_text.lower():
+                            return True
+                else:
+                    task_l = task_text.strip().lower().lstrip("→ ").strip()
+                    if task_l == display_l:
+                        return True
+        return False
+
+    # 7. Unknown prefix — fall back to exact key lookup only
+    return bool(progress.get(raw))
+
+
 def get_carryover_tasks(child: str, target_day: date):
     progress = load_progress()
 
@@ -438,8 +587,7 @@ def get_carryover_tasks(child: str, target_day: date):
 
     carryover = []
     for task_text in previous_tasks:
-        previous_task_id = make_task_id(child, prev_iso, task_text)
-        if not get_task_done(progress, previous_task_id):
+        if not _is_prev_task_done(progress, child, prev_iso, task_text):
             carryover.append(task_text)
 
     carryover.sort(key=carryover_sort_key)
