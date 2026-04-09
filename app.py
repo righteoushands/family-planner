@@ -2218,8 +2218,19 @@ class Handler(BaseHTTPRequestHandler):
                                         and _t.get("assigned_to") == _child
                                         and _t.get("due_date") == _date):
                                     _t["status"] = "inactive"
-                            # Append new tasks
+                            # Build chore-text guard to avoid duplicating existing chores
+                            _chore_guard: set = set()
+                            try:
+                                from daily_schedule_engine import weekday_chores_for_child as _wcc
+                                import datetime as _dt2
+                                _wday2 = _dt2.date.fromisoformat(_date).strftime('%A')
+                                _chore_guard = set(str(_c).strip() for _c in _wcc(_child, _wday2) if str(_c).strip())
+                            except Exception:
+                                pass
+                            # Append new tasks (skip any text already covered by chore system)
                             for _task_text in _new_tasks:
+                                if _task_text in _chore_guard:
+                                    continue
                                 _all.append({
                                     "text": _task_text,
                                     "assigned_to": _child,
