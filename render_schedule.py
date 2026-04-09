@@ -658,6 +658,10 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
                 <a class="link-button" href="/print/day/{escape(child)}?date={escape(iso)}">Print Day List</a>
                 <button onclick="document.getElementById('tmpl-editor-{escape(child).lower()}').classList.toggle('open')"
                         class="link-button" style="background:{c_bg};color:#fff;">&#9965; Edit Template</button>
+                {(
+                    f'<a class="link-button" href="/quest/board/{escape(child.lower())}"'
+                    f' style="background:#7c3aed;color:#fff;">&#9876; Family Quest</a>'
+                ) if child in ("JP", "Joseph", "Michael", "James") else ""}
             </div>
             <div style="margin-top:8px;">{render_now_next_strip()}</div>
             <div style="margin-top:8px;">{render_calendar_today_strip(iso)}</div>
