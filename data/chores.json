@@ -5,7 +5,6 @@
         "Check CAP email",
         "Check Sea Cadet email",
         "Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
-        "Exercise (non-PE days)",
         "Tidy basement zone — 10 minutes",
         "KITCHEN (After Breakfast — Role A):",
         "  → Put food away",
@@ -16,7 +15,8 @@
         "KITCHEN (Evening — Role A):",
         "  → Unload dishwasher",
         "  → Load dishwasher",
-        "  → Clean sink"
+        "  → Clean sink",
+        "After school, pickup all your school things and tidy your school shelf. "
       ],
       "weekly": {
         "Monday": [
@@ -27,15 +27,15 @@
           "  → Switch load before lunch",
           "  → Bring upstairs after lunch",
           "  → Family fold block (audiobook/read-aloud)",
-          "  → Put away completely before evening",
-          "VAN — Interior Reset Lead (Role A)",
-          "VAN — Shared (both boys)"
+          "  → Put away completely ",
+          "VAN — tidy-up"
         ],
         "Tuesday": [
           "Clean half bath",
           "Clean basement full bath"
         ],
         "Wednesday": [
+          "Tidy and vacuum your zone for the week. ",
           "Switch basement zone (TV/Game + guest room)"
         ],
         "Thursday": [
@@ -49,7 +49,8 @@
           "  → Put away completely before evening"
         ],
         "Friday": [
-          "Bring back trash can"
+          "Bring back trash can",
+          "Tidy-up school shelves"
         ],
         "Saturday": [
           "Weekly room clean (~90 min): full clean, vacuum, laundry check",
@@ -62,13 +63,12 @@
       "daily": [
         "Check Sea Cadet email",
         "Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
-        "Exercise (non-PE days)",
         "Tidy basement zone — 10 minutes",
-        "Review irregular verbs",
         "KITCHEN (After Breakfast — Role B):",
         "  → Unload dishwasher",
         "  → Load dishwasher",
         "  → Clean sink",
+        "After school: pickup your school things and tidy your school shelf. ",
         "KITCHEN (Evening — Role B):",
         "  → Put food away",
         "  → Clear table + counters",

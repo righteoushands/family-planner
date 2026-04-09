@@ -297,6 +297,8 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
         "lunch": "lunch", "dinner": "dinner", "snack": "snacks", "snacks": "snacks",
     }
     rows = []
+    seen_sub_texts: set = set()   # dedup: tracks sub-item texts already rendered
+    seen_single_labels: set = set()  # dedup: tracks single-row labels already rendered
     for item in day_list:
         kind  = item.get("kind", "routine")
         color = _dl_kind_color(kind)
@@ -306,6 +308,20 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
         t_disp = f"{t_st} – {t_en}" if t_en and t_en != t_st else t_st
         label  = escape(item.get("label", ""))
         subs   = item.get("sub_items", [])
+        # Deduplicate sub-items against texts already rendered in earlier blocks
+        if subs:
+            deduped_subs = []
+            for s in subs:
+                if s.get("is_header"):
+                    deduped_subs.append(s)
+                    continue
+                txt_key = (s.get("text") or "").strip().lower()
+                if txt_key and txt_key in seen_sub_texts:
+                    continue  # skip — already shown in a previous block
+                deduped_subs.append(s)
+                if txt_key:
+                    seen_sub_texts.add(txt_key)
+            subs = deduped_subs
 
         # ── Calendar event row ───────────────────────────────────────────────
         if kind == "event":
@@ -738,6 +754,7 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
     # Calendar events from day_list blocks (kind="event")
     cal_events: list = []
 
+    _dash_seen_texts: set = set()  # dedup across all blocks on the dash card
     for blk in day_list:
         kind  = blk.get("kind", "")
         subs  = blk.get("sub_items") or []
@@ -753,6 +770,11 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
                     continue
                 if sub.get("is_header"):
                     continue
+                txt_key = (sub.get("text") or "").strip().lower()
+                if txt_key and txt_key in _dash_seen_texts:
+                    continue
+                if txt_key:
+                    _dash_seen_texts.add(txt_key)
                 tid = sub.get("task_id", "")
                 if tid.startswith("CARRY::"):
                     carryover.append(sub)
@@ -765,6 +787,11 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
             for sub in subs:
                 if not isinstance(sub, dict) or sub.get("is_header"):
                     continue
+                txt_key = (sub.get("text") or "").strip().lower()
+                if txt_key and txt_key in _dash_seen_texts:
+                    continue
+                if txt_key:
+                    _dash_seen_texts.add(txt_key)
                 queue.append(dict(sub, _section=subj, _time_sort=blk.get("time_sort", "10:00")))
 
         elif kind == "chore":
@@ -772,6 +799,11 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
                 if not isinstance(sub, dict) or sub.get("is_header"):
                     continue
                 if sub.get("task_id"):
+                    txt_key = (sub.get("text") or "").strip().lower()
+                    if txt_key and txt_key in _dash_seen_texts:
+                        continue
+                    if txt_key:
+                        _dash_seen_texts.add(txt_key)
                     chore_items.append(sub)
 
     # ── Counts ─────────────────────────────────────────────────────────────
