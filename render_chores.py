@@ -663,15 +663,30 @@ def render_chores_page(status_message: str = "") -> str:
     {kitchen_card}
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
         <h2 style="margin:0;">Weekly chore lists</h2>
-        <form method="POST" action="/apply-canonical-chores" style="display:inline;">
-            <button type="submit" class="ghost" style="font-size:0.82em;padding:5px 12px;">
-                ↺ Reset to Family OS defaults
+        <form method="POST" action="/apply-canonical-chores" style="display:inline;"
+              onsubmit="return confirm('This will REPLACE all your custom edits with the Family OS defaults. Are you sure?');">
+            <button type="submit" class="ghost" style="font-size:0.82em;padding:5px 12px;color:#b91c1c;border-color:#fca5a5;">
+                ↺ Reset to defaults
             </button>
         </form>
     </div>
-    <form method="POST" action="/save-chores">
+    <form method="POST" action="/save-chores" id="chore-form">
+        <div style="position:sticky;top:0;z-index:100;background:var(--parchment,#f7f3ee);
+                    padding:10px 0 10px;border-bottom:1px solid var(--border,#e4dbd2);
+                    display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <span style="font-size:0.85em;color:var(--ink-muted,#6b5e4e);font-style:italic;">
+                Edit any section below, then tap Save.
+            </span>
+            <button type="submit" style="background:#16a34a;color:#fff;border:none;
+                    border-radius:10px;padding:9px 22px;font-weight:700;font-size:0.95em;
+                    font-family:inherit;cursor:pointer;">
+                💾 Save Chores
+            </button>
+        </div>
         {lauren_section}
         {sections}
-        <button type="submit">Save Chores</button>
+        <button type="submit" style="width:100%;padding:14px;font-size:1.05em;margin-top:8px;">
+            💾 Save Chores
+        </button>
     </form>"""
     return html_page("Chores", body)

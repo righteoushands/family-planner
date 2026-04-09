@@ -1518,11 +1518,22 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/save-chores":
                 def _split_lines(text):
                     return [line for line in str(text).splitlines() if line.strip()]
-                chores={"boys":{},"lauren":{}}
-                for child in CHILDREN:
-                    chores["boys"][child]={"daily":_split_lines(data.get(f"daily__{child}",[""])[0]),"weekly":{wd:_split_lines(data.get(f"weekly__{child}__{wd}",[""])[0]) for wd in WEEKDAYS}}
-                chores["lauren"]={"daily":_split_lines(data.get("daily__Lauren",[""])[0]),"weekly":{wd:_split_lines(data.get(f"weekly__Lauren__{wd}",[""])[0]) for wd in WEEKDAYS}}
-                save_chores_data(chores); redirect="/chores?msg=Chores+saved#top"
+                # Safety: if POST body arrived empty (encoding/session issue),
+                # refuse to overwrite with blank data and surface the error.
+                _expected_fields = {f"daily__{c}" for c in CHILDREN} | {"daily__Lauren"}
+                _received_fields  = set(data.keys())
+                if not (_expected_fields & _received_fields):
+                    redirect = "/chores?msg=error:Save+failed+%E2%80%94+form+data+was+empty.+Please+try+again.#top"
+                else:
+                    chores={"boys":{},"lauren":{}}
+                    for child in CHILDREN:
+                        chores["boys"][child]={"daily":_split_lines(data.get(f"daily__{child}",[""])[0]),"weekly":{wd:_split_lines(data.get(f"weekly__{child}__{wd}",[""])[0]) for wd in WEEKDAYS}}
+                    chores["lauren"]={"daily":_split_lines(data.get("daily__Lauren",[""])[0]),"weekly":{wd:_split_lines(data.get(f"weekly__Lauren__{wd}",[""])[0]) for wd in WEEKDAYS}}
+                    _ok = save_chores_data(chores)
+                    if _ok:
+                        redirect="/chores?msg=Chores+saved#top"
+                    else:
+                        redirect="/chores?msg=error:Save+failed+%E2%80%94+could+not+write+to+disk.+Please+try+again.#top"
 
             elif path == "/apply-laundry":
                 save_chores_data(apply_laundry_defaults(load_chores_data()))

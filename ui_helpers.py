@@ -1348,8 +1348,8 @@ def render_status_message(message: str) -> str:
 # ── Form parsing ─────────────────────────────────────────────────────────────
 def parse_urlencoded_body(handler) -> dict:
     length = int(handler.headers.get("Content-Length", "0"))
-    raw = handler.rfile.read(length).decode()
-    return parse_qs(raw)
+    raw = handler.rfile.read(length).decode("utf-8", errors="replace")
+    return parse_qs(raw, keep_blank_values=True)
 
 
 def parse_multipart_form(handler):
