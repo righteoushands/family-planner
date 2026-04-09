@@ -1041,7 +1041,7 @@ document.addEventListener('click', function(e) {{
         <a href="/planner" onclick="closeMobileMore()"
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
                   border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
-          &#128197; Planner
+          &#128197; Monthly Planner
         </a>
         <a href="/mom#grid" onclick="closeMobileMore()"
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
