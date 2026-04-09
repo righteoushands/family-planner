@@ -1832,7 +1832,6 @@ class Handler(BaseHTTPRequestHandler):
                 iso = clean_text(data.get("iso",[""])[0]) or date.today().isoformat()
                 try:
                     from render_daily_plan import _get_plan_column_people
-                    from daily_schedule_engine import CHILDREN
                     d       = date.fromisoformat(iso)
                     weekday = d.strftime("%A")
                     people  = _get_plan_column_people() or list(CHILDREN)
@@ -5337,7 +5336,6 @@ class Handler(BaseHTTPRequestHandler):
                     else:
                         # child id
                         from render_virtues import load_child_virtue, save_child_virtue
-                        from config import CHILDREN
                         child_name = who_in.replace("_"," ")
                         matched = next((c for c in CHILDREN if c.lower()==child_name.lower()), child_name)
                         cv = load_child_virtue(matched)
@@ -5757,7 +5755,6 @@ class Handler(BaseHTTPRequestHandler):
                         who_desc = "a Catholic homeschooling family"
                     else:
                         from render_virtues import load_child_virtue, child_age, age_band
-                        from config import CHILDREN
                         child_name = child_id_in.replace("_"," ")
                         matched = next((c for c in CHILDREN if c.lower()==child_name.lower()), child_name)
                         cv = load_child_virtue(matched)
