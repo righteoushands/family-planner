@@ -1855,7 +1855,7 @@ class Handler(BaseHTTPRequestHandler):
                     plan["anchor"] = anchor
                     save_daily_plan(plan)
                 except Exception as e:
-                    debug_log("anchor-save error:", str(e))
+                    print("[anchor-save error]", str(e))
                 self.send_response(200)
                 self.send_header("Content-Type","application/json")
                 self.end_headers()
@@ -1920,7 +1920,7 @@ class Handler(BaseHTTPRequestHandler):
                         grid.setdefault(person, {}).update(slots)
                     save_day_grid(iso, grid)
                 except Exception as e:
-                    debug_log("grid-cell-save error:", str(e))
+                    print("[grid-cell-save error]", str(e))
                 self.send_response(200)
                 self.send_header("Content-Type","application/json")
                 self.end_headers()
@@ -1959,7 +1959,7 @@ class Handler(BaseHTTPRequestHandler):
                     grid = seed_day_grid(iso, weekday, people_with_mom)
                     save_day_grid(iso, grid)
                 except Exception as e:
-                    debug_log("grid-reset error:", str(e))
+                    print("[grid-reset error]", str(e))
                 self.send_response(200)
                 self.send_header("Content-Type","application/json")
                 self.end_headers()
@@ -2408,7 +2408,7 @@ class Handler(BaseHTTPRequestHandler):
                     if not _slots:
                         continue
                     try:
-                        from render_daily_plan import get_or_seed_grid, save_day_grid
+                        from render_daily_plan import get_or_seed_grid
                         from datetime import date as _date_cls2
                         _sd = _date_cls2.fromisoformat(_sdate)
                         _swd = _sd.strftime("%A")
@@ -5644,7 +5644,7 @@ class Handler(BaseHTTPRequestHandler):
                 plan_raw = data.get("plan",[""])[0]
                 try:
                     # Parse the plan text into per-person time slots
-                    from render_daily_plan import get_or_seed_grid, save_day_grid, publish_day_grid
+                    from render_daily_plan import get_or_seed_grid
                     from render_schedule_support import generate_half_hour_times
                     import re as _re
                     times = generate_half_hour_times()
