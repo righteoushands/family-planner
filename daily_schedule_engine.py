@@ -1820,22 +1820,52 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
         elif "weekly job" in label_low or "jobs — weekly" in label_low or "jobs--weekly" in label_low:
             if not weekly_expanded:
                 weekly_expanded = True
-                # Split laundry items out to a morning block (8:00 AM)
                 _laundry_lines, _other_lines = _split_laundry_lines(weekly_today)
                 if _laundry_lines:
-                    _laundry_subs = _lines_to_sub_items(
-                        _laundry_lines, child, iso, "weekly", progress)
-                    _laundry_extra_blocks.append({
-                        "time":      "8:00 AM",
-                        "time_sort": "08:00",
-                        "end_time":  "",
-                        "label":     "Laundry",
-                        "kind":      "chore",
-                        "checkable": False,
-                        "task_id":   None,
-                        "done":      False,
-                        "sub_items": _laundry_subs,
-                    })
+                    # ── Break laundry into three timed blocks ────────────
+                    # Step keywords → which timed block they belong to
+                    # Morning  (08:00): start/load lines + the header line
+                    # Midday   (12:00): switch/move lines
+                    # Afternoon(15:00): bring up/fold/put away lines
+                    _L_MORNING   = {"start", "load", "towels"}
+                    _L_MIDDAY    = {"switch", "move"}
+                    _L_AFTERNOON = {"bring", "fold", "put away", "put", "family fold"}
+                    _lmorn = []   # morning sub-item lines
+                    _lmid  = []   # midday sub-item lines
+                    _laftn = []   # afternoon sub-item lines
+                    for _ll in _laundry_lines:
+                        _ls = _ll.strip().lstrip("\u2192-> ").lower()
+                        if _ls.startswith("laundry"):
+                            # header line goes in morning
+                            _lmorn.append(_ll)
+                        elif any(_ls.startswith(kw) for kw in _L_MIDDAY):
+                            _lmid.append(_ll)
+                        elif any(_ls.startswith(kw) for kw in _L_AFTERNOON) or "fold" in _ls:
+                            _laftn.append(_ll)
+                        else:
+                            _lmorn.append(_ll)  # default → morning
+                    def _laundry_block(subs_lines, hhmm, display_time, label):
+                        subs = _lines_to_sub_items(subs_lines, child, iso, "laundry", progress)
+                        if not subs:
+                            return None
+                        return {
+                            "time":      display_time,
+                            "time_sort": hhmm,
+                            "end_time":  "",
+                            "label":     label,
+                            "kind":      "chore",
+                            "checkable": False,
+                            "task_id":   None,
+                            "done":      False,
+                            "sub_items": subs,
+                        }
+                    for _lb in (
+                        _laundry_block(_lmorn, "08:15", "8:15 AM",  "Laundry — Start"),
+                        _laundry_block(_lmid,  "12:00", "12:00 PM", "Laundry — Switch"),
+                        _laundry_block(_laftn, "15:30", "3:30 PM",  "Laundry — Fold & Put Away"),
+                    ):
+                        if _lb:
+                            _laundry_extra_blocks.append(_lb)
                     item["sub_items"] = _lines_to_sub_items(
                         _other_lines, child, iso, "weekly", progress)
                 else:
