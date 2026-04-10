@@ -362,6 +362,39 @@ def save_xp(xp_data: dict):
     _save(XP_FILE, xp_data)
 
 
+def award_partial_xp(child_key: str, amount: int, label: str,
+                     iso_date: str = "") -> dict:
+    """
+    Award XP directly (not via quest completion) — used for per-step school awards.
+    Returns the updated XP state dict (same shape as complete_quest).
+    """
+    if amount <= 0 or child_key not in CHILDREN_KEYS:
+        return {}
+    today = iso_date or date.today().isoformat()
+    xp_data = load_xp()
+    child_xp = xp_data.setdefault(child_key, {"total_xp": 0, "coins": 0, "history": []})
+    child_xp["total_xp"] = child_xp.get("total_xp", 0) + amount
+    child_xp["coins"]    = child_xp.get("coins", 0) + amount
+    child_xp.setdefault("coin_history", []).append({
+        "type": "earned", "amount": amount,
+        "from": label, "date": today, "ts": _now_ts(),
+    })
+    child_xp.setdefault("history", []).append({
+        "quest_id":    "schedule_step",
+        "quest_title": label,
+        "xp":          amount,
+        "date":        today,
+        "ts":          _now_ts(),
+    })
+    save_xp(xp_data)
+    state = _xp_state(xp_data, child_key)
+    state["xp_earned"]    = amount
+    state["streak_bonus"] = 0
+    state["bonus_xp"]     = 0
+    state["stamina"]      = get_stamina(child_key)
+    return state
+
+
 def get_level(total_xp: int) -> dict:
     """Return the level dict for the given XP total."""
     current = LEVELS[0]

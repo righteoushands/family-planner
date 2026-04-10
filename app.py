@@ -1421,45 +1421,89 @@ class Handler(BaseHTTPRequestHandler):
                 # ── Family Quest bridge: award XP when task checked off ────────
                 if _done:
                     try:
-                        _FQ_CHILD_KEYS2 = {"JP":"jp","Joseph":"joseph",
-                                           "Michael":"michael","James":"james"}
-                        _tid_parts = _tid.split("::", 4)
-                        # Format: {iso}::{child}::{kind}::{subject_or_label}[::{step}]
-                        if len(_tid_parts) >= 4:
-                            _t_iso    = _tid_parts[0]
-                            _t_child  = _tid_parts[1]
-                            _t_kind   = _tid_parts[2]
-                            _t_label  = _tid_parts[3]  # subject (school) or chore text
-                            _t_ckey   = _FQ_CHILD_KEYS2.get(_t_child)
-                            if _t_ckey and _t_kind in ("SCHOOL", "CHORE"):
-                                import sys as _fqs, os as _fqo
-                                _fq_root3 = _fqo.path.join(
-                                    _fqo.path.dirname(_fqo.path.abspath(__file__)),
-                                    "family_quest")
-                                if _fq_root3 not in _fqs.path:
-                                    _fqs.path.insert(0, _fq_root3)
-                                from fq_data import (get_quests_for_child,
-                                                     complete_quest as _fq_complete,
-                                                     is_completed as _fq_done)
-                                _fq_quests = get_quests_for_child(_t_ckey, _t_iso)
-                                _matched_q = None
-                                if _t_kind == "CHORE":
-                                    # Exact title match
-                                    _matched_q = next(
-                                        (q for q in _fq_quests
-                                         if q.get("title","").lower() == _t_label.lower()),
-                                        None)
-                                elif _t_kind == "SCHOOL":
-                                    # Title starts with subject name
-                                    _subj_low = _t_label.lower()
-                                    _matched_q = next(
-                                        (q for q in _fq_quests
-                                         if q.get("title","").lower().startswith(
-                                             _subj_low + " —") or
-                                            q.get("title","").lower() == _subj_low),
-                                        None)
-                                if _matched_q and not _fq_done(_matched_q, _t_ckey):
-                                    _fq_complete(_matched_q["id"], _t_ckey)
+                        _FQ_CK = {"JP":"jp","Joseph":"joseph",
+                                  "Michael":"michael","James":"james"}
+                        _p = _tid.split("::")
+                        # Two task_id formats:
+                        #   NEW: SCHOOL::{child}::{iso}::{subject}::{step}
+                        #   OLD: {iso}::{child}::SCHOOL::{subject}::{step}
+                        _t_kind = _t_child = _t_iso = _t_label = None
+                        if len(_p) >= 5 and _p[0] in ("SCHOOL","CHORE"):
+                            # NEW format
+                            _t_kind, _t_child, _t_iso, _t_label = (
+                                _p[0], _p[1], _p[2], _p[3])
+                        elif len(_p) >= 4 and _p[2] in ("SCHOOL","CHORE"):
+                            # OLD format
+                            _t_iso, _t_child, _t_kind, _t_label = (
+                                _p[0], _p[1], _p[2], _p[3])
+                        _t_ckey = _FQ_CK.get(_t_child) if _t_child else None
+                        if _t_ckey and _t_kind in ("SCHOOL", "CHORE"):
+                            import sys as _fqs2, os as _fqo2
+                            _fq_root3 = _fqo2.path.join(
+                                _fqo2.path.dirname(_fqo2.path.abspath(__file__)),
+                                "family_quest")
+                            if _fq_root3 not in _fqs2.path:
+                                _fqs2.path.insert(0, _fq_root3)
+                            from fq_data import (get_quests_for_child,
+                                                 complete_quest as _fq_complete,
+                                                 is_completed as _fq_done,
+                                                 award_partial_xp as _fq_partial,
+                                                 load_quests as _fq_lq,
+                                                 save_quests as _fq_sq)
+                            _fq_quests = get_quests_for_child(_t_ckey, _t_iso)
+
+                            if _t_kind == "CHORE":
+                                # Chore = single step → full XP via complete_quest
+                                _mq = next(
+                                    (q for q in _fq_quests
+                                     if q.get("title","").lower() == _t_label.lower()),
+                                    None)
+                                if _mq and not _fq_done(_mq, _t_ckey):
+                                    _fq_complete(_mq["id"], _t_ckey)
+
+                            elif _t_kind == "SCHOOL":
+                                # School = proportional XP per step
+                                _subj_low = _t_label.lower()
+                                _mq = next(
+                                    (q for q in _fq_quests
+                                     if q.get("title","").lower().startswith(
+                                         _subj_low + " —") or
+                                        q.get("title","").lower() == _subj_low),
+                                    None)
+                                if _mq:
+                                    # Count total checkable steps for this subject
+                                    _subj_prefix = (
+                                        f"SCHOOL::{_t_child}::{_t_iso}::{_t_label}::")
+                                    from daily_schedule_engine import build_day_list as _bdl
+                                    _dl = _bdl(_t_child, __import__('datetime').date
+                                               .fromisoformat(_t_iso).strftime('%A'),
+                                               _t_iso)
+                                    _step_tids = [
+                                        sub["task_id"]
+                                        for block in _dl
+                                        for sub in block.get("sub_items", [])
+                                        if sub.get("checkable") and
+                                           sub.get("task_id","").startswith(_subj_prefix)
+                                    ]
+                                    _n_steps = len(_step_tids) or 1
+                                    _per_step = max(1,
+                                        round(_mq.get("xp_value", 5) / _n_steps))
+                                    _fq_partial(
+                                        _t_ckey, _per_step,
+                                        f"{_t_label} (step)", _t_iso)
+                                    # If all steps now done → mark quest complete (no extra XP)
+                                    from daily_schedule_engine import load_progress as _lpr
+                                    _prog = _lpr()
+                                    _all_done = all(
+                                        _prog.get(tid, False) for tid in _step_tids)
+                                    if _all_done and not _fq_done(_mq, _t_ckey):
+                                        _qs = _fq_lq()
+                                        for _q2 in _qs:
+                                            if _q2.get("id") == _mq["id"]:
+                                                _q2.setdefault(
+                                                    "completions", {})[_t_ckey] = True
+                                                break
+                                        _fq_sq(_qs)
                     except Exception:
                         pass  # never block a task toggle due to FQ errors
                 # ───────────────────────────────────────────────────────────────
