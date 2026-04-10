@@ -306,7 +306,7 @@ body {{
   line-height: 1.6;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 16px 60px;
+  padding: 0 16px 80px;
   background: var(--parchment);
   color: var(--ink);
 }}
@@ -780,7 +780,6 @@ pre {{
   .card-tight {{ padding: 12px 14px; }}
 
   .nav-shell {{ display: none; }}
-  .mobile-bottom-nav {{ display: flex !important; }}
 
   .page-header {{ margin-top: 14px; margin-bottom: 12px; }}
 
@@ -819,9 +818,9 @@ pre {{
   .no-mobile {{ display: none !important; }}
 }}
 
-/* Mobile bottom nav */
+/* Bottom nav (always visible on all screen sizes) */
 .mobile-bottom-nav {{
-  display: none;
+  display: flex;
   position: fixed;
   bottom: 0; left: 0; right: 0;
   height: 64px;
@@ -1105,6 +1104,15 @@ document.addEventListener('click', function(e) {{
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
                   border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
           &#128218; Recipes
+        </a>
+      </div>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid #f3f4f6;">
+        <a href="/logout"
+           style="display:flex;align-items:center;justify-content:center;gap:10px;
+                  padding:14px;background:#fee2e2;border-radius:12px;text-decoration:none;
+                  color:#b91c1c;font-weight:700;font-size:0.95em;width:100%;box-sizing:border-box;">
+          &#x1F6AA; Log Out
         </a>
       </div>
 
