@@ -1754,6 +1754,38 @@ def render_mom_page(status_message: str = "", target_date_str: str = "") -> str:
     morning_html  = _safe_step(lambda: render_morning_anchor(iso, weekday, date_label, target_date), "Morning Anchor")
     evening_html  = _safe_step(lambda: render_evening_anchor(iso), "Evening Anchor")
     daily_bar     = _safe_step(lambda: render_daily_bar(target_date), "Daily Bar")
+
+    # ── Plan progress bar ────────────────────────────────────────────────────
+    try:
+        from render_daily_plan import load_daily_plan as _ldp
+        _plan_items = _ldp(iso).get("items", [])
+        _plan_total = len(_plan_items)
+        _plan_done  = sum(1 for i in _plan_items if i.get("done", False))
+        _plan_pct   = int(100 * _plan_done / _plan_total) if _plan_total else 0
+        _bar_col    = "#22c55e" if _plan_pct == 100 else ("#f59e0b" if _plan_pct >= 50 else "#8b5a3c")
+        plan_progress_html = (
+            f'<div style="margin-bottom:8px;">'
+            f'<div style="display:flex;justify-content:space-between;align-items:center;'
+            f'margin-bottom:4px;">'
+            f'<span style="font-size:0.75em;color:var(--ink-faint);font-weight:600;">'
+            f'Plan progress</span>'
+            f'<span style="font-size:0.75em;color:var(--ink-faint);">{_plan_done}/{_plan_total} done</span>'
+            f'</div>'
+            f'<div style="height:6px;background:var(--border-light);border-radius:3px;overflow:hidden;">'
+            f'<div style="height:100%;width:{_plan_pct}%;background:{_bar_col};'
+            f'border-radius:3px;transition:width 0.4s;"></div>'
+            f'</div>'
+            f'</div>'
+        ) if _plan_total else ""
+    except Exception:
+        plan_progress_html = ""
+
+    # ── Now / Next strip ────────────────────────────────────────────────────
+    try:
+        from render_schedule_support import render_now_next_strip as _rnn
+        now_next_html = _rnn()
+    except Exception:
+        now_next_html = ""
     cal_strip     = _safe_step(lambda: render_calendar_today_strip(iso), "Calendar")
 
     try:
@@ -1959,8 +1991,22 @@ def render_mom_page(status_message: str = "", target_date_str: str = "") -> str:
         </div>
     </div>
 
+    <!-- Plan progress bar -->
+    {plan_progress_html}
+
+    <!-- Now / Next strip -->
+    {f'<div style="margin-bottom:12px;">{now_next_html}</div>' if now_next_html else ""}
+
     <!-- Rule of Life strip — live from family_schedule.json -->
     {_render_rule_of_life_strip(weekday)}
+
+    <!-- Print & nav row -->
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+        <a href="/print/day/lauren?date={escape(iso)}"
+           style="font-size:0.8em;padding:5px 12px;background:var(--parchment);
+                  color:var(--brown);border:1.5px solid var(--border);border-radius:8px;
+                  font-weight:700;text-decoration:none;white-space:nowrap;">🖨 Print My Day</a>
+    </div>
 
     <!-- Step chips — horizontal scroll -->
     <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;
@@ -2118,6 +2164,129 @@ def render_mom_page(status_message: str = "", target_date_str: str = "") -> str:
     </script>
     """
     return html_page("Plan My Day", body)
+
+
+# ── Print: Lauren's Day ───────────────────────────────────────────────────────
+def render_print_lauren_day(target_date_str: str = "") -> str:
+    """Print-friendly view of Lauren's daily plan + active tasks."""
+    from html import escape as _e
+    from render_daily_plan import load_daily_plan
+    from data_helpers import load_manual_tasks
+
+    normalized_date = normalize_date_query(target_date_str)
+    packet     = generate_day_packet(normalized_date)
+    weekday    = packet["weekday"]
+    date_label = packet["date_label"]
+    iso        = packet["iso"]
+
+    plan_items = load_daily_plan(iso).get("items", [])
+    timed      = sorted([i for i in plan_items if i.get("time","")],
+                        key=lambda i: i.get("time",""))
+    untimed    = [i for i in plan_items if not i.get("time","")]
+
+    def _checkbox(done):
+        return (
+            '<span style="display:inline-block;width:14px;height:14px;border:1.5px solid #888;'
+            'border-radius:3px;margin-right:8px;flex-shrink:0;vertical-align:middle;'
+            + ('background:#27ae60;' if done else '') + '"></span>'
+        )
+
+    rows_html = ""
+    for item in timed + untimed:
+        t    = _e(item.get("time","") or "")
+        text = _e(item.get("text",""))
+        done = item.get("done", False)
+        col  = item.get("color","#6b7280")
+        text_style = "text-decoration:line-through;color:#aaa;" if done else "color:#222;"
+        rows_html += (
+            f'<div style="display:flex;align-items:center;gap:10px;padding:7px 0;'
+            f'border-bottom:1px solid #f0ebe4;">'
+            f'<span style="font-size:11px;color:#999;min-width:60px;flex-shrink:0;">{t}</span>'
+            f'<span style="width:8px;height:8px;border-radius:50%;background:{col};flex-shrink:0;"></span>'
+            f'{_checkbox(done)}'
+            f'<span style="font-size:13px;{text_style}">{text}</span>'
+            f'</div>'
+        )
+
+    if not rows_html:
+        rows_html = '<p style="color:#aaa;font-style:italic;font-size:13px;padding:12px 0;">No plan items for today.</p>'
+
+    # Active tasks
+    try:
+        tasks = [t for t in load_manual_tasks()
+                 if isinstance(t, dict) and t.get("status","active") == "active"]
+    except Exception:
+        tasks = []
+
+    task_rows = ""
+    for t in tasks:
+        text = _e(t.get("text",""))
+        pri  = t.get("priority","MEDIUM")
+        pc   = {"HIGH":"#c0392b","MEDIUM":"#e67e22","LOW":"#27ae60"}.get(pri,"#888")
+        task_rows += (
+            f'<div style="display:flex;align-items:center;gap:10px;padding:7px 0;'
+            f'border-bottom:1px solid #f0ebe4;">'
+            f'<span style="width:8px;height:8px;border-radius:50%;background:{pc};flex-shrink:0;"></span>'
+            f'{_checkbox(False)}'
+            f'<span style="font-size:13px;color:#222;">{text}</span>'
+            f'</div>'
+        )
+
+    tasks_section = (
+        f'<div style="margin-top:20px;">'
+        f'<div style="font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;'
+        f'color:#888;margin-bottom:10px;padding-bottom:4px;border-bottom:1.5px solid #e0d8cc;">Active Tasks</div>'
+        f'{task_rows}'
+        f'</div>'
+    ) if task_rows else ""
+
+    # Meals section
+    try:
+        from render_schedule import _render_meal_print_section
+        from datetime import date as _dt2
+        meals_html = _render_meal_print_section(_dt2.fromisoformat(iso), weekday)
+    except Exception:
+        meals_html = ""
+
+    css = """<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Georgia,serif;background:#fdf8f0;color:#222;padding:20px;max-width:600px;margin:0 auto;}
+.no-print{display:block;}
+@media print{
+  .no-print{display:none!important;}
+  body{background:white;padding:12px;}
+}
+.page-header{margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #8b5a3c;}
+.section-title{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:#888;margin-bottom:10px;padding-bottom:4px;border-bottom:1.5px solid #e0d8cc;}
+.page-footer{margin-top:24px;padding-top:10px;border-top:1px solid #e0d8cc;
+  font-size:10px;color:#aaa;text-align:center;}
+</style>"""
+
+    body = f"""
+<div class="no-print" style="background:#2a2a2a;color:white;padding:10px 18px;
+     display:flex;align-items:center;gap:14px;margin:-20px -20px 20px;font-size:13px;">
+    <button onclick="setTimeout(function(){{window.print();}},100)"
+            style="background:#8b5a3c;color:white;border:none;padding:8px 16px;
+                   border-radius:6px;cursor:pointer;font-size:13px;">🖨 Print</button>
+    <span style="color:#aaa;font-size:11px;">On iPhone: tap Share ↑ then "Print"</span>
+    <a href="/mom?date={_e(iso)}" style="color:#aaa;margin-left:auto;font-size:12px;">← Back</a>
+</div>
+
+<div class="page-header">
+    <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:1.8rem;font-weight:600;
+                color:#8b5a3c;line-height:1.1;">Lauren</div>
+    <div style="font-size:13px;color:#888;margin-top:3px;">{_e(weekday)}, {_e(date_label)}</div>
+</div>
+
+<div class="section-title">Today's Plan</div>
+{rows_html}
+{tasks_section}
+{meals_html}
+<div class="page-footer">McAdams Family &middot; {_e(date_label)}</div>
+"""
+    return f"<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>{css}</head><body>{body}</body></html>"
 
 
 # ── Plan My Day — step fragment endpoint ──────────────────────────────────────

@@ -593,10 +593,14 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/van-roles":       body = render_van_roles_page()
         elif path.startswith("/print/day/"):
             child_slug = path.split("/print/day/", 1)[1].strip("/")
-            # Map slug back to canonical child name
-            _slug_map = {c.lower(): c for c in ["Lauren", "John", "JP", "Joseph", "Michael", "James"]}
-            canonical = _slug_map.get(child_slug.lower(), child_slug.capitalize())
-            body = render_print_child_day_list(canonical, query.get("date",[""])[0])
+            if child_slug.lower() == "lauren":
+                from render_misc import render_print_lauren_day
+                body = render_print_lauren_day(query.get("date",[""])[0])
+            else:
+                # Map slug back to canonical child name
+                _slug_map = {c.lower(): c for c in ["Lauren", "John", "JP", "Joseph", "Michael", "James"]}
+                canonical = _slug_map.get(child_slug.lower(), child_slug.capitalize())
+                body = render_print_child_day_list(canonical, query.get("date",[""])[0])
         elif path == "/print/day":       body = render_print_day(query.get("date",[""])[0])
         elif path == "/print/week":      body = render_print_week()
         elif path == "/notes":           body = render_notes()
