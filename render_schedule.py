@@ -457,7 +457,14 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
                 f'<span class="dl-label" style="color:{lbl_color};">{label}{meal_note}</span>'
                 f'</div>'
             )
-    return "".join(rows)
+    wrapped = [
+        '<div class="sw-wrap">'
+        '<div class="sw-inner">' + r + '</div>'
+        '<button class="sw-del no-print" onclick="_swDel(this)" aria-label="Hide">&#10005; Hide</button>'
+        '</div>'
+        for r in rows
+    ]
+    return "".join(wrapped)
 
 
 def _render_template_editor(child: str, weekday: str, c_bg: str) -> str:

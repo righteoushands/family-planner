@@ -862,6 +862,19 @@ pre {{
 }}
 .mobile-nav-item.plan-item .mobile-nav-label {{ color: white; }}
 
+/* ── Swipe-to-hide / swipe-to-delete rows ── */
+.sw-wrap{{position:relative;overflow:hidden;border-radius:6px;margin-bottom:3px;}}
+.sw-inner{{transform:translateX(0);transition:transform .2s ease;}}
+.sw-del{{position:absolute;right:0;top:0;bottom:0;width:76px;background:#dc2626;color:#fff;
+         border:none;display:flex;align-items:center;justify-content:center;
+         font-size:.78em;font-weight:700;letter-spacing:.02em;cursor:pointer;
+         font-family:inherit;opacity:0;user-select:none;}}
+@media print{{
+  .sw-wrap{{overflow:visible;}}
+  .sw-del{{display:none!important;}}
+  .sw-inner{{transform:none!important;}}
+}}
+
 /* ── Theme overrides (injected per request) ── */
 {get_theme_css()}
 </style>
@@ -1154,6 +1167,48 @@ window.closeMobileMore = function() {{
     document.body.style.overflow = '';
   }}, 280);
 }};
+
+/* ── Swipe-to-hide / swipe-to-delete ── */
+(function(){{
+  function _sw(root){{
+    (root||document).querySelectorAll('.sw-wrap:not([data-sw])').forEach(function(w){{
+      w.dataset.sw='1';
+      var inner=w.querySelector('.sw-inner');
+      var btn=w.querySelector('.sw-del');
+      if(!inner||!btn)return;
+      var sx=0,cx=0,dragging=false,W=76;
+      w.addEventListener('touchstart',function(e){{
+        sx=e.touches[0].clientX;dragging=true;
+        inner.style.transition='none';
+      }},{{passive:true}});
+      w.addEventListener('touchmove',function(e){{
+        if(!dragging)return;
+        cx=Math.max(-W,Math.min(0,e.touches[0].clientX-sx));
+        inner.style.transform='translateX('+cx+'px)';
+        btn.style.opacity=(-cx/W).toFixed(2);
+      }},{{passive:true}});
+      w.addEventListener('touchend',function(){{
+        dragging=false;
+        inner.style.transition='transform .2s ease';
+        if(cx<-W/2){{inner.style.transform='translateX(-'+W+'px)';btn.style.opacity='1';}}
+        else{{inner.style.transform='translateX(0)';btn.style.opacity='0';}}
+      }});
+    }});
+  }}
+  function _swDel(btn,extraFn){{
+    var w=btn.closest('.sw-wrap');
+    if(!w)return;
+    if(typeof extraFn==='function')extraFn();
+    var h=w.offsetHeight;
+    w.style.height=h+'px';w.style.overflow='hidden';
+    w.style.transition='height .25s ease,opacity .2s ease,margin .25s ease';
+    requestAnimationFrame(function(){{w.style.height='0';w.style.opacity='0';w.style.marginBottom='0';}});
+    setTimeout(function(){{w.style.display='none';}},270);
+  }}
+  window._sw=_sw;
+  window._swDel=_swDel;
+  document.addEventListener('DOMContentLoaded',function(){{_sw();}});
+}})();
 </script>
 </body>
 </html>

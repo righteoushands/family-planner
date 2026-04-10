@@ -260,12 +260,12 @@ def _dp_row_html(iid, text, itime, color, done, src, times):
         '<option value="' + escape(t) + '"' + (" selected" if t == itime else "") + ">" + escape(t) + "</option>"
         for t in times
     )
-    # Use single-quoted onclick to avoid double-quote conflict
-    return (
+    iid_js = iid.replace("'", "\\'")
+    inner_row = (
         '<div class="dp-row" draggable="true" data-id="' + iid + '"'
         ' style="display:flex;align-items:center;gap:6px;padding:5px 6px;'
         "border:1px solid #e4dbd2;border-left:3px solid " + color +
-        ";border-radius:7px;margin-bottom:4px;background:white;cursor:grab;user-select:none;\">"
+        ";border-radius:7px;background:white;cursor:grab;user-select:none;\">"
         '<span style="color:#ccc;font-size:0.9em;flex-shrink:0;cursor:grab;">&#9783;</span>'
         '<span style="width:6px;height:6px;border-radius:50%;' + dot + ';flex-shrink:0;"></span>'
         '<div style="flex:1;min-width:0;overflow:hidden;">'
@@ -280,6 +280,13 @@ def _dp_row_html(iid, text, itime, color, done, src, times):
         ' style="flex-shrink:0;padding:2px 6px;font-size:0.72em;background:#f5f5f5;'
         'color:#aaa;border:1px solid #e0d8d0;border-radius:5px;cursor:pointer;font-family:inherit;">x</button>'
         "</div>"
+    )
+    return (
+        '<div class="sw-wrap" style="margin-bottom:4px;">'
+        '<div class="sw-inner">' + inner_row + '</div>'
+        '<button class="sw-del" onclick="_swDel(this,function(){dpDelete(\'' + iid_js + '\');})"'
+        ' aria-label="Delete">&#10005; Delete</button>'
+        '</div>'
     )
 
 

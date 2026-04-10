@@ -2103,6 +2103,8 @@ def render_mom_page(status_message: str = "", target_date_str: str = "") -> str:
                     newScript.textContent = oldScript.textContent;
                     oldScript.parentNode.replaceChild(newScript, oldScript);
                 }});
+                // Re-init swipe on any newly-loaded rows
+                if(window._sw) window._sw(document.getElementById('step-content'));
             }})
             .catch(function(e) {{
                 document.getElementById('step-content').innerHTML =
