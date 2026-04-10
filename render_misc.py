@@ -3712,12 +3712,23 @@ def _render_kidsday_step(iso: str, weekday: str, date_label: str) -> str:
             carryover_html = ""
             if carryover:
                 rows = ""
+                from data_helpers import load_progress as _lp_carry
+                _prog_carry = _lp_carry()
                 for item in carryover[:5]:
+                    text    = item.get("text", "") if isinstance(item, dict) else str(item)
+                    tid     = item.get("task_id", "") if isinstance(item, dict) else ""
+                    val     = _prog_carry.get(tid, False) if tid else False
+                    is_done = (val.get("done") if isinstance(val, dict) else bool(val))
+                    checked = "checked" if is_done else ""
+                    done_sty = "opacity:0.5;text-decoration:line-through;" if is_done else ""
+                    cb_url  = f"/schedule/{child}?date={iso}"
+                    tid_js  = tid.replace("'", "\\'") if tid else ""
+                    onch    = f'onchange="toggleTask(this,\'{tid_js}\',\'{cb_url}\')"' if tid else ""
                     rows += (
                         f'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;'
                         f'border-bottom:1px solid {c_bg}18;">'
-                        f'<input type="checkbox" style="accent-color:{c_bg};">'
-                        f'<span style="font-size:0.8em;color:var(--ink);">{_e(item.get("text","") if isinstance(item,dict) else str(item))}</span>'
+                        f'<input type="checkbox" {checked} {onch} style="accent-color:{c_bg};">'
+                        f'<span style="font-size:0.8em;color:var(--ink);{done_sty}">{_e(text)}</span>'
                         f'</div>'
                     )
                 carryover_html = (

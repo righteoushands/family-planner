@@ -471,7 +471,7 @@ def render_morning_anchor(iso: str, weekday: str, date_label: str,
             if (span) span.style.opacity = newDone ? '0.5' : '';
         }}
         var launchData = {{}};
-        launchData['launch_' + key] = newDone;
+        launchData['launch.' + key] = newDone;
         _anchorSave(launchData);
     }}
 

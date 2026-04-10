@@ -145,14 +145,6 @@
     "recurring": false
   },
   {
-    "text": "Finish next Sea Cadet Recruit Orientation",
-    "assigned_to": "JP",
-    "due_date": "2026-04-06",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
     "text": "CAPTask: Wash the most used uniform of the month.",
     "assigned_to": "JP",
     "due_date": "2026-04-25",
