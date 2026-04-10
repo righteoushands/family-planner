@@ -1547,6 +1547,35 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
                 f'</div>'
             )
 
+    # ── Collect all pending task sub-items for the bottom Tasks section ─────────
+    _bottom_tasks = []
+    for _bi in day_list:
+        if _bi.get("kind") == "task":
+            for _bs in _bi.get("sub_items", []):
+                if _bs.get("checkable") and _bs.get("task_id") and not _is_print_done(_bs):
+                    _bottom_tasks.append(_bs)
+
+    if _bottom_tasks:
+        _task_items_html = ""
+        for _bt in _bottom_tasks:
+            _carry_mark = "↩ " if _bt.get("is_carryover") else ""
+            _task_items_html += (
+                f'<div class="sub-item">'
+                f'<span class="sub-box"></span>'
+                f'<span>{_carry_mark}{escape(_bt.get("text",""))}</span>'
+                f'</div>'
+            )
+        tasks_section = (
+            f'<div class="blk-header" style="--blk-color:#3a1a6e;margin-top:10pt;">'
+            f'<span class="blk-time"></span>'
+            f'<span class="blk-label">✎ Today\'s Tasks</span>'
+            f'<span class="blk-count">— {len(_bottom_tasks)} item{"s" if len(_bottom_tasks)!=1 else ""}</span>'
+            f'</div>'
+            + _task_items_html
+        )
+    else:
+        tasks_section = ""
+
     meal_print = _render_meal_print_section(target_iso, weekday)
     body = f"""
     <div class="child-page" style="--child-color:{c_color};">
@@ -1556,6 +1585,7 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
         </div>
         {rows_html or '<p style="color:#aaa;font-style:italic;">No schedule data for today.</p>'}
         {meal_print}
+        {tasks_section}
         <div class="page-footer">McAdams Family · {escape(date_label)}</div>
     </div>"""
     return print_page_html(f"{escape(child)} — {escape(date_label)}", body)

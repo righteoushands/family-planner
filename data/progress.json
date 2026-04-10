@@ -790,5 +790,10 @@
   "SCHOOL::JP::2026-04-09::Poetry 8::Done": true,
   "SCHOOL::JP::2026-04-09::Reading 8::Done": true,
   "CHORE::JP::2026-04-09::evening::Unload dishwasher": true,
-  "CHORE::JP::2026-04-09::evening::After school, pickup all your school things and tidy your school shelf.": true
+  "CHORE::JP::2026-04-09::evening::After school, pickup all your school things and tidy your school shelf.": true,
+  "SCHOOL::JP::2026-04-10::Algebra 1/2::Test completed — given to Mom": true,
+  "SCHOOL::JP::2026-04-10::English 8::Test completed — given to Mom": true,
+  "CHORE::JP::2026-04-10::morning::Put food away": true,
+  "CHORE::JP::2026-04-10::morning::Take out trash + recycling": true,
+  "CHORE::JP::2026-04-10::morning::Sweep kitchen / dining room / foyer": true
 }
