@@ -259,10 +259,10 @@ class Handler(BaseHTTPRequestHandler):
 
     def _set_session_cookie(self, token: str):
         """Set a session cookie (no max-age = browser-close expiry)."""
-        self.send_header("Set-Cookie", f"session={token}; Path=/; HttpOnly; SameSite=Lax")
+        self.send_header("Set-Cookie", f"session={token}; Path=/; HttpOnly; SameSite=None; Secure")
 
     def _clear_session_cookie(self):
-        self.send_header("Set-Cookie", "session=deleted; Path=/; HttpOnly; Max-Age=0")
+        self.send_header("Set-Cookie", "session=deleted; Path=/; HttpOnly; SameSite=None; Secure; Max-Age=0")
 
     def _redirect(self, location: str, code: int = 302):
         self.send_response(code)
@@ -378,7 +378,7 @@ class Handler(BaseHTTPRequestHandler):
                     _fq_tok = _fq_create_session(_sso_key)
                     self.send_response(302)
                     self.send_header("Set-Cookie",
-                        f"fq_session={_fq_tok}; Path=/quest; HttpOnly; SameSite=Lax")
+                        f"fq_session={_fq_tok}; Path=/quest; HttpOnly; SameSite=None; Secure")
                     self.send_header("Location", f"/quest/board/{_sso_key}")
                     self.end_headers()
                 except Exception:
