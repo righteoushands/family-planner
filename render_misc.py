@@ -3255,11 +3255,65 @@ def _render_calendar_step(iso: str, target_date) -> str:
             f'</div>'
         )
 
-    # Today's events
+    # Today's events — with "Add to plan" buttons
+    import json as _json2
+    today_events_html = ""
+    _raw_today = []
     try:
-        today_events = render_calendar_today_strip(iso)
+        from render_calendar import get_all_events as _get_all
+        _raw_today = _get_all(iso)
     except Exception:
-        today_events = '<p class="muted" style="padding:12px;">Could not load calendar.</p>'
+        pass
+
+    if _raw_today:
+        from daily_schedule_engine import fmt_time_12h as _fmt12
+        for ev in _raw_today:
+            ev_title   = ev.get("title", "(event)")
+            ev_start   = ev.get("start", "")
+            ev_all_day = ev.get("all_day", False)
+            ev_color   = ev.get("color", "#3498db")
+            ev_loc     = ev.get("location", "") or ""
+            ev_cal_name = _e(ev.get("calendar", ""))
+            if not ev_all_day and "T" in ev_start:
+                hhmm      = ev_start.split("T")[1][:5]
+                time_disp = _fmt12(hhmm)
+                time_plan = time_disp
+            else:
+                time_disp = "All day"
+                time_plan = ""
+            label_plan = ev_title + (f" \u2022 {ev_loc}" if ev_loc else "")
+            btn_id = "eadd-" + str(abs(hash(ev_title + ev_start)))[-6:]
+            add_onclick = (
+                f"(function(b){{"
+                f"if(window.addToPlan){{"
+                f"window.addToPlan({_json2.dumps(label_plan)},'calendar',{_json2.dumps(ev_color)},{_json2.dumps(time_plan)});"
+                f"b.textContent='\u2713 Added';b.disabled=true;"
+                f"b.style.background='#27ae60';b.style.color='white';"
+                f"}}}})(document.getElementById('{btn_id}'))"
+            )
+            today_events_html += (
+                f'<div style="display:flex;align-items:center;gap:10px;padding:8px 0;'
+                f'border-bottom:1px solid var(--border-light);">'
+                f'<span style="width:8px;height:8px;border-radius:50%;background:{ev_color};flex-shrink:0;"></span>'
+                f'<div style="flex:1;min-width:0;">'
+                f'<div style="font-size:0.88em;font-weight:600;color:var(--ink);">{_e(ev_title)}'
+                + (f'<span style="font-size:0.8em;font-weight:400;color:var(--ink-faint);margin-left:6px;">{_e(ev_loc)}</span>' if ev_loc else '') +
+                f'</div>'
+                f'<div style="font-size:0.75em;color:var(--ink-faint);">{_e(time_disp)}'
+                + (f' · {ev_cal_name}' if ev_cal_name else '') +
+                f'</div></div>'
+                f'<button id="{btn_id}" onclick="{add_onclick}" '
+                f'style="flex-shrink:0;font-size:0.75em;padding:4px 10px;border-radius:6px;'
+                f'background:var(--parchment);color:var(--brown);font-weight:700;'
+                f'border:1.5px solid var(--border);cursor:pointer;font-family:inherit;white-space:nowrap;">'
+                f'+ Add to plan</button>'
+                f'</div>'
+            )
+    else:
+        try:
+            today_events_html = render_calendar_today_strip(iso)
+        except Exception:
+            today_events_html = '<p class="muted" style="font-size:0.85em;padding:4px 0;">No events today.</p>'
 
     # Upcoming this week (next 6 days)
     upcoming_html = ""
@@ -3315,7 +3369,7 @@ def _render_calendar_step(iso: str, target_date) -> str:
 <div class="card" style="margin-bottom:12px;">
   <div style="font-size:0.7em;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
               color:var(--ink-faint);margin-bottom:10px;">Today's Events</div>
-  {today_events}
+  {today_events_html}
   <div style="margin-top:10px;border-top:1px solid var(--border-light);padding-top:8px;
               display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
     <a href="/calendar" style="font-size:0.82em;color:var(--brown);font-weight:700;text-decoration:none;">

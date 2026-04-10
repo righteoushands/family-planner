@@ -977,6 +977,7 @@
       "CHORE::LAUNDRY — Assist Michael with his laundry",
       "CHORE::Practice piano for 15 minutes",
       "CHORE::Tidy basement zone — 10 minutes",
+      "MANUAL::MEDIUM::Bobby’s Surgery",
       "MANUAL::MEDIUM::Gather your clean clothes from Mom’s room and put them away.",
       "SCHOOL::Art 7::Done",
       "SCHOOL::Beginning Latin III::Done",
@@ -1003,8 +1004,17 @@
       "CHORE::Dinner helper: Wash green beans",
       "CHORE::LAUNDRY — Michael's laundry (Joseph assists)",
       "CHORE::Tidy basement zone — 10 minutes",
+      "MANUAL::MEDIUM::Bobby’s Surgery",
       "MANUAL::MEDIUM::Gather your clean clothes from Mom’s room and put them away."
     ],
-    "James": []
+    "James": [],
+    "Mom": [
+      "CHORE::Menu plan",
+      "CHORE::Wrap up the school week",
+      "MANUAL::MEDIUM::Bobby’s Surgery",
+      "MANUAL::MEDIUM::Change air filters",
+      "MANUAL::MEDIUM::Finish importing curriculum",
+      "MANUAL::MEDIUM::Sharpen knives"
+    ]
   }
 }
