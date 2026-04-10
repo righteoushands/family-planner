@@ -1476,9 +1476,8 @@ class Handler(BaseHTTPRequestHandler):
                             from fq_data import (get_quests_for_child,
                                                  complete_quest as _fq_complete,
                                                  is_completed as _fq_done,
-                                                 award_partial_xp as _fq_partial,
-                                                 load_quests as _fq_lq,
-                                                 save_quests as _fq_sq)
+                                                 award_school_step as _fq_school_step,
+                                                 finalize_quest_no_reward as _fq_finalize)
                             _fq_quests = get_quests_for_child(_t_ckey, _t_iso)
 
                             if _t_kind == "CHORE":
@@ -1491,7 +1490,7 @@ class Handler(BaseHTTPRequestHandler):
                                     _fq_complete(_mq["id"], _t_ckey)
 
                             elif _t_kind == "SCHOOL":
-                                # School = proportional XP per step
+                                # School = proportional energy/rc/gc per step
                                 _subj_low = _t_label.lower()
                                 _mq = next(
                                     (q for q in _fq_quests
@@ -1499,11 +1498,13 @@ class Handler(BaseHTTPRequestHandler):
                                          _subj_low + " —") or
                                         q.get("title","").lower() == _subj_low),
                                     None)
-                                if _mq:
+                                if _mq and not _fq_done(_mq, _t_ckey):
                                     # Count total checkable steps for this subject
                                     _subj_prefix = (
                                         f"SCHOOL::{_t_child}::{_t_iso}::{_t_label}::")
-                                    from daily_schedule_engine import build_day_list as _bdl
+                                    from daily_schedule_engine import (
+                                        build_day_list as _bdl,
+                                        load_progress as _lpr)
                                     _dl = _bdl(_t_child, __import__('datetime').date
                                                .fromisoformat(_t_iso).strftime('%A'),
                                                _t_iso)
@@ -1515,24 +1516,17 @@ class Handler(BaseHTTPRequestHandler):
                                            sub.get("task_id","").startswith(_subj_prefix)
                                     ]
                                     _n_steps = len(_step_tids) or 1
-                                    _per_step = max(1,
-                                        round(_mq.get("xp_value", 5) / _n_steps))
-                                    _fq_partial(
-                                        _t_ckey, _per_step,
+                                    # Award proportional share using actual v2 quest values
+                                    _fq_school_step(
+                                        _t_ckey, _mq, _n_steps,
                                         f"{_t_label} (step)", _t_iso)
-                                    # If all steps now done → mark quest complete (no extra XP)
-                                    from daily_schedule_engine import load_progress as _lpr
+                                    # If all steps now done → finalize quest (streak + bonus,
+                                    # no double-award since partial coins already given)
                                     _prog = _lpr()
                                     _all_done = all(
                                         _prog.get(tid, False) for tid in _step_tids)
-                                    if _all_done and not _fq_done(_mq, _t_ckey):
-                                        _qs = _fq_lq()
-                                        for _q2 in _qs:
-                                            if _q2.get("id") == _mq["id"]:
-                                                _q2.setdefault(
-                                                    "completions", {})[_t_ckey] = True
-                                                break
-                                        _fq_sq(_qs)
+                                    if _all_done:
+                                        _fq_finalize(_mq["id"], _t_ckey)
                     except Exception:
                         pass  # never block a task toggle due to FQ errors
                 # ───────────────────────────────────────────────────────────────

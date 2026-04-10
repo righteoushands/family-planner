@@ -769,7 +769,9 @@
     "game_coin_value": 2,
     "date": "2026-04-10",
     "active": true,
-    "completions": {},
+    "completions": {
+      "jp": false
+    },
     "synced": true,
     "from_print": false
   },

@@ -1832,6 +1832,57 @@ def award_partial_xp(child_key: str, amount: int, label: str, iso_date: str = ""
     return _build_completion_state(child_key, 1, amount, amount)
 
 
+def award_school_step(child_key: str, quest: dict, n_steps: int,
+                      label: str, iso_date: str = "") -> dict:
+    """
+    Award proportional energy/real_coins/game_coins for one school step.
+    Uses the quest's actual v2 reward values, divided evenly across all steps.
+    """
+    if child_key not in CHILDREN_KEYS:
+        return {}
+    iso = iso_date or date.today().isoformat()
+    settings   = load_boss_settings()
+    e_total    = int(quest.get("energy_value",    settings.get("default_energy_per_quest",    1)))
+    rc_total   = int(quest.get("real_coin_value", settings.get("default_real_coins_per_quest", 1)))
+    gc_total   = int(quest.get("game_coin_value", settings.get("default_game_coins_per_quest", 2)))
+    n          = max(1, n_steps)
+    e_step     = max(1, round(e_total  / n))
+    rc_step    = max(1, round(rc_total / n))
+    gc_step    = max(1, round(gc_total / n))
+    award_currency(child_key, "energy",     e_step,  label, iso)
+    award_currency(child_key, "real_coins", rc_step, label, iso)
+    award_currency(child_key, "game_coins", gc_step, label, iso)
+    return _build_completion_state(child_key, e_step, rc_step, gc_step)
+
+
+def finalize_quest_no_reward(quest_id: str, child_key: str) -> dict:
+    """
+    Mark a quest as complete WITHOUT re-awarding its coins (used when partial
+    rewards have already been distributed step-by-step).  Still triggers streak
+    tracking and bonus-quest auto-complete logic.
+    """
+    quests = load_quests()
+    quest  = next((q for q in quests if q.get("id") == quest_id), None)
+    if quest is None or quest.get("completions", {}).get(child_key):
+        return {}
+    quest.setdefault("completions", {})[child_key] = True
+    save_quests(quests)
+    today            = date.today().isoformat()
+    streak           = _update_streak_for_child(child_key, today)
+    streak_bonus_gc  = 0
+    if streak.get("just_hit_milestone"):
+        streak_bonus_gc = STREAK_MILESTONES.get(streak["current"], 0)
+        if streak_bonus_gc:
+            award_currency(child_key, "game_coins", streak_bonus_gc,
+                           f"🔥 {streak['current']}-Day Streak!")
+    bonus_rc = _try_auto_complete_bonus(child_key, today)
+    state = _build_completion_state(child_key, 0, 0, 0)
+    state["streak"]          = streak
+    state["streak_bonus_gc"] = streak_bonus_gc
+    state["bonus_rc"]        = bonus_rc
+    return state
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # LEGACY SHIMS for old API routes (boss battle, stamina, characters)
 # ═══════════════════════════════════════════════════════════════════════════════
