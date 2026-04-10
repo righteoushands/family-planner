@@ -26,6 +26,47 @@ def _load_app_settings() -> dict:
     return {}
 
 
+# ── Recommended minutes per session by subject keyword ────────────────────────
+_SUBJECT_MINS: dict[str, int] = {
+    "math":        45,
+    "algebra":     45,
+    "geometry":    45,
+    "latin":       45,
+    "greek":       45,
+    "english":     30,
+    "grammar":     30,
+    "language":    30,
+    "spelling":    20,
+    "vocabulary":  20,
+    "editing":     30,
+    "religion":    30,
+    "theology":    30,
+    "history":     45,
+    "geography":   30,
+    "science":     45,
+    "biology":     45,
+    "chemistry":   45,
+    "physics":     45,
+    "reading":     60,
+    "literature":  45,
+    "composition": 30,
+    "writing":     30,
+    "art":         45,
+    "music":       20,
+    "poetry":      15,
+    "penmanship":  15,
+    "handwriting": 15,
+}
+
+def _recommended_minutes(subject: str) -> int:
+    """Return a sensible default session length for a given subject name."""
+    sl = subject.lower()
+    for kw, mins in _SUBJECT_MINS.items():
+        if kw in sl:
+            return mins
+    return 30
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _get_openai_key() -> str:
@@ -186,7 +227,8 @@ def render_curriculum_page() -> str:
         if subjects:
             rows = ""
             for subj, weeks in sorted(subjects.items()):
-                week_count = len(weeks)
+                week_count = sum(1 for k in weeks if not k.startswith("_"))
+                stored_mins = weeks.get("_minutes", _recommended_minutes(subj))
                 this_week = weeks.get(str(current_week), "")
                 preview = (this_week[:80] + "…") if len(this_week) > 80 else this_week
                 preview_html = (
@@ -194,13 +236,22 @@ def render_curriculum_page() -> str:
                     if preview else
                     '<span class="cur-no-assign">— no assignment this week —</span>'
                 )
+                subj_js = subj.replace("'", "\\'")
+                child_js = child.replace("'", "\\'")
                 rows += f"""
                 <tr>
                   <td class="cur-subj">{subj}</td>
                   <td class="cur-weeks">{week_count} wks</td>
+                  <td class="cur-mins-cell">
+                    <input class="cur-mins-input" type="number" min="5" max="240" step="5"
+                           value="{stored_mins}"
+                           id="mins-{child}-{subj}"
+                           onchange="saveMinutes('{child_js}','{subj_js}',this.value)">
+                    <span class="cur-mins-label">min</span>
+                  </td>
                   <td class="cur-this-week">{preview_html}</td>
                   <td class="cur-actions">
-                    <button class="cur-del-btn" onclick="deleteSubject('{child}','{subj}')">✕</button>
+                    <button class="cur-del-btn" onclick="deleteSubject('{child_js}','{subj_js}')">✕</button>
                   </td>
                 </tr>"""
             child_sections += f"""
@@ -209,6 +260,7 @@ def render_curriculum_page() -> str:
               <table class="cur-table">
                 <thead><tr>
                   <th>Subject</th><th>Weeks</th>
+                  <th>Min/session</th>
                   <th>Week {current_week} Assignment</th><th></th>
                 </tr></thead>
                 <tbody>{rows}</tbody>
@@ -275,6 +327,13 @@ def render_curriculum_page() -> str:
                   color: #dc6b6b; cursor: pointer; padding: 2px 7px; font-size: 0.85em; }}
   .cur-del-btn:hover {{ background: #fef2f2; }}
   .cur-empty {{ color: #b0a090; font-style: italic; font-size: 0.9em; }}
+  .cur-mins-cell {{ white-space: nowrap; }}
+  .cur-mins-input {{ width: 56px; padding: 3px 6px; border: 1px solid #c4a882;
+                     border-radius: 5px; font-size: 0.88em; background: #fdf8f2;
+                     text-align: center; color: #3b2a1a; }}
+  .cur-mins-input:focus {{ outline: 2px solid #7c3aed; border-color: #7c3aed; }}
+  .cur-mins-label {{ font-size: 0.78em; color: #9b8872; margin-left: 3px; }}
+  .cur-mins-saved {{ font-size: 0.72em; color: #16a34a; margin-left: 4px; }}
 
   .cur-import-card {{ background: #fff; border: 2px solid #c4b5fd; border-radius: 12px;
                        padding: 20px 20px 24px; margin-top: 28px; }}
@@ -352,7 +411,16 @@ def render_curriculum_page() -> str:
       </div>
       <div class="cur-field">
         <label>Subject name</label>
-        <input class="cur-input" type="text" id="impSubject" placeholder="e.g. Latin, Math, Religion">
+        <input class="cur-input" type="text" id="impSubject" placeholder="e.g. Latin, Math, Religion"
+               oninput="suggestMinutes(this.value)">
+      </div>
+      <div class="cur-field" style="max-width:130px;">
+        <label>Min per session</label>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input class="cur-input" type="number" id="impMinutes" min="5" max="240" step="5"
+                 placeholder="30" style="width:70px;">
+          <span style="font-size:0.8em;color:#9b8872;">min</span>
+        </div>
       </div>
     </div>
     <p class="cur-hint">
@@ -449,9 +517,40 @@ function showPreview(child, subject, weeks) {{
   section.scrollIntoView({{behavior:'smooth', block:'nearest'}});
 }}
 
+const _MINS_MAP = {{
+  math:45, algebra:45, geometry:45, latin:45, greek:45,
+  english:30, grammar:30, language:30, spelling:20, vocabulary:20,
+  editing:30, religion:30, theology:30, history:45, geography:30,
+  science:45, biology:45, chemistry:45, physics:45,
+  reading:60, literature:45, composition:30, writing:30,
+  art:45, music:20, poetry:15, penmanship:15, handwriting:15,
+}};
+
+function suggestMinutes(subjectName) {{
+  const s = subjectName.toLowerCase();
+  const el = document.getElementById('impMinutes');
+  if (el.dataset.edited) return;   // user already changed it manually
+  for (const [kw, mins] of Object.entries(_MINS_MAP)) {{
+    if (s.includes(kw)) {{ el.value = mins; return; }}
+  }}
+  el.value = 30;
+}}
+
+async function saveMinutes(child, subject, minutes) {{
+  const mins = parseInt(minutes, 10);
+  if (!mins || mins < 5) return;
+  await fetch('/curriculum-minutes', {{
+    method: 'POST',
+    headers: {{'Content-Type':'application/json'}},
+    body: JSON.stringify({{ child, subject, minutes: mins }})
+  }});
+}}
+
 async function saveCurriculum() {{
   const child   = document.getElementById('impChild').value.trim();
   const subject = document.getElementById('impSubject').value.trim();
+  const minsEl  = document.getElementById('impMinutes');
+  const minutes = parseInt(minsEl.value, 10) || 30;
   const status  = document.getElementById('saveStatus');
   status.textContent = '';
   if (!Object.keys(_parsedData).length) return;
@@ -459,7 +558,7 @@ async function saveCurriculum() {{
     const res = await fetch('/curriculum-save', {{
       method: 'POST',
       headers: {{'Content-Type':'application/json'}},
-      body: JSON.stringify({{ child, subject, weeks: _parsedData }})
+      body: JSON.stringify({{ child, subject, weeks: _parsedData, minutes }})
     }});
     if (res.ok) {{
       status.className = 'cur-success';

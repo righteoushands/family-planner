@@ -1345,7 +1345,7 @@ class Handler(BaseHTTPRequestHandler):
 
         else:
             # /plan-import-apply reads its own raw JSON body — don't consume it with URL form parse
-            _JSON_PATHS = {"/plan-import-apply", "/curriculum-save", "/poetry-passage-save"}
+            _JSON_PATHS = {"/plan-import-apply", "/curriculum-save", "/curriculum-minutes", "/poetry-passage-save"}
             data = {} if path in _JSON_PATHS else parse_urlencoded_body(self)
 
             if path == "/toggle-task":
@@ -3763,13 +3763,23 @@ class Handler(BaseHTTPRequestHandler):
                     _child2   = str(_body.get("child", "")).strip()
                     _subject2 = str(_body.get("subject", "")).strip()
                     _weeks2   = _body.get("weeks", {})
+                    _mins2    = _body.get("minutes")
                     if not _child2 or not _subject2 or not _weeks2:
                         self.send_response(400); self.end_headers(); return
                     from data_helpers import load_curriculum, save_curriculum
                     _cur_data = load_curriculum()
                     if _child2 not in _cur_data:
                         _cur_data[_child2] = {}
-                    _cur_data[_child2][_subject2] = {str(k): str(v) for k, v in _weeks2.items()}
+                    # Preserve existing _minutes if not supplied
+                    _existing_mins = (_cur_data.get(_child2, {})
+                                      .get(_subject2, {}).get("_minutes"))
+                    _new_subj = {str(k): str(v) for k, v in _weeks2.items()}
+                    if _mins2 is not None:
+                        try: _new_subj["_minutes"] = int(_mins2)
+                        except (TypeError, ValueError): pass
+                    elif _existing_mins is not None:
+                        _new_subj["_minutes"] = _existing_mins
+                    _cur_data[_child2][_subject2] = _new_subj
                     save_curriculum(_cur_data)
                     self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
                     try: self.wfile.write(_curj2.dumps({"ok": True}).encode())
@@ -3778,6 +3788,30 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_response(500); self.send_header("Content-Type","application/json"); self.end_headers()
                     try: self.wfile.write(b'{"error":"save failed"}')
                     except BrokenPipeError: pass
+                return
+
+            elif path == "/curriculum-minutes":
+                import json as _cmj
+                _cm_v = self._get_viewer()
+                if not (_cm_v and _auth.is_admin(_cm_v)):
+                    self.send_response(403); self.end_headers(); return
+                try:
+                    _cm_raw  = self.rfile.read(int(self.headers.get("Content-Length", 0)))
+                    _cm_body = _cmj.loads(_cm_raw)
+                    _cm_child   = str(_cm_body.get("child", "")).strip()
+                    _cm_subject = str(_cm_body.get("subject", "")).strip()
+                    _cm_mins    = int(_cm_body.get("minutes", 30))
+                    if _cm_child and _cm_subject and _cm_mins >= 5:
+                        from data_helpers import load_curriculum, save_curriculum
+                        _cm_cur = load_curriculum()
+                        if _cm_child in _cm_cur and _cm_subject in _cm_cur[_cm_child]:
+                            _cm_cur[_cm_child][_cm_subject]["_minutes"] = _cm_mins
+                            save_curriculum(_cm_cur)
+                except Exception:
+                    pass
+                self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
+                try: self.wfile.write(b'{"ok":true}')
+                except BrokenPipeError: pass
                 return
 
             elif path == "/poetry-passage-save":
