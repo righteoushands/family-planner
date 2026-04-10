@@ -593,15 +593,40 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/van-roles":       body = render_van_roles_page()
         elif path.startswith("/print/day/"):
             child_slug = path.split("/print/day/", 1)[1].strip("/")
+            _print_date = query.get("date",[""])[0]
             if child_slug.lower() == "lauren":
                 from render_misc import render_print_lauren_day
-                body = render_print_lauren_day(query.get("date",[""])[0])
+                body = render_print_lauren_day(_print_date)
             else:
                 # Map slug back to canonical child name
                 _slug_map = {c.lower(): c for c in ["Lauren", "John", "JP", "Joseph", "Michael", "James"]}
                 canonical = _slug_map.get(child_slug.lower(), child_slug.capitalize())
-                body = render_print_child_day_list(canonical, query.get("date",[""])[0])
-        elif path == "/print/day":       body = render_print_day(query.get("date",[""])[0])
+                # Auto-sync quests for this child when printing their day list
+                _quest_children = {"JP", "Joseph", "Michael", "James"}
+                if canonical in _quest_children:
+                    try:
+                        import sys as _sys
+                        _fq_path = os.path.join(os.path.dirname(__file__), "family_quest")
+                        if _fq_path not in _sys.path:
+                            _sys.path.insert(0, _fq_path)
+                        from fq_data import sync_all_quests_for_child
+                        sync_all_quests_for_child(canonical, _print_date)
+                    except Exception:
+                        pass
+                body = render_print_child_day_list(canonical, _print_date)
+        elif path == "/print/day":
+            _print_date = query.get("date",[""])[0]
+            # Auto-sync all children's quests when printing the full family day
+            try:
+                import sys as _sys
+                _fq_path = os.path.join(os.path.dirname(__file__), "family_quest")
+                if _fq_path not in _sys.path:
+                    _sys.path.insert(0, _fq_path)
+                from fq_data import sync_chores_from_daily_schedule
+                sync_chores_from_daily_schedule(_print_date)
+            except Exception:
+                pass
+            body = render_print_day(_print_date)
         elif path == "/print/week":      body = render_print_week()
         elif path == "/notes":           body = render_notes()
         elif path == "/tasks":           body = render_tasks()

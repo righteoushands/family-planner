@@ -755,5 +755,379 @@
     "active": true,
     "completions": {},
     "synced": true
+  },
+  {
+    "id": "6f397975",
+    "title": "Morning Jobs",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "f53963bc",
+    "title": "Weekly Job",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "b254a175",
+    "title": "Clean the Kitchen",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "e4e74898",
+    "title": "Weekly Jobs",
+    "type": "daily",
+    "assigned_to": [
+      "jp"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "2bc5860f",
+    "title": "Morning Jobs",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "4aefe979",
+    "title": "Laundry — Start",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "73221f35",
+    "title": "Weekly Job",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "bc73659c",
+    "title": "Laundry — Switch",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "5a478e75",
+    "title": "Clean the Kitchen",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "5b7dc188",
+    "title": "Weekly Jobs",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "f4e661f2",
+    "title": "Laundry — Fold & Put Away",
+    "type": "daily",
+    "assigned_to": [
+      "joseph"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "8c107c4f",
+    "title": "Morning Jobs",
+    "type": "daily",
+    "assigned_to": [
+      "michael"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "424c7cbf",
+    "title": "Laundry — Start",
+    "type": "daily",
+    "assigned_to": [
+      "michael"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "948c20ad",
+    "title": "Weekly Job",
+    "type": "daily",
+    "assigned_to": [
+      "michael"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "c870e884",
+    "title": "Laundry — Switch",
+    "type": "daily",
+    "assigned_to": [
+      "michael"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "c7de99a0",
+    "title": "Clean the Kitchen",
+    "type": "daily",
+    "assigned_to": [
+      "michael"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "ffd6546c",
+    "title": "Weekly Jobs",
+    "type": "daily",
+    "assigned_to": [
+      "michael"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "4c3d44b1",
+    "title": "Laundry — Fold & Put Away",
+    "type": "daily",
+    "assigned_to": [
+      "michael"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "4bf9922f",
+    "title": "Morning Jobs",
+    "type": "daily",
+    "assigned_to": [
+      "james"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "10b39112",
+    "title": "Weekly Job",
+    "type": "daily",
+    "assigned_to": [
+      "james"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "dd29fef5",
+    "title": "Clean the Kitchen",
+    "type": "daily",
+    "assigned_to": [
+      "james"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
+  },
+  {
+    "id": "bfa869ad",
+    "title": "Weekly Jobs",
+    "type": "daily",
+    "assigned_to": [
+      "james"
+    ],
+    "xp_value": 5,
+    "energy_value": 1,
+    "real_coin_value": 1,
+    "game_coin_value": 2,
+    "date": "2026-04-10",
+    "active": true,
+    "completions": {},
+    "synced": true,
+    "from_print": false
   }
 ]
