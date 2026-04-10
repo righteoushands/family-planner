@@ -554,7 +554,7 @@ def handle_post(h) -> bool:
         names_str = "+".join(D.CHILDREN_NAMES.get(k, k) for k in assigned)
         _redirect(h, f"/quest/boss-settings?msg={item_label.replace(' ', '+')}+awarded+to+{names_str}"); return True
 
-    # ── API: complete quest (JSON) ─────────────────────────────────────────────
+    # ── API: complete quest (JSON) — GDD v2 ───────────────────────────────────
     if path == "/quest/api/complete-quest":
         data = _read_json(h)
         quest_id  = str(data.get("quest_id", ""))
@@ -565,24 +565,102 @@ def handle_post(h) -> bool:
             _send_json(h, {"error": "invalid child"}, 400); return True
         quests = D.load_quests()
         q = next((x for x in quests if x.get("id") == quest_id), None)
-        quest_xp = q.get("xp_value", 0) if q else 0
-        # Check for item reward on this quest
         item_reward_key = q.get("item_reward", "") if q else ""
         result = D.complete_quest(quest_id, child_key)
         if "error" in result:
             _send_json(h, result, 400); return True
-        if "xp_earned" not in result:
-            result["xp_earned"] = quest_xp
-        # Award item if quest had one and this was a real completion (not idempotent)
-        if item_reward_key and item_reward_key in D.ITEMS and result.get("xp_earned", 0) > 0:
+        # Award item if quest had one and was just completed (not idempotent repeat)
+        if item_reward_key and item_reward_key in D.ITEMS and result.get("energy_earned", 0) > 0:
             D.award_item(child_key, item_reward_key)
             result["item_awarded"] = D.ITEMS[item_reward_key]["label"]
-        result["coins"]    = D.get_coins(child_key)
-        result["crystals"] = D.get_crystals(child_key)
-        result["diamonds"] = D.get_diamonds(child_key)
+        # Provide all updated balances for JS live-update
+        st = D.get_child_state(child_key)
+        result.update(st)
         _send_json(h, result); return True
 
-    # ── API: redeem reward (child requests purchase) ────────────────────────────
+    # ── API: attack boss (GDD v2 sequential boss system) ──────────────────────
+    if path in ("/quest/api/attack-boss", "/quest/api/boss-battle"):
+        data = _read_json(h)
+        child_key = str(data.get("child", ""))
+        use_axe   = bool(data.get("use_battle_axe", False))
+        if child_key not in D.CHILDREN_KEYS:
+            _send_json(h, {"error": "invalid child"}, 400); return True
+        if not (viewer == child_key or is_parent):
+            _send_json(h, {"error": "unauthorized"}, 403); return True
+        result = D.attack_boss(child_key, use_battle_axe=use_axe)
+        if "error" in result:
+            _send_json(h, result, 400); return True
+        result["energy"] = D.get_energy(child_key)
+        _send_json(h, result); return True
+
+    # ── API: attack big boss ───────────────────────────────────────────────────
+    if path == "/quest/api/attack-big-boss":
+        data = _read_json(h)
+        child_key    = str(data.get("child", ""))
+        big_boss_id  = str(data.get("big_boss_id", ""))
+        use_axe      = bool(data.get("use_battle_axe", False))
+        if child_key not in D.CHILDREN_KEYS:
+            _send_json(h, {"error": "invalid child"}, 400); return True
+        if not (viewer == child_key or is_parent):
+            _send_json(h, {"error": "unauthorized"}, 403); return True
+        result = D.attack_big_boss(child_key, big_boss_id, use_battle_axe=use_axe)
+        if "error" in result:
+            _send_json(h, result, 400); return True
+        result["energy"] = D.get_energy(child_key)
+        _send_json(h, result); return True
+
+    # ── API: collect fortress passive income ───────────────────────────────────
+    if path == "/quest/api/collect-fortress":
+        data = _read_json(h)
+        child_key = str(data.get("child", ""))
+        if child_key not in D.CHILDREN_KEYS:
+            _send_json(h, {"error": "invalid child"}, 400); return True
+        if not (viewer == child_key or is_parent):
+            _send_json(h, {"error": "unauthorized"}, 403); return True
+        result = D.collect_fortress_income(child_key)
+        _send_json(h, result); return True
+
+    # ── API: upgrade fortress ──────────────────────────────────────────────────
+    if path == "/quest/api/upgrade-fortress":
+        data = _read_json(h)
+        child_key = str(data.get("child", ""))
+        if child_key not in D.CHILDREN_KEYS:
+            _send_json(h, {"error": "invalid child"}, 400); return True
+        if not (viewer == child_key or is_parent):
+            _send_json(h, {"error": "unauthorized"}, 403); return True
+        result = D.upgrade_fortress(child_key)
+        if "error" in result:
+            _send_json(h, result, 400); return True
+        _send_json(h, result); return True
+
+    # ── API: set active hero ───────────────────────────────────────────────────
+    if path in ("/quest/api/set-hero", "/quest/api/set-character"):
+        data = _read_json(h)
+        child_key = str(data.get("child", ""))
+        hero_key  = str(data.get("hero", data.get("character", "")))
+        if child_key not in D.CHILDREN_KEYS:
+            _send_json(h, {"error": "invalid child"}, 400); return True
+        if not (viewer == child_key or is_parent):
+            _send_json(h, {"error": "unauthorized"}, 403); return True
+        ok = D.set_active_hero(child_key, hero_key)
+        if not ok:
+            _send_json(h, {"error": "Hero not in roster or invalid"}, 400); return True
+        _send_json(h, {"ok": True, "hero": hero_key}); return True
+
+    # ── API: evolve hero ───────────────────────────────────────────────────────
+    if path == "/quest/api/evolve-hero":
+        data = _read_json(h)
+        child_key = str(data.get("child", ""))
+        if child_key not in D.CHILDREN_KEYS:
+            _send_json(h, {"error": "invalid child"}, 400); return True
+        if not (viewer == child_key or is_parent):
+            _send_json(h, {"error": "unauthorized"}, 403); return True
+        result = D.evolve_hero(child_key)
+        if "error" in result:
+            _send_json(h, result, 400); return True
+        _send_json(h, result); return True
+
+    # ── API: redeem reward (child requests real-coin purchase) ─────────────────
     if path == "/quest/api/redeem-reward":
         data = _read_json(h)
         reward_id = str(data.get("reward_id", ""))
@@ -601,26 +679,12 @@ def handle_post(h) -> bool:
         if already:
             _send_json(h, {"error": "Already requested — waiting for approval"}); return True
         price = reward.get("coin_price", 10)
-        current_coins = D.get_coins(child_key)
-        if current_coins < price:
-            _send_json(h, {"error": f"Not enough coins (have {current_coins}, need {price})"}); return True
+        real_coins = D.get_coins(child_key)
+        if real_coins < price:
+            _send_json(h, {"error": f"Need {price} Real Coins (have {real_coins})"}); return True
         result = D.create_redemption(child_key, reward_id, reward.get("label",""), price)
-        result["coins"] = D.get_coins(child_key)
+        result["real_coins"] = D.get_coins(child_key)
         _send_json(h, result); return True
-
-    # ── API: set character ─────────────────────────────────────────────────────
-    if path == "/quest/api/set-character":
-        data = _read_json(h)
-        child_key = str(data.get("child", ""))
-        char_key  = str(data.get("character", ""))
-        if child_key not in D.CHILDREN_KEYS:
-            _send_json(h, {"error": "invalid child"}, 400); return True
-        if not (viewer == child_key or is_parent):
-            _send_json(h, {"error": "unauthorized"}, 403); return True
-        ok = D.set_character(child_key, char_key)
-        if not ok:
-            _send_json(h, {"error": "invalid character"}, 400); return True
-        _send_json(h, {"ok": True, "character": char_key}); return True
 
     # ── API: upgrade equipment ─────────────────────────────────────────────────
     if path == "/quest/api/upgrade-equipment":
@@ -639,24 +703,6 @@ def handle_post(h) -> bool:
         result["diamonds"]   = D.get_diamonds(child_key)
         _send_json(h, result); return True
 
-    # ── API: boss battle ───────────────────────────────────────────────────────
-    if path == "/quest/api/boss-battle":
-        data = _read_json(h)
-        child_key  = str(data.get("child", ""))
-        use_axe    = bool(data.get("use_battle_axe", False))
-        if child_key not in D.CHILDREN_KEYS:
-            _send_json(h, {"error": "invalid child"}, 400); return True
-        if not (viewer == child_key or is_parent):
-            _send_json(h, {"error": "unauthorized"}, 403); return True
-        # Enforce difficulty from parent settings — ignore client-supplied difficulty
-        boss_settings = D.load_boss_settings()
-        difficulty = boss_settings.get("difficulty", "medium")
-        result = D.start_boss_battle(child_key, difficulty, use_axe)
-        if "error" in result:
-            _send_json(h, result, 400); return True
-        result["stamina"] = D.get_stamina(child_key)
-        _send_json(h, result); return True
-
     # ── API: start mine run ────────────────────────────────────────────────────
     if path == "/quest/api/start-mine":
         data = _read_json(h)
@@ -670,7 +716,7 @@ def handle_post(h) -> bool:
         result = D.start_mine_run(child_key, mine_type, use_hammer)
         if "error" in result:
             _send_json(h, result, 400); return True
-        result["stamina"] = D.get_stamina(child_key)
+        result["energy"] = D.get_energy(child_key)
         _send_json(h, result); return True
 
     # ── API: collect mine run ──────────────────────────────────────────────────
@@ -685,10 +731,24 @@ def handle_post(h) -> bool:
         result = D.collect_mine_run(child_key, mine_id)
         if "error" in result:
             _send_json(h, result, 400); return True
-        result["coins"]    = D.get_coins(child_key)
-        result["crystals"] = D.get_crystals(child_key)
-        result["diamonds"] = D.get_diamonds(child_key)
+        # Return all updated balances
+        st = D.get_child_state(child_key)
+        result.update(st)
         _send_json(h, result); return True
+
+    # ── API: award currency/resource (parent only) ─────────────────────────────
+    if path == "/quest/api/award-currency":
+        if not is_parent:
+            _send_json(h, {"error": "unauthorized"}, 403); return True
+        data = _read_json(h)
+        child_key = str(data.get("child", ""))
+        field     = str(data.get("field", ""))
+        amount    = int(data.get("amount", 0))
+        label     = str(data.get("label", "Parent award"))
+        if child_key not in D.CHILDREN_KEYS:
+            _send_json(h, {"error": "invalid child"}, 400); return True
+        new_val = D.award_currency(child_key, field, amount, label)
+        _send_json(h, {"ok": True, "field": field, "new_value": new_val}); return True
 
     # ── API: sync chores from Sancta Familia ──────────────────────────────────
     if path == "/quest/sync-chores":

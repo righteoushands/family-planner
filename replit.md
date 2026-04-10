@@ -3,38 +3,53 @@
 ## Overview
 A Python HTTP server (no framework) running on port 5000. A Catholic family dashboard for the McAdams family: Lauren (Mom), John (Dad), JP (14), Joseph (12), Michael (5), James (13 months). Features Mass readings, weather, meal plans, calendar, chores, and a five-companion AI ecosystem: Lucy (Catholic friend/integrator), Lorenzo (personal chef), Father Gregory (academic headmaster), Coach (family fitness), Dr. Monica (child development + pediatric health). Full authentication with per-user access control.
 
-## Family Quest App (Phase 2 — RPG Battle System)
+## Family Quest App (GDD v2 — Full RPG Overhaul)
 Lives in `family_quest/` directory, served at `/quest/*` by the main app via `fq_bridge.py`.
 
 - **Bridge**: `family_quest/fq_bridge.py` — imported by the main app; routes `/quest/*` GET/POST into FQ
 - **Adapter**: `family_quest/fq_api.py` — the ONLY file in FQ that imports from the main app (auth, daily schedule). All other FQ modules call through this adapter.
 - **Auth**: `fq_auth.py` delegates to `fq_api` (no direct parent imports)
-- **Data files**: `family_quest/data/` — `quests.json`, `xp.json`, `rewards.json`, `streaks.json`, `redemptions.json`, `characters.json`, `equipment.json`, `inventory.json`, `stamina.json`, `battles.json`, `mines.json`, `boss_settings.json`
+- **Data files**: `family_quest/data/` — `quests.json`, `xp.json` (real_coins+game_coins+resources), `rewards.json`, `streaks.json`, `redemptions.json`, `heroes.json`, `boss_progress.json`, `fortress.json`, `equipment.json`, `inventory.json`, `mines.json`, `boss_settings.json`
 - **Modules**: `fq_data.py` (all data/engine logic), `fq_render.py` (HTML shell), `fq_views_parent.py` (parent views), `fq_views_child.py` (child board)
-- **Quest types**: daily, side, boss, event; each with XP value, assigned children, date, optional item_reward
-- **Level thresholds**: L1=0 (Novice), L2=100 (Apprentice), L3=250 (Knight), L4=500 (Champion), L5=1000 (Legend)
+- **Quest types**: daily, side, boss, event; each with energy_value+real_coin_value+game_coin_value rewards, assigned children, date, optional item_reward
 - **Sessions**: Separate cookie `fq_session` (Path=/quest) so it doesn't conflict with main app session
 - **Separation rule**: No FQ module (except `fq_api.py` and `fq_bridge.py`) may import from the parent directory
 
-### Phase 2 RPG Features
-- **Resources**: Coins (existing), Crystals, Diamonds — all tracked in xp.json per child; shown on board
-- **Characters**: Archer (high atk/low def), Fighter (balanced), Defender (high def/low atk) — selectable per child
-- **Equipment**: 4 slots (Sword, Shield, Armor, Ring) each 0–5 levels; upgraded using crystals/diamonds; modify attack/defense stats
-- **Stamina**: Max 10 ⚡; spent on boss battles/mine runs; refills +3 when all daily quests complete
-- **Boss Battle engine**: Quests completed → attack hits → damage vs boss HP; sword level reduces quests/hit; win awards coins+XP; lose adds penalty chores (reduced by defense); Battle Axe item doubles hits
-- **Mine Run engine**: Gold/Crystal/Diamond mines; 10-min runs; collect any time; cave-in on 3× overtime; speed bonus; Hammer item gives 1.5× yield
-- **Single-use items**: Battle Axe (boss) and Hammer (mine); awarded by parents via Boss Settings or via quest/reward item_reward field; consumed on use
-- **Equipment upgrades**: Children spend crystals/diamonds to upgrade slots; costs scale per level
-- **Parent controls**: Boss Settings page sets difficulty (easy/medium/hard/legendary) and enables/disables boss daily; parents can directly award items to any child
+### GDD v2 Core Design
+- **Dual currency**: 🪙 Real Coins (from quests → spend at real reward store, mom approves) + 💰 Game Coins (from quests/bosses → spend in-game on fortress/items)
+- **Energy (⚡)**: Replaces stamina; earned by completing quests; spent attacking bosses (hits_per_turn per attack)
+- **Resources**: 💎 Crystals, 💠 Diamonds, 🟤 Copper, ⚙️ Iron — from mines; used for equipment upgrades
+- **Heroes (6)**: Link (starter), Zelda (boss #5 unlock), Ganondorf (#15), Samus (#25), Mario (#40), Fox (#60); each with damage/defense/HP stats and form evolution at Level 50; tracked per-child in heroes.json
+  - Form 1 = 3 hits/turn; Form 2 (post-evolution) = 9 hits/turn; costs Copper+GC+Crystals+Diamonds+Iron
+- **Sequential bosses**: Boss N has N×500 HP; rewards N×10 GC + N×10 RC + N×50 hero XP; tracked per-child in boss_progress.json; total defeated unlocks new heroes
+- **Big Bosses**: Special named bosses (Ganon, Ridley, Bowser, Andross, Wolf) with huge HP and rewards; also unlock heroes; tracked in boss_progress.json
+- **Fortress**: 10 levels (Watchtower→Royal Citadel); passive GC income 10→100/day; upgrade costs GC; tracked in fortress.json
+- **Mine runs**: 5 types — Gold (→RC), Crystal (→Crystals), Diamond (→Diamonds), Copper (→Copper), Iron (→Iron); each has base_rate/min and target duration; cave-in at 2× target for Gold, 3× for others; consolation prizes on cave-in
+- **Equipment**: Sword (5 levels, Crystals cost), Shield (5 levels, Diamonds), Armor (5 levels, Diamonds), Ring (5 levels, Copper/Iron); modify hero damage/defense
+- **Single-use items**: Battle Axe (1.5× boss damage), Hammer (1.5× mine yield); awarded by parents via boss-settings/award-item or via quest item_reward
 
-### Key API Routes (Phase 2 additions)
-- `POST /quest/api/set-character` — `{child, character}`
+### Child Board UI (6 Zone Tabs)
+1. **⚔️ Bosses** — current sequential boss HP bar, attack button (costs energy), rewards preview
+2. **👹 Big Boss** — named milestone bosses with hero unlock rewards
+3. **🏰 Fortress** — level/income display, collect daily income, upgrade button
+4. **⛏️ Mines** — start/collect mine runs; active mine timer with cave-in countdown
+5. **🎒 Equipment** — slot levels with upgrade buttons showing resource costs
+6. **🛒 Store** — spend Real Coins on parent-configured real-world rewards (mom approval required)
+
+### Key API Routes (GDD v2)
+- `POST /quest/api/complete-quest` — `{quest_id, child}` → returns energy/rc/gc earned + all balances
+- `POST /quest/api/attack-boss` — `{child, use_battle_axe}` → sequential boss attack
+- `POST /quest/api/attack-big-boss` — `{child, big_boss_id, use_battle_axe}`
+- `POST /quest/api/collect-fortress` — `{child}` → daily passive GC income
+- `POST /quest/api/upgrade-fortress` — `{child}` → spends GC to upgrade fortress level
+- `POST /quest/api/set-hero` — `{child, hero}` → switch active hero
+- `POST /quest/api/evolve-hero` — `{child}` → consume resources for Form 2 evolution
 - `POST /quest/api/upgrade-equipment` — `{child, slot}`
-- `POST /quest/api/boss-battle` — `{child, difficulty, use_battle_axe}`
 - `POST /quest/api/start-mine` — `{child, mine_type, use_hammer}`
 - `POST /quest/api/collect-mine` — `{child, mine_id}`
-- `GET/POST /quest/boss-settings` — parent boss configuration page
-- `POST /quest/boss-settings/save` — saves difficulty/availability
+- `POST /quest/api/redeem-reward` — `{child, reward_id}` → creates pending redemption (Real Coins)
+- `POST /quest/api/award-currency` — `{child, field, amount, label}` (parent only)
+- `GET/POST /quest/boss-settings` — parent item-award page
 - `POST /quest/boss-settings/award-item` — directly awards item to child(ren)
 
 ## Architecture

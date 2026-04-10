@@ -10,46 +10,39 @@ import fq_render as R
 
 
 def _build_child_cards(xp_data: dict, today: str) -> str:
-    """Build the per-child summary card HTML for the parent dashboard."""
+    """Build the per-child summary card HTML for the parent dashboard — v2."""
     child_cards = ""
     for key in D.CHILDREN_KEYS:
         name    = D.CHILDREN_NAMES[key]
         emoji   = R.CHILD_EMOJI[key]
         colors  = R.CHILD_COLORS[key]
-        state   = D._xp_state(xp_data, key)
+        cstate  = D.get_child_state(key)
         streak  = D.get_streak(key)
-        char    = D.get_character(key)
+        hero    = D.get_active_hero(key)
         eq      = D.get_equipment(key)
-        stamina = D.get_stamina(key)
-        total   = state["total_xp"]
-        coins   = state.get("coins", 0)
-        crystals = state.get("crystals", 0)
-        diamonds = state.get("diamonds", 0)
-        lvl     = state["level"]
-        nxt     = state["next_level"]
-        pct     = state["progress_pct"]
-        attack  = D.get_attack_stat(key)
-        defense = D.get_defense_stat(key)
+        boss    = D.get_boss_state(key)
+
+        real_coins  = cstate["real_coins"]
+        game_coins  = cstate["game_coins"]
+        energy      = cstate["energy"]
+        crystals    = cstate["crystals"]
+        diamonds    = cstate["diamonds"]
 
         quests_today = D.get_quests_for_child(key, today)
         completed    = sum(1 for q in quests_today if D.is_completed(q, key))
         total_q      = len(quests_today)
-        next_label   = f"Next: {nxt['label']} at {nxt['xp_min']} XP" if nxt else "Max level!"
 
         cur_streak   = streak.get("current", 0)
         best_streak  = streak.get("best", 0)
         streak_color = "#dc2626" if cur_streak >= 7 else ("#d97706" if cur_streak >= 3 else "#9ca3af")
         streak_label = f"🔥 {cur_streak}" if cur_streak > 0 else "—"
 
-        char_name  = char.get("name", "Fighter")
-        char_emoji = char.get("emoji", "⚔️")
-
-        # Equipment level summary
-        eq_levels = "/".join(str(eq.get(s, 0)) for s in D.EQUIPMENT_SLOTS)
+        # Hero XP progress
+        hero_xp_pct = int(hero["xp"] * 100 / hero["xp_to_next"]) if hero.get("xp_to_next") else 100
 
         child_cards += f"""
 <div class="card" style="border-top:4px solid {colors['bg']};">
-  <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
     <a href="/quest/board/{key}" style="text-decoration:none;">
       <div style="width:52px;height:52px;border-radius:50%;background:{colors['bg']};
                   display:flex;align-items:center;justify-content:center;
@@ -58,48 +51,55 @@ def _build_child_cards(xp_data: dict, today: str) -> str:
       </div>
     </a>
     <div style="flex:1;min-width:0;">
-      <div style="font-size:1.1em;font-weight:800;color:var(--ink);">
+      <div style="font-size:1.05em;font-weight:800;color:var(--ink);">
         <a href="/quest/board/{key}" style="color:inherit;text-decoration:none;">{_esc(name)}</a>
       </div>
-      <div style="font-size:0.8em;color:var(--ink-muted);">Level {lvl['level']} — {_esc(lvl['label'])}</div>
-      <div style="font-size:0.75em;color:var(--ink-muted);">{char_emoji} {_esc(char_name)} · ⚡{stamina}/{D.MAX_STAMINA}</div>
-    </div>
-    <div style="text-align:right;">
-      <div style="font-size:1.4em;font-weight:800;color:{colors['bg']};">{total}
-        <span style="font-size:0.55em;font-weight:600;color:var(--ink-muted);">XP</span>
+      <div style="font-size:0.75em;color:var(--ink-muted);">
+        {hero['emoji']} {_esc(hero['form_label'])} Lv.{hero['level']}
       </div>
-      <div style="font-size:0.72em;color:var(--ink-muted);">{completed}/{total_q} quests today</div>
+    </div>
+    <div style="text-align:right;font-size:0.78em;">
+      <div style="font-weight:700;color:var(--ink-muted);">{completed}/{total_q} quests</div>
+      <div style="font-size:0.9em;color:#7c3aed;font-weight:700;">Boss #{boss['boss_num']}</div>
     </div>
   </div>
   <div style="margin-bottom:10px;">
-    <div class="xp-bar-wrap">
-      <div class="xp-bar-fill" style="width:{pct}%;background:{colors['bg']};"></div>
+    <div class="xp-bar-wrap" style="height:7px;">
+      <div class="xp-bar-fill" style="width:{hero_xp_pct}%;background:{colors['bg']};"></div>
     </div>
   </div>
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;">
-    <div style="text-align:center;background:#fffbeb;border-radius:8px;padding:6px 4px;">
-      <div style="font-size:1em;">🪙</div>
-      <div style="font-size:0.85em;font-weight:800;color:#d97706;">{coins}</div>
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:8px;text-align:center;">
+    <div style="background:#fffbeb;border-radius:6px;padding:4px 2px;">
+      <div style="font-size:0.85em;">🪙</div>
+      <div style="font-size:0.72em;font-weight:800;color:#b45309;">{real_coins}</div>
     </div>
-    <div style="text-align:center;background:#f0f9ff;border-radius:8px;padding:6px 4px;">
-      <div style="font-size:1em;">💎</div>
-      <div style="font-size:0.85em;font-weight:800;color:#0ea5e9;">{crystals}</div>
+    <div style="background:#f0fdf4;border-radius:6px;padding:4px 2px;">
+      <div style="font-size:0.85em;">💰</div>
+      <div style="font-size:0.72em;font-weight:800;color:#15803d;">{game_coins}</div>
     </div>
-    <div style="text-align:center;background:#f5f3ff;border-radius:8px;padding:6px 4px;">
-      <div style="font-size:1em;">💠</div>
-      <div style="font-size:0.85em;font-weight:800;color:#8b5cf6;">{diamonds}</div>
+    <div style="background:#ede9fe;border-radius:6px;padding:4px 2px;">
+      <div style="font-size:0.85em;">⚡</div>
+      <div style="font-size:0.72em;font-weight:800;color:#7c3aed;">{energy}</div>
+    </div>
+    <div style="background:#f0f9ff;border-radius:6px;padding:4px 2px;">
+      <div style="font-size:0.85em;">💎</div>
+      <div style="font-size:0.72em;font-weight:800;color:#0ea5e9;">{crystals}</div>
+    </div>
+    <div style="background:#f5f3ff;border-radius:6px;padding:4px 2px;">
+      <div style="font-size:0.85em;">💠</div>
+      <div style="font-size:0.72em;font-weight:800;color:#8b5cf6;">{diamonds}</div>
     </div>
   </div>
   <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.72em;">
-    <div style="color:var(--ink-muted);">{next_label}</div>
+    <div style="color:var(--ink-muted);">Hero XP: {hero['xp']}/{hero.get('xp_to_next','—')}</div>
     <div style="color:{streak_color};font-weight:700;" title="Streak (best: {best_streak})">
       {streak_label} streak
     </div>
   </div>
   <div style="margin-top:8px;font-size:0.72em;color:var(--ink-muted);display:flex;gap:10px;">
-    <span>⚔️ {attack} atk</span>
-    <span>🛡️ {defense} def</span>
-    <span>🎒 Eq: {eq_levels}</span>
+    <span>⚔️ {hero['damage']} dmg</span>
+    <span>🛡️ {hero['defense']} def</span>
+    <span>🎒 Eq: {"/".join(str(eq.get(s, 0)) for s in D.EQUIPMENT_SLOTS)}</span>
   </div>
 </div>"""
     return child_cards
@@ -119,29 +119,31 @@ def render_parent_dashboard(viewer: str) -> str:
         if synced_count else ""
     )
 
-    # Boss settings quick view
-    boss_settings = D.load_boss_settings()
-    diff_key = boss_settings.get("difficulty", "medium")
-    diff = D.BOSS_DIFFICULTIES.get(diff_key, D.BOSS_DIFFICULTIES["medium"])
-    boss_type_key = boss_settings.get("boss_type", "orc")
-    boss_type_def = D.BOSS_TYPES.get(boss_type_key, D.BOSS_TYPES["orc"])
-    available = boss_settings.get("available", True)
-    exchange_rate = int(boss_settings.get("exchange_rate", 1))
+    # v2 sequential boss status — show each child's current boss number
+    boss_rows = ""
+    for ck in D.CHILDREN_KEYS:
+        bs = D.get_boss_state(ck)
+        cname = D.CHILDREN_NAMES[ck]
+        cemoji = R.CHILD_EMOJI[ck]
+        boss_rows += (
+            f'<div style="display:flex;justify-content:space-between;align-items:center;'
+            f'padding:6px 0;border-bottom:1px solid var(--border-light);font-size:0.82em;">'
+            f'<span>{cemoji} {_esc(cname)}</span>'
+            f'<span style="font-weight:700;color:#7c3aed;">Boss #{bs["boss_num"]}'
+            f'<span style="color:var(--ink-muted);font-weight:400;"> · {bs["total_defeated"]} defeated</span></span>'
+            f'</div>'
+        )
 
     boss_status = f"""
-<div class="card" style="margin-top:18px;border-color:{'#f59e0b' if available else '#e5e7eb'};">
-  <div class="card-title">⚔️ Boss Battle Settings</div>
-  <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-    <div style="font-size:2em;">{boss_type_def['emoji']}</div>
-    <div>
-      <div style="font-weight:700;">{boss_type_def['label']} · {diff['label']} <span style="color:{'#15803d' if available else '#9ca3af'};font-size:0.85em;">{'● Active' if available else '● Disabled'}</span></div>
-      <div style="font-size:0.8em;color:var(--ink-muted);">{boss_type_def['description']} · HP {diff['hp']} · ⚡{diff['stamina_cost']}</div>
-    </div>
+<div class="card" style="margin-top:18px;">
+  <div class="card-title">⚔️ Boss Progress</div>
+  <p style="font-size:0.78em;color:var(--ink-muted);margin-bottom:10px;">
+    Sequential bosses: Boss #N has N×500 HP. Rewards scale with boss number.
+  </p>
+  {boss_rows}
+  <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+    <a href="/quest/boss-settings" class="btn btn-muted btn-sm">🎁 Award Items</a>
   </div>
-  <div style="font-size:0.78em;color:var(--ink-muted);margin-bottom:10px;">
-    💰 Exchange rate: {exchange_rate}¢/coin · 100 coins = ${exchange_rate:.0f}.00 (parent payout)
-  </div>
-  <a href="/quest/boss-settings" class="btn btn-muted btn-sm">⚙️ Configure Boss</a>
 </div>"""
 
     body = f"""

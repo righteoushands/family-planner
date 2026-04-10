@@ -1,0 +1,45 @@
+Family Quest — Full Game Design Document v2
+For Replit/Sancta Familia Integration
+OVERVIEW
+Family Quest is a gamified chore app where completing real-world chores and jobs earns energy and coins that power a fantasy battle game. Each child logs in with their own profile and has completely separate personal data — their own coins, energy, heroes, and fortress. There are no player levels. Levels belong to heroes and the fortress only.
+CURRENCY SYSTEM — THREE TRACKS
+Real Coins — earned by completing chores. Mom sets the value per chore. These are redeemable for real money and prizes. Mom handles the conversion.
+Game Coins — also earned by completing chores. Mom sets the value per chore. Spent on upgrading the fortress, evolving heroes, and crafting upgrades.
+Energy — earned by completing chores. Mom sets the energy value per chore. Energy is spent to attack bosses. 1 energy = 1 attack turn.
+All three values per chore are set by mom in the admin panel.
+MATERIALS / RESOURCES
+Players gather these through the Gather zone and mines. Used for hero evolution and equipment upgrades. Resources are copper, iron, crystals, and diamonds. Resource costs scale up significantly at higher levels and for hero evolution.
+BATTLE AREA — SIX ZONES
+Accessed from the main screen via one “Enter Battle Area” button. The battle area home screen shows all six zones.
+Bosses — main progression zone. Fight a lineup of increasingly harder bosses. Each boss has 5 more health than the previous. Each boss defeated rewards 10 more game coins, 100 more XP, and 10 more real coins than the previous one. Spend energy to attack. 1 energy = 1 attack.
+Big Boss — special high-difficulty bosses that give massive rewards. Some heroes can only be unlocked by defeating Big Bosses.
+Heroes — view and manage your hero roster.
+Your Fortress — defend your base, spend game coins to upgrade it, earn passive game coin income. Fortress starts at level 1. Fort level determines how many defenders you have automatically — you do not recruit defenders manually. Higher fort level = more defenders and higher passive income. Example: wooden fort earns 10 game coins/day, max fortress earns 100 game coins/day.
+Gather — mine for copper, iron, crystals, and diamonds. Includes gold mine, crystal mine, and diamond mine with cave-in mechanics.
+Enemy Fortress — attack CPU-controlled enemy fortresses for huge reward payouts.
+MINE MECHANICS
+When a player sets a goal and completes chores, they choose one of three mine rewards.
+Gold Mine — base rate 10 real coins/minute for 10 minutes = 100 coins. Finishing chores faster increases rate (e.g. finish in 1 hour = 15 coins/minute). If player takes too long, mine caves in — no coins earned, but consolation loot roll: 50% chance of 5 diamonds or crystals, 25% chance of 20, 5% chance of 100.
+Crystal Mine — 2 crystals/minute for 15 minutes = 30 crystals. Used primarily for sword upgrades. Cave-in drops rate to 1/minute.
+Diamond Mine — same structure as crystal mine. Diamonds used primarily for armor and shield upgrades. Cave-in applies same penalty.
+GOAL SYSTEM — BOSS OR MINE CHOICE
+When a player sets a goal and completes their chores they choose either a boss fight (spend energy to attack), a gold mine run, a crystal mine run, or a diamond mine run.
+EQUIPMENT AND UPGRADES
+Four upgrade slots: sword, shield, armor, other items. Resources required scale up steeply at higher levels. Examples: 15 crystals for sword level 2, 100 crystals for sword level 5. Equipment affects gameplay directly — better sword = fewer chores needed to beat a boss, better shield/armor = less chore-penalty damage when monster hits you.
+SINGLE USE SPECIAL WEAPONS
+Battle Axe — equip before a boss fight for bonus damage. Breaks after one use. Re-earned through side quests.
+Hammer — equip before any mine run for 1.5x rewards. Breaks after one use. Re-earned through side quests.
+SIDE QUESTS
+Optional challenge runs separate from regular chores. Reward rare items including armor, shields, special equipment, battle axes, and hammers that cannot be obtained any other way.
+HEROES
+Heroes have their own levels separate from the player. Players start with Link and slowly unlock new heroes by defeating bosses. Some heroes are only unlockable through the Big Boss zone. Each player starts all heroes at level 1.
+HERO 1 — LINK (starter hero, unlocked for all players from the start)
+Inspired by Nintendo’s Legend of Zelda designs — Skyward Sword Link for form 1, Tears of the Kingdom Link for form 2. App is for personal family use only, not for sale.
+Form 1 — Skyward Sword Link. Attacks 3 times per turn. Health: 100 base, +10 per level. Defense: 55 base, +5 per level. Damage per swing: 250 base, +20 per level.
+Form 2 — Tears of the Kingdom Link (evolves at level 50). Attacks 6 times, backflips, then strikes 3 more times (9 total hits per turn). One-time +500 boost to all stats on top of accumulated level stats at time of evolution. Continues scaling at same per-level rates after evolution.
+Evolution cost: 30 copper, 80 game coins, 30 crystals, 15 diamonds, 60 iron.
+Example stats at level 50 before evolution: Health 590, Defense 300, Damage 1,230. After evolution bonus: Health 1,090, Defense 800, Damage 1,730.
+FORTRESS SYSTEM
+Each player has their own fortress starting at level 1. The fortress generates passive game coin income daily. Fort level is upgraded by spending game coins. Fort level determines defender count automatically — no manual recruiting. Higher level fort = more defenders, higher passive income, stronger defense against CPU attacks.
+ADMIN PANEL (MOM)
+Mom can set per chore: energy earned, real coins earned, game coins earned. Mom handles real coin to money/prize conversion outside the app.​​​​​​​​​​​​​​​​
