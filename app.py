@@ -1919,6 +1919,12 @@ class Handler(BaseHTTPRequestHandler):
                     for person, slots in changes.items():
                         grid.setdefault(person, {}).update(slots)
                     save_day_grid(iso, grid)
+                    # Also propagate to the weekly template so day lists update immediately
+                    try:
+                        _weekday = date.fromisoformat(iso).strftime("%A")
+                        save_day_template(_weekday, {"weekday": _weekday, "grid": grid})
+                    except Exception:
+                        pass
                 except Exception as e:
                     print("[grid-cell-save error]", str(e))
                 self.send_response(200)
