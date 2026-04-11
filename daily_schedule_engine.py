@@ -1488,18 +1488,18 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
         family_grid = {}
 
     # ── Step 2: Per-person day template column ────────────────────────────────
+    # Only load the template for the actual requested weekday — never fall back
+    # to another day's template (e.g. Friday on Saturday would inject school
+    # slots that don't belong on weekends).
     template_grid: dict = {}
-    for candidate in [f"{weekday}.json", "Friday.json"]:
-        try:
-            path = _DAY_TEMPLATES_DIR / candidate
-            if path.exists():
-                data = json.loads(path.read_text(encoding="utf-8"))
-                grid = data.get("grid", {})
-                template_grid = grid.get(child) or {}
-                if template_grid:
-                    break
-        except Exception:
-            pass
+    try:
+        path = _DAY_TEMPLATES_DIR / f"{weekday}.json"
+        if path.exists():
+            data = json.loads(path.read_text(encoding="utf-8"))
+            grid = data.get("grid", {})
+            template_grid = grid.get(child) or {}
+    except Exception:
+        pass
 
     # ── Step 3: Merge — family schedule base + person-specific overrides ──────
     if family_grid:
