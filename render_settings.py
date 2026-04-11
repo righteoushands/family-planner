@@ -287,7 +287,7 @@ def _section_children(settings: dict, children: list) -> str:
 
         <h3 style="margin-top:20px;">Schedule Grid Hours</h3>
         <p class="small" style="margin-bottom:12px;">
-            Which hours appear in the weekly schedule grid and timeline.
+            Which hours appear in the Family Rule of Life grid and timeline.
         </p>
         <div style="display:flex;gap:24px;flex-wrap:wrap;">
             <div>
@@ -558,12 +558,12 @@ def _section_systems(settings: dict) -> str:
 
         <hr style="border:none;border-top:1px solid #f0ebe4;margin:20px 0;">
 
-        <!-- Weekly Schedule Grid -->
+        <!-- Family Rule of Life -->
         <div>
-            <h3 style="margin-bottom:14px;">📅 Weekly Schedule Grid <span class="small" style="font-weight:400;">— half-hour slots</span></h3>
+            <h3 style="margin-bottom:14px;">📅 Family Rule of Life <span class="small" style="font-weight:400;">— weekly schedule, half-hour slots</span></h3>
             <div>
                 <p class="small" style="margin-bottom:10px;">
-                    Edit any cell — changes save automatically. Current time is highlighted in orange.
+                    This is the family's Rule of Life — the standing weekly rhythm that drives everyone's daily plan. Edit any cell to update the schedule; changes save automatically. Current time is highlighted in orange.
                 </p>
                 <div style='overflow-x:auto;max-height:55vh;overflow-y:auto;
                             border:1px solid #e4dbd2;border-radius:10px;'>
@@ -1402,7 +1402,7 @@ function saveSchoolSettings() {{
             section_id="s-household",
             number="4",
             title="Household Systems",
-            summary="Laundry rotation, van cleaning schedule, and the weekly family schedule grid.",
+            summary="Laundry rotation, van cleaning schedule, and the Family Rule of Life weekly schedule.",
             detail=(
                 "<strong>Laundry System</strong> — a locked weekly rotation assigns each day's laundry "
                 "to a specific person. This section is read-only reference; the rotation is built into "
@@ -1410,9 +1410,9 @@ function saveSchoolSettings() {{
                 "<strong>Van Cleaning Rotation</strong> — a 3-week rotation with Role A (vacuum) and "
                 "Role B (wipe-down). Set the epoch date once and the app tracks which week you're in. "
                 "Current week and roles are shown live.<br><br>"
-                "<strong>Weekly Family Schedule Grid</strong> — a full Monday–Saturday, 30-minute "
-                "slot grid. Enter standing commitments: co-op, music lessons, sports, appointments. "
-                "The AI scheduling assistant reads this grid when planning your day. "
+                "<strong>Family Rule of Life</strong> — the family's standing weekly rhythm in a full "
+                "Monday–Saturday, 30-minute slot grid. This is the same schedule that drives everyone's "
+                "daily plan of the day. Edit cells here to update the Rule of Life for the whole family. "
                 "The current time slot is highlighted orange.<br><br>"
                 "See also: <a href='/chores' style='color:var(--brown);'>Chores</a> · "
                 "<a href='/tasks' style='color:var(--brown);'>Tasks</a>"

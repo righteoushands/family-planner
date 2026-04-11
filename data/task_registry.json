@@ -1034,6 +1034,7 @@
       "CHORE::Weekly room clean (~90 min): full clean, vacuum, laundry check",
       "MANUAL::MEDIUM::Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
       "MANUAL::MEDIUM::Dye Easter Eggs",
+      "MANUAL::MEDIUM::Gather your clean clothes from Mom’s room and put them away.",
       "MANUAL::MEDIUM::Sea Cadet tasking: get together with Dad this morning to discuss assignment to finish before the Easter Egg Hunt"
     ],
     "Joseph": [
@@ -1056,6 +1057,7 @@
       "CHORE::Weekly room clean (~90 min): full clean, vacuum, laundry check",
       "MANUAL::MEDIUM::Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
       "MANUAL::MEDIUM::Dye Easter Eggs",
+      "MANUAL::MEDIUM::Gather your clean clothes from Mom’s room and put them away.",
       "MANUAL::MEDIUM::Sea Cadet tasking: get together with Dad this morning to discuss assignment to finish before the Easter Egg Hunt"
     ],
     "Michael": [
@@ -1078,6 +1080,7 @@
       "MANUAL::MEDIUM::Laundry: carefully wash and dry Bobby",
       "MANUAL::MEDIUM::Pack cupcake caddy",
       "MANUAL::MEDIUM::Schedule Confirmation Party",
+      "MANUAL::MEDIUM::Schedule meeting with Fr for JP’s confirmation interview.",
       "MANUAL::MEDIUM::Sharpen knives",
       "MANUAL::MEDIUM::Wrap and pack gifts for the girls x 3"
     ]

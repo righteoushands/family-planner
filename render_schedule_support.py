@@ -210,9 +210,9 @@ def render_family_schedule_page(status_message: str = "") -> str:
 
             <div class="card" style="margin-top:4px;">
                 <p class="small" style="margin-bottom:8px;">
-                    To edit the weekly schedule grid, go to Settings.
+                    To edit the Family Rule of Life, go to Settings.
                 </p>
-                <a class="link-button" href="/settings#s-systems">Edit Weekly Schedule →</a>
+                <a class="link-button" href="/settings#s-systems">Edit Rule of Life →</a>
             </div>
         </div>
     </div>"""

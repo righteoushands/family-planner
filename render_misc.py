@@ -1843,7 +1843,7 @@ def render_mom_page(status_message: str = "", target_date_str: str = "") -> str:
             {render_today_timeline(weekday)}
             <div style="margin-top:10px;border-top:1px solid var(--border-light);padding-top:8px;">
                 <a class="link-button" href="/settings#s-systems" style="font-size:0.82em;">
-                    Edit weekly schedule &rarr;
+                    Edit Rule of Life &rarr;
                 </a>
             </div>
         </div>
