@@ -59,23 +59,6 @@
     ]
   },
   {
-    "text": "Order baby accessories on Amazon to send to Aletha",
-    "assigned_to": "Lauren",
-    "due_date": "2026-04-08",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "plan_importer",
-    "recurring": false,
-    "notes": "Ship directly to Aletha for diaper wreath construction",
-    "subtasks": [
-      "Mini pacifiers bulk pack",
-      "Miniature decorative baby bottles",
-      "Small rubber ducky",
-      "Newborn baby booties",
-      "Large clear plastic baby bottle bank"
-    ]
-  },
-  {
     "text": "Pack baby shower supplies",
     "assigned_to": "Lauren",
     "due_date": "2026-04-21",

@@ -284,21 +284,32 @@ def get_manual_tasks_for_child_and_date(child: str, iso: str):
     tasks = load_manual_tasks()
     results = []
 
+    try:
+        _view_date = date.fromisoformat(iso)
+    except Exception:
+        _view_date = date.today()
+    _due_soon_cutoff = (_view_date + timedelta(days=7)).isoformat()
+
     for task in tasks:
         if not isinstance(task, dict):
             continue
 
-        if str(task.get("status", "active")).strip().upper() != "ACTIVE":
-            continue
-
         task_child = str(task.get("assigned_to", "")).strip()
-        task_date = str(task.get("due_date", "")).strip()
+        task_date  = str(task.get("due_date", "")).strip()
+        status     = str(task.get("status", "active")).strip().upper()
 
         if task_child and task_child != child:
             continue
 
-        if task_date and task_date > iso:
-            continue  # future-dated tasks: wait until their due date
+        # Tasks due today or within the next 7 days always surface, regardless of
+        # active/inactive status — so nothing overdue or upcoming is ever hidden.
+        is_due_soon = bool(task_date) and iso <= task_date <= _due_soon_cutoff
+
+        if not is_due_soon:
+            if status != "ACTIVE":
+                continue
+            if task_date and task_date > iso:
+                continue  # future-dated, outside 7-day window: hold until due
 
         text = str(task.get("text", "")).strip()
         if not text:
@@ -307,11 +318,17 @@ def get_manual_tasks_for_child_and_date(child: str, iso: str):
         priority = normalize_priority(task.get("priority", "MEDIUM"))
 
         results.append({
-            "text": text,
-            "priority": priority,
+            "text":       text,
+            "priority":   priority,
+            "due_date":   task_date,
+            "is_due_soon": is_due_soon and task_date > iso,  # True only for future-dated upcoming
         })
 
-    results.sort(key=lambda item: (PRIORITY_ORDER.get(item["priority"], 1), item["text"].lower()))
+    results.sort(key=lambda item: (
+        PRIORITY_ORDER.get(item["priority"], 1),
+        item.get("due_date") or "9999",
+        item["text"].lower()
+    ))
     return results
 
 
@@ -1627,9 +1644,13 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
                 continue
             _seen_manual_texts.add(norm)
             tid = f"MANUAL::{child}::{iso}::{txt}"
+            _t_due    = t.get("due_date", "")
+            _due_soon = t.get("is_due_soon", False)
             manual_items.append({"text": txt, "task_id": tid,
                                  "done": _dl_done(progress, tid),
-                                 "checkable": True, "is_header": False})
+                                 "checkable": True, "is_header": False,
+                                 "due_date": _t_due,
+                                 "is_due_soon": _due_soon})
         _seen_carry_texts: set = _seen_manual_texts.copy()
         for txt in get_carryover_tasks(child, normalize_target_date(iso)):
             if not txt:

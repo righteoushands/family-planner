@@ -1067,6 +1067,19 @@
       "MANUAL::MEDIUM::Dye Easter Eggs",
       "MANUAL::MEDIUM::Gather your clean clothes from Mom’s room and put them away."
     ],
-    "James": []
+    "James": [],
+    "Mom": [
+      "CHORE::Tidy my room",
+      "MANUAL::MEDIUM::Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
+      "MANUAL::MEDIUM::Bobby’s Surgery",
+      "MANUAL::MEDIUM::Change air filters",
+      "MANUAL::MEDIUM::Dye Easter Eggs",
+      "MANUAL::MEDIUM::Finish importing curriculum",
+      "MANUAL::MEDIUM::Laundry: carefully wash and dry Bobby",
+      "MANUAL::MEDIUM::Pack cupcake caddy",
+      "MANUAL::MEDIUM::Schedule Confirmation Party",
+      "MANUAL::MEDIUM::Sharpen knives",
+      "MANUAL::MEDIUM::Wrap and pack gifts for the girls x 3"
+    ]
   }
 }

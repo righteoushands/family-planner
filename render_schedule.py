@@ -282,13 +282,34 @@ def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str,
             dst   = "done" if done else ""
             dnv   = "1" if done else "0"
             carry = '<span class="dl-carry-badge">↩</span>' if sub.get("is_carryover") else ""
+            # Due-soon badge for tasks surfaced because due_date is within 7 days
+            due_badge = ""
+            if sub.get("is_due_soon") and sub.get("due_date"):
+                try:
+                    from datetime import date as _d2
+                    _due_d = _d2.fromisoformat(sub["due_date"])
+                    _days_away = (_due_d - _d2.today()).days
+                    if _days_away == 0:
+                        _due_lbl = "due today"
+                    elif _days_away == 1:
+                        _due_lbl = "due tomorrow"
+                    else:
+                        _due_lbl = f"due {_due_d.strftime('%a')}"
+                    due_badge = (
+                        f'<span style="font-size:.72em;font-weight:700;'
+                        f'color:#f59e0b;background:#fffbeb;border:1px solid #fde68a;'
+                        f'border-radius:4px;padding:1px 5px;margin-left:6px;white-space:nowrap;">'
+                        f'{escape(_due_lbl)}</span>'
+                    )
+                except Exception:
+                    pass
             rows.append(
                 f'<div class="dl-sub-row" id="task-{tid}"'
                 f' data-dash-child="{c_id}" data-done="{dnv}">'
                 f'<input type="checkbox" {chk}'
                 f' style="width:15px;height:15px;flex-shrink:0;margin-top:2px;accent-color:{c_bg};"'
                 f' onchange="toggleDashTask(this,\'{tid_j}\',\'{c_id}\',\'{escape(iso)}\')">'
-                f'<span class="dl-sub-label {dst}">{carry}{escape(sub.get("text",""))}</span>'
+                f'<span class="dl-sub-label {dst}">{carry}{escape(sub.get("text",""))}{due_badge}</span>'
                 f'</div>'
             )
             # If this is a poetry memorization step, inject the saved passage once

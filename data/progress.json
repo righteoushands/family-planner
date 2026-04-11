@@ -848,5 +848,6 @@
   "CHORE::JP::2026-04-10::evening::Unload dishwasher": true,
   "CHORE::JP::2026-04-10::evening::Load dishwasher": true,
   "CHORE::JP::2026-04-10::evening::Clean sink": true,
-  "CHORE::JP::2026-04-10::evening::After school, pickup all your school things and tidy your school shelf.": true
+  "CHORE::JP::2026-04-10::evening::After school, pickup all your school things and tidy your school shelf.": true,
+  "MANUAL::Lauren::2026-04-10::Order baby accessories on Amazon to send to Aletha": true
 }

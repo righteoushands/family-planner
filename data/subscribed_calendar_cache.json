@@ -1,28 +1,6 @@
 {
   "events": [
     {
-      "title": "John's class",
-      "start": "2026-04-10T08:00",
-      "end": "2026-04-10T17:00",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Elena Sutphin",
-      "start": "2026-04-10T10:30",
-      "end": "2026-04-10T11:30",
-      "all_day": false,
-      "location": "1955 Emancipation Hwy Ste 100 Fredericksburg VA-22401-6226",
-      "notes": "Appointment with Elena Sutphin at 1955 Emancipation Hwy Ste 1",
-      "calendar": "Apple Calendar",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
       "title": "USNSCC Pentagon Division - April Drill (#1)",
       "start": "2026-04-11T07:00",
       "end": "2026-04-11T15:00",
@@ -31,6 +9,17 @@
       "notes": "6000 Strathmore Rd - America Division-Richmond  Co-d",
       "calendar": "USNSCC Pentagon Division (JP & Joe)",
       "color": "#e74c3c",
+      "source": "subscribed"
+    },
+    {
+      "title": "John's class",
+      "start": "2026-04-11T08:00",
+      "end": "2026-04-11T17:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
       "source": "subscribed"
     },
     {
@@ -1649,7 +1638,62 @@
       "calendar": "Lauren's Proton Mail",
       "color": "#9b59b6",
       "source": "subscribed"
+    },
+    {
+      "title": "Luke Joseph Appeldorn's birthday",
+      "start": "2026-06-10",
+      "end": "2026-06-10",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Baby 11",
+      "start": "2026-06-10",
+      "end": "2026-06-10",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Piano Lessons with David",
+      "start": "2026-06-10T09:30",
+      "end": "2026-06-10T11:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Date Night",
+      "start": "2026-06-10T17:30",
+      "end": "2026-06-10T18:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Kids Movie Night!",
+      "start": "2026-06-10T17:30",
+      "end": "2026-06-10T19:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-04-10T21:05:04.647840"
+  "fetched_at": "2026-04-11T07:20:29.185307"
 }
