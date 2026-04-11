@@ -1420,9 +1420,9 @@ class Handler(BaseHTTPRequestHandler):
                             if _to_remove is not None:
                                 _ml.pop(_to_remove)
                                 _changed = True
-                            # Auto-refill: keep at least 5 active tasks for the child.
-                            # When the active count drops below 5, reactivate the oldest
-                            # inactive (non-recurring) tasks for that child.
+                            # Auto-refill: keep at least 5 active tasks for the boys only.
+                            # Lauren manages her own task list — refill does not apply to her.
+                            _BOY_NAMES = {"JP", "Joseph", "Michael", "James"}
                             _REFILL_MIN = 5
                             _active_count = sum(
                                 1 for t in _ml
@@ -1430,7 +1430,7 @@ class Handler(BaseHTTPRequestHandler):
                                 and str(t.get("assigned_to","")).strip() == _tc
                                 and str(t.get("status","active")).strip().upper() == "ACTIVE"
                             )
-                            if _active_count < _REFILL_MIN:
+                            if _tc in _BOY_NAMES and _active_count < _REFILL_MIN:
                                 _need = _REFILL_MIN - _active_count
                                 # Trivial/routine phrases to skip during refill
                                 _skip_phrases = {"wake up","eat breakfast","eat lunch","eat dinner","get dressed","brush teeth","go to bed","bedtime"}

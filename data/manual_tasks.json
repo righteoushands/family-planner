@@ -137,14 +137,6 @@
     "subtasks": []
   },
   {
-    "text": "Wash mass coat",
-    "assigned_to": "JP",
-    "due_date": "2026-04-08",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
     "text": "CAPTask: Wash the most used uniform of the month.",
     "assigned_to": "JP",
     "due_date": "2026-04-25",
@@ -157,7 +149,7 @@
   {
     "text": "Gather your clean clothes from Mom’s room and put them away.",
     "assigned_to": "JP",
-    "due_date": "2026-04-10",
+    "due_date": "2026-04-17",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": true,
@@ -167,7 +159,7 @@
   {
     "text": "Gather your clean clothes from Mom’s room and put them away.",
     "assigned_to": "Joseph",
-    "due_date": "2026-04-10",
+    "due_date": "2026-04-17",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": true,
@@ -234,16 +226,72 @@
   },
   {
     "text": "Bobby’s Surgery",
-    "assigned_to": "Joseph",
+    "assigned_to": "Michael",
     "due_date": "2026-04-10",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false
   },
   {
-    "text": "Bobby’s Surgery",
-    "assigned_to": "Michael",
-    "due_date": "2026-04-10",
+    "text": "Schedule meeting with Fr for JP’s confirmation interview.",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-13",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-11",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
+    "assigned_to": "JP",
+    "due_date": "2026-04-11",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-11",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Schedule Confirmation Party",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-11",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Sea Cadet tasking: get together with Dad this morning to discuss assignment to finish before the Easter Egg Hunt",
+    "assigned_to": "JP",
+    "due_date": "2026-04-11",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Sea Cadet tasking: get together with Dad this morning to discuss assignment to finish before the Easter Egg Hunt",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-11",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Laundry: carefully wash and dry Bobby",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-11",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false

@@ -832,5 +832,21 @@
   "SCHOOL::Joseph::2026-04-10::Science 6::Done": true,
   "SCHOOL::Joseph::2026-04-10::Poetry 8::Done": true,
   "SCHOOL::Joseph::2026-04-10::Art 7::Done": true,
-  "SCHOOL::Joseph::2026-04-10::Reading 7::Done": true
+  "SCHOOL::Joseph::2026-04-10::Reading 7::Done": true,
+  "CHORE::Joseph::2026-04-10::morning::Check Sea Cadet email": true,
+  "SCHOOL::Joseph::2026-04-10::Math 87::Fixed missed problems": true,
+  "SCHOOL::Joseph::2026-04-10::History & Geog 7::Test completed — given to Mom": true,
+  "CHORE::Joseph::2026-04-10::laundry::LAUNDRY — Assist Michael with his laundry": true,
+  "CHORE::Joseph::2026-04-10::laundry::Start load after breakfast kitchen jobs": true,
+  "CARRY::Joseph::2026-04-10::Spelling & Vocabulary 8 — Test completed — given to Mom": true,
+  "MANUAL::Joseph::2026-04-10::Bobby’s Surgery": true,
+  "MANUAL::Joseph::2026-04-10::Gather your clean clothes from Mom’s room and put them away.": true,
+  "CHORE::JP::2026-04-10::weekly::Tidy-up school shelves": true,
+  "CARRY::JP::2026-04-10::[MEDIUM] Finish next Sea Cadet Recruit Orientation": true,
+  "MANUAL::JP::2026-04-10::Gather your clean clothes from Mom’s room and put them away.": true,
+  "MANUAL::JP::2026-04-10::Wash mass coat": true,
+  "CHORE::JP::2026-04-10::evening::Unload dishwasher": true,
+  "CHORE::JP::2026-04-10::evening::Load dishwasher": true,
+  "CHORE::JP::2026-04-10::evening::Clean sink": true,
+  "CHORE::JP::2026-04-10::evening::After school, pickup all your school things and tidy your school shelf.": true
 }

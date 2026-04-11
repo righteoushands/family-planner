@@ -125,7 +125,7 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
     )
     from data_helpers import normalize_date_query
     from config import parent_color
-    from render_schedule import render_day_nav, _render_day_list_html, _DL_CSS
+    from render_schedule import render_day_nav, _render_day_list_html, _DL_CSS, _DASH_JS
 
     normalized_date = normalize_date_query(target_date_str)
     packet     = generate_day_packet(normalized_date)
@@ -215,6 +215,7 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
     )
 
     return f"""{_DL_CSS}
+{_DASH_JS}
 <div class="card" style="border-left:5px solid {c_bg};background:{c_light};margin-bottom:18px;">
     {daily_bar}
     <div class="page-header">
