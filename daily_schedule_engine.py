@@ -298,7 +298,13 @@ def get_manual_tasks_for_child_and_date(child: str, iso: str):
         task_date  = str(task.get("due_date", "")).strip()
         status     = str(task.get("status", "active")).strip().upper()
 
-        if task_child and task_child != child:
+        # "Mom" and "Lauren" are the same person — normalize both sides so tasks
+        # created with either name always appear on Lauren's day list.
+        _LAUREN_ALIASES = {"Lauren", "Mom"}
+        _effective_child = "Lauren" if child in _LAUREN_ALIASES else child
+        _effective_task_child = "Lauren" if task_child in _LAUREN_ALIASES else task_child
+
+        if _effective_task_child and _effective_task_child != _effective_child:
             continue
 
         # Tasks due today or within the next 7 days always surface, regardless of

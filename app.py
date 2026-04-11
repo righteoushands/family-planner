@@ -1404,12 +1404,16 @@ class Handler(BaseHTTPRequestHandler):
                             _ml = load_manual_tasks()
                             _changed = False
                             _to_remove = None
+                            # "Mom" and "Lauren" are the same person
+                            _LAUREN_ALIASES = {"Lauren", "Mom"}
+                            _tc_norm = "Lauren" if _tc in _LAUREN_ALIASES else _tc
                             for _mi, _mt in enumerate(_ml):
                                 if not isinstance(_mt, dict): continue
                                 if str(_mt.get("status","active")).strip().upper() != "ACTIVE": continue
                                 # match by child (empty assigned_to means "anyone" — matches any child)
                                 _at = str(_mt.get("assigned_to","")).strip()
-                                if _at and _at != _tc: continue
+                                _at_norm = "Lauren" if _at in _LAUREN_ALIASES else _at
+                                if _at_norm and _at_norm != _tc_norm: continue
                                 if str(_mt.get("text","")).strip().lower() != _tt.lower(): continue
                                 if _mt.get("recurring"):
                                     _ml[_mi] = advance_recurring_task(_mt)
