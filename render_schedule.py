@@ -478,8 +478,11 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
                 f'<span class="dl-label" style="color:{lbl_color};">{label}{meal_note}</span>'
                 f'</div>'
             )
+    _child_esc = escape(child)
+    _iso_esc   = escape(iso)
     wrapped = [
-        '<div class="sw-wrap">'
+        f'<div class="sw-wrap" data-child="{_child_esc}" data-iso="{_iso_esc}">'
+        '<button class="sw-add no-print" onclick="_swAdd(this)" aria-label="Add task below">+ Add</button>'
         '<div class="sw-inner">' + r + '</div>'
         '<button class="sw-del no-print" onclick="_swDel(this)" aria-label="Hide">&#10005; Hide</button>'
         '</div>'

@@ -861,16 +861,45 @@ pre {{
 }}
 .mobile-nav-item.plan-item .mobile-nav-label {{ color: white; }}
 
-/* ── Swipe-to-hide / swipe-to-delete rows ── */
+/* ── Swipe-to-hide / swipe-to-delete / swipe-to-add rows ── */
 .sw-wrap{{position:relative;overflow:hidden;border-radius:6px;margin-bottom:3px;}}
 .sw-inner{{transform:translateX(0);transition:transform .2s ease;}}
 .sw-del{{position:absolute;right:0;top:0;bottom:0;width:76px;background:#dc2626;color:#fff;
          border:none;display:flex;align-items:center;justify-content:center;
          font-size:.78em;font-weight:700;letter-spacing:.02em;cursor:pointer;
          font-family:inherit;opacity:0;user-select:none;}}
+.sw-add{{position:absolute;left:0;top:0;bottom:0;width:76px;background:#16a34a;color:#fff;
+         border:none;display:flex;align-items:center;justify-content:center;
+         font-size:.78em;font-weight:700;letter-spacing:.02em;cursor:pointer;
+         font-family:inherit;opacity:0;user-select:none;}}
+.sw-add-form{{background:#f0fdf4;border:1px solid #86efac;border-radius:6px;
+              padding:10px 12px;margin-bottom:4px;
+              animation:sw-form-in .18s ease both;}}
+@keyframes sw-form-in{{
+  from{{opacity:0;transform:translateY(-5px);}}
+  to{{opacity:1;transform:none;}}
+}}
+.sw-add-form input[type=text]{{
+  width:100%;box-sizing:border-box;border:1px solid #86efac;border-radius:4px;
+  padding:6px 8px;font-size:.92em;font-family:inherit;margin-bottom:6px;
+  outline:none;
+}}
+.sw-add-form input[type=date]{{
+  border:1px solid #86efac;border-radius:4px;padding:4px 6px;
+  font-size:.85em;font-family:inherit;outline:none;
+}}
+.sw-add-form .sw-form-row{{display:flex;align-items:center;gap:8px;margin-bottom:6px;}}
+.sw-add-form .sw-form-row label{{font-size:.8em;color:#555;white-space:nowrap;}}
+.sw-add-form .sw-form-btns{{display:flex;gap:8px;}}
+.sw-add-form .sw-form-btns button{{
+  border:none;border-radius:4px;padding:5px 16px;
+  font-size:.88em;font-family:inherit;cursor:pointer;font-weight:600;
+}}
+.sw-add-form .sw-form-btns .sw-save{{background:#16a34a;color:#fff;}}
+.sw-add-form .sw-form-btns .sw-cancel{{background:#e5e7eb;color:#374151;}}
 @media print{{
   .sw-wrap{{overflow:visible;}}
-  .sw-del{{display:none!important;}}
+  .sw-del,.sw-add,.sw-add-form{{display:none!important;}}
   .sw-inner{{transform:none!important;}}
 }}
 
@@ -1176,30 +1205,56 @@ window.closeMobileMore = function() {{
   }}, 280);
 }};
 
-/* ── Swipe-to-hide / swipe-to-delete ── */
+/* ── Swipe-to-hide / swipe-to-delete / swipe-to-add ── */
 (function(){{
+  var W=76;
   function _sw(root){{
     (root||document).querySelectorAll('.sw-wrap:not([data-sw])').forEach(function(w){{
       w.dataset.sw='1';
       var inner=w.querySelector('.sw-inner');
-      var btn=w.querySelector('.sw-del');
-      if(!inner||!btn)return;
-      var sx=0,cx=0,dragging=false,W=76;
+      var delBtn=w.querySelector('.sw-del');
+      var addBtn=w.querySelector('.sw-add');
+      if(!inner)return;
+      var sx=0,cx=0,dragging=false;
       w.addEventListener('touchstart',function(e){{
-        sx=e.touches[0].clientX;dragging=true;
+        sx=e.touches[0].clientX;cx=0;dragging=true;
         inner.style.transition='none';
+        if(delBtn)delBtn.style.transition='none';
+        if(addBtn)addBtn.style.transition='none';
       }},{{passive:true}});
       w.addEventListener('touchmove',function(e){{
         if(!dragging)return;
-        cx=Math.max(-W,Math.min(0,e.touches[0].clientX-sx));
-        inner.style.transform='translateX('+cx+'px)';
-        btn.style.opacity=(-cx/W).toFixed(2);
+        var dx=e.touches[0].clientX-sx;
+        if(dx<0){{
+          cx=Math.max(-W,dx);
+          inner.style.transform='translateX('+cx+'px)';
+          if(delBtn)delBtn.style.opacity=(-cx/W).toFixed(2);
+          if(addBtn)addBtn.style.opacity='0';
+        }}else{{
+          cx=Math.min(W,dx);
+          inner.style.transform='translateX('+cx+'px)';
+          if(addBtn)addBtn.style.opacity=(cx/W).toFixed(2);
+          if(delBtn)delBtn.style.opacity='0';
+        }}
       }},{{passive:true}});
       w.addEventListener('touchend',function(){{
         dragging=false;
         inner.style.transition='transform .2s ease';
-        if(cx<-W/2){{inner.style.transform='translateX(-'+W+'px)';btn.style.opacity='1';}}
-        else{{inner.style.transform='translateX(0)';btn.style.opacity='0';}}
+        if(delBtn)delBtn.style.transition='opacity .2s ease';
+        if(addBtn)addBtn.style.transition='opacity .2s ease';
+        if(cx<-W/2){{
+          inner.style.transform='translateX(-'+W+'px)';
+          if(delBtn)delBtn.style.opacity='1';
+        }}else if(cx>W/2){{
+          inner.style.transform='translateX(0)';
+          if(addBtn)addBtn.style.opacity='0';
+          if(addBtn)addBtn.click();
+        }}else{{
+          inner.style.transform='translateX(0)';
+          if(delBtn)delBtn.style.opacity='0';
+          if(addBtn)addBtn.style.opacity='0';
+        }}
+        cx=0;
       }});
     }});
   }}
@@ -1213,8 +1268,80 @@ window.closeMobileMore = function() {{
     requestAnimationFrame(function(){{w.style.height='0';w.style.opacity='0';w.style.marginBottom='0';}});
     setTimeout(function(){{w.style.display='none';}},270);
   }}
+  function _swAdd(btn){{
+    var w=btn.closest('.sw-wrap');
+    if(!w)return;
+    var child=w.dataset.child||'';
+    var iso=w.dataset.iso||'';
+    var inner=w.querySelector('.sw-inner');
+    if(inner){{inner.style.transition='transform .2s ease';inner.style.transform='translateX(0)';}}
+    btn.style.transition='opacity .2s ease';btn.style.opacity='0';
+    var existing=w.nextElementSibling;
+    if(existing&&existing.classList.contains('sw-add-form')){{existing.remove();return;}}
+    var form=document.createElement('div');
+    form.className='sw-add-form no-print';
+    form.dataset.child=child;
+    form.dataset.iso=iso;
+    form.innerHTML=
+      '<input type="text" placeholder="New task\u2026" autocomplete="off">'+
+      '<div class="sw-form-row">'+
+      '<label>Due\u00a0date:</label>'+
+      '<input type="date" value="'+iso+'">'+
+      '</div>'+
+      '<div class="sw-form-btns">'+
+      '<button class="sw-save" onclick="_swSave(this)">Save</button>'+
+      '<button class="sw-cancel" onclick="_swCancel(this)">Cancel</button>'+
+      '</div>';
+    w.insertAdjacentElement('afterend',form);
+    form.querySelector('input[type=text]').focus();
+  }}
+  function _swSave(btn){{
+    var form=btn.closest('.sw-add-form');
+    if(!form)return;
+    var txt=form.querySelector('input[type=text]').value.trim();
+    if(!txt){{form.querySelector('input[type=text]').focus();return;}}
+    var child=form.dataset.child||'';
+    var iso=form.dataset.iso||'';
+    var dueDate=form.querySelector('input[type=date]').value||'';
+    var body='text='+encodeURIComponent(txt)+
+             '&assigned_to='+encodeURIComponent(child)+
+             '&due_date='+encodeURIComponent(dueDate)+
+             '&priority=MEDIUM&recurring=false'+
+             '&return_url='+encodeURIComponent('/schedule/'+child+'?date='+iso);
+    btn.disabled=true;btn.textContent='\u2026';
+    fetch('/add-task',{{method:'POST',headers:{{'Content-Type':'application/x-www-form-urlencoded'}},body:body}})
+      .then(function(){{
+        var newWrap=document.createElement('div');
+        newWrap.className='sw-wrap';
+        newWrap.dataset.child=child;
+        newWrap.dataset.iso=iso;
+        newWrap.style.cssText='opacity:0;transform:translateY(-4px);transition:opacity .2s ease,transform .2s ease;';
+        newWrap.innerHTML=
+          '<button class="sw-add no-print" aria-label="Add task below">+ Add<\/button>'+
+          '<div class="sw-inner"><div class="dl-row dl-info" style="border-left:3px solid #16a34a;">'+
+          '<span class="dl-time"><\/span>'+
+          '<span class="dl-kind-icon">&#9998;<\/span>'+
+          '<span class="dl-label">'+txt.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'<\/span>'+
+          '<\/div><\/div>'+
+          '<button class="sw-del no-print" onclick="_swDel(this)" aria-label="Hide">&#10005; Hide<\/button>';
+        var addBtnNew=newWrap.querySelector('.sw-add');
+        if(addBtnNew)addBtnNew.addEventListener('click',function(){{_swAdd(addBtnNew);}});
+        form.insertAdjacentElement('afterend',newWrap);
+        _sw(newWrap.parentElement);
+        requestAnimationFrame(function(){{newWrap.style.opacity='1';newWrap.style.transform='none';}});
+        form.remove();
+      }})
+      .catch(function(){{btn.disabled=false;btn.textContent='Save';}});
+  }}
+  function _swCancel(btn){{
+    var f=btn.closest('.sw-add-form');
+    if(f)f.remove();
+  }}
   window._sw=_sw;
   window._swDel=_swDel;
+  window._swAdd=_swAdd;
+  window._swSave=_swSave;
+  window._swCancel=_swCancel;
   document.addEventListener('DOMContentLoaded',function(){{_sw();}});
 }})();
 </script>
