@@ -98,17 +98,6 @@
     "subtasks": []
   },
   {
-    "text": "JP or Joseph could help with simpler cake decorating tasks like arranging lemon slices",
-    "assigned_to": "Lauren",
-    "due_date": "2026-04-05",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "plan_importer",
-    "recurring": false,
-    "notes": "From counsel suggestion",
-    "subtasks": []
-  },
-  {
     "text": "Set a reminder to confirm guest of honor's attendance a few days before the shower",
     "assigned_to": "Lauren",
     "due_date": "2026-04-05",
@@ -195,14 +184,6 @@
     "text": "Dye Easter Eggs",
     "assigned_to": "Michael",
     "due_date": "2026-04-11",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Bobby’s Surgery",
-    "assigned_to": "Mom",
-    "due_date": "2026-04-10",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false
