@@ -143,7 +143,8 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
 
     # Merge in calendar events
     try:
-        from render_calendar import get_calendar_events_for_boys, render_calendar_today_strip
+        from daily_schedule_engine import get_calendar_events_for_boys
+        from render_calendar import render_calendar_today_strip
         cal_items = get_calendar_events_for_boys(iso)
         for ev in cal_items:
             ev_time   = ev.get("time")

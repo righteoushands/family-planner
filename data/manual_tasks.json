@@ -295,5 +295,21 @@
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false
+  },
+  {
+    "text": "Wrap and pack gifts for the girls x 3",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-11",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Pack cupcake caddy",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-11",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
   }
 ]
