@@ -141,6 +141,91 @@ from render_daily_plan import (
 _MANUAL_TASKS_LOCK = threading.Lock()
 
 
+def _apply_frol_updates(text: str, weekday: str) -> str:
+    """
+    Parse any <frol_update> action tags in `text` and apply them to the
+    Family Rule of Life data files.  Returns a status-marker string
+    (empty if no tags found) to be appended to the saved history message.
+
+    Tag format:
+        <frol_update weekday="Monday" person="Family">
+        9:00 AM: Morning Prayer
+        10:00 AM: Morning Jobs
+        </frol_update>
+
+    person="Family" (or omitted) → writes to family_schedule.json
+    person="JP" (etc.)           → writes to data/day_templates/{Weekday}.json
+    """
+    import re as _fre
+    import json as _fj
+    from pathlib import Path as _fPath
+
+    _VALID_DAYS    = {"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"}
+    _VALID_PERSONS = {"JP","Joseph","Michael","Lauren","John","Family","Mom"}
+
+    _rx = _fre.compile(r'<frol_update\b([^>]*)>([\s\S]*?)</frol_update>', _fre.IGNORECASE)
+    markers = ""
+
+    for _m in _rx.finditer(text):
+        _attrs = _m.group(1)
+        _body  = _m.group(2)
+
+        _wd_m = _fre.search(r'weekday=["\']([^"\']+)["\']', _attrs, _fre.I)
+        _pe_m = _fre.search(r'person=["\']([^"\']+)["\']',  _attrs, _fre.I)
+        _wday  = _wd_m.group(1).strip().title() if _wd_m else weekday
+        _per   = _pe_m.group(1).strip()          if _pe_m else "Family"
+        if _per == "Mom":
+            _per = "Lauren"
+
+        if _wday not in _VALID_DAYS:
+            markers += f"\n(frol_update: unrecognised weekday '{_wday}')"
+            continue
+
+        # Parse "H:MM AM/PM: Value" lines
+        _slots = {}
+        for _ln in _body.strip().splitlines():
+            _lm = _fre.match(r'^(\d+:\d+\s*(?:AM|PM))\s*:\s*(.*)$', _ln.strip(), _fre.I)
+            if _lm:
+                _slots[_lm.group(1).strip()] = _lm.group(2).strip()
+
+        if not _slots:
+            continue
+
+        try:
+            if _per in ("Family", ""):
+                # ── Family-wide → family_schedule.json ────────────────────────
+                from data_helpers import load_family_schedule, save_family_schedule
+                _sched = load_family_schedule()
+                _day_d = _sched.setdefault("days", {}).setdefault(_wday, {})
+                for _t, _v in _slots.items():
+                    if _v:
+                        _day_d[_t] = _v
+                    else:
+                        _day_d.pop(_t, None)
+                save_family_schedule(_sched)
+                markers += f"\n[FROL_UPDATED:Family:{_wday}:{len(_slots)} slots]"
+            else:
+                # ── Person-specific → day_templates/{Weekday}.json ────────────
+                _tp = _fPath(f"data/day_templates/{_wday}.json")
+                if _tp.exists():
+                    _td = _fj.loads(_tp.read_text(encoding="utf-8"))
+                else:
+                    _td = {"weekday": _wday, "grid": {}}
+                _grid = _td.setdefault("grid", {})
+                _pg   = _grid.setdefault(_per, {})
+                for _t, _v in _slots.items():
+                    if _v:
+                        _pg[_t] = _v
+                    else:
+                        _pg.pop(_t, None)
+                _tp.write_text(_fj.dumps(_td, ensure_ascii=False, indent=2), encoding="utf-8")
+                markers += f"\n[FROL_UPDATED:{_per}:{_wday}:{len(_slots)} slots]"
+        except Exception as _fe:
+            markers += f"\n(frol_update error: {_fe})"
+
+    return markers
+
+
 def _render_change_pin_page(viewer: str, error: str = "", ok: str = "") -> str:
     """Simple PIN-change page for children (and admins redirected to settings)."""
     from html import escape as _esc
@@ -2960,6 +3045,10 @@ class Handler(BaseHTTPRequestHandler):
                     _display_text = _display_text + _all_markers
                 else:
                     _display_text = text
+                # ── Apply any FRoL edits from this response ───────────────────
+                _frol_markers = _apply_frol_updates(text, weekday)
+                if _frol_markers:
+                    _display_text = _display_text + _frol_markers
                 # ── Save assistant response to server-side history ────────────
                 ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                 append_lucy_messages([{"role": "assistant", "content": _display_text, "ts": ts_reply}])
@@ -3114,6 +3203,7 @@ class Handler(BaseHTTPRequestHandler):
                     except Exception:
                         pass
                 ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                _apply_frol_updates(text, weekday)
                 append_lorenzo_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
                 self.send_response(200)
                 self.send_header("Content-Type","text/plain; charset=utf-8")
@@ -3252,6 +3342,7 @@ class Handler(BaseHTTPRequestHandler):
                                     except BrokenPipeError: break
                             except Exception: pass
                     ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                    _apply_frol_updates(text, weekday)
                     append_gregory_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
                 except Exception as e:
                     try: self.wfile.write(str(e).encode("utf-8"))
@@ -3334,6 +3425,7 @@ class Handler(BaseHTTPRequestHandler):
                                     except BrokenPipeError: break
                             except Exception: pass
                     ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                    _apply_frol_updates(text, weekday)
                     append_coach_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
                 except Exception as e:
                     try: self.wfile.write(str(e).encode("utf-8"))
@@ -3510,6 +3602,7 @@ class Handler(BaseHTTPRequestHandler):
                         except Exception: pass
                 ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                 if text:
+                    _apply_frol_updates(text, _dt.now().strftime("%A"))
                     append_dev_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
                 return
 
@@ -3742,6 +3835,7 @@ class Handler(BaseHTTPRequestHandler):
                                     except BrokenPipeError: break
                             except Exception: pass
                     ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                    _apply_frol_updates(text, weekday)
                     append_monica_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
                 except Exception as e:
                     try: self.wfile.write(str(e).encode("utf-8"))

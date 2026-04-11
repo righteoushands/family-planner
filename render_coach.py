@@ -10,7 +10,7 @@ API: POST /coach-chat
 import json
 from datetime import date
 from html import escape
-from companion_handoffs import companion_system_block, handoff_js
+from companion_handoffs import companion_system_block, handoff_js, frol_context_block, frol_edit_instructions
 
 try:
     from zoneinfo import ZoneInfo
@@ -136,6 +136,7 @@ def build_coach_context(iso: str, weekday: str, date_label: str) -> str:
         "When Lauren is exhausted, acknowledge it first, then offer the minimum viable movement.",
     ]
 
+    lines += [""] + frol_context_block(weekday) + frol_edit_instructions()
     lines += [""] + companion_system_block("COACH")
     return "\n".join(lines)
 

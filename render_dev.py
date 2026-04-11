@@ -18,7 +18,7 @@ import re
 import json
 from html import escape
 from datetime import datetime
-from companion_handoffs import companion_system_block, handoff_js
+from companion_handoffs import companion_system_block, handoff_js, frol_context_block, frol_edit_instructions
 from pathlib import Path
 
 # ── File-detection keyword map ────────────────────────────────────────────────
@@ -173,7 +173,7 @@ REPLACE:
 - If uncertain, say so in one sentence.
 - NEVER change visual styling (font sizes, colors, spacing, layout) unless the user explicitly asks for a visual change. Functional bugs only.
 - NEVER apply a fix that doesn't directly match what the user asked for. If the task is unclear, ask one clarifying question.
-""" + "\n\n" + "\n".join(companion_system_block("IZZY"))
+""" + "\n\n" + "\n".join(frol_context_block(_weekday) + frol_edit_instructions()) + "\n\n" + "\n".join(companion_system_block("IZZY"))
 
 
 # ── Render page ───────────────────────────────────────────────────────────────

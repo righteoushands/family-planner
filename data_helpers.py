@@ -278,6 +278,62 @@ def get_family_rule_of_life_text(weekday: str) -> str:
         return ""
 
 
+def get_full_frol_context(current_weekday: str) -> str:
+    """
+    Return a complete, formatted view of the Family Rule of Life for all 7 days:
+      - family_schedule.json  (the family-wide time structure)
+      - day_templates/{Day}.json  (per-person overrides, if any)
+
+    Used to give ALL AI companions full visibility into the family's schedule.
+    """
+    import json as _json
+    from pathlib import Path as _Path
+
+    DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    lines = []
+
+    # ── Family-wide schedule grid ─────────────────────────────────────────────
+    lines.append("FAMILY-WIDE SCHEDULE (applies to everyone unless a person-specific override exists):")
+    try:
+        sched = load_family_schedule()
+        for day in DAYS:
+            marker = " ← TODAY" if day == current_weekday else ""
+            day_slots = {t: v for t, v in sched.get("days", {}).get(day, {}).items() if str(v).strip()}
+            if day_slots:
+                lines.append(f"\n  {day}{marker}:")
+                for t, v in day_slots.items():
+                    lines.append(f"    {t}: {v}")
+            else:
+                lines.append(f"\n  {day}{marker}: (empty — no family-wide slots set)")
+    except Exception as _e:
+        lines.append(f"  (Could not load family schedule: {_e})")
+
+    # ── Per-person day templates ───────────────────────────────────────────────
+    lines += ["", "PER-PERSON OVERRIDES (only Friday currently has per-person templates):"]
+    try:
+        for day in DAYS:
+            path = _Path(f"data/day_templates/{day}.json")
+            if not path.exists():
+                continue
+            data = _json.loads(path.read_text(encoding="utf-8"))
+            grid = data.get("grid", {})
+            if not grid:
+                continue
+            marker = " ← TODAY" if day == current_weekday else ""
+            lines.append(f"\n  {day}{marker}:")
+            for person, slots in grid.items():
+                active = [(t, v) for t, v in slots.items() if str(v).strip()]
+                if not active:
+                    continue
+                lines.append(f"    {person}:")
+                for t, v in active:
+                    lines.append(f"      {t}: {v}")
+    except Exception as _e:
+        lines.append(f"  (Could not load day templates: {_e})")
+
+    return "\n".join(lines)
+
+
 # ── Lucy conversation history ─────────────────────────────────────────────────
 LUCY_HISTORY_FILE = "data/lucy_history.json"
 LUCY_HISTORY_MAX  = 60   # max messages stored (30 back-and-forth turns)

@@ -118,6 +118,60 @@ def companion_system_block(self_tag: str) -> list:
     return lines
 
 
+def frol_context_block(weekday: str) -> list:
+    """
+    Return system-prompt lines showing the full Family Rule of Life grid.
+    Call this from any companion's context builder so they can SEE the schedule.
+    """
+    try:
+        from data_helpers import get_full_frol_context
+        body = get_full_frol_context(weekday)
+    except Exception as _e:
+        body = f"(Could not load Rule of Life: {_e})"
+    return [
+        "== FAMILY RULE OF LIFE (Schedule Grid) ==",
+        "You can see AND edit the McAdams family's Rule of Life below.",
+        "The 'family-wide' schedule applies to all members. Per-person overrides exist for",
+        "specific individuals on specific days (currently only Friday has per-person templates).",
+        "",
+        body,
+    ]
+
+
+def frol_edit_instructions() -> list:
+    """
+    Return system-prompt lines explaining the <frol_update> action tag.
+    Call this from any companion's context builder so they can EDIT the schedule.
+    """
+    return [
+        "",
+        "== HOW TO EDIT THE FAMILY RULE OF LIFE ==",
+        "When Mom asks you to change, add, or remove a time slot in the schedule, use",
+        "the <frol_update> action tag. It is applied server-side automatically.",
+        "",
+        "FAMILY-WIDE change (updates family_schedule.json for everyone):",
+        '  <frol_update weekday="Saturday" person="Family">',
+        "  9:00 AM: Morning Prayer",
+        "  10:00 AM: Morning chores",
+        "  </frol_update>",
+        "",
+        "PERSON-SPECIFIC change (updates only that person's day template):",
+        '  <frol_update weekday="Monday" person="JP">',
+        "  8:00 AM: School — Saxon Math",
+        "  9:00 AM: Latin",
+        "  </frol_update>",
+        "",
+        "Tag rules:",
+        "  - weekday: Monday / Tuesday / Wednesday / Thursday / Friday / Saturday / Sunday",
+        "  - person: Family (family-wide) | JP | Joseph | Michael | Lauren | John",
+        "  - Body: one 'H:MM AM/PM: Activity' line per slot",
+        "  - To clear a slot entirely, write: '9:00 AM: ' (empty value)",
+        "  - You may include multiple <frol_update> blocks in one response",
+        "  - After the tag applies you will see a [FROL_UPDATED:...] confirmation",
+        "  - Do NOT instruct Mom to open Settings — the tag applies the change directly.",
+    ]
+
+
 def _js_companions_dict(self_tag: str) -> str:
     """Return a JS object literal of other companions for handoff rendering."""
     others = {tag: c for tag, c in COMPANIONS.items() if tag != self_tag}

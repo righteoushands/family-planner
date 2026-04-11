@@ -16,7 +16,7 @@ import json
 import os
 from datetime import date, timedelta
 from html import escape
-from companion_handoffs import companion_system_block, handoff_js
+from companion_handoffs import companion_system_block, handoff_js, frol_context_block, frol_edit_instructions
 
 try:
     from zoneinfo import ZoneInfo
@@ -466,6 +466,7 @@ def build_lorenzo_context(iso: str, weekday: str, date_label: str) -> str:
         "- CRITICAL: Ask only ONE question at a time. Never stack questions.",
     ]
 
+    lines += [""] + frol_context_block(weekday) + frol_edit_instructions()
     lines += [""] + companion_system_block("LORENZO")
 
     # Planning session block — injected last so it takes precedence

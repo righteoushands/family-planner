@@ -11,7 +11,7 @@ API: POST /headmaster-chat
 import json
 from datetime import date
 from html import escape
-from companion_handoffs import companion_system_block, handoff_js
+from companion_handoffs import companion_system_block, handoff_js, frol_context_block, frol_edit_instructions
 
 try:
     from zoneinfo import ZoneInfo
@@ -208,6 +208,7 @@ def build_gregory_context(iso: str, weekday: str, date_label: str) -> str:
         "When Lauren asks a planning question, give her a concrete, usable answer.",
     ]
 
+    lines += [""] + frol_context_block(weekday) + frol_edit_instructions()
     lines += [""] + companion_system_block("GREGORY")
     return "\n".join(lines)
 

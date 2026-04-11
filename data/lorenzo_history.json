@@ -1,16 +1,6 @@
 {
   "messages": [
     {
-      "role": "assistant",
-      "content": "Right — it's Monday, April 6th at 6:36 PM. Dinner time NOW.\n\nLet me pull up what's on the books:\n\nCURRENT WEEK PLAN:\n- Tuesday: Lunch — Pizza | Dinner — Pizza\n- Wednesday: Dinner — Brined roast chicken with roasted vegetables\n\nBUT here's the problem: it's Monday evening RIGHT NOW and you haven't brined the chicken yet. If you want brined chicken for Wednesday dinner, we need to start the brine TONIGHT so it sits for 24+ hours.\n\nSo first question: do you want to do the brined chicken Wednesday as planned, or move it to a different night?\n\nAnd second: what are you doing for DINNER TONIGHT? We haven't talked about Monday dinner yet.",
-      "ts": "2026-04-06T18:36:42"
-    },
-    {
-      "role": "assistant",
-      "content": "Right — let me give you what's on the books starting TODAY, Monday, April 6th at dinner time:\n\nCURRENT MEAL PLAN:\n- Tuesday: Lunch — Pizza | Dinner — Pizza\n- Wednesday: Dinner — Brined roast chicken with roasted vegetables\n\nTONIGHT (Monday, April 6th):\n- Dinner — ???\n\nSo we need to figure out TONIGHT first, since it's 6:36 PM and you need dinner executable right now.\n\nThen we can rebuild the rest of the week from there.\n\nWhat do you want for dinner tonight?",
-      "ts": "2026-04-06T18:36:42"
-    },
-    {
       "role": "user",
       "content": "Leftovers. John cooked steak and shrimp yesterday with salad, broccoli and cheese and macaroni and cheese. For dinner we ate leftovers and there’s only broccoli and cheese left from yesterday. We still have chicken curry and rice along with pizza leftovers. Tomorrow is a busy day so we will stick with leftovers. Oh and leftover pancakes from yesterday! Put those leftovers on the meals for tomorrow",
       "ts": "2026-04-06T18:53:45"
@@ -299,6 +289,16 @@
       "role": "assistant",
       "content": "Done.\n\n[MEAL_UPDATE:Tuesday:helpers]JP: Lead reheating leftover proteins and sides | Joseph: Assemble the buffet platters | Michael: Pour drinks, set out napkins[/MEAL_UPDATE]\n[MEAL_UPDATE:Wednesday:helpers]JP: Prep vegetables for roasting, set up the sweet potato baking | Joseph: Monitor roasted chicken in oven | Michael: Wash vegetables[/MEAL_UPDATE]\n[MEAL_UPDATE:Thursday:helpers]JP: Brown the meat, lead sauce and pasta | Joseph: Prep garlic and onions, cook pasta | Michael: Stir sauce (with supervision), grate cheese[/MEAL_UPDATE]\n[MEAL_UPDATE:Friday:helpers]JP: Prep flounder for baking, lead the oven work | Joseph: Cook rice, prep vegetables | Michael: Wash green beans[/MEAL_UPDATE]\n\nHelper assignments are saved for the week. They'll show on your fridge card now.",
       "ts": "2026-04-06T21:12:15"
+    },
+    {
+      "role": "user",
+      "content": "Let’s talk meal planning. I’ll give you inventory and you start planning meals tomorrows breakfast through Sunday of next weekend.",
+      "ts": "2026-04-11T16:52:21"
+    },
+    {
+      "role": "assistant",
+      "content": "You're right — I need to reset. It's Saturday, April 11, 4:52 PM. You want to plan from tomorrow's breakfast (Sunday, April 12) through Sunday, April 19.\n\nLet me start fresh with what you've got on hand. Give me your current inventory — what's in the fridge, freezer, and pantry right now? I'll build the next week around what you have and flag anything that needs shopping.",
+      "ts": "2026-04-11T16:52:23"
     }
   ]
 }

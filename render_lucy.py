@@ -13,7 +13,7 @@ API: POST /lucy-chat  → streams Claude response as plain text
 """
 from datetime import date, datetime
 from html import escape
-from companion_handoffs import companion_system_block, handoff_js
+from companion_handoffs import companion_system_block, handoff_js, frol_context_block, frol_edit_instructions
 try:
     from zoneinfo import ZoneInfo
     _EASTERN = ZoneInfo("America/New_York")
@@ -1214,6 +1214,7 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
     except Exception:
         lines.append("(Memory book not available)")
 
+    lines += [""] + frol_context_block(weekday) + frol_edit_instructions()
     lines += [""] + companion_system_block("LUCY")
     return "\n".join(lines)
 
