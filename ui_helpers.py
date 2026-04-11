@@ -1208,9 +1208,34 @@ window.closeMobileMore = function() {{
 /* ── Swipe-to-hide / swipe-to-delete / swipe-to-add ── */
 (function(){{
   var W=76;
+  // ── Persistence helpers ───────────────────────────────────────────────────
+  // Hidden rows are remembered in localStorage so they survive page reloads.
+  // Key format: "sf:pod:hidden:{child}:{iso}:{label}"
+  function _swRowKey(w){{
+    var child = (w.dataset.child||'').trim();
+    var iso   = (w.dataset.iso||'').trim();
+    if(!child||!iso) return null;
+    var inner = w.querySelector('.sw-inner');
+    if(!inner) return null;
+    var lbl = inner.querySelector('.dl-label,.dl-header-row .dl-label');
+    var txt = lbl ? lbl.textContent.trim() : inner.textContent.trim().slice(0,80);
+    if(!txt) return null;
+    return 'sf:pod:hidden:'+child+':'+iso+':'+txt;
+  }}
+  function _swPersistHide(w){{
+    var k=_swRowKey(w); if(!k) return;
+    try{{localStorage.setItem(k,'1');}}catch(e){{}}
+  }}
+  function _swIsHidden(w){{
+    var k=_swRowKey(w); if(!k) return false;
+    try{{return localStorage.getItem(k)==='1';}}catch(e){{return false;}}
+  }}
+  // ─────────────────────────────────────────────────────────────────────────
   function _sw(root){{
     (root||document).querySelectorAll('.sw-wrap:not([data-sw])').forEach(function(w){{
       w.dataset.sw='1';
+      // Restore hidden state from previous session
+      if(_swIsHidden(w)){{ w.style.display='none'; return; }}
       var inner=w.querySelector('.sw-inner');
       var delBtn=w.querySelector('.sw-del');
       var addBtn=w.querySelector('.sw-add');
@@ -1261,6 +1286,7 @@ window.closeMobileMore = function() {{
   function _swDel(btn,extraFn){{
     var w=btn.closest('.sw-wrap');
     if(!w)return;
+    _swPersistHide(w);
     if(typeof extraFn==='function')extraFn();
     var h=w.offsetHeight;
     w.style.height=h+'px';w.style.overflow='hidden';
