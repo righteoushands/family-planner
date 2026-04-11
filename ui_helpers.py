@@ -1210,7 +1210,7 @@ window.closeMobileMore = function() {{
   var W=76;
   // ── Persistence helpers ───────────────────────────────────────────────────
   // Hidden rows are remembered in localStorage so they survive page reloads.
-  // Key format: "sf:pod:hidden:{child}:{iso}:{label}"
+  // Key format: "sf:pod:hidden:{{child}}:{{iso}}:{{label}}"
   function _swRowKey(w){{
     var child = (w.dataset.child||'').trim();
     var iso   = (w.dataset.iso||'').trim();
