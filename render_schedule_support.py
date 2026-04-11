@@ -119,11 +119,13 @@ def render_now_next_strip() -> str:
 
 
 # ── Today timeline ────────────────────────────────────────────────────────────
-def render_today_timeline() -> str:
+def render_today_timeline(weekday: str = "") -> str:
     schedule   = load_family_schedule()
     times      = schedule.get("times", []) or generate_half_hour_times()
     now        = get_eastern_now()
-    today_name = now.strftime("%A")
+    # Use the supplied weekday (planned day) if given; fall back to actual today.
+    today_name  = weekday if weekday else now.strftime("%A")
+    is_today    = (today_name == now.strftime("%A"))
     today_slots = schedule.get("days", {}).get(today_name, {})
     cur_label, _, _, _ = get_current_slot(schedule)
     if not times:
@@ -135,9 +137,10 @@ def render_today_timeline() -> str:
         if not activity and ":30 " in t:
             activity = today_slots.get(t.replace(":30 ", ":00 "), "")
         sm      = _slot_minutes(t)
-        is_now  = (t == cur_label)
+        # Only show "now" indicators when actually viewing today
+        is_now  = is_today and (t == cur_label)
         is_half = t.endswith(":30 AM") or t.endswith(":30 PM")
-        in_near_future = now_minutes <= sm <= now_minutes + 60
+        in_near_future = is_today and (now_minutes <= sm <= now_minutes + 60)
         if not activity and not is_now and not in_near_future:
             continue
         if is_now:
@@ -155,7 +158,7 @@ def render_today_timeline() -> str:
             <div style="font-size:{font_size};color:{act_color};">{act_text}</div>
         </div>"""
     if not rows:
-        rows = "<p class='muted' style='padding:8px 10px;'>No schedule entries for today.</p>"
+        rows = f"<p class='muted' style='padding:8px 10px;'>No schedule entries for {escape(today_name)}.</p>"
     return f"""
     <div style="margin-top:4px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">

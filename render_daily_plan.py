@@ -318,6 +318,8 @@ def _render_family_grid(iso, weekday, date_label):
 
     now         = get_eastern_now()
     now_minutes = now.hour * 60 + now.minute
+    # Only show "now" row highlighting when the grid is for today's actual date
+    _viewing_today = (iso == now.strftime("%Y-%m-%d"))
 
     active_times = [t for t in times if start_h * 60 <= _slot_minutes(t) <= end_h * 60]
     if not active_times:
@@ -342,7 +344,7 @@ def _render_family_grid(iso, weekday, date_label):
     for t in active_times:
         sm         = _slot_minutes(t)
         is_half    = t.endswith(":30 AM") or t.endswith(":30 PM")
-        is_now     = (sm <= now_minutes < sm + 30)
+        is_now     = _viewing_today and (sm <= now_minutes < sm + 30)
         row_bg     = "#fffbf5" if is_now else ("white" if not is_half else "#fafafa")
         time_color = "#e67e22" if is_now else ("#ccc" if is_half else "#888")
         time_fw    = "bold" if is_now else ("normal" if is_half else "500")

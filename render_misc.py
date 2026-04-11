@@ -1840,7 +1840,7 @@ def render_mom_page(status_message: str = "", target_date_str: str = "") -> str:
     <div id="s-schedule" class="plan-section">
         <div class="plan-section-label">Step 3 &mdash; Fill in the schedule</div>
         <div class="card card-tight">
-            {render_today_timeline()}
+            {render_today_timeline(weekday)}
             <div style="margin-top:10px;border-top:1px solid var(--border-light);padding-top:8px;">
                 <a class="link-button" href="/settings#s-systems" style="font-size:0.82em;">
                     Edit weekly schedule &rarr;
