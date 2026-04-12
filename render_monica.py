@@ -51,6 +51,35 @@ def _load_monica_history_safe() -> list:
         return []
 
 
+def _get_anchor_context_monica(iso: str) -> list:
+    """Return capacity + John status lines for Monica's context."""
+    try:
+        from render_morning_anchor import _get_anchor_state
+        anchor = _get_anchor_state(iso)
+        cap    = anchor.get("capacity", "").strip().lower()
+        john   = anchor.get("john_status", "").strip()
+        james  = anchor.get("james_note", "").strip()
+        lines  = []
+        if cap == "low":
+            lines.append("Lauren's capacity today: LOW — she may be more anxious or overwhelmed. Be especially warm and reassuring.")
+        elif cap == "medium":
+            lines.append("Lauren's capacity today: MEDIUM — a solid day, normal bandwidth.")
+        elif cap == "high":
+            lines.append("Lauren's capacity today: HIGH — Lauren is in a good place today.")
+        if john:
+            if john.lower() in ("wfh", "working from home", "home office", "work from home"):
+                lines.append("John is WFH — another adult is present to help if a child needs extra attention.")
+            elif "travel" in john.lower() or "away" in john.lower():
+                lines.append("John is traveling — Lauren is the only adult today. Factor this into your advice.")
+            else:
+                lines.append(f"John: {john}")
+        if james:
+            lines.append(f"James update: {james}")
+        return lines
+    except Exception:
+        return []
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # System prompt builder
 # ─────────────────────────────────────────────────────────────────────────────
@@ -59,6 +88,8 @@ def build_monica_context(iso: str, weekday: str, date_label: str) -> str:
     from datetime import datetime as _dt
     _now_e    = _dt.now(_EASTERN)
     _time_str = _now_e.strftime("%-I:%M %p")
+
+    _anchor_lines = _get_anchor_context_monica(iso)
 
     lines = [
         "You are Dr. Monica — a child development expert and pediatric health companion",
@@ -81,6 +112,12 @@ def build_monica_context(iso: str, weekday: str, date_label: str) -> str:
         "This is authoritative. If any earlier messages mention a different date, those are from",
         "a previous session. Always use the date above.",
         f"CURRENT TIME: {_time_str} Eastern",
+    ]
+
+    if _anchor_lines:
+        lines += ["", "== TODAY'S HOUSEHOLD STATUS =="] + _anchor_lines
+
+    lines += [
         "",
         "== THE McADAMS CHILDREN — DEVELOPMENT PROFILES ==",
         "",

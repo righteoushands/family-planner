@@ -128,14 +128,35 @@ def _get_saved_recipes() -> str:
 
 def _get_meal_constraints() -> str:
     try:
+        import os as _os2
+        parts = []
+        # 1. Free-form constraints text from settings (used by meal_constraint_update tag)
         settings = _load_app_settings()
         fc = settings.get("family_constraints", {})
-        constraints = fc.get("meal_constraints", "").strip()
+        text = fc.get("meal_constraints", "").strip()
+        if text:
+            parts.append(text)
+        # 2. Standing rules from meal_rules.json — the PRIMARY rule store
+        RULES_FILE = "data/meal_rules.json"
+        if _os2.path.exists(RULES_FILE):
+            try:
+                import json as _jm
+                rules = _jm.load(open(RULES_FILE))
+                if isinstance(rules, list) and rules:
+                    rule_lines = [
+                        f"- {r['rule']}"
+                        for r in rules
+                        if isinstance(r, dict) and r.get("rule", "").strip()
+                    ]
+                    if rule_lines:
+                        parts.append("Standing meal rules:\n" + "\n".join(rule_lines))
+            except Exception:
+                pass
+        # 3. Legacy lorenzo_rules list in settings (backward compat)
         lr = fc.get("lorenzo_rules", [])
         if isinstance(lr, list) and lr:
-            constraints += ("\n\nPermanent rules saved by Lorenzo:\n" +
-                            "\n".join(f"- {r}" for r in lr))
-        return constraints if constraints else "No standing meal constraints recorded."
+            parts.append("Additional rules:\n" + "\n".join(f"- {r}" for r in lr))
+        return "\n\n".join(parts) if parts else "No standing meal constraints recorded."
     except Exception:
         return "Constraints unavailable."
 

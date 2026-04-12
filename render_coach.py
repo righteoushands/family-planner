@@ -48,6 +48,60 @@ def _load_coach_history_safe() -> list:
         return []
 
 
+def _get_anchor_context_coach(iso: str) -> list:
+    """Return capacity + John status lines for Coach's context."""
+    try:
+        from render_morning_anchor import _get_anchor_state
+        anchor = _get_anchor_state(iso)
+        cap    = anchor.get("capacity", "").strip().lower()
+        john   = anchor.get("john_status", "").strip()
+        lines  = []
+        if cap == "low":
+            lines.append("Lauren's capacity today: LOW — recommend a minimal, restorative movement day. No pressure on intensity.")
+        elif cap == "medium":
+            lines.append("Lauren's capacity today: MEDIUM — moderate workout. Focus on consistency, not max effort.")
+        elif cap == "high":
+            lines.append("Lauren's capacity today: HIGH — Lauren has full energy. A more challenging session is appropriate.")
+        if john:
+            if john.lower() in ("wfh", "working from home", "home office", "work from home"):
+                lines.append("John is WFH — there's another adult present; Lauren may have more flexibility for a workout window.")
+            elif "travel" in john.lower() or "away" in john.lower():
+                lines.append("John is traveling — Lauren is solo parenting. Keep workouts short, kid-friendly, or nap-window timed.")
+            else:
+                lines.append(f"John: {john}")
+        return lines
+    except Exception:
+        return []
+
+
+def _get_cycle_context_coach(iso: str) -> list:
+    """Return Mom's cycle phase info relevant to workout planning."""
+    try:
+        from render_lucy import _get_cycle_context
+        cc = _get_cycle_context(iso)
+        if not cc:
+            return []
+        phase = cc.get("phase", "")
+        day   = cc.get("cycle_day", "")
+        note  = cc.get("note", "")
+        lines = [f"Mom's cycle: Day {day} — {phase} phase."]
+        if note:
+            lines.append(f"Fitness guidance for this phase: {note}")
+        # Add more specific fitness guidance by phase
+        p = phase.lower() if phase else ""
+        if "menstrual" in p or "period" in p:
+            lines.append("Prioritize gentle movement today — walking, yoga, light stretching. Honor her body.")
+        elif "follicular" in p:
+            lines.append("Energy is rising — good window for cardio, strength work, and trying something new.")
+        elif "ovulation" in p or "ovulatory" in p:
+            lines.append("Peak energy phase — Lauren can handle higher intensity. Great for a challenging session.")
+        elif "luteal" in p:
+            lines.append("Energy may be declining toward end of this phase. Moderate intensity; watch for PMS fatigue.")
+        return lines
+    except Exception:
+        return []
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # System prompt builder
 # ─────────────────────────────────────────────────────────────────────────────
@@ -69,6 +123,9 @@ def build_coach_context(iso: str, weekday: str, date_label: str) -> str:
     else:
         _phase = f"It is {_time_str} — evening. Wind-down movement, stretching, or planning tomorrow's fitness."
 
+    _anchor_lines = _get_anchor_context_coach(iso)
+    _cycle_lines  = _get_cycle_context_coach(iso)
+
     lines = [
         "You are Coach — the McAdams family's personal fitness guide.",
         "",
@@ -81,6 +138,15 @@ def build_coach_context(iso: str, weekday: str, date_label: str) -> str:
         "This is authoritative. If any earlier messages mention a different date, those are from",
         "a previous session. Always use the date above.",
         f"TIME: {_phase}",
+    ]
+
+    if _anchor_lines:
+        lines += ["", "== TODAY'S HOUSEHOLD STATUS =="] + _anchor_lines
+
+    if _cycle_lines:
+        lines += ["", "== MOM'S CYCLE CONTEXT (FITNESS) =="] + _cycle_lines
+
+    lines += [
         "",
         "== THE McADAMS FAMILY — FITNESS PROFILES ==",
         "",

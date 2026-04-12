@@ -1202,7 +1202,8 @@
       "MANUAL::MEDIUM::Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
       "MANUAL::MEDIUM::Dye Easter Eggs",
       "MANUAL::MEDIUM::Gather your clean clothes from Mom’s room and put them away.",
-      "MANUAL::MEDIUM::Sea Cadet tasking: get together with Dad this morning to discuss assignment to finish before the Easter Egg Hunt"
+      "MANUAL::MEDIUM::Sea Cadet tasking: get together with Dad this morning to discuss assignment to finish before the Easter Egg Hunt",
+      "MANUAL::MEDIUM::Sign a family “Thank You” card to the DeMaios"
     ],
     "Joseph": [
       "CHORE::  → Clean sink",
@@ -1223,7 +1224,8 @@
       "MANUAL::MEDIUM::Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
       "MANUAL::MEDIUM::Dye Easter Eggs",
       "MANUAL::MEDIUM::Gather your clean clothes from Mom’s room and put them away.",
-      "MANUAL::MEDIUM::Sea Cadet tasking: get together with Dad this morning to discuss assignment to finish before the Easter Egg Hunt"
+      "MANUAL::MEDIUM::Sea Cadet tasking: get together with Dad this morning to discuss assignment to finish before the Easter Egg Hunt",
+      "MANUAL::MEDIUM::Sign a family “Thank You” card to the DeMaios"
     ],
     "Michael": [
       "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
@@ -1231,8 +1233,11 @@
       "MANUAL::MEDIUM::Bobby’s Surgery",
       "MANUAL::MEDIUM::Dye Easter Eggs",
       "MANUAL::MEDIUM::Gather your clean clothes from Mom’s room and put them away.",
+      "MANUAL::MEDIUM::Sign a family “Thank You” card to the DeMaios",
       "MANUAL::MEDIUM::Tidy-up the garage after Rhys came to play"
     ],
-    "James": []
+    "James": [
+      "MANUAL::MEDIUM::Sign a family “Thank You” card to the DeMaios"
+    ]
   }
 }

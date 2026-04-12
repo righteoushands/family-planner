@@ -68,19 +68,64 @@ def _get_liturgical_note(iso: str) -> str:
 
 
 def _get_school_context(iso: str, weekday: str) -> str:
-    """Pull any saved school schedule / curriculum notes."""
+    """Pull saved school settings from family_constraints."""
     try:
         from data_helpers import load_app_settings
         settings = load_app_settings()
         fc = settings.get("family_constraints", {})
-        school_notes = fc.get("school_notes", "")
-        curriculum   = fc.get("curriculum", "")
         lines = []
-        if curriculum:
-            lines.append(f"Curriculum in use: {curriculum}")
-        if school_notes:
-            lines.append(f"School notes: {school_notes}")
+        school_mode = fc.get("school_mode", "").strip()
+        if school_mode and school_mode != "normal":
+            lines.append(f"School mode: {school_mode}")
+        core_subjects = fc.get("core_subjects", "").strip()
+        if core_subjects:
+            lines.append(f"Core subjects: {core_subjects}")
+        paused = fc.get("paused_subjects", "").strip()
+        if paused:
+            lines.append(f"Paused subjects: {paused}")
+        durations = fc.get("school_durations", "").strip()
+        if durations:
+            lines.append(f"Subject durations: {durations}")
+        mom_subjects = fc.get("mom_supervision_subjects", "").strip()
+        if mom_subjects:
+            lines.append(f"Subjects requiring Mom present: {mom_subjects}")
+        independence = fc.get("independence_notes", "").strip()
+        if independence:
+            lines.append(f"Child independence notes: {independence}")
+        supervision = fc.get("supervision_rules", "").strip()
+        if supervision:
+            lines.append(f"Supervision rules: {supervision}")
+        other = fc.get("other_notes", "").strip()
+        if other:
+            lines.append(f"Other family notes: {other}")
         return "\n".join(lines)
+    except Exception:
+        return ""
+
+
+def _get_curriculum_context(iso: str) -> str:
+    """Load current-week lesson assignments from curriculum.json."""
+    try:
+        import os as _osg, json as _jg
+        CURR_FILE = "data/curriculum.json"
+        if not _osg.path.exists(CURR_FILE):
+            return ""
+        data = _jg.load(open(CURR_FILE))
+        current_week = str(data.get("current_week", 1))
+        lines = [f"Current curriculum week: {current_week}"]
+        for child in ("JP", "Joseph"):
+            subjects = data.get(child, {})
+            if not subjects:
+                continue
+            child_lines = [f"  {child}:"]
+            for subject, weeks in subjects.items():
+                if isinstance(weeks, dict):
+                    lesson = weeks.get(current_week, "").strip()
+                    if lesson:
+                        child_lines.append(f"    {subject}: {lesson[:150]}")
+            if len(child_lines) > 1:
+                lines.extend(child_lines)
+        return "\n".join(lines) if len(lines) > 1 else ""
     except Exception:
         return ""
 
@@ -99,6 +144,32 @@ def _get_child_academic_context() -> str:
         return "\n".join(lines) if lines else ""
     except Exception:
         return ""
+
+
+def _get_anchor_context_gregory(iso: str) -> list:
+    """Return capacity + John status lines for Gregory's context."""
+    try:
+        from render_morning_anchor import _get_anchor_state
+        anchor = _get_anchor_state(iso)
+        cap    = anchor.get("capacity", "").strip().lower()
+        john   = anchor.get("john_status", "").strip()
+        lines  = []
+        if cap == "low":
+            lines.append("Lauren's capacity today: LOW — plan a lighter school day; lean on JP for independent work.")
+        elif cap == "medium":
+            lines.append("Lauren's capacity today: MEDIUM — a solid but not overloaded school day.")
+        elif cap == "high":
+            lines.append("Lauren's capacity today: HIGH — full energy, can manage an ambitious school day.")
+        if john:
+            if john.lower() in ("wfh", "working from home", "home office", "work from home"):
+                lines.append("John is WFH today — another adult is in the house if needed.")
+            elif "travel" in john.lower() or "away" in john.lower():
+                lines.append("John is traveling — Lauren is solo. Keep the school plan executable for one adult with James present.")
+            else:
+                lines.append(f"John: {john}")
+        return lines
+    except Exception:
+        return []
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -122,9 +193,11 @@ def build_gregory_context(iso: str, weekday: str, date_label: str) -> str:
     else:
         _phase = f"It is {_time_str} — evening. School day is complete. Planning ahead is appropriate."
 
-    liturgy       = _get_liturgical_note(iso)
-    school_ctx    = _get_school_context(iso, weekday)
-    child_notes   = _get_child_academic_context()
+    liturgy        = _get_liturgical_note(iso)
+    school_ctx     = _get_school_context(iso, weekday)
+    child_notes    = _get_child_academic_context()
+    curriculum_ctx = _get_curriculum_context(iso)
+    anchor_lines   = _get_anchor_context_gregory(iso)
 
     lines = [
         "You are Father Gregory — the academic director and headmaster for the McAdams family homeschool.",
@@ -183,8 +256,14 @@ def build_gregory_context(iso: str, weekday: str, date_label: str) -> str:
     else:
         lines.append("Use ordinary time pacing.")
 
+    if anchor_lines:
+        lines += ["", "== TODAY'S HOUSEHOLD STATUS =="] + anchor_lines
+
     if school_ctx:
-        lines += ["", "== SAVED SCHOOL CONTEXT ==", school_ctx]
+        lines += ["", "== SCHOOL SETTINGS ==", school_ctx]
+
+    if curriculum_ctx:
+        lines += ["", "== CURRENT CURRICULUM — THIS WEEK'S LESSONS ==", curriculum_ctx]
 
     if child_notes:
         lines += ["", "== INDIVIDUAL CHILD NOTES ==", child_notes]
