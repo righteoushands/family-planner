@@ -24,11 +24,11 @@
     "Wednesday": {
       "breakfast": "Eggs, fruit, cereal or toast",
       "lunch": "Chicken nuggets, French fries, fruit cups (little boys); leftovers (big boys)",
-      "dinner": "Brined roast chicken with roasted vegetables",
+      "dinner": "Beef stew with vegetables",
       "snacks": "",
       "dad_lunch": "",
       "snack": "Fruit, crackers and cheese, Greek yogurt, peanut butter, hummus",
-      "helpers": "Joseph leads beef stew prep — JP gives light direction (post-braces) — Michael: wash vegetables & pour ingredients",
+      "helpers": "Joseph leads beef stew prep — JP gives light direction — Michael: wash vegetables & pour ingredients",
       "boys_help": ""
     },
     "Thursday": {
@@ -54,11 +54,12 @@
     "Saturday": {
       "breakfast": "Eggs, fruit, cereal or toast",
       "lunch": "",
-      "dinner": "TBD",
+      "dinner": "Brined roast chicken with roasted vegetables",
       "snacks": "",
       "dad_lunch": "",
       "snack": "Fruit, crackers and cheese, Greek yogurt, peanut butter, hummus",
-      "boys_help": ""
+      "boys_help": "",
+      "helpers": "JP: Prep chicken for roasting — Joseph: Prep vegetables — Michael: Wash and dry vegetables"
     },
     "Sunday": {
       "breakfast": "Eggs, fruit, cereal or toast",
