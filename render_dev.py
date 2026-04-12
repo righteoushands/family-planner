@@ -192,8 +192,8 @@ DATA FILES (what exists vs. what doesn't):
 FEATURES THAT ALREADY EXIST (never say they can't be done):
   - Printable meal plan / fridge card: /meal-print  (render_meal_print_page in render_meals.py)
   - Thank-you card reminders: /thankyou-reminders  (data/thankyou_reminders.json)
-  - Print any child's day list: /print/day/{Name}
-  - Day grid: data/day_grids/{date}.json
+  - Print any child's day list: /print/day/{{Name}}
+  - Day grid: data/day_grids/{{date}}.json
 
 RECOVERY RULE: If a [READ:] of a data file fails (file not found), do NOT repeat the same path.
 Instead, either (a) use [GREP: pattern:*.py] to find where that data is actually stored, or

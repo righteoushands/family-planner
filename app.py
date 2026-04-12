@@ -3286,7 +3286,6 @@ class Handler(BaseHTTPRequestHandler):
                     _mmeal = _mm.group(3).strip()
                     if _mday and _mslot:
                         try:
-                            from render_meals import load_meal_plan, save_meal_plan
                             _plan = load_meal_plan(iso)
                             if _mmeal:
                                 _plan["days"].setdefault(_mday, {})[_mslot] = _mmeal
