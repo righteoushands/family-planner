@@ -4,51 +4,57 @@
   "generated": false,
   "days": {
     "Monday": {
-      "breakfast": "",
-      "lunch": "",
-      "dinner": "",
+      "breakfast": "Eggs, cereal, fruit",
+      "lunch": "Pork chops, noodles, broccoli + Romaine + raw green beans",
+      "dinner": "Beef stew + sourdough bread",
       "snacks": "",
-      "dad_lunch": ""
+      "dad_lunch": "Leftovers (pork chops, noodles, broccoli) + Romaine",
+      "helpers": "Lauren leads — Michael: stir and pour ingredients"
     },
     "Tuesday": {
-      "breakfast": "",
-      "lunch": "",
-      "dinner": "",
+      "breakfast": "Eggs, cereal, fruit",
+      "lunch": "Out (Bible Study)",
+      "dinner": "Leftovers: beef stew + sourdough + rice",
       "snacks": "",
-      "dad_lunch": ""
+      "dad_lunch": "Leftover beef stew + bread",
+      "helpers": "Lauren leads reheating"
     },
     "Wednesday": {
-      "breakfast": "",
-      "lunch": "",
-      "dinner": "",
+      "breakfast": "Eggs, cereal, fruit",
+      "lunch": "Chicken nuggets, French fries, fruit cups (little boys); leftovers (big boys)",
+      "dinner": "Brined split chicken breasts + potatoes au gratin + broccoli",
       "snacks": "",
-      "dad_lunch": ""
+      "dad_lunch": "Leftover beef stew",
+      "helpers": "JP: Prep chicken for roasting — Joseph: Prep potatoes au gratin — Michael: wash broccoli"
     },
     "Thursday": {
-      "breakfast": "",
-      "lunch": "",
-      "dinner": "",
+      "breakfast": "Eggs, cereal, fruit",
+      "lunch": "Chicken nuggets, French fries, fruit cups (little boys); leftovers (big boys)",
+      "dinner": "Leftover chicken + potatoes au gratin + rice",
       "snacks": "",
-      "dad_lunch": ""
+      "dad_lunch": "Leftover chicken + potatoes",
+      "helpers": "JP: Reheat chicken — Joseph: Cook rice — Michael: set table"
     },
     "Friday": {
-      "breakfast": "",
-      "lunch": "",
-      "dinner": "",
+      "breakfast": "Eggs, cereal, fruit",
+      "lunch": "Sardines, raw veggies, crackers, fruit",
+      "dinner": "Fish fry: baked flounder + coleslaw + cornbread",
       "snacks": "",
-      "dad_lunch": ""
+      "dad_lunch": "Sardines, crackers, fruit",
+      "helpers": "JP: leads fish fry station — Joseph: coleslaw & cornbread — Michael: measure breading ingredients"
     },
     "Saturday": {
-      "breakfast": "",
+      "breakfast": "Eggs, cereal, fruit",
       "lunch": "",
-      "dinner": "",
+      "dinner": "Jambalaya with Cajun sausage",
       "snacks": "",
-      "dad_lunch": ""
+      "dad_lunch": "",
+      "helpers": "JP: lead jambalaya — Joseph: prep sausage & vegetables — Michael: measure rice"
     },
     "Sunday": {
-      "breakfast": "",
+      "breakfast": "Eggs, cereal, fruit",
       "lunch": "",
-      "dinner": "",
+      "dinner": "TBD — light/easy after Mass",
       "snacks": "",
       "dad_lunch": ""
     }
