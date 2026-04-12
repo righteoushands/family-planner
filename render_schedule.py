@@ -17,7 +17,7 @@ from daily_schedule_engine import (
 from config import child_color, WEEKDAYS
 from data_helpers import (
     load_progress, count_school_check_items,
-    normalize_date_query,
+    normalize_date_query, due_thankyou_reminders_for,
 )
 from ui_helpers import html_page, page_header
 from render_daily_bar import render_daily_bar, render_child_age_strip
@@ -34,6 +34,54 @@ CELEBRATION_MESSAGES = [
     "💪 All checked off! Fantastic job today!",
     "🥇 Everything done! You're a champion!",
 ]
+
+
+# ── Thank-you card POD strip ──────────────────────────────────────────────────
+def _ty_pod_strip(due_list: list, accent: str = "#8b5a3c", return_url: str = "/today") -> str:
+    """
+    Compact inline strip shown inside a person's POD when they have due
+    thank-you card reminders.  Each row has event name + quick Done button.
+    """
+    if not due_list:
+        return ""
+    rows = ""
+    for r in due_list:
+        rid   = escape(r.get("id", ""))
+        ename = escape(r.get("event_name", ""))
+        ppl   = escape(r.get("people", ""))
+        rows += (
+            f'<div style="display:flex;align-items:center;justify-content:space-between;'
+            f'gap:8px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.06);">'
+            f'<div style="min-width:0;">'
+            f'<div style="font-size:.82em;font-weight:600;color:#6b4f3a;white-space:nowrap;'
+            f'overflow:hidden;text-overflow:ellipsis;">{ename}</div>'
+            + (f'<div style="font-size:.72em;color:#9ca3af;">For: {ppl}</div>' if ppl else "")
+            + f'</div>'
+            f'<form method="POST" action="/thankyou-done" style="margin:0;flex-shrink:0;">'
+            f'<input type="hidden" name="id" value="{rid}">'
+            f'<input type="hidden" name="return_url" value="{escape(return_url)}">'
+            f'<button type="submit"'
+            f' style="background:#5a7a5a;color:white;border:none;border-radius:6px;'
+            f'padding:3px 10px;font-size:.75em;cursor:pointer;white-space:nowrap;">'
+            f'&#10003; Sent</button>'
+            f'</form>'
+            f'</div>'
+        )
+    n    = len(due_list)
+    lbl  = "thank-you card" if n == 1 else "thank-you cards"
+    return (
+        f'<div style="background:#fef3e2;border:1px solid #e8c97a;border-radius:8px;'
+        f'padding:8px 10px;margin-top:8px;">'
+        f'<div style="display:flex;align-items:center;justify-content:space-between;'
+        f'margin-bottom:4px;">'
+        f'<span style="font-size:.72em;font-weight:800;letter-spacing:.06em;'
+        f'text-transform:uppercase;color:#92400e;">&#9993; {n} {lbl} due</span>'
+        f'<a href="/thankyou-reminders" style="font-size:.7em;color:#8b5a3c;'
+        f'text-decoration:none;white-space:nowrap;">Manage →</a>'
+        f'</div>'
+        f'{rows}'
+        f'</div>'
+    )
 
 
 # ── Task helpers ──────────────────────────────────────────────────────────────
@@ -1039,7 +1087,8 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
         f'{all_done_badge}'
         f'{carry_html}'
         f'<div id="dash-queue-{c_id}">{combined_html}</div>'
-        f'</div>'
+        + _ty_pod_strip(due_thankyou_reminders_for(child), c_bg, "/today")
+        + f'</div>'
     )
 
 
@@ -1237,12 +1286,14 @@ def render_today_all(target_date_str: str = "") -> str:
     except Exception:
         pass
 
+    _family_ty_strip = _ty_pod_strip(due_thankyou_reminders_for("Family"), "#8b5a3c", "/today")
     body = (
         f'{page_header("Today")}'
         f'{bar}'
         f'{day_nav}'
         f'{now_strip}'
         f'{school_banner}'
+        f'{_family_ty_strip}'
         f'{cards_html}'
         f'{_DASH_JS}'
     )

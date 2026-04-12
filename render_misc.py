@@ -4857,18 +4857,19 @@ def render_thankyou_page() -> str:
     pending_sorted = sorted(pending, key=lambda r: r.get("reminder_date","9999"))
 
     def _reminder_card(r: dict) -> str:
-        rid    = escape(r.get("id",""))
-        ename  = escape(r.get("event_name",""))
-        ppl    = escape(r.get("people",""))
-        edate  = escape(r.get("event_date",""))
-        rdate  = escape(r.get("reminder_date",""))
-        note   = escape(r.get("note",""))
-        is_due = r.get("reminder_date","9999") <= today
-        border = "#e8c97a" if is_due else "#e9d8c8"
-        bg     = "#fef3e2" if is_due else "#fdf8f4"
-        badge  = ('<span style="background:#d97706;color:white;font-size:0.75em;'
-                  'font-weight:700;border-radius:10px;padding:2px 8px;margin-left:8px;">DUE</span>'
-                  if is_due else "")
+        rid      = escape(r.get("id",""))
+        ename    = escape(r.get("event_name",""))
+        ppl      = escape(r.get("people",""))
+        edate    = escape(r.get("event_date",""))
+        rdate    = escape(r.get("reminder_date",""))
+        note     = escape(r.get("note",""))
+        assignee = escape(r.get("assigned_to","Family"))
+        is_due   = r.get("reminder_date","9999") <= today
+        border   = "#e8c97a" if is_due else "#e9d8c8"
+        bg       = "#fef3e2" if is_due else "#fdf8f4"
+        badge    = ('<span style="background:#d97706;color:white;font-size:0.75em;'
+                    'font-weight:700;border-radius:10px;padding:2px 8px;margin-left:8px;">DUE</span>'
+                    if is_due else "")
         return f"""
     <div style="background:{bg};border:1.5px solid {border};border-radius:12px;
                 padding:14px 16px;margin-bottom:12px;">
@@ -4877,7 +4878,7 @@ def render_thankyou_page() -> str:
                 <div style="font-weight:700;font-size:0.97em;">{ename}{badge}</div>
                 {"<div style='font-size:0.88em;color:#78564b;margin-top:3px;'>For: " + ppl + "</div>" if ppl else ""}
                 <div style="font-size:0.82em;color:#9ca3af;margin-top:4px;">
-                    Event: {edate} &bull; Send reminder: {rdate}
+                    Event: {edate} &bull; Send reminder: {rdate} &bull; &#9993; {assignee}
                 </div>
                 {"<div style='font-size:0.85em;color:#6b4f3a;margin-top:4px;font-style:italic;'>" + note + "</div>" if note else ""}
             </div>
@@ -4936,6 +4937,15 @@ def render_thankyou_page() -> str:
             <input type="text" name="event_name" placeholder="e.g. Birthday party at the Martins" required>
             <label>People to thank</label>
             <input type="text" name="people" placeholder="e.g. the Martins, Grandma Rose">
+            <label>Who is responsible for the card?</label>
+            <select name="assigned_to">
+                <option value="Family">Family (all)</option>
+                <option value="Lauren">Lauren</option>
+                <option value="John">John</option>
+                <option value="JP">JP</option>
+                <option value="Joseph">Joseph</option>
+                <option value="Michael">Michael</option>
+            </select>
             <label>Date of the event</label>
             <input type="date" name="event_date" value="{default_event}">
             <label>Send reminder on</label>

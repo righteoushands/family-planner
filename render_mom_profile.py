@@ -125,7 +125,8 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
     )
     from data_helpers import normalize_date_query
     from config import parent_color
-    from render_schedule import render_day_nav, _render_day_list_html, _DL_CSS, _DASH_JS
+    from render_schedule import render_day_nav, _render_day_list_html, _DL_CSS, _DASH_JS, _ty_pod_strip
+    from data_helpers import due_thankyou_reminders_for as _due_ty_for
 
     normalized_date = normalize_date_query(target_date_str)
     packet     = generate_day_packet(normalized_date)
@@ -215,6 +216,9 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
         f'</div></div>'
     )
 
+    _lauren_ty_strip = _ty_pod_strip(
+        _due_ty_for("Lauren") + _due_ty_for("Family"), c_bg, "/mom-profile"
+    )
     return f"""{_DL_CSS}
 {_DASH_JS}
 <div class="card" style="border-left:5px solid {c_bg};background:{c_light};margin-bottom:18px;">
@@ -240,6 +244,7 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
         {day_list_html}
     </div>
     {meal_html}
+    {_lauren_ty_strip}
 </div>
 <script>
 (function() {{

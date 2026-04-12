@@ -1,0 +1,58 @@
+{
+  "week": "2026-W14",
+  "generated": false,
+  "days": {
+    "Monday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Tuesday": {
+      "breakfast": "",
+      "lunch": "Pizza",
+      "dinner": "Pizza",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Wednesday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "Brined roast chicken with roasted vegetables",
+      "snacks": "",
+      "dad_lunch": "",
+      "helpers": "Joseph leads beef stew prep — JP gives light direction (post-braces) — Michael: wash vegetables & pour ingredients"
+    },
+    "Thursday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Friday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "snacks": "",
+      "dad_lunch": "",
+      "helpers": "JP leads fish fry & plating — Joseph preps coleslaw & cornbread — Michael: measure breading ingredients"
+    },
+    "Saturday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Sunday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "snacks": "",
+      "dad_lunch": ""
+    }
+  },
+  "start": "2026-04-12"
+}

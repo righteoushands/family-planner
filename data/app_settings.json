@@ -49,7 +49,10 @@
     "family_exercise": "",
     "school_mode": "normal",
     "core_subjects": "Math, religion, reading",
-    "paused_subjects": ""
+    "paused_subjects": "",
+    "lorenzo_rules": [
+      "Align higher-carb meals with John's lifting days (Tuesday, Thursday, and Friday); lower/moderate carbs on other days"
+    ]
   },
   "show_liturgy_hours_widget": true,
   "auto_fetch_hours": true,

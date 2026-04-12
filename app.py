@@ -1780,11 +1780,12 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/thankyou-add":
                 import uuid as _uuid2
                 from datetime import date as _tyd
-                _ename = clean_text(data.get("event_name",[""])[0])
-                _ppl   = clean_text(data.get("people",[""])[0])
-                _edate = data.get("event_date",[""])[0].strip()
-                _rdate = data.get("reminder_date",[""])[0].strip()
-                _note  = clean_text(data.get("note",[""])[0])
+                _ename     = clean_text(data.get("event_name",[""])[0])
+                _ppl       = clean_text(data.get("people",[""])[0])
+                _assignee  = data.get("assigned_to",["Family"])[0].strip() or "Family"
+                _edate     = data.get("event_date",[""])[0].strip()
+                _rdate     = data.get("reminder_date",[""])[0].strip()
+                _note      = clean_text(data.get("note",[""])[0])
                 if not _rdate:
                     from datetime import timedelta as _tytd
                     _rdate = str(_tyd.today() + _tytd(days=2))
@@ -1794,6 +1795,7 @@ class Handler(BaseHTTPRequestHandler):
                         "id":            "ty_" + _uuid2.uuid4().hex[:8],
                         "event_name":    _ename,
                         "people":        _ppl,
+                        "assigned_to":   _assignee,
                         "event_date":    _edate,
                         "reminder_date": _rdate,
                         "note":          _note,
@@ -1811,7 +1813,10 @@ class Handler(BaseHTTPRequestHandler):
                             _r["status"] = "done"; break
                     save_thankyou_reminders(_reminders)
                 redirect = data.get("return_url",["/thankyou-reminders"])[0]
-                if redirect not in ("/thankyou-reminders", "/tasks"):
+                _ty_allowed = ("/thankyou-reminders", "/tasks", "/today", "/mom-profile",
+                               "/schedule/JP", "/schedule/Joseph", "/schedule/Michael",
+                               "/schedule/John")
+                if redirect not in _ty_allowed:
                     redirect = "/thankyou-reminders"
 
             elif path == "/thankyou-dismiss":
@@ -1823,7 +1828,10 @@ class Handler(BaseHTTPRequestHandler):
                             _r["status"] = "dismissed"; break
                     save_thankyou_reminders(_reminders)
                 redirect = data.get("return_url",["/thankyou-reminders"])[0]
-                if redirect not in ("/thankyou-reminders", "/tasks"):
+                _ty_allowed = ("/thankyou-reminders", "/tasks", "/today", "/mom-profile",
+                               "/schedule/JP", "/schedule/Joseph", "/schedule/Michael",
+                               "/schedule/John")
+                if redirect not in _ty_allowed:
                     redirect = "/thankyou-reminders"
 
             elif path == "/approve-school-preview":

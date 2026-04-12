@@ -494,6 +494,17 @@ def due_thankyou_reminders() -> list:
     today = str(_d.today())
     return [r for r in pending_thankyou_reminders() if r.get("reminder_date", "9999") <= today]
 
+def due_thankyou_reminders_for(person: str) -> list:
+    """
+    Return due reminders assigned to a specific person OR to 'Family'.
+    Pass person='Family' to get only Family-level (unassigned or assigned to Family).
+    """
+    due = due_thankyou_reminders()
+    person_lower = person.strip().lower()
+    if person_lower == "family":
+        return [r for r in due if r.get("assigned_to", "Family").strip().lower() == "family"]
+    return [r for r in due if r.get("assigned_to", "Family").strip().lower() == person_lower]
+
 
 # ── Recipe cards ─────────────────────────────────────────────────────────────
 RECIPES_FILE = "data/recipes.json"
