@@ -879,13 +879,16 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
     lines += ["", "== CALENDAR EVENTS (today + 14 days ahead) =="]
     try:
         from render_calendar import load_calendar_cache, events_for_date
-        from data_helpers import load_subscribed_calendar_cache
+        from data_helpers import load_subscribed_calendar_cache, expand_local_events_for_range
         from datetime import date as _date, timedelta as _td
         # Merge all calendar sources
         main_events = load_calendar_cache().get("events", [])
         sub_events  = load_subscribed_calendar_cache().get("events", [])
         all_events  = main_events + sub_events
         _base = _date.fromisoformat(iso)
+        _end  = _base + _td(days=14)
+        # Also include events saved locally via Lucy (data/events.json)
+        local_events = expand_local_events_for_range(_base.isoformat(), _end.isoformat())
         any_events = False
         for offset in range(15):
             day = _base + _td(days=offset)
@@ -899,6 +902,13 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
             else:
                 label = day.strftime("%A %b %-d")
             day_events = events_for_date(all_events, day_str)
+            # Merge in local events for this day (avoid duplicates by title)
+            local_day = [e for e in local_events if e["start"].startswith(day_str)]
+            existing_titles = {e.get("title","").lower() for e in day_events}
+            for le in local_day:
+                if le["title"].lower() not in existing_titles:
+                    day_events = list(day_events) + [le]
+            day_events = sorted(day_events, key=lambda e: e.get("start",""))
             if day_events:
                 any_events = True
                 lines.append(f"{label} ({day_str}):")

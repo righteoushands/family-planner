@@ -687,3 +687,91 @@ def get_curriculum_week_assignments(child: str, week: int) -> dict:
         if text:
             result[subject] = text
     return result
+
+# ── Local events (data/events.json) ─────────────────────────────────────────
+EVENTS_FILE = "data/events.json"
+
+def load_local_events() -> list:
+    """Return the raw list of events from data/events.json."""
+    try:
+        import json as _j
+        with open(EVENTS_FILE) as _f:
+            d = _j.load(_f)
+        return d.get("data", d) if isinstance(d, dict) else d
+    except Exception:
+        return []
+
+def save_local_events(events: list):
+    safe_save_json(EVENTS_FILE, {"version": 1, "data": events})
+
+_WEEKDAY_NAMES = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
+
+def expand_local_events_for_range(start_iso: str, end_iso: str) -> list:
+    """
+    Expand data/events.json entries into calendar-compatible dicts
+    {title, start (ISO datetime or date), all_day, start_time, end_time}
+    for every date in [start_iso .. end_iso] (inclusive).
+    Handles recurrence types: none / daily / weekly.
+    """
+    from datetime import date as _dt, timedelta as _td
+    events = load_local_events()
+    out = []
+    start_d = _dt.fromisoformat(start_iso)
+    end_d   = _dt.fromisoformat(end_iso)
+
+    def _add(ev, d):
+        st = ev.get("start_time", "")
+        et = ev.get("end_time", "")
+        iso_start = f"{d.isoformat()}T{st}" if st else d.isoformat()
+        out.append({
+            "title":      ev.get("title", ""),
+            "start":      iso_start,
+            "end":        f"{d.isoformat()}T{et}" if et else d.isoformat(),
+            "all_day":    not bool(st),
+            "start_time": st,
+            "end_time":   et,
+            "notes":      ev.get("notes", ""),
+            "source":     "local",
+        })
+
+    for ev in events:
+        if ev.get("archived"):
+            continue
+        rec  = ev.get("recurrence", {}) or {}
+        rtype = rec.get("type", "none") or "none"
+        ev_start = ev.get("start_date", "")
+        if not ev_start:
+            continue
+        try:
+            ev_start_d = _dt.fromisoformat(ev_start)
+        except ValueError:
+            continue
+
+        if rtype == "none":
+            if start_d <= ev_start_d <= end_d:
+                _add(ev, ev_start_d)
+
+        elif rtype == "daily":
+            cur = max(start_d, ev_start_d)
+            until = rec.get("until")
+            while cur <= end_d:
+                if until and cur.isoformat() > until:
+                    break
+                _add(ev, cur)
+                cur += _td(days=1)
+
+        elif rtype == "weekly":
+            by_day = [w.lower() for w in (rec.get("by_weekday") or [])]
+            interval = max(1, int(rec.get("interval", 1)))
+            until    = rec.get("until")
+            cur = max(start_d, ev_start_d)
+            while cur <= end_d:
+                if until and cur.isoformat() > until:
+                    break
+                dow = _WEEKDAY_NAMES[cur.weekday()]
+                if not by_day or dow in by_day:
+                    _add(ev, cur)
+                cur += _td(days=interval if not by_day else 1)
+
+    out.sort(key=lambda e: e["start"])
+    return out
