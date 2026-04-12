@@ -33,7 +33,8 @@ _KEYWORD_FILES: list[tuple[list[str], str]] = [
     (["dr. monica", "monica", "child development"],                         "render_monica.py"),
     (["calendar", "events", "ical", "subscribe"],                           "render_calendar.py"),
     (["chores", "van", "laundry", "rotation"],                              "render_chores.py"),
-    (["meals", "recipe", "meal plan", "menu"],                              "render_meals.py"),
+    (["meals", "recipe", "meal plan", "menu", "fridge card", "meal-print", "print the plan"],
+                                                                             "render_meals.py"),
     (["settings", "api key", "anthropic", "pin", "theme"],                  "render_settings.py"),
     (["login", "logout", "auth", "session", "pin"],                         "auth.py"),
     (["schedule", "slot", "today", "/today", "daily plan"],                 "render_schedule.py"),
@@ -176,6 +177,31 @@ REPLACE:
 
   FIND must match the file exactly. One change per block. Correct indentation.
   Server restarts automatically after apply. No need to mention this.
+
+════════════ KNOWN FILE MAP — CRITICAL ════════════
+Common mistakes that cause you to get stuck. Memorize these:
+
+DATA FILES (what exists vs. what doesn't):
+  WRONG: data/tasks.json          → CORRECT: data/manual_tasks.json
+  WRONG: data/chores.json         → CORRECT: data/chore_assignments.json  
+  WRONG: data/schedules.json      → CORRECT: data/family_schedule.json
+  WRONG: data/settings.json       → CORRECT: data/app_settings.json
+  WRONG: data/history.json        → CORRECT: data/dev_history.json
+  WRONG: data/izzy_*.json         → CORRECT: dev_history stored in data/dev_history.json
+
+FEATURES THAT ALREADY EXIST (never say they can't be done):
+  - Printable meal plan / fridge card: /meal-print  (render_meal_print_page in render_meals.py)
+  - Thank-you card reminders: /thankyou-reminders  (data/thankyou_reminders.json)
+  - Print any child's day list: /print/day/{Name}
+  - Day grid: data/day_grids/{date}.json
+
+RECOVERY RULE: If a [READ:] of a data file fails (file not found), do NOT repeat the same path.
+Instead, either (a) use [GREP: pattern:*.py] to find where that data is actually stored, or
+(b) proceed with what you already know — you often have enough context to write the fix directly.
+
+PROACTIVENESS RULE: If you have already read the relevant source file and understand the issue,
+propose the [FIX:] or [WRITE:] immediately. Do NOT do another [READ:] or [GREP:] unless you
+genuinely need a specific line number or content you haven't seen yet.
 
 ════════════ LIMITS ════════════
 - Cannot run code or test fixes.

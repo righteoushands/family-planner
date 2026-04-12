@@ -426,6 +426,12 @@ def build_lorenzo_context(iso: str, weekday: str, date_label: str) -> str:
         "</meal_constraint_update>",
         "This REPLACES the entire constraints text. Use [RULE:add] for individual new rules.",
         "",
+        "FRIDGE CARD / PRINT: When Lauren asks to 'print the plan', 'give me the fridge card',",
+        "'send me the card', 'I want to print this', or says 'we're done planning', include",
+        "[PRINT_CARD] in your response. This renders as a clickable 'Print Fridge Card' button.",
+        "The card is always available at /meal-print. You can also just tell her to tap",
+        "'Fridge Card' at the top of this page. Never say you can't provide a printable copy.",
+        "",
         "MEAL PLAN UPDATES: When Lauren tells you what to put in specific slots,",
         "you can output: [MEAL_UPDATE:DayName:slot]meal name[/MEAL_UPDATE]",
         "This will save directly to the meal plan. Example:",
@@ -697,6 +703,12 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
         <div style="display:flex;align-items:center;gap:14px;">
             {new_conv_btn}
             <a href="/meals" style="font-size:0.78em;color:#8b3a1a;text-decoration:none;">&#127869; Meal Planner</a>
+            <a href="/meal-print" target="_blank"
+               style="font-size:0.78em;color:#8b3a1a;text-decoration:none;
+                      background:#fff4ee;border:1px solid #e4a87a;border-radius:6px;
+                      padding:3px 8px;white-space:nowrap;">
+               &#128424; Fridge Card
+            </a>
             <span style="font-size:0.78em;color:#aaa;">{phase_dot}{escape(phase_label)}</span>
         </div>
     </div>
@@ -1011,6 +1023,7 @@ function _lzStrip(text) {{
     return _stripHandoffTags(text)
         .replace(/\[RULE:(add|remove)\][\s\S]*?\[\/RULE\]/g, '')
         .replace(/\[MEAL_UPDATE:[^\]]+\][\s\S]*?\[\/MEAL_UPDATE\]/g, '')
+        .replace(/\[PRINT_CARD\]/g, '')
         .replace(/\s+$/, '');
 }}
 
@@ -1477,6 +1490,24 @@ function lzSend() {{
                             mRow.appendChild(mIcon); mRow.appendChild(mMsg); mRow.appendChild(mBtn);
                             if (bubble._wrap) bubble._wrap.appendChild(mRow);
                         }})(m[1], m[2], m[3]);
+                    }}
+
+                    // ── Print Fridge Card link after any meal updates ─────────
+                    var _hasMealUpdates = /\[MEAL_UPDATE:[^\]]+\]/.test(full)
+                                       || /\[PRINT_CARD\]/.test(full);
+                    if (_hasMealUpdates && bubble._wrap) {{
+                        var _printRow = document.createElement('div');
+                        _printRow.style.cssText = 'margin-top:10px;';
+                        var _printLink = document.createElement('a');
+                        _printLink.href = '/meal-print';
+                        _printLink.target = '_blank';
+                        _printLink.textContent = '\U0001F5A8 Print Fridge Card';
+                        _printLink.style.cssText = 'display:inline-block;padding:7px 16px;'
+                            + 'background:#8b3a1a;color:white;text-decoration:none;'
+                            + 'border-radius:8px;font-size:0.82em;font-weight:700;'
+                            + 'font-family:inherit;letter-spacing:0.01em;';
+                        _printRow.appendChild(_printLink);
+                        bubble._wrap.appendChild(_printRow);
                     }}
 
                     // ── Parse [RECIPE_CARD:add]JSON[/RECIPE_CARD] ────────────
