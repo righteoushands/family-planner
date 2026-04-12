@@ -91,6 +91,7 @@ from data_helpers import (
     load_family_schedule, save_family_schedule,
     load_liturgical_custom, save_liturgical_custom,
     advance_recurring_task,
+    load_thankyou_reminders, save_thankyou_reminders,
 )
 from ui_helpers import parse_urlencoded_body, parse_multipart_form
 from render_schedule import render_child_schedule, render_today_all, render_week, render_print_day, render_print_week, render_print_child_day_list
@@ -116,6 +117,7 @@ from render_misc import (
     render_dashboard, render_mom_page, render_notes, render_tasks,
     render_roadmap_page, render_planner_page, render_history_page,
     render_school_page, render_school_edit_page, render_now_page,
+    render_thankyou_page,
 )
 from render_settings import render_settings_page, load_app_settings, save_app_settings
 from render_signup import render_signup_page, render_waitlist_admin, save_signup
@@ -715,6 +717,7 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/print/week":      body = render_print_week()
         elif path == "/notes":           body = render_notes()
         elif path == "/tasks":           body = render_tasks()
+        elif path == "/thankyou-reminders": body = render_thankyou_page()
         elif path == "/mom":             body = render_mom_page(target_date_str=query.get("date",[""])[0])
         elif path == "/mom-profile":
             from render_mom_profile import render_mom_profile_page
@@ -1772,6 +1775,56 @@ class Handler(BaseHTTPRequestHandler):
                 tasks=[t for t in tasks if not (isinstance(t,dict) and t.get("status")=="inactive")]
                 save_manual_tasks(tasks)
                 redirect="/tasks#top"
+
+            # ── Thank-you card reminder routes ────────────────────────────────
+            elif path == "/thankyou-add":
+                import uuid as _uuid2
+                from datetime import date as _tyd
+                _ename = clean_text(data.get("event_name",[""])[0])
+                _ppl   = clean_text(data.get("people",[""])[0])
+                _edate = data.get("event_date",[""])[0].strip()
+                _rdate = data.get("reminder_date",[""])[0].strip()
+                _note  = clean_text(data.get("note",[""])[0])
+                if not _rdate:
+                    from datetime import timedelta as _tytd
+                    _rdate = str(_tyd.today() + _tytd(days=2))
+                if _ename:
+                    _reminders = load_thankyou_reminders()
+                    _reminders.append({
+                        "id":            "ty_" + _uuid2.uuid4().hex[:8],
+                        "event_name":    _ename,
+                        "people":        _ppl,
+                        "event_date":    _edate,
+                        "reminder_date": _rdate,
+                        "note":          _note,
+                        "status":        "pending",
+                    })
+                    save_thankyou_reminders(_reminders)
+                redirect = "/thankyou-reminders#top"
+
+            elif path == "/thankyou-done":
+                _tid = data.get("id",[""])[0].strip()
+                if _tid:
+                    _reminders = load_thankyou_reminders()
+                    for _r in _reminders:
+                        if isinstance(_r, dict) and _r.get("id") == _tid:
+                            _r["status"] = "done"; break
+                    save_thankyou_reminders(_reminders)
+                redirect = data.get("return_url",["/thankyou-reminders"])[0]
+                if redirect not in ("/thankyou-reminders", "/tasks"):
+                    redirect = "/thankyou-reminders"
+
+            elif path == "/thankyou-dismiss":
+                _tid = data.get("id",[""])[0].strip()
+                if _tid:
+                    _reminders = load_thankyou_reminders()
+                    for _r in _reminders:
+                        if isinstance(_r, dict) and _r.get("id") == _tid:
+                            _r["status"] = "dismissed"; break
+                    save_thankyou_reminders(_reminders)
+                redirect = data.get("return_url",["/thankyou-reminders"])[0]
+                if redirect not in ("/thankyou-reminders", "/tasks"):
+                    redirect = "/thankyou-reminders"
 
             elif path == "/approve-school-preview":
                 child=clean_child(data.get("child",[""])[0])

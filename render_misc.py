@@ -24,6 +24,8 @@ from data_helpers import (
     load_monthly_planner,
     count_school_check_items, sort_school_days, is_math_subject, is_math_test_text,
     normalize_date_query, clean_status, list_snapshots,
+    load_thankyou_reminders, save_thankyou_reminders,
+    pending_thankyou_reminders, due_thankyou_reminders,
 )
 from ui_helpers import html_page, page_header, render_status_message, top_nav
 
@@ -4390,8 +4392,63 @@ def render_tasks() -> str:
     else:
         inactive_section = ""
 
+    # ── Thank-you card due-reminder widget ───────────────────────────────────
+    _due_ty = due_thankyou_reminders()
+    if _due_ty:
+        _ty_cards = ""
+        for _r in _due_ty:
+            _rid  = escape(_r.get("id",""))
+            _ename= escape(_r.get("event_name",""))
+            _ppl  = escape(_r.get("people",""))
+            _edt  = escape(_r.get("event_date",""))
+            _rdt  = escape(_r.get("reminder_date",""))
+            _ty_cards += f"""
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;
+                    gap:12px;padding:10px 0;border-bottom:1px solid #f0e8de;">
+            <div>
+                <div style="font-weight:600;font-size:0.95em;">{_ename}</div>
+                {"<div style='font-size:0.85em;color:#78564b;'>For: " + _ppl + "</div>" if _ppl else ""}
+                <div style="font-size:0.8em;color:#9ca3af;">Event: {_edt} &bull; Reminder: {_rdt}</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-shrink:0;">
+                <form method="POST" action="/thankyou-done" style="margin:0;">
+                    <input type="hidden" name="id" value="{_rid}">
+                    <button type="submit" style="background:#5a7a5a;color:white;border:none;
+                            border-radius:7px;padding:6px 12px;font-size:0.82em;cursor:pointer;">
+                        &#10003; Done
+                    </button>
+                </form>
+                <form method="POST" action="/thankyou-dismiss" style="margin:0;">
+                    <input type="hidden" name="id" value="{_rid}">
+                    <button type="submit" style="background:none;border:1px solid #d1b8a8;
+                            border-radius:7px;padding:6px 12px;font-size:0.82em;
+                            color:#78564b;cursor:pointer;">
+                        Skip
+                    </button>
+                </form>
+            </div>
+        </div>"""
+        _ty_count = len(_due_ty)
+        _ty_label = "Thank-You Card" if _ty_count == 1 else "Thank-You Cards"
+        _ty_widget = f"""
+    <div style="background:#fef3e2;border:1.5px solid #e8c97a;border-radius:12px;
+                padding:14px 16px;margin-bottom:18px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <span style="font-weight:700;font-size:0.97em;color:#78564b;">
+                &#9993; {_ty_count} {_ty_label} Due
+            </span>
+            <a href="/thankyou-reminders" style="font-size:0.82em;color:#8b5a3c;text-decoration:none;">
+                Manage all &rsaquo;
+            </a>
+        </div>
+        {_ty_cards}
+    </div>"""
+    else:
+        _ty_widget = ""
+
     body = f"""
     {page_header("Tasks")}
+    {_ty_widget}
     <div class="card">
         <h3>Add Task</h3>
         <form method="POST" action="/add-task">
@@ -4786,3 +4843,109 @@ def render_school_edit_page(child: str, status_message: str = "") -> str:
     </form>
     {raw_text_editor}"""
     return html_page("Edit School Preview", body)
+
+
+# ── Thank-You Card Reminders page ─────────────────────────────────────────────
+def render_thankyou_page() -> str:
+    from datetime import date as _d, timedelta as _td
+    today     = str(_d.today())
+    reminders = load_thankyou_reminders()
+    pending   = [r for r in reminders if isinstance(r, dict) and r.get("status") == "pending"]
+    done_list = [r for r in reminders if isinstance(r, dict) and r.get("status") in ("done", "dismissed")]
+
+    # Sort pending: overdue first, then upcoming
+    pending_sorted = sorted(pending, key=lambda r: r.get("reminder_date","9999"))
+
+    def _reminder_card(r: dict) -> str:
+        rid    = escape(r.get("id",""))
+        ename  = escape(r.get("event_name",""))
+        ppl    = escape(r.get("people",""))
+        edate  = escape(r.get("event_date",""))
+        rdate  = escape(r.get("reminder_date",""))
+        note   = escape(r.get("note",""))
+        is_due = r.get("reminder_date","9999") <= today
+        border = "#e8c97a" if is_due else "#e9d8c8"
+        bg     = "#fef3e2" if is_due else "#fdf8f4"
+        badge  = ('<span style="background:#d97706;color:white;font-size:0.75em;'
+                  'font-weight:700;border-radius:10px;padding:2px 8px;margin-left:8px;">DUE</span>'
+                  if is_due else "")
+        return f"""
+    <div style="background:{bg};border:1.5px solid {border};border-radius:12px;
+                padding:14px 16px;margin-bottom:12px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+            <div>
+                <div style="font-weight:700;font-size:0.97em;">{ename}{badge}</div>
+                {"<div style='font-size:0.88em;color:#78564b;margin-top:3px;'>For: " + ppl + "</div>" if ppl else ""}
+                <div style="font-size:0.82em;color:#9ca3af;margin-top:4px;">
+                    Event: {edate} &bull; Send reminder: {rdate}
+                </div>
+                {"<div style='font-size:0.85em;color:#6b4f3a;margin-top:4px;font-style:italic;'>" + note + "</div>" if note else ""}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;">
+                <form method="POST" action="/thankyou-done">
+                    <input type="hidden" name="id" value="{rid}">
+                    <button type="submit" style="background:#5a7a5a;color:white;border:none;
+                            border-radius:7px;padding:7px 14px;font-size:0.85em;
+                            font-weight:600;cursor:pointer;width:100%;">
+                        &#10003; Card Sent
+                    </button>
+                </form>
+                <form method="POST" action="/thankyou-dismiss">
+                    <input type="hidden" name="id" value="{rid}">
+                    <button type="submit" style="background:none;border:1px solid #d1b8a8;
+                            border-radius:7px;padding:7px 14px;font-size:0.85em;
+                            color:#78564b;cursor:pointer;width:100%;">
+                        Skip
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>"""
+
+    cards_html = "".join(_reminder_card(r) for r in pending_sorted)
+    if not cards_html:
+        cards_html = "<div class='card'><p class='muted'>No pending thank-you reminders. You're all caught up.</p></div>"
+
+    # Done/dismissed history
+    done_html = ""
+    if done_list:
+        done_html = "<h2 style='margin-top:32px;color:#9ca3af;'>Sent / Skipped</h2>"
+        for r in sorted(done_list, key=lambda x: x.get("reminder_date",""), reverse=True)[:10]:
+            st = "Sent" if r.get("status") == "done" else "Skipped"
+            done_html += (
+                f"<div style='padding:8px 0;border-bottom:1px solid #f0e8de;display:flex;"
+                f"justify-content:space-between;align-items:center;font-size:0.88em;'>"
+                f"<span style='color:#6b7280;text-decoration:line-through;'>"
+                f"{escape(r.get('event_name',''))} — {escape(r.get('people',''))}"
+                f"</span><span style='color:#9ca3af;'>{st}</span></div>"
+            )
+
+    # Auto-fill reminder date (2 days from today) for the form
+    default_reminder = str(_d.today() + _td(days=2))
+    default_event    = str(_d.today())
+
+    body = f"""
+    {page_header("Thank-You Cards")}
+    <div class="card">
+        <h3>Add Reminder</h3>
+        <p style="font-size:0.88em;color:#78564b;margin-bottom:14px;">
+            Flag an event that deserves a thank-you card. The app will remind you when to send it.
+        </p>
+        <form method="POST" action="/thankyou-add">
+            <label>Event or occasion</label>
+            <input type="text" name="event_name" placeholder="e.g. Birthday party at the Martins" required>
+            <label>People to thank</label>
+            <input type="text" name="people" placeholder="e.g. the Martins, Grandma Rose">
+            <label>Date of the event</label>
+            <input type="date" name="event_date" value="{default_event}">
+            <label>Send reminder on</label>
+            <input type="date" name="reminder_date" value="{default_reminder}">
+            <label>Note (optional)</label>
+            <input type="text" name="note" placeholder="e.g. JP and Joseph should both sign it">
+            <button type="submit">Add Reminder</button>
+        </form>
+    </div>
+    <h2>Pending</h2>
+    {cards_html}
+    {done_html}"""
+    return html_page("Thank-You Cards", body)

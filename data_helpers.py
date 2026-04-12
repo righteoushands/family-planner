@@ -470,6 +470,31 @@ def clear_monica_history():
     safe_save_json(MONICA_HISTORY_FILE, {"messages": []})
 
 
+# ── Thank-you card reminders ──────────────────────────────────────────────────
+THANKYOU_FILE = "data/thankyou_reminders.json"
+
+def load_thankyou_reminders() -> list:
+    data = ensure_file(THANKYOU_FILE, [])
+    return data if isinstance(data, list) else []
+
+def save_thankyou_reminders(reminders: list):
+    safe_save_json(THANKYOU_FILE, reminders)
+
+def pending_thankyou_reminders() -> list:
+    """Return reminders with status 'pending', sorted by reminder_date ascending."""
+    from datetime import date as _d
+    today = str(_d.today())
+    reminders = load_thankyou_reminders()
+    pending = [r for r in reminders if isinstance(r, dict) and r.get("status") == "pending"]
+    return sorted(pending, key=lambda r: r.get("reminder_date", "9999-12-31"))
+
+def due_thankyou_reminders() -> list:
+    """Return pending reminders whose reminder_date is today or in the past."""
+    from datetime import date as _d
+    today = str(_d.today())
+    return [r for r in pending_thankyou_reminders() if r.get("reminder_date", "9999") <= today]
+
+
 # ── Recipe cards ─────────────────────────────────────────────────────────────
 RECIPES_FILE = "data/recipes.json"
 
