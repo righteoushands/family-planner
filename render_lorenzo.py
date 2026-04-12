@@ -831,6 +831,12 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
                        font-family:inherit;transition:all 0.2s;white-space:nowrap;">
             &#127897; Voice
         </button>
+        <a href="/meal-print" target="_blank" title="Open printable fridge card"
+           style="padding:4px 12px;border-radius:20px;font-size:0.76em;font-weight:700;
+                  border:1.5px solid #8b3a1a;background:#fff4ee;color:#8b3a1a;
+                  text-decoration:none;white-space:nowrap;flex-shrink:0;">
+            &#128424; Fridge Card
+        </a>
     </div>
     <!-- Voice picker panel -->
     <div id="lz-voice-panel"

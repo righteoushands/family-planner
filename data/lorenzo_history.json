@@ -2,16 +2,6 @@
   "messages": [
     {
       "role": "user",
-      "content": "Ask Izzy for this view and the ability to edit upon request",
-      "ts": "2026-04-12T08:23:02"
-    },
-    {
-      "role": "assistant",
-      "content": "[IZZY]Lauren is asking me to access and display her standing meal rules/constraints (things like \"meatless Fridays\" and \"Whole Foods preference\"). She wants to be able to review them with me and edit them as needed. Can you show me where these rules live in the system and give me a way to display them to her and allow updates when she requests them?[/IZZY]",
-      "ts": "2026-04-12T08:23:04"
-    },
-    {
-      "role": "user",
       "content": "Try again",
       "ts": "2026-04-12T08:48:27"
     },
@@ -299,6 +289,16 @@
       "role": "assistant",
       "content": "Looking at your inventory again and the week ahead:\n\nMISSING FROM LIST:\n\nFISH FRY SUPPLIES (Friday):\n- Buttermilk (for soaking flounder)\n- Cornmeal (for breading — unless cornbread mix covers this)\n- Old Bay seasoning (or fish fry seasoning)\n- Oil for frying (vegetable or peanut oil — confirm you have enough)\n\nBRINING SUPPLIES (Monday):\n- Kosher salt (large amount for 4-5 lb chicken)\n- Garlic cloves (for brine)\n\nJAMBALAYA (Saturday):\n- Rice (if you don't have enough white rice on hand)\n- Chicken broth (for jambalaya cooking liquid)\n\nGENERAL:\n- Milk (whole or 2% — you have some but check quantity for the week)\n- Bread for sandwiches (sardine sandwiches Friday lunch)\n\nThat's it. John's got a solid list now. Want him to go this week, or do you need anything else added?",
       "ts": "2026-04-12T09:53:15"
+    },
+    {
+      "role": "user",
+      "content": "Clear our chat history",
+      "ts": "2026-04-12T10:14:24"
+    },
+    {
+      "role": "assistant",
+      "content": "Done — chat history cleared.\n\nReady to start fresh whenever you need me, Lauren.",
+      "ts": "2026-04-12T10:14:25"
     }
   ]
 }
