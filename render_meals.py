@@ -51,8 +51,9 @@ def _plan_path(week_key: str) -> str:
 
 def _week_key(for_date: date = None) -> str:
     d = for_date or date.today()
-    # ISO week: YYYY-WW
-    return d.strftime("%Y-W%W")
+    # Use Monday of the week as canonical key (e.g. 2026-04-06)
+    monday = d - timedelta(days=d.weekday())
+    return monday.isoformat()
 
 def _week_start(for_date: date = None) -> date:
     d = for_date or date.today()

@@ -3286,12 +3286,13 @@ class Handler(BaseHTTPRequestHandler):
                     _mmeal = _mm.group(3).strip()
                     if _mday and _mslot:
                         try:
-                            _plan = load_meal_plan(iso)
+                            _wk = _week_key()
+                            _plan = load_meal_plan(_wk)
                             if _mmeal:
                                 _plan["days"].setdefault(_mday, {})[_mslot] = _mmeal
                             else:
                                 _plan["days"].setdefault(_mday, {}).pop(_mslot, None)
-                            _plan["start"] = _plan.get("start") or iso
+                            _plan["start"] = _plan.get("start") or _wk
                             save_meal_plan(_plan)
                         except Exception:
                             pass

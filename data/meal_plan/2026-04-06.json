@@ -1,5 +1,5 @@
 {
-  "week": "2026-W14",
+  "week": "2026-04-06",
   "generated": false,
   "days": {
     "Monday": {
@@ -8,25 +8,28 @@
       "dinner": "Steak, shrimp, salad, broccoli and cheese, mac and cheese",
       "snacks": "",
       "dad_lunch": "",
-      "snack": "Fruit, crackers and cheese, Greek yogurt, peanut butter, hummus"
+      "snack": "Fruit, crackers and cheese, Greek yogurt, peanut butter, hummus",
+      "boys_help": ""
     },
     "Tuesday": {
       "breakfast": "Eggs, fruit, cereal or toast",
       "lunch": "Pizza",
-      "dinner": "Leftover buffet (broccoli and cheese, curry rice, pizza, pancakes)",
+      "dinner": "Pizza",
       "snacks": "",
       "dad_lunch": "",
       "snack": "Fruit, crackers and cheese, Greek yogurt, peanut butter, hummus",
-      "helpers": "JP: Lead reheating leftover proteins and sides | Joseph: Assemble the buffet platters | Michael: Pour drinks, set out napkins"
+      "helpers": "JP: Lead reheating leftover proteins and sides | Joseph: Assemble the buffet platters | Michael: Pour drinks, set out napkins",
+      "boys_help": ""
     },
     "Wednesday": {
       "breakfast": "Eggs, fruit, cereal or toast",
       "lunch": "Chicken nuggets, French fries, fruit cups (little boys); leftovers (big boys)",
-      "dinner": "Brined roast chicken, baked sweet potatoes, roasted vegetables",
+      "dinner": "Brined roast chicken with roasted vegetables",
       "snacks": "",
       "dad_lunch": "",
       "snack": "Fruit, crackers and cheese, Greek yogurt, peanut butter, hummus",
-      "helpers": "JP: Prep vegetables for roasting, set up the sweet potato baking | Joseph: Monitor roasted chicken in oven | Michael: Wash vegetables"
+      "helpers": "Joseph leads beef stew prep — JP gives light direction (post-braces) — Michael: wash vegetables & pour ingredients",
+      "boys_help": ""
     },
     "Thursday": {
       "breakfast": "Eggs, fruit, cereal or toast",
@@ -35,7 +38,8 @@
       "snacks": "",
       "dad_lunch": "",
       "snack": "Fruit, crackers and cheese, Greek yogurt, peanut butter, hummus",
-      "helpers": "JP: Brown the meat, lead sauce and pasta | Joseph: Prep garlic and onions, cook pasta | Michael: Stir sauce (with supervision), grate cheese"
+      "helpers": "JP: Brown the meat, lead sauce and pasta | Joseph: Prep garlic and onions, cook pasta | Michael: Stir sauce (with supervision), grate cheese",
+      "boys_help": ""
     },
     "Friday": {
       "breakfast": "Eggs, fruit, cereal or toast",
@@ -44,7 +48,8 @@
       "snacks": "",
       "dad_lunch": "",
       "snack": "Fruit, crackers and cheese, Greek yogurt, peanut butter, hummus",
-      "helpers": "JP: Prep flounder for baking, lead the oven work | Joseph: Cook rice, prep vegetables | Michael: Wash green beans"
+      "helpers": "JP leads fish fry & plating — Joseph preps coleslaw & cornbread — Michael: measure breading ingredients",
+      "boys_help": ""
     },
     "Saturday": {
       "breakfast": "Eggs, fruit, cereal or toast",
@@ -52,7 +57,8 @@
       "dinner": "TBD",
       "snacks": "",
       "dad_lunch": "",
-      "snack": "Fruit, crackers and cheese, Greek yogurt, peanut butter, hummus"
+      "snack": "Fruit, crackers and cheese, Greek yogurt, peanut butter, hummus",
+      "boys_help": ""
     },
     "Sunday": {
       "breakfast": "Eggs, fruit, cereal or toast",
@@ -60,7 +66,8 @@
       "dinner": "TBD",
       "snacks": "",
       "dad_lunch": "",
-      "snack": "Fruit, crackers and cheese, Greek yogurt, peanut butter, hummus"
+      "snack": "Fruit, crackers and cheese, Greek yogurt, peanut butter, hummus",
+      "boys_help": ""
     }
   },
   "start": "2026-04-06"
