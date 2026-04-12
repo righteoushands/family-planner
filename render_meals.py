@@ -640,9 +640,17 @@ def _cycle_nutrition_hint(phase: str) -> str:
 # ---------------------------------------------------------------------------
 
 def render_meal_print_page(week_key: str = None) -> str:
-    wk   = week_key or _week_key()
+    if week_key:
+        wk = week_key
+    else:
+        # Default to upcoming week when it's late in the week (Fri/Sat/Sun = planning time)
+        today = date.today()
+        if today.weekday() >= 4:  # Friday=4, Saturday=5, Sunday=6
+            wk = (today + timedelta(days=(7 - today.weekday()))).isoformat()
+        else:
+            wk = _week_key()
     plan = load_meal_plan(wk)
-    ws   = _week_start()
+    ws   = date.fromisoformat(wk) if len(wk) == 10 else _week_start()
     days_data = plan.get("days", {})
 
     week_label = ws.strftime("Week of %B %d, %Y")

@@ -540,7 +540,9 @@ def render_lorenzo_page(q: str = "", from_: str = "") -> str:
     _ps        = load_planning_session()
     _psinfo    = planning_session_summary(_ps)
     plan_active    = _psinfo.get("active", False)
-    plan_week_iso  = _psinfo.get("week_iso", _week_sunday(today).isoformat())
+    # Use Monday-based week key (matching meal file naming); if late in week, point to NEXT Monday
+    _default_plan_mon = (today + timedelta(days=(7 - today.weekday()))) if today.weekday() >= 4 else (today - timedelta(days=today.weekday()))
+    plan_week_iso  = _psinfo.get("week_iso", _default_plan_mon.isoformat())
     plan_day       = _psinfo.get("current_day",  "Sunday")
     plan_slot      = _psinfo.get("current_slot", "breakfast")
     plan_day_idx   = _psinfo.get("day_idx",  0)
@@ -703,7 +705,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
         <div style="display:flex;align-items:center;gap:14px;">
             {new_conv_btn}
             <a href="/meals" style="font-size:0.78em;color:#8b3a1a;text-decoration:none;">&#127869; Meal Planner</a>
-            <a href="/meal-print" target="_blank"
+            <a href="/meal-print?week={escape(plan_week_iso)}" target="_blank"
                style="font-size:0.78em;color:#8b3a1a;text-decoration:none;
                       background:#fff4ee;border:1px solid #e4a87a;border-radius:6px;
                       padding:3px 8px;white-space:nowrap;">
@@ -831,7 +833,8 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
                        font-family:inherit;transition:all 0.2s;white-space:nowrap;">
             &#127897; Voice
         </button>
-        <a href="/meal-print" target="_blank" title="Open printable fridge card"
+        <a id="lz-fridge-card-btn" href="/meal-print?week={escape(plan_week_iso)}" target="_blank"
+           title="Open printable fridge card"
            style="padding:4px 12px;border-radius:20px;font-size:0.76em;font-weight:700;
                   border:1.5px solid #8b3a1a;background:#fff4ee;color:#8b3a1a;
                   text-decoration:none;white-space:nowrap;flex-shrink:0;">
@@ -1505,7 +1508,7 @@ function lzSend() {{
                         var _printRow = document.createElement('div');
                         _printRow.style.cssText = 'margin-top:10px;';
                         var _printLink = document.createElement('a');
-                        _printLink.href = '/meal-print';
+                        _printLink.href = '/meal-print?week=' + encodeURIComponent(_lzPlanWeekIso || _lzIso.slice(0,10));
                         _printLink.target = '_blank';
                         _printLink.textContent = '\U0001F5A8 Print Fridge Card';
                         _printLink.style.cssText = 'display:inline-block;padding:7px 16px;'
@@ -1733,6 +1736,14 @@ function _lzUpdatePlanUI(info) {{
     if (bar && _lzPlanTotal > 0) bar.style.width = Math.round(_lzPlanDone / _lzPlanTotal * 100) + '%';
     var weekLbl = document.getElementById('lz-plan-week-lbl');
     if (weekLbl && info.week_iso) weekLbl.textContent = info.week_iso;
+    // Keep fridge card buttons pointing at the planning week
+    if (info.week_iso) {{
+        var _wkParam = '?week=' + encodeURIComponent(info.week_iso);
+        ['lz-fridge-card-btn'].forEach(function(id) {{
+            var el = document.getElementById(id);
+            if (el) el.href = '/meal-print' + _wkParam;
+        }});
+    }}
     var countEl = document.querySelector('#lz-plan-banner span[style*="color:#aaa"]');
     if (countEl) countEl.textContent = '(' + _lzPlanDone + '/' + _lzPlanTotal + ' meals planned)';
 }}
