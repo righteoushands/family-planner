@@ -1,39 +1,6 @@
 {
   "events": [
     {
-      "title": "USNSCC Pentagon Division - April Drill (#1)",
-      "start": "2026-04-11T07:00",
-      "end": "2026-04-11T15:00",
-      "all_day": false,
-      "location": "6000 Strathmore Rd\\nNorth Chesterfield VA 23234\\nUnited States",
-      "notes": "6000 Strathmore Rd - America Division-Richmond  Co-d",
-      "calendar": "USNSCC Pentagon Division (JP & Joe)",
-      "color": "#e74c3c",
-      "source": "subscribed"
-    },
-    {
-      "title": "John's class",
-      "start": "2026-04-11T08:00",
-      "end": "2026-04-11T17:00",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Easter Egg hunt at Aletha’s house!",
-      "start": "2026-04-11T12:00",
-      "end": "2026-04-11T13:00",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Apple Calendar",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
       "title": "Divine Mercy Sunday (Second Sunday of Easter)",
       "start": "2026-04-12",
       "end": "2026-04-12",
@@ -42,6 +9,17 @@
       "notes": "//thelittleroseshop.com/search?options%255Bprefix%255D=last&q=divine+mercy  ------   Powered by addevent.com  Share your next event with us!  ",
       "calendar": "Liturgical Calendar (Little Rose Shop)",
       "color": "#e91e8c",
+      "source": "subscribed"
+    },
+    {
+      "title": "John's class",
+      "start": "2026-04-12T08:00",
+      "end": "2026-04-12T17:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
       "source": "subscribed"
     },
     {
@@ -1695,5 +1673,5 @@
       "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-04-11T18:18:58.086253"
+  "fetched_at": "2026-04-12T08:08:31.760508"
 }

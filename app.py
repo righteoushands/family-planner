@@ -909,6 +909,65 @@ class Handler(BaseHTTPRequestHandler):
             except BrokenPipeError: pass
             return
 
+        elif path == "/dev-grep-files":
+            # Izzy's GREP tool — search for a pattern across project source files.
+            # Query params: pattern (required), path (optional glob, default *.py)
+            import pathlib as _pg
+            import re as _rg
+            _dv = self._get_viewer()
+            if not (_dv and _auth.is_admin(_dv)):
+                self.send_response(403); self.end_headers(); return
+            _grep_pat  = query.get("pattern", [""])[0].strip()
+            _grep_glob = query.get("path",    ["*.py"])[0].strip() or "*.py"
+            if not _grep_pat:
+                self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                try:
+                    self.wfile.write(b"pattern required")
+                except BrokenPipeError:
+                    pass
+                return
+            try:
+                _rx_grep = _rg.compile(_grep_pat, _rg.IGNORECASE)
+            except _rg.error as _rge:
+                self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                try:
+                    self.wfile.write(f"Invalid regex: {_rge}".encode())
+                except BrokenPipeError:
+                    pass
+                return
+            _allowed = {".py",".js",".ts",".html",".css",".json",".md",".txt"}
+            _root = _pg.Path(".")
+            try:
+                _files = sorted(_root.glob(_grep_glob))
+            except Exception:
+                _files = []
+            _lines_out: list[str] = []
+            _MATCH_LIMIT = 80
+            for _fp in _files:
+                if _fp.suffix not in _allowed or not _fp.is_file():
+                    continue
+                try:
+                    _txt = _fp.read_text(encoding="utf-8", errors="replace").splitlines()
+                except Exception:
+                    continue
+                for _ln_i, _ln_txt in enumerate(_txt, 1):
+                    if _rx_grep.search(_ln_txt):
+                        _lines_out.append(f"{_fp.name}:{_ln_i}: {_ln_txt}")
+                        if len(_lines_out) >= _MATCH_LIMIT:
+                            _lines_out.append(f"... (capped at {_MATCH_LIMIT} matches)")
+                            break
+                if len(_lines_out) >= _MATCH_LIMIT:
+                    break
+            _grep_result = (f"=== GREP: {_grep_pat!r} in {_grep_glob} ===\n\n" +
+                            ("\n".join(_lines_out) if _lines_out else "(no matches)"))
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            try: self.wfile.write(_grep_result.encode("utf-8", errors="replace"))
+            except BrokenPipeError: pass
+            return
+
         elif path == "/memory-book":      body = render_memory_book_page()
         elif path == "/liturgical":      body = render_liturgical_page()
         elif path == "/prayer":           body = render_liturgical_page()
@@ -3202,6 +3261,20 @@ class Handler(BaseHTTPRequestHandler):
                             add_recipe(_rc_data)
                     except Exception:
                         pass
+                # ── Parse <meal_constraint_update> and save to app_settings ──
+                _mc_rx = _re.compile(
+                    r'<meal_constraint_update>([\s\S]*?)</meal_constraint_update>',
+                    _re.IGNORECASE
+                )
+                for _mcm in _mc_rx.finditer(text):
+                    _new_mc = _mcm.group(1).strip()
+                    if _new_mc:
+                        try:
+                            _mcs = load_app_settings()
+                            _mcs.setdefault("family_constraints", {})["meal_constraints"] = _new_mc
+                            save_app_settings(_mcs)
+                        except Exception:
+                            pass
                 ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                 _apply_frol_updates(text, weekday)
                 append_lorenzo_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
@@ -3480,28 +3553,36 @@ class Handler(BaseHTTPRequestHandler):
                                   f"{_now_et_iz.strftime('%-I:%M %p')} ET]")
                 full_user_msg = f"{_date_stamp_iz}\n{message}" + file_context if file_context else f"{_date_stamp_iz}\n{message}"
 
-                # Save ONLY what Lauren typed — never the injected log/file context.
-                # That context is for Claude only, not for history display.
+                # Save to history.  For file reads, store the actual content
+                # (truncated) so Izzy can reference it in future turns.
                 import re as _re_save
                 clean_msg = _re_save.sub(r'\n\n\[SERVER LOG.*?\n\]', '', message, flags=_re_save.DOTALL).strip()
                 if is_auto_read:
-                    history_content = "[file read]"
+                    # Store real content with a [FILE_READ] prefix so the UI
+                    # can show a compact chip while Claude gets the full text.
+                    history_content = "[FILE_READ]\n" + message[:2500]
                 else:
                     history_content = clean_msg + ("\n[Lauren attached a screenshot]" if image_b64 else "")
                 append_dev_messages([{"role": "user", "content": history_content, "ts": ts_now}])
 
                 server_history = load_dev_history()
                 messages = []
-                for h in server_history[-DEV_CONTEXT_MAX:]:
+                # When is_auto_read the last entry is the current file read —
+                # we'll add it via full_user_msg (with date stamp), so exclude it.
+                _hist_slice = server_history[-DEV_CONTEXT_MAX:-1] if is_auto_read else server_history[-DEV_CONTEXT_MAX:]
+                for h in _hist_slice:
                     role = h.get("role","user"); content = h.get("content","")
-                    # Skip auto-read placeholders — they just clutter context
-                    if content == "[file read]": continue
-                    if role in ("user","assistant") and content:
+                    if content.startswith("[FILE_READ]\n"):
+                        # Send file content to Claude, strip display prefix
+                        _frc = content[len("[FILE_READ]\n"):]
+                        if _frc and role in ("user","assistant"):
+                            messages.append({"role": role, "content": _frc})
+                    elif role in ("user","assistant") and content:
                         messages.append({"role": role, "content": content})
 
                 # Build the current turn
                 if is_auto_read:
-                    # Auto-read: full file content wasn't saved to history, add it now
+                    # Full file content (with date stamp) for the current read
                     messages.append({"role": "user", "content": full_user_msg})
                 elif image_b64:
                     current_content = [

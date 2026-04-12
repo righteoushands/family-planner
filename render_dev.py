@@ -142,6 +142,16 @@ READ FILES: [READ: filename.py:start_line-end_line]
   Read 100-150 lines at a time to stay within API limits. For large files, jump to
   relevant sections — grep mentally for likely locations rather than reading linearly.
   ONE [READ:] tag per response. The system fetches it and replies before your next turn.
+  Previous file reads ARE retained in context — do NOT re-read a file you already saw.
+
+SEARCH: [GREP: pattern:glob]
+  Search across files for a regex pattern. Returns matching lines with line numbers.
+  Examples:
+    [GREP: meal_constraints:*.py]          — find all uses of meal_constraints in Python files
+    [GREP: def load_.*history:*.py]        — find history loader functions
+    [GREP: /lorenzo-rule-save:app.py]      — find a specific endpoint
+  Use GREP first when you don't know which file/line something lives in.
+  ONE [GREP:] tag per response. Cannot combine with [READ:] in the same response.
 
 APPLY FIXES — TWO METHODS (prefer WRITE):
 
@@ -552,8 +562,11 @@ async function streamFelix(payload, isAutoRead, image, depth) {{
     _renderHandoffBtns(full, bubble.lastElementChild || bubble);
     box.scrollTop = box.scrollHeight;
 
-    // ── Auto-process [READ:] tags — chain up to 4 rounds so Izzy can work through complex tasks ──
-    if (full && depth < 4) await autoHandleReads(full, depth + 1);
+    // ── Auto-process [READ:] and [GREP:] tags — chain up to 4 rounds ──
+    if (full && depth < 4) {{
+      await autoHandleReads(full, depth + 1);
+      await autoHandleGreps(full, depth + 1);
+    }}
 
   }} catch(err) {{
     thinkEl.style.display = 'none';
@@ -600,6 +613,35 @@ async function autoHandleReads(fullText, depth) {{
 
   const passNote = depth > 1 ? ' (round ' + depth + ' of 4)' : '';
   setThinking('Izzy is reading the code\u2026' + passNote);
+  await streamFelix(contextPayload, true, null, depth);
+}}
+
+// ── Auto-handle [GREP:] tags — search codebase, send results back ──
+async function autoHandleGreps(fullText, depth) {{
+  depth = depth || 1;
+  const grepPattern = /\[GREP:\s*([^:\]]+):([^\]]+)\]/g;
+  const searches = [];
+  let m;
+  while ((m = grepPattern.exec(fullText)) !== null) {{
+    searches.push({{ pattern: m[1].trim(), path: m[2].trim() }});
+  }}
+  if (searches.length === 0) return;
+  const limited = searches.slice(0, 2);
+  const parts = [];
+  for (const {{pattern, path}} of limited) {{
+    try {{
+      const params = new URLSearchParams({{pattern, path}});
+      const resp = await fetch('/dev-grep-files?' + params);
+      if (resp.ok) parts.push(await resp.text());
+    }} catch(e) {{ parts.push('GREP failed for ' + pattern + ': ' + e.message); }}
+  }}
+  if (parts.length === 0) return;
+  const contextPayload =
+    '[SYSTEM: You requested the following grep results. Here they are \u2014 please continue your analysis.]\\n\\n' +
+    parts.join('\\n\\n\u2500\u2500\u2500\\n\\n') +
+    '\\n\\n[END OF FILE SECTIONS]';
+  const passNote = depth > 1 ? ' (round ' + depth + ' of 4)' : '';
+  setThinking('Izzy is searching the code\u2026' + passNote);
   await streamFelix(contextPayload, true, null, depth);
 }}
 
@@ -959,15 +1001,27 @@ import re as _re
 
 def _clean_user_history(text: str) -> str:
     """Strip auto-injected server log / system context from saved user messages."""
+    if text.startswith("[FILE_READ]\n"):
+        # File reads stored with prefix — show compact label only
+        return "📄 [file read]"
     # Remove [SERVER LOG — ...] block. Ends with \n] (bracket on its own line).
-    # Can't use [^\[] because log lines contain [ characters (e.g. [05/Apr/2026]).
     text = _re.sub(r'\n\n\[SERVER LOG.*?\n\]', '', text, flags=_re.DOTALL)
     # Remove any [SYSTEM: ...][END OF FILE SECTIONS] auto-read injections
     text = _re.sub(r'\n\n\[SYSTEM:.*?\[END OF FILE SECTIONS\]', '', text, flags=_re.DOTALL)
     return text.strip()
 
+
 def _user_bubble(text: str, ts: str) -> str:
     ts_label = f'<div style="font-size:0.7em;color:#94a3b8;margin-top:4px;text-align:right;">{escape(ts[:16])}</div>' if ts else ""
+    if text.startswith("[FILE_READ]\n"):
+        # Show as a compact dimmed chip — content was already sent to Claude
+        fname_line = text[len("[FILE_READ]\n"):].split("\n")[0][:80]
+        return f"""<div style="display:flex;justify-content:flex-end;margin:2px 0;">
+  <div style="max-width:80%;background:#e2e8f0;color:#64748b;padding:5px 10px;
+              border-radius:10px;font-size:0.78em;font-style:italic;">
+    &#128196; {escape(fname_line)}{ts_label}
+  </div>
+</div>"""
     clean = _clean_user_history(text)
     return f"""<div style="display:flex;justify-content:flex-end;">
   <div style="max-width:80%;background:#1e3a8a;color:white;padding:10px 14px;
@@ -979,8 +1033,9 @@ def _user_bubble(text: str, ts: str) -> str:
 
 def _felix_bubble(text: str, ts: str) -> str:
     ts_label = f'<div style="font-size:0.7em;color:#94a3b8;margin-top:6px;">{escape(ts[:16])}</div>' if ts else ""
-    # Strip [READ:...], [FIX:...][/FIX], and handoff tags from history
+    # Strip [READ:...], [GREP:...], [FIX:...][/FIX], and handoff tags from history
     clean = _re.sub(r'\[READ:[^\]]*\]', '', text)
+    clean = _re.sub(r'\[GREP:[^\]]*\]', '', clean)
     clean = _re.sub(r'\[FIX:[^\]]*\].*?\[/FIX\]', '', clean, flags=_re.DOTALL)
     clean = _re.sub(r'\[[A-Z]+\][\s\S]*?\[/[A-Z]+\]', '', clean)
     clean = clean.strip()

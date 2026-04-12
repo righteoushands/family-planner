@@ -1,4 +1,19 @@
 {
   "weekday": "Wednesday",
-  "grid": {}
+  "grid": {
+    "Lauren": {
+      "11:00 AM": "JUSTICE — Family Strength + Skill Block. Station 1 (You + JP): 3 rounds of goblet squats (12), push-ups (10), planks (20sec), bird dogs each side (10). JP does parallel work: push-ups, pull-ups, squats. Station 2 (Joseph + Michael): Joseph does bodyweight circuit; Michael does foundational movement patterns. Station 3 (Family Game): Relay races, broad jumps, balance challenges (5min). Cool-down & stretch as family.",
+      "11:30 AM": "JUSTICE — Family Strength + Skill Block (cool-down & stretch)",
+      "8:30 PM": "Hinge Health PT — Ankle (10min rotating video)",
+      "8:00 AM": "Update YNAB (15 min)"
+    },
+    "JP": {
+      "11:00 AM": "JUSTICE — Family Strength + Skill Block. Station 1 (You + Lauren): 3 rounds of push-ups, pull-ups, squats (PE credit). Lauren does goblet squats, push-ups, planks, bird dogs. Station 2 (Joseph + Michael): Joseph does bodyweight circuit; Michael does foundational movement patterns. Station 3 (Family Game): Relay races, broad jumps, balance challenges. Cool-down & stretch as family.",
+      "11:30 AM": "JUSTICE — Family Strength + Skill Block (cool-down & stretch)"
+    },
+    "Joseph": {
+      "11:00 AM": "JUSTICE — Family Strength + Skill Block. Station 2 (You + Michael): 3 rounds of bodyweight squats (15), push-ups (8), planks (30sec), jumping jacks (10). Michael does simpler version. Station 1 (Lauren + JP): Lauren & JP do strength work. Station 3 (Family Game): Relay races, broad jumps, balance challenges. Cool-down & stretch as family.",
+      "11:30 AM": "JUSTICE — Family Strength + Skill Block (cool-down & stretch)"
+    }
+  }
 }

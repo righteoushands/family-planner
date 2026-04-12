@@ -1,4 +1,9 @@
 {
   "weekday": "Thursday",
-  "grid": {}
+  "grid": {
+    "Lauren": {
+      "8:30 PM": "Hinge Health PT — Ankle (10min rotating video)",
+      "8:00 AM": "Update YNAB (15 min)"
+    }
+  }
 }

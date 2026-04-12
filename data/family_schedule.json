@@ -45,8 +45,8 @@
       "9:30 AM": "School",
       "10:00 AM": "School",
       "10:30 AM": "School",
-      "11:00 AM": "Exercise",
-      "11:30 AM": "Exercise",
+      "11:00 AM": "FORTITUDE — Family Run (JP & Joseph run 1.5-2mi & 1-1.5mi for CAP training; Lauren run/walk intervals 0.75-1mi for ankle loading & core engagement; Michael bikes/scoots alongside; James in stroller). Warm-up 5min easy pace, main work 18min, cool-down 5min walk & breathe together.",
+      "11:30 AM": "FORTITUDE — Family Run (continued) & Cool-down",
       "12:00 PM": "Lunch & Clean Kitchen",
       "12:30 PM": "Lunch & Clean Kitchen",
       "1:00 PM": "Jobs — weekly",
@@ -103,9 +103,9 @@
       "6:00 AM": "Up & moving",
       "7:00 AM": "Breakfast",
       "8:00 AM": "School — Math",
-      "9:00 AM": "Piano Lessons",
+      "9:00 AM": "School",
       "10:00 AM": "Piano Lessons",
-      "11:00 AM": "Exercise",
+      "11:00 AM": "JUSTICE — Family Strength + Skill Block. Station 1 (Lauren + JP): Lauren does goblet squats, push-ups, planks, bird dogs; JP does push-ups, pull-ups, squats. Station 2 (Joseph + Michael): Joseph does bodyweight circuit; Michael does foundational movement patterns. Station 3 (Family Game): Relay races, broad jumps, balance challenges. 25-30min total.",
       "12:00 PM": "Lunch & Clean Kitchen",
       "1:00 PM": "Jobs — weekly",
       "2:00 PM": "School",
@@ -117,7 +117,9 @@
       "8:00 PM": "",
       "6:30 AM": "Morning Prayer (with family or on your own)",
       "7:30 AM": "Morning Jobs",
-      "8:30 AM": "School — Math"
+      "8:30 AM": "School — Math",
+      "9:30 AM": "Piano Lessons",
+      "11:30 AM": "JUSTICE — Family Strength + Skill Block (continued) & Cool-down. Stretch as family. Talk about what each person worked on."
     },
     "Thursday": {
       "6:00 AM": "Up & moving",

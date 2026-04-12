@@ -1,4 +1,27 @@
 {
   "weekday": "Monday",
-  "grid": {}
+  "grid": {
+    "Lauren": {
+      "11:00 AM": "FORTITUDE — Family Run. Run/walk intervals 0.75-1mi for ankle loading & core engagement. JP & Joseph run alongside (1.5-2mi & 1-1.5mi CAP training). Michael bikes/scoots. James in stroller. Warm-up 5min easy pace, main work 18min, cool-down 5min walk & breathe together.",
+      "11:30 AM": "FORTITUDE — Family Run (cool-down & breathing)",
+      "8:30 PM": "Hinge Health PT — Ankle (10min rotating video)",
+      "8:00 AM": "Update YNAB (15 min)"
+    },
+    "JP": {
+      "11:00 AM": "FORTITUDE — Family Run. 1.5-2mi run for CAP training at conversational pace. Lauren does run/walk intervals. Joseph runs 1-1.5mi. Michael bikes/scoots alongside. James in stroller. Warm-up 5min easy pace, main work 18min, cool-down 5min walk & breathe together.",
+      "11:30 AM": "FORTITUDE — Family Run (cool-down & breathing)"
+    },
+    "Joseph": {
+      "11:00 AM": "FORTITUDE — Family Run. 1-1.5mi run for CAP training at your pace. JP runs 1.5-2mi. Lauren does run/walk intervals. Michael bikes/scoots alongside. James in stroller. Warm-up 5min easy pace, main work 18min, cool-down 5min walk & breathe together.",
+      "11:30 AM": "FORTITUDE — Family Run (cool-down & breathing)"
+    },
+    "Michael": {
+      "11:00 AM": "FORTITUDE — Family Run. Bike or scooter alongside the family run. JP & Joseph run. Lauren does run/walk intervals. James in stroller. Be part of the team.",
+      "11:30 AM": "FORTITUDE — Family Run (cool-down & breathing)"
+    },
+    "James": {
+      "11:00 AM": "FORTITUDE — Family Run. Stroller ride while family runs. Watch your big brothers work hard. You're part of the team.",
+      "11:30 AM": "FORTITUDE — Family Run (cool-down & breathing)"
+    }
+  }
 }

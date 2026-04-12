@@ -259,5 +259,29 @@
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false
+  },
+  {
+    "text": "Call MD re: meds for hair loss",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-15",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Tidy-up the garage after Rhys came to play",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-12",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Tidy-up the garage after Rhys came to play",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-12",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
   }
 ]

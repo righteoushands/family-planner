@@ -14,6 +14,16 @@
       "role": "user",
       "content": "I have some questions about our curriculum and how to improve it.",
       "ts": "2026-04-07T22:08:02"
+    },
+    {
+      "role": "user",
+      "content": "Lauren needs CAP's specific fitness standards for JP and Joseph: running distances/times, push-up reps, sit-up reps, and any other requirements. Once she has those, we'll build a tracking system into the family dashboard.",
+      "ts": "2026-04-11T21:17:40"
+    },
+    {
+      "role": "assistant",
+      "content": "Good evening, Lauren. I'm glad you're thinking ahead about curriculum refinement—that's the mark of a thoughtful educator. I'm listening.\n\nBefore we dive into your questions, I notice you've flagged something important about CAP fitness standards. That's Coach's domain, and he'll need to pull the specifics so we can build proper tracking into your dashboard. Let me brief him while we talk through your curriculum concerns.\n\n[COACH]Lauren needs CAP's specific fitness requirements for JP (age 14) and Joseph (age 12): running distances, target times, push-up reps, sit-up reps, and any other standards. Once confirmed, we'll integrate these into a family dashboard tracker so she can monitor progress weekly.[/COACH]\n\n---\n\nNow, **what are your curriculum questions?** I'm particularly curious about:\n\n- Are the boys progressing well at their current levels, or do you sense gaps?\n- Which subjects feel most alive to the family, and which ones feel sluggish?\n- Are there books or topics you'd like to weave in that aren't yet part of the schedule?\n- How is the balance between independent work and peer teaching working for JP and Joseph?\n- Is there a particular virtue or habit you'd like to strengthen through the curriculum this term?\n\nEaster is a natural renewal point. This is a good moment to assess and adjust. What's on your mind?",
+      "ts": "2026-04-11T21:17:45"
     }
   ]
 }
