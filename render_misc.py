@@ -3266,12 +3266,12 @@ def _render_meals_step(iso: str, target_date) -> str:
     except Exception:
         pass
 
-    icons = {"breakfast":"☀️","lunch":"🥗","dinner":"🍽","snacks":"🍎","dad_lunch":"💼"}
-    labels = {"breakfast":"Breakfast","lunch":"Lunch","dinner":"Dinner","snacks":"Snacks","dad_lunch":"Dad's Lunch"}
+    icons = {"breakfast":"☀️","lunch":"🥗","dinner":"🍽","dessert":"🍮","snacks":"🍎","dad_lunch":"💼"}
+    labels = {"breakfast":"Breakfast","lunch":"Lunch","dinner":"Dinner","dessert":"Dessert","snacks":"Snacks","dad_lunch":"Dad's Lunch"}
 
     meal_rows = ""
     has_meals = False
-    for slot in ["breakfast","lunch","dinner","snacks","dad_lunch"]:
+    for slot in ["breakfast","lunch","dinner","dessert","snacks","dad_lunch"]:
         val = (slots.get(slot) or "").strip()
         if not val: continue
         has_meals = True

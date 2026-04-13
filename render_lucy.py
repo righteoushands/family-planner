@@ -949,7 +949,7 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
         for _wd in ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]:
             _wd_meals = _wdays.get(_wd, {})
             _wd_items = [f"{sl.capitalize()}: {_wd_meals[sl]}" for sl in
-                         ["breakfast","lunch","dinner","snacks","dad_lunch"]
+                         ["breakfast","lunch","dinner","dessert","snacks","dad_lunch"]
                          if _wd_meals.get(sl)]
             if _wd_items:
                 lines.append(f"- {_wd}: " + " | ".join(_wd_items))

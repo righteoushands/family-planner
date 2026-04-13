@@ -74,7 +74,7 @@ def _get_current_meal_plan(iso: str) -> str:
         for day_name, slots in days_data.items():
             if isinstance(slots, dict):
                 parts = []
-                for slot in ("breakfast", "lunch", "dinner", "snack"):
+                for slot in ("breakfast", "lunch", "dinner", "dessert", "snacks", "dad_lunch"):
                     val = slots.get(slot, "").strip()
                     if val:
                         parts.append(f"{slot.capitalize()}: {val}")
@@ -436,7 +436,7 @@ def build_lorenzo_context(iso: str, weekday: str, date_label: str) -> str:
         "you can output: [MEAL_UPDATE:DayName:slot]meal name[/MEAL_UPDATE]",
         "This will save directly to the meal plan. Example:",
         "[MEAL_UPDATE:Monday:dinner]Sheet pan chicken thighs with roasted broccoli[/MEAL_UPDATE]",
-        "Slots are: breakfast, lunch, dinner, snacks, dad_lunch.",
+        "Slots are: breakfast, lunch, dinner, dessert, snacks, dad_lunch.",
         "",
         "HELPER JOB ASSIGNMENTS: To save kitchen helper roles for a day (who leads, who assists,",
         "who does simple tasks), use the 'helpers' slot:",

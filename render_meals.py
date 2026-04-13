@@ -405,13 +405,13 @@ def render_meal_today_card(target_date=None, compact: bool = False) -> str:
         slots = {}
         prep  = ""
 
-    meal_icons  = {"breakfast": "☀️", "lunch": "🥗", "dinner": "🍽️", "snacks": "🍎"}
+    meal_icons  = {"breakfast": "☀️", "lunch": "🥗", "dinner": "🍽️", "dessert": "🍮", "snacks": "🍎"}
     meal_labels = {"breakfast": "Breakfast", "lunch": "Lunch",
-                   "dinner": "Dinner", "snacks": "Snacks"}
+                   "dinner": "Dinner", "dessert": "Dessert", "snacks": "Snacks"}
     boys_help   = (slots.get("boys_help") or "").strip()
 
     rows_html = ""
-    for slot in ["breakfast", "lunch", "dinner", "snacks"]:
+    for slot in ["breakfast", "lunch", "dinner", "dessert", "snacks"]:
         val = (slots.get(slot) or "").strip()
         if not val:
             continue

@@ -1817,13 +1817,13 @@ def _render_meal_print_section(target_date, weekday: str) -> str:
     except Exception:
         return ""
 
-    meal_icons  = {"breakfast": "☀", "lunch": "▸", "dinner": "●", "snacks": "◆"}
+    meal_icons  = {"breakfast": "☀", "lunch": "▸", "dinner": "●", "dessert": "◇", "snacks": "◆"}
     meal_labels = {"breakfast": "Breakfast", "lunch": "Lunch",
-                   "dinner": "Dinner", "snacks": "Snacks"}
+                   "dinner": "Dinner", "dessert": "Dessert", "snacks": "Snacks"}
     boys_help   = (slots.get("boys_help") or "").strip()
 
     rows = ""
-    for slot in ["breakfast", "lunch", "dinner", "snacks"]:
+    for slot in ["breakfast", "lunch", "dinner", "dessert", "snacks"]:
         val = (slots.get(slot) or "").strip()
         if not val:
             continue
