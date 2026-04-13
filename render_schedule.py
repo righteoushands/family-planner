@@ -431,6 +431,7 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
         "lunch": "lunch", "dinner": "dinner", "snack": "snacks", "snacks": "snacks",
     }
     rows = []
+    rows_del = []   # parallel — None means use default "Hide" button
     seen_sub_texts: set = set()   # dedup: tracks sub-item texts already rendered
     seen_single_labels: set = set()  # dedup: tracks single-row labels already rendered
     for item in day_list:
@@ -485,6 +486,7 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
                 f'{del_btn}'
                 f'</div>'
             )
+            rows_del.append(None)
             continue
 
         if subs:
@@ -506,6 +508,7 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
                 f'{_dl_sub_items_html(subs, c_id, iso, c_bg, child)}'
                 f'</div></div>'
             )
+            rows_del.append(None)
         elif item.get("task_id") and item.get("checkable"):
             # Single-checkbox item — apply any override
             raw_tid = item["task_id"]
@@ -545,18 +548,22 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
                 f'<span class="dl-time">{t_disp}</span>'
                 f'<span class="dl-kind-icon">{icon}</span>'
                 f'<span class="dl-label {dst}">{label}{_ov_indicator}</span>'
-                f'<div class="dl-check" style="display:flex;align-items:center;gap:6px;">'
-                f'<button class="task-ov-btn no-print" onclick="_tovToggle(\'{tidj}\')" title="Edit task">✏</button>'
+                f'<div class="dl-check">'
                 f'<input type="checkbox" {chk}'
                 f' style="width:16px;height:16px;accent-color:{c_bg};"'
                 f' onchange="toggleDashTask(this,\'{tidj}\',\'{c_id}\',\'{escape(iso)}\')">'
                 f'</div></div>'
-                f'<div class="task-ov-panel no-print" id="tov-{tid}" style="display:none;">'
-                f'<button class="tov-dismiss" onclick="_tovAct(\'{tidj}\',\'{c_id}\',\'{escape(iso)}\',\'{_lbl_js}\',\'dismiss\')">× Dismiss today</button>'
-                f'<button onclick="_tovAct(\'{tidj}\',\'{c_id}\',\'{escape(iso)}\',\'{_lbl_js}\',\'postpone\',\'{_tmr}\')">→ Tomorrow</button>'
-                f'<span class="tov-time-row">⏰<input type="time" id="tov-t-{tid}" value="{_time_val}">'
-                f'<button onclick="_tovActTime(\'{tidj}\',\'{c_id}\',\'{escape(iso)}\',\'{_lbl_js}\')">Set</button></span>'
-                f'<button class="tov-close" onclick="_tovClose(\'{tidj}\')" title="Close">✕</button>'
+            )
+            rows_del.append(
+                f'<div class="sw-del sw-ov-tray no-print">'
+                f'<button class="sw-ov-btn sw-ov-dismiss" '
+                f'onclick="_tovAct(\'{tidj}\',\'{c_id}\',\'{escape(iso)}\',\'{_lbl_js}\',\'dismiss\')">'
+                f'&#10005; Dismiss</button>'
+                f'<button class="sw-ov-btn sw-ov-tmr" '
+                f'onclick="_tovAct(\'{tidj}\',\'{c_id}\',\'{escape(iso)}\',\'{_lbl_js}\',\'postpone\',\'{_tmr}\')">'
+                f'&#8594; Tomorrow</button>'
+                f'<button class="sw-ov-btn sw-ov-hide" onclick="_swDel(this)">'
+                f'&#8942; Hide</button>'
                 f'</div>'
             )
         else:
@@ -583,15 +590,17 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
                 f'<span class="dl-label" style="color:{lbl_color};">{label}{meal_note}</span>'
                 f'</div>'
             )
+            rows_del.append(None)
     _child_esc = escape(child)
     _iso_esc   = escape(iso)
+    _std_del   = '<button class="sw-del no-print" onclick="_swDel(this)" aria-label="Hide">&#10005; Hide</button>'
     wrapped = [
         f'<div class="sw-wrap" data-child="{_child_esc}" data-iso="{_iso_esc}">'
         '<button class="sw-add no-print" onclick="_swAdd(this)" aria-label="Add task below">+ Add</button>'
         '<div class="sw-inner">' + r + '</div>'
-        '<button class="sw-del no-print" onclick="_swDel(this)" aria-label="Hide">&#10005; Hide</button>'
+        + (d if d is not None else _std_del) +
         '</div>'
-        for r in rows
+        for r, d in zip(rows, rows_del)
     ]
     return "".join(wrapped)
 

@@ -868,6 +868,18 @@ pre {{
          border:none;display:flex;align-items:center;justify-content:center;
          font-size:.78em;font-weight:700;letter-spacing:.02em;cursor:pointer;
          font-family:inherit;opacity:0;user-select:none;}}
+.sw-ov-tray{{position:absolute;right:0;top:0;bottom:0;width:200px;background:transparent;
+             display:flex;align-items:stretch;opacity:0;user-select:none;pointer-events:none;}}
+.sw-ov-btn{{flex:1;border:none;cursor:pointer;font-size:.72em;font-weight:700;
+            letter-spacing:.01em;font-family:inherit;padding:0 4px;
+            display:flex;align-items:center;justify-content:center;
+            text-align:center;line-height:1.25;color:#fff;}}
+.sw-ov-dismiss{{background:#b91c1c;}}
+.sw-ov-tmr{{background:#7c3aed;}}
+.sw-ov-hide{{background:#6b7280;}}
+.sw-ov-dismiss:active{{background:#991b1b;}}
+.sw-ov-tmr:active{{background:#6d28d9;}}
+.sw-ov-hide:active{{background:#4b5563;}}
 .sw-add{{position:absolute;left:0;top:0;bottom:0;width:76px;background:#16a34a;color:#fff;
          border:none;display:flex;align-items:center;justify-content:center;
          font-size:.78em;font-weight:700;letter-spacing:.02em;cursor:pointer;
@@ -1213,7 +1225,6 @@ window.closeMobileMore = function() {{
 
 /* ── Swipe-to-hide / swipe-to-delete / swipe-to-add ── */
 (function(){{
-  var W=76;
   // ── Persistence helpers ───────────────────────────────────────────────────
   // Hidden rows are remembered in localStorage so they survive page reloads.
   // Key format: "sf:pod:hidden:{{child}}:{{iso}}:{{label}}"
@@ -1243,46 +1254,59 @@ window.closeMobileMore = function() {{
       // Restore hidden state from previous session
       if(_swIsHidden(w)){{ w.style.display='none'; return; }}
       var inner=w.querySelector('.sw-inner');
-      var delBtn=w.querySelector('.sw-del');
+      var delBtn=w.querySelector('.sw-del,.sw-ov-tray');
       var addBtn=w.querySelector('.sw-add');
       if(!inner)return;
-      var sx=0,cx=0,dragging=false;
+      var sx=0,sy=0,cx=0,W=76,dragging=false,scrolling=false;
       w.addEventListener('touchstart',function(e){{
-        sx=e.touches[0].clientX;cx=0;dragging=true;
+        sx=e.touches[0].clientX;
+        sy=e.touches[0].clientY;
+        cx=0;dragging=false;scrolling=false;
         inner.style.transition='none';
         if(delBtn)delBtn.style.transition='none';
         if(addBtn)addBtn.style.transition='none';
       }},{{passive:true}});
       w.addEventListener('touchmove',function(e){{
-        if(!dragging)return;
+        if(scrolling)return;
         var dx=e.touches[0].clientX-sx;
+        var dy=e.touches[0].clientY-sy;
+        if(!dragging){{
+          /* Require 14px horizontal move and that horizontal > vertical to start swipe */
+          if(Math.abs(dx)<14)return;
+          if(Math.abs(dy)>Math.abs(dx)*0.8){{ scrolling=true; return; }}
+          dragging=true;
+          W=delBtn ? (delBtn.offsetWidth||76) : 76;
+        }}
         if(dx<0){{
           cx=Math.max(-W,dx);
           inner.style.transform='translateX('+cx+'px)';
           if(delBtn)delBtn.style.opacity=(-cx/W).toFixed(2);
           if(addBtn)addBtn.style.opacity='0';
         }}else{{
-          cx=Math.min(W,dx);
+          cx=Math.min(76,dx);
           inner.style.transform='translateX('+cx+'px)';
-          if(addBtn)addBtn.style.opacity=(cx/W).toFixed(2);
+          if(addBtn)addBtn.style.opacity=(cx/76).toFixed(2);
           if(delBtn)delBtn.style.opacity='0';
         }}
       }},{{passive:true}});
       w.addEventListener('touchend',function(){{
-        dragging=false;
+        if(!dragging){{ cx=0; return; }}
+        dragging=false;scrolling=false;
         inner.style.transition='transform .2s ease';
         if(delBtn)delBtn.style.transition='opacity .2s ease';
         if(addBtn)addBtn.style.transition='opacity .2s ease';
-        if(cx<-W/2){{
+        /* Higher threshold: 65% of W, minimum 50px */
+        var thresh=Math.max(W*0.65,50);
+        if(cx<-thresh){{
           inner.style.transform='translateX(-'+W+'px)';
-          if(delBtn)delBtn.style.opacity='1';
-        }}else if(cx>W/2){{
+          if(delBtn){{ delBtn.style.opacity='1'; delBtn.style.pointerEvents='auto'; }}
+        }}else if(cx>40){{
           inner.style.transform='translateX(0)';
           if(addBtn)addBtn.style.opacity='0';
           if(addBtn)addBtn.click();
         }}else{{
           inner.style.transform='translateX(0)';
-          if(delBtn)delBtn.style.opacity='0';
+          if(delBtn){{ delBtn.style.opacity='0'; delBtn.style.pointerEvents='none'; }}
           if(addBtn)addBtn.style.opacity='0';
         }}
         cx=0;
