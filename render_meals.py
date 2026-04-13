@@ -91,6 +91,138 @@ def save_meal_plan(plan: dict):
     key = plan.get("start") or plan.get("week", date.today().isoformat())
     safe_save_json(_plan_path(key), plan)
 
+
+# ---------------------------------------------------------------------------
+# Cook-start calculation
+# ---------------------------------------------------------------------------
+
+def parse_duration_minutes(text: str) -> int:
+    """
+    Parse a human-readable duration string into total minutes.
+    Examples: "15 minutes", "1 hour 30 minutes", "2 hrs", "45 min", "1h30m"
+    Returns 0 if unparseable.
+    """
+    import re as _re
+    if not text:
+        return 0
+    t = text.lower().strip()
+    total = 0
+    # Hours
+    m = _re.search(r'(\d+(?:\.\d+)?)\s*h(?:our|r)?s?', t)
+    if m:
+        total += int(float(m.group(1)) * 60)
+    # Minutes
+    m = _re.search(r'(\d+(?:\.\d+)?)\s*m(?:in(?:ute)?s?)?(?!\s*in)', t)
+    if m:
+        total += int(float(m.group(1)))
+    # Fallback: bare number
+    if total == 0:
+        m = _re.match(r'^(\d+)$', t)
+        if m:
+            total = int(m.group(1))
+    return total
+
+
+def get_cook_start_for_day(day_data: dict, fallback_recipes: bool = True) -> dict | None:
+    """
+    Given a meal plan day dict, compute when cooking should start.
+    Returns a dict:
+        { hhmm: "17:00", serve_hhmm: "18:00",
+          label: "Start cooking: Beef stew (1 hr)", total_minutes: 60 }
+    or None if there is no dinner or no timing info.
+    """
+    import re as _re
+
+    dinner = (day_data.get("dinner") or "").strip()
+    if not dinner or dinner.lower().startswith("tbd") or dinner.lower().startswith("leftover"):
+        return None
+
+    # Prefer explicit per-day timing fields set by Lorenzo
+    prep_str  = day_data.get("prep_time", "")
+    cook_str  = day_data.get("cook_time", "")
+    serve_str = day_data.get("serve_time", "")  # "18:00" or "6:00 PM"
+
+    # Fall back to matching recipe — only if explicit times are not set
+    _recipe_fallback_prep = 0
+    _recipe_fallback_cook = 0
+    if fallback_recipes and (not prep_str or not cook_str):
+        try:
+            from data_helpers import search_recipes
+            hits = search_recipes(dinner)
+            if hits:
+                r = hits[0]
+                if not prep_str:
+                    # Cap recipe prep at 90 min — recipes often include inactive
+                    # time (brining, marinating) that isn't "start cooking" time
+                    _rp = parse_duration_minutes(r.get("prep_time", ""))
+                    _recipe_fallback_prep = min(_rp, 90) if _rp else 0
+                if not cook_str:
+                    _recipe_fallback_cook = parse_duration_minutes(r.get("cook_time", ""))
+        except Exception:
+            pass
+
+    prep_min  = parse_duration_minutes(prep_str) if prep_str else _recipe_fallback_prep
+    cook_min  = parse_duration_minutes(cook_str) if cook_str else _recipe_fallback_cook
+    total_min = prep_min + cook_min
+
+    if total_min == 0:
+        return None
+
+    # Parse serve time
+    serve_hhmm = "18:00"  # default 6:00 PM
+    if serve_str:
+        sv = serve_str.strip()
+        # already HH:MM
+        if _re.match(r'^\d{1,2}:\d{2}$', sv):
+            h, m = sv.split(":")
+            serve_hhmm = f"{int(h):02d}:{m}"
+        else:
+            # "6:00 PM", "6 PM", etc.
+            pm = _re.search(r'(\d{1,2})(?::(\d{2}))?\s*(am|pm)', sv, _re.I)
+            if pm:
+                hh = int(pm.group(1)); mm = int(pm.group(2) or 0)
+                meridiem = pm.group(3).lower()
+                if meridiem == "pm" and hh != 12:
+                    hh += 12
+                elif meridiem == "am" and hh == 12:
+                    hh = 0
+                serve_hhmm = f"{hh:02d}:{mm:02d}"
+
+    # Subtract total cooking time from serve time
+    sh, sm = [int(x) for x in serve_hhmm.split(":")]
+    serve_total_min = sh * 60 + sm
+    start_total_min = serve_total_min - total_min
+
+    if start_total_min < 0:
+        return None  # sanity check
+
+    start_h = start_total_min // 60
+    start_m = start_total_min % 60
+    start_hhmm = f"{start_h:02d}:{start_m:02d}"
+
+    # Build duration label
+    parts = []
+    if prep_min:
+        parts.append(f"{prep_min} min prep")
+    if cook_min:
+        if cook_min >= 60:
+            h2 = cook_min // 60; m2 = cook_min % 60
+            parts.append(f"{h2}h{m2:02d}m cook" if m2 else f"{h2} hr cook")
+        else:
+            parts.append(f"{cook_min} min cook")
+    duration_label = " + ".join(parts) if parts else f"{total_min} min"
+
+    # Short dinner name for the label (max ~35 chars)
+    short_dinner = dinner if len(dinner) <= 35 else dinner[:32].rstrip() + "…"
+
+    return {
+        "hhmm": start_hhmm,
+        "serve_hhmm": serve_hhmm,
+        "label": f"🍳 Start cooking: {short_dinner}  ({duration_label})",
+        "total_minutes": total_min,
+    }
+
+
 def load_inventory() -> dict:
     return ensure_file(INVENTORY_FILE, {
         "fridge": "", "freezer": "", "pantry": "",

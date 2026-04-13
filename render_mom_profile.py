@@ -176,10 +176,26 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
     # Meals
     meals = {}
     try:
-        from render_meals import load_meal_plan, _week_key, render_meal_today_card
+        from render_meals import load_meal_plan, _week_key, render_meal_today_card, get_cook_start_for_day
         _plan = load_meal_plan(_week_key(target_iso))
         meals = _plan.get("days", {}).get(weekday, {})
         meal_html = render_meal_today_card(target_iso)
+        # ── Inject "Start cooking" into the day list ──────────────────────
+        _cook = get_cook_start_for_day(meals)
+        if _cook:
+            day_list.append({
+                "time":      fmt_time_12h(_cook["hhmm"]),
+                "time_sort": _cook["hhmm"],
+                "end_time":  fmt_time_12h(_cook["serve_hhmm"]),
+                "label":     _cook["label"],
+                "kind":      "cook",
+                "checkable": True,
+                "task_id":   f"cook__{iso}",
+                "done":      False,
+                "sub_items": [],
+                "is_event":  False,
+            })
+            day_list.sort(key=lambda x: x.get("time_sort", "00:00"))
     except Exception:
         meal_html = ""
 
