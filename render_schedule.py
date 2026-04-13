@@ -557,7 +557,7 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
                 f'{_dl_sub_items_html(subs, c_id, iso, c_bg, child, _day_ovs)}'
                 f'</div></div>'
             )
-            rows_del.append(None)
+            rows_del.append(False)  # expanded blocks: no outer sw-wrap (sub-items have their own)
         elif item.get("task_id") and item.get("checkable"):
             # Single-checkbox item — apply any override
             raw_tid = item["task_id"]
@@ -646,14 +646,19 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
     _child_esc = escape(child)
     _iso_esc   = escape(iso)
     _std_del   = '<button class="sw-del no-print" onclick="_swDel(this)" aria-label="Hide">&#10005; Hide</button>'
-    wrapped = [
-        f'<div class="sw-wrap" data-child="{_child_esc}" data-iso="{_iso_esc}">'
-        '<button class="sw-add no-print" onclick="_swAdd(this)" aria-label="Add task below">+ Add</button>'
-        '<div class="sw-inner">' + r + '</div>'
-        + (d if d is not None else _std_del) +
-        '</div>'
-        for r, d in zip(rows, rows_del)
-    ]
+    wrapped = []
+    for r, d in zip(rows, rows_del):
+        if d is False:
+            # Expanded blocks: render raw — sub-items have their own sw-wrap
+            wrapped.append(r)
+        else:
+            wrapped.append(
+                f'<div class="sw-wrap" data-child="{_child_esc}" data-iso="{_iso_esc}">'
+                '<button class="sw-add no-print" onclick="_swAdd(this)" aria-label="Add task below">+ Add</button>'
+                '<div class="sw-inner">' + r + '</div>'
+                + (d if d is not None else _std_del) +
+                '</div>'
+            )
     return "".join(wrapped)
 
 
