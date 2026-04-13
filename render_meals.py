@@ -20,12 +20,13 @@ RECIPES_FILE  = "data/recipes.json"
 
 DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
 
-MEAL_SLOTS = ["breakfast","lunch","dinner","snacks","dad_lunch"]
+MEAL_SLOTS = ["breakfast","lunch","dinner","dessert","snacks","dad_lunch"]
 
 MEAL_SLOT_LABELS = {
     "breakfast": "Breakfast",
     "lunch":     "Lunch",
     "dinner":    "Dinner",
+    "dessert":   "Dessert",
     "snacks":    "Snacks",
     "dad_lunch": "Dad's Lunch",
 }
@@ -618,6 +619,7 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
             "breakfast": "#fafaf7",
             "lunch":     "white",
             "dinner":    "#fafaf7",
+            "dessert":   "#fff8f0",
             "snacks":    "white",
             "dad_lunch": "#f5f0f8",
         }.get(slot, "white")
@@ -847,6 +849,17 @@ def render_meal_print_page(week_key: str = None) -> str:
             bg = "#fdf0ef" if is_fri else "white"
             cells += f"<td style='border:1px solid #ddd;padding:4pt 5pt;font-size:8pt;background:{bg};vertical-align:top;'>{escape(val)}</td>"
         rows += f"<tr>{cells}</tr>"
+
+    # Dessert row
+    dessert_vals = {day: days_data.get(day, {}).get("dessert", "").strip() for day in DAYS}
+    if any(dessert_vals.values()):
+        dessert_cells = "<td style='border:1px solid #ddd;padding:4pt 5pt;font-size:8pt;font-weight:700;color:#8b4513;background:#fff8f0;white-space:nowrap;'>Dessert</td>"
+        for day in DAYS:
+            val = dessert_vals[day]
+            is_fri = (day == "Friday")
+            bg = "#fdf0ef" if is_fri else ("#fff8f0" if val else "white")
+            dessert_cells += f"<td style='border:1px solid #ddd;padding:4pt 5pt;font-size:8pt;background:{bg};vertical-align:top;color:#8b4513;font-style:italic;'>{escape(val)}</td>"
+        rows += f"<tr>{dessert_cells}</tr>"
 
     # Dad's lunches row
     dad_cells = "<td style='border:1px solid #ddd;padding:4pt 5pt;font-size:8pt;font-weight:700;color:#6b1a8a;background:#faf5ff;white-space:nowrap;'>Dad's Lunch</td>"

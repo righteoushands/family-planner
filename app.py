@@ -3162,7 +3162,7 @@ class Handler(BaseHTTPRequestHandler):
                 )
                 _mp_markers = ""
                 _MP_DAYS  = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
-                _MP_MEALS = ["breakfast","lunch","dinner","snacks","dad_lunch"]
+                _MP_MEALS = ["breakfast","lunch","dinner","dessert","snacks","dad_lunch"]
                 for _mp in _mp_rx.finditer(text):
                     _mpattrs = _mp.group(1) or ""
                     _mpbody  = _mp.group(2)
@@ -3181,7 +3181,7 @@ class Handler(BaseHTTPRequestHandler):
                                 _mpdata = _json5.load(_mpf)
                         except Exception:
                             _mpdata = {"week": _mpweek, "generated": False, "days": {
-                                d: {"breakfast":"","lunch":"","dinner":"","snacks":"","dad_lunch":""}
+                                d: {"breakfast":"","lunch":"","dinner":"","dessert":"","snacks":"","dad_lunch":""}
                                 for d in _MP_DAYS
                             }}
                         _mpdata.setdefault("days", {})

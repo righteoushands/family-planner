@@ -6,57 +6,68 @@
     "Monday": {
       "breakfast": "Eggs, cereal, fruit",
       "lunch": "Pork chops, noodles, broccoli + Romaine + raw green beans",
-      "dinner": "Beef stew + sourdough bread",
+      "dinner": "Brined split chicken breasts + potatoes au gratin + broccoli",
+      "dessert": "Fruit cup",
       "snacks": "",
-      "dad_lunch": "Leftovers (pork chops, noodles, broccoli) + Romaine",
-      "helpers": "Lauren leads — Michael: stir and pour ingredients"
+      "dad_lunch": "Leftovers (pork chops, noodles, broccoli) + Romaine + raw green beans",
+      "helpers": "Lauren leads"
     },
     "Tuesday": {
       "breakfast": "Eggs, cereal, fruit",
       "lunch": "Out (Bible Study)",
-      "dinner": "Leftovers: beef stew + sourdough + rice",
+      "dinner": "Leftovers: chicken + potatoes au gratin + broccoli + rice",
+      "dessert": "Canned peaches + whipped cream",
       "snacks": "",
-      "dad_lunch": "Leftover beef stew + bread",
-      "helpers": "Lauren leads reheating"
+      "dad_lunch": "Leftovers from Monday + Romaine + raw green beans",
+      "helpers": "Quick reheat (low capacity day)"
     },
     "Wednesday": {
       "breakfast": "Eggs, cereal, fruit",
-      "lunch": "Chicken nuggets, French fries, fruit cups (little boys); leftovers (big boys)",
-      "dinner": "Brined split chicken breasts + potatoes au gratin + broccoli",
+      "lunch": "Leftovers: chicken + potatoes au gratin + broccoli + rice + Romaine + raw green beans",
+      "dinner": "Beef stew + sourdough bread",
+      "dessert": "Homemade brownies or chocolate cake",
       "snacks": "",
-      "dad_lunch": "Leftover beef stew",
-      "helpers": "JP: Prep chicken for roasting — Joseph: Prep potatoes au gratin — Michael: wash broccoli"
+      "dad_lunch": "Leftovers from Tuesday + Romaine + raw green beans",
+      "helpers": "Joseph leads beef stew — JP light duties (braces) — Michael: wash & pour",
+      "notes": "JP gets braces today"
     },
     "Thursday": {
       "breakfast": "Eggs, cereal, fruit",
-      "lunch": "Chicken nuggets, French fries, fruit cups (little boys); leftovers (big boys)",
-      "dinner": "Leftover chicken + potatoes au gratin + rice",
+      "lunch": "Beef stew + sourdough + Romaine + raw green beans",
+      "dinner": "Shredded chicken + mashed potatoes + canned pork and beans",
+      "dessert": "Fresh oranges",
       "snacks": "",
-      "dad_lunch": "Leftover chicken + potatoes",
-      "helpers": "JP: Reheat chicken — Joseph: Cook rice — Michael: set table"
+      "dad_lunch": "Leftovers from Wednesday + Romaine + raw green beans",
+      "helpers": "Quick reheat (medium-low capacity, Latin class)",
+      "notes": "JP braces recovery — soft meals"
     },
     "Friday": {
       "breakfast": "Eggs, cereal, fruit",
-      "lunch": "Sardines, raw veggies, crackers, fruit",
-      "dinner": "Fish fry: baked flounder + coleslaw + cornbread",
+      "lunch": "Sardine sandwiches",
+      "dinner": "Fried fish (flounder) + coleslaw + cornbread",
+      "dessert": "Store-bought special",
       "snacks": "",
-      "dad_lunch": "Sardines, crackers, fruit",
-      "helpers": "JP: leads fish fry station — Joseph: coleslaw & cornbread — Michael: measure breading ingredients"
+      "dad_lunch": "Sardine sandwiches or leftovers from Thursday",
+      "helpers": "JP leads fish fry & plating — Joseph: coleslaw & cornbread — Michael: measure breading"
     },
     "Saturday": {
       "breakfast": "Eggs, cereal, fruit",
-      "lunch": "",
-      "dinner": "Jambalaya with Cajun sausage",
+      "lunch": "Fried fish + coleslaw + cornbread + Romaine + raw green beans",
+      "dinner": "Black-eyed pea jambalaya with Cajun sausage + baked salmon with rice",
+      "dessert": "Homemade cookies or simple dessert",
       "snacks": "",
-      "dad_lunch": "",
-      "helpers": "JP: lead jambalaya — Joseph: prep sausage & vegetables — Michael: measure rice"
+      "dad_lunch": "Leftovers from Friday + Romaine + raw green beans",
+      "helpers": "Lauren leads (medium capacity, adventure block midday)"
     },
     "Sunday": {
       "breakfast": "Eggs, cereal, fruit",
-      "lunch": "",
-      "dinner": "TBD — light/easy after Mass",
+      "lunch": "Ziplock Buffet (leftover combinations)",
+      "dinner": "Ziplock Buffet (leftover combinations)",
+      "dessert": "From leftover stock",
       "snacks": "",
-      "dad_lunch": ""
+      "dad_lunch": "Ziplock Buffet",
+      "helpers": "Light assembly only",
+      "notes": "Consolidate & discard spoiled items. Flag 'use soon' for next week."
     }
   }
 }
