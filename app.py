@@ -1822,6 +1822,63 @@ class Handler(BaseHTTPRequestHandler):
                 save_manual_tasks(tasks)
                 redirect="/tasks#top"
 
+            elif path == "/task-override":
+                # dismiss / postpone / timed override for a POD task
+                import json as _toj
+                _to_id    = data.get("task_id", [""])[0].strip()
+                _to_child = data.get("child",   [""])[0].strip()
+                _to_iso   = data.get("iso",     [""])[0].strip()
+                _to_act   = data.get("action",  [""])[0].strip()  # dismiss|postpone|timed|clear
+                _to_time  = data.get("time",    [""])[0].strip()  # HH:MM for timed
+                _to_pdate = data.get("postpone_to", [""])[0].strip()  # YYYY-MM-DD
+                _to_label = data.get("label",   [""])[0].strip()
+                _to_ret   = data.get("return_url", ["/mom-profile"])[0].strip()
+                _json_resp = False
+                if data.get("json", [""])[0] == "1":
+                    _json_resp = True
+                try:
+                    from data_helpers import set_task_override, clear_task_override
+                    if _to_id and _to_child and _to_iso and _to_act:
+                        if _to_act == "clear":
+                            clear_task_override(_to_child, _to_iso, _to_id)
+                        elif _to_act == "postpone":
+                            from datetime import date as _tod, timedelta as _totd
+                            _pdate = _to_pdate or (_tod.fromisoformat(_to_iso) + _totd(days=1)).isoformat()
+                            set_task_override(_to_child, _to_iso, _to_id, {
+                                "action": "postpone",
+                                "postpone_to": _pdate,
+                                "label": _to_label,
+                            })
+                        elif _to_act == "timed":
+                            set_task_override(_to_child, _to_iso, _to_id, {
+                                "action": "timed",
+                                "time": _to_time,
+                                "label": _to_label,
+                            })
+                        elif _to_act == "dismiss":
+                            set_task_override(_to_child, _to_iso, _to_id, {
+                                "action": "dismiss",
+                                "label": _to_label,
+                            })
+                    if _json_resp:
+                        self.send_response(200)
+                        self.send_header("Content-Type", "application/json")
+                        self.send_header("Cache-Control", "no-store")
+                        self.end_headers()
+                        try: self.wfile.write(_toj.dumps({"ok": True}).encode())
+                        except BrokenPipeError: pass
+                        return
+                except Exception as _toe:
+                    if _json_resp:
+                        self.send_response(200)
+                        self.send_header("Content-Type", "application/json")
+                        self.send_header("Cache-Control", "no-store")
+                        self.end_headers()
+                        try: self.wfile.write(_toj.dumps({"ok": False, "error": str(_toe)}).encode())
+                        except BrokenPipeError: pass
+                        return
+                redirect = _to_ret
+
             # ── Thank-you card reminder routes ────────────────────────────────
             elif path == "/thankyou-add":
                 import uuid as _uuid2

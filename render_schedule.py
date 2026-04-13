@@ -294,6 +294,22 @@ _DL_CSS = """<style>
                 padding:1px 4px;margin-right:4px;font-weight:700;}
 .dl-progress-bar{height:4px;border-radius:2px;background:#e5e7eb;margin-bottom:12px;}
 .dl-progress-fill{height:100%;border-radius:2px;transition:width .3s;}
+.task-ov-btn{background:none;border:none;color:#bbb;cursor:pointer;padding:0 3px;
+             font-size:.8em;opacity:0;transition:opacity .15s;line-height:1;}
+.dl-row:hover .task-ov-btn{opacity:1;}
+.task-ov-panel{display:none;flex-wrap:wrap;align-items:center;gap:6px;
+               padding:6px 12px 8px 28px;background:#f8f4ef;
+               border-top:1px solid #e5ddd4;margin-bottom:3px;border-radius:0 0 6px 6px;}
+.task-ov-panel button{background:#fff;border:1.5px solid #c5b9a8;border-radius:6px;
+                      padding:5px 10px;font-size:.78em;cursor:pointer;color:#5a3d26;}
+.task-ov-panel button:hover{background:#ede6dc;}
+.tov-dismiss{border-color:#d4756b!important;color:#a33!important;}
+.tov-dismiss:hover{background:#fde8e8!important;}
+.tov-time-row{display:flex;align-items:center;gap:4px;font-size:.82em;}
+.tov-time-row input[type=time]{border:1.5px solid #c5b9a8;border-radius:5px;
+                                padding:4px 5px;font-size:.85em;color:#3d2b1f;}
+.tov-close{background:none!important;border:none!important;color:#aaa!important;
+           padding:0 3px!important;font-size:.85em!important;}
 @media print {
   .dl-row,.dl-block{break-inside:avoid;}
   .dl-time{color:#555;}
@@ -404,6 +420,12 @@ def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str,
 def _render_day_list_html(day_list: list, child: str, iso: str,
                            c_bg: str, meals: dict = None) -> str:
     c_id = child.lower().replace(" ", "-")
+    # Load any dismiss/postpone/timed overrides for this person on this day
+    try:
+        from data_helpers import get_day_overrides as _gdo
+        _day_ovs = _gdo(child, iso)
+    except Exception:
+        _day_ovs = {}
     _meal_slot_map = {
         "breakfast": "breakfast", "brunch": "breakfast",
         "lunch": "lunch", "dinner": "dinner", "snack": "snacks", "snacks": "snacks",
@@ -485,24 +507,57 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
                 f'</div></div>'
             )
         elif item.get("task_id") and item.get("checkable"):
-            # Single-checkbox item
-            tid  = escape(item["task_id"])
-            tidj = item["task_id"].replace("'", "\\'")
+            # Single-checkbox item — apply any override
+            raw_tid = item["task_id"]
+            tid  = escape(raw_tid)
+            tidj = raw_tid.replace("'", "\\'")
+            _ov = _day_ovs.get(raw_tid, {})
+            _ov_act = _ov.get("action", "")
+            # Skip dismissed items entirely
+            if _ov_act == "dismiss":
+                continue
+            # Timed override: update time display
+            if _ov_act == "timed" and _ov.get("time"):
+                t_disp = _ov["time"]
             done = item.get("done", False)
             chk  = "checked" if done else ""
             dst  = "done" if done else ""
             dnv  = "1" if done else "0"
+            # Build tomorrow ISO for postpone button
+            try:
+                from datetime import date as _d, timedelta as _td2
+                _tmr = (_d.fromisoformat(iso) + _td2(days=1)).isoformat()
+            except Exception:
+                _tmr = ""
+            _lbl_raw = item.get("label", "")
+            _lbl_js  = _lbl_raw.replace("'", "\\'").replace('"', '\\"')
+            _ov_indicator = ""
+            if _ov_act == "timed":
+                _ov_indicator = (
+                    f' <span style="font-size:.7em;color:#b45309;cursor:pointer;" '
+                    f'onclick="_tovClear(\'{tidj}\',\'{c_id}\',\'{escape(iso)}\')"'
+                    f' title="Clear time override">⏰×</span>'
+                )
+            _time_val = t_disp if len(t_disp) == 5 else ""
             rows.append(
                 f'<div class="dl-row" style="border-left:3px solid {color};"'
                 f' id="task-{tid}" data-dash-child="{c_id}" data-done="{dnv}">'
                 f'<span class="dl-time">{t_disp}</span>'
                 f'<span class="dl-kind-icon">{icon}</span>'
-                f'<span class="dl-label {dst}">{label}</span>'
-                f'<div class="dl-check">'
+                f'<span class="dl-label {dst}">{label}{_ov_indicator}</span>'
+                f'<div class="dl-check" style="display:flex;align-items:center;gap:6px;">'
+                f'<button class="task-ov-btn no-print" onclick="_tovToggle(\'{tidj}\')" title="Edit task">✏</button>'
                 f'<input type="checkbox" {chk}'
                 f' style="width:16px;height:16px;accent-color:{c_bg};"'
                 f' onchange="toggleDashTask(this,\'{tidj}\',\'{c_id}\',\'{escape(iso)}\')">'
                 f'</div></div>'
+                f'<div class="task-ov-panel no-print" id="tov-{tid}" style="display:none;">'
+                f'<button class="tov-dismiss" onclick="_tovAct(\'{tidj}\',\'{c_id}\',\'{escape(iso)}\',\'{_lbl_js}\',\'dismiss\')">× Dismiss today</button>'
+                f'<button onclick="_tovAct(\'{tidj}\',\'{c_id}\',\'{escape(iso)}\',\'{_lbl_js}\',\'postpone\',\'{_tmr}\')">→ Tomorrow</button>'
+                f'<span class="tov-time-row">⏰<input type="time" id="tov-t-{tid}" value="{_time_val}">'
+                f'<button onclick="_tovActTime(\'{tidj}\',\'{c_id}\',\'{escape(iso)}\',\'{_lbl_js}\')">Set</button></span>'
+                f'<button class="tov-close" onclick="_tovClose(\'{tidj}\')" title="Close">✕</button>'
+                f'</div>'
             )
         else:
             # Informational / free / meal slot
@@ -1215,6 +1270,42 @@ function _dashUpdateProgress(childId) {
     }
     var cnt = document.getElementById('dash-count-' + childId);
     if (cnt) cnt.textContent = pct === 100 ? '\\u2713 done' : (tot - done) + ' left';
+}
+
+/* ── Task Overrides (dismiss / postpone / set time) ──────────────────── */
+function _tovToggle(id) {
+    document.querySelectorAll('.task-ov-panel').forEach(function(p) {
+        if (p.id !== 'tov-' + id) p.style.display = 'none';
+    });
+    var el = document.getElementById('tov-' + id);
+    if (el) el.style.display = el.style.display === 'none' ? 'flex' : 'none';
+}
+function _tovClose(id) {
+    var el = document.getElementById('tov-' + id);
+    if (el) el.style.display = 'none';
+}
+function _tovAct(tid, child, iso, label, action, postponeTo) {
+    var fd = new FormData();
+    fd.append('task_id', tid); fd.append('child', child);
+    fd.append('iso', iso);     fd.append('label', label);
+    fd.append('action', action); fd.append('json', '1');
+    if (postponeTo) fd.append('postpone_to', postponeTo);
+    fetch('/task-override', {method:'POST', body:fd}).then(function() { location.reload(); });
+}
+function _tovActTime(tid, child, iso, label) {
+    var t = document.getElementById('tov-t-' + tid);
+    if (!t || !t.value) return;
+    var fd = new FormData();
+    fd.append('task_id', tid); fd.append('child', child);
+    fd.append('iso', iso);     fd.append('label', label);
+    fd.append('action', 'timed'); fd.append('time', t.value); fd.append('json', '1');
+    fetch('/task-override', {method:'POST', body:fd}).then(function() { location.reload(); });
+}
+function _tovClear(tid, child, iso) {
+    var fd = new FormData();
+    fd.append('task_id', tid); fd.append('child', child);
+    fd.append('iso', iso);     fd.append('action', 'clear'); fd.append('json', '1');
+    fetch('/task-override', {method:'POST', body:fd}).then(function() { location.reload(); });
 }
 </script>"""
 

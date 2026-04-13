@@ -11,7 +11,7 @@ from config import (
     LITURGICAL_FILE, FAMILY_SCHEDULE_FILE, CALENDAR_CONFIG_FILE,
     CALENDAR_CACHE_FILE, MONTHLY_PLANNER_FILE, CALENDAR_RULES_FILE,
     SUBSCRIBED_CALS_FILE, SUBSCRIBED_CACHE_FILE, VALID_PRIORITIES, VALID_STATUSES, WEEKDAYS,
-    WEEKDAY_ORDER, CURRICULUM_FILE,
+    WEEKDAY_ORDER, CURRICULUM_FILE, TASK_OVERRIDES_FILE,
 )
 
 
@@ -775,3 +775,48 @@ def expand_local_events_for_range(start_iso: str, end_iso: str) -> list:
 
     out.sort(key=lambda e: e["start"])
     return out
+
+
+# ── Task Overrides (dismiss / postpone / set time) ───────────────────────────
+
+def load_task_overrides() -> dict:
+    """Load {child: {iso: {task_id: {action, ...}}}} override map."""
+    return ensure_file(TASK_OVERRIDES_FILE, {})
+
+def save_task_overrides(data: dict):
+    safe_save_json(TASK_OVERRIDES_FILE, data)
+
+def set_task_override(child: str, iso: str, task_id: str, override: dict):
+    """
+    Store an override for a task on a given day.
+    override = {"action": "dismiss"|"postpone"|"timed",
+                "postpone_to": "YYYY-MM-DD",   # for postpone
+                "time": "HH:MM"}               # for timed
+    """
+    data = load_task_overrides()
+    data.setdefault(child, {}).setdefault(iso, {})[task_id] = override
+    save_task_overrides(data)
+
+def clear_task_override(child: str, iso: str, task_id: str):
+    data = load_task_overrides()
+    data.get(child, {}).get(iso, {}).pop(task_id, None)
+    save_task_overrides(data)
+
+def get_day_overrides(child: str, iso: str) -> dict:
+    """Return {task_id: override_dict} for a given person on a given day."""
+    return load_task_overrides().get(child, {}).get(iso, {})
+
+def get_postponed_for_day(child: str, iso: str) -> list:
+    """
+    Return task labels that were postponed TO this day from a previous day.
+    Used to inject them back as manual-task-like items.
+    """
+    data = load_task_overrides()
+    results = []
+    for src_iso, tasks in data.get(child, {}).items():
+        if src_iso >= iso:
+            continue  # only look at past days
+        for task_id, ov in tasks.items():
+            if ov.get("action") == "postpone" and ov.get("postpone_to") == iso:
+                results.append(ov.get("label", task_id))
+    return results
