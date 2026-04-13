@@ -2,16 +2,6 @@
   "messages": [
     {
       "role": "user",
-      "content": "Proceed.",
-      "ts": "2026-04-12T08:53:16"
-    },
-    {
-      "role": "assistant",
-      "content": "Perfect. It's 8:53 AM Sunday morning.\n\nRIGHT NOW — TODAY'S MEALS:\n\nBREAKFAST (now): Eggs, fruit, toast\n\nLUNCH (today): Grilled cheese & tomato soup (using your canned tomato soup)\n\nDINNER (today): Pork chops + garlic butter noodles + fresh broccoli\n\nThis uses up three of your priority items that need eating first.\n\nAFTER DINNER TONIGHT:\nYou'll do your Sunday evening cleanup — discard spoiled food, consolidate leftovers, identify what needs to be used soon. We'll flag anything for Monday shopping.\n\nDoes this work for today?\n\nOnce you confirm, we'll walk through MONDAY (April 13) and check your Rule of Life schedule to see what's happening that day and what kitchen capacity you actually have.",
-      "ts": "2026-04-12T08:53:19"
-    },
-    {
-      "role": "user",
       "content": "Yes, add that task to my POD. John is going shopping shortly. Let’s plan so we can give him a grocery list. Look at the events for the week and let’s take it one day at a time. Monday.",
       "ts": "2026-04-12T08:55:05"
     },
@@ -299,6 +289,16 @@
       "role": "assistant",
       "content": "You're right — I see the issue now.\n\nThe fridge card isn't saving properly. When I use [MEAL_UPDATE] tags, the meals aren't actually persisting to your dashboard. And the \"Meals\" page is showing stale data from last week.\n\nThis is a system problem, not a formatting one.\n\n[IZZY]The fridge card / meal plan storage is broken. When Lorenzo uses [MEAL_UPDATE] tags to save individual meals for the week, they're not persisting to the dashboard. The \"Meals\" page under More is also showing last week's plan instead of the current week (April 13-19). Can you check the meal storage backend and make sure [MEAL_UPDATE] tags are actually saving to the database?[/IZZY]\n\nIn the meantime, I can keep the full week's plan here in chat for you to reference — it won't disappear. The plan we locked in is solid and complete. Does that work until Izzy can fix the storage?",
       "ts": "2026-04-12T18:29:30"
+    },
+    {
+      "role": "user",
+      "content": "Show me the beef stew recipe",
+      "ts": "2026-04-13T11:00:17"
+    },
+    {
+      "role": "assistant",
+      "content": "BEEF STEW (BATCH)\n\nServings: 6-8\nPrep time: 30 minutes\nCook time: 2 hours 30 minutes\n\nINGREDIENTS:\n- 2 lbs stew beef, cut into 1.5-inch cubes\n- 3 tablespoons olive oil or butter\n- 1 large onion, diced\n- 4 cloves garlic, minced\n- 4 medium potatoes, cut into chunks\n- 4 carrots, cut into thick rounds\n- 3 stalks celery, cut into chunks\n- 3 cups beef broth\n- 1 can (6 oz) tomato paste\n- 2 bay leaves\n- 1 teaspoon dried thyme\n- Salt and pepper to taste\n\nINSTRUCTIONS:\n\n1. Heat oil in a large pot or Dutch oven over medium-high heat.\n\n2. Season beef with salt and pepper. Brown meat in batches (don't crowd the pot) — about 3-4 minutes per side. Set aside.\n\n3. In the same pot, sauté onion and celery until soft (about 5 minutes). Add garlic, cook 1 minute.\n\n4. Stir in tomato paste, cook 2 minutes to caramelize slightly.\n\n5. Add broth, scraping up browned bits from the bottom. Return beef to pot.\n\n6. Add bay leaves and thyme. Bring to a boil, then reduce heat to low. Cover and simmer 1 hour 30 minutes.\n\n7. Add potatoes and carrots. Simmer covered another 45 minutes to 1 hour, until vegetables are tender and beef is very soft.\n\n8. Taste and adjust seasoning. Remove bay leaves before serving.\n\nNOTES:\nThis is a \"cook once, eat twice\" meal — makes enough for Wednesday dinner + Thursday lunch.\nJoseph can handle chopping vegetables. Lauren or JP manages the stove.\nServe with sourdough bread for dipping.\nFreezes well if you want to batch-cook extra.\n\nWant me to save this to your recipe cards, or need any adjustments?",
+      "ts": "2026-04-13T11:00:24"
     }
   ]
 }
