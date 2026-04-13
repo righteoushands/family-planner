@@ -494,6 +494,10 @@ def _is_prev_task_done(progress: dict, child: str, iso: str, raw: str) -> bool:
             key = f"MANUAL::{child}::{iso}::{text}"
             if progress.get(key):
                 return True
+            # Also check CARRY:: format: task was checked off as a carryover item
+            carry_disp = format_task_text(raw)
+            if progress.get(f"CARRY::{child}::{iso}::{carry_disp}"):
+                return True
         elif len(parts) == 2:
             text = parts[1].strip()
             for key in (
@@ -1687,6 +1691,30 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
                                     "done": _dl_done(progress, tid),
                                     "checkable": True, "is_header": False,
                                     "is_carryover": True})
+    except Exception:
+        pass
+
+    # ── Inject tasks postponed TO this day from a previous day ───────────────
+    try:
+        from data_helpers import get_postponed_for_day as _get_postponed
+        _postponed_labels = _get_postponed(child, iso)
+        _seen_carry_norms = {_norm(it["text"]) for it in carryover_items}
+        for _plabel in _postponed_labels:
+            _pnorm = _norm(_plabel)
+            if _pnorm in _seen_carry_norms:
+                continue  # already in carryover from yesterday
+            _seen_carry_norms.add(_pnorm)
+            _ptid = f"CARRY::{child}::{iso}::{_plabel}"
+            carryover_items.append({
+                "text": _plabel,
+                "task_id": _ptid,
+                "done": _dl_done(progress, _ptid),
+                "priority": "MEDIUM",
+                "checkable": True,
+                "is_header": False,
+                "is_carryover": True,
+                "is_postponed": True,
+            })
     except Exception:
         pass
 

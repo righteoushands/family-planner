@@ -1862,6 +1862,53 @@ class Handler(BaseHTTPRequestHandler):
                                 "action": "dismiss",
                                 "label": _to_label,
                             })
+                            # Permanent side-effects for CARRY and MANUAL tasks:
+                            # 1. Mark done in progress.json so it won't carry over tomorrow
+                            # 2. Delete from manual_tasks.json so it never reappears
+                            try:
+                                from daily_schedule_engine import set_task_done as _std
+                                _std(_to_id, True)
+                            except Exception:
+                                pass
+                            # Identify task text for manual_tasks.json deletion
+                            _dm_child = _dm_text = None
+                            _dm_parts = _to_id.split("::", 3)
+                            if len(_dm_parts) >= 4 and _dm_parts[0] == "CARRY":
+                                # CARRY::child::iso::display_text — strip [PRIORITY] prefix
+                                _dm_child = _dm_parts[1]
+                                _dm_raw   = _dm_parts[3]
+                                import re as _re
+                                _dm_text  = _re.sub(r"^\[(HIGH|MEDIUM|LOW)\]\s*", "", _dm_raw)
+                            elif len(_dm_parts) >= 4 and _dm_parts[0] == "MANUAL":
+                                # MANUAL::child::iso::text (old format)
+                                _dm_child = _dm_parts[1]
+                                _dm_text  = _dm_parts[3]
+                            else:
+                                _dm5 = _to_id.split("::", 4)
+                                if len(_dm5) == 5 and _dm5[2] == "MANUAL":
+                                    # make_task_id format: iso::child::MANUAL::priority::text
+                                    _dm_child = _dm5[1]
+                                    _dm_text  = _dm5[4]
+                            if _dm_child and _dm_text:
+                                _LAUREN_ALIASES = {"Lauren", "Mom"}
+                                _dm_child_n = "Lauren" if _dm_child in _LAUREN_ALIASES else _dm_child
+                                with _MANUAL_TASKS_LOCK:
+                                    _dml = load_manual_tasks()
+                                    _dm_changed = False
+                                    _dm_remove = None
+                                    for _dmi, _dmt in enumerate(_dml):
+                                        if not isinstance(_dmt, dict): continue
+                                        _dat = str(_dmt.get("assigned_to", "")).strip()
+                                        _dat_n = "Lauren" if _dat in _LAUREN_ALIASES else _dat
+                                        if _dat_n and _dat_n != _dm_child_n: continue
+                                        if str(_dmt.get("text", "")).strip().lower() != _dm_text.strip().lower(): continue
+                                        _dm_remove = _dmi
+                                        break
+                                    if _dm_remove is not None:
+                                        _dml.pop(_dm_remove)
+                                        _dm_changed = True
+                                    if _dm_changed:
+                                        save_manual_tasks(_dml)
                     if _json_resp:
                         self.send_response(200)
                         self.send_header("Content-Type", "application/json")

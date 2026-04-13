@@ -987,6 +987,31 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
     date_label = packet["date_label"]
 
     day_list = build_day_list(child, weekday, iso)
+
+    # Merge calendar events into the day list (same approach as schedule page)
+    try:
+        from daily_schedule_engine import get_calendar_events_for_boys as _gcal, fmt_time_12h as _fmt12
+        for _ev in _gcal(iso):
+            _ev_time   = _ev.get("time")
+            _time_sort = _ev_time or "00:00"
+            _disp_time = _fmt12(_ev_time) if _ev_time else "All day"
+            _loc       = _ev.get("location", "")
+            _lbl       = _ev["title"] + (f" \u2022 {_loc}" if _loc else "")
+            day_list.append({
+                "time":      _disp_time,
+                "time_sort": _time_sort,
+                "end_time":  _fmt12(_ev.get("end_time")) if _ev.get("end_time") else _disp_time,
+                "label":     _lbl,
+                "kind":      "event",
+                "checkable": False,
+                "task_id":   None,
+                "done":      False,
+                "sub_items": [],
+                "is_event":  True,
+            })
+    except Exception:
+        pass
+
     progress = load_progress()
 
     c_bg    = child_color(child, "bg")
