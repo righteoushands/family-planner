@@ -1222,14 +1222,81 @@ _DASH_JS = """
     document.querySelectorAll('[data-done="1"]').forEach(function(row) {
         row.style.display = 'none';
     });
+    /* Inject undo snackbar once */
+    if (!document.getElementById('undo-snack')) {
+        var s = document.createElement('div');
+        s.id = 'undo-snack';
+        s.innerHTML = '<span id="undo-snack-label" style="flex:1;font-size:.88em;overflow:hidden;'
+            + 'white-space:nowrap;text-overflow:ellipsis;"></span>'
+            + '<button onclick="_undoCheck()" style="background:rgba(255,255,255,.18);border:none;'
+            + 'color:#fff;font-weight:700;border-radius:6px;padding:5px 12px;cursor:pointer;'
+            + 'font-size:.85em;white-space:nowrap;font-family:inherit;flex-shrink:0;">Undo</button>';
+        s.style.cssText = 'display:none;position:fixed;bottom:28px;left:50%;'
+            + 'transform:translateX(-50%);background:#1e293b;color:#fff;border-radius:12px;'
+            + 'padding:12px 10px 12px 16px;display:none;align-items:center;gap:12px;z-index:9999;'
+            + 'box-shadow:0 4px 24px rgba(0,0,0,.35);transition:opacity .25s;'
+            + 'min-width:220px;max-width:88vw;';
+        document.body.appendChild(s);
+    }
 })();
+var _undoTask = null;
+function _showUndoSnack(cb, tid, childId, iso, row, isChore) {
+    /* If a previous undo is pending, commit it (hide old row now) */
+    if (_undoTask) {
+        clearTimeout(_undoTask.timer);
+        if (_undoTask.row) { _undoTask.row.style.display = 'none'; }
+        _undoTask = null;
+    }
+    var snack = document.getElementById('undo-snack');
+    if (!snack) return;
+    var lbl = row ? row.querySelector('.dl-label,.dl-sub-label,label') : null;
+    var txt  = lbl ? lbl.textContent.trim().slice(0, 35) : 'Task';
+    var el = document.getElementById('undo-snack-label');
+    if (el) el.textContent = '\u2713 ' + txt;
+    snack.style.display = 'flex';
+    snack.style.opacity = '1';
+    var timer = setTimeout(function() {
+        /* Time up — commit: hide the row for real */
+        if (row) {
+            row.style.transition = 'opacity .25s';
+            row.style.opacity    = '0';
+            setTimeout(function() { row.style.display = 'none'; }, 260);
+        }
+        snack.style.opacity = '0';
+        setTimeout(function() { snack.style.display = 'none'; }, 280);
+        _undoTask = null;
+    }, 4500);
+    _undoTask = {cb:cb, tid:tid, childId:childId, iso:iso, row:row, isChore:isChore, timer:timer};
+}
+function _undoCheck() {
+    if (!_undoTask) return;
+    clearTimeout(_undoTask.timer);
+    var t = _undoTask; _undoTask = null;
+    /* Restore checkbox and row */
+    t.cb.checked = false;
+    if (t.row) {
+        t.row.setAttribute('data-done', '0');
+        t.row.style.display    = '';
+        t.row.style.opacity    = '1';
+        t.row.style.transition = '';
+        var lbl = t.row.querySelector('.dl-label,.dl-sub-label,label');
+        if (lbl) { lbl.style.opacity = '1'; lbl.style.textDecoration = 'none'; }
+    }
+    var snack = document.getElementById('undo-snack');
+    if (snack) { snack.style.opacity='0'; setTimeout(function(){ snack.style.display='none'; },280); }
+    /* Revert on server */
+    fetch('/toggle-task', {
+        method:'POST',
+        headers:{'Content-Type':'application/x-www-form-urlencoded'},
+        body:'task_id='+encodeURIComponent(t.tid)+'&new_value=false&return_url='
+             +encodeURIComponent('/today?date='+t.iso)
+    }).then(function() { _dashUpdateProgress(t.childId); });
+}
 function toggleDashTask(cb, tid, childId, iso) {
     var row     = document.getElementById('task-' + tid);
     var isDone  = cb.checked;
     var newVal  = isDone ? 'true' : 'false';
     var isChore = row && row.getAttribute('data-chore') === '1';
-    /* Optimistic UI: strike through immediately; on the dashboard also fade+hide */
-    var isDashItem = row && row.classList.contains('dash-task');
     if (row) {
         row.setAttribute('data-done', isDone ? '1' : '0');
         var lbl = row.querySelector('label, .dl-sub-label, .dl-label');
@@ -1237,19 +1304,14 @@ function toggleDashTask(cb, tid, childId, iso) {
             lbl.style.opacity        = isDone ? '0.4' : '1';
             lbl.style.textDecoration = isDone ? 'line-through' : 'none';
         }
-        if (isDone) {
-            /* All checked items fade out and disappear */
-            setTimeout(function() {
-                row.style.transition = 'opacity .25s';
-                row.style.opacity    = '0';
-                setTimeout(function() { row.style.display = 'none'; }, 260);
-            }, 320);
-        } else if (!isDone) {
+        if (!isDone) {
             row.style.display    = '';
             row.style.opacity    = '1';
             row.style.transition = '';
         }
     }
+    /* On check: show undo snack for 4.5s before hiding the row */
+    if (isDone) { _showUndoSnack(cb, tid, childId, iso, row, isChore); }
     fetch('/toggle-task', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
@@ -1267,11 +1329,9 @@ function toggleDashTask(cb, tid, childId, iso) {
             }
         } else {
             _dashUpdateProgress(childId);
-            /* Advance next queued task (non-chore only) */
             if (isDone && !isChore) {
                 setTimeout(function() { _dashAdvance(childId); }, 600);
             }
-            /* Hide chore section header once all chores are done */
             _dashMaybeHideChoreHeader(childId);
         }
     }).catch(function() {
