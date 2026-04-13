@@ -90,6 +90,15 @@ def fmt_time_12h(hhmm: str | None) -> str:
         return hhmm
 
 
+def _hhmm_to_min(hhmm: str) -> int:
+    """Convert 'HH:MM' string to total minutes since midnight. Returns 0 on error."""
+    try:
+        h, m = hhmm.split(":")
+        return int(h) * 60 + int(m)
+    except Exception:
+        return 0
+
+
 # -------------------------
 # DATE HELPERS
 # -------------------------
@@ -1745,24 +1754,32 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
     def _subject_priority(block: dict) -> int:
         """
         Lower number = higher priority = goes into earlier School slots.
-          1 — Core subjects: Religion, Latin
-          2 — Difficult: has test/quiz/assessment flag, or assignment text
-                         signals a test, quiz, assessment, or heavy writing
-          3 — Everything else (reading, art, music, poetry…)
+          1 — Core/first: Religion, Latin, Math (including all math work)
+          2 — Demanding:  tests/quizzes/assessments in any subject,
+                          essays and heavy writing assignments,
+                          Science and History
+          3 — Everything else (reading, art, music, poetry, memory work…)
+        Schedule order within priority: Religion → Latin → Math → Science/History,
+        then tests/essays, then lighter enrichment subjects.
         """
         subj = block.get("subject", "").lower()
         text = block.get("assignment_text", "").lower()
-        # Core
-        if "religion" in subj or "latin" in subj:
-            return 1
-        # Difficult — flagged or keyword-detected
         _test_kws  = ("test", "quiz", "assessment", "exam")
         _write_kws = ("essay", "composition", "write out", "written assignment",
                       "writing assignment", "written report")
+        # Priority 1 — non-negotiable morning subjects
+        if "religion" in subj or "latin" in subj:
+            return 1
+        if block.get("is_math") or block.get("is_math_test") or "math" in subj:
+            return 1
+        # Priority 2 — mentally demanding; do while fresh
         if (block.get("is_math_test")
                 or any(kw in text for kw in _test_kws)
                 or any(kw in text for kw in _write_kws)):
             return 2
+        if "science" in subj or "history" in subj or "grammar" in subj:
+            return 2
+        # Priority 3 — lighter enrichment
         return 3
 
     # Sort generic blocks: core first → difficult → other
@@ -1772,13 +1789,82 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
     _generic_school_idxs = [
         i for i, b in enumerate(merged) if _is_generic_school_slot(b["label"])]
 
-    # Divide evenly: each generic slot gets roughly the same number of subjects
+    # ── Time-aware distribution of subjects across generic School slots ──────
+    # Load today's calendar events so we can see what cuts into school time.
+    _day_cal_events: list = []
+    try:
+        _day_cal_events = get_calendar_events_for_boys(iso)
+    except Exception:
+        pass
+    # Also consider the cook-start constraint (relevant for afternoon school slots)
+    try:
+        from render_meals import load_meal_plan, _week_key, get_cook_start_for_day
+        from datetime import date as _date_for_cook
+        _cook_iso  = _date_for_cook.fromisoformat(iso)
+        _cook_wk   = _week_key(_cook_iso)
+        _cook_day  = _cook_iso.strftime("%A")
+        _cook_plan = load_meal_plan(_cook_wk)
+        _cook_data = _cook_plan.get("days", {}).get(_cook_day, {})
+        _cook_entry = get_cook_start_for_day(_cook_data)
+    except Exception:
+        _cook_entry = None
+
+    _SUBJECT_MINUTES = 45   # assumed minutes per school subject
+
+    def _slot_available_minutes(slot_idx: int) -> int:
+        """Compute school-usable minutes for the given merged[] slot index."""
+        blk   = merged[slot_idx]
+        start = blk["time_sort"]
+        # End of this slot = start of the next block in the schedule
+        end   = merged[slot_idx + 1]["time_sort"] if slot_idx + 1 < len(merged) else "15:00"
+        start_m = _hhmm_to_min(start)
+        end_m   = _hhmm_to_min(end)
+        avail   = max(end_m - start_m, 0)
+        # Subtract interruptions from calendar events that fall in this window
+        for ev in _day_cal_events:
+            et = ev.get("time")
+            if not et or ev.get("all_day"):
+                continue
+            ee = ev.get("end_time") or et
+            if start <= et < end:
+                avail -= max(_hhmm_to_min(ee) - _hhmm_to_min(et), 0)
+        # Subtract cook-start constraint if it falls in this window
+        if _cook_entry:
+            ct = _cook_entry["hhmm"]
+            if start <= ct < end:
+                avail -= max(_hhmm_to_min(end) - _hhmm_to_min(ct), 0)
+        return max(avail, 0)
+
     _generic_slot_map: dict = {}   # merged-list index -> [school_raw blocks]
     if _generic_school_idxs and _generic_blocks:
-        _n    = len(_generic_school_idxs)
-        _per  = _math.ceil(len(_generic_blocks) / _n)
+        _slot_mins = [_slot_available_minutes(i) for i in _generic_school_idxs]
+        _total_mins = sum(_slot_mins) or 1
+        _remaining  = list(_generic_blocks)
+        _total_subjs = len(_remaining)
         for _i, _idx in enumerate(_generic_school_idxs):
-            _generic_slot_map[_idx] = _generic_blocks[_i * _per: (_i + 1) * _per]
+            if not _remaining:
+                break
+            _avail = _slot_mins[_i]
+            # How many subjects fit in this window?  Pro-rate by share of total time.
+            # Always give the first slot at least ceil(half the subjects) to keep
+            # heavy work morning-weighted.
+            if _i == 0:
+                _share = max(
+                    1,
+                    _math.ceil(_total_subjs * (_avail / _total_mins))
+                    if _total_mins > 0 else _math.ceil(_total_subjs / 2),
+                )
+                # First slot gets at least half regardless
+                _share = max(_share, _math.ceil(_total_subjs / 2))
+            else:
+                _share = max(1, _avail // _SUBJECT_MINUTES) if _avail > 0 else 1
+            # Cap so we don't exceed what's left
+            _share = min(_share, len(_remaining))
+            # On the last slot, absorb everything remaining
+            if _i == len(_generic_school_idxs) - 1:
+                _share = len(_remaining)
+            _generic_slot_map[_idx] = _remaining[:_share]
+            _remaining = _remaining[_share:]
 
     # Build the result list
     subjects_used: set = set()
