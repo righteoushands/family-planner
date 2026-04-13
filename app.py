@@ -1057,6 +1057,40 @@ class Handler(BaseHTTPRequestHandler):
         elif path.startswith("/lucy-child-brief/"):
             import json as _json
             child_slug = path[len("/lucy-child-brief/"):].strip().lower()
+
+            # ── helper: current Eastern HH:MM and upcoming-event filter ──────
+            def _current_hhmm_eastern():
+                try:
+                    import pytz as _pytz
+                    from datetime import datetime as _dtnow
+                    _tz = _pytz.timezone("America/New_York")
+                    _n = _dtnow.now(_tz)
+                    return _n.strftime("%H:%M"), _n.strftime("%-I:%M %p")
+                except Exception:
+                    from datetime import datetime as _dtnow
+                    _n = _dtnow.now()
+                    return _n.strftime("%H:%M"), _n.strftime("%-I:%M %p")
+
+            def _upcoming_events(cal_items, current_hhmm):
+                """Return calendar events that haven't ended yet."""
+                out = []
+                for ev in cal_items:
+                    if ev.get("all_day"):
+                        out.append(ev)
+                        continue
+                    t = ev.get("end_time") or ev.get("time")
+                    if t and t >= current_hhmm:
+                        out.append(ev)
+                    elif not t:
+                        out.append(ev)
+                return out
+
+            def _fmt_ev(ev):
+                from daily_schedule_engine import fmt_time_12h
+                t = fmt_time_12h(ev.get("time")) if ev.get("time") else ""
+                title = ev.get("title", "")
+                return f"📅 {t} {title}".strip() if t else f"📅 {title}"
+
             # Support Lauren's schedule page
             if child_slug == "lauren":
                 try:
@@ -1066,7 +1100,13 @@ class Handler(BaseHTTPRequestHandler):
                     _today = _date2.today()
                     _pkt = generate_day_packet(_today.isoformat())
                     _payload = build_schedule_payload("Mom", _pkt["weekday"], _pkt["date_label"], _pkt["iso"])
+                    _cur_hhmm, _cur_label = _current_hhmm_eastern()
                     _tasks = [i.get("text","") for i in (_payload.get("manual_task_items",[]) + _payload.get("chore_items",[]))]
+                    _upcoming = _upcoming_events(_payload.get("calendar_items", []), _cur_hhmm)
+                    if _upcoming:
+                        _tasks += [_fmt_ev(e) for e in _upcoming]
+                    if _tasks:
+                        _tasks.insert(0, f"[Current time: {_cur_label} — focus on what's still ahead today]")
                     import re as _re
                     _brief = get_mom_lucy_brief(_tasks)
                     _text = _re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', _brief.strip())
@@ -1092,12 +1132,18 @@ class Handler(BaseHTTPRequestHandler):
                 _today = _date2.today()
                 _pkt = generate_day_packet(_today.isoformat())
                 _payload = build_schedule_payload(matched_child, _pkt["weekday"], _pkt["date_label"], _pkt["iso"])
+                _cur_hhmm, _cur_label = _current_hhmm_eastern()
                 _tasks = []
                 for _item in (_payload.get("manual_task_items", []) + _payload.get("chore_items", [])):
                     _tasks.append(_item.get("label", _item.get("text", "")))
                 for _blk in _payload.get("school_blocks", []):
                     for _si in _blk.get("items", []):
                         _tasks.append(_si.get("label", _si.get("text", "")))
+                _upcoming = _upcoming_events(_payload.get("calendar_items", []), _cur_hhmm)
+                if _upcoming:
+                    _tasks += [_fmt_ev(e) for e in _upcoming]
+                if _tasks:
+                    _tasks.insert(0, f"[Current time: {_cur_label} — focus on what's still ahead today]")
                 _goals = [g for g in load_child_goals(matched_child) if not g.get("archived")]
                 _brief = get_child_lucy_brief(matched_child, _tasks, _goals)
                 import re as _re2

@@ -2965,18 +2965,21 @@ def get_mom_lucy_brief(tasks_today: list) -> str:
         "Lauren is a Catholic homeschooling mother of four boys: JP (14), Joseph (12), Michael (5), and James (newborn). "
         "Her husband is John. She manages the household, educates the children at home, and carries the invisible weight of motherhood with faith. "
         "She is devoted to Our Lady, values liturgical rhythm, and loves her family deeply. "
-        "Your job is to write a SHORT (3-5 sentence) morning note of encouragement written DIRECTLY to Lauren — "
+        "Your job is to write a SHORT (3-5 sentence) encouragement note written DIRECTLY to Lauren — "
         "not about her children, not a to-do recap, but a warm personal word that sees her as a whole person. "
-        "Reference today's tasks lightly if helpful, but the focus is on Lauren's heart and interior life. "
-        "Close with a brief prayer intention or a virtue she might lean into today. "
+        "The task list may begin with a line like '[Current time: X:XX PM — focus on what\\'s still ahead today]'. "
+        "If it does, use the time to calibrate your tone and only reference tasks or events that are still upcoming. "
+        "Do not recap things that have already passed. "
+        "Reference today's remaining tasks or upcoming events lightly if helpful, but focus on Lauren's heart and interior life. "
+        "Close with a brief prayer intention or a virtue she might lean into for the rest of today. "
         "Do not be generic. Do not be preachy. Write in warm, personal prose — like a friend who knows her well. "
         f"\n\nMom's standing rules and context:\n{rules_text}"
     )
 
     user = (
         f"Today is {weekday}, {date_label}.\n\n"
-        f"Lauren's tasks and chores today:\n{tasks_text}\n\n"
-        "Please write a brief, warm morning encouragement note directly to Lauren for today."
+        f"Lauren's tasks, upcoming events, and chores:\n{tasks_text}\n\n"
+        "Please write a brief, warm encouragement note directly to Lauren for right now."
     )
 
     payload = {
@@ -3067,9 +3070,12 @@ def get_child_lucy_brief(child: str, tasks_today: list, active_goals: list) -> s
         "For teenagers: speak to their dignity, their growing strength, and the weight of real virtue. "
         "For young children (under 8): speak simply, warmly, and with delight. "
         "For infants: address them tenderly as if blessing them — speak to who they already are. "
-        "Reference what you know about this child's age, stage, and today's specific tasks or goals. "
+        "The task list may begin with a line like '[Current time: X:XX PM — focus on what\\'s still ahead today]'. "
+        "If it does, use the time to set the right tone and only reference tasks or events that are still upcoming. "
+        "Do not mention or recap things that have already happened earlier in the day. "
+        "Reference what you know about this child's age, stage, and their remaining tasks or goals for today. "
         "Do not be generic. Do not be preachy. Do not list things — write in flowing, personal prose. "
-        "Close with either a prayer intention for them, a virtue to practice today, or a specific word of courage. "
+        "Close with either a prayer intention for them, a virtue to practice, or a specific word of courage for what's ahead. "
         f"\n\nFamily context and Mom's standing rules:\n{rules_text}"
     )
 
@@ -3084,10 +3090,10 @@ def get_child_lucy_brief(child: str, tasks_today: list, active_goals: list) -> s
         f"Today is {weekday}, {date_label}.\n\n"
         f"Child: {child} (age {age}, {stage})\n"
         f"Formation notes:\n{formation_notes}\n\n"
-        f"Today's tasks for {child}:\n{tasks_text}\n\n"
+        f"Remaining tasks and upcoming events for {child}:\n{tasks_text}\n\n"
         f"Active goals for {child}:\n{goals_text}\n\n"
         f"Personal profile for {child} (preferences, wish lists, sizes, interests):\n{profile_text}\n\n"
-        f"Please write a brief, warm formation note speaking directly to {child} for today."
+        f"Please write a brief, warm formation note speaking directly to {child} for right now."
     )
 
     payload = {
