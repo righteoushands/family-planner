@@ -332,7 +332,10 @@ def _get_poetry_passage(child: str) -> dict:
 
 
 def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str,
-                       child: str = "") -> str:
+                       child: str = "", _day_ovs: dict = None) -> str:
+    _day_ovs   = _day_ovs or {}
+    _child_esc = escape(child)
+    _iso_esc   = escape(iso)
     rows = []
     _poetry_passage_injected = False   # only inject once per block
     for sub in sub_items:
@@ -341,14 +344,20 @@ def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str,
                 f'<div class="dl-sub-header">{escape(sub.get("text",""))}</div>'
             )
         elif sub.get("checkable") and sub.get("task_id"):
-            tid   = escape(sub["task_id"])
-            tid_j = sub["task_id"].replace("'", "\\'")
+            raw_tid = sub["task_id"]
+            tid     = escape(raw_tid)
+            tid_j   = raw_tid.replace("'", "\\'")
+            # Check for override on this sub-item
+            _ov      = _day_ovs.get(raw_tid, {})
+            _ov_act  = _ov.get("action", "")
+            if _ov_act == "dismiss":
+                continue   # skip dismissed sub-items
             done  = sub.get("done", False)
             chk   = "checked" if done else ""
             dst   = "done" if done else ""
             dnv   = "1" if done else "0"
             carry = '<span class="dl-carry-badge">↩</span>' if sub.get("is_carryover") else ""
-            # Due-soon badge for tasks surfaced because due_date is within 7 days
+            # Due-soon badge
             due_badge = ""
             if sub.get("is_due_soon") and sub.get("due_date"):
                 try:
@@ -369,17 +378,57 @@ def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str,
                     )
                 except Exception:
                     pass
-            rows.append(
+            # Timed override badge
+            _time_badge = ""
+            if _ov_act == "timed" and _ov.get("time"):
+                _t = _ov["time"]
+                _time_badge = (
+                    f'<span style="font-size:.68em;font-weight:700;color:#0369a1;'
+                    f'background:#eff6ff;border-radius:4px;padding:1px 5px;margin-right:4px;'
+                    f'white-space:nowrap;cursor:pointer;" '
+                    f'onclick="_tovClear(\'{tid_j}\',\'{c_id}\',\'{escape(iso)}\')" '
+                    f'title="Clear time">⏰ {_t} ×</span>'
+                )
+            _lbl_raw = sub.get("text", "")
+            _lbl_js  = _lbl_raw.replace("'", "\\'").replace('"', '\\"')
+            try:
+                from datetime import date as _d3, timedelta as _td3
+                _tmr = (_d3.fromisoformat(iso) + _td3(days=1)).isoformat()
+            except Exception:
+                _tmr = ""
+            row_html = (
                 f'<div class="dl-sub-row" id="task-{tid}"'
                 f' data-dash-child="{c_id}" data-done="{dnv}">'
+                f'{_time_badge}'
                 f'<input type="checkbox" {chk}'
                 f' style="width:15px;height:15px;flex-shrink:0;margin-top:2px;accent-color:{c_bg};"'
                 f' onchange="toggleDashTask(this,\'{tid_j}\',\'{c_id}\',\'{escape(iso)}\')">'
-                f'<span class="dl-sub-label {dst}">{carry}{escape(sub.get("text",""))}{due_badge}</span>'
+                f'<span class="dl-sub-label {dst}">{carry}{escape(_lbl_raw)}{due_badge}</span>'
+                f'</div>'
+            )
+            tray_html = (
+                f'<div class="sw-del sw-ov-tray no-print">'
+                f'<button class="sw-ov-btn sw-ov-dismiss" '
+                f'onclick="_tovAct(\'{tid_j}\',\'{c_id}\',\'{escape(iso)}\',\'{_lbl_js}\',\'dismiss\')">'
+                f'&#10005; Dismiss</button>'
+                f'<button class="sw-ov-btn sw-ov-tmr" '
+                f'onclick="_tovAct(\'{tid_j}\',\'{c_id}\',\'{escape(iso)}\',\'{_lbl_js}\',\'postpone\',\'{_tmr}\')">'
+                f'&#8594; Tomorrow</button>'
+                f'<button class="sw-ov-btn sw-ov-time" '
+                f'onclick="_tovTimePrompt(\'{tid_j}\',\'{c_id}\',\'{escape(iso)}\',\'{_lbl_js}\')">'
+                f'&#9200; Time</button>'
+                f'<button class="sw-ov-btn sw-ov-hide" onclick="_swDel(this)">'
+                f'&#8942; Hide</button>'
+                f'</div>'
+            )
+            rows.append(
+                f'<div class="sw-wrap" data-child="{_child_esc}" data-iso="{_iso_esc}">'
+                f'<div class="sw-inner">{row_html}</div>'
+                f'{tray_html}'
                 f'</div>'
             )
             # If this is a poetry memorization step, inject the saved passage once
-            task_id = sub.get("task_id", "")
+            task_id  = raw_tid
             text_low = sub.get("text", "").lower()
             is_poetry_memorize = (
                 "poetry" in task_id.lower() and
@@ -505,7 +554,7 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
                 f'{prog_label}</span></span>'
                 f'</div>'
                 f'<div class="dl-subitems">'
-                f'{_dl_sub_items_html(subs, c_id, iso, c_bg, child)}'
+                f'{_dl_sub_items_html(subs, c_id, iso, c_bg, child, _day_ovs)}'
                 f'</div></div>'
             )
             rows_del.append(None)
