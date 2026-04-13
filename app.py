@@ -1617,6 +1617,41 @@ class Handler(BaseHTTPRequestHandler):
                             if _to_remove is not None:
                                 _ml.pop(_to_remove)
                                 _changed = True
+                                # ── Purge from task_registry for all future dates ──────────
+                                # Prevents the task from re-surfacing via carryover because
+                                # it was pre-registered on future day list builds.
+                                try:
+                                    from daily_schedule_engine import (
+                                        load_task_registry, save_task_registry)
+                                    from datetime import date as _dt2
+                                    _today_iso = _dt2.today().isoformat()
+                                    _reg = load_task_registry()
+                                    _reg_changed = False
+                                    _needle_lower = _tt.lower()
+                                    for _rd, _rentries in _reg.items():
+                                        if _rd < _today_iso:
+                                            continue  # don't touch historical
+                                        if not isinstance(_rentries, dict):
+                                            continue
+                                        _child_tasks = _rentries.get(_tc, [])
+                                        if not isinstance(_child_tasks, list):
+                                            continue
+                                        _new_list = []
+                                        for _rt in _child_tasks:
+                                            import re as _re2
+                                            _m = _re2.match(
+                                                r'^MANUAL::(?:HIGH|MEDIUM|LOW)::(.+)$',
+                                                _rt, _re2.IGNORECASE)
+                                            _rt_text = _m.group(1) if _m else _rt
+                                            if _rt_text.strip().lower() == _needle_lower:
+                                                _reg_changed = True  # drop it
+                                            else:
+                                                _new_list.append(_rt)
+                                        _rentries[_tc] = _new_list
+                                    if _reg_changed:
+                                        save_task_registry(_reg)
+                                except Exception:
+                                    pass
                             # Auto-refill: keep at least 5 active tasks for the boys only.
                             # Lauren manages her own task list — refill does not apply to her.
                             _BOY_NAMES = {"JP", "Joseph", "Michael", "James"}
@@ -1907,6 +1942,39 @@ class Handler(BaseHTTPRequestHandler):
                                     if _dm_remove is not None:
                                         _dml.pop(_dm_remove)
                                         _dm_changed = True
+                                        # Also purge from task_registry for all future dates
+                                        try:
+                                            from daily_schedule_engine import (
+                                                load_task_registry, save_task_registry)
+                                            from datetime import date as _ddt2
+                                            _dtoday = _ddt2.today().isoformat()
+                                            _dreg = load_task_registry()
+                                            _dreg_changed = False
+                                            _dneedle = _dm_text.strip().lower()
+                                            for _drd, _dre in _dreg.items():
+                                                if _drd < _dtoday:
+                                                    continue
+                                                if not isinstance(_dre, dict):
+                                                    continue
+                                                _dct = _dre.get(_dm_child, [])
+                                                if not isinstance(_dct, list):
+                                                    continue
+                                                _dnl = []
+                                                for _drt in _dct:
+                                                    import re as _dre2
+                                                    _dm2 = _dre2.match(
+                                                        r'^MANUAL::(?:HIGH|MEDIUM|LOW)::(.+)$',
+                                                        _drt, _dre2.IGNORECASE)
+                                                    _drt_txt = _dm2.group(1) if _dm2 else _drt
+                                                    if _drt_txt.strip().lower() == _dneedle:
+                                                        _dreg_changed = True
+                                                    else:
+                                                        _dnl.append(_drt)
+                                                _dre[_dm_child] = _dnl
+                                            if _dreg_changed:
+                                                save_task_registry(_dreg)
+                                        except Exception:
+                                            pass
                                     if _dm_changed:
                                         save_manual_tasks(_dml)
                     if _json_resp:
