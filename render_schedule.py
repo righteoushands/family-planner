@@ -1571,12 +1571,21 @@ def render_today_all(target_date_str: str = "") -> str:
         pass
 
     _family_ty_strip = _ty_pod_strip(due_thankyou_reminders_for("Family"), "#8b5a3c", "/today")
+
+    # Lauren's cycle fertility warning — shown on the dashboard for her awareness
+    try:
+        from render_mom_profile import _cycle_fertility_banner as _cfb
+        _cycle_warn = _cfb(normalized_date)
+    except Exception:
+        _cycle_warn = ""
+
     body = (
         f'{page_header("Today")}'
         f'{bar}'
         f'{day_nav}'
         f'{now_strip}'
         f'{school_banner}'
+        f'{_cycle_warn}'
         f'{_family_ty_strip}'
         f'{cards_html}'
         f'{_DASH_JS}'

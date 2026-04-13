@@ -45,6 +45,69 @@ ACCENT       = _parent_color("Lauren", "bg")
 ACCENT_LIGHT = _parent_color("Lauren", "light")
 
 
+def _cycle_fertility_banner(iso: str = "") -> str:
+    """Return an HTML warning banner for Lauren's fertility/cycle status.
+
+    Shows:
+      • Days 10–19 of her cycle → Ovulation Window warning (prominent red-rose)
+      • ~4 days before period    → Period Approaching warning (amber)
+      • Otherwise               → empty string
+    """
+    try:
+        from render_lucy import _get_cycle_context
+        from datetime import date as _d
+        _iso = iso or _d.today().isoformat()
+        cc = _get_cycle_context(_iso)
+        if not cc:
+            return ""
+        day     = cc.get("cycle_day", 0)
+        avg_len = cc.get("avg_len", 28)
+
+        # ── Ovulation Window ─────────────────────────────────────────────────
+        if 10 <= day <= 19:
+            days_in_window = day - 10 + 1
+            return (
+                f'<div style="background:#fef2f2;border:2px solid #dc2626;border-radius:12px;'
+                f'padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:14px;">'
+                f'<span style="font-size:1.8em;flex-shrink:0;">🌕</span>'
+                f'<div>'
+                f'<div style="font-size:.75em;font-weight:800;letter-spacing:.09em;'
+                f'text-transform:uppercase;color:#dc2626;margin-bottom:3px;">⚠ Fertility Alert</div>'
+                f'<div style="font-size:1.05em;font-weight:700;color:#991b1b;line-height:1.3;">'
+                f'Ovulation Window — Day {day} of {avg_len}</div>'
+                f'<div style="font-size:.82em;color:#b91c1c;margin-top:3px;line-height:1.4;">'
+                f'Day {days_in_window} of 10 in peak fertility window. NFP attention required.</div>'
+                f'</div></div>'
+            )
+
+        # ── Period Approaching ────────────────────────────────────────────────
+        days_until = avg_len - day
+        if 0 <= days_until <= 4:
+            if days_until == 0:
+                _when = "today"
+            elif days_until == 1:
+                _when = "in ~1 day"
+            else:
+                _when = f"in ~{days_until} days"
+            return (
+                f'<div style="background:#fff7ed;border:2px solid #f59e0b;border-radius:12px;'
+                f'padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:14px;">'
+                f'<span style="font-size:1.8em;flex-shrink:0;">🩸</span>'
+                f'<div>'
+                f'<div style="font-size:.75em;font-weight:800;letter-spacing:.09em;'
+                f'text-transform:uppercase;color:#d97706;margin-bottom:3px;">Cycle Notice</div>'
+                f'<div style="font-size:1.05em;font-weight:700;color:#92400e;line-height:1.3;">'
+                f'Period approaching — Day {day} of {avg_len}</div>'
+                f'<div style="font-size:.82em;color:#b45309;margin-top:3px;line-height:1.4;">'
+                f'Estimated {_when}. Plan for rest and grace.</div>'
+                f'</div></div>'
+            )
+
+        return ""
+    except Exception:
+        return ""
+
+
 def load_mom_profile() -> dict:
     try:
         with open(MOM_PROFILE_PATH) as f:
@@ -255,6 +318,7 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
         <div style="margin-top:8px;">{now_next_html}</div>
         <div style="margin-top:8px;">{cal_strip_html}</div>
     </div>
+    {_cycle_fertility_banner(iso)}
     {lucy_panel}
     <div class="day-list">
         {day_list_html}
