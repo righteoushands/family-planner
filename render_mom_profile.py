@@ -244,7 +244,7 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
         meals = _plan.get("days", {}).get(weekday, {})
         meal_html = render_meal_today_card(target_iso)
         # ── Inject "Start cooking" into the day list ──────────────────────
-        _cook = get_cook_start_for_day(meals)
+        _cook = get_cook_start_for_day(meals, weekday=weekday)
         if _cook:
             day_list.append({
                 "time":      fmt_time_12h(_cook["hhmm"]),

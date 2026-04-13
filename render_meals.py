@@ -123,13 +123,44 @@ def parse_duration_minutes(text: str) -> int:
     return total
 
 
-def get_cook_start_for_day(day_data: dict, fallback_recipes: bool = True) -> dict | None:
+def get_frol_dinner_time(weekday: str) -> str:
+    """Return the dinner serve time (HH:MM 24-h) for the given weekday from the FROL.
+
+    Looks for the earliest slot whose label contains 'dinner' in
+    data/family_schedule.json.  Falls back to '18:00' if nothing is found.
+    """
+    import re as _re3
+    try:
+        import json as _json
+        _frol = _json.load(open("data/family_schedule.json"))
+        _slots = _frol.get("days", {}).get(weekday, {})
+        for _t, _label in _slots.items():
+            if "dinner" in str(_label).lower():
+                # parse _t: "5:00 PM", "17:00", etc.
+                _pm = _re3.match(r'(\d{1,2}):(\d{2})\s*(AM|PM)?', _t.strip(), _re3.I)
+                if _pm:
+                    _h = int(_pm.group(1)); _m = int(_pm.group(2))
+                    _mer = (_pm.group(3) or "").upper()
+                    if _mer == "PM" and _h != 12:
+                        _h += 12
+                    elif _mer == "AM" and _h == 12:
+                        _h = 0
+                    return f"{_h:02d}:{_m:02d}"
+    except Exception:
+        pass
+    return "18:00"  # safe fallback
+
+
+def get_cook_start_for_day(day_data: dict, fallback_recipes: bool = True, weekday: str = "") -> dict | None:
     """
     Given a meal plan day dict, compute when cooking should start.
     Returns a dict:
         { hhmm: "17:00", serve_hhmm: "18:00",
           label: "Start cooking: Beef stew (1 hr)", total_minutes: 60 }
     or None if there is no dinner or no timing info.
+
+    Pass weekday (e.g. "Monday") so the serve time is looked up from the
+    FROL instead of defaulting to 6:00 PM for every day.
     """
     import re as _re
 
@@ -180,8 +211,8 @@ def get_cook_start_for_day(day_data: dict, fallback_recipes: bool = True) -> dic
     if total_min == 0:
         return None
 
-    # Parse serve time
-    serve_hhmm = "18:00"  # default 6:00 PM
+    # Parse serve time — prefer explicit field, then FROL, then 6 PM hard fallback
+    serve_hhmm = get_frol_dinner_time(weekday) if weekday else "18:00"
     if serve_str:
         sv = serve_str.strip()
         # already HH:MM

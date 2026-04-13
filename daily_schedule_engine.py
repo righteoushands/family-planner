@@ -1833,7 +1833,7 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
         _cook_day  = _cook_iso.strftime("%A")
         _cook_plan = load_meal_plan(_cook_wk)
         _cook_data = _cook_plan.get("days", {}).get(_cook_day, {})
-        _cook_entry = get_cook_start_for_day(_cook_data)
+        _cook_entry = get_cook_start_for_day(_cook_data, weekday=_cook_day)
     except Exception:
         _cook_entry = None
 
