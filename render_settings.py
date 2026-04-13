@@ -466,6 +466,8 @@ def _section_systems(settings: dict) -> str:
             cells += (
                 f"<td style='padding:1px 2px;{row_bg}'>"
                 f"<input type='text' name='slot__{escape(d)}__{escape(t)}' value='{escape(val)}'"
+                f" data-day='{escape(d)}' data-ts='{escape(t)}'"
+                f" oninput='_rolCellSave(this)'"
                 f" style='width:100%;font-size:0.78em;padding:2px 4px;border:1px solid {border_c};"
                 f"border-radius:3px;background:{cell_bg};margin:0;'></td>"
             )
@@ -575,7 +577,7 @@ def _section_systems(settings: dict) -> str:
                     </table>
                 </div>
                 <div style='padding:12px;background:#faf8f5;border-top:1px solid #e4dbd2;'>
-                    <button type="button" onclick="_userHasTouched=true;autoSaveSettings();">Save Schedule Now</button>
+                    <button id="rol-save-btn" type="button" onclick="_rolSaveAll();">Save Schedule Now</button>
                 </div>
             </div>
             </div>
@@ -1493,6 +1495,38 @@ function saveSchoolSettings() {{
 
     js = """
 <script>
+// ── Rule of Life per-cell save ─────────────────────────────────────────────
+var _rolTimers = {};
+
+function _rolCellSave(input) {
+  var day = input.getAttribute('data-day');
+  var ts  = input.getAttribute('data-ts');
+  var val = input.value;
+  if (!day || !ts) return;
+  var key = day + '|' + ts;
+  clearTimeout(_rolTimers[key]);
+  input.style.background = '#fffde7';
+  _rolTimers[key] = setTimeout(function() {
+    var body = 'day=' + encodeURIComponent(day) + '&ts=' + encodeURIComponent(ts) + '&value=' + encodeURIComponent(val);
+    fetch('/rol-cell-save', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:body})
+      .then(function(r){return r.json();}).then(function(d){
+        input.style.background = d.ok ? '#f0fff4' : '#fff0f0';
+        setTimeout(function(){ input.style.background = ''; }, 1200);
+      }).catch(function(){
+        input.style.background = '#fff0f0';
+        setTimeout(function(){ input.style.background = ''; }, 1200);
+      });
+  }, 600);
+}
+
+function _rolSaveAll() {
+  document.querySelectorAll('input[data-day][data-ts]').forEach(function(inp) {
+    _rolCellSave(inp);
+  });
+  var btn = document.getElementById('rol-save-btn');
+  if (btn) { btn.textContent = 'Saving…'; setTimeout(function(){ btn.textContent = 'Save Schedule Now'; }, 1500); }
+}
+
 // ── Autosave system ────────────────────────────────────────────────────────
 var _saveTimer      = null;
 var _userHasTouched = false;

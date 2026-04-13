@@ -238,14 +238,6 @@
   },
   {
     "text": "Sea Cadet tasking: get together with Dad this morning to discuss assignment to finish before the Easter Egg Hunt",
-    "assigned_to": "JP",
-    "due_date": "2026-04-11",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Sea Cadet tasking: get together with Dad this morning to discuss assignment to finish before the Easter Egg Hunt",
     "assigned_to": "Joseph",
     "due_date": "2026-04-11",
     "priority": "MEDIUM",

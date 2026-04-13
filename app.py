@@ -2269,6 +2269,25 @@ class Handler(BaseHTTPRequestHandler):
                 except BrokenPipeError: pass
                 return
 
+            elif path == "/rol-cell-save":
+                import json as _json
+                _day = clean_text(data.get("day", [""])[0])
+                _ts  = clean_text(data.get("ts",  [""])[0])
+                _val = clean_text(data.get("value",[""])[0])
+                if _day and _ts:
+                    try:
+                        _sched = load_family_schedule()
+                        _sched.setdefault("days", {}).setdefault(_day, {})[_ts] = _val
+                        save_family_schedule(_sched)
+                    except Exception as _e:
+                        print("[rol-cell-save error]", str(_e))
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                try: self.wfile.write(b'{"ok":true}')
+                except BrokenPipeError: pass
+                return
+
             elif path == "/grid-publish":
                 from datetime import datetime as _dt
                 from render_schedule_support import get_eastern_now
