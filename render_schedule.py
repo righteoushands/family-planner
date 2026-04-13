@@ -562,6 +562,9 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
                 f'<button class="sw-ov-btn sw-ov-tmr" '
                 f'onclick="_tovAct(\'{tidj}\',\'{c_id}\',\'{escape(iso)}\',\'{_lbl_js}\',\'postpone\',\'{_tmr}\')">'
                 f'&#8594; Tomorrow</button>'
+                f'<button class="sw-ov-btn sw-ov-time" '
+                f'onclick="_tovTimePrompt(\'{tidj}\',\'{c_id}\',\'{escape(iso)}\',\'{_lbl_js}\')">'
+                f'&#9200; Time</button>'
                 f'<button class="sw-ov-btn sw-ov-hide" onclick="_swDel(this)">'
                 f'&#8942; Hide</button>'
                 f'</div>'
@@ -1316,6 +1319,46 @@ function _tovClear(tid, child, iso) {
     fd.append('iso', iso);     fd.append('action', 'clear'); fd.append('json', '1');
     fetch('/task-override', {method:'POST', body:fd}).then(function() { location.reload(); });
 }
+var _tovTimeCtx = {};
+function _tovTimePrompt(tid, child, iso, label) {
+    _tovTimeCtx = {tid:tid, child:child, iso:iso, label:label};
+    var m = document.getElementById('tov-time-modal');
+    if (!m) return;
+    var inp = document.getElementById('tov-time-input');
+    if (inp) {
+        var now = new Date();
+        inp.value = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    }
+    m.classList.add('open');
+}
+function _tovTimeModalCancel() {
+    var m = document.getElementById('tov-time-modal');
+    if (m) m.classList.remove('open');
+}
+function _tovTimeModalConfirm() {
+    var inp = document.getElementById('tov-time-input');
+    if (!inp || !inp.value) return;
+    var fd = new FormData();
+    fd.append('task_id', _tovTimeCtx.tid); fd.append('child', _tovTimeCtx.child);
+    fd.append('iso', _tovTimeCtx.iso);     fd.append('label', _tovTimeCtx.label);
+    fd.append('action', 'timed'); fd.append('time', inp.value); fd.append('json', '1');
+    fetch('/task-override', {method:'POST', body:fd}).then(function() { location.reload(); });
+}
+// Inject time-picker modal once into DOM
+(function(){
+  if (document.getElementById('tov-time-modal')) return;
+  var m = document.createElement('div');
+  m.id = 'tov-time-modal';
+  m.innerHTML = '<div class="tov-tm-box">'
+    + '<div class="tov-tm-title">&#9200; Set task time</div>'
+    + '<input id="tov-time-input" type="time">'
+    + '<div class="tov-tm-btns">'
+    + '<button class="tov-tm-cancel" onclick="_tovTimeModalCancel()">Cancel</button>'
+    + '<button class="tov-tm-confirm" onclick="_tovTimeModalConfirm()">Set Time</button>'
+    + '</div></div>';
+  m.addEventListener('click', function(e){ if(e.target===m) _tovTimeModalCancel(); });
+  document.body.appendChild(m);
+})();
 </script>"""
 
 

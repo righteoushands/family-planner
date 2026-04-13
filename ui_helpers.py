@@ -868,18 +868,34 @@ pre {{
          border:none;display:flex;align-items:center;justify-content:center;
          font-size:.78em;font-weight:700;letter-spacing:.02em;cursor:pointer;
          font-family:inherit;opacity:0;user-select:none;}}
-.sw-ov-tray{{position:absolute;right:0;top:0;bottom:0;width:200px;background:transparent;
+.sw-ov-tray{{position:absolute;right:0;top:0;bottom:0;width:268px;background:transparent;
              display:flex;align-items:stretch;opacity:0;user-select:none;pointer-events:none;}}
-.sw-ov-btn{{flex:1;border:none;cursor:pointer;font-size:.72em;font-weight:700;
-            letter-spacing:.01em;font-family:inherit;padding:0 4px;
+.sw-ov-btn{{flex:1;border:none;cursor:pointer;font-size:.68em;font-weight:700;
+            letter-spacing:.01em;font-family:inherit;padding:0 3px;
             display:flex;align-items:center;justify-content:center;
             text-align:center;line-height:1.25;color:#fff;}}
 .sw-ov-dismiss{{background:#b91c1c;}}
 .sw-ov-tmr{{background:#7c3aed;}}
+.sw-ov-time{{background:#0369a1;}}
 .sw-ov-hide{{background:#6b7280;}}
 .sw-ov-dismiss:active{{background:#991b1b;}}
 .sw-ov-tmr:active{{background:#6d28d9;}}
+.sw-ov-time:active{{background:#075985;}}
 .sw-ov-hide:active{{background:#4b5563;}}
+#tov-time-modal{{display:none;position:fixed;inset:0;z-index:9998;
+  background:rgba(0,0,0,.55);align-items:center;justify-content:center;}}
+#tov-time-modal.open{{display:flex;}}
+#tov-time-modal .tov-tm-box{{background:#fff;border-radius:14px;padding:22px 20px 18px;
+  width:270px;max-width:88vw;box-shadow:0 8px 32px rgba(0,0,0,.25);}}
+#tov-time-modal .tov-tm-title{{font-weight:700;font-size:.95em;color:#1e293b;margin-bottom:14px;}}
+#tov-time-modal input[type=time]{{width:100%;font-size:1.15em;padding:10px 8px;
+  border:1.5px solid #93c5fd;border-radius:8px;font-family:inherit;color:#1e293b;
+  background:#eff6ff;box-sizing:border-box;}}
+#tov-time-modal .tov-tm-btns{{display:flex;gap:8px;margin-top:14px;}}
+#tov-time-modal .tov-tm-cancel{{flex:1;padding:10px;background:#e5e7eb;border:none;
+  border-radius:8px;font-weight:600;font-size:.9em;font-family:inherit;cursor:pointer;color:#374151;}}
+#tov-time-modal .tov-tm-confirm{{flex:1;padding:10px;background:#0369a1;color:#fff;border:none;
+  border-radius:8px;font-weight:700;font-size:.9em;font-family:inherit;cursor:pointer;}}
 .sw-add{{position:absolute;left:0;top:0;bottom:0;width:76px;background:#16a34a;color:#fff;
          border:none;display:flex;align-items:center;justify-content:center;
          font-size:.78em;font-weight:700;letter-spacing:.02em;cursor:pointer;
