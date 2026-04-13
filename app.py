@@ -1827,6 +1827,8 @@ class Handler(BaseHTTPRequestHandler):
                 import json as _toj
                 _to_id    = data.get("task_id", [""])[0].strip()
                 _to_child = data.get("child",   [""])[0].strip()
+                # Normalize child to canonical CHILDREN name (handles "jp" → "JP", etc.)
+                _to_child = next((c for c in CHILDREN if c.lower() == _to_child.lower()), _to_child)
                 _to_iso   = data.get("iso",     [""])[0].strip()
                 _to_act   = data.get("action",  [""])[0].strip()  # dismiss|postpone|timed|clear
                 _to_time  = data.get("time",    [""])[0].strip()  # HH:MM for timed
