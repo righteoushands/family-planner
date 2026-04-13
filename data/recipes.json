@@ -4,7 +4,7 @@
       "id": "r001",
       "name": "Brined Roast Chicken",
       "ingredients": "Whole chicken (4-5 lb), 1/4 cup kosher salt, 1/4 cup sugar, water, garlic cloves, fresh herbs (thyme, rosemary), butter, lemon",
-      "instructions": "Brine chicken in salt/sugar/water 8-24 hrs. Pat dry. Rub with butter and herbs. Roast at 425°F 1-1.5 hrs until internal temp 165°F. Rest 10 min before carving.",
+      "instructions": "Brine chicken in salt/sugar/water 8-24 hrs. Pat dry. Rub with butter and herbs. Roast at 425\u00b0F 1-1.5 hrs until internal temp 165\u00b0F. Rest 10 min before carving.",
       "tags": [
         "chicken",
         "anchor-meal",
@@ -18,7 +18,7 @@
       "id": "r002",
       "name": "Sunday Roast Beef",
       "ingredients": "3-4 lb chuck or rump roast, olive oil, salt, pepper, garlic, onion, carrots, potatoes, beef broth, fresh rosemary",
-      "instructions": "Sear roast on all sides in hot oil. Transfer to roasting pan with vegetables and broth. Roast at 325°F 3-4 hrs until fork-tender. Rest 15 min. Use drippings for gravy.",
+      "instructions": "Sear roast on all sides in hot oil. Transfer to roasting pan with vegetables and broth. Roast at 325\u00b0F 3-4 hrs until fork-tender. Rest 15 min. Use drippings for gravy.",
       "tags": [
         "red-meat",
         "anchor-meal",
@@ -32,7 +32,7 @@
       "id": "r003",
       "name": "Friday Fish Fry (Fried Flounder)",
       "ingredients": "Flounder fillets, buttermilk, cornmeal, flour, Old Bay seasoning, salt, pepper, oil for frying, lemon wedges, tartar sauce",
-      "instructions": "Soak fillets in buttermilk 30 min. Mix cornmeal, flour, Old Bay. Dredge fish. Fry in 350°F oil 3-4 min per side until golden. Drain on paper towels.",
+      "instructions": "Soak fillets in buttermilk 30 min. Mix cornmeal, flour, Old Bay. Dredge fish. Fry in 350\u00b0F oil 3-4 min per side until golden. Drain on paper towels.",
       "tags": [
         "fish",
         "Friday",
@@ -46,7 +46,7 @@
       "id": "r004",
       "name": "Chicken Chili (Batch Soup)",
       "ingredients": "2 lbs ground or shredded chicken, 2 cans white beans, 1 can green chiles, chicken broth, onion, garlic, cumin, chili powder, sour cream, shredded cheese",
-      "instructions": "Sauté onion and garlic. Add chicken, cook through. Add beans, chiles, broth, and spices. Simmer 30 min. Serve with sour cream and cheese. Freezes well.",
+      "instructions": "Saut\u00e9 onion and garlic. Add chicken, cook through. Add beans, chiles, broth, and spices. Simmer 30 min. Serve with sour cream and cheese. Freezes well.",
       "tags": [
         "chicken",
         "soup",
@@ -60,7 +60,7 @@
       "id": "r005",
       "name": "Tomato Soup",
       "ingredients": "2 cans crushed tomatoes, 1 cup chicken or vegetable broth, 1/2 cup cream, onion, garlic, butter, fresh basil, salt, pepper, sugar (pinch)",
-      "instructions": "Sauté onion and garlic in butter. Add tomatoes and broth, simmer 20 min. Blend smooth. Add cream and basil. Season to taste. Serve with grilled cheese.",
+      "instructions": "Saut\u00e9 onion and garlic in butter. Add tomatoes and broth, simmer 20 min. Blend smooth. Add cream and basil. Season to taste. Serve with grilled cheese.",
       "tags": [
         "vegetarian",
         "soup",
@@ -76,7 +76,7 @@
       "id": "r006",
       "name": "Lentil Soup",
       "ingredients": "1.5 cups red lentils, 1 can diced tomatoes, onion, garlic, carrots, celery, cumin, turmeric, smoked paprika, lemon juice, chicken or vegetable broth",
-      "instructions": "Sauté onion, garlic, carrots, celery. Add spices, cook 1 min. Add lentils, tomatoes, broth. Simmer 25-30 min until lentils dissolve. Finish with lemon juice.",
+      "instructions": "Saut\u00e9 onion, garlic, carrots, celery. Add spices, cook 1 min. Add lentils, tomatoes, broth. Simmer 25-30 min until lentils dissolve. Finish with lemon juice.",
       "tags": [
         "legume",
         "soup",
@@ -92,7 +92,7 @@
       "id": "r007",
       "name": "Beef Stew (Batch)",
       "ingredients": "2 lbs stew beef, potatoes, carrots, celery, onion, garlic, beef broth, tomato paste, Worcestershire, flour, rosemary, thyme",
-      "instructions": "Coat beef in flour, brown in batches. Sauté vegetables. Add beef, broth, tomato paste, herbs. Simmer 2-3 hrs low and slow until beef is tender. Thickens as it cools.",
+      "instructions": "Coat beef in flour, brown in batches. Saut\u00e9 vegetables. Add beef, broth, tomato paste, herbs. Simmer 2-3 hrs low and slow until beef is tender. Thickens as it cools.",
       "tags": [
         "red-meat",
         "soup",
@@ -101,13 +101,14 @@
         "Sunday"
       ],
       "prep_time": "30 min",
-      "created": "2026-01-01"
+      "created": "2026-01-01",
+      "cook_time": "2 hr 30 min"
     },
     {
       "id": "r008",
       "name": "Black-Eyed Pea Jambalaya",
       "ingredients": "2 cans black-eyed peas, 1 lb andouille or chicken sausage, rice, onion, bell pepper, celery, garlic, diced tomatoes, chicken broth, Cajun seasoning, bay leaf",
-      "instructions": "Brown sausage. Sauté the holy trinity (onion, bell pepper, celery). Add garlic, tomatoes, peas, broth, rice. Season generously. Simmer covered 20 min until rice is cooked.",
+      "instructions": "Brown sausage. Saut\u00e9 the holy trinity (onion, bell pepper, celery). Add garlic, tomatoes, peas, broth, rice. Season generously. Simmer covered 20 min until rice is cooked.",
       "tags": [
         "legume",
         "poultry",
@@ -136,7 +137,7 @@
       "id": "r010",
       "name": "Sheet Pan Chicken Thighs with Vegetables",
       "ingredients": "6-8 bone-in chicken thighs, potatoes or sweet potatoes, broccoli or green beans, olive oil, garlic powder, paprika, Italian seasoning, salt, pepper",
-      "instructions": "Toss vegetables in oil and seasoning. Season chicken. Arrange on sheet pan, chicken skin-up. Roast at 425°F 35-40 min until chicken is golden and cooked through.",
+      "instructions": "Toss vegetables in oil and seasoning. Season chicken. Arrange on sheet pan, chicken skin-up. Roast at 425\u00b0F 35-40 min until chicken is golden and cooked through.",
       "tags": [
         "chicken",
         "easy",
@@ -167,7 +168,7 @@
       "id": "r012",
       "name": "Scrambled Eggs with Toast",
       "ingredients": "Eggs, butter, salt, pepper, milk (splash), bread for toast",
-      "instructions": "Beat eggs with milk. Melt butter in pan over medium-low. Add eggs, stir constantly until just set. Remove from heat slightly early — carryover cooks them. Serve with buttered toast.",
+      "instructions": "Beat eggs with milk. Melt butter in pan over medium-low. Add eggs, stir constantly until just set. Remove from heat slightly early \u2014 carryover cooks them. Serve with buttered toast.",
       "tags": [
         "breakfast",
         "quick",
@@ -211,7 +212,7 @@
       "id": "r015",
       "name": "Baked Salmon with Rice",
       "ingredients": "Salmon fillets, olive oil, garlic, lemon, dill or parsley, salt, pepper. Serve with white rice and steamed broccoli.",
-      "instructions": "Season salmon with oil, garlic, lemon, dill. Bake at 400°F 12-15 min until flakes easily. Serve over rice with a vegetable.",
+      "instructions": "Season salmon with oil, garlic, lemon, dill. Bake at 400\u00b0F 12-15 min until flakes easily. Serve over rice with a vegetable.",
       "tags": [
         "fish",
         "Friday",
@@ -225,8 +226,8 @@
     {
       "id": "3e9722de",
       "name": "New Orleans Beignets",
-      "ingredients": "Pillowy, golden fried dough buried under a blizzard of powdered sugar — just like Café Du Monde.\r\n\r\n\r\nIngredients\r\nMakes 24 beignets\r\n¾ cup warm water (110°F)\r\n2¼ tsp active dry yeast\r\n¼ cup granulated sugar\r\n½ cup whole milk, warm\r\n1 egg\r\n2 tbsp unsalted butter, melted\r\n½ tsp salt\r\n3½ cups all-purpose flour\r\n4 cups vegetable oil, for frying\r\n1 cup powdered sugar, for topping",
-      "instructions": "Activate the yeast — Combine warm water and yeast in a large bowl. Stir in sugar and let sit until foamy, about 5–10 minutes.\r\nMix the dough — Whisk in warm milk, egg, melted butter, and salt. Add flour one cup at a time, stirring until a soft, slightly sticky dough forms.\r\nFirst rise — Turn dough onto a floured surface and knead 2–3 minutes until smooth. Place in a greased bowl, cover with plastic wrap, and refrigerate for at least 1 hour or overnight.\r\nRoll and cut — On a floured surface, roll the dough out to about ¼-inch thickness. Cut into roughly 2×2-inch squares.\r\nHeat the oil — Heat vegetable oil in a heavy pot or Dutch oven to 350°F. Use a thermometer — temperature control is key for puffy beignets.\r\nFry — Fry a few beignets at a time, 1–2 minutes per side, until puffed and deep golden. Don't crowd the pot. Remove with a slotted spoon and drain on paper towels.\r\nServe — Dust immediately and generously with powdered sugar. Serve hot — beignets wait for no one.\r\n\r\n\r\n\r\nTips\r\nCold dough is easier to roll — don't skip the chill.\r\nIf beignets don't puff, your oil may be too cool.\r\nFor extra flavor, add ½ tsp vanilla to the wet ingredients.\r\nBest eaten fresh and hot, with café au lait.",
+      "ingredients": "Pillowy, golden fried dough buried under a blizzard of powdered sugar \u2014 just like Caf\u00e9 Du Monde.\r\n\r\n\r\nIngredients\r\nMakes 24 beignets\r\n\u00be cup warm water (110\u00b0F)\r\n2\u00bc tsp active dry yeast\r\n\u00bc cup granulated sugar\r\n\u00bd cup whole milk, warm\r\n1 egg\r\n2 tbsp unsalted butter, melted\r\n\u00bd tsp salt\r\n3\u00bd cups all-purpose flour\r\n4 cups vegetable oil, for frying\r\n1 cup powdered sugar, for topping",
+      "instructions": "Activate the yeast \u2014 Combine warm water and yeast in a large bowl. Stir in sugar and let sit until foamy, about 5\u201310 minutes.\r\nMix the dough \u2014 Whisk in warm milk, egg, melted butter, and salt. Add flour one cup at a time, stirring until a soft, slightly sticky dough forms.\r\nFirst rise \u2014 Turn dough onto a floured surface and knead 2\u20133 minutes until smooth. Place in a greased bowl, cover with plastic wrap, and refrigerate for at least 1 hour or overnight.\r\nRoll and cut \u2014 On a floured surface, roll the dough out to about \u00bc-inch thickness. Cut into roughly 2\u00d72-inch squares.\r\nHeat the oil \u2014 Heat vegetable oil in a heavy pot or Dutch oven to 350\u00b0F. Use a thermometer \u2014 temperature control is key for puffy beignets.\r\nFry \u2014 Fry a few beignets at a time, 1\u20132 minutes per side, until puffed and deep golden. Don't crowd the pot. Remove with a slotted spoon and drain on paper towels.\r\nServe \u2014 Dust immediately and generously with powdered sugar. Serve hot \u2014 beignets wait for no one.\r\n\r\n\r\n\r\nTips\r\nCold dough is easier to roll \u2014 don't skip the chill.\r\nIf beignets don't puff, your oil may be too cool.\r\nFor extra flavor, add \u00bd tsp vanilla to the wet ingredients.\r\nBest eaten fresh and hot, with caf\u00e9 au lait.",
       "tags": [
         "Breakfast",
         "New Orleans",
@@ -250,7 +251,7 @@
         "1 cup chicken broth or water",
         "3 cups cooked rice",
         "1 bag edamame (thawed)",
-        "Fresh carrots (optional — steamed or raw)"
+        "Fresh carrots (optional \u2014 steamed or raw)"
       ],
       "instructions": [
         "Heat butter in a large pot over medium heat",

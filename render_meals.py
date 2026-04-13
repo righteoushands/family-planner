@@ -147,8 +147,20 @@ def get_cook_start_for_day(day_data: dict, fallback_recipes: bool = True) -> dic
     _recipe_fallback_cook = 0
     if fallback_recipes and (not prep_str or not cook_str):
         try:
+            import re as _re2
             from data_helpers import search_recipes
-            hits = search_recipes(dinner)
+            # Try the full dinner string first, then progressively shorter candidates
+            # (dinner entries often have sides appended: "Beef stew + sourdough bread")
+            _search_candidates = [dinner]
+            # Split on common separators to get just the primary dish name
+            _primary = _re2.split(r'\s*[+/]\s*|\s+with\s+|\s+and\s+', dinner, maxsplit=1)[0].strip()
+            if _primary and _primary.lower() != dinner.lower():
+                _search_candidates.append(_primary)
+            hits = []
+            for _cand in _search_candidates:
+                hits = search_recipes(_cand)
+                if hits:
+                    break
             if hits:
                 r = hits[0]
                 if not prep_str:
@@ -975,6 +987,7 @@ DEFAULT_RECIPES = [
         "instructions": "Coat beef in flour, brown in batches. Sauté vegetables. Add beef, broth, tomato paste, herbs. Simmer 2-3 hrs low and slow until beef is tender. Thickens as it cools.",
         "tags": ["red-meat", "soup", "batch-cook", "high-carb", "Sunday"],
         "prep_time": "30 min",
+        "cook_time": "2 hr 30 min",
         "created": "2026-01-01",
     },
     {

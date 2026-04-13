@@ -245,14 +245,6 @@
     "recurring": false
   },
   {
-    "text": "Laundry: carefully wash and dry Bobby",
-    "assigned_to": "Mom",
-    "due_date": "2026-04-11",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
     "text": "Call MD re: meds for hair loss",
     "assigned_to": "Mom",
     "due_date": "2026-04-15",
