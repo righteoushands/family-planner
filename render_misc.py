@@ -1638,14 +1638,16 @@ def render_now_page() -> str:
     return html_page("Right Now", body)
 
 
-def _render_rule_of_life_strip(weekday: str) -> str:
+def _render_rule_of_life_strip(weekday: str, person: str = "") -> str:
     """
     Compact scrollable strip showing today's Rule of Life time anchors.
     Reads live from data/family_schedule.json on every call so edits to the
     schedule grid in Settings appear immediately on the next page load.
     Current slot is highlighted in gold; past slots are faded.
+    When `person` is provided, exercise slots show only that person's assignment.
     """
     from html import escape as _e
+    _EXERCISE_KEYWORDS = ("fortitude", "justice", "exercise", "family run", "family strength")
     try:
         from data_helpers import load_family_schedule
         from render_schedule_support import _slot_minutes, get_eastern_now
@@ -1653,6 +1655,7 @@ def _render_rule_of_life_strip(weekday: str) -> str:
         schedule  = load_family_schedule()
         times     = schedule.get("times", [])
         day_slots = schedule.get("days", {}).get(weekday, {})
+        ex_assign = schedule.get("exercise_assignments", {}).get(weekday, {})
         if not day_slots:
             return ""
 
@@ -1694,12 +1697,26 @@ def _render_rule_of_life_strip(weekday: str) -> str:
             else:
                 bg = "var(--warm-white)"; border = "1px solid var(--border)"
                 tc = "var(--ink-muted)";  fw = "400"
+            # Build chip body — show person-specific exercise note when available
+            is_exercise = any(kw in label.lower() for kw in _EXERCISE_KEYWORDS)
+            person_note = ""
+            if is_exercise and person and ex_assign:
+                _pkey = next((k for k in ex_assign if k.lower() == person.lower()), None)
+                if _pkey:
+                    person_note = (
+                        f'<div style="font-size:0.63em;color:{tc};opacity:0.85;'
+                        f'line-height:1.3;margin-top:3px;text-align:left;'
+                        f'white-space:normal;word-break:break-word;">'
+                        f'{_e(ex_assign[_pkey])}</div>'
+                    )
             chips += (
                 f'<div style="flex-shrink:0;background:{bg};border:{border};'
-                f'border-radius:8px;padding:5px 10px;text-align:center;min-width:72px;max-width:130px;">'
+                f'border-radius:8px;padding:5px 10px;text-align:center;min-width:72px;'
+                f'max-width:{"220px" if person_note else "130px"};">'
                 f'<div style="font-size:0.62em;color:{tc};opacity:0.75;white-space:nowrap;">{_e(t)}</div>'
                 f'<div style="font-size:0.72em;color:{tc};font-weight:{fw};'
                 f'line-height:1.2;margin-top:2px;word-break:break-word;">{_e(label)}</div>'
+                f'{person_note}'
                 f'</div>'
             )
 
@@ -2000,7 +2017,7 @@ def render_mom_page(status_message: str = "", target_date_str: str = "") -> str:
     {f'<div style="margin-bottom:12px;">{now_next_html}</div>' if now_next_html else ""}
 
     <!-- Rule of Life strip — live from family_schedule.json -->
-    {_render_rule_of_life_strip(weekday)}
+    {_render_rule_of_life_strip(weekday, person="Lauren")}
 
     <!-- Print & nav row -->
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">

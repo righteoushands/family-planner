@@ -952,5 +952,10 @@
   "MANUAL::Michael::2026-04-12::Gather your clean clothes from Mom’s room and put them away.": true,
   "CARRY::Michael::2026-04-12::[MEDIUM] Gather your clean clothes from Mom’s room and put them away.": true,
   "MANUAL::Mom::2026-04-12::Dye Easter Eggs": true,
-  "CARRY::Mom::2026-04-12::[MEDIUM] Dye Easter Eggs": true
+  "CARRY::Mom::2026-04-12::[MEDIUM] Dye Easter Eggs": true,
+  "CHORE::Lauren::2026-04-13::weekly::Trim nails — Lauren, Michael & James": true,
+  "CHORE::Lauren::2026-04-13::weekly::Bathe the Littles (Michael & James)": true,
+  "ROUTINE::Lauren::2026-04-13::Go over your List with Mom": true,
+  "ROUTINE::Lauren::2026-04-13::Break / CAP Prep": true,
+  "ROUTINE::Lauren::2026-04-13::CAP Prep": true
 }
