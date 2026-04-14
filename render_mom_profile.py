@@ -331,6 +331,25 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
     <div class="day-list">
         {day_list_html}
     </div>
+    <div id="tasks" class="no-print" style="padding:8px 0 4px;">
+        <form method="POST" action="/add-task"
+              style="display:flex;gap:8px;align-items:center;">
+            <input type="hidden" name="assigned_to" value="Lauren">
+            <input type="hidden" name="return_url" value="/mom-profile">
+            <input type="text" name="text"
+                   placeholder="+ Quick note or task&#8230;"
+                   autocomplete="off"
+                   style="flex:1;border:1.5px solid {c_bg}44;border-radius:8px;
+                          padding:9px 12px;font-size:.88em;font-family:inherit;
+                          color:#3d2b1f;background:#fff;">
+            <button type="submit"
+                    style="background:{c_bg};color:#fff;border:none;border-radius:8px;
+                           padding:9px 16px;font-size:.88em;font-weight:600;
+                           cursor:pointer;white-space:nowrap;flex-shrink:0;">
+                &#43; Add
+            </button>
+        </form>
+    </div>
     {_ty_sec}
     {_meal_sec}
 </div>

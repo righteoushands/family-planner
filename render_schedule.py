@@ -810,7 +810,6 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
         else:
             wrapped.append(
                 f'<div class="sw-wrap" data-child="{_child_esc}" data-iso="{_iso_esc}">'
-                '<button class="sw-add no-print" onclick="_swAdd(this)" aria-label="Add task below">+ Add</button>'
                 '<div class="sw-inner">' + r + '</div>'
                 + (d if d is not None else _std_del) +
                 '</div>'
@@ -1052,6 +1051,27 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
         {_exercise_sec}
         <div class="day-list">
             {day_list_html}
+        </div>
+        <div id="tasks" class="no-print"
+             style="padding:8px 0 4px;">
+            <form method="POST" action="/add-task"
+                  style="display:flex;gap:8px;align-items:center;">
+                <input type="hidden" name="assigned_to" value="{escape(child)}">
+                <input type="hidden" name="return_url"
+                       value="/schedule/{escape(child)}">
+                <input type="text" name="text"
+                       placeholder="+ Quick note or task for {escape(child)}&#8230;"
+                       autocomplete="off"
+                       style="flex:1;border:1.5px solid {c_bg}44;border-radius:8px;
+                              padding:9px 12px;font-size:.88em;font-family:inherit;
+                              color:#3d2b1f;background:#fff;">
+                <button type="submit"
+                        style="background:{c_bg};color:#fff;border:none;border-radius:8px;
+                               padding:9px 16px;font-size:.88em;font-weight:600;
+                               cursor:pointer;white-space:nowrap;flex-shrink:0;">
+                    &#43; Add
+                </button>
+            </form>
         </div>
         {_ty_sec}
         {_goals_sec}

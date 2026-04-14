@@ -1833,7 +1833,12 @@ class Handler(BaseHTTPRequestHandler):
                         tasks.append(t)
                     save_manual_tasks(tasks)
                 ru=data.get("return_url",["/tasks"])[0]
-                redirect=(ru if ru in ("/tasks","/mom") else "/tasks") + "#top"
+                import re as _reu
+                _pod_pat = _reu.compile(r'^/schedule/[A-Za-z]{1,30}$')
+                if ru in ("/tasks","/mom","/mom-profile") or _pod_pat.match(ru):
+                    redirect = ru + "#tasks"
+                else:
+                    redirect = "/tasks#top"
 
             elif path == "/task-done":
                 # Permanently delete one-time tasks; advance recurring ones to next due date
@@ -5360,13 +5365,12 @@ class Handler(BaseHTTPRequestHandler):
 
             elif path == "/add-to-plan-quick":
                 from datetime import date as _date
-                from render_daily_plan import get_or_seed_plan, add_item_to_plan
+                from render_daily_plan import add_item_to_plan
                 iso_q  = clean_text(data.get("iso",[""])[0]) or _date.today().isoformat()
                 text_q = clean_text(data.get("text",[""])[0])
                 src_q  = clean_text(data.get("source",["manual"])[0])
                 if text_q:
-                    plan_q = get_or_seed_plan(iso_q)
-                    add_item_to_plan(plan_q, text_q, source=src_q)
+                    add_item_to_plan(iso_q, text_q, source=src_q)
                 self.send_response(200)
                 self.send_header("Content-Type","application/json")
                 self.end_headers()
