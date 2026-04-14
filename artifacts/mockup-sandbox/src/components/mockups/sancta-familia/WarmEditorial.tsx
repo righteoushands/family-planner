@@ -140,7 +140,7 @@ export function WarmEditorial() {
               {[
                 { icon: "☀️", label: "Breakfast", val: "Eggs, cereal, fruit" },
                 { icon: "🥗", label: "Lunch", val: "Out (Bible Study)" },
-                { icon: "🍽️", label: "Dinner", val: "Leftovers: chicken + potatoes au gratin + broccoli + rice" },
+                { icon: "🍽️", label: "Dinner", val: "Leftovers: beef stew" },
                 { icon: "🍮", label: "Dessert", val: "Canned peaches + whipped cream" },
               ].map(({ icon, label, val }) => (
                 <div key={label} className="flex items-start gap-2 px-2.5 py-1" style={{ borderBottom: "1px solid #F5F0E8" }}>
