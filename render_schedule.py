@@ -1000,14 +1000,15 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
     _lucy_inner = (
         f'<div class="card card-tight" id="lucy-child-panel-{child.lower()}"'
         f' style="border-left:4px solid {c_bg};background:{c_light};margin-bottom:4px;">'
-        f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
-        f'<span style="font-size:1em;">&#10022;</span>'
-        f'<span style="font-size:.85em;font-weight:700;color:{c_bg};">'
-        f"Lucy's notes for {escape(child)}</span>"
-        f'</div>'
         f'<div id="lucy-child-brief-{child.lower()}"'
-        f' style="font-size:.85em;line-height:1.55;color:#444;min-height:32px;">'
-        f'<span style="color:#bbb;font-style:italic;">Loading&#8230;</span>'
+        f' style="font-size:.85em;line-height:1.55;color:#444;">'
+        f'<div style="text-align:center;padding:6px 0 2px;">'
+        f'<button id="lucy-load-btn-{child.lower()}"'
+        f' onclick="loadLucyBrief(\'{child.lower()}\')"'
+        f' style="background:{c_bg};color:#fff;border:none;border-radius:8px;'
+        f'padding:8px 22px;font-size:.88em;font-weight:600;cursor:pointer;">'
+        f'&#10022; Ask Lucy</button>'
+        f'</div>'
         f'</div></div>'
     )
     _daily_bar_sec  = _collapsible_wrap(f"{c_id}-dailybar",  "&#128197; Liturgical Calendar", _daily_bar_html,                              accent=c_bg)
@@ -1064,20 +1065,22 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
         row.style.display = 'none';
     }});
 }})();
-(function() {{
-    var el = document.getElementById('lucy-child-brief-{child.lower()}');
-    if (!el) return;
-    fetch('/lucy-child-brief/{child.lower()}')
+function loadLucyBrief(child) {{
+    var btn = document.getElementById('lucy-load-btn-' + child);
+    var el  = document.getElementById('lucy-child-brief-' + child);
+    if (btn) btn.style.display = 'none';
+    if (el)  el.innerHTML = '<span style="color:#bbb;font-style:italic;">Loading&#8230;</span>';
+    fetch('/lucy-child-brief/' + child)
         .then(function(r) {{ return r.json(); }})
         .then(function(d) {{
-            el.innerHTML = d.html ||
+            if (el) el.innerHTML = d.html ||
                 '<span style="color:#bbb;font-style:italic;">Not available.</span>';
         }})
         .catch(function() {{
-            el.innerHTML =
-                "<span style='color:#bbb;font-style:italic;'>Could not load.</span>";
+            if (el) el.innerHTML =
+                '<span style="color:#bbb;font-style:italic;">Could not load.</span>';
         }});
-}})();
+}}
 /* Live progress sync: keeps this page in step with other open pages */
 (function() {{
     var _iso = '{escape(iso)}';

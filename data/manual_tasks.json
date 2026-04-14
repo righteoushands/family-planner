@@ -396,5 +396,21 @@
     "priority": "HIGH",
     "status": "active",
     "recurring": false
+  },
+  {
+    "text": "Switch laundry",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-14",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Find and sign Thank You card",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-14",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
   }
 ]

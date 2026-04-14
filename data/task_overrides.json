@@ -5,6 +5,10 @@
         "action": "postpone",
         "postpone_to": "2026-04-25",
         "label": "Consider making the lemon curd 2 days before (April 19th) to spread out the workload"
+      },
+      "ROUTINE::Lauren::2026-04-14::Break": {
+        "action": "dismiss",
+        "label": "Break"
       }
     }
   },

@@ -285,13 +285,15 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
     _lucy_inner = (
         f'<div class="card card-tight"'
         f' style="border-left:4px solid {c_bg};background:{c_light};margin-bottom:4px;">'
-        f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
-        f'<span style="font-size:1.1em;">✦</span>'
-        f'<h3 style="margin:0;font-size:.95em;color:{c_bg};">Lucy\'s Notes for Lauren</h3>'
-        f'</div>'
         f'<div id="lucy-lauren-brief"'
-        f' style="font-size:.88em;line-height:1.6;color:#444;min-height:40px;">'
-        f'<span style="color:#bbb;font-style:italic;">Loading…</span>'
+        f' style="font-size:.88em;line-height:1.6;color:#444;">'
+        f'<div style="text-align:center;padding:6px 0 2px;">'
+        f'<button id="lucy-load-btn-lauren"'
+        f' onclick="loadLucyBrief(\'lauren\')"'
+        f' style="background:{c_bg};color:#fff;border:none;border-radius:8px;'
+        f'padding:8px 22px;font-size:.88em;font-weight:600;cursor:pointer;">'
+        f'&#10022; Ask Lucy</button>'
+        f'</div>'
         f'</div></div>'
     )
     _fertility_inner = _cycle_fertility_banner(iso)
@@ -333,22 +335,23 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
     {_meal_sec}
 </div>
 <script>
-(function() {{
-    var el = document.getElementById('lucy-lauren-brief');
-    if (!el) return;
-    var fallback = '<span style="color:#bbb;font-style:italic;">Not available right now.</span>';
-    var timer = setTimeout(function() {{ el.innerHTML = fallback; }}, 18000);
-    fetch('/lucy-child-brief/lauren')
+function loadLucyBrief(child) {{
+    var btn = document.getElementById('lucy-load-btn-' + child);
+    var el  = document.getElementById('lucy-' + child + '-brief');
+    if (!el) el = document.getElementById('lucy-child-brief-' + child);
+    if (btn) btn.style.display = 'none';
+    if (el)  el.innerHTML = '<span style="color:#bbb;font-style:italic;">Loading&#8230;</span>';
+    fetch('/lucy-child-brief/' + child)
         .then(function(r) {{ return r.json(); }})
         .then(function(d) {{
-            clearTimeout(timer);
-            el.innerHTML = d.html || fallback;
+            if (el) el.innerHTML = d.html ||
+                '<span style="color:#bbb;font-style:italic;">Not available.</span>';
         }})
         .catch(function() {{
-            clearTimeout(timer);
-            el.innerHTML = fallback;
+            if (el) el.innerHTML =
+                '<span style="color:#bbb;font-style:italic;">Could not load.</span>';
         }});
-}})();
+}}
 </script>
 {_COLLAPSIBLE_JS}"""
 
