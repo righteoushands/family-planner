@@ -452,6 +452,8 @@ def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str,
             _ov_act  = _ov.get("action", "")
             if _ov_act == "dismiss":
                 continue   # skip dismissed sub-items
+            if _ov_act == "postpone":
+                continue   # skip postponed sub-items (moved to another day)
             done  = sub.get("done", False)
             chk   = "checked" if done else ""
             dst   = "done" if done else ""
@@ -662,8 +664,8 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
             tidj = raw_tid.replace("'", "\\'")
             _ov = _day_ovs.get(raw_tid, {})
             _ov_act = _ov.get("action", "")
-            # Skip dismissed items entirely
-            if _ov_act == "dismiss":
+            # Skip dismissed or postponed items entirely
+            if _ov_act in ("dismiss", "postpone"):
                 continue
             # Timed override: update time display
             if _ov_act == "timed" and _ov.get("time"):
