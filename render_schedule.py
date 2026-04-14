@@ -23,6 +23,67 @@ from ui_helpers import html_page, page_header
 from render_daily_bar import render_daily_bar, render_child_age_strip
 
 
+# ── Exercise assignment helper ────────────────────────────────────────────────
+def _get_exercise_assignment(child: str, weekday: str) -> tuple:
+    """
+    Returns (slot_label, assignment_text) for the exercise slot on `weekday`
+    for `child`, or ("", "") if there is no exercise scheduled that day.
+    Resolves 'Lauren'/'Mom' alias automatically.
+    """
+    from data_helpers import load_family_schedule
+    _EXERCISE_KEYWORDS = ("fortitude", "justice", "exercise", "family run", "family strength")
+    _alias = {"mom": "Lauren", "lauren": "Lauren", "jp": "JP", "joseph": "Joseph",
+              "michael": "Michael", "james": "James"}
+    person_key = _alias.get(child.lower(), child)
+    try:
+        sched = load_family_schedule()
+        day_slots = sched.get("days", {}).get(weekday, {})
+        ex_assigns = sched.get("exercise_assignments", {}).get(weekday, {})
+        slot_label = ""
+        for t, v in day_slots.items():
+            if v and any(kw in v.lower() for kw in _EXERCISE_KEYWORDS):
+                slot_label = v
+                break
+        if not slot_label:
+            return ("", "")
+        assignment = ex_assigns.get(person_key, "")
+        return (slot_label, assignment)
+    except Exception:
+        return ("", "")
+
+
+def _render_exercise_block_screen(child: str, weekday: str, c_bg: str, c_light: str) -> str:
+    """Colored exercise block for the live POD card (visible on-screen and in print)."""
+    slot_label, assignment = _get_exercise_assignment(child, weekday)
+    if not slot_label:
+        return ""
+    from html import escape as _e
+    return (
+        f'<div style="border-left:4px solid {c_bg};background:{c_light};'
+        f'padding:10px 14px;margin-bottom:10px;border-radius:0 8px 8px 0;">'
+        f'<div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;'
+        f'text-transform:uppercase;color:{c_bg};margin-bottom:4px;">'
+        f'&#128170; 9:00 AM · {_e(slot_label)}</div>'
+        f'<div style="font-size:0.88em;color:#333;line-height:1.5;">'
+        f'{_e(assignment) if assignment else _e(slot_label)}</div>'
+        f'</div>'
+    )
+
+
+def _render_exercise_block_print(child: str, weekday: str) -> str:
+    """Print-friendly exercise section for the child print page."""
+    slot_label, assignment = _get_exercise_assignment(child, weekday)
+    if not slot_label:
+        return ""
+    from html import escape as _e
+    text = assignment if assignment else slot_label
+    return (
+        f'<div class="section-title">Exercise — 9:00 AM</div>'
+        f'<div style="padding:4pt 0 8pt;font-size:9pt;line-height:1.5;color:#222;">'
+        f'<strong>{_e(slot_label)}</strong><br>{_e(text)}</div>'
+    )
+
+
 # ── Celebration messages ──────────────────────────────────────────────────────
 CELEBRATION_MESSAGES = [
     "🎉 All done! Amazing work today!",
@@ -920,6 +981,7 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
                 <span style="color:#bbb;font-style:italic;">Loading&#8230;</span>
             </div>
         </div>
+        {_render_exercise_block_screen(child, weekday, c_bg, c_light)}
         <div class="day-list">
             {day_list_html}
         </div>
@@ -1760,6 +1822,10 @@ def render_print_child_page(child: str, weekday: str, date_label: str, iso: str)
     if _pr_combined:
         items = "".join(f'<div class="check-item"><span class="checkbox"></span>{escape(i["text"])}</div>' for i in _pr_combined)
         sections_html += f'<div class="section-title">Tasks</div>{items}'
+    exercise_print_html = _render_exercise_block_print(child, weekday)
+    if exercise_print_html:
+        sections_html += exercise_print_html
+
     school_blocks = payload.get("school_blocks", [])
     if school_blocks:
         blocks_html = ""

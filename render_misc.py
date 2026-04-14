@@ -2261,6 +2261,13 @@ def render_print_lauren_day(target_date_str: str = "") -> str:
         f'</div>'
     ) if task_rows else ""
 
+    # Exercise section
+    try:
+        from render_schedule import _render_exercise_block_print
+        lauren_ex_html = _render_exercise_block_print("Lauren", weekday)
+    except Exception:
+        lauren_ex_html = ""
+
     # Meals section
     try:
         from render_schedule import _render_meal_print_section
@@ -2303,6 +2310,7 @@ body{font-family:Georgia,serif;background:#fdf8f0;color:#222;padding:20px;max-wi
 
 <div class="section-title">Today's Plan</div>
 {rows_html}
+{lauren_ex_html}
 {tasks_section}
 {meals_html}
 <div class="page-footer">McAdams Family &middot; {_e(date_label)}</div>
