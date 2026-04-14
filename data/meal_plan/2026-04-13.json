@@ -10,7 +10,7 @@
       "dessert": "Fruit cup",
       "snacks": "",
       "dad_lunch": "Leftovers (pork chops, noodles, broccoli) + Romaine + raw green beans",
-      "helpers": "Lauren leads"
+      "boys_help": "Lauren leads"
     },
     "Tuesday": {
       "breakfast": "Eggs, cereal, fruit",
@@ -19,7 +19,7 @@
       "dessert": "Canned peaches + whipped cream",
       "snacks": "",
       "dad_lunch": "Leftovers from Monday + Romaine + raw green beans",
-      "helpers": "Quick reheat (low capacity day)"
+      "boys_help": "Quick reheat — low capacity day"
     },
     "Wednesday": {
       "breakfast": "Eggs, cereal, fruit",
@@ -28,7 +28,7 @@
       "dessert": "Homemade brownies or chocolate cake",
       "snacks": "",
       "dad_lunch": "Leftovers from Tuesday + Romaine + raw green beans",
-      "helpers": "Joseph leads beef stew — JP light duties (braces) — Michael: wash & pour",
+      "boys_help": "Joseph leads beef stew · JP light duties (braces day) · Michael: wash & pour",
       "notes": "JP gets braces today"
     },
     "Thursday": {
@@ -38,7 +38,7 @@
       "dessert": "Fresh oranges",
       "snacks": "",
       "dad_lunch": "Leftovers from Wednesday + Romaine + raw green beans",
-      "helpers": "Quick reheat (medium-low capacity, Latin class)",
+      "boys_help": "Quick reheat — medium-low capacity, Latin class · JP: soft food only (braces recovery)",
       "notes": "JP braces recovery — soft meals"
     },
     "Friday": {
@@ -48,7 +48,7 @@
       "dessert": "Store-bought special",
       "snacks": "",
       "dad_lunch": "Sardine sandwiches or leftovers from Thursday",
-      "helpers": "JP leads fish fry & plating — Joseph: coleslaw & cornbread — Michael: measure breading"
+      "boys_help": "JP: leads fish fry & plating · Joseph: coleslaw & cornbread · Michael: measure breading"
     },
     "Saturday": {
       "breakfast": "Eggs, cereal, fruit",
@@ -57,7 +57,7 @@
       "dessert": "Homemade cookies or simple dessert",
       "snacks": "",
       "dad_lunch": "Leftovers from Friday + Romaine + raw green beans",
-      "helpers": "Lauren leads (medium capacity, adventure block midday)"
+      "boys_help": "Lauren leads (medium capacity, adventure block midday)"
     },
     "Sunday": {
       "breakfast": "Eggs, cereal, fruit",
@@ -66,7 +66,7 @@
       "dessert": "From leftover stock",
       "snacks": "",
       "dad_lunch": "Ziplock Buffet",
-      "helpers": "Light assembly only",
+      "boys_help": "Light assembly only",
       "notes": "Consolidate & discard spoiled items. Flag 'use soon' for next week."
     }
   }

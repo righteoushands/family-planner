@@ -1,5 +1,5 @@
 import React from "react";
-import { Sparkles, ArrowRight, Check, BookOpen, Cloud, ChevronRight, UtensilsCrossed, CalendarDays } from "lucide-react";
+import { Sparkles, ArrowRight, Check, BookOpen, Cloud, ChevronRight, UtensilsCrossed } from "lucide-react";
 
 export function WarmEditorial() {
   return (
@@ -52,7 +52,7 @@ export function WarmEditorial() {
           <div>
             <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "#7C5C2E" }}>Lucy · AI Family Companion</p>
             <h1 className="text-3xl leading-tight" style={{ fontFamily: "Playfair Display, serif" }}>Good evening.</h1>
-            <p className="text-xs" style={{ color: "#9CA3AF" }}>Wednesday · April 8, 2026</p>
+            <p className="text-xs" style={{ color: "#9CA3AF" }}>Tuesday · April 14, 2026</p>
           </div>
         </div>
 
@@ -85,7 +85,7 @@ export function WarmEditorial() {
         </div>
         <div className="w-px h-3 mx-2.5 shrink-0" style={{ backgroundColor: "#E5E0D5" }} />
         <div className="flex items-center gap-1 text-xs font-medium shrink-0" style={{ color: "#1C1917" }}>
-          <span style={{ color: "#7C5C2E" }}>✝</span> Holy Saturday
+          <span style={{ color: "#7C5C2E" }}>✝</span> Easter Octave
         </div>
         <div className="w-px h-3 mx-2.5 shrink-0" style={{ backgroundColor: "#E5E0D5" }} />
         <div className="flex items-center gap-1 text-xs font-medium shrink-0" style={{ color: "#1C1917" }}>
@@ -131,14 +131,27 @@ export function WarmEditorial() {
               ))}
             </div>
 
-            {/* Menu planning button */}
-            <button
-              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold mb-2"
-              style={{ backgroundColor: "rgba(139,58,26,0.08)", color: "#8b3a1a", border: "1px solid rgba(139,58,26,0.2)" }}
-            >
-              <CalendarDays size={12} />
-              Plan this week's menu with Lorenzo
-            </button>
+            {/* Today's Menu Card */}
+            <div className="rounded-lg overflow-hidden mb-2" style={{ border: "1px solid #E5E0D5" }}>
+              <div className="flex items-center justify-between px-2.5 py-1.5" style={{ backgroundColor: "#F5F0E8", borderBottom: "1px solid #E5E0D5" }}>
+                <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#8b3a1a", letterSpacing: "0.08em" }}>🍽️ Today's Menu</span>
+                <span className="text-xs" style={{ color: "#9CA3AF" }}>edit →</span>
+              </div>
+              {[
+                { icon: "☀️", label: "Breakfast", val: "Eggs, cereal, fruit" },
+                { icon: "🥗", label: "Lunch", val: "Out (Bible Study)" },
+                { icon: "🍽️", label: "Dinner", val: "Leftovers: chicken + potatoes au gratin + broccoli + rice" },
+                { icon: "🍮", label: "Dessert", val: "Canned peaches + whipped cream" },
+              ].map(({ icon, label, val }) => (
+                <div key={label} className="flex items-start gap-2 px-2.5 py-1" style={{ borderBottom: "1px solid #F5F0E8" }}>
+                  <span className="text-xs shrink-0 font-semibold" style={{ color: "#9CA3AF", width: 68 }}>{icon} {label}</span>
+                  <span className="text-xs flex-1 leading-snug" style={{ color: "#1C1917" }}>{val}</span>
+                </div>
+              ))}
+              <div className="px-2.5 py-1.5" style={{ backgroundColor: "#FFF9F0", borderTop: "1px solid #E5E0D5" }}>
+                <span className="text-xs" style={{ color: "#7C5C2E" }}>👦 Quick reheat — low capacity day</span>
+              </div>
+            </div>
 
             <div className="flex justify-end gap-3">
               {["Prayer", "5AM", "Virtue"].map((label) => (

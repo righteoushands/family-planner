@@ -1,0 +1,70 @@
+{
+  "start": "2026-W16",
+  "week": "2026-W16",
+  "generated": true,
+  "days": {
+    "Monday": {
+      "breakfast": "Scrambled eggs · toast · sliced oranges · green tea",
+      "lunch": "Soup from freezer · crackers · cheese sticks",
+      "dinner": "Brined Roast Chicken · roasted potatoes · steamed broccoli · James: shredded chicken and soft potato",
+      "dessert": "",
+      "snacks": "Apple slices · peanut butter · yogurt",
+      "dad_lunch": "Chicken salad sandwich · apple · thermos of soup",
+      "boys_help": "JP: carve chicken · Joseph: set table and wash potatoes · Michael: put napkins out"
+    },
+    "Tuesday": {
+      "breakfast": "Oatmeal with banana and honey · boiled eggs · green tea",
+      "lunch": "Leftovers from Monday chicken dinner",
+      "dinner": "Leftover chicken · rice · black bean soup (batch soup) · James: soft beans and rice",
+      "dessert": "",
+      "snacks": "Cheese cubes · grapes · graham crackers",
+      "dad_lunch": "Leftover chicken over rice · orange · soup thermos",
+      "boys_help": "JP: reheat rice · Joseph: portion soup into bowls · Michael: carry fruit to table"
+    },
+    "Wednesday": {
+      "breakfast": "Fried eggs · toast · strawberries · green tea",
+      "lunch": "Black bean soup · quesadillas · carrot sticks",
+      "dinner": "Baked Salmon · quinoa · roasted asparagus · Michael: salmon with buttered noodles · James: flaked salmon and soft quinoa",
+      "dessert": "",
+      "snacks": "Banana · string cheese · raisins",
+      "dad_lunch": "Salmon and quinoa bowl · grapes · crackers",
+      "boys_help": "JP: prep asparagus · Joseph: measure quinoa and start rice cooker · Michael: wash strawberries"
+    },
+    "Thursday": {
+      "breakfast": "Pancakes · scrambled eggs · blueberries · green tea",
+      "lunch": "Leftover salmon · soup · bread",
+      "dinner": "Lemon Herb Chicken Thighs · mashed potatoes · green beans · James: mashed potato and shredded chicken",
+      "dessert": "",
+      "snacks": "Yogurt · apple slices · almonds",
+      "dad_lunch": "Chicken thigh · mashed potatoes · banana · soup thermos",
+      "boys_help": "JP: mash potatoes · Joseph: trim green beans · Michael: stir pancake batter"
+    },
+    "Friday": {
+      "breakfast": "Eggs and toast · fruit salad · green tea",
+      "lunch": "Sardine sandwiches · veggie sticks · soup",
+      "dinner": "Easter Fish Fry - Beer Battered Cod · coleslaw · fries · tartar sauce · James: baked cod flakes and soft fries",
+      "dessert": "",
+      "snacks": "Cottage cheese · peaches · crackers",
+      "dad_lunch": "Fish sandwich · coleslaw · orange · cookies",
+      "boys_help": "JP: batter and fry fish with Dad · Joseph: make coleslaw · Michael: set out plates"
+    },
+    "Saturday": {
+      "breakfast": "Bacon and eggs · toast · sliced melon · green tea",
+      "lunch": "Leftover fish sandwiches · fruit · chips",
+      "dinner": "Roast Beef · Yorkshire pudding · roasted carrots · horseradish cream · James: tender beef bits and soft carrots",
+      "dessert": "",
+      "snacks": "Popcorn · cheese · pear slices",
+      "dad_lunch": "N/A",
+      "boys_help": "JP: sear roast · Joseph: peel carrots · Michael: help mix Yorkshire batter"
+    },
+    "Sunday": {
+      "breakfast": "French toast · sausage links · orange juice · green tea",
+      "lunch": "Cold cuts · cheese · bread · pickles · fruit",
+      "dinner": "Ziplock Buffet - leftover roast beef · chicken · veggies · rice · soup · James: soft leftovers mashed",
+      "dessert": "",
+      "snacks": "Easter candy in moderation · fruit · yogurt",
+      "dad_lunch": "N/A",
+      "boys_help": "JP: organize leftovers · Joseph: wipe down fridge · Michael: throw away trash"
+    }
+  }
+}
