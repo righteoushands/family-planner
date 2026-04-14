@@ -1,0 +1,23 @@
+{
+  "Monday": {
+    "JP": "Run 1.5\u20132 miles (CAP training). Warm-up 5 min easy pace, 18 min main effort, cool-down 5 min walk.",
+    "Joseph": "Run 1\u20131.5 miles (CAP training). Warm-up 5 min easy pace, 18 min main effort, cool-down 5 min walk.",
+    "Lauren": "Run/walk intervals 0.75\u20131 mile (ankle loading & core engagement). Warm-up, 18 min, cool-down.",
+    "Michael": "Bike or scoot alongside the family for the full run.",
+    "James": "Ride in stroller."
+  },
+  "Wednesday": {
+    "JP": "Push-ups, pull-ups, squats. 25\u201330 min total.",
+    "Joseph": "Bodyweight circuit. 25\u201330 min total.",
+    "Lauren": "Goblet squats, push-ups, planks, bird dogs. 25\u201330 min total.",
+    "Michael": "Foundational movement patterns. 25\u201330 min total.",
+    "James": "Join the family game & relay activities."
+  },
+  "Friday": {
+    "JP": "Exercise block \u2014 see your weekly training plan.",
+    "Joseph": "Exercise block \u2014 see your weekly training plan.",
+    "Lauren": "Exercise block \u2014 see your weekly training plan.",
+    "Michael": "Exercise block \u2014 join the family activity.",
+    "James": "Exercise block \u2014 family activity."
+  }
+}

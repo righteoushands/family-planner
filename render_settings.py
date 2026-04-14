@@ -9,8 +9,8 @@ from safe_utils import ensure_file, safe_save_json
 from ui_helpers import html_page, page_header, render_status_message
 from data_helpers import (
     load_calendar_config, save_calendar_config,
-    load_family_schedule, save_family_schedule,
     load_subscribed_calendars, save_subscribed_calendars,
+    get_frol_day_slots,
 )
 
 APP_SETTINGS_FILE = "data/app_settings.json"
@@ -430,14 +430,15 @@ def _section_systems(settings: dict) -> str:
         step_html = " ".join(s.lstrip("  →").strip() for s in steps)
         wipe_ref += f"<div style='padding:5px 0;border-bottom:1px solid #f0ebe4;font-size:0.86em;'><strong>Wk {wk}:</strong> {escape(step_html)}</div>"
 
-    # Weekly schedule grid
-    schedule  = load_family_schedule()
-    days_data = schedule.get("days", {})
+    # Weekly schedule grid — pivot from FROL day templates (Mom column)
     from render_schedule_support import generate_half_hour_times, _slot_minutes, get_eastern_now
+    from config import SCHEDULE_DAYS as _SCHED_DAYS
     times       = generate_half_hour_times()
     now         = get_eastern_now()
     now_minutes = now.hour * 60 + now.minute
     today_name  = now.strftime("%A")
+    # Load all days' Mom slots once
+    days_data = {d: get_frol_day_slots(d, "Mom") for d in _SCHED_DAYS}
 
     header_cells = "<th style='width:72px;background:#f5f0eb;position:sticky;left:0;z-index:2;'>Time</th>" + "".join(
         f"<th style='background:#f5f0eb;font-size:0.85em;padding:5px 3px;min-width:110px;'>{escape(d)}</th>"

@@ -16,7 +16,6 @@ from ui_helpers import html_page, top_nav
 
 MANUAL_TASKS_FILE = "data/manual_tasks.json"
 EVENTS_FILE       = "data/events.json"
-FAMILY_SCHED_FILE = "data/family_schedule.json"
 
 CHILDREN_ORDER = ["JP", "Joseph", "Michael"]
 CHILD_COLORS   = {
@@ -209,9 +208,12 @@ def _all_tasks_by_day(wdates) -> dict:
 
 
 def _family_schedule_highlights(weekday_name: str) -> list:
-    """Return 3–5 key time slots from the family schedule for a given weekday."""
-    sched = _load_json(FAMILY_SCHED_FILE, {})
-    day   = sched.get("days", {}).get(weekday_name, {})
+    """Return 3–5 key time slots from Mom's FROL day template for a given weekday."""
+    try:
+        from data_helpers import get_frol_day_slots
+        day = get_frol_day_slots(weekday_name, "Mom")
+    except Exception:
+        day = {}
     key_slots = []
     seen_texts = set()
     for time_str, text in day.items():
@@ -221,7 +223,6 @@ def _family_schedule_highlights(weekday_name: str) -> list:
         if t in seen_texts:
             continue
         seen_texts.add(t)
-        # Skip very generic placeholders
         if t.lower() in ("free", "—", "-", ""):
             continue
         key_slots.append((time_str, t))

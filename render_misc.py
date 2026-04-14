@@ -187,18 +187,17 @@ def _render_mom_now_block(iso: str, weekday: str) -> str:
     c_bg    = parent_color("Lauren", "bg")
     c_light = parent_color("Lauren", "light")
 
-    # ── Family schedule: what's Mom doing right now ───────────────────────────
+    # ── FROL: what's Mom doing right now ─────────────────────────────────────
     family_now = ""
     try:
         from render_schedule_support import (
             get_eastern_now, _slot_minutes, generate_half_hour_times
         )
-        from data_helpers import load_family_schedule
+        from data_helpers import get_frol_day_slots
         now      = get_eastern_now()
         now_min  = now.hour * 60 + now.minute
-        schedule = load_family_schedule()
-        times    = schedule.get("times", []) or generate_half_hour_times()
-        slots    = schedule.get("days", {}).get(weekday, {})
+        times    = generate_half_hour_times()
+        slots    = get_frol_day_slots(weekday, "Mom")
         cur_idx  = -1
         for i, t in enumerate(times):
             if _slot_minutes(t) <= now_min:
@@ -700,7 +699,7 @@ def _render_boys_now_blocks(iso: str, weekday: str) -> str:
         from render_schedule import _item_done
         from data_helpers import load_progress
         from render_schedule_support import get_current_slot, _slot_minutes, get_eastern_now
-        from data_helpers import load_family_schedule
+        from data_helpers import get_frol_day_slots
     except Exception:
         return ""
 
@@ -709,10 +708,8 @@ def _render_boys_now_blocks(iso: str, weekday: str) -> str:
         now_min     = now.hour * 60 + now.minute
         date_label  = now.strftime("%B %-d")
         progress    = load_progress()
-        schedule    = load_family_schedule()
         from render_schedule_support import generate_half_hour_times
-        times       = schedule.get("times", []) or generate_half_hour_times()
-        today_slots = schedule.get("days", {}).get(weekday, {})
+        times       = generate_half_hour_times()
 
         # Find current time slot
         cur_idx = -1
@@ -1473,7 +1470,7 @@ def render_now_page() -> str:
     """
     from datetime import datetime as _dt
     from render_schedule_support import get_current_slot, get_eastern_now
-    from data_helpers import load_family_schedule, load_progress
+    from data_helpers import load_progress, get_frol_day_slots
     from daily_schedule_engine import CHILDREN, build_schedule_payload
     from render_schedule import _item_done
     from config import child_color
@@ -1482,9 +1479,8 @@ def render_now_page() -> str:
     weekday = now.strftime("%A")
     time_str = now.strftime("%-I:%M %p")
 
-    schedule = load_family_schedule()
-    cur_slot, cur_act, nxt_slot, nxt_act = get_current_slot(schedule)
-    all_slots = schedule.get("days", {}).get(weekday, {})
+    cur_slot, cur_act, nxt_slot, nxt_act = get_current_slot(weekday=weekday)
+    all_slots = get_frol_day_slots(weekday, "Mom")
     progress  = load_progress()
 
     iso = now.strftime("%Y-%m-%d")
@@ -1641,21 +1637,21 @@ def render_now_page() -> str:
 def _render_rule_of_life_strip(weekday: str, person: str = "") -> str:
     """
     Compact scrollable strip showing today's Rule of Life time anchors.
-    Reads live from data/family_schedule.json on every call so edits to the
-    schedule grid in Settings appear immediately on the next page load.
+    Reads from Mom's FROL day template and exercise_assignments.json on every
+    call so edits appear immediately on the next page load.
     Current slot is highlighted in gold; past slots are faded.
     When `person` is provided, exercise slots show only that person's assignment.
     """
     from html import escape as _e
     _EXERCISE_KEYWORDS = ("fortitude", "justice", "exercise", "family run", "family strength")
     try:
-        from data_helpers import load_family_schedule
-        from render_schedule_support import _slot_minutes, get_eastern_now
+        from data_helpers import get_frol_day_slots, load_exercise_assignments
+        from render_schedule_support import _slot_minutes, get_eastern_now, generate_half_hour_times
 
-        schedule  = load_family_schedule()
-        times     = schedule.get("times", [])
-        day_slots = schedule.get("days", {}).get(weekday, {})
-        ex_assign = schedule.get("exercise_assignments", {}).get(weekday, {})
+        day_slots = get_frol_day_slots(weekday, "Mom")
+        times     = [t for t in generate_half_hour_times() if t in day_slots]
+        ex_data   = load_exercise_assignments()
+        ex_assign = ex_data.get(weekday, {})
         if not day_slots:
             return ""
 

@@ -1002,15 +1002,12 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
     except Exception:
         lines.append("(Friends directory not available)")
 
-    lines += ["", "== FAMILY SCHEDULE GRID (TODAY) =="]
+    lines += ["", "== MOM'S RULE OF LIFE (TODAY) =="]
     try:
-        from data_helpers import load_family_schedule
-        from render_schedule_support import generate_half_hour_times
+        from data_helpers import get_frol_day_slots
         import re as _schre
-        schedule   = load_family_schedule()
-        _sched_times = schedule.get("times", []) or generate_half_hour_times()
-        day_slots  = schedule.get("days", {}).get(weekday, {})
-        populated  = [(t, day_slots.get(t, "")) for t in _sched_times if day_slots.get(t, "")]
+        day_slots  = get_frol_day_slots(weekday, "Mom")
+        populated  = [(t, v) for t, v in day_slots.items() if v.strip()]
 
         def _slot_minutes(ts: str) -> int:
             """Convert '9:00 AM' → minutes since midnight."""

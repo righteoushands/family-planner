@@ -23,6 +23,16 @@
     "James": {
       "11:00 AM": "PRUDENCE — Family Adventure Block. Default: Stroller walk. When weather permits: Stroller during hike, park exploration, or yard project. Watch your big brothers. You're part of the team.",
       "11:30 AM": "PRUDENCE — Family Adventure Block (cool-down & regroup)"
+    },
+    "Mom": {
+      "9:00 AM": "Morning Prayer (with family or on your own)",
+      "9:30 AM": "Breakfast",
+      "10:00 AM": "Morning Jobs",
+      "11:00 AM": "Exercise / Clean Room",
+      "12:00 PM": "Lunch & Clean Kitchen",
+      "1:00 PM": "Family free time",
+      "2:00 PM": "Family free time",
+      "5:00 PM": "Dinner"
     }
   }
 }

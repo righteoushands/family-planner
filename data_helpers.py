@@ -245,12 +245,50 @@ def save_subscribed_calendars(cals: list):
     safe_save_json(SUBSCRIBED_CALS_FILE, cals)
 
 
-# ── Family schedule ──────────────────────────────────────────────────────────
+# ── Family schedule (legacy — kept for backward compat during transition) ────
 def load_family_schedule() -> dict:
     return ensure_file(FAMILY_SCHEDULE_FILE, {"times": [], "days": {}})
 
 def save_family_schedule(data: dict):
     safe_save_json(FAMILY_SCHEDULE_FILE, data)
+
+
+# ── FROL (day templates) ──────────────────────────────────────────────────────
+def get_frol_day_slots(weekday: str, person: str = "Mom") -> dict:
+    """
+    Return the FROL time slots {time: label} for a person on a given weekday.
+    Reads from data/day_templates/{weekday}.json (the per-person Rule of Life).
+    Falls back to 'Mom' or the first available person if the requested one is
+    not found.  Returns an empty dict when no template exists for that day.
+    """
+    import json as _json
+    from pathlib import Path as _Path
+    p = _Path(f"data/day_templates/{weekday}.json")
+    if not p.exists():
+        return {}
+    grid = _json.loads(p.read_text(encoding="utf-8")).get("grid", {})
+    # Lauren / Mom are the same person
+    aliases = {"Lauren": "Mom", "Mom": "Lauren"}
+    for candidate in [person, aliases.get(person, ""), "Mom", "JP"]:
+        if candidate and candidate in grid and grid[candidate]:
+            return dict(grid[candidate])
+    return {}
+
+
+def get_frol_times() -> list:
+    """Return the canonical ordered half-hour time slots used by the FROL."""
+    from render_schedule_support import generate_half_hour_times
+    return generate_half_hour_times()
+
+
+# ── Exercise assignments ──────────────────────────────────────────────────────
+_EXERCISE_FILE = "data/exercise_assignments.json"
+
+def load_exercise_assignments() -> dict:
+    return ensure_file(_EXERCISE_FILE, {})
+
+def save_exercise_assignments(data: dict):
+    safe_save_json(_EXERCISE_FILE, data)
 
 
 def get_family_rule_of_life_text(weekday: str) -> str:
@@ -297,24 +335,8 @@ def get_full_frol_context(current_weekday: str) -> str:
     DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     lines = []
 
-    # ── Family-wide schedule grid ─────────────────────────────────────────────
-    lines.append("FAMILY-WIDE SCHEDULE (applies to everyone unless a person-specific override exists):")
-    try:
-        sched = load_family_schedule()
-        for day in DAYS:
-            marker = " ← TODAY" if day == current_weekday else ""
-            day_slots = {t: v for t, v in sched.get("days", {}).get(day, {}).items() if str(v).strip()}
-            if day_slots:
-                lines.append(f"\n  {day}{marker}:")
-                for t, v in day_slots.items():
-                    lines.append(f"    {t}: {v}")
-            else:
-                lines.append(f"\n  {day}{marker}: (empty — no family-wide slots set)")
-    except Exception as _e:
-        lines.append(f"  (Could not load family schedule: {_e})")
-
-    # ── Per-person day templates ───────────────────────────────────────────────
-    lines += ["", "PER-PERSON OVERRIDES (only Friday currently has per-person templates):"]
+    # ── Per-person FROL (day templates — sole source of truth) ───────────────
+    lines.append("FAMILY RULE OF LIFE — per-person daily schedules:")
     try:
         for day in DAYS:
             path = _Path(f"data/day_templates/{day}.json")

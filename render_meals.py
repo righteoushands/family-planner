@@ -127,14 +127,13 @@ def parse_duration_minutes(text: str) -> int:
 def get_frol_dinner_time(weekday: str) -> str:
     """Return the dinner serve time (HH:MM 24-h) for the given weekday from the FROL.
 
-    Looks for the earliest slot whose label contains 'dinner' in
-    data/family_schedule.json.  Falls back to '18:00' if nothing is found.
+    Looks for the earliest slot in Mom's day template whose label contains
+    'dinner'.  Falls back to '18:00' if nothing is found.
     """
     import re as _re3
     try:
-        import json as _json
-        _frol = _json.load(open("data/family_schedule.json"))
-        _slots = _frol.get("days", {}).get(weekday, {})
+        from data_helpers import get_frol_day_slots
+        _slots = get_frol_day_slots(weekday, "Mom")
         for _t, _label in _slots.items():
             if "dinner" in str(_label).lower():
                 # parse _t: "5:00 PM", "17:00", etc.

@@ -124,17 +124,14 @@ def _gather_tomorrow_data(tomorrow: date) -> dict:
         result["schedule_start"] = 6
         result["schedule_end"]   = 21
 
-    # ── Family Rule of Life (weekly schedule grid) ────────────────────────────
+    # ── Family Rule of Life (Mom's day template) ──────────────────────────────
     try:
-        from data_helpers import load_family_schedule
-        from render_schedule_support import generate_half_hour_times
-        schedule   = load_family_schedule()
-        times      = schedule.get("times", []) or generate_half_hour_times()
-        day_slots  = schedule.get("days", {}).get(weekday, {})
+        from data_helpers import get_frol_day_slots
+        day_slots  = get_frol_day_slots(weekday, "Mom")
         rol_items  = []
         seen_text  = set()
-        for t in times:
-            text = day_slots.get(t, "").strip()
+        for t, text in day_slots.items():
+            text = text.strip()
             if text and text not in seen_text:
                 seen_text.add(text)
                 rol_items.append({"time": t, "text": text})

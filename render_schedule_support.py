@@ -8,7 +8,6 @@ from html import escape
 
 from config import SCHEDULE_DAYS
 from data_helpers import (
-    load_family_schedule, save_family_schedule,
     load_monthly_planner,
 )
 from ui_helpers import html_page, page_header, render_status_message
@@ -62,12 +61,18 @@ def _slot_minutes(label: str) -> int:
 
 
 # ── Current slot ──────────────────────────────────────────────────────────────
-def get_current_slot(schedule: dict) -> tuple:
-    now        = get_eastern_now()
+def get_current_slot(schedule: dict = None, weekday: str = "", person: str = "Mom") -> tuple:
+    """Return (cur_label, cur_activity, next_label, next_activity) from the FROL.
+
+    The legacy `schedule` parameter is accepted but ignored — the FROL day
+    template is always used as the sole source of truth.
+    """
+    from data_helpers import get_frol_day_slots
+    now         = get_eastern_now()
     now_minutes = now.hour * 60 + now.minute
-    times      = schedule.get("times", []) or generate_half_hour_times()
-    today_name = now.strftime("%A")
-    today_slots = schedule.get("days", {}).get(today_name, {})
+    times       = generate_half_hour_times()
+    today_name  = weekday or now.strftime("%A")
+    today_slots = get_frol_day_slots(today_name, person)
 
     current_idx = -1
     for i, t in enumerate(times):
@@ -90,8 +95,7 @@ def get_current_slot(schedule: dict) -> tuple:
 
 # ── Now / Next strip ──────────────────────────────────────────────────────────
 def render_now_next_strip() -> str:
-    schedule = load_family_schedule()
-    cur_label, cur_activity, next_label, next_activity = get_current_slot(schedule)
+    cur_label, cur_activity, next_label, next_activity = get_current_slot()
     if not cur_label and not next_label:
         return ""
     cur_act_html  = escape(cur_activity)  if cur_activity  else "<span style='color:#aaa;'>Free time</span>"
@@ -113,21 +117,20 @@ def render_now_next_strip() -> str:
         </div>
         {next_block}
         <div style="flex:0 0 auto;display:flex;align-items:center;">
-            <a class="link-button" href="/family-schedule">Full Schedule</a>
+            <a class="link-button" href="/settings#s-systems">Rule of Life</a>
         </div>
     </div>"""
 
 
 # ── Today timeline ────────────────────────────────────────────────────────────
 def render_today_timeline(weekday: str = "") -> str:
-    schedule   = load_family_schedule()
-    times      = schedule.get("times", []) or generate_half_hour_times()
-    now        = get_eastern_now()
-    # Use the supplied weekday (planned day) if given; fall back to actual today.
+    from data_helpers import get_frol_day_slots
+    times       = generate_half_hour_times()
+    now         = get_eastern_now()
     today_name  = weekday if weekday else now.strftime("%A")
     is_today    = (today_name == now.strftime("%A"))
-    today_slots = schedule.get("days", {}).get(today_name, {})
-    cur_label, _, _, _ = get_current_slot(schedule)
+    today_slots = get_frol_day_slots(today_name, "Mom")
+    cur_label, _, _, _ = get_current_slot(weekday=today_name)
     if not times:
         return "<p class='muted'>No schedule loaded.</p>"
     now_minutes = now.hour * 60 + now.minute

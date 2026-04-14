@@ -52,6 +52,16 @@ Lives in `family_quest/` directory, served at `/quest/*` by the main app via `fq
 - `GET/POST /quest/boss-settings` — parent item-award page
 - `POST /quest/boss-settings/award-item` — directly awards item to child(ren)
 
+## Schedule / FROL Architecture
+- **FROL (Family Rule of Life)** = `data/day_templates/{Weekday}.json` — the ONE source of truth for all schedule data.
+  - Format: `{"weekday": "Tuesday", "grid": {"Mom": {"9:00 AM": "Morning Prayer", ...}, "JP": {...}, ...}}`
+  - `data_helpers.get_frol_day_slots(weekday, person)` → `{time: label}` dict for any person/day
+  - `data/family_schedule.json` has been **deleted**; all code now reads from day templates only
+- **Exercise assignments**: `data/exercise_assignments.json` — `{weekday: {person: assignment_text}}`
+  - `data_helpers.load_exercise_assignments()` / `save_exercise_assignments()`
+- **Settings schedule grid** (`/settings#s-systems`): reads Mom's column from all 7 day templates; saves via `/rol-cell-save` (single cell) or `/settings-schedule-save` (full form) → both write directly to the day template
+- **`/family-schedule` GET route**: 302 redirects to `/settings#s-systems`
+
 ## Architecture
 - **Entry point**: `app.py` — single HTTP handler routing all GET/POST requests
 - **Rendering**: each feature area has a `render_*.py` module returning HTML strings

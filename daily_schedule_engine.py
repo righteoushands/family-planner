@@ -1469,67 +1469,21 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
     Returns a list of time-block dicts, each with:
       time, time_sort, end_time, label, kind, checkable, task_id, done, sub_items
 
-    Source strategy (per-slot):
-      1. Family schedule (load_family_schedule) drives the time structure and
-         captures actual weekly events (Bible Study, HSPE, etc.).
-      2. Per-person day template column overrides any slot where the template
-         contains a NON-generic label — i.e. something person-specific like
-         "Latin Club" or "School — Saxon Math" rather than a placeholder like
-         "School" or "Weekly Job".  This means future per-person customisations
-         take effect automatically without touching the family schedule.
-      3. If neither source has data for this weekday, returns [].
+    Source: the per-person FROL day template (data/day_templates/{weekday}.json).
+    The family_schedule.json is no longer used — the day template is the sole
+    source of truth.  Returns [] when no template exists for this person/day.
     """
-    # Generic placeholder labels that the family schedule should take precedence
-    # over when both sources have content at the same time slot.
-    _GENERIC_TMPL_LABELS: set = {
-        "school", "weekly job", "jobs — weekly", "jobs", "chores",
-        "free time", "outdoor time", "outdoor play", "rest",
-        "morning jobs", "evening jobs",
-    }
-
-    # ── Step 1: Family schedule (base time structure) ─────────────────────────
-    family_grid: dict = {}
-    fam_times:   list = []
+    # ── Step 1: FROL day template (sole source of truth) ─────────────────────
+    # The per-person day template is the Family Rule of Life.  It is the only
+    # source used to build the day list — the old shared family_schedule.json
+    # is no longer consulted.
+    person_grid: dict = {}
     try:
-        from data_helpers import load_family_schedule
-        from render_schedule_support import generate_half_hour_times as _ghht
-        _fam_sched = load_family_schedule()
-        fam_times  = _fam_sched.get("times", []) or _ghht()
-        _fam_day   = _fam_sched.get("days", {}).get(weekday, {})
-        family_grid = {t: _fam_day[t] for t in fam_times if (_fam_day.get(t) or "").strip()}
-    except Exception:
-        family_grid = {}
-
-    # ── Step 2: Per-person day template column ────────────────────────────────
-    # Only load the template for the actual requested weekday — never fall back
-    # to another day's template (e.g. Friday on Saturday would inject school
-    # slots that don't belong on weekends).
-    template_grid: dict = {}
-    try:
-        path = _DAY_TEMPLATES_DIR / f"{weekday}.json"
-        if path.exists():
-            data = json.loads(path.read_text(encoding="utf-8"))
-            grid = data.get("grid", {})
-            template_grid = grid.get(child) or {}
+        from data_helpers import get_frol_day_slots
+        _tmpl = get_frol_day_slots(weekday, child)
+        person_grid = {t: v for t, v in _tmpl.items() if (v or "").strip()}
     except Exception:
         pass
-
-    # ── Step 3: Merge — family schedule base + person-specific overrides ──────
-    if family_grid:
-        # Start with family schedule; let template override non-generic slots.
-        person_grid = dict(family_grid)
-        for slot, tmpl_label in template_grid.items():
-            t_norm = (tmpl_label or "").strip().lower()
-            if not t_norm:
-                continue
-            # Only override if the template has something specific (non-generic)
-            if t_norm not in _GENERIC_TMPL_LABELS:
-                person_grid[slot] = tmpl_label
-    elif template_grid:
-        # Family schedule has no data for this weekday — use template alone
-        person_grid = template_grid
-    else:
-        person_grid = {}
 
     if not person_grid:
         return []

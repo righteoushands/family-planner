@@ -16,7 +16,7 @@ from datetime import date
 from html import escape
 
 from safe_utils import ensure_file, safe_save_json, debug_log
-from data_helpers import load_family_schedule
+from data_helpers import get_frol_day_slots
 from render_schedule_support import generate_half_hour_times, get_eastern_now, _slot_minutes
 
 PLANS_DIR    = "data/daily_plans"
@@ -43,9 +43,8 @@ def seed_from_grid(iso):
         weekday = d.strftime("%A")
     except Exception:
         weekday = get_eastern_now().strftime("%A")
-    schedule  = load_family_schedule()
-    times     = schedule.get("times", []) or generate_half_hour_times()
-    day_slots = schedule.get("days", {}).get(weekday, {})
+    times     = generate_half_hour_times()
+    day_slots = get_frol_day_slots(weekday, "Mom")
     items    = []
     last_text = ""
     for t in times:
@@ -166,9 +165,8 @@ def publish_day_grid(iso):
     safe_save_json(_meta_path(iso), {"published": True})
 
 def seed_day_grid(iso, weekday, people):
-    schedule  = load_family_schedule()
-    times     = schedule.get("times", []) or generate_half_hour_times()
-    mom_slots = schedule.get("days", {}).get(weekday, {})
+    times     = generate_half_hour_times()
+    mom_slots = get_frol_day_slots(weekday, "Mom")
     grid = {}
     for person in people:
         grid[person] = {}
@@ -184,9 +182,8 @@ def get_or_seed_grid(iso, weekday, people):
         save_day_grid(iso, grid)
     else:
         # Add any new people not yet in grid
-        schedule  = load_family_schedule()
-        times     = schedule.get("times", []) or generate_half_hour_times()
-        mom_slots = schedule.get("days", {}).get(weekday, {})
+        times     = generate_half_hour_times()
+        mom_slots = get_frol_day_slots(weekday, "Mom")
         changed = False
         for person in people:
             if person not in grid:
@@ -300,8 +297,7 @@ def _render_family_grid(iso, weekday, date_label):
     people = _get_plan_column_people() or list(CHILDREN)
     people_with_mom = ["Mom"] + [p for p in people if p != "Mom"]
 
-    schedule = load_family_schedule()
-    times    = schedule.get("times", []) or generate_half_hour_times()
+    times    = generate_half_hour_times()
 
     # Get schedule hours from settings
     start_h, end_h = 6, 22
@@ -682,8 +678,7 @@ def render_dashboard_grid(iso):
     people = _get_plan_column_people() or list(CHILDREN)
     people_with_mom = ["Mom"] + [p for p in people if p != "Mom"]
 
-    schedule = load_family_schedule()
-    times    = schedule.get("times", []) or generate_half_hour_times()
+    times    = generate_half_hour_times()
     grid     = load_day_grid(iso)
     if not grid:
         grid = get_or_seed_grid(iso, weekday, people_with_mom)
@@ -758,8 +753,7 @@ def render_grid_print_page(iso):
     people = _get_plan_column_people() or list(CHILDREN)
     people_with_mom = ["Mom"] + [p for p in people if p != "Mom"]
 
-    schedule = load_family_schedule()
-    times    = schedule.get("times", []) or generate_half_hour_times()
+    times    = generate_half_hour_times()
     grid     = load_day_grid(iso)
 
     active_times = [t for t in times if any(grid.get(p, {}).get(t, "").strip() for p in people_with_mom)]

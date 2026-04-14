@@ -30,15 +30,14 @@ def _get_exercise_assignment(child: str, weekday: str) -> tuple:
     for `child`, or ("", "") if there is no exercise scheduled that day.
     Resolves 'Lauren'/'Mom' alias automatically.
     """
-    from data_helpers import load_family_schedule
+    from data_helpers import get_frol_day_slots, load_exercise_assignments
     _EXERCISE_KEYWORDS = ("fortitude", "justice", "exercise", "family run", "family strength")
-    _alias = {"mom": "Lauren", "lauren": "Lauren", "jp": "JP", "joseph": "Joseph",
+    _alias = {"mom": "Mom", "lauren": "Mom", "jp": "JP", "joseph": "Joseph",
               "michael": "Michael", "james": "James"}
     person_key = _alias.get(child.lower(), child)
     try:
-        sched = load_family_schedule()
-        day_slots = sched.get("days", {}).get(weekday, {})
-        ex_assigns = sched.get("exercise_assignments", {}).get(weekday, {})
+        day_slots  = get_frol_day_slots(weekday, "Mom")
+        ex_assigns = load_exercise_assignments().get(weekday, {})
         slot_label = ""
         for t, v in day_slots.items():
             if v and any(kw in v.lower() for kw in _EXERCISE_KEYWORDS):
@@ -1675,9 +1674,7 @@ def render_today_all(target_date_str: str = "") -> str:
     # "What's happening now" quick strip
     try:
         from render_schedule_support import get_current_slot
-        from data_helpers import load_family_schedule
-        _sched = load_family_schedule()
-        _cur_label, _now_label, _next_label, _next_act = get_current_slot(_sched)
+        _cur_label, _now_label, _next_label, _next_act = get_current_slot()
     except Exception:
         _now_label = ""
 

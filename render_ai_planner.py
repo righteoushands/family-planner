@@ -95,21 +95,18 @@ def build_context_packet(iso: str, weekday: str, date_label: str) -> str:
     except Exception:
         lines.append("(Calendar not available)")
 
-    lines += ["", "== TODAY'S FAMILY SCHEDULE GRID =="]
+    lines += ["", "== MOM'S RULE OF LIFE (TODAY) =="]
     try:
-        from data_helpers import load_family_schedule
-        from render_schedule_support import generate_half_hour_times, _slot_minutes
-        schedule  = load_family_schedule()
-        times     = schedule.get("times", []) or generate_half_hour_times()
-        day_slots = schedule.get("days", {}).get(weekday, {})
-        populated = [(t, day_slots.get(t, "")) for t in times if day_slots.get(t, "")]
+        from data_helpers import get_frol_day_slots
+        day_slots = get_frol_day_slots(weekday, "Mom")
+        populated = [(t, v) for t, v in day_slots.items() if v.strip()]
         if populated:
             for t, activity in populated:
                 lines.append(f"  {t}: {activity}")
         else:
-            lines.append("(No schedule grid entries for today)")
+            lines.append("(No FROL entries for today)")
     except Exception:
-        lines.append("(Schedule grid not available)")
+        lines.append("(FROL not available)")
 
     lines += ["", "== EACH CHILD'S DAY =="]
     try:

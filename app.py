@@ -88,7 +88,6 @@ from data_helpers import (
     load_calendar_config, save_calendar_config,
     load_calendar_rules, save_calendar_rules,
     load_subscribed_calendars, save_subscribed_calendars,
-    load_family_schedule, save_family_schedule,
     load_liturgical_custom, save_liturgical_custom,
     advance_recurring_task,
     load_thankyou_reminders, save_thankyou_reminders,
@@ -96,7 +95,7 @@ from data_helpers import (
 from ui_helpers import parse_urlencoded_body, parse_multipart_form
 from render_schedule import render_child_schedule, render_today_all, render_week, render_print_day, render_print_week, render_print_child_day_list
 from render_week_view import render_week_view
-from render_schedule_support import render_family_schedule_page, generate_half_hour_times
+from render_schedule_support import generate_half_hour_times
 from render_calendar import render_calendar_page, refresh_calendar
 from render_liturgical import render_liturgical_page, render_liturgical_edit_page
 from render_readings import render_readings_page
@@ -195,17 +194,24 @@ def _apply_frol_updates(text: str, weekday: str) -> str:
 
         try:
             if _per in ("Family", ""):
-                # ── Family-wide → family_schedule.json ────────────────────────
-                from data_helpers import load_family_schedule, save_family_schedule
-                _sched = load_family_schedule()
-                _day_d = _sched.setdefault("days", {}).setdefault(_wday, {})
+                # ── Family-wide → day template (Mom column) ───────────────────
+                # family_schedule.json is retired; "Family" slots go to Mom's
+                # FROL day template so all consumers read from one source.
+                _per = "Mom"
+                _tp2 = _fPath(f"data/day_templates/{_wday}.json")
+                if _tp2.exists():
+                    _td2 = _fj.loads(_tp2.read_text(encoding="utf-8"))
+                else:
+                    _td2 = {"weekday": _wday, "grid": {}}
+                _mom_col = _td2.setdefault("grid", {}).setdefault("Mom", {})
                 for _t, _v in _slots.items():
                     if _v:
-                        _day_d[_t] = _v
+                        _mom_col[_t] = _v
                     else:
-                        _day_d.pop(_t, None)
-                save_family_schedule(_sched)
-                markers += f"\n[FROL_UPDATED:Family:{_wday}:{len(_slots)} slots]"
+                        _mom_col.pop(_t, None)
+                _tp2.parent.mkdir(parents=True, exist_ok=True)
+                _tp2.write_text(_fj.dumps(_td2, indent=2), encoding="utf-8")
+                markers += f"\n[FROL_UPDATED:Mom:{_wday}:{len(_slots)} slots]"
             else:
                 # ── Person-specific → day_templates/{Weekday}.json ────────────
                 _tp = _fPath(f"data/day_templates/{_wday}.json")
@@ -731,7 +737,11 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/roadmap":         body = render_roadmap_page()
         elif path == "/signup":           body = render_signup_page()
         elif path == "/waitlist":         body = render_waitlist_admin(False)
-        elif path == "/family-schedule": body = render_family_schedule_page()
+        elif path == "/family-schedule":
+            self.send_response(302)
+            self.send_header("Location", "/settings#s-systems")
+            self.end_headers()
+            return
         elif path == "/calendar":        body = render_calendar_page()
         elif path == "/planner":         body = render_planner_page()
         elif path == "/readings":         body = render_readings_page(date_str=query.get("date",[""])[0])
@@ -2384,14 +2394,8 @@ class Handler(BaseHTTPRequestHandler):
                 weekday = clean_text(data.get("weekday",[""])[0])
                 if weekday:
                     grid = load_day_grid(iso)
-                    # Push Mom's column to the family schedule
-                    mom_slots = grid.get("Mom", {})
-                    if mom_slots:
-                        schedule = load_family_schedule()
-                        schedule.setdefault("days", {})[weekday] = {k:v for k,v in mom_slots.items() if v.strip()}
-                        if not schedule.get("times"):
-                            schedule["times"] = generate_half_hour_times()
-                        save_family_schedule(schedule)
+                    # Push Mom's column to the FROL day template
+                    if grid:
                         save_day_template(weekday, {"weekday": weekday, "grid": grid})
                 self.send_response(200)
                 self.send_header("Content-Type","application/json")
@@ -2432,9 +2436,12 @@ class Handler(BaseHTTPRequestHandler):
                 _val = clean_text(data.get("value",[""])[0])
                 if _day and _ts:
                     try:
-                        _sched = load_family_schedule()
-                        _sched.setdefault("days", {}).setdefault(_day, {})[_ts] = _val
-                        save_family_schedule(_sched)
+                        import json as _rj
+                        from pathlib import Path as _rp
+                        _tp = _rp(f"data/day_templates/{_day}.json")
+                        _td = _rj.loads(_tp.read_text("utf-8")) if _tp.exists() else {"weekday": _day, "grid": {}}
+                        _td.setdefault("grid", {}).setdefault("Mom", {})[_ts] = _val
+                        save_day_template(_day, _td)
                     except Exception as _e:
                         print("[rol-cell-save error]", str(_e))
                 self.send_response(200)
@@ -4905,12 +4912,22 @@ class Handler(BaseHTTPRequestHandler):
                 redirect="/calendar#top"
 
             elif path in ("/family-schedule-save", "/settings-schedule-save"):
-                schedule=load_family_schedule(); days_data=schedule.get("days",{})
-                for key,val_list in data.items():
+                # Write slot__{day}__{ts} updates into FROL day templates (Mom column)
+                import json as _fsj
+                from pathlib import Path as _fsp
+                _day_changes: dict = {}
+                for key, val_list in data.items():
                     if key.startswith("slot__"):
-                        parts=key.split("__",2)
-                        if len(parts)==3: _,day,ts=parts; days_data.setdefault(day,{})[ts]=clean_text(val_list[0])
-                schedule["days"]=days_data; schedule["times"]=generate_half_hour_times(); save_family_schedule(schedule)
+                        parts = key.split("__", 2)
+                        if len(parts) == 3:
+                            _, _fday, _fts = parts
+                            _day_changes.setdefault(_fday, {})[_fts] = clean_text(val_list[0])
+                for _fday, _slots in _day_changes.items():
+                    _tp = _fsp(f"data/day_templates/{_fday}.json")
+                    _td = _fsj.loads(_tp.read_text("utf-8")) if _tp.exists() else {"weekday": _fday, "grid": {}}
+                    for _fts, _fval in _slots.items():
+                        _td.setdefault("grid", {}).setdefault("Mom", {})[_fts] = _fval
+                    save_day_template(_fday, _td)
                 redirect="/settings?msg=Schedule+saved#s-systems"
 
             elif path == "/roadmap-add":
@@ -5030,21 +5047,21 @@ class Handler(BaseHTTPRequestHandler):
                         _settings["meal_rules"] = _mrj.loads(meal_rules_raw)
                     except Exception: pass
                 save_app_settings(_settings)
-                # Schedule grid slots
-                _sched = load_family_schedule()
-                _days  = _sched.get("days", {})
-                _has   = False
+                # Schedule grid slots → write to FROL day templates (Mom column)
+                import json as _saj; from pathlib import Path as _sap
+                _saj_changes: dict = {}
                 for key, val_list in data.items():
                     if key.startswith("slot__"):
                         parts = key.split("__", 2)
                         if len(parts) == 3:
-                            _, day, ts = parts
-                            _days.setdefault(day, {})[ts] = clean_text(val_list[0])
-                            _has = True
-                if _has:
-                    _sched["days"]  = _days
-                    _sched["times"] = generate_half_hour_times()
-                    save_family_schedule(_sched)
+                            _, _saday, _sats = parts
+                            _saj_changes.setdefault(_saday, {})[_sats] = clean_text(val_list[0])
+                for _saday, _saslots in _saj_changes.items():
+                    _satp = _sap(f"data/day_templates/{_saday}.json")
+                    _satd = _saj.loads(_satp.read_text("utf-8")) if _satp.exists() else {"weekday": _saday, "grid": {}}
+                    for _sats, _saval in _saslots.items():
+                        _satd.setdefault("grid", {}).setdefault("Mom", {})[_sats] = _saval
+                    save_day_template(_saday, _satd)
                 self.send_response(200)
                 self.send_header("Content-Type","application/json")
                 self.end_headers()
@@ -5150,21 +5167,21 @@ class Handler(BaseHTTPRequestHandler):
                     print(f"[SETTINGS] Verified on disk: location={repr(_verify.get('location'))}")
                 except Exception as _ve:
                     print(f"[SETTINGS] WARNING: Could not verify file: {_ve}")
-                # Also save schedule grid slots if included
-                schedule  = load_family_schedule()
-                days_data = schedule.get("days", {})
-                has_slots = False
+                # Also save schedule grid slots if included → write to FROL day templates
+                import json as _ssj; from pathlib import Path as _ssp
+                _ss_changes: dict = {}
                 for key, val_list in data.items():
                     if key.startswith("slot__"):
                         parts = key.split("__", 2)
                         if len(parts) == 3:
-                            _, day, ts = parts
-                            days_data.setdefault(day, {})[ts] = clean_text(val_list[0])
-                            has_slots = True
-                if has_slots:
-                    schedule["days"]  = days_data
-                    schedule["times"] = generate_half_hour_times()
-                    save_family_schedule(schedule)
+                            _, _ssday, _ssts = parts
+                            _ss_changes.setdefault(_ssday, {})[_ssts] = clean_text(val_list[0])
+                for _ssday, _ssslots in _ss_changes.items():
+                    _sstp = _ssp(f"data/day_templates/{_ssday}.json")
+                    _sstd = _ssj.loads(_sstp.read_text("utf-8")) if _sstp.exists() else {"weekday": _ssday, "grid": {}}
+                    for _ssts, _ssval in _ssslots.items():
+                        _sstd.setdefault("grid", {}).setdefault("Mom", {})[_ssts] = _ssval
+                    save_day_template(_ssday, _sstd)
                 _ret_ss = clean_text(data.get("_return",[""])[0])
                 redirect = _ret_ss if _ret_ss else "/settings?msg=Settings+saved#top"
 
@@ -6792,7 +6809,7 @@ def initialize_data_files():
     defaults={
         "data/chores.json":{"boys":{}},"data/manual_tasks.json":[],"data/notes.json":[],"data/mom_notes.json":[],
         "data/progress.json":{},"data/task_registry.json":{},"data/school_previews.json":{},"data/school_weeks.json":{"approved":{}},
-        "data/roadmap.json":[],"data/liturgical.json":{},"data/family_schedule.json":{"times":[],"days":{}},
+        "data/roadmap.json":[],"data/liturgical.json":{},
         "data/calendar_config.json":{},"data/calendar_cache.json":{"events":[],"fetched_at":""},
         "data/calendar_rules.json":{"rules":{}},"data/subscribed_calendars.json":[],"data/monthly_planner.json":{},
         "data/app_settings.json":{},
