@@ -154,6 +154,11 @@ def advance_recurring_task(task: dict) -> dict:
             while d.weekday() != wd:
                 d += timedelta(days=1)
         next_due = d
+    elif unit == "weekdays":
+        # Advance 1 day at a time, skipping Saturday (5) and Sunday (6)
+        next_due = base + timedelta(days=1)
+        while next_due.weekday() >= 5:
+            next_due += timedelta(days=1)
     elif unit == "days":
         next_due = base + timedelta(days=value)
     elif unit == "months":

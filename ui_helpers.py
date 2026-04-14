@@ -868,34 +868,45 @@ pre {{
          border:none;display:flex;align-items:center;justify-content:center;
          font-size:.78em;font-weight:700;letter-spacing:.02em;cursor:pointer;
          font-family:inherit;opacity:0;user-select:none;}}
-.sw-ov-tray{{position:absolute;right:0;top:0;bottom:0;width:268px;background:transparent;
+.sw-ov-tray{{position:absolute;right:0;top:0;bottom:0;width:201px;background:transparent;
              display:flex;align-items:stretch;opacity:0;user-select:none;pointer-events:none;}}
 .sw-ov-btn{{flex:1;border:none;cursor:pointer;font-size:.68em;font-weight:700;
             letter-spacing:.01em;font-family:inherit;padding:0 3px;
             display:flex;align-items:center;justify-content:center;
             text-align:center;line-height:1.25;color:#fff;}}
 .sw-ov-dismiss{{background:#b91c1c;}}
-.sw-ov-tmr{{background:#7c3aed;}}
-.sw-ov-time{{background:#0369a1;}}
+.sw-ov-sched{{background:#0369a1;}}
 .sw-ov-hide{{background:#6b7280;}}
 .sw-ov-dismiss:active{{background:#991b1b;}}
-.sw-ov-tmr:active{{background:#6d28d9;}}
-.sw-ov-time:active{{background:#075985;}}
+.sw-ov-sched:active{{background:#075985;}}
 .sw-ov-hide:active{{background:#4b5563;}}
-#tov-time-modal{{display:none;position:fixed;inset:0;z-index:9998;
-  background:rgba(0,0,0,.55);align-items:center;justify-content:center;}}
-#tov-time-modal.open{{display:flex;}}
-#tov-time-modal .tov-tm-box{{background:#fff;border-radius:14px;padding:22px 20px 18px;
-  width:270px;max-width:88vw;box-shadow:0 8px 32px rgba(0,0,0,.25);}}
-#tov-time-modal .tov-tm-title{{font-weight:700;font-size:.95em;color:#1e293b;margin-bottom:14px;}}
-#tov-time-modal input[type=time]{{width:100%;font-size:1.15em;padding:10px 8px;
-  border:1.5px solid #93c5fd;border-radius:8px;font-family:inherit;color:#1e293b;
-  background:#eff6ff;box-sizing:border-box;}}
-#tov-time-modal .tov-tm-btns{{display:flex;gap:8px;margin-top:14px;}}
-#tov-time-modal .tov-tm-cancel{{flex:1;padding:10px;background:#e5e7eb;border:none;
-  border-radius:8px;font-weight:600;font-size:.9em;font-family:inherit;cursor:pointer;color:#374151;}}
-#tov-time-modal .tov-tm-confirm{{flex:1;padding:10px;background:#0369a1;color:#fff;border:none;
-  border-radius:8px;font-weight:700;font-size:.9em;font-family:inherit;cursor:pointer;}}
+#sched-modal{{display:none;position:fixed;inset:0;z-index:9998;
+  background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center;}}
+#sched-modal.open{{display:flex;}}
+#sched-modal .sched-box{{background:#fff;border-radius:16px 16px 0 0;width:100%;
+  max-width:480px;padding:20px 18px 32px;max-height:82vh;overflow-y:auto;
+  box-shadow:0 -6px 28px rgba(0,0,0,.2);}}
+#sched-modal .sched-title{{font-size:.72em;font-weight:800;letter-spacing:.1em;
+  text-transform:uppercase;color:#64748b;margin-bottom:6px;}}
+#sched-modal .sched-task-name{{font-size:.88em;color:#1e293b;font-weight:600;
+  margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #e2e8f0;}}
+#sched-modal .sched-sect{{font-size:.68em;font-weight:800;letter-spacing:.1em;
+  text-transform:uppercase;color:#94a3b8;margin:16px 0 8px;}}
+#sched-modal .sched-row{{display:flex;gap:8px;align-items:center;}}
+#sched-modal .sched-inp{{flex:1;border:1.5px solid #cbd5e1;border-radius:8px;
+  padding:9px 10px;font-size:.92em;font-family:inherit;color:#1e293b;
+  background:#f8fafc;box-sizing:border-box;}}
+#sched-modal .sched-sub-btn{{background:#1e40af;color:#fff;border:none;border-radius:8px;
+  padding:9px 14px;font-size:.82em;font-weight:700;cursor:pointer;
+  font-family:inherit;white-space:nowrap;}}
+#sched-modal .sched-sub-btn:active{{opacity:.85;}}
+#sched-modal .sched-freq{{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;}}
+#sched-modal .sched-freq label{{display:flex;align-items:center;gap:5px;
+  font-size:.88em;cursor:pointer;color:#334155;}}
+#sched-modal .sched-divider{{border:none;border-top:1px solid #e2e8f0;margin:18px 0 0;}}
+#sched-modal .sched-cancel{{width:100%;margin-top:16px;padding:12px;background:#f1f5f9;
+  border:1.5px solid #cbd5e1;border-radius:10px;font-size:.88em;font-weight:600;
+  cursor:pointer;color:#475569;font-family:inherit;}}
 .sw-add{{position:absolute;left:0;top:0;bottom:0;width:76px;background:#16a34a;color:#fff;
          border:none;display:flex;align-items:center;justify-content:center;
          font-size:.78em;font-weight:700;letter-spacing:.02em;cursor:pointer;

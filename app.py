@@ -1977,6 +1977,45 @@ class Handler(BaseHTTPRequestHandler):
                                             pass
                                     if _dm_changed:
                                         save_manual_tasks(_dml)
+                        elif _to_act == "recurring":
+                            # Convert this task to a recurring manual task in manual_tasks.json
+                            _freq = data.get("frequency", ["daily"])[0].strip().lower()
+                            _freq_map = {
+                                "daily":    ("days",     1),
+                                "weekdays": ("weekdays", 1),
+                                "weekly":   ("weeks",    1),
+                            }
+                            _r_unit, _r_val = _freq_map.get(_freq, ("days", 1))
+                            _r_task_text = _to_label
+                            _r_LAUREN = {"Lauren", "Mom"}
+                            _r_child_n = "Lauren" if _to_child in _r_LAUREN else _to_child
+                            with _MANUAL_TASKS_LOCK:
+                                _rml = load_manual_tasks()
+                                _r_found = False
+                                for _rmi, _rmt in enumerate(_rml):
+                                    if not isinstance(_rmt, dict): continue
+                                    if str(_rmt.get("status", "active")).upper() != "ACTIVE": continue
+                                    _rat = str(_rmt.get("assigned_to", "")).strip()
+                                    _rat_n = "Lauren" if _rat in _r_LAUREN else _rat
+                                    if _rat_n and _rat_n != _r_child_n: continue
+                                    if str(_rmt.get("text", "")).strip().lower() != _r_task_text.lower(): continue
+                                    _rml[_rmi]["recurring"] = True
+                                    _rml[_rmi]["interval_unit"] = _r_unit
+                                    _rml[_rmi]["interval_value"] = _r_val
+                                    _r_found = True
+                                    break
+                                if not _r_found:
+                                    _rml.append({
+                                        "text": _r_task_text,
+                                        "assigned_to": _to_child,
+                                        "due_date": _to_iso,
+                                        "priority": "MEDIUM",
+                                        "status": "active",
+                                        "recurring": True,
+                                        "interval_unit": _r_unit,
+                                        "interval_value": _r_val,
+                                    })
+                                save_manual_tasks(_rml)
                     if _json_resp:
                         self.send_response(200)
                         self.send_header("Content-Type", "application/json")
