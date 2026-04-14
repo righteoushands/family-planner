@@ -2080,6 +2080,66 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
     elif all_hint_times:
         result.sort(key=lambda b: b["time_sort"])
 
+    # ── Meal Prep reminder block (Lauren only) ────────────────────────────────
+    # If the meal plan has a prep_notes entry for today, inject a checkable
+    # "🍳 Meal Prep" task block.  Time = 30 min after the evening kitchen-clean
+    # slot; falls back to 8:00 PM if that slot isn't found.
+    if child in ("Lauren", "Mom"):
+        try:
+            from render_meals import load_meal_plan, _week_key
+            from datetime import date as _prep_date
+            _prep_dt   = _prep_date.fromisoformat(iso)
+            _prep_note = (
+                (load_meal_plan(_week_key(_prep_dt)).get("prep_notes") or {})
+                .get(weekday, "")
+                .strip()
+            )
+            if _prep_note:
+                # Find the evening kitchen-clean slot to anchor the time
+                _prep_hhmm = "20:00"
+                for _rb in result:
+                    if ("clean the kitchen" in (_rb.get("label") or "").lower()
+                            and (_rb.get("time_sort") or "") >= "17:00"):
+                        _kh = int(_rb["time_sort"].split(":")[0])
+                        _km = int(_rb["time_sort"].split(":")[1])
+                        _pm_total  = _kh * 60 + _km + 60
+                        _prep_hhmm = f"{_pm_total // 60:02d}:{_pm_total % 60:02d}"
+                        break
+                _ph   = int(_prep_hhmm.split(":")[0])
+                _pmin = int(_prep_hhmm.split(":")[1])
+                _ampm = "AM" if _ph < 12 else "PM"
+                _dh   = _ph if _ph <= 12 else _ph - 12
+                _prep_tid = f"MEALPREP::Lauren::{iso}::meal_prep"
+                result.append({
+                    "time":      f"{_dh}:{_pmin:02d} {_ampm}",
+                    "time_sort": _prep_hhmm,
+                    "end_time":  "",
+                    "label":     "🍳 Meal Prep",
+                    "kind":      "task",
+                    "checkable": False,
+                    "task_id":   None,
+                    "done":      False,
+                    "sub_items": [
+                        {
+                            "text":      _prep_note,
+                            "task_id":   None,
+                            "done":      False,
+                            "checkable": False,
+                            "is_header": True,
+                        },
+                        {
+                            "text":      "Done",
+                            "task_id":   _prep_tid,
+                            "done":      _dl_done(progress, _prep_tid),
+                            "checkable": True,
+                            "is_header": False,
+                        },
+                    ],
+                })
+                result.sort(key=lambda b: b["time_sort"])
+        except Exception:
+            pass
+
     return result
 
 
