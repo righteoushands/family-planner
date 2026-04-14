@@ -15,5 +15,13 @@
         "label": "Leave for Bible Study"
       }
     }
+  },
+  "Joseph": {
+    "2026-04-14": {
+      "ROUTINE::Joseph::2026-04-14::Leave for Bible Study": {
+        "action": "dismiss",
+        "label": "Leave for Bible Study"
+      }
+    }
   }
 }

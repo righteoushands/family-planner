@@ -1628,8 +1628,14 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
         for txt in get_carryover_tasks(child, normalize_target_date(iso)):
             if not txt:
                 continue
-            # Reject schedule exports from carryover too
-            if _is_schedule_export(txt):
+            # Filter out chore sub-step artifacts and time-slot headers — these
+            # already appear in their own Day List blocks (kitchen, chore, etc.).
+            # IMPORTANT: Do NOT apply the school-progress pattern here.  Items like
+            # "History & Geog 7 — Done" are legitimate carryover tasks — incomplete
+            # school work from yesterday MUST surface as a carryover reminder today.
+            if (_time_prefix_pat.match(txt)
+                    or txt.startswith(("\u2192", "->"))
+                    or txt.rstrip().endswith(":")):
                 continue
             norm = _norm(txt)
             if norm in known_chore_texts or norm in _seen_carry_texts:
