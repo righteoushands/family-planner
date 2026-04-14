@@ -2,34 +2,12 @@
   "events": [
     {
       "title": "John's class",
-      "start": "2026-04-13T08:00",
-      "end": "2026-04-13T17:00",
+      "start": "2026-04-14T08:00",
+      "end": "2026-04-14T17:00",
       "all_day": false,
       "location": "",
       "notes": "",
       "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Mama haircut",
-      "start": "2026-04-13T10:00",
-      "end": "2026-04-13T10:30",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Piano Lessons",
-      "start": "2026-04-13T13:00",
-      "end": "2026-04-13T14:30",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Apple Calendar",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -1693,7 +1671,40 @@
       "calendar": "Apple Calendar",
       "color": "#9b59b6",
       "source": "subscribed"
+    },
+    {
+      "title": "St. Anthony of Padua",
+      "start": "2026-06-13",
+      "end": "2026-06-13",
+      "all_day": true,
+      "location": "",
+      "notes": "lost things    ------   Powered by addevent.com  Share your next event with us!  ",
+      "calendar": "Liturgical Calendar (Little Rose Shop)",
+      "color": "#e91e8c",
+      "source": "subscribed"
+    },
+    {
+      "title": "The Immaculate Heart of Mary",
+      "start": "2026-06-13",
+      "end": "2026-06-13",
+      "all_day": true,
+      "location": "",
+      "notes": "//thelittleroseshop.com/search?options%255Bprefix%255D=last&q=immacualte+heart    ------   Powered by addevent.com  Share your next event with us!  ",
+      "calendar": "Liturgical Calendar (Little Rose Shop)",
+      "color": "#e91e8c",
+      "source": "subscribed"
+    },
+    {
+      "title": "USNSCC Pentagon Division - June Drill (#1)",
+      "start": "2026-06-13T07:30",
+      "end": "2026-06-13T15:30",
+      "all_day": false,
+      "location": "Chapel Annex, Dahlgren",
+      "notes": "30 AM (Eastern Time (US & Cana",
+      "calendar": "USNSCC Pentagon Division (JP & Joe)",
+      "color": "#e74c3c",
+      "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-04-13T22:49:23.034134"
+  "fetched_at": "2026-04-14T05:27:46.258569"
 }

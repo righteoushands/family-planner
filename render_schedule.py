@@ -1532,28 +1532,35 @@ function _tovClose(id) {
     var el = document.getElementById('tov-' + id);
     if (el) el.style.display = 'none';
 }
+var _TOV_HDR = {'Content-Type':'application/x-www-form-urlencoded'};
+function _tovPost(params, cb) {
+    fetch('/task-override', {method:'POST', headers:_TOV_HDR, body:params})
+      .then(cb || function() { location.reload(); });
+}
 function _tovAct(tid, child, iso, label, action, postponeTo) {
-    var fd = new FormData();
-    fd.append('task_id', tid); fd.append('child', child);
-    fd.append('iso', iso);     fd.append('label', label);
-    fd.append('action', action); fd.append('json', '1');
-    if (postponeTo) fd.append('postpone_to', postponeTo);
-    fetch('/task-override', {method:'POST', body:fd}).then(function() { location.reload(); });
+    var p = 'task_id='+encodeURIComponent(tid)
+          +'&child='+encodeURIComponent(child)
+          +'&iso='+encodeURIComponent(iso)
+          +'&label='+encodeURIComponent(label)
+          +'&action='+encodeURIComponent(action)
+          +'&json=1';
+    if (postponeTo) p += '&postpone_to='+encodeURIComponent(postponeTo);
+    _tovPost(p);
 }
 function _tovActTime(tid, child, iso, label) {
     var t = document.getElementById('tov-t-' + tid);
     if (!t || !t.value) return;
-    var fd = new FormData();
-    fd.append('task_id', tid); fd.append('child', child);
-    fd.append('iso', iso);     fd.append('label', label);
-    fd.append('action', 'timed'); fd.append('time', t.value); fd.append('json', '1');
-    fetch('/task-override', {method:'POST', body:fd}).then(function() { location.reload(); });
+    _tovPost('task_id='+encodeURIComponent(tid)
+           +'&child='+encodeURIComponent(child)
+           +'&iso='+encodeURIComponent(iso)
+           +'&label='+encodeURIComponent(label)
+           +'&action=timed&time='+encodeURIComponent(t.value)+'&json=1');
 }
 function _tovClear(tid, child, iso) {
-    var fd = new FormData();
-    fd.append('task_id', tid); fd.append('child', child);
-    fd.append('iso', iso);     fd.append('action', 'clear'); fd.append('json', '1');
-    fetch('/task-override', {method:'POST', body:fd}).then(function() { location.reload(); });
+    _tovPost('task_id='+encodeURIComponent(tid)
+           +'&child='+encodeURIComponent(child)
+           +'&iso='+encodeURIComponent(iso)
+           +'&action=clear&json=1');
 }
 /* ── Schedule modal (combines Time Today + Move Date + Recurring) ─── */
 var _schedCtx = {};
@@ -1588,29 +1595,32 @@ function _schedClose() {
 function _schedSetTime() {
     var ti = document.getElementById('sched-time-inp');
     if (!ti || !ti.value) return;
-    var fd = new FormData();
-    fd.append('task_id', _schedCtx.tid); fd.append('child', _schedCtx.child);
-    fd.append('iso', _schedCtx.iso);     fd.append('label', _schedCtx.label);
-    fd.append('action', 'timed'); fd.append('time', ti.value); fd.append('json', '1');
-    fetch('/task-override', {method:'POST', body:fd}).then(function() { _schedClose(); location.reload(); });
+    _tovPost('task_id='+encodeURIComponent(_schedCtx.tid)
+           +'&child='+encodeURIComponent(_schedCtx.child)
+           +'&iso='+encodeURIComponent(_schedCtx.iso)
+           +'&label='+encodeURIComponent(_schedCtx.label)
+           +'&action=timed&time='+encodeURIComponent(ti.value)+'&json=1',
+           function() { _schedClose(); location.reload(); });
 }
 function _schedMoveDate() {
     var di = document.getElementById('sched-date-inp');
     if (!di || !di.value) return;
-    var fd = new FormData();
-    fd.append('task_id', _schedCtx.tid); fd.append('child', _schedCtx.child);
-    fd.append('iso', _schedCtx.iso);     fd.append('label', _schedCtx.label);
-    fd.append('action', 'postpone'); fd.append('postpone_to', di.value); fd.append('json', '1');
-    fetch('/task-override', {method:'POST', body:fd}).then(function() { _schedClose(); location.reload(); });
+    _tovPost('task_id='+encodeURIComponent(_schedCtx.tid)
+           +'&child='+encodeURIComponent(_schedCtx.child)
+           +'&iso='+encodeURIComponent(_schedCtx.iso)
+           +'&label='+encodeURIComponent(_schedCtx.label)
+           +'&action=postpone&postpone_to='+encodeURIComponent(di.value)+'&json=1',
+           function() { _schedClose(); location.reload(); });
 }
 function _schedSetRecurring() {
     var freq = document.querySelector('input[name="sched-freq"]:checked');
     if (!freq) { alert('Pick a frequency first.'); return; }
-    var fd = new FormData();
-    fd.append('task_id', _schedCtx.tid); fd.append('child', _schedCtx.child);
-    fd.append('iso', _schedCtx.iso);     fd.append('label', _schedCtx.label);
-    fd.append('action', 'recurring'); fd.append('frequency', freq.value); fd.append('json', '1');
-    fetch('/task-override', {method:'POST', body:fd}).then(function() { _schedClose(); location.reload(); });
+    _tovPost('task_id='+encodeURIComponent(_schedCtx.tid)
+           +'&child='+encodeURIComponent(_schedCtx.child)
+           +'&iso='+encodeURIComponent(_schedCtx.iso)
+           +'&label='+encodeURIComponent(_schedCtx.label)
+           +'&action=recurring&frequency='+encodeURIComponent(freq.value)+'&json=1',
+           function() { _schedClose(); location.reload(); });
 }
 // Inject Schedule modal once into DOM
 (function(){
