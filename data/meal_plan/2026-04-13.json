@@ -2,6 +2,12 @@
   "start": "2026-04-13",
   "week": "2026-04-13",
   "generated": false,
+  "prep_notes": {
+    "Tuesday": "Brine chicken tonight for John's grilled dinner tomorrow. Mix brine (salt + sugar + water) and submerge chicken breasts — refrigerate overnight.",
+    "Wednesday": "Pull chicken from brine before John grills. Pat dry. Prep sides if serving any.",
+    "Thursday": "Thaw shredded chicken if frozen. Mash potatoes ahead — can do after lunch.",
+    "Friday": "Thaw flounder fillets in fridge tonight or cold water before lunch. Mix cornbread batter ahead."
+  },
   "days": {
     "Monday": {
       "breakfast": "Eggs, cereal, fruit",
