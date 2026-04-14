@@ -440,10 +440,10 @@ def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str,
                 f'<div class="dl-sub-row" id="task-{tid}"'
                 f' data-dash-child="{c_id}" data-done="{dnv}">'
                 f'{_time_badge}'
-                f'<input type="checkbox" {chk}'
-                f' style="width:15px;height:15px;flex-shrink:0;margin-top:2px;accent-color:{c_bg};"'
-                f' onchange="toggleDashTask(this,\'{tid_j}\',\'{c_id}\',\'{escape(iso)}\')">'
                 f'<span class="dl-sub-label {dst}">{carry}{escape(_lbl_raw)}{due_badge}</span>'
+                f'<input type="checkbox" {chk}'
+                f' style="width:15px;height:15px;flex-shrink:0;accent-color:{c_bg};margin-left:8px;"'
+                f' onchange="toggleDashTask(this,\'{tid_j}\',\'{c_id}\',\'{escape(iso)}\')">'
                 f'</div>'
             )
             tray_html = (
@@ -1146,14 +1146,15 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
             f'<div class="dash-task" data-dash-child="{c_id}" data-done="{done_d}"{chore_attr}'
             f' id="task-{tid}" style="display:flex;align-items:flex-start;gap:8px;'
             f'padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);{extra_style}">'
-            f'<input type="checkbox" id="lbl-{tid}" {checked}'
-            f' style="margin-top:3px;width:16px;height:16px;flex-shrink:0;accent-color:{c_bg};"'
-            f' onchange="toggleDashTask(this,\'{tid_js}\',\'{c_id}\',\'{escape(iso)}\')">'
             f'<div style="flex:1;min-width:0;">'
             f'{sec_div}'
             f'<label for="lbl-{tid}" style="font-size:.88em;line-height:1.3;'
             f'cursor:pointer;{done_st}">{escape(lbl_text)}</label>'
-            f'</div></div>'
+            f'</div>'
+            f'<input type="checkbox" id="lbl-{tid}" {checked}'
+            f' style="margin-top:3px;width:16px;height:16px;flex-shrink:0;accent-color:{c_bg};"'
+            f' onchange="toggleDashTask(this,\'{tid_js}\',\'{c_id}\',\'{escape(iso)}\')">'
+            f'</div>'
         )
 
     # ── Carryover rows (up to 3; extras linked) ─────────────────────────────

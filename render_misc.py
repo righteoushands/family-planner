@@ -795,18 +795,18 @@ def _render_boys_now_blocks(iso: str, weekday: str) -> str:
                                 f'<div id="task-{tid_html}" data-done="{data_done}" '
                                 f'style="display:flex;align-items:flex-start;gap:6px;'
                                 f'padding:2px 0 2px 6px;">'
+                                f'<label class="dl-label" style="font-size:0.82em;color:var(--ink);{done_sty};flex:1;">{txt}</label>'
                                 f'<input type="checkbox" {checked} '
                                 f'onchange="dashBoyToggle(this,\'{tid_js}\',\'{c_id}\')" '
-                                f'style="accent-color:{c_bg};flex-shrink:0;margin-top:2px;">'
-                                f'<label class="dl-label" style="font-size:0.82em;color:var(--ink);{done_sty}">{txt}</label>'
+                                f'style="accent-color:{c_bg};flex-shrink:0;margin-left:6px;">'
                                 f'</div>'
                             )
                     else:
                         # No items — just the subject as a checkbox
                         status_line += (
                             f'<div style="display:flex;align-items:center;gap:6px;padding:2px 0 2px 2px;">'
+                            f'<span style="flex:1;font-size:0.82em;color:var(--ink);">{subj}</span>'
                             f'<input type="checkbox" style="accent-color:{c_bg};flex-shrink:0;">'
-                            f'<span style="font-size:0.82em;color:var(--ink);">{subj}</span>'
                             f'</div>'
                         )
 
@@ -834,9 +834,9 @@ def _render_boys_now_blocks(iso: str, weekday: str) -> str:
                     status_line += (
                         f'<div {id_attr}style="display:flex;align-items:flex-start;gap:6px;'
                         f'padding:2px 0 2px 2px;">'
+                        f'<label class="dl-label" style="font-size:0.82em;color:var(--ink);{done_sty};flex:1;">{txt}</label>'
                         f'<input type="checkbox" {checked} {onchange}'
-                        f' style="accent-color:{c_bg};flex-shrink:0;margin-top:2px;">'
-                        f'<label class="dl-label" style="font-size:0.82em;color:var(--ink);{done_sty}">{txt}</label>'
+                        f' style="accent-color:{c_bg};flex-shrink:0;margin-left:6px;">'
                         f'</div>'
                     )
 
@@ -3729,8 +3729,8 @@ def _render_kidsday_step(iso: str, weekday: str, date_label: str) -> str:
                     rows += (
                         f'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;'
                         f'border-bottom:1px solid {c_bg}18;">'
-                        f'<input type="checkbox" {checked} {onch} style="accent-color:{c_bg};">'
-                        f'<span style="font-size:0.8em;color:var(--ink);{done_sty}">{_e(text)}</span>'
+                        f'<span style="flex:1;font-size:0.8em;color:var(--ink);{done_sty}">{_e(text)}</span>'
+                        f'<input type="checkbox" {checked} {onch} style="accent-color:{c_bg};flex-shrink:0;">'
                         f'</div>'
                     )
                 carryover_html = (
@@ -3770,10 +3770,10 @@ def _render_kidsday_step(iso: str, weekday: str, date_label: str) -> str:
                             rows += (
                                 f'<div style="display:flex;align-items:flex-start;gap:8px;'
                                 f'padding:3px 0 3px 8px;{done_sty}">'
+                                f'<span style="flex:1;font-size:0.8em;color:var(--ink);{txt_sty}">{text}</span>'
                                 f'<input type="checkbox" {checked} '
                                 f'onchange="toggleTask(this,\'{tid_js}\',\'{cb_url}\')" '
-                                f'style="accent-color:{c_bg};margin-top:2px;flex-shrink:0;">'
-                                f'<span style="font-size:0.8em;color:var(--ink);{txt_sty}">{text}</span>'
+                                f'style="accent-color:{c_bg};flex-shrink:0;margin-left:6px;">'
                                 f'</div>'
                             )
                         rows += '</div>'
@@ -3781,8 +3781,8 @@ def _render_kidsday_step(iso: str, weekday: str, date_label: str) -> str:
                         rows += (
                             f'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;'
                             f'border-bottom:1px solid {c_bg}18;">'
-                            f'<input type="checkbox" style="accent-color:{c_bg};">'
-                            f'<span style="font-size:0.8em;color:var(--ink);">{subj}</span>'
+                            f'<span style="flex:1;font-size:0.8em;color:var(--ink);">{subj}</span>'
+                            f'<input type="checkbox" style="accent-color:{c_bg};flex-shrink:0;">'
                             f'</div>'
                         )
                 school_html = (
@@ -3801,8 +3801,8 @@ def _render_kidsday_step(iso: str, weekday: str, date_label: str) -> str:
                     rows += (
                         f'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;'
                         f'border-bottom:1px solid {c_bg}18;">'
-                        f'<input type="checkbox" style="accent-color:{c_bg};">'
-                        f'<span style="font-size:0.8em;color:var(--ink);">{_e(item.get("text","") if isinstance(item,dict) else str(item))}</span>'
+                        f'<span style="flex:1;font-size:0.8em;color:var(--ink);">{_e(item.get("text","") if isinstance(item,dict) else str(item))}</span>'
+                        f'<input type="checkbox" style="accent-color:{c_bg};flex-shrink:0;">'
                         f'</div>'
                     )
                 tasks_html = (
@@ -4007,9 +4007,9 @@ function _eveRebuildCustomList() {{
     var strike = t.done ? 'text-decoration:line-through;color:var(--ink-faint);' : '';
     var checked = t.done ? 'checked' : '';
     return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border-light);" id="eve-custom-'+i+'">'
+      + '<span style="flex:1;font-size:0.88em;'+strike+'">'+t.text+'</span>'
       + '<input type="checkbox" '+checked+' onchange="eveToggleCustom('+i+',this)" '
       + 'style="width:18px;height:18px;accent-color:var(--ink);flex-shrink:0;">'
-      + '<span style="flex:1;font-size:0.88em;'+strike+'">'+t.text+'</span>'
       + '<button onclick="eveDeleteCustom('+i+')" style="background:none;border:none;'
       + 'color:var(--ink-faint);cursor:pointer;font-size:0.85em;padding:2px 6px;">&times;</button>'
       + '</div>';
