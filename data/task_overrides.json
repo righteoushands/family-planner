@@ -7,5 +7,13 @@
         "label": "Consider making the lemon curd 2 days before (April 19th) to spread out the workload"
       }
     }
+  },
+  "JP": {
+    "2026-04-14": {
+      "ROUTINE::JP::2026-04-14::Leave for Bible Study": {
+        "action": "dismiss",
+        "label": "Leave for Bible Study"
+      }
+    }
   }
 }

@@ -144,6 +144,66 @@ def _ty_pod_strip(due_list: list, accent: str = "#8b5a3c", return_url: str = "/t
     )
 
 
+# ── Collapsible section wrapper ───────────────────────────────────────────────
+def _collapsible_wrap(section_id: str, title: str, inner_html: str,
+                      accent: str = "#8b7355", default_open: bool = True) -> str:
+    """Wrap a block in a collapsible panel with a show/hide toggle button.
+
+    The toggle state is persisted in localStorage keyed by section_id so the
+    user's preference survives page reloads.  Returns inner_html unchanged when
+    it is empty so callers don't need to guard.
+    """
+    if not inner_html or not inner_html.strip():
+        return inner_html
+    caret      = "▾" if default_open else "▸"
+    body_style = "" if default_open else ' style="display:none;"'
+    return (
+        f'<div class="pod-section no-print" id="pod-sec-{section_id}">'
+        f'<div class="pod-sec-hdr" onclick="_podToggle(\'{section_id}\')"'
+        f' style="display:flex;align-items:center;justify-content:space-between;'
+        f'cursor:pointer;padding:4px 2px 2px;user-select:none;">'
+        f'<span style="font-size:.7em;font-weight:800;letter-spacing:.07em;'
+        f'text-transform:uppercase;color:{accent};">{title}</span>'
+        f'<span id="pod-sec-caret-{section_id}"'
+        f' style="font-size:.85em;color:{accent};margin-left:6px;">{caret}</span>'
+        f'</div>'
+        f'<div id="pod-sec-body-{section_id}"{body_style}>'
+        f'{inner_html}'
+        f'</div>'
+        f'</div>'
+    )
+
+
+_COLLAPSIBLE_JS = """
+<script>
+(function(){
+function _podToggle(id){
+    var body=document.getElementById('pod-sec-body-'+id);
+    var caret=document.getElementById('pod-sec-caret-'+id);
+    if(!body)return;
+    var hidden=body.style.display==='none';
+    body.style.display=hidden?'':'none';
+    if(caret)caret.textContent=hidden?'\u25be':'\u25b8';
+    try{localStorage.setItem('pod-sec-'+id,hidden?'1':'0');}catch(e){}
+}
+window._podToggle=_podToggle;
+document.querySelectorAll('.pod-section').forEach(function(sec){
+    var id=sec.id.replace('pod-sec-','');
+    try{
+        var st=localStorage.getItem('pod-sec-'+id);
+        if(st==='0'){
+            var b=document.getElementById('pod-sec-body-'+id);
+            var c=document.getElementById('pod-sec-caret-'+id);
+            if(b)b.style.display='none';
+            if(c)c.textContent='\u25b8';
+        }
+    }catch(e){}
+});
+})();
+</script>
+"""
+
+
 # ── Task helpers ──────────────────────────────────────────────────────────────
 def _item_done(item: dict, progress: dict) -> bool:
     tid = item.get("task_id", "")
@@ -934,10 +994,33 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
     day_list_html = _render_day_list_html(day_list, child, iso, c_bg, meals)
     template_html = _render_template_editor(child, weekday, c_bg)
 
+    # Pre-compute collapsible section bodies
+    c_id = child.lower().replace(" ", "-")
+    _daily_bar_html = render_daily_bar(target_iso)
+    _lucy_inner = (
+        f'<div class="card card-tight" id="lucy-child-panel-{child.lower()}"'
+        f' style="border-left:4px solid {c_bg};background:{c_light};margin-bottom:4px;">'
+        f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
+        f'<span style="font-size:1em;">&#10022;</span>'
+        f'<span style="font-size:.85em;font-weight:700;color:{c_bg};">'
+        f"Lucy's notes for {escape(child)}</span>"
+        f'</div>'
+        f'<div id="lucy-child-brief-{child.lower()}"'
+        f' style="font-size:.85em;line-height:1.55;color:#444;min-height:32px;">'
+        f'<span style="color:#bbb;font-style:italic;">Loading&#8230;</span>'
+        f'</div></div>'
+    )
+    _daily_bar_sec  = _collapsible_wrap(f"{c_id}-dailybar",  "&#128197; Liturgical Calendar", _daily_bar_html,                              accent=c_bg)
+    _lucy_sec       = _collapsible_wrap(f"{c_id}-lucy",      "&#10022; Lucy's Notes",         _lucy_inner,                                  accent=c_bg)
+    _exercise_sec   = _collapsible_wrap(f"{c_id}-exercise",  "&#128170; Exercise",            _render_exercise_block_screen(child, weekday, c_bg, c_light), accent=c_bg)
+    _goals_sec      = _collapsible_wrap(f"{c_id}-goals",     "&#127919; Goals",               _render_child_goals_section(child),           accent=c_bg)
+    _profile_sec    = _collapsible_wrap(f"{c_id}-profile",   "&#128203; Profile",             _render_child_profile_section(child, c_bg, c_light), accent=c_bg)
+    _ty_sec         = _collapsible_wrap(f"{c_id}-thankyou",  "&#9993; Thank-You Cards",       _ty_pod_strip(due_thankyou_reminders_for(child), c_bg, f"/schedule/{child}"), accent="#92400e")
+
     return f"""{_DL_CSS}
     <div class="card" style="border-left:5px solid {c_bg};background:{c_light};">
         {celebration_html}
-        {render_daily_bar(target_iso)}
+        {_daily_bar_sec}
         <div class="page-header">
             <h2 style="color:{c_bg};">{escape(child)}'s Day — {escape(date_label)}</h2>
             {f'<div style="margin-bottom:4px;">{age_strip}</div>' if age_strip else ""}
@@ -964,24 +1047,14 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
             <div style="margin-top:8px;">{render_now_next_strip()}</div>
             <div style="margin-top:8px;">{render_calendar_today_strip(iso)}</div>
         </div>
-        <div class="card card-tight no-print" id="lucy-child-panel-{child.lower()}"
-             style="border-left:4px solid {c_bg};background:{c_light};margin-bottom:8px;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                <span style="font-size:1em;">&#10022;</span>
-                <span style="font-size:.85em;font-weight:700;color:{c_bg};">
-                    Lucy's notes for {escape(child)}</span>
-            </div>
-            <div id="lucy-child-brief-{child.lower()}"
-                 style="font-size:.85em;line-height:1.55;color:#444;min-height:32px;">
-                <span style="color:#bbb;font-style:italic;">Loading&#8230;</span>
-            </div>
-        </div>
-        {_render_exercise_block_screen(child, weekday, c_bg, c_light)}
+        {_lucy_sec}
+        {_exercise_sec}
         <div class="day-list">
             {day_list_html}
         </div>
-        {_render_child_goals_section(child)}
-        {_render_child_profile_section(child, c_bg, c_light)}
+        {_ty_sec}
+        {_goals_sec}
+        {_profile_sec}
         {template_html}
     </div>
 <script>
@@ -1036,7 +1109,8 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
     }}
     setInterval(_syncPlan, 15000);
 }})();
-</script>"""
+</script>
+{_COLLAPSIBLE_JS}"""
 
 
 def _render_meal_card_for_child(target_date=None) -> str:

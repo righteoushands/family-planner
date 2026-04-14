@@ -188,7 +188,7 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
     )
     from data_helpers import normalize_date_query
     from config import parent_color
-    from render_schedule import render_day_nav, _render_day_list_html, _DL_CSS, _DASH_JS, _ty_pod_strip
+    from render_schedule import render_day_nav, _render_day_list_html, _DL_CSS, _DASH_JS, _ty_pod_strip, _collapsible_wrap, _COLLAPSIBLE_JS
     from data_helpers import due_thankyou_reminders_for as _due_ty_for
 
     normalized_date = normalize_date_query(target_date_str)
@@ -282,9 +282,9 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
 
     day_list_html = _render_day_list_html(day_list, "Lauren", iso, c_bg, meals)
 
-    lucy_panel = (
-        f'<div class="card card-tight no-print"'
-        f' style="border-left:4px solid {c_bg};background:{c_light};">'
+    _lucy_inner = (
+        f'<div class="card card-tight"'
+        f' style="border-left:4px solid {c_bg};background:{c_light};margin-bottom:4px;">'
         f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
         f'<span style="font-size:1.1em;">✦</span>'
         f'<h3 style="margin:0;font-size:.95em;color:{c_bg};">Lucy\'s Notes for Lauren</h3>'
@@ -294,14 +294,20 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
         f'<span style="color:#bbb;font-style:italic;">Loading…</span>'
         f'</div></div>'
     )
+    _fertility_inner = _cycle_fertility_banner(iso)
+    _ty_inner        = _ty_pod_strip(_due_ty_for("Lauren") + _due_ty_for("Family"), c_bg, "/mom-profile")
+    _meal_inner      = meal_html
 
-    _lauren_ty_strip = _ty_pod_strip(
-        _due_ty_for("Lauren") + _due_ty_for("Family"), c_bg, "/mom-profile"
-    )
+    _daily_bar_sec   = _collapsible_wrap("lauren-dailybar",  "&#128197; Liturgical Calendar", daily_bar,         accent=c_bg)
+    _lucy_sec        = _collapsible_wrap("lauren-lucy",      "&#10022; Lucy's Notes",         _lucy_inner,       accent=c_bg)
+    _fertility_sec   = _collapsible_wrap("lauren-fertility", "&#127816; Cycle &amp; Health",  _fertility_inner,  accent=c_bg)
+    _ty_sec          = _collapsible_wrap("lauren-thankyou",  "&#9993; Thank-You Cards",       _ty_inner,         accent="#92400e")
+    _meal_sec        = _collapsible_wrap("lauren-meals",     "&#127859; Meals",               _meal_inner,       accent=c_bg)
+
     return f"""{_DL_CSS}
 {_DASH_JS}
 <div class="card" style="border-left:5px solid {c_bg};background:{c_light};margin-bottom:18px;">
-    {daily_bar}
+    {_daily_bar_sec}
     <div class="page-header">
         <h2 style="color:{c_bg};margin:0 0 4px;">Lauren — {_e(date_label)}</h2>
         <div class="no-print">{day_nav}</div>
@@ -318,13 +324,13 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
         <div style="margin-top:8px;">{now_next_html}</div>
         <div style="margin-top:8px;">{cal_strip_html}</div>
     </div>
-    {_cycle_fertility_banner(iso)}
-    {lucy_panel}
+    {_fertility_sec}
+    {_lucy_sec}
     <div class="day-list">
         {day_list_html}
     </div>
-    {meal_html}
-    {_lauren_ty_strip}
+    {_ty_sec}
+    {_meal_sec}
 </div>
 <script>
 (function() {{
@@ -343,7 +349,8 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
             el.innerHTML = fallback;
         }});
 }})();
-</script>"""
+</script>
+{_COLLAPSIBLE_JS}"""
 
 
 def render_mom_profile_page(target_date_str: str = "") -> str:

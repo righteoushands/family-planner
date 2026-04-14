@@ -387,5 +387,14 @@
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false
+  },
+  {
+    "id": "6dcbd3d8-779f-4fa9-afa9-b0a3e12a335e",
+    "text": "Sign a family “Thank You” card to the DeMaios",
+    "assigned_to": "JP",
+    "due_date": "2026-04-14",
+    "priority": "HIGH",
+    "status": "active",
+    "recurring": false
   }
 ]
