@@ -1902,9 +1902,9 @@ def _section_liturgy_hours(settings: dict) -> str:
              style="width:18px;height:18px;margin-top:2px;flex-shrink:0;">
       <div>
         <div style="font-size:0.88em;font-weight:600;">Auto-download on Sundays</div>
-        <div class="small">When the app starts on a Sunday, automatically
-        fetches all six offices for all seven days of the coming week in the background.
-        No action required &mdash; prayers will be ready offline all week.</div>
+        <div class="small">Every Sunday, automatically downloads all six offices
+        for each day of the <em>coming</em> week in the background. Prayers are stored
+        locally and ready before Monday morning &mdash; no action required.</div>
       </div>
     </label>
 

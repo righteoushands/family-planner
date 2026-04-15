@@ -59,17 +59,20 @@ def save_day_hours(data: dict):
 
 
 def cleanup_old_files():
-    """Delete day files outside the current Mon–Sun week. At most 7 files kept."""
+    """Delete day files that are more than one day in the past.
+    Keeps the current week AND any pre-fetched future days (e.g. next week
+    downloaded on Sunday). At most ~14 files can accumulate before the old
+    week rolls off naturally.
+    """
     _ensure_dir()
-    monday = _week_monday(date.today())
-    sunday = monday + timedelta(days=6)
+    yesterday = date.today() - timedelta(days=1)
     try:
         for fn in os.listdir(HOURS_DIR):
             if not fn.endswith(".json"):
                 continue
             try:
                 file_date = date.fromisoformat(fn.replace(".json", ""))
-                if file_date < monday or file_date > sunday:
+                if file_date < yesterday:
                     os.remove(f"{HOURS_DIR}/{fn}")
             except Exception:
                 pass
@@ -253,12 +256,19 @@ def _fetch_and_clean(monday: date):
     fetch_week(monday)
 
 
+def _next_week_monday(today: date = None) -> date:
+    """Return the Monday of *next* week (7 days after this week's Monday)."""
+    if today is None:
+        today = date.today()
+    return _week_monday(today) + timedelta(days=7)
+
+
 def maybe_auto_fetch():
     """
-    Called at app startup. Fetches this week if:
+    Called at app startup. On Sundays, pre-fetches *next* week's prayers if:
       - auto_fetch_hours setting is True
       - today is Sunday
-      - week not already fetched
+      - next week not already fetched
     Also cleans up old files whenever a fresh fetch is triggered.
     """
     try:
@@ -268,11 +278,12 @@ def maybe_auto_fetch():
         today = date.today()
         if today.weekday() != 6:   # 6 = Sunday
             return
-        monday = _week_monday(today)
-        if _week_already_fetched(monday):
+        # Pre-fetch NEXT week so prayers are ready when Monday arrives
+        next_monday = _next_week_monday(today)
+        if _week_already_fetched(next_monday):
             return
         import threading
-        threading.Thread(target=_fetch_and_clean, args=(monday,), daemon=True).start()
+        threading.Thread(target=_fetch_and_clean, args=(next_monday,), daemon=True).start()
     except Exception:
         pass
 
@@ -300,10 +311,11 @@ def start_weekly_scheduler():
                 today = date.today()
                 if today.weekday() != 6:   # only on Sunday
                     continue
-                monday = _week_monday(today)
-                if _week_already_fetched(monday):
+                # Pre-fetch NEXT week
+                next_monday = _next_week_monday(today)
+                if _week_already_fetched(next_monday):
                     continue
-                _fetch_and_clean(monday)
+                _fetch_and_clean(next_monday)
             except Exception:
                 time.sleep(3600)
 

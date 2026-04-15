@@ -208,14 +208,6 @@
   },
   {
     "text": "Sign a family “Thank You” card to the DeMaios",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-12",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Sign a family “Thank You” card to the DeMaios",
     "assigned_to": "Michael",
     "due_date": "2026-04-12",
     "priority": "MEDIUM",
@@ -389,15 +381,6 @@
     "recurring": false
   },
   {
-    "id": "6dcbd3d8-779f-4fa9-afa9-b0a3e12a335e",
-    "text": "Sign a family “Thank You” card to the DeMaios",
-    "assigned_to": "JP",
-    "due_date": "2026-04-14",
-    "priority": "HIGH",
-    "status": "active",
-    "recurring": false
-  },
-  {
     "text": "Switch laundry",
     "assigned_to": "Lauren",
     "due_date": "2026-04-14",
@@ -408,6 +391,22 @@
   {
     "text": "Find and sign Thank You card",
     "assigned_to": "Lauren",
+    "due_date": "2026-04-14",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Look up vibe coding",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-15",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "AI can grade homeschooling tests",
+    "assigned_to": "Mom",
     "due_date": "2026-04-14",
     "priority": "MEDIUM",
     "status": "active",
