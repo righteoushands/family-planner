@@ -8,6 +8,7 @@ Four interconnected modules:
 """
 import os
 from data_helpers import (
+    load_curriculum, save_curriculum,
     load_curriculum_library, save_curriculum_library, get_subject_by_id,
     get_assignments_for_student, load_student_submissions, get_submissions_for_grading,
     get_submissions_by_student, load_grading_history, load_curriculum_documents,
@@ -15,6 +16,29 @@ from data_helpers import (
 )
 from daily_schedule_engine import CHILDREN
 from ui_helpers import render_nav_tabs, html_page, page_header
+
+
+def _get_openai_key() -> str:
+    """Return the OpenAI API key from the environment secret."""
+    return os.environ.get("OPENAI_API_KEY", "").strip()
+
+
+_SUBJECT_MINUTES = {
+    "math": 45, "mathematics": 45, "algebra": 45, "geometry": 45,
+    "latin": 30, "greek": 30,
+    "history": 40, "science": 40,
+    "english": 35, "writing": 35, "grammar": 30, "literature": 40,
+    "religion": 30, "catechism": 30,
+    "art": 30, "music": 30, "logic": 30,
+}
+
+def _recommended_minutes(subject: str) -> int:
+    """Return a sensible default session length (minutes) for a subject."""
+    key = subject.lower().strip()
+    for name, mins in _SUBJECT_MINUTES.items():
+        if name in key:
+            return mins
+    return 35
 
 def render_curriculum_main():
     """Main curriculum dashboard with module navigation."""
