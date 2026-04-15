@@ -4182,6 +4182,26 @@ class Handler(BaseHTTPRequestHandler):
                 if not (_dv and _auth.is_admin(_dv)):
                     self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
                     self.wfile.write(b"Admin only."); return
+
+                # ── Pre-flight import check — block restart if app will crash ──
+                import subprocess as _sub, sys as _sys
+                _check = _sub.run(
+                    [_sys.executable, "-c", "import app"],
+                    capture_output=True, text=True, timeout=30
+                )
+                if _check.returncode != 0:
+                    _err = (_check.stderr or _check.stdout or "Unknown import error").strip()
+                    self.send_response(409)
+                    self.send_header("Content-Type", "text/plain; charset=utf-8")
+                    self.end_headers()
+                    try:
+                        self.wfile.write(
+                            f"RESTART BLOCKED — import check failed:\n\n{_err}\n\n"
+                            f"Fix the error above before restarting.".encode("utf-8")
+                        )
+                    except BrokenPipeError: pass
+                    return
+
                 self.send_response(200); self.send_header("Content-Type","text/plain"); self.end_headers()
                 try: self.wfile.write(b"Restarting...")
                 except BrokenPipeError: pass

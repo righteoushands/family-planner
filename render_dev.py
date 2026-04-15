@@ -1093,11 +1093,29 @@ async function undoFix(filename) {{
 async function restartServer() {{
   const btn   = document.getElementById('restart-btn');
   const toast = document.getElementById('restart-toast');
-  btn.disabled = true; btn.textContent = 'Restarting\u2026';
-  toast.style.display = 'block';
+  btn.disabled = true; btn.textContent = 'Checking\u2026';
   try {{
-    await fetch('/dev-restart', {{method:'POST'}});
-  }} catch(e) {{}}
+    const resp = await fetch('/dev-restart', {{method:'POST'}});
+    if (resp.status === 409) {{
+      // Pre-flight check failed — show error to Izzy, don't reload
+      const errText = await resp.text();
+      btn.disabled = false; btn.textContent = '\u21ba Restart';
+      // Inject the error as a user message so Izzy sees and fixes it
+      const inp = document.getElementById('felix-input');
+      if (inp) {{
+        inp.value = 'Restart was blocked by an import error. Please fix it before restarting:\n\n' + errText;
+        sendToFelix();
+      }} else {{
+        alert(errText);
+      }}
+      return;
+    }}
+    // Success path — show toast and reload
+    btn.textContent = 'Restarting\u2026';
+    toast.style.display = 'block';
+  }} catch(e) {{
+    btn.disabled = false; btn.textContent = '\u21ba Restart';
+  }}
   setTimeout(() => {{ window.location.reload(); }}, 10000);
 }}
 </script>
