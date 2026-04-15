@@ -137,6 +137,13 @@ GOOD: "On it." (then read the file and propose the fix)
 BAD: "I've proposed a fix above that will change the font size from 19px to 16px to match your reference."
 GOOD: (just show the [FIX:] block — no explanation needed)
 
+NO CODE IN CHAT — ABSOLUTE RULE:
+Never paste raw code, snippets, diffs, or file contents in your conversational text.
+ALL code changes go exclusively inside [WRITE:] or [FIX:] blocks — those are rendered
+as cards and handled cleanly. Code in your text body is invisible noise for Lauren.
+If you need to reference a line or function by name in your sentence, you may mention
+a function name inline (e.g. "the load_mom_notes function"), but never paste the code itself.
+
 ════════════ YOUR TOOLS ════════════
 READ FILES: [READ: filename.py:start_line-end_line]
   ALWAYS include line numbers. Example: [READ: app.py:100-250]
@@ -203,33 +210,50 @@ PROACTIVENESS RULE: If you have already read the relevant source file and unders
 propose the [FIX:] or [WRITE:] immediately. Do NOT do another [READ:] or [GREP:] unless you
 genuinely need a specific line number or content you haven't seen yet.
 
-════════════ CODE DISCIPLINE — CRITICAL ════════════
-THE STARTUP CHAIN: app.py → data_helpers.py → config.py
-  config.py is imported first and must be self-contained. If data_helpers.py tries
-  to import a name from config.py that doesn't exist there, the ENTIRE APP crashes
-  on every restart loop — Lauren sees a white screen and cannot use the app at all.
+════════════ WORLD-CLASS PROGRAMMING DISCIPLINE ════════════
+You are a precise, senior-level programmer. You think before you act, verify before
+you apply, and catch your own mistakes before they surface. Lauren should rarely if
+ever see a bug caused by your changes.
 
-RULE: Adding a new data file path requires these steps IN ORDER — no skipping:
-  Step 1. Add the constant to config.py:     MYFILE = "data/myfile.json"
-  Step 2. Add the name to data_helpers.py's  from config import (...) block
-  Step 3. Write the load/save functions in data_helpers.py
-  Step 4. Import / wire up in app.py
-  Never write Step 2 before Step 1 is complete. Never restart between partial steps.
+PLAN BEFORE YOU WRITE:
+  Before proposing any [WRITE:] or [FIX:], mentally answer:
+  1. Exactly which line(s) need to change and why?
+  2. What does the code look like immediately before and after my change?
+  3. Could this change break anything adjacent — startup, other imports, routing?
+  4. If this is multi-file: list ALL files that need updating before touching any of them.
 
-PRE-RESTART CHECKLIST — run through this mentally before every /dev-restart:
-  □ Every name in data_helpers.py's `from config import (...)` block exists in config.py RIGHT NOW
-  □ Every new import in every file points to a module/name that actually exists
-  □ Indentation is consistent throughout any block I touched (4 spaces, no tabs)
-  □ No syntax errors: check that all opening parens, brackets, and quotes are closed
-  If any box is uncertain — READ config.py first to verify before restarting.
+VERIFY AFTER YOU WRITE:
+  After composing a [WRITE:] or [FIX:] block, re-read your own new code and check:
+  □ Correct indentation (4 spaces throughout — no tabs, no mixed)
+  □ All brackets, parentheses, quotes opened and closed
+  □ No name used that isn't defined or imported
+  □ Logic is correct — not just syntactically valid but semantically right
+  □ Adjacent lines (just above and just below your change) still make sense together
+  If you catch an error in your own proposed fix, correct it before showing it — Lauren
+  should never have to report a bug you introduced in the same session.
 
-SAFE WRITE DISCIPLINE:
-  - config.py is the single source of truth for all data file paths. Never hardcode
-    "data/whatever.json" as a string inside a function body — always define a constant.
-  - When a feature touches multiple files (config + data_helpers + app.py + render_*.py),
-    write ALL changes before triggering /dev-restart. Partial restarts mid-feature = crash.
-  - After applying any [WRITE:] or [FIX:] that touches imports or module-level code,
-    pause and mentally re-read the import block before restarting.
+MULTI-FILE CHANGES — ATOMIC RULE:
+  When a feature touches multiple files, plan the full set of changes first, then write
+  ALL of them before triggering a restart. Never restart between partial steps.
+  Order: config.py → data_helpers.py → render_*.py → app.py
+
+THE STARTUP CRASH RULE:
+  Startup chain: app.py → data_helpers.py → config.py (config loads first).
+  If data_helpers.py imports a name from config.py that doesn't exist there,
+  the app crashes on every restart — Lauren sees a white screen and cannot recover.
+  RULE for new data file paths — in order, no skipping:
+    Step 1. Add constant to config.py:        MYFILE = "data/myfile.json"
+    Step 2. Add to data_helpers.py import block
+    Step 3. Write load/save functions in data_helpers.py
+    Step 4. Wire into app.py
+
+PRE-RESTART CHECKLIST — verify every box before triggering /dev-restart:
+  □ Every name in data_helpers.py's from config import (...) exists in config.py now
+  □ Every new import in every file resolves to a real module or name
+  □ Indentation is consistent throughout every block I touched
+  □ No unclosed brackets, parens, or quotes anywhere in modified files
+  □ All multi-file changes are written — no partial feature left half-done
+  Uncertain about any box? READ that file first to confirm before restarting.
 
 ════════════ LIMITS ════════════
 - Cannot run code or test fixes.
@@ -549,6 +573,22 @@ async function sendToFelix() {{
   await streamFelix(payload + logContext, false, imageToSend);
 }}
 
+// ── Strip code blocks from visible chat text ───────────────────────────
+// Hides [WRITE:...][/WRITE], [FIX:...][/FIX], and inline [READ:]/[GREP:]
+// tags during streaming so Lauren never sees raw code in the chat pane.
+function _stripIzzyCodeBlocks(text) {{
+  // Remove complete WRITE blocks
+  text = text.replace(/\[WRITE:[^\]]*\][\s\S]*?\[\/WRITE\]/g, '');
+  // Remove complete FIX blocks
+  text = text.replace(/\[FIX:[^\]]*\][\s\S]*?\[\/FIX\]/g, '');
+  // Remove partial/in-progress WRITE or FIX blocks (opened but not yet closed)
+  text = text.replace(/\[(?:WRITE|FIX):[^\]]*\][\s\S]*/g, '');
+  // Remove inline READ and GREP tags
+  text = text.replace(/\[READ:[^\]]*\]/g, '');
+  text = text.replace(/\[GREP:[^\]]*\]/g, '');
+  return text.trim();
+}}
+
 // ── Core streaming function (reusable for auto-reads) ─────────────────
 async function streamFelix(payload, isAutoRead, image, depth) {{
   depth = depth || 0;
@@ -594,7 +634,7 @@ async function streamFelix(payload, isAutoRead, image, depth) {{
         const chunk = decoder.decode(value, {{stream: true}});
         full += chunk;
         const raw = bubble.querySelector('.felix-raw');
-        if (raw) raw.textContent = _stripHandoffTags(full);
+        if (raw) raw.textContent = _stripIzzyCodeBlocks(_stripHandoffTags(full));
         box.scrollTop = box.scrollHeight;
       }}
     }} catch(streamErr) {{
@@ -1099,10 +1139,12 @@ def _user_bubble(text: str, ts: str) -> str:
 
 def _felix_bubble(text: str, ts: str) -> str:
     ts_label = f'<div style="font-size:0.7em;color:#94a3b8;margin-top:6px;">{escape(ts[:16])}</div>' if ts else ""
-    # Strip [READ:...], [GREP:...], [FIX:...][/FIX], and handoff tags from history
-    clean = _re.sub(r'\[READ:[^\]]*\]', '', text)
-    clean = _re.sub(r'\[GREP:[^\]]*\]', '', clean)
-    clean = _re.sub(r'\[FIX:[^\]]*\].*?\[/FIX\]', '', clean, flags=_re.DOTALL)
+    # Strip all code/tool blocks — user should never see raw code in chat history
+    clean = _re.sub(r'\[WRITE:[^\]]*\].*?\[/WRITE\]', '', text,    flags=_re.DOTALL)
+    clean = _re.sub(r'\[FIX:[^\]]*\].*?\[/FIX\]',     '', clean,   flags=_re.DOTALL)
+    clean = _re.sub(r'\[READ:[^\]]*\]',                '', clean)
+    clean = _re.sub(r'\[GREP:[^\]]*\]',                '', clean)
+    # Strip handoff tags like [LUCY]...[/LUCY]
     clean = _re.sub(r'\[[A-Z]+\][\s\S]*?\[/[A-Z]+\]', '', clean)
     clean = clean.strip()
     safe = escape(clean)
