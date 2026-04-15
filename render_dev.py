@@ -1103,7 +1103,7 @@ async function restartServer() {{
       // Inject the error as a user message so Izzy sees and fixes it
       const inp = document.getElementById('felix-input');
       if (inp) {{
-        inp.value = 'Restart was blocked by an import error. Please fix it before restarting:\n\n' + errText;
+        inp.value = 'Restart was blocked by an import error. Please fix it before restarting:\\n\\n' + errText;
         sendToFelix();
       }} else {{
         alert(errText);

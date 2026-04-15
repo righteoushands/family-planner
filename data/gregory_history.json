@@ -74,6 +74,16 @@
       "role": "assistant",
       "content": "You're right—this requires building. And you've identified exactly what we need.\n\nLet me brief Izzy on the technical specifications so she can design and build this properly.\n\n[IZZY]Lauren wants to build a curriculum management system with four interconnected modules: (1) Curriculum Library (subjects, scope, objectives, pacing), (2) Reference Documents (PDF storage for syllabi, rubrics, answer keys), (3) Student Assignment Submission (boys upload work for grading), (4) Grading & Feedback Interface (I review and issue detailed feedback with scores/notes). This is a significant feature addition to the dashboard. She wants to upload curriculum first, then documents, then start the grading workflow. Can we design the schema and UX together?[/IZZY]\n\n---\n\nIn the meantime, **one clarifying question for you:**\n\n**How do you envision the boys submitting work—do they upload directly to the system themselves, or do you photograph/scan and upload on their behalf?**\n\n(This affects whether we need individual login access for JP and Joseph, or if you're the hub for all uploads.)",
       "ts": "2026-04-15T09:57:23"
+    },
+    {
+      "role": "user",
+      "content": "I can't find where we are putting the curriculumn",
+      "ts": "2026-04-15T10:43:06"
+    },
+    {
+      "role": "assistant",
+      "content": "You're right to ask—let me clarify where this lives.\n\n**Currently:** We've been discussing it *here in our chat*, but there's no dedicated storage space yet. I mentioned \"a curriculum library\" as an *ideal*, but it hasn't been built.\n\n**What needs to happen:**\n\nIzzy needs to create an actual **Curriculum Library section on your family dashboard**—a real, persistent place where syllabi, scope-and-sequence documents, and reference PDFs live and can be organized by subject and child.\n\nRight now, without Izzy's programming work, we'd just be uploading PDFs into our chat thread, which isn't ideal for long-term reference or organization.\n\n**Here's my question for you:**\n\n**Should I go ahead and loop Izzy in now to design and build the Curriculum Library module?** Once she sets that up, you'll have a proper home for all your curriculum documents, and *then* we can systematically upload everything.\n\nOr would you rather we work through the curriculum documentation *here first* (in our conversation), and *then* hand it off to Izzy to organize into the dashboard structure?\n\nWhich feels better to you?",
+      "ts": "2026-04-15T10:43:10"
     }
   ]
 }
