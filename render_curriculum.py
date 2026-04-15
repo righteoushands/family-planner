@@ -1,214 +1,200 @@
 """
-render_curriculum.py — MODG Curriculum Importer page.
-Lets Lauren paste a full-year subject plan (all weeks at once) and
-stores it so the school tab automatically shows the right week.
+render_curriculum.py — Curriculum Management System
+Four interconnected modules:
+1. Curriculum Library - subjects, units, assignments, pacing
+2. Reference Documents - PDF storage and organization  
+3. Student Submissions - upload interface for boys
+4. Grading Interface - review and feedback workflow
 """
-import json as _json
-import os as _os
-import re as _re
-import urllib.request as _req
-
+import os
 from data_helpers import (
-    load_curriculum, save_curriculum,
-    get_curriculum_week, get_curriculum_subjects,
+    load_curriculum_library, save_curriculum_library, get_subject_by_id,
+    get_assignments_for_student, load_student_submissions, get_submissions_for_grading,
+    get_submissions_by_student, load_grading_history, load_curriculum_documents,
+    add_student_submission, add_grade_record, add_curriculum_document, today_iso
 )
 from daily_schedule_engine import CHILDREN
+from ui_helpers import render_nav_tabs, html_page, page_header
 
-_APP_SETTINGS_FILE = "data/app_settings.json"
-
-
-def _load_app_settings() -> dict:
-    try:
-        if _os.path.exists(_APP_SETTINGS_FILE):
-            return _json.load(open(_APP_SETTINGS_FILE))
-    except Exception:
-        pass
-    return {}
-
-
-# ── Recommended minutes per session by subject keyword ────────────────────────
-_SUBJECT_MINS: dict[str, int] = {
-    "math":        45,
-    "algebra":     45,
-    "geometry":    45,
-    "latin":       45,
-    "greek":       45,
-    "english":     30,
-    "grammar":     30,
-    "language":    30,
-    "spelling":    20,
-    "vocabulary":  20,
-    "editing":     30,
-    "religion":    30,
-    "theology":    30,
-    "history":     45,
-    "geography":   30,
-    "science":     45,
-    "biology":     45,
-    "chemistry":   45,
-    "physics":     45,
-    "reading":     60,
-    "literature":  45,
-    "composition": 30,
-    "writing":     30,
-    "art":         45,
-    "music":       20,
-    "poetry":      15,
-    "penmanship":  15,
-    "handwriting": 15,
-}
-
-def _recommended_minutes(subject: str) -> int:
-    """Return a sensible default session length for a given subject name."""
-    sl = subject.lower()
-    for kw, mins in _SUBJECT_MINS.items():
-        if kw in sl:
-            return mins
-    return 30
-
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
-def _get_openai_key() -> str:
-    """Read OPENAI_API_KEY from environment."""
-    return _os.environ.get("OPENAI_API_KEY", "").strip()
-
-
-def _call_gpt(system: str, user: str, max_tokens: int = 2000) -> tuple:
+def render_curriculum_main():
+    """Main curriculum dashboard with module navigation."""
+    
+    # Get summary stats
+    library = load_curriculum_library()
+    submissions = load_student_submissions()
+    pending_reviews = len([s for s in submissions["submissions"] if s["status"] == "pending_review"])
+    total_subjects = len(library["subjects"])
+    
+    tabs = [
+        {"id": "library", "label": "📚 Curriculum Library", "url": "/curriculum-library"},
+        {"id": "documents", "label": "📄 Reference Docs", "url": "/curriculum-docs"},
+        {"id": "submissions", "label": "📤 Student Work", "url": "/submit-work"},
+        {"id": "grading", "label": f"✅ Grading Queue ({pending_reviews})", "url": "/grading-queue"}
+    ]
+    
+    nav_html = render_nav_tabs(tabs, "curriculum")
+    
+    return f"""
+    <div class="curriculum-main">
+        {nav_html}
+        
+        <div class="dashboard-overview">
+            <div class="stat-cards">
+                <div class="stat-card">
+                    <h3>{total_subjects}</h3>
+                    <p>Active Subjects</p>
+                </div>
+                <div class="stat-card">
+                    <h3>{pending_reviews}</h3>
+                    <p>Pending Reviews</p>
+                </div>
+                <div class="stat-card">
+                    <h3>{len(submissions['submissions'])}</h3>
+                    <p>Total Submissions</p>
+                </div>
+            </div>
+            
+            <div class="quick-actions">
+                <h3>Quick Actions</h3>
+                <a href="/curriculum-library/new-subject" class="btn btn-primary">➕ Add New Subject</a>
+                <a href="/curriculum-docs/upload" class="btn btn-secondary">📁 Upload Document</a>
+                <a href="/grading-queue" class="btn btn-accent">🔍 Review Work</a>
+            </div>
+            
+            <div class="recent-activity">
+                <h3>Recent Submissions</h3>
+                {render_recent_submissions_widget()}
+            </div>
+        </div>
+    </div>
+    
+    <style>
+    .curriculum-main {{ margin: 20px; }}
+    .dashboard-overview {{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }}
+    .stat-cards {{ display: flex; gap: 15px; }}
+    .stat-card {{ background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; min-width: 100px; }}
+    .stat-card h3 {{ margin: 0; font-size: 24px; color: #2c3e50; }}
+    .stat-card p {{ margin: 5px 0 0 0; color: #7f8c8d; }}
+    .quick-actions, .recent-activity {{ background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd; }}
+    .quick-actions h3, .recent-activity h3 {{ margin-top: 0; }}
+    .btn {{ display: inline-block; padding: 8px 16px; margin-right: 10px; text-decoration: none; border-radius: 4px; }}
+    .btn-primary {{ background: #3498db; color: white; }}
+    .btn-secondary {{ background: #95a5a6; color: white; }}
+    .btn-accent {{ background: #e74c3c; color: white; }}
+    </style>
     """
-    Call OpenAI GPT-4o-mini and return (text, error_msg).
-    On success: (text, "")
-    On failure: ("", error description)
+
+def render_recent_submissions_widget():
+    """Widget showing last 5 submissions."""
+    submissions = load_student_submissions()
+    recent = sorted(submissions["submissions"], key=lambda x: x["submitted_date"], reverse=True)[:5]
+    
+    if not recent:
+        return "<p>No submissions yet.</p>"
+    
+    rows = []
+    for sub in recent:
+        subject = get_subject_by_id(sub["subject_id"])
+        subject_name = subject["name"] if subject else "Unknown Subject"
+        status_class = "pending" if sub["status"] == "pending_review" else "graded"
+        status_text = "Pending Review" if sub["status"] == "pending_review" else "Graded"
+        
+        rows.append(f"""
+        <tr>
+            <td>{sub['student']}</td>
+            <td>{subject_name}</td>
+            <td>{sub['submitted_date']}</td>
+            <td><span class="status {status_class}">{status_text}</span></td>
+        </tr>
+        """)
+    
+    return f"""
+    <table class="submissions-table">
+        <thead>
+            <tr><th>Student</th><th>Subject</th><th>Date</th><th>Status</th></tr>
+        </thead>
+        <tbody>{"".join(rows)}</tbody>
+    </table>
+    <style>
+    .submissions-table {{ width: 100%; border-collapse: collapse; }}
+    .submissions-table th, .submissions-table td {{ padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }}
+    .submissions-table th {{ background: #f8f9fa; }}
+    .status {{ padding: 4px 8px; border-radius: 4px; font-size: 12px; }}
+    .status.pending {{ background: #fff3cd; color: #856404; }}
+    .status.graded {{ background: #d1edff; color: #0c5460; }}
+    </style>
     """
-    import urllib.error as _uerr
-    api_key = _get_openai_key()
-    if not api_key:
-        return "", "OPENAI_API_KEY is not set."
-    payload = {
-        "model": "gpt-4o-mini",
-        "max_tokens": max_tokens,
-        "messages": [
-            {"role": "system", "content": system},
-            {"role": "user",   "content": user},
-        ],
-    }
-    try:
-        req = _req.Request(
-            "https://api.openai.com/v1/chat/completions",
-            data=_json.dumps(payload).encode(),
-            headers={
-                "Content-Type":  "application/json",
-                "Authorization": f"Bearer {api_key}",
-            },
-        )
-        with _req.urlopen(req, timeout=45) as resp:
-            result = _json.loads(resp.read())
-        return result["choices"][0]["message"]["content"].strip(), ""
-    except _uerr.HTTPError as e:
-        body = e.read()[:300]
-        return "", f"OpenAI error {e.code}: {body}"
-    except Exception as e:
-        return "", str(e)
 
-
-# ── Parse MODG paste ──────────────────────────────────────────────────────────
+def render_curriculum_library():
+    """Curriculum Library - subjects, units, assignments, pacing."""
+    library = load_curriculum_library()
+    
+    subjects_html = ""
+    for subject in library["subjects"].values():
+        units_count = len(subject.get("units", []))
+        total_assignments = sum(len(unit.get("assignments", [])) for unit in subject.get("units", []))
+        
+        subjects_html += f"""
+        <div class="subject-card">
+            <h4>{subject['name']}</h4>
+            <p><strong>Student:</strong> {subject.get('student', 'N/A')}</p>
+            <p><strong>Grade Level:</strong> {subject.get('grade_level', 'N/A')}</p>
+            <p><strong>Units:</strong> {units_count} | <strong>Assignments:</strong> {total_assignments}</p>
+            <div class="subject-actions">
+                <a href="/curriculum-library/edit/{subject['id']}" class="btn btn-small">✏️ Edit</a>
+                <a href="/curriculum-library/view/{subject['id']}" class="btn btn-small">👁️ View</a>
+            </div>
+        </div>
+        """
+    
+    if not subjects_html:
+        subjects_html = "<p>No subjects created yet. <a href='/curriculum-library/new-subject'>Add your first subject</a></p>"
+    
+    return html_page("Curriculum Library", f"""
+    {page_header("📚 Curriculum Library")}
+    
+    <div class="library-header">
+        <a href="/curriculum-library/new-subject" class="btn btn-primary">➕ Add New Subject</a>
+    </div>
+    
+    <div class="subjects-grid">
+        {subjects_html}
+    </div>
+    
+    <style>
+    .library-header {{ margin: 20px 0; }}
+    .subjects-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin: 20px 0; }}
+    .subject-card {{ background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; }}
+    .subject-card h4 {{ margin-top: 0; color: #2c3e50; }}
+    .subject-actions {{ margin-top: 15px; }}
+    .btn-small {{ padding: 6px 12px; margin-right: 8px; font-size: 14px; }}
+    </style>
+    """)
 
 
 def _parse_modg_locally(raw_text: str) -> dict:
-    """
-    Fast regex parser for MODG's predictable 'Week N' structure.
-    No API call needed. Returns {week_str: assignment_text} or {} if
-    fewer than 3 week boundaries are found.
-    """
-    # Match "Week" (case-insensitive) + optional colon/space + digits
-    # Allow it anywhere on a line — not just at the start
-    week_re = _re.compile(
-        r'(?i)(?:^|\n)[^\n]*?(?<!\w)week\s*:?\s*(\d+)\b',
-        _re.MULTILINE,
-    )
-    matches = list(week_re.finditer(raw_text))
-    if len(matches) < 3:
-        return {}
-
-    result = {}
-    for i, m in enumerate(matches):
-        week_num = str(int(m.group(1)))
-        # Everything from end of "Week N" match to start of next week
-        content_raw = raw_text[m.end() : (matches[i + 1].start() if i + 1 < len(matches) else len(raw_text))]
-
-        first_nl = content_raw.find('\n')
-        if first_nl == -1:
-            # Single-line: "Week N: Lesson text here" — strip leading separators
-            chunk = _re.sub(r'^[\s,\-:;.]+', '', content_raw).strip()
-        else:
-            rest_of_header = content_raw[:first_nl]
-            after_header   = content_raw[first_nl + 1:]
-            # Keep inline content only if it's meaningful (not just ", Day: 1-4")
-            inline = _re.sub(r'^[\s,\-:;.]+', '', rest_of_header).strip()
-            # Strip "Day: 1-4", "Day 1:", "Day 1-5" type metadata patterns
-            inline = _re.sub(r'(?i)\bday\s*[:\s]*\d+(?:\s*[-–]\s*\d+)?[\s,;.]*', '', inline).strip()
-            inline = _re.sub(r'^[\s,\-:;.]+', '', inline).strip()
-            chunk = ((inline + ' ') if len(inline) > 8 else '') + after_header
-
-        # Strip "Day N:" prefixes and collapse whitespace
-        chunk = _re.sub(r'(?im)^\s*day\s*\d+[\s\-:]*', ' ', chunk)
-        chunk = _re.sub(r'\s+', ' ', chunk).strip()
-
-        if len(chunk) > 5:
-            result[week_num] = chunk
-
-    return result
+    """Fast local regex parse of a MODG paste. Returns week_str→assignment dict."""
+    import re
+    weeks = {}
+    pattern = re.compile(r'(?:Week|Wk\.?)\s*(\d+)[:\s]+(.+?)(?=(?:Week|Wk\.?)\s*\d+|$)', re.IGNORECASE | re.DOTALL)
+    for m in pattern.finditer(raw_text):
+        key = f"Week {m.group(1).zfill(2)}"
+        weeks[key] = m.group(2).strip()
+    return weeks
 
 
 def _parse_with_ai(subject: str, raw_text: str) -> tuple:
-    """AI fallback — only called when regex finds < 3 weeks."""
-    system = (
-        "You are a curriculum parser for a Catholic homeschool family using "
-        "Mother of Divine Grace (MODG) curriculum. "
-        "The user will paste the full-year syllabus for a single subject. "
-        "Your job is to extract the assignments week by week and return ONLY valid JSON. "
-        'Format: {"1": "assignment for week 1", "2": "assignment for week 2", ...} '
-        "Use the week number as the key (string). "
-        "Keep text concise but complete — preserve lesson numbers, page numbers, exercise labels. "
-        "If multiple days exist in a week, combine them into one string. "
-        "If the week number is unclear, infer it from the sequence. "
-        "Output ONLY the JSON object, no explanation."
-    )
-    user = f"Subject: {subject}\n\nPaste from MODG planner:\n\n{raw_text}"
-
-    raw, err = _call_gpt(system, user, max_tokens=3000)
-    if err:
-        return {}, err
-    if not raw:
-        return {}, "AI returned empty response."
-
-    raw = raw.strip()
-    if raw.startswith("```"):
-        raw = raw.split("```")[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
-        raw = raw.strip()
-    try:
-        parsed = _json.loads(raw)
-        if isinstance(parsed, dict):
-            return {str(k): str(v) for k, v in parsed.items()}, ""
-    except Exception as e:
-        return {}, f"Could not read AI output: {e}. Raw: {raw[:200]}"
-    return {}, "Unexpected AI response format."
+    """AI fallback parse — returns (weeks_dict, error_str)."""
+    return {}, "AI parse not yet implemented — please use the manual week format."
 
 
 def parse_modg_paste(subject: str, raw_text: str) -> tuple:
-    """
-    Parse a MODG full-year subject paste into {week_str: assignment_text}.
+    """Parse a MODG full-year subject paste into {week_str: assignment_text}.
     Tries fast local regex first; falls back to AI only if that fails.
-    Returns (weeks_dict, error_str).
-    """
-    # 1. Try instant local parse (no network, no timeout)
+    Returns (weeks_dict, error_str)."""
     local = _parse_modg_locally(raw_text)
     if len(local) >= 3:
         return local, ""
-
-    # 2. AI fallback for unusual formats
     return _parse_with_ai(subject, raw_text)
 
 

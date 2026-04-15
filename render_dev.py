@@ -233,9 +233,12 @@ VERIFY AFTER YOU WRITE:
   should never have to report a bug you introduced in the same session.
 
 MULTI-FILE CHANGES — ATOMIC RULE:
-  When a feature touches multiple files, plan the full set of changes first, then write
-  ALL of them before triggering a restart. Never restart between partial steps.
+  When a feature touches multiple files, ALL [WRITE:] and [FIX:] blocks for that
+  feature MUST appear in a SINGLE response before any restart is triggered.
+  Lauren will see ONE Apply button that applies all changes at once — this is safe.
+  If you send a partial fix and restart, the incomplete code crashes the app.
   Order: config.py → data_helpers.py → render_*.py → app.py
+  Never restart between partial steps. Never split a multi-file feature across responses.
 
 THE STARTUP CRASH RULE:
   Startup chain: app.py → data_helpers.py → config.py (config loads first).

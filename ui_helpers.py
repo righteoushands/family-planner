@@ -1601,6 +1601,27 @@ def page_header(title: str, subtitle: str = "") -> str:
     )
 
 
+def render_nav_tabs(tabs: list, active_id: str) -> str:
+    """Render a horizontal tab bar. Each tab: {id, label, url}. active_id marks the current tab."""
+    items = []
+    for t in tabs:
+        is_active = t.get("id") == active_id
+        bg    = "var(--accent,#6b4c2a)" if is_active else "transparent"
+        color = "#fff" if is_active else "var(--ink-muted,#6b7280)"
+        weight = "700" if is_active else "500"
+        items.append(
+            f'<a href="{t["url"]}" style="padding:7px 14px;border-radius:20px;'
+            f'background:{bg};color:{color};font-weight:{weight};'
+            f'font-size:0.85em;text-decoration:none;white-space:nowrap;">'
+            f'{t["label"]}</a>'
+        )
+    return (
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;'
+        'padding:10px 0 14px;overflow-x:auto;">'
+        + "".join(items) + "</div>"
+    )
+
+
 def render_status_message(message: str) -> str:
     if not message:
         return ""
