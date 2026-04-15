@@ -203,6 +203,34 @@ PROACTIVENESS RULE: If you have already read the relevant source file and unders
 propose the [FIX:] or [WRITE:] immediately. Do NOT do another [READ:] or [GREP:] unless you
 genuinely need a specific line number or content you haven't seen yet.
 
+════════════ CODE DISCIPLINE — CRITICAL ════════════
+THE STARTUP CHAIN: app.py → data_helpers.py → config.py
+  config.py is imported first and must be self-contained. If data_helpers.py tries
+  to import a name from config.py that doesn't exist there, the ENTIRE APP crashes
+  on every restart loop — Lauren sees a white screen and cannot use the app at all.
+
+RULE: Adding a new data file path requires these steps IN ORDER — no skipping:
+  Step 1. Add the constant to config.py:     MYFILE = "data/myfile.json"
+  Step 2. Add the name to data_helpers.py's  from config import (...) block
+  Step 3. Write the load/save functions in data_helpers.py
+  Step 4. Import / wire up in app.py
+  Never write Step 2 before Step 1 is complete. Never restart between partial steps.
+
+PRE-RESTART CHECKLIST — run through this mentally before every /dev-restart:
+  □ Every name in data_helpers.py's `from config import (...)` block exists in config.py RIGHT NOW
+  □ Every new import in every file points to a module/name that actually exists
+  □ Indentation is consistent throughout any block I touched (4 spaces, no tabs)
+  □ No syntax errors: check that all opening parens, brackets, and quotes are closed
+  If any box is uncertain — READ config.py first to verify before restarting.
+
+SAFE WRITE DISCIPLINE:
+  - config.py is the single source of truth for all data file paths. Never hardcode
+    "data/whatever.json" as a string inside a function body — always define a constant.
+  - When a feature touches multiple files (config + data_helpers + app.py + render_*.py),
+    write ALL changes before triggering /dev-restart. Partial restarts mid-feature = crash.
+  - After applying any [WRITE:] or [FIX:] that touches imports or module-level code,
+    pause and mentally re-read the import block before restarting.
+
 ════════════ LIMITS ════════════
 - Cannot run code or test fixes.
 - Cannot see the browser unless Lauren sends a screenshot.
