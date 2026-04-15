@@ -574,10 +574,22 @@ async function streamFelix(payload, isAutoRead, image, depth) {{
       if (full) {{
         const raw = bubble.querySelector('.felix-raw');
         if (raw) raw.textContent = full + ' \u2026';
-        const note = document.createElement('div');
-        note.style.cssText = 'margin-top:8px;font-size:0.75em;color:#9ca3af;font-style:italic;';
-        note.textContent = '(Response cut off — tap Send again if you need more.)';
-        bubble.appendChild(note);
+        const cont = document.createElement('div');
+        cont.style.cssText = 'margin-top:10px;';
+        cont.innerHTML = `
+          <div style="font-size:0.74em;color:#9ca3af;font-style:italic;margin-bottom:6px;">
+            Response cut off — connection dropped mid-stream.
+          </div>
+          <button onclick="(function(){{
+            const inp = document.getElementById('felix-input');
+            if (inp) inp.value = 'Please continue from where you left off.';
+            sendToFelix();
+          }})()" style="padding:5px 14px;font-size:0.8em;border-radius:8px;
+            border:1.5px solid #3b82f6;background:#eff6ff;color:#1d4ed8;
+            font-family:inherit;cursor:pointer;font-weight:600;">
+            &#9654; Continue
+          </button>`;
+        bubble.appendChild(cont);
       }} else {{
         throw streamErr; // nothing received — surface the real error
       }}

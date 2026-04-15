@@ -455,8 +455,8 @@ def clear_coach_history():
 
 # ── Felix (Dev) history ───────────────────────────────────────────────────────
 DEV_HISTORY_FILE = "data/dev_history.json"
-DEV_HISTORY_MAX  = 20   # keep last 20 turns in file
-DEV_CONTEXT_MAX  = 12   # messages sent to Claude per request (file reads now persist, need more room)
+DEV_HISTORY_MAX  = 40   # keep last 40 turns in file
+DEV_CONTEXT_MAX  = 20   # messages sent to Claude per request (file reads now persist, need more room)
 
 def load_dev_history() -> list:
     data = ensure_file(DEV_HISTORY_FILE, {"messages": []})
