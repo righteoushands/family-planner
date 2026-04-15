@@ -127,14 +127,6 @@
     "recurring": false
   },
   {
-    "text": "Bobby’s Surgery",
-    "assigned_to": "Michael",
-    "due_date": "2026-04-10",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
     "text": "Schedule meeting with Fr for JP’s confirmation interview.",
     "assigned_to": "Mom",
     "due_date": "2026-04-13",
@@ -178,46 +170,6 @@
     "text": "Call MD re: meds for hair loss",
     "assigned_to": "Mom",
     "due_date": "2026-04-15",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Tidy-up the garage after Rhys came to play",
-    "assigned_to": "Mom",
-    "due_date": "2026-04-12",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Tidy-up the garage after Rhys came to play",
-    "assigned_to": "Michael",
-    "due_date": "2026-04-12",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Sign a family “Thank You” card to the DeMaios",
-    "assigned_to": "Mom",
-    "due_date": "2026-04-12",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Sign a family “Thank You” card to the DeMaios",
-    "assigned_to": "Michael",
-    "due_date": "2026-04-12",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Sign a family “Thank You” card to the DeMaios",
-    "assigned_to": "James",
-    "due_date": "2026-04-12",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false
@@ -381,22 +333,6 @@
     "recurring": false
   },
   {
-    "text": "Switch laundry",
-    "assigned_to": "Lauren",
-    "due_date": "2026-04-14",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Find and sign Thank You card",
-    "assigned_to": "Lauren",
-    "due_date": "2026-04-14",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
     "text": "Look up vibe coding",
     "assigned_to": "Mom",
     "due_date": "2026-04-15",
@@ -411,5 +347,15 @@
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false
+  },
+  {
+    "text": "Buy caterpillars",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-16",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": true,
+    "interval_value": 11,
+    "interval_unit": "months"
   }
 ]

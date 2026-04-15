@@ -1,50 +1,6 @@
 {
   "events": [
     {
-      "title": "John's class",
-      "start": "2026-04-14T08:00",
-      "end": "2026-04-14T17:00",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Bible Study",
-      "start": "2026-04-14T10:00",
-      "end": "2026-04-14T12:00",
-      "all_day": false,
-      "location": "Aletha house, 6712 Lakeland Way, Fredericksburg, VA 22407",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Homeschool PE",
-      "start": "2026-04-14T13:00",
-      "end": "2026-04-14T14:30",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Religious Education",
-      "start": "2026-04-14T16:45",
-      "end": "2026-04-14T18:00",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
       "title": "Evelyn Derouen birthday! (2021)",
       "start": "2026-04-15",
       "end": "2026-04-15",
@@ -63,6 +19,17 @@
       "location": "",
       "notes": "",
       "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "John's class",
+      "start": "2026-04-15T08:00",
+      "end": "2026-04-15T17:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -1704,7 +1671,29 @@
       "calendar": "USNSCC Pentagon Division (JP & Joe)",
       "color": "#e74c3c",
       "source": "subscribed"
+    },
+    {
+      "title": "James Leo’s Baptism (2025)",
+      "start": "2026-06-14",
+      "end": "2026-06-14",
+      "all_day": true,
+      "location": "",
+      "notes": "pizza, salad, appetizers,",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Eleventh Sunday",
+      "start": "2026-06-14",
+      "end": "2026-06-14",
+      "all_day": true,
+      "location": "",
+      "notes": "//bible.usccb.org/bible/readings/061426.cfm​​​  ------   Powered by addevent.com  Share your next event with us!  ",
+      "calendar": "Liturgical Calendar (Little Rose Shop)",
+      "color": "#e91e8c",
+      "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-04-14T20:33:58.160751"
+  "fetched_at": "2026-04-15T04:42:11.155757"
 }

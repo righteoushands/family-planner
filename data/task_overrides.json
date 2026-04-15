@@ -1,17 +1,4 @@
 {
-  "lauren": {
-    "2026-04-14": {
-      "MANUAL::Lauren::2026-04-14::Consider making the lemon curd 2 days before (April 19th) to spread out the workload": {
-        "action": "postpone",
-        "postpone_to": "2026-04-25",
-        "label": "Consider making the lemon curd 2 days before (April 19th) to spread out the workload"
-      },
-      "ROUTINE::Lauren::2026-04-14::Break": {
-        "action": "dismiss",
-        "label": "Break"
-      }
-    }
-  },
   "JP": {
     "2026-04-14": {
       "ROUTINE::JP::2026-04-14::Leave for Bible Study": {
@@ -25,6 +12,31 @@
       "ROUTINE::Joseph::2026-04-14::Leave for Bible Study": {
         "action": "dismiss",
         "label": "Leave for Bible Study"
+      }
+    }
+  },
+  "Lauren": {
+    "2026-04-14": {
+      "MANUAL::Lauren::2026-04-14::Consider making the lemon curd 2 days before (April 19th) to spread out the workload": {
+        "action": "postpone",
+        "postpone_to": "2026-04-25",
+        "label": "Consider making the lemon curd 2 days before (April 19th) to spread out the workload"
+      },
+      "ROUTINE::Lauren::2026-04-14::Break": {
+        "action": "dismiss",
+        "label": "Break"
+      }
+    },
+    "2026-04-15": {
+      "MANUAL::Lauren::2026-04-15::Consider making the lemon curd 2 days before (April 19th) to spread out the workload": {
+        "action": "postpone",
+        "postpone_to": "2026-04-24",
+        "label": "Consider making the lemon curd 2 days before (April 19th) to spread out the workload"
+      },
+      "MANUAL::Lauren::2026-04-15::Bake and assemble 3-layer lemon curd cake": {
+        "action": "postpone",
+        "postpone_to": "2026-04-27",
+        "label": "Bake and assemble 3-layer lemon curd cake"
       }
     }
   }

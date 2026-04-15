@@ -1340,14 +1340,9 @@
     ],
     "Michael": [
       "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
-      "CHORE::Tidy basement zone — 10 minutes",
-      "MANUAL::MEDIUM::Bobby’s Surgery",
-      "MANUAL::MEDIUM::Sign a family “Thank You” card to the DeMaios",
-      "MANUAL::MEDIUM::Tidy-up the garage after Rhys came to play"
+      "CHORE::Tidy basement zone — 10 minutes"
     ],
-    "James": [
-      "MANUAL::MEDIUM::Sign a family “Thank You” card to the DeMaios"
-    ],
+    "James": [],
     "Mom": [
       "CHORE::  → Bring loads upstairs",
       "CHORE::  → Fold James's things & put away kitchen towels",
@@ -1454,14 +1449,9 @@
       "CHORE::Basement: collect trash",
       "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
       "CHORE::Dinner helper: set table",
-      "CHORE::Tidy basement zone — 10 minutes",
-      "MANUAL::MEDIUM::Bobby’s Surgery",
-      "MANUAL::MEDIUM::Sign a family “Thank You” card to the DeMaios",
-      "MANUAL::MEDIUM::Tidy-up the garage after Rhys came to play"
+      "CHORE::Tidy basement zone — 10 minutes"
     ],
-    "James": [
-      "MANUAL::MEDIUM::Sign a family “Thank You” card to the DeMaios"
-    ]
+    "James": []
   },
   "2026-04-16": {
     "JP": [
