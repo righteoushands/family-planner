@@ -7,7 +7,15 @@
     "created": "2026-04-14",
     "active": true,
     "answered": false,
-    "prayer_log": [],
+    "prayer_log": [
+      {
+        "date": "2026-04-15",
+        "type": "rosary",
+        "custom_label": "",
+        "count": 1,
+        "note": ""
+      }
+    ],
     "share_token": "025964ac-103"
   },
   {

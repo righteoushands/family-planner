@@ -47,6 +47,16 @@
         "action": "postpone",
         "postpone_to": "2026-04-16",
         "label": "Pack baby shower supplies"
+      },
+      "MANUAL::Lauren::2026-04-15::Make lemon curd for baby shower cake": {
+        "action": "postpone",
+        "postpone_to": "2026-04-25",
+        "label": "Make lemon curd for baby shower cake"
+      },
+      "MANUAL::Lauren::2026-04-15::Ensure guest of honor attends baby shower": {
+        "action": "postpone",
+        "postpone_to": "2026-04-27",
+        "label": "Ensure guest of honor attends baby shower"
       }
     }
   }

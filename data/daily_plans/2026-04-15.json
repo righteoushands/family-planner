@@ -1,5 +1,182 @@
 {
   "iso": "2026-04-15",
   "published": false,
-  "items": []
+  "items": [
+    {
+      "id": "db9f38d8",
+      "time": "6:00 AM",
+      "text": "Up & moving",
+      "source": "grid",
+      "color": "#6b7280",
+      "done": false
+    },
+    {
+      "id": "09c563d3",
+      "time": "6:30 AM",
+      "text": "Morning Prayer (with family or on your own)",
+      "source": "grid",
+      "color": "#6b7280",
+      "done": false
+    },
+    {
+      "id": "6db3cb35",
+      "time": "7:00 AM",
+      "text": "Breakfast",
+      "source": "grid",
+      "color": "#6b7280",
+      "done": false
+    },
+    {
+      "id": "743120d5",
+      "time": "7:30 AM",
+      "text": "Morning Jobs",
+      "source": "grid",
+      "color": "#6b7280",
+      "done": false
+    },
+    {
+      "id": "1a050faf",
+      "time": "8:00 AM",
+      "text": "Get boys started on school",
+      "source": "grid",
+      "color": "#6b7280",
+      "done": false
+    },
+    {
+      "id": "bc55f71a",
+      "time": "8:30 AM",
+      "text": "James time / household tasks",
+      "source": "grid",
+      "color": "#6b7280",
+      "done": false
+    },
+    {
+      "id": "6ab5e2b0",
+      "time": "9:00 AM",
+      "text": "JUSTICE — Family Strength + Skill Block",
+      "source": "grid",
+      "color": "#6b7280",
+      "done": false
+    },
+    {
+      "id": "5576360a",
+      "time": "9:30 AM",
+      "text": "JUSTICE — Family Strength + Skill Block (continued)",
+      "source": "grid",
+      "color": "#6b7280",
+      "done": false
+    },
+    {
+      "id": "c5b29cb6",
+      "time": "10:00 AM",
+      "text": "Piano Lessons (supervise)",
+      "source": "grid",
+      "color": "#6b7280",
+      "done": false
+    },
+    {
+      "id": "929f328e",
+      "time": "11:00 AM",
+      "text": "School with Michael / James time",
+      "source": "grid",
+      "color": "#6b7280",
+      "done": false
+    },
+    {
+      "id": "127cfdf5",
+      "time": "12:00 PM",
+      "text": "Lunch & Clean Kitchen",
+      "source": "grid",
+      "color": "#6b7280",
+      "done": false
+    },
+    {
+      "id": "8e4bc295",
+      "time": "12:30 PM",
+      "text": "Go over your List with Mom",
+      "source": "grid",
+      "color": "#6b7280",
+      "done": false
+    },
+    {
+      "id": "6193dd7a",
+      "time": "1:00 PM",
+      "text": "Jobs — weekly",
+      "source": "grid",
+      "color": "#6b7280",
+      "done": false
+    },
+    {
+      "id": "34848e09",
+      "time": "2:00 PM",
+      "text": "Household admin / project time",
+      "source": "grid",
+      "color": "#6b7280",
+      "done": false
+    },
+    {
+      "id": "9d4ca56a",
+      "time": "3:00 PM",
+      "text": "Free time with James",
+      "source": "grid",
+      "color": "#6b7280",
+      "done": false
+    },
+    {
+      "id": "5364d313",
+      "time": "4:00 PM",
+      "text": "Prep dinner",
+      "source": "grid",
+      "color": "#6b7280",
+      "done": false
+    },
+    {
+      "id": "b98b8fec",
+      "time": "5:00 PM",
+      "text": "Dinner Date",
+      "source": "grid",
+      "color": "#6b7280",
+      "done": false
+    },
+    {
+      "id": "e3cd3e95",
+      "time": "6:00 PM",
+      "text": "Family free time",
+      "source": "grid",
+      "color": "#6b7280",
+      "done": false
+    },
+    {
+      "id": "d7804846",
+      "time": "7:00 PM",
+      "text": "Showers",
+      "source": "grid",
+      "color": "#6b7280",
+      "done": false
+    },
+    {
+      "id": "0b6b1ade",
+      "time": "",
+      "text": "Pull chicken from brine before John grills",
+      "source": "meal_prep",
+      "color": "#888",
+      "done": false
+    },
+    {
+      "id": "c4dcf527",
+      "time": "",
+      "text": "Pat dry",
+      "source": "meal_prep",
+      "color": "#888",
+      "done": false
+    },
+    {
+      "id": "7f7eba45",
+      "time": "",
+      "text": "Prep sides if serving any",
+      "source": "meal_prep",
+      "color": "#888",
+      "done": false
+    }
+  ]
 }

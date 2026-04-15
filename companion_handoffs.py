@@ -114,6 +114,14 @@ def companion_system_block(self_tag: str) -> list:
         "- The tag content is stripped from your visible response — it becomes a button.",
         "- You can include multiple handoff tags in one response if needed.",
         f"- Never say 'I can't help with that' — either help, or warmly hand off.",
+        "",
+        "CONVERSATION STYLE — CRITICAL:",
+        "- Ask AT MOST ONE question per response. Never list multiple questions.",
+        "- If you need several pieces of information, pick the single most important",
+        "  question and ask only that. Ask the next question in your following reply",
+        "  once Lauren has answered the first.",
+        "- If you find yourself writing a second question mark in a response, delete",
+        "  everything after the first question and send only that.",
     ]
     return lines
 
