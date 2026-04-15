@@ -1851,38 +1851,19 @@ function applyPreset(ce, bg, light) {
 
 # ── Liturgy of the Hours settings section ────────────────────────────────────
 def _section_liturgy_hours(settings: dict) -> str:
-    auto_fetch   = settings.get("auto_fetch_hours", False)
     show_widget  = settings.get("show_liturgy_hours_widget", True)
-    auto_checked = "checked" if auto_fetch else ""
     show_checked = "checked" if show_widget else ""
-
-    # Fetch status
-    try:
-        from render_liturgy_hours import _week_monday, _week_already_fetched
-        from datetime import date as _date
-        monday    = _week_monday(_date.today())
-        fetched   = _week_already_fetched(monday)
-        fetch_status = (
-            '<span style="font-size:0.78em;font-weight:700;color:#166534;'
-            'background:#dcfce7;padding:2px 8px;border-radius:10px;">'
-            '\u2713 This week downloaded</span>'
-            if fetched else
-            '<span style="font-size:0.78em;color:#92400e;background:#fef3c7;'
-            'padding:2px 8px;border-radius:10px;">Not yet downloaded</span>'
-        )
-    except Exception:
-        fetch_status = ""
 
     return f"""
 <div class="settings-section" id="s-liturgy-hours">
   <input type="hidden" name="liturgy_section" value="1">
   <h2 style="margin-bottom:4px;">Liturgy of the Hours</h2>
   <p class="small" style="margin-bottom:16px;">
-    Downloads the week&rsquo;s prayers from
-    <a href="https://universalis.com" target="_blank">Universalis</a>
-    once and stores them locally. Uses the worldwide General Calendar
-    (Universalis country selection requires a browser session, not a URL parameter).
-    Files are deleted the day after they&rsquo;re intended for, keeping storage minimal.
+    Displays the full
+    <a href="https://divineoffice.org" target="_blank">Divine Office</a>
+    directly &mdash; the same translation used in the Divine Office app.
+    Requires an internet connection. Completion tracking (mark as prayed)
+    is saved locally.
   </p>
 
   <div style="display:flex;flex-direction:column;gap:12px;">
@@ -1892,26 +1873,14 @@ def _section_liturgy_hours(settings: dict) -> str:
              style="width:18px;height:18px;margin-top:2px;flex-shrink:0;">
       <div>
         <div style="font-size:0.88em;font-weight:600;">Show on dashboard</div>
-        <div class="small">Displays a widget showing which office is due now
-        with one-tap access and a daily completion tracker.</div>
-      </div>
-    </label>
-
-    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
-      <input type="checkbox" name="auto_fetch_hours" {auto_checked}
-             style="width:18px;height:18px;margin-top:2px;flex-shrink:0;">
-      <div>
-        <div style="font-size:0.88em;font-weight:600;">Auto-download on Sundays</div>
-        <div class="small">Every Sunday, automatically downloads all six offices
-        for each day of the <em>coming</em> week in the background. Prayers are stored
-        locally and ready before Monday morning &mdash; no action required.</div>
+        <div class="small">Displays a widget on the home page showing which office
+        is due now with one-tap access and a daily completion tracker.</div>
       </div>
     </label>
 
   </div>
 
-  <div style="margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-    {fetch_status}
+  <div style="margin-top:16px;">
     <a href="/liturgy-hours" onclick="event.stopPropagation()"
        style="padding:7px 14px;background:var(--ink);color:var(--gold-light);
               border-radius:8px;text-decoration:none;font-size:0.82em;font-weight:600;">
