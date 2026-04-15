@@ -846,4 +846,151 @@ def get_postponed_for_day(child: str, iso: str) -> list:
         for task_id, ov in tasks.items():
             if ov.get("action") == "postpone" and ov.get("postpone_to") == iso:
                 results.append(ov.get("label", task_id))
-    return results
+# ── Curriculum Management System ─────────────────────────────────────────────
+
+# Curriculum Library
+def load_curriculum_library():
+    """Load curriculum subjects, units, and assignments."""
+    return ensure_file("data/curriculum_library.json", {
+        "subjects": {},
+        "next_subject_id": 1,
+        "next_unit_id": 1,
+        "next_assignment_id": 1
+    })
+
+def save_curriculum_library(data):
+    """Save curriculum library data."""
+    safe_save_json("data/curriculum_library.json", data)
+
+def get_subject_by_id(subject_id: str):
+    """Get a specific subject by ID."""
+    library = load_curriculum_library()
+    return library["subjects"].get(subject_id)
+
+def get_assignments_for_student(student: str):
+    """Get all assignments for a specific student across all subjects."""
+    library = load_curriculum_library()
+    assignments = []
+    for subject in library["subjects"].values():
+        if subject.get("student") == student:
+            for unit in subject.get("units", []):
+                for assignment in unit.get("assignments", []):
+                    assignments.append({
+                        "subject_name": subject["name"],
+                        "subject_id": subject["id"],
+                        "unit_name": unit["name"],
+                        "assignment": assignment
+                    })
+    return assignments
+
+# Student Submissions
+def load_student_submissions():
+    """Load student work submissions."""
+    return ensure_file("data/student_submissions.json", {
+        "submissions": [],
+        "next_submission_id": 1
+    })
+
+def save_student_submissions(data):
+    """Save student submissions data."""
+    safe_save_json("data/student_submissions.json", data)
+
+def add_student_submission(student: str, subject_id: str, assignment_id: str, file_path: str, notes: str = ""):
+    """Add a new student submission."""
+    data = load_student_submissions()
+    submission = {
+        "id": f"sub_{data['next_submission_id']:03d}",
+        "student": student,
+        "subject_id": subject_id,
+        "assignment_id": assignment_id,
+        "submitted_date": today_iso(),
+        "file_path": file_path,
+        "status": "pending_review",
+        "notes": notes
+    }
+    data["submissions"].append(submission)
+    data["next_submission_id"] += 1
+    save_student_submissions(data)
+    return submission
+
+def get_submissions_for_grading():
+    """Get all submissions pending review."""
+    data = load_student_submissions()
+    return [s for s in data["submissions"] if s["status"] == "pending_review"]
+
+def get_submissions_by_student(student: str):
+    """Get all submissions for a specific student."""
+    data = load_student_submissions()
+    return [s for s in data["submissions"] if s["student"] == student]
+
+# Grading & Feedback
+def load_grading_history():
+    """Load completed grading records."""
+    return ensure_file("data/grading_history.json", {
+        "grades": [],
+        "next_grade_id": 1
+    })
+
+def save_grading_history(data):
+    """Save grading history data."""
+    safe_save_json("data/grading_history.json", data)
+
+def add_grade_record(submission_id: str, points_earned: int, points_possible: int, feedback: str, rubric_scores: dict = None):
+    """Add a completed grade record and update submission status."""
+    # Add to grading history
+    history_data = load_grading_history()
+    grade_record = {
+        "id": f"grade_{history_data['next_grade_id']:03d}",
+        "submission_id": submission_id,
+        "graded_date": today_iso(),
+        "points_earned": points_earned,
+        "points_possible": points_possible,
+        "percentage": round((points_earned / points_possible) * 100, 1) if points_possible > 0 else 0,
+        "feedback": feedback,
+        "rubric_scores": rubric_scores or {}
+    }
+    history_data["grades"].append(grade_record)
+    history_data["next_grade_id"] += 1
+    save_grading_history(history_data)
+    
+    # Update submission status
+    submissions_data = load_student_submissions()
+    for submission in submissions_data["submissions"]:
+        if submission["id"] == submission_id:
+            submission["status"] = "graded"
+            submission["graded_date"] = today_iso()
+            submission["points_earned"] = points_earned
+            submission["points_possible"] = points_possible
+            break
+    save_student_submissions(submissions_data)
+    
+    return grade_record
+
+# Reference Documents
+def load_curriculum_documents():
+    """Load curriculum reference documents."""
+    return ensure_file("data/curriculum_documents.json", {
+        "documents": [],
+        "next_doc_id": 1
+    })
+
+def save_curriculum_documents(data):
+    """Save curriculum documents data."""
+    safe_save_json("data/curriculum_documents.json", data)
+
+def add_curriculum_document(name: str, file_path: str, doc_type: str, subject_ids: list = None, description: str = ""):
+    """Add a new curriculum reference document."""
+    data = load_curriculum_documents()
+    document = {
+        "id": f"doc_{data['next_doc_id']:03d}",
+        "name": name,
+        "file_path": file_path,
+        "doc_type": doc_type,  # syllabus, rubric, answer_key, resource
+        "subject_ids": subject_ids or [],
+        "description": description,
+        "uploaded_date": today_iso()
+    }
+    data["documents"].append(document)
+    data["next_doc_id"] += 1
+    save_curriculum_documents(data)
+    return document
