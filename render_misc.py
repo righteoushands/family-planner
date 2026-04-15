@@ -4670,6 +4670,30 @@ def render_school_page(status_message: str = "") -> str:
     body = f"""
     {page_header("School")}
     {render_status_message(status_message)}
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px;">
+      <a href="/curriculum" style="flex:1;min-width:200px;display:flex;align-items:center;gap:14px;
+           background:#fff;border:1.5px solid #c4b5fd;border-radius:12px;padding:16px 20px;
+           text-decoration:none;color:inherit;transition:box-shadow .15s;">
+        <span style="font-size:2em;">📚</span>
+        <div>
+          <div style="font-weight:700;font-size:1em;color:#5b21b6;">Curriculum Manager</div>
+          <div style="font-size:0.82em;color:#8b7355;margin-top:2px;">Subjects, pacing, assignments &amp; grading</div>
+        </div>
+        <span style="margin-left:auto;color:#c4b5fd;font-size:1.2em;">›</span>
+      </a>
+      <a href="/week-school" style="flex:1;min-width:200px;display:flex;align-items:center;gap:14px;
+           background:#fff;border:1.5px solid #bfdbfe;border-radius:12px;padding:16px 20px;
+           text-decoration:none;color:inherit;transition:box-shadow .15s;">
+        <span style="font-size:2em;">📅</span>
+        <div>
+          <div style="font-weight:700;font-size:1em;color:#1e40af;">Week View</div>
+          <div style="font-size:0.82em;color:#8b7355;margin-top:2px;">Full week schedule for all children</div>
+        </div>
+        <span style="margin-left:auto;color:#bfdbfe;font-size:1.2em;">›</span>
+      </a>
+    </div>
+
     <div class="two-col">
         <div class="card">
             <h2>Upload or Paste School List</h2>
