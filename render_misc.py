@@ -47,7 +47,7 @@ from render_daily_plan import render_plan_editor, render_add_to_plan_btn, render
 from render_daily_plan import render_dashboard_grid
 from render_ai_planner import render_ai_panel
 from render_morning_anchor import render_morning_anchor, render_evening_anchor
-from render_settings import load_app_settings
+from render_settings import load_app_settings, _school_mode_section
 
 
 def _safe_widget(module_name: str, func_name: str) -> str:
@@ -4667,32 +4667,104 @@ def render_school_page(status_message: str = "") -> str:
         for child in CHILDREN
     )
     child_options = "".join(f'<option value="{escape(c)}">{escape(c)}</option>' for c in CHILDREN)
+    _s = load_app_settings()
+    _school_mode_html = _school_mode_section(_s.get("family_constraints", {}))
     body = f"""
     {page_header("School")}
     {render_status_message(status_message)}
 
-    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px;">
-      <a href="/curriculum" style="flex:1;min-width:200px;display:flex;align-items:center;gap:14px;
-           background:#fff;border:1.5px solid #c4b5fd;border-radius:12px;padding:16px 20px;
-           text-decoration:none;color:inherit;transition:box-shadow .15s;">
-        <span style="font-size:2em;">📚</span>
-        <div>
-          <div style="font-weight:700;font-size:1em;color:#5b21b6;">Curriculum Manager</div>
-          <div style="font-size:0.82em;color:#8b7355;margin-top:2px;">Subjects, pacing, assignments &amp; grading</div>
+    <!-- Fr Gregory banner -->
+    <a href="/headmaster" style="display:flex;align-items:center;gap:16px;
+         background:linear-gradient(135deg,#1e3566 0%,#2d4a8a 100%);
+         border-radius:14px;padding:18px 22px;margin-bottom:18px;
+         text-decoration:none;color:white;box-shadow:0 2px 8px rgba(30,53,102,.18);">
+      <span style="font-size:2.4em;line-height:1;">🎓</span>
+      <div style="flex:1;">
+        <div style="font-weight:800;font-size:1.05em;letter-spacing:.01em;">Father Gregory</div>
+        <div style="font-size:0.83em;opacity:.85;margin-top:2px;">
+          Headmaster &amp; Academic Director — lesson plans, pacing, subject guidance
         </div>
-        <span style="margin-left:auto;color:#c4b5fd;font-size:1.2em;">›</span>
+      </div>
+      <span style="font-size:1.4em;opacity:.6;">›</span>
+    </a>
+
+    <!-- Quick-access row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px;">
+      <a href="/curriculum" style="display:flex;align-items:center;gap:12px;
+           background:#fff;border:1.5px solid #c4b5fd;border-radius:12px;padding:14px 16px;
+           text-decoration:none;color:inherit;">
+        <span style="font-size:1.7em;">📚</span>
+        <div>
+          <div style="font-weight:700;font-size:0.92em;color:#5b21b6;">Curriculum</div>
+          <div style="font-size:0.75em;color:#8b7355;margin-top:1px;">Subjects &amp; pacing</div>
+        </div>
+        <span style="margin-left:auto;color:#c4b5fd;">›</span>
       </a>
-      <a href="/week-school" style="flex:1;min-width:200px;display:flex;align-items:center;gap:14px;
-           background:#fff;border:1.5px solid #bfdbfe;border-radius:12px;padding:16px 20px;
-           text-decoration:none;color:inherit;transition:box-shadow .15s;">
-        <span style="font-size:2em;">📅</span>
+      <a href="/week-school" style="display:flex;align-items:center;gap:12px;
+           background:#fff;border:1.5px solid #bfdbfe;border-radius:12px;padding:14px 16px;
+           text-decoration:none;color:inherit;">
+        <span style="font-size:1.7em;">📅</span>
         <div>
-          <div style="font-weight:700;font-size:1em;color:#1e40af;">Week View</div>
-          <div style="font-size:0.82em;color:#8b7355;margin-top:2px;">Full week schedule for all children</div>
+          <div style="font-weight:700;font-size:0.92em;color:#1e40af;">Week Progress</div>
+          <div style="font-size:0.75em;color:#8b7355;margin-top:1px;">Full week at a glance</div>
         </div>
-        <span style="margin-left:auto;color:#bfdbfe;font-size:1.2em;">›</span>
+        <span style="margin-left:auto;color:#bfdbfe;">›</span>
       </a>
     </div>
+
+    <!-- School Mode Settings -->
+    <div style="background:#fff;border:1.5px solid #e5e7eb;border-radius:14px;
+                padding:18px 20px;margin-bottom:22px;">
+      <div style="font-weight:800;font-size:0.95em;color:#374151;margin-bottom:4px;">⚙️ School Mode</div>
+      <p style="font-size:0.82em;color:#6b7280;margin:0 0 14px;">
+        Temporarily adjust which subjects appear in the boys' daily lists.
+        Use <strong>Light week</strong> when sick or traveling; use <strong>Custom pause</strong>
+        to hide specific subjects indefinitely.
+      </p>
+      {_school_mode_html}
+      <div style="margin-top:12px;">
+        <button type="button" onclick="saveSchoolSettings()"
+                id="school-save-btn"
+                style="padding:9px 22px;font-size:0.9em;background:#1e3566;color:white;
+                       border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:600;">
+          Save School Mode
+        </button>
+        <span id="school-save-status" style="font-size:0.82em;margin-left:12px;color:#6b7280;"></span>
+      </div>
+    </div>
+    <script>
+    function saveSchoolSettings() {{
+      var mode   = document.getElementById('school-mode-select').value;
+      var coreEl = document.querySelector('[name="fc_core_subjects"]');
+      var pausEl = document.querySelector('[name="fc_paused_subjects"]');
+      var btn    = document.getElementById('school-save-btn');
+      var status = document.getElementById('school-save-status');
+      btn.disabled = true;
+      status.style.color = '#6b7280';
+      status.textContent = 'Saving\u2026';
+      fetch('/school-settings-save', {{
+        method: 'POST',
+        headers: {{'Content-Type': 'application/x-www-form-urlencoded'}},
+        body: 'fc_school_mode=' + encodeURIComponent(mode)
+            + '&fc_core_subjects='  + encodeURIComponent(coreEl ? coreEl.value : '')
+            + '&fc_paused_subjects=' + encodeURIComponent(pausEl ? pausEl.value : '')
+      }}).then(function(r) {{ return r.json(); }}).then(function(d) {{
+        btn.disabled = false;
+        if (d.ok) {{
+          status.style.color = '#16a34a';
+          status.textContent = '\u2713 Saved';
+          setTimeout(function() {{ status.textContent = ''; }}, 2500);
+        }} else {{
+          status.style.color = '#dc2626';
+          status.textContent = 'Error saving';
+        }}
+      }}).catch(function() {{
+        btn.disabled = false;
+        status.style.color = '#dc2626';
+        status.textContent = 'Error saving';
+      }});
+    }}
+    </script>
 
     <div class="two-col">
         <div class="card">
