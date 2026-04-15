@@ -161,6 +161,21 @@ SEARCH: [GREP: pattern:glob]
   Use GREP first when you don't know which file/line something lives in.
   ONE [GREP:] tag per response. Cannot combine with [READ:] in the same response.
 
+GIT HISTORY: [GITLOG]
+  Returns the last 25 commits with hash, date, and message.
+  Use when: investigating what recently changed, finding when a bug was introduced,
+  or understanding the recent evolution of the codebase.
+  ONE [GITLOG] per response.
+
+GIT DIFF: [GITDIFF:ref]
+  Shows the full diff for a specific commit or range.
+  Examples:
+    [GITDIFF:HEAD~1]      — what changed in the most recent commit
+    [GITDIFF:abc1234]     — what changed in commit abc1234 (hash from GITLOG)
+    [GITDIFF:HEAD~3]      — what changed 3 commits ago
+  Use after [GITLOG] once you've identified which commit introduced a problem.
+  ONE [GITDIFF:] per response. Cannot combine with [READ:], [GREP:], or [GITLOG:].
+
 APPLY FIXES — TWO METHODS (prefer WRITE):
 
 METHOD 1 — WRITE (preferred, use whenever you know the exact line numbers):
@@ -586,9 +601,11 @@ function _stripIzzyCodeBlocks(text) {{
   text = text.replace(/\[FIX:[^\]]*\][\s\S]*?\[\/FIX\]/g, '');
   // Remove partial/in-progress WRITE or FIX blocks (opened but not yet closed)
   text = text.replace(/\[(?:WRITE|FIX):[^\]]*\][\s\S]*/g, '');
-  // Remove inline READ and GREP tags
+  // Remove inline READ, GREP, and git tags
   text = text.replace(/\[READ:[^\]]*\]/g, '');
   text = text.replace(/\[GREP:[^\]]*\]/g, '');
+  text = text.replace(/\[GITLOG\]/g, '');
+  text = text.replace(/\[GITDIFF:[^\]]*\]/g, '');
   return text.trim();
 }}
 
@@ -671,10 +688,12 @@ async function streamFelix(payload, isAutoRead, image, depth) {{
     _renderHandoffBtns(full, bubble.lastElementChild || bubble);
     box.scrollTop = box.scrollHeight;
 
-    // ── Auto-process [READ:] and [GREP:] tags — chain up to 4 rounds ──
+    // ── Auto-process [READ:], [GREP:], and git tags — chain up to 4 rounds ──
     if (full && depth < 4) {{
       await autoHandleReads(full, depth + 1);
       await autoHandleGreps(full, depth + 1);
+      await autoHandleGitLog(full, depth + 1);
+      await autoHandleGitDiff(full, depth + 1);
     }}
 
   }} catch(err) {{
@@ -751,6 +770,40 @@ async function autoHandleGreps(fullText, depth) {{
     '\\n\\n[END OF FILE SECTIONS]';
   const passNote = depth > 1 ? ' (round ' + depth + ' of 4)' : '';
   setThinking('Izzy is searching the code\u2026' + passNote);
+  await streamFelix(contextPayload, true, null, depth);
+}}
+
+// ── Auto-handle [GITLOG] tags — fetch git log, send back to Izzy ──
+async function autoHandleGitLog(fullText, depth) {{
+  if (!/\[GITLOG\]/i.test(fullText)) return;
+  setThinking('Izzy is reading git history\u2026');
+  let result = '';
+  try {{
+    const resp = await fetch('/dev-git-log');
+    if (resp.ok) result = await resp.text();
+    else result = 'git log failed: ' + resp.status;
+  }} catch(e) {{ result = 'git log error: ' + e.message; }}
+  const contextPayload =
+    '[SYSTEM: You requested the git log. Here it is \u2014 please continue your analysis.]\\n\\n' +
+    result + '\\n\\n[END OF GIT LOG]';
+  await streamFelix(contextPayload, true, null, depth);
+}}
+
+// ── Auto-handle [GITDIFF:ref] tags — fetch diff, send back to Izzy ──
+async function autoHandleGitDiff(fullText, depth) {{
+  const m = fullText.match(/\[GITDIFF:([^\]]+)\]/i);
+  if (!m) return;
+  const ref = m[1].trim();
+  setThinking('Izzy is reading the diff for ' + ref + '\u2026');
+  let result = '';
+  try {{
+    const resp = await fetch('/dev-git-diff?' + new URLSearchParams({{ref}}));
+    if (resp.ok) result = await resp.text();
+    else result = 'git diff failed: ' + resp.status;
+  }} catch(e) {{ result = 'git diff error: ' + e.message; }}
+  const contextPayload =
+    '[SYSTEM: You requested the git diff for ' + ref + '. Here it is \u2014 please continue your analysis.]\\n\\n' +
+    result + '\\n\\n[END OF GIT DIFF]';
   await streamFelix(contextPayload, true, null, depth);
 }}
 

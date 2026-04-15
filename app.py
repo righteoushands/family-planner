@@ -981,6 +981,65 @@ class Handler(BaseHTTPRequestHandler):
             except BrokenPipeError: pass
             return
 
+        elif path == "/dev-git-log":
+            # Izzy's git history tool — returns recent commits
+            import subprocess as _sp
+            _dv = self._get_viewer()
+            if not (_dv and _auth.is_admin(_dv)):
+                self.send_response(403); self.end_headers(); return
+            try:
+                _log = _sp.run(
+                    ["git", "log", "--oneline", "--format=%h  %ad  %s", "--date=short", "-25"],
+                    capture_output=True, text=True, timeout=10
+                )
+                _result = ("=== GIT LOG (last 25 commits) ===\n\n" +
+                           (_log.stdout.strip() or "(no commits yet)"))
+            except Exception as _e:
+                _result = f"git log failed: {_e}"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            try: self.wfile.write(_result.encode("utf-8", errors="replace"))
+            except BrokenPipeError: pass
+            return
+
+        elif path == "/dev-git-diff":
+            # Izzy's git diff tool — shows changes for a commit or range
+            import subprocess as _sp
+            _dv = self._get_viewer()
+            if not (_dv and _auth.is_admin(_dv)):
+                self.send_response(403); self.end_headers(); return
+            _ref = query.get("ref", ["HEAD~1"])[0].strip() or "HEAD~1"
+            # Safety: only allow safe ref characters (hashes, ~, ^, HEAD, digits, dots)
+            import re as _re_git
+            if not _re_git.match(r'^[a-zA-Z0-9~^._\-/]{1,80}$', _ref):
+                self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                try: self.wfile.write(b"Invalid ref.")
+                except BrokenPipeError: pass
+                return
+            try:
+                _diff = _sp.run(
+                    ["git", "show", _ref, "--stat", "--unified=4",
+                     "--no-color", "--format=commit %H%nauthor %an%ndate %ad%n%n%s%n"],
+                    capture_output=True, text=True, timeout=15
+                )
+                _raw = _diff.stdout.strip()
+                # Cap to ~400 lines so it doesn't overflow context
+                _lines = _raw.splitlines()
+                if len(_lines) > 400:
+                    _raw = "\n".join(_lines[:400]) + f"\n\n... (truncated at 400 lines)"
+                _result = f"=== GIT DIFF: {_ref} ===\n\n" + (_raw or "(empty diff)")
+            except Exception as _e:
+                _result = f"git show failed: {_e}"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            try: self.wfile.write(_result.encode("utf-8", errors="replace"))
+            except BrokenPipeError: pass
+            return
+
         elif path == "/memory-book":      body = render_memory_book_page()
         elif path == "/liturgical":      body = render_liturgical_page()
         elif path == "/prayer":           body = render_liturgical_page()
