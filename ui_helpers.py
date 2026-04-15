@@ -1000,10 +1000,6 @@ document.addEventListener('click', function(e) {{
     <span class="mobile-nav-icon">&#10011;</span>
     <span class="mobile-nav-label">Prayer</span>
   </a>
-  <a href="/plan-tomorrow" class="mobile-nav-item">
-    <span class="mobile-nav-icon">&#10024;</span>
-    <span class="mobile-nav-label">Tomorrow</span>
-  </a>
   <button class="mobile-nav-item" onclick="toggleMobileMore()" id="mobile-more-btn"
           style="background:none;border:none;cursor:pointer;font-family:inherit;width:100%;">
     <span class="mobile-nav-icon" style="font-size:1.3em;">&#9776;</span>
@@ -1540,7 +1536,6 @@ def top_nav() -> str:
             <hr>
             <div class="nav-drop-section">Print</div>
             <a href="/print/day">Print Today</a>
-            <a href="/print/day?date=tomorrow">Print Tomorrow</a>
             <a href="/print/week">Print Week</a>
             <hr>
             <div class="nav-drop-section">People</div>
