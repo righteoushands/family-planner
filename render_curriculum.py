@@ -225,27 +225,37 @@ def parse_modg_paste(subject: str, raw_text: str) -> tuple:
 # ── Page render ───────────────────────────────────────────────────────────────
 
 def render_curriculum_page() -> str:
+    import json as _cjson
     cur = load_curriculum()
     current_week = int(cur.get("current_week", 1))
     api_key = _get_openai_key()
     school_children = ["JP", "Joseph", "Michael"]
 
-    # Build per-child summary of imported subjects
+    # Build per-child summary + embed all week text for inline JS updates
+    all_weeks_data = {}   # {child: {subject: {week_str: text}}}
     child_sections = ""
     for child in school_children:
         subjects = cur.get(child, {})
+        all_weeks_data[child] = {}
         if subjects:
             rows = ""
             for subj, weeks in sorted(subjects.items()):
                 week_count = sum(1 for k in weeks if not k.startswith("_"))
                 stored_mins = weeks.get("_minutes", _recommended_minutes(subj))
-                this_week = weeks.get(str(current_week), "")
-                preview = (this_week[:80] + "…") if len(this_week) > 80 else this_week
+                subj_week   = int(weeks.get("_current_week", current_week))
+                this_week   = weeks.get(str(subj_week), "")
+                preview = (this_week[:90] + "…") if len(this_week) > 90 else this_week
                 preview_html = (
                     f'<span class="cur-preview">{preview}</span>'
                     if preview else
-                    '<span class="cur-no-assign">— no assignment this week —</span>'
+                    '<span class="cur-no-assign">— no assignment —</span>'
                 )
+                # week texts for JS (skip _meta keys)
+                all_weeks_data[child][subj] = {
+                    k: v for k, v in weeks.items() if not k.startswith("_")
+                }
+                # safe element id
+                row_id  = f"{child}___{subj}".replace(" ","_").replace("/","_").replace("'","_").replace(",","_")
                 subj_js = subj.replace("'", "\\'")
                 child_js = child.replace("'", "\\'")
                 rows += f"""
@@ -255,13 +265,19 @@ def render_curriculum_page() -> str:
                   <td class="cur-mins-cell">
                     <input class="cur-mins-input" type="number" min="5" max="240" step="5"
                            value="{stored_mins}"
-                           id="mins-{child}-{subj}"
                            onchange="saveMinutes('{child_js}','{subj_js}',this.value)">
                     <span class="cur-mins-label">min</span>
                   </td>
-                  <td class="cur-this-week">{preview_html}</td>
+                  <td class="cur-wk-cell">
+                    <div class="cur-subj-wk-ctrl">
+                      <button class="cur-wbtn-sm" onclick="setSubjectWeek('{child_js}','{subj_js}',-1)">&#8722;</button>
+                      <span class="cur-subj-wknum" id="wknum-{row_id}">{subj_week}</span>
+                      <button class="cur-wbtn-sm" onclick="setSubjectWeek('{child_js}','{subj_js}',1)">&#43;</button>
+                    </div>
+                  </td>
+                  <td class="cur-this-week" id="assign-{row_id}">{preview_html}</td>
                   <td class="cur-actions">
-                    <button class="cur-del-btn" onclick="deleteSubject('{child_js}','{subj_js}')">✕</button>
+                    <button class="cur-del-btn" onclick="deleteSubject('{child_js}','{subj_js}')">&#10005;</button>
                   </td>
                 </tr>"""
             child_sections += f"""
@@ -269,9 +285,9 @@ def render_curriculum_page() -> str:
               <h3 class="cur-child-name">{child}</h3>
               <table class="cur-table">
                 <thead><tr>
-                  <th>Subject</th><th>Weeks</th>
-                  <th>Min/session</th>
-                  <th>Week {current_week} Assignment</th><th></th>
+                  <th>Subject</th><th>Total</th>
+                  <th>Min/session</th><th>Week</th>
+                  <th>Assignment</th><th></th>
                 </tr></thead>
                 <tbody>{rows}</tbody>
               </table>
@@ -282,6 +298,7 @@ def render_curriculum_page() -> str:
               <h3 class="cur-child-name">{child}</h3>
               <p class="cur-empty">No curriculum imported yet.</p>
             </div>"""
+    all_weeks_json = _cjson.dumps(all_weeks_data)
 
     no_key_warning = "" if api_key else """
     <div class="cur-warning">
@@ -344,6 +361,14 @@ def render_curriculum_page() -> str:
   .cur-mins-input:focus {{ outline: 2px solid #7c3aed; border-color: #7c3aed; }}
   .cur-mins-label {{ font-size: 0.78em; color: #9b8872; margin-left: 3px; }}
   .cur-mins-saved {{ font-size: 0.72em; color: #16a34a; margin-left: 4px; }}
+  .cur-wk-cell {{ white-space: nowrap; }}
+  .cur-subj-wk-ctrl {{ display: flex; align-items: center; gap: 5px; }}
+  .cur-wbtn-sm {{ background: #ede9f7; color: #5b21b6; border: 1px solid #c4b5fd;
+                  border-radius: 5px; width: 24px; height: 24px; cursor: pointer;
+                  font-size: 0.95em; line-height: 1; padding: 0; text-align: center; }}
+  .cur-wbtn-sm:hover {{ background: #c4b5fd; }}
+  .cur-subj-wknum {{ font-size: 0.92em; font-weight: bold; color: #5b21b6;
+                     min-width: 22px; text-align: center; }}
 
   .cur-import-card {{ background: #fff; border: 2px solid #c4b5fd; border-radius: 12px;
                        padding: 20px 20px 24px; margin-top: 28px; }}
@@ -389,20 +414,20 @@ def render_curriculum_page() -> str:
 
   {no_key_warning}
 
-  <!-- Week Control -->
+  <!-- Global default week (used when importing a new subject) -->
   <div class="cur-week-bar">
     <div>
-      <div class="cur-week-label">School Week {current_week}</div>
-      <div class="cur-week-note">The school tab shows this week's assignment for each imported subject.</div>
+      <div class="cur-week-label">Default starting week: {current_week}</div>
+      <div class="cur-week-note">Sets the opening week for newly imported subjects. Each subject can be advanced individually below.</div>
     </div>
     <div class="cur-week-ctrl">
-      <button class="cur-wbtn" onclick="changeWeek(-1)">−</button>
+      <button class="cur-wbtn" onclick="changeWeek(-1)">&#8722;</button>
       <span class="cur-wnum" id="weekDisplay">{current_week}</span>
-      <button class="cur-wbtn" onclick="changeWeek(1)">+</button>
+      <button class="cur-wbtn" onclick="changeWeek(1)">&#43;</button>
     </div>
     <div class="cur-wset-form">
       <input type="number" id="weekJump" min="1" max="40" placeholder="Wk #">
-      <button class="cur-wset-btn" onclick="setWeek()">Go to week</button>
+      <button class="cur-wset-btn" onclick="setWeek()">Jump to</button>
     </div>
   </div>
 
@@ -460,17 +485,17 @@ def render_curriculum_page() -> str:
 <script>
 let _parsedData = {{}};
 let _currentWeek = {current_week};
+const _allWeeks = {all_weeks_json};
 
+/* ── Global default week ── */
 function changeWeek(delta) {{
   const next = Math.max(1, _currentWeek + delta);
   _setWeekNum(next);
 }}
-
 function setWeek() {{
   const val = parseInt(document.getElementById('weekJump').value);
   if (val && val >= 1) _setWeekNum(val);
 }}
-
 function _setWeekNum(n) {{
   fetch('/curriculum-week', {{
     method: 'POST',
@@ -478,6 +503,41 @@ function _setWeekNum(n) {{
     body: 'week=' + n
   }}).then(r => {{
     if (r.ok) {{ _currentWeek = n; location.reload(); }}
+  }});
+}}
+
+/* ── Per-subject week ── */
+function _rowId(child, subject) {{
+  return (child + '___' + subject)
+    .replace(/ /g,'_').replace(/\//g,'_')
+    .replace(/'/g,'_').replace(/,/g,'_');
+}}
+function setSubjectWeek(child, subject, delta) {{
+  const rid     = _rowId(child, subject);
+  const wkEl    = document.getElementById('wknum-'  + rid);
+  const assnEl  = document.getElementById('assign-' + rid);
+  if (!wkEl) return;
+  const current = parseInt(wkEl.textContent) || 1;
+  const next    = Math.max(1, Math.min(40, current + delta));
+  if (next === current) return;
+
+  wkEl.textContent = next;
+  wkEl.style.color = '#16a34a';
+  setTimeout(function() {{ wkEl.style.color = ''; }}, 800);
+
+  const weekMap  = (_allWeeks[child] && _allWeeks[child][subject]) || {{}};
+  const text     = weekMap[String(next)] || '';
+  const preview  = text.length > 90 ? text.substring(0,90) + '\u2026' : text;
+  assnEl.innerHTML = preview
+    ? '<span class="cur-preview">' + escHtml(preview) + '</span>'
+    : '<span class="cur-no-assign">\u2014 no assignment \u2014</span>';
+
+  fetch('/curriculum-subject-week', {{
+    method: 'POST',
+    headers: {{'Content-Type':'application/x-www-form-urlencoded'}},
+    body: 'child=' + encodeURIComponent(child)
+        + '&subject=' + encodeURIComponent(subject)
+        + '&week='    + next
   }});
 }}
 

@@ -4499,6 +4499,30 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_response(500); self.end_headers()
                 return
 
+            elif path == "/curriculum-subject-week":
+                _csw_v = self._get_viewer()
+                if not (_csw_v and _auth.is_admin(_csw_v)):
+                    self.send_response(403); self.end_headers(); return
+                try:
+                    _csw_child   = clean_text(data.get("child",   [""])[0])
+                    _csw_subject = clean_text(data.get("subject", [""])[0])
+                    _csw_week    = int(data.get("week", [1])[0])
+                    _csw_week    = max(1, min(40, _csw_week))
+                    if _csw_child and _csw_subject:
+                        from data_helpers import load_curriculum, save_curriculum
+                        _csw_cur = load_curriculum()
+                        if _csw_child in _csw_cur and _csw_subject in _csw_cur[_csw_child]:
+                            _csw_cur[_csw_child][_csw_subject]["_current_week"] = _csw_week
+                            save_curriculum(_csw_cur)
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    try: self.wfile.write(b'{"ok":true}')
+                    except BrokenPipeError: pass
+                except Exception:
+                    self.send_response(500); self.end_headers()
+                return
+
             elif path == "/curriculum-delete":
                 _cur_v4 = self._get_viewer()
                 if not (_cur_v4 and _auth.is_admin(_cur_v4)):

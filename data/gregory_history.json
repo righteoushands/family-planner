@@ -84,6 +84,16 @@
       "role": "assistant",
       "content": "You're right to ask—let me clarify where this lives.\n\n**Currently:** We've been discussing it *here in our chat*, but there's no dedicated storage space yet. I mentioned \"a curriculum library\" as an *ideal*, but it hasn't been built.\n\n**What needs to happen:**\n\nIzzy needs to create an actual **Curriculum Library section on your family dashboard**—a real, persistent place where syllabi, scope-and-sequence documents, and reference PDFs live and can be organized by subject and child.\n\nRight now, without Izzy's programming work, we'd just be uploading PDFs into our chat thread, which isn't ideal for long-term reference or organization.\n\n**Here's my question for you:**\n\n**Should I go ahead and loop Izzy in now to design and build the Curriculum Library module?** Once she sets that up, you'll have a proper home for all your curriculum documents, and *then* we can systematically upload everything.\n\nOr would you rather we work through the curriculum documentation *here first* (in our conversation), and *then* hand it off to Izzy to organize into the dashboard structure?\n\nWhich feels better to you?",
       "ts": "2026-04-15T10:43:10"
+    },
+    {
+      "role": "user",
+      "content": "Where do the kids upload their assignments?",
+      "ts": "2026-04-15T16:02:14"
+    },
+    {
+      "role": "assistant",
+      "content": "Good question, Lauren—and I need to be honest: **right now, there isn't a dedicated place for the kids to upload assignments.**\n\nYou can upload images or documents *here in our chat* and I can review them, but there's no formal assignment submission system built into your dashboard yet.\n\n**That's part of what Izzy needs to build.** The full system you're envisioning would include:\n\n1. **Curriculum Library** (where syllabi and standards live)\n2. **Reference Documents** (PDFs for rubrics, answer keys, etc.)\n3. **Assignment Submission Portal** (where JP, Joseph, and Michael upload their work)\n4. **Grading Interface** (where I review and give feedback)\n\n**Right now, the simplest workflow is:**\n- You photograph/scan the child's work\n- You upload it here to me\n- I review it and give detailed feedback\n- You file the feedback in your records\n\n**But you're right—we should build it properly.** \n\n**My question:** Should I ask Izzy to design the *entire* system (Curriculum Library + Reference Docs + Assignment Submission + Grading Interface) as one integrated feature? That way, everything connects and flows smoothly.",
+      "ts": "2026-04-15T16:02:18"
     }
   ]
 }
