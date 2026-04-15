@@ -63,6 +63,7 @@ CAL_COLOR_OPTIONS = [
 
 
 def load_app_settings() -> dict:
+    import os as _os
     stored = ensure_file(APP_SETTINGS_FILE, {})
     settings = dict(SETTINGS_DEFAULTS)
     settings.update({k: v for k, v in stored.items() if k != "child_colors"})
@@ -70,6 +71,13 @@ def load_app_settings() -> dict:
         merged = dict(SETTINGS_DEFAULTS["child_colors"])
         merged.update(stored["child_colors"])
         settings["child_colors"] = merged
+    _env_key = _os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    if _env_key:
+        fc = settings.setdefault("family_constraints", {})
+        if not fc.get("anthropic_api_key", "").strip():
+            fc["anthropic_api_key"] = _env_key
+        if not settings.get("anthropic_api_key", "").strip():
+            settings["anthropic_api_key"] = _env_key
     return settings
 
 
