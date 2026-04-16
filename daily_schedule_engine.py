@@ -367,12 +367,15 @@ def extract_school_tasks_for_child(child: str, weekday: str):
         if is_math_test:
             checklist.append("Test completed — given to Mom")
         elif is_math:
+            # Prefix each step with the lesson/assignment text so carryover
+            # shows which specific lesson needs checking (e.g. "Lesson 76 — Fixed missed problems")
+            _pfx = f"{text} — " if text else ""
             checklist.extend([
-                "Assignment completed",
-                "Given to checker",
-                "Fixed missed problems",
-                "Received brother's math",
-                "Checked brother's math",
+                f"{_pfx}Assignment completed",
+                f"{_pfx}Given to checker",
+                f"{_pfx}Fixed missed problems",
+                f"{_pfx}Received brother's math",
+                f"{_pfx}Checked brother's math",
             ])
         else:
             # Use the full assignment text so carryover shows what was actually assigned,
@@ -1489,11 +1492,14 @@ def _school_sub_items(school_raw: list, subjects_used: set,
             continue
         subjects_used.add(subj_low)
         assign_text = block.get("assignment_text", "").strip()
+        _pfx_check = f"{assign_text} — " if assign_text else ""
         for ci in block.get("checklist", ["Done"]):
             tid = f"SCHOOL::{child}::{iso}::{subj}::{ci}"
-            # Avoid duplicating text when the checklist item IS the assignment text
-            # (non-math subjects now use assignment_text as the checklist item).
-            if not assign_text or ci == assign_text:
+            # Avoid duplicating text when:
+            # - the checklist item IS the assignment text (non-math subjects), OR
+            # - the checklist item already starts with "assign_text — " (math subjects
+            #   now embed the lesson number in each checklist item)
+            if not assign_text or ci == assign_text or ci.startswith(_pfx_check):
                 text = f"{ci}"
             else:
                 text = f"{assign_text} — {ci}"
@@ -1702,7 +1708,17 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
                 continue
             _seen_carry_texts.add(norm)
             tid = f"CARRY::{child}::{iso}::{txt}"
-            carry_item = {"text": txt, "task_id": tid,
+            # Format "from Mon Apr 13" date label for the carryover source day
+            try:
+                from datetime import date as _carry_date
+                _cd = _carry_date.fromisoformat(_prev_iso)
+                _from_label = _cd.strftime("%-d %b")   # "13 Apr"
+                _from_label = f"from {_cd.strftime('%a')} {_from_label}"  # "from Mon 13 Apr"
+            except Exception:
+                _from_label = f"from {_prev_iso}"
+            # Build the display text: keep subject name + add date
+            _disp = f"{txt} ({_from_label})"
+            carry_item = {"text": _disp, "task_id": tid,
                           "done": _dl_done(progress, tid),
                           "checkable": True, "is_header": False,
                           "is_carryover": True}
@@ -1710,17 +1726,6 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
                 # Route to the matching subject block so it appears grouped.
                 _parts = raw.split("::", 2)
                 _subj_key = _parts[1].strip().lower() if len(_parts) >= 2 else ""
-                # Strip subject prefix from display text since it's shown in the header.
-                # Format is "Subject — assignment" when in hinted slot or "Subject: …"
-                # in generic slot — remove the subject portion for inline display.
-                _disp = txt
-                _sep = f"{_parts[1].strip()} — " if len(_parts) >= 2 else ""
-                _sep2 = f"{_parts[1].strip()}: "
-                if _disp.startswith(_sep):
-                    _disp = _disp[len(_sep):]
-                elif _disp.startswith(_sep2):
-                    _disp = _disp[len(_sep2):]
-                carry_item["text"] = _disp
                 if _subj_key:
                     school_carry_by_subj.setdefault(_subj_key, []).append(carry_item)
                     continue  # Don't add to flat carryover list
@@ -1755,14 +1760,14 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
     except Exception:
         pass
 
-    # ── Orphaned school carryover: subjects with carryover but no slot today ──
-    # If a subject had carryover items but is not in today's school assignments,
-    # it can't be injected into a school block — add to flat carryover instead.
+    # Compute which subjects from school_carry_by_subj are NOT in today's schedule.
+    # These "orphaned" carryover subjects will be injected into a school block
+    # post-loop instead of the flat Tasks/carryover section.
     _today_subjects = {b.get("subject", "").strip().lower() for b in school_raw}
+    _orphan_school_carry: list = []
     for _osubj, _oitems in school_carry_by_subj.items():
         if _osubj not in _today_subjects:
-            for _oi in _oitems:
-                carryover_items.append(_oi)
+            _orphan_school_carry.extend(_oitems)
 
     # ── Split tasks into timed (have explicit time hint) vs untimed ──────────
     # Timed tasks are placed at their hinted time position in the day list;
@@ -2127,6 +2132,21 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
         result.sort(key=lambda b: b["time_sort"])
     elif all_hint_times:
         result.sort(key=lambda b: b["time_sort"])
+
+    # ── Orphaned school carryover → inject into last school block ────────────
+    # Subjects that had carryover but aren't assigned today must still appear
+    # in a school block (per user requirement), not in the flat Tasks section.
+    if _orphan_school_carry:
+        # Find the last school-kind block in result
+        _last_school_idx = None
+        for _ri, _rb in enumerate(result):
+            if _rb.get("kind") == "school":
+                _last_school_idx = _ri
+        if _last_school_idx is not None:
+            result[_last_school_idx]["sub_items"].extend(_orphan_school_carry)
+        else:
+            # No school block at all today — fall back to flat carryover
+            carryover_items.extend(_orphan_school_carry)
 
     # ── Meal Prep reminder block (Lauren only) ────────────────────────────────
     # If the meal plan has a prep_notes entry for today, inject a checkable
