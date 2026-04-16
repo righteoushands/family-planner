@@ -351,6 +351,35 @@ def get_manual_tasks_for_child_and_date(child: str, iso: str):
 # SCHOOL TASKS
 # -------------------------
 
+# JP ↔ Joseph cross-check each other's math
+_MATH_CHECK_PAIRS: dict = {"JP": "Joseph", "Joseph": "JP"}
+
+
+def _get_brother_math_label(child: str, weekday: str) -> str:
+    """Return a short label for the math-exchange brother's current lesson.
+
+    e.g. for JP checking Joseph → 'Math 7 Lesson 43'
+         for Joseph checking JP → 'Algebra 1/2 Lesson 75'
+    Returns '' if no brother or no math assignment found.
+    """
+    brother = _MATH_CHECK_PAIRS.get(child)
+    if not brother:
+        return ""
+    try:
+        bro_assignments = get_school_assignments_for_weekday(weekday)
+        bro_day = bro_assignments.get(brother, {})
+        for blk in bro_day.get("blocks", []):
+            if blk.get("is_math") and not blk.get("is_math_test"):
+                bro_subj   = blk.get("subject", "").strip()
+                bro_assign = blk.get("assignment_text", "").strip()
+                if bro_subj and bro_assign:
+                    return f"{bro_subj} {bro_assign}"
+                return bro_subj or bro_assign
+    except Exception:
+        pass
+    return ""
+
+
 def extract_school_tasks_for_child(child: str, weekday: str):
     assignments = get_school_assignments_for_weekday(weekday)
     day = assignments.get(child, {})
@@ -370,12 +399,16 @@ def extract_school_tasks_for_child(child: str, weekday: str):
             # Prefix each step with the lesson/assignment text so carryover
             # shows which specific lesson needs checking (e.g. "Lesson 76 — Fixed missed problems")
             _pfx = f"{text} — " if text else ""
+            # For the cross-checking steps, also name the brother's lesson so
+            # each boy knows exactly which assignment he is checking.
+            _bro_label = _get_brother_math_label(child, weekday)
+            _bro_sfx   = f" ({_bro_label})" if _bro_label else ""
             checklist.extend([
                 f"{_pfx}Assignment completed",
                 f"{_pfx}Given to checker",
                 f"{_pfx}Fixed missed problems",
-                f"{_pfx}Received brother's math",
-                f"{_pfx}Checked brother's math",
+                f"{_pfx}Received brother's math{_bro_sfx}",
+                f"{_pfx}Checked brother's math{_bro_sfx}",
             ])
         else:
             # Use the full assignment text so carryover shows what was actually assigned,
