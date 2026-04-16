@@ -375,7 +375,9 @@ def extract_school_tasks_for_child(child: str, weekday: str):
                 "Checked brother's math",
             ])
         else:
-            checklist.append("Done")
+            # Use the full assignment text so carryover shows what was actually assigned,
+            # not just a generic "Done". Fall back to "Done" if there's no text.
+            checklist.append(text if text else "Done")
 
         tasks.append({
             "subject": subject,
@@ -628,6 +630,35 @@ def get_carryover_tasks(child: str, target_day: date):
 
     carryover.sort(key=carryover_sort_key)
     return [format_task_text(item) for item in carryover]
+
+
+def get_carryover_tasks_raw(child: str, target_day: date):
+    """Like get_carryover_tasks but returns (raw_key, formatted_text, prev_iso) tuples.
+
+    Used by build_day_list to group school carryover by subject before rendering.
+    """
+    progress = load_progress()
+    previous_tasks = []
+    prev_iso = ""
+    for days_back in range(1, 2):
+        check_day = target_day - timedelta(days=days_back)
+        check_iso = check_day.isoformat()
+        found = get_registered_tasks_for_day(child, check_iso)
+        if found:
+            previous_tasks = found
+            prev_iso = check_iso
+            break
+
+    if not previous_tasks:
+        return []
+
+    result = []
+    for raw in previous_tasks:
+        if not _is_prev_task_done(progress, child, prev_iso, raw):
+            result.append((raw, format_task_text(raw), prev_iso))
+
+    result.sort(key=lambda t: carryover_sort_key(t[0]))
+    return result
 
 
 def dismiss_carryover_items(child: str, target_day: date, items_to_keep: list = None) -> int:
@@ -1433,7 +1464,14 @@ def _lines_to_sub_items(lines: list, child: str, iso: str, prefix: str,
 
 
 def _school_sub_items(school_raw: list, subjects_used: set,
-                      child: str, iso: str, hint: str, progress: dict) -> list:
+                      child: str, iso: str, hint: str, progress: dict,
+                      carry_by_subj: dict = None) -> list:
+    """Build school sub-items for a day-list slot.
+
+    carry_by_subj: optional dict mapping subject_lower -> list of carryover
+                   dicts (pre-built with text/task_id/done/is_carryover) that
+                   should be appended under their matching subject.
+    """
     items = []
     for block in school_raw:
         subj = block.get("subject", "").strip()
@@ -1453,12 +1491,21 @@ def _school_sub_items(school_raw: list, subjects_used: set,
         assign_text = block.get("assignment_text", "").strip()
         for ci in block.get("checklist", ["Done"]):
             tid = f"SCHOOL::{child}::{iso}::{subj}::{ci}"
-            text = f"{ci}" if not assign_text else f"{assign_text} — {ci}"
+            # Avoid duplicating text when the checklist item IS the assignment text
+            # (non-math subjects now use assignment_text as the checklist item).
+            if not assign_text or ci == assign_text:
+                text = f"{ci}"
+            else:
+                text = f"{assign_text} — {ci}"
             if hint == "":
                 text = f"{subj}: {text}"
             items.append({"text": text, "task_id": tid,
                           "done": _dl_done(progress, tid),
                           "checkable": True, "is_header": False})
+        # Inject any carryover items for this subject (grouped here, chronological)
+        if carry_by_subj:
+            for carry_item in carry_by_subj.get(subj_low, []):
+                items.append(carry_item)
     return items
 
 
@@ -1592,7 +1639,18 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
         "wakeup", "up & moving",
     }
 
+    # Register today's tasks so they are eligible for tomorrow's carryover.
+    # build_day_list is the primary rendering path (POD page), so registration
+    # MUST happen here — not just in generate_schedule_text / build_schedule_payload.
+    try:
+        _reg_built = build_task_texts_for_day(child, weekday, iso)
+        register_tasks_for_day(child, iso, _reg_built["all_task_texts"])
+    except Exception:
+        pass
+
     manual_items, carryover_items = [], []
+    # school_carry_by_subj: subject_lower -> [carry item dicts] (in assignment order)
+    school_carry_by_subj: dict = {}
     _seen_manual_texts: set = set()   # deduplicate within manual list itself (normalised)
     try:
         for t in get_manual_tasks_for_child_and_date(child, iso):
@@ -1625,20 +1683,17 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
                                  "due_date": _t_due,
                                  "is_due_soon": _due_soon})
         _seen_carry_texts: set = _seen_manual_texts.copy()
-        for txt in get_carryover_tasks(child, normalize_target_date(iso)):
+        # Use raw carryover so we can route school items to their subject block.
+        for raw, txt, _prev_iso in get_carryover_tasks_raw(child, normalize_target_date(iso)):
             if not txt:
                 continue
-            # Filter out chore sub-step artifacts and time-slot headers — these
-            # already appear in their own Day List blocks (kitchen, chore, etc.).
-            # IMPORTANT: Do NOT apply the school-progress pattern here.  Items like
-            # "History & Geog 7 — Done" are legitimate carryover tasks — incomplete
-            # school work from yesterday MUST surface as a carryover reminder today.
+            # Filter out chore sub-step artifacts and time-slot headers.
             if (_time_prefix_pat.match(txt)
                     or txt.startswith(("\u2192", "->"))
                     or txt.rstrip().endswith(":")):
                 continue
             norm = _norm(txt)
-            if norm in known_chore_texts or norm in _seen_carry_texts:
+            if norm in _seen_carry_texts:
                 continue
             # Apply the same chore/RoL filters as manual tasks
             if any(norm.startswith(p) for p in _rol_skip_prefixes):
@@ -1647,10 +1702,32 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
                 continue
             _seen_carry_texts.add(norm)
             tid = f"CARRY::{child}::{iso}::{txt}"
-            carryover_items.append({"text": txt, "task_id": tid,
-                                    "done": _dl_done(progress, tid),
-                                    "checkable": True, "is_header": False,
-                                    "is_carryover": True})
+            carry_item = {"text": txt, "task_id": tid,
+                          "done": _dl_done(progress, tid),
+                          "checkable": True, "is_header": False,
+                          "is_carryover": True}
+            if raw.startswith("SCHOOL::"):
+                # Route to the matching subject block so it appears grouped.
+                _parts = raw.split("::", 2)
+                _subj_key = _parts[1].strip().lower() if len(_parts) >= 2 else ""
+                # Strip subject prefix from display text since it's shown in the header.
+                # Format is "Subject — assignment" when in hinted slot or "Subject: …"
+                # in generic slot — remove the subject portion for inline display.
+                _disp = txt
+                _sep = f"{_parts[1].strip()} — " if len(_parts) >= 2 else ""
+                _sep2 = f"{_parts[1].strip()}: "
+                if _disp.startswith(_sep):
+                    _disp = _disp[len(_sep):]
+                elif _disp.startswith(_sep2):
+                    _disp = _disp[len(_sep2):]
+                carry_item["text"] = _disp
+                if _subj_key:
+                    school_carry_by_subj.setdefault(_subj_key, []).append(carry_item)
+                    continue  # Don't add to flat carryover list
+            # For CHORE:: and MANUAL:: carryover — skip if today already has that chore
+            if raw.startswith("CHORE::") and norm in known_chore_texts:
+                continue
+            carryover_items.append(carry_item)
     except Exception:
         pass
 
@@ -1677,6 +1754,15 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
             })
     except Exception:
         pass
+
+    # ── Orphaned school carryover: subjects with carryover but no slot today ──
+    # If a subject had carryover items but is not in today's school assignments,
+    # it can't be injected into a school block — add to flat carryover instead.
+    _today_subjects = {b.get("subject", "").strip().lower() for b in school_raw}
+    for _osubj, _oitems in school_carry_by_subj.items():
+        if _osubj not in _today_subjects:
+            for _oi in _oitems:
+                carryover_items.append(_oi)
 
     # ── Split tasks into timed (have explicit time hint) vs untimed ──────────
     # Timed tasks are placed at their hinted time position in the day list;
@@ -1892,9 +1978,11 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
                 # Generic slot — use pre-assigned slice so subjects are
                 # distributed evenly across all generic School slots.
                 assigned = _generic_slot_map.get(blk_idx, [])
-                subs = _school_sub_items(assigned, subjects_used, child, iso, "", progress)
+                subs = _school_sub_items(assigned, subjects_used, child, iso, "", progress,
+                                         carry_by_subj=school_carry_by_subj)
             else:
-                subs = _school_sub_items(school_raw, subjects_used, child, iso, hint, progress)
+                subs = _school_sub_items(school_raw, subjects_used, child, iso, hint, progress,
+                                         carry_by_subj=school_carry_by_subj)
             item["sub_items"] = subs
             item["checkable"] = False
 

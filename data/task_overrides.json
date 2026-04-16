@@ -5,6 +5,36 @@
         "action": "dismiss",
         "label": "Leave for Bible Study"
       }
+    },
+    "2026-04-16": {
+      "CHORE::JP::2026-04-16::laundry::LAUNDRY — JP's own laundry": {
+        "action": "dismiss",
+        "label": "LAUNDRY — JP's own laundry"
+      },
+      "CHORE::JP::2026-04-16::laundry::Start load after breakfast kitchen jobs": {
+        "action": "dismiss",
+        "label": "Start load after breakfast kitchen jobs"
+      },
+      "ROUTINE::JP::2026-04-16::James time / household tasks": {
+        "action": "dismiss",
+        "label": "James time / household tasks"
+      },
+      "CHORE::JP::2026-04-16::laundry::Bring upstairs after lunch": {
+        "action": "dismiss",
+        "label": "Bring upstairs after lunch"
+      },
+      "CHORE::JP::2026-04-16::laundry::Family fold block (audiobook/read-aloud)": {
+        "action": "dismiss",
+        "label": "Family fold block (audiobook/read-aloud)"
+      },
+      "CHORE::JP::2026-04-16::laundry::Put away completely before evening": {
+        "action": "dismiss",
+        "label": "Put away completely before evening"
+      },
+      "CHORE::JP::2026-04-16::laundry::Switch load before lunch": {
+        "action": "dismiss",
+        "label": "Switch load before lunch"
+      }
     }
   },
   "Joseph": {
@@ -12,6 +42,12 @@
       "ROUTINE::Joseph::2026-04-14::Leave for Bible Study": {
         "action": "dismiss",
         "label": "Leave for Bible Study"
+      }
+    },
+    "2026-04-16": {
+      "ROUTINE::Joseph::2026-04-16::Travel": {
+        "action": "dismiss",
+        "label": "Travel"
       }
     }
   },
