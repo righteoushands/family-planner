@@ -2172,6 +2172,42 @@ class Handler(BaseHTTPRequestHandler):
                 if redirect not in _ty_allowed:
                     redirect = "/thankyou-reminders"
 
+            elif path == "/thankyou-suggest":
+                # Lauren's POD suggested-task widget
+                # action = "add"  → create manual task(s) for chosen people
+                # action = "sent" → mark the reminder as done (already sent)
+                # action = "skip" → do nothing (card stays due for next visit)
+                _action    = data.get("action", ["skip"])[0].strip()
+                _rid       = data.get("reminder_id", [""])[0].strip()
+                _task_text = clean_text(data.get("task_text", [""])[0])
+                _assignees = [clean_text(v) for v in data.get("assign_to", []) if clean_text(v)]
+                _ret       = data.get("return_url", ["/today"])[0]
+                if _ret not in ("/today", "/tasks", "/mom-profile", "/thankyou-reminders",
+                                "/schedule/JP", "/schedule/Joseph", "/schedule/Michael",
+                                "/schedule/John"):
+                    _ret = "/today"
+
+                if _action == "add" and _task_text:
+                    # Create one manual task per selected person (or unassigned if none checked)
+                    _tasks = load_manual_tasks()
+                    _targets = _assignees if _assignees else [""]
+                    for _who in _targets:
+                        _tasks.append({"text": _task_text, "assigned_to": _who,
+                                       "due_date": "", "priority": "HIGH",
+                                       "status": "active", "recurring": False})
+                    save_manual_tasks(_tasks)
+
+                elif _action == "sent" and _rid:
+                    # Mark the thank-you card reminder as done
+                    _reminders = load_thankyou_reminders()
+                    for _r in _reminders:
+                        if isinstance(_r, dict) and _r.get("id") == _rid:
+                            _r["status"] = "done"; break
+                    save_thankyou_reminders(_reminders)
+
+                # "skip" → fall through with no data changes
+                redirect = _ret
+
             elif path == "/approve-school-preview":
                 child=clean_child(data.get("child",[""])[0])
                 if child: approve_school_preview(child)

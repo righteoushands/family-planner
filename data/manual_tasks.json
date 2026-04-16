@@ -365,5 +365,29 @@
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false
+  },
+  {
+    "text": "Choose Convention Class. https://heav.org/convention/children-and-teens/",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-18",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Choose Convention Class. https://heav.org/convention/children-and-teens/",
+    "assigned_to": "JP",
+    "due_date": "2026-04-18",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Choose Convention Class. https://heav.org/convention/children-and-teens/",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-18",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
   }
 ]

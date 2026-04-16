@@ -144,6 +144,84 @@ def _ty_pod_strip(due_list: list, accent: str = "#8b5a3c", return_url: str = "/t
     )
 
 
+# ── Thank-you card Suggested-Tasks widget (Lauren's /today POD) ───────────────
+def _ty_suggested_tasks_widget(due_list: list, return_url: str = "/today") -> str:
+    """Prominent widget shown on Lauren's dashboard for each due thank-you card.
+
+    Lets her pick which family members should get a 'Send thank-you card' task
+    added to their POD, and separately mark the card as already sent.
+    """
+    if not due_list:
+        return ""
+
+    MEMBERS = [("Mom", "Mom"), ("JP", "JP"), ("Joseph", "Joseph"),
+               ("Michael", "Michael"), ("James", "James")]
+
+    cards_html = ""
+    for r in due_list:
+        rid    = escape(r.get("id", ""))
+        ename  = escape(r.get("event_name", ""))
+        ppl    = escape(r.get("people", ""))
+        task_text = f"Send thank-you card: {r.get('event_name','')} (for {r.get('people','')})" if r.get('people') else f"Send thank-you card: {r.get('event_name','')}"
+
+        checkboxes = "".join(
+            f'<label style="display:flex;align-items:center;gap:5px;'
+            f'font-size:.83em;color:#5a3e2b;cursor:pointer;white-space:nowrap;">'
+            f'<input type="checkbox" name="assign_to" value="{v}" '
+            f'style="accent-color:#8b5a3c;width:15px;height:15px;">'
+            f'{label}</label>'
+            for label, v in MEMBERS
+        )
+
+        cards_html += (
+            f'<div style="background:#fffdf5;border:1px solid #e5d9a0;border-radius:8px;'
+            f'padding:10px 12px;margin-bottom:8px;">'
+
+            # Event header
+            f'<div style="font-size:.82em;font-weight:700;color:#7c4f1e;'
+            f'margin-bottom:1px;">{ename}</div>'
+            + (f'<div style="font-size:.74em;color:#9c8060;margin-bottom:8px;">For: {ppl}</div>' if ppl else '<div style="margin-bottom:8px;"></div>')
+
+            # Add-to-POD form
+            + f'<form method="POST" action="/thankyou-suggest" style="margin:0;">'
+            f'<input type="hidden" name="reminder_id" value="{rid}">'
+            f'<input type="hidden" name="task_text" value="{escape(task_text)}">'
+            f'<input type="hidden" name="return_url" value="{escape(return_url)}">'
+            f'<div style="font-size:.72em;font-weight:800;letter-spacing:.04em;'
+            f'text-transform:uppercase;color:#92400e;margin-bottom:5px;">Add \'Send thank-you\' task to:</div>'
+            f'<div style="display:flex;flex-wrap:wrap;gap:8px 14px;margin-bottom:9px;">{checkboxes}</div>'
+            f'<div style="display:flex;gap:6px;flex-wrap:wrap;">'
+            f'<button type="submit" name="action" value="add"'
+            f' style="background:#8b5a3c;color:white;border:none;border-radius:7px;'
+            f'padding:6px 14px;font-size:.8em;font-weight:700;cursor:pointer;">+ Add to POD(s)</button>'
+            f'<button type="submit" name="action" value="sent"'
+            f' style="background:#5a7a5a;color:white;border:none;border-radius:7px;'
+            f'padding:6px 14px;font-size:.8em;font-weight:700;cursor:pointer;">&#10003; Already Sent</button>'
+            f'<button type="submit" name="action" value="skip"'
+            f' style="background:transparent;color:#9c8060;border:1px solid #d1c4a8;'
+            f'border-radius:7px;padding:6px 12px;font-size:.8em;cursor:pointer;">Skip</button>'
+            f'</div>'
+            f'</form>'
+            f'</div>'
+        )
+
+    n   = len(due_list)
+    lbl = "Thank-You Card Due" if n == 1 else "Thank-You Cards Due"
+    return (
+        f'<div style="background:#fef3e2;border:1.5px solid #e8c97a;border-radius:10px;'
+        f'padding:10px 12px;margin-bottom:12px;">'
+        f'<div style="display:flex;align-items:center;justify-content:space-between;'
+        f'margin-bottom:6px;">'
+        f'<span style="font-size:.72em;font-weight:800;letter-spacing:.06em;'
+        f'text-transform:uppercase;color:#92400e;">&#9993; {n} {lbl}</span>'
+        f'<a href="/thankyou-reminders" style="font-size:.72em;color:#8b5a3c;'
+        f'text-decoration:none;white-space:nowrap;">Manage all ›</a>'
+        f'</div>'
+        f'{cards_html}'
+        f'</div>'
+    )
+
+
 # ── Collapsible section wrapper ───────────────────────────────────────────────
 def _collapsible_wrap(section_id: str, title: str, inner_html: str,
                       accent: str = "#8b7355", default_open: bool = True) -> str:
@@ -1842,7 +1920,9 @@ def render_today_all(target_date_str: str = "") -> str:
     except Exception:
         pass
 
-    _family_ty_strip = _ty_pod_strip(due_thankyou_reminders_for("Family"), "#8b5a3c", "/today")
+    # Show due thank-you card reminders as a prominent suggested-task widget
+    # (replaces the old compact strip — the widget lets Lauren assign to any POD)
+    _family_ty_strip = _ty_suggested_tasks_widget(due_thankyou_reminders_for("Family"), "/today")
 
     # Lauren's cycle fertility warning — shown on the dashboard for her awareness
     try:
