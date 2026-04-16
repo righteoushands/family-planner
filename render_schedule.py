@@ -627,6 +627,22 @@ def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str,
 
 def _render_day_list_html(day_list: list, child: str, iso: str,
                            c_bg: str, meals: dict = None) -> str:
+    if not day_list:
+        from datetime import date as _date
+        try:
+            _d = _date.fromisoformat(iso)
+            _weekday = _d.strftime("%A")
+        except Exception:
+            _weekday = "this day"
+        return (
+            f'<div style="padding:24px 20px;text-align:center;color:#9ca3af;'
+            f'background:#f9fafb;border-radius:12px;margin:12px 0;">'
+            f'<div style="font-size:1.5em;margin-bottom:8px;">📋</div>'
+            f'<div style="font-weight:600;color:#6b7280;margin-bottom:4px;">'
+            f'No schedule set up for {escape(child)} on {_weekday}.</div>'
+            f'<div style="font-size:0.85em;">Ask Mom to build the {_weekday} template in Settings → Rule of Life.</div>'
+            f'</div>'
+        )
     c_id = child.lower().replace(" ", "-")
     # Load any dismiss/postpone/timed overrides for this person on this day
     try:
@@ -932,6 +948,7 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
 
     # Build the Day List (Rule-of-Life-anchored chronological schedule)
     day_list = build_day_list(child, weekday, iso)
+    _frol_missing = (len(day_list) == 0)   # true when no FROL template exists for this day
 
     # Load calendar events and merge into the Day List chronologically
     try:
@@ -1049,6 +1066,7 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
         </div>
         {_lucy_sec}
         {_exercise_sec}
+        {'<div style="background:#fef9c3;border:1px solid #fde047;border-radius:10px;padding:12px 16px;margin-bottom:10px;font-size:0.88em;color:#854d0e;">&#128197; <strong>No ' + escape(weekday) + ' schedule yet</strong> for ' + escape(child) + '. Ask Mom to build the ' + escape(weekday) + ' template in <a href="/settings#s-systems" style="color:#92400e;font-weight:600;">Settings → Rule of Life</a>.</div>' if _frol_missing else ''}
         <div class="day-list">
             {day_list_html}
         </div>

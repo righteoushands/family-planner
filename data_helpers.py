@@ -267,11 +267,14 @@ def get_frol_day_slots(weekday: str, person: str = "Mom") -> dict:
     if not p.exists():
         return {}
     grid = _json.loads(p.read_text(encoding="utf-8")).get("grid", {})
-    # Lauren / Mom are the same person
+    # Lauren / Mom are the same person — only alias-fallback for them
     aliases = {"Lauren": "Mom", "Mom": "Lauren"}
-    for candidate in [person, aliases.get(person, ""), "Mom", "JP"]:
+    # Primary lookup: the requested person and their alias (Mom↔Lauren only)
+    for candidate in [person, aliases.get(person, "")]:
         if candidate and candidate in grid and grid[candidate]:
             return dict(grid[candidate])
+    # Do NOT fall through to another person's template for children —
+    # that would give JP or Joseph Lauren's tasks when their day is missing.
     return {}
 
 

@@ -1,98 +1,21 @@
 {
   "events": [
     {
-      "title": "Evelyn Derouen birthday! (2021)",
-      "start": "2026-04-15",
-      "end": "2026-04-15",
+      "title": "Chris Teague's birthday",
+      "start": "2026-04-16",
+      "end": "2026-04-16",
       "all_day": true,
       "location": "",
       "notes": "",
       "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Edit Pros Subscription",
-      "start": "2026-04-15",
-      "end": "2026-04-15",
-      "all_day": true,
-      "location": "",
-      "notes": "",
-      "calendar": "Apple Calendar",
       "color": "#9b59b6",
       "source": "subscribed"
     },
     {
       "title": "John's class",
-      "start": "2026-04-15T08:00",
-      "end": "2026-04-15T17:00",
+      "start": "2026-04-16T08:00",
+      "end": "2026-04-16T17:00",
       "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Piano Lessons with David",
-      "start": "2026-04-15T09:30",
-      "end": "2026-04-15T11:00",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Joe",
-      "start": "2026-04-15T13:00",
-      "end": "2026-04-15T13:15",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Apple Calendar",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "braces",
-      "start": "2026-04-15T13:30",
-      "end": "2026-04-15T14:30",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Apple Calendar",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Date Night",
-      "start": "2026-04-15T17:30",
-      "end": "2026-04-15T18:30",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Kids Movie Night!",
-      "start": "2026-04-15T17:30",
-      "end": "2026-04-15T19:30",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Apple Calendar",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Chris Teague's birthday",
-      "start": "2026-04-16",
-      "end": "2026-04-16",
-      "all_day": true,
       "location": "",
       "notes": "",
       "calendar": "Lauren's Proton Mail",
@@ -159,6 +82,17 @@
       "start": "2026-04-21",
       "end": "2026-04-21",
       "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Haircut for Mama!",
+      "start": "2026-04-21T08:00",
+      "end": "2026-04-21T09:00",
+      "all_day": false,
       "location": "",
       "notes": "",
       "calendar": "Apple Calendar",
@@ -1704,7 +1638,51 @@
       "calendar": "Liturgical Calendar (Little Rose Shop)",
       "color": "#e91e8c",
       "source": "subscribed"
+    },
+    {
+      "title": "Melody Han birthday (2021)",
+      "start": "2026-06-15",
+      "end": "2026-06-15",
+      "all_day": true,
+      "location": "",
+      "notes": "40pm",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Edit Pros Subscription",
+      "start": "2026-06-15",
+      "end": "2026-06-15",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Last Day for Revisions",
+      "start": "2026-06-15",
+      "end": "2026-06-15",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "MODG",
+      "color": "#1abc9c",
+      "source": "subscribed"
+    },
+    {
+      "title": "Mama haircut",
+      "start": "2026-06-15T10:00",
+      "end": "2026-06-15T10:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-04-15T15:57:10.932228"
+  "fetched_at": "2026-04-16T07:43:53.874553"
 }

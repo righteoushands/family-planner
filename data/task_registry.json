@@ -1149,7 +1149,6 @@
       "CHORE::Trim nails",
       "CHORE::VAN — tidy-up",
       "MANUAL::MEDIUM::Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
-      "MANUAL::MEDIUM::Sign a family “Thank You” card to the DeMaios",
       "SCHOOL::Beginning Latin III::Done",
       "SCHOOL::Editing 7::Done",
       "SCHOOL::English 8::Done",
@@ -1168,14 +1167,9 @@
     ],
     "Michael": [
       "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
-      "CHORE::Tidy basement zone — 10 minutes",
-      "MANUAL::MEDIUM::Bobby’s Surgery",
-      "MANUAL::MEDIUM::Sign a family “Thank You” card to the DeMaios",
-      "MANUAL::MEDIUM::Tidy-up the garage after Rhys came to play"
+      "CHORE::Tidy basement zone — 10 minutes"
     ],
-    "James": [
-      "MANUAL::MEDIUM::Sign a family “Thank You” card to the DeMaios"
-    ],
+    "James": [],
     "Mom": [
       "CHORE::Bathe the Littles (Michael & James)",
       "CHORE::Tidy the van",
@@ -1473,7 +1467,7 @@
       "CHORE::Check Sea Cadet email",
       "CHORE::Collect trash",
       "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
-      "CHORE::Dinner helper: Reheat chicken — Joseph: Cook rice — Michael: set table",
+      "CHORE::Dinner helper: soft food only (braces recovery)",
       "CHORE::KITCHEN (After Breakfast — Role A):",
       "CHORE::KITCHEN (Evening — Role A):",
       "CHORE::LAUNDRY — JP's own laundry",
@@ -1531,14 +1525,9 @@
     ],
     "Michael": [
       "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
-      "CHORE::Tidy basement zone — 10 minutes",
-      "MANUAL::MEDIUM::Bobby’s Surgery",
-      "MANUAL::MEDIUM::Sign a family “Thank You” card to the DeMaios",
-      "MANUAL::MEDIUM::Tidy-up the garage after Rhys came to play"
+      "CHORE::Tidy basement zone — 10 minutes"
     ],
-    "James": [
-      "MANUAL::MEDIUM::Sign a family “Thank You” card to the DeMaios"
-    ]
+    "James": []
   },
   "2026-04-17": {
     "JP": [
