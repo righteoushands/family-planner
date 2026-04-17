@@ -930,32 +930,83 @@ def get_curriculum_subjects(child: str) -> dict:
     return cur.get(child, {})
 
 
+def week_day_segments(val) -> list[tuple[int, str]]:
+    """Return the per-day breakdown for a week's stored value.
+
+    A week value can be either:
+      - a {day_str: text} dict (per-day MODG format), or
+      - a plain string. If the string contains `;`-separated segments
+        (the MODG default for "Lesson A; Lesson B; Lesson C…"), each
+        segment is treated as a day. A single-segment string returns [].
+
+    Returns ordered [(day_num, text), …] starting at Day 1.
+    Empty list means "no day-level breakdown — treat as a whole-week string".
+    """
+    if isinstance(val, dict):
+        out = []
+        for k, v in val.items():
+            if not str(k).isdigit():
+                continue
+            t = str(v or "").strip()
+            if t:
+                out.append((int(k), t))
+        out.sort(key=lambda t: t[0])
+        return out
+    if isinstance(val, str):
+        import re as _re
+        # Explicit "Day N:" markers — strongest signal, split on those.
+        marker = _re.compile(r'(?:^|\n|;|\.)\s*Day\s*(\d+)\s*[:\-\.]\s*',
+                             _re.IGNORECASE)
+        marks = list(marker.finditer(val))
+        if len(marks) >= 2:
+            out = []
+            for i, m in enumerate(marks):
+                start = m.end()
+                end   = marks[i+1].start() if i+1 < len(marks) else len(val)
+                body  = val[start:end].strip().rstrip(";").strip()
+                if body:
+                    out.append((int(m.group(1)), body))
+            if out:
+                return out
+        # No explicit markers — only treat semicolons as day delimiters when
+        # there are at least 4 segments (a typical school week). Fewer than
+        # that is almost always prose punctuation, not days.
+        parts = [p.strip() for p in val.split(";")]
+        parts = [p for p in parts if p]
+        if len(parts) >= 4:
+            return list(enumerate(parts, start=1))
+    return []
+
+
 def resolve_week_text(subject_node: dict, week: int, day_pref: int | None = None) -> str:
     """Return the assignment text for a (week, day) within a subject node.
 
-    Subject nodes may store a week's value as either:
-      - a plain string (whole-week assignment), or
-      - a {day_str: text} dict (per-day MODG format).
+    Handles three shapes for a week's value:
+      - {day_str: text} dict (per-day MODG format),
+      - `;`-separated string (each segment is a day, in order),
+      - plain string (whole-week assignment — `day_pref` is ignored).
 
-    For dict-shaped weeks: prefer `day_pref`, fall back to subject_node's
-    `_current_day`, then the smallest available day. Returns "" if missing.
+    For multi-day shapes: prefer `day_pref`, then subject_node's
+    `_current_day`, then Day 1.
     """
     if not isinstance(subject_node, dict):
         return ""
     val = subject_node.get(str(week))
-    if isinstance(val, str):
-        return val.strip()
-    if isinstance(val, dict):
-        day_keys = sorted(int(k) for k in val.keys() if str(k).isdigit())
-        if not day_keys:
-            return ""
+    days = week_day_segments(val)
+    if days:
+        day_nums = [d for d, _ in days]
         d = day_pref
         if d is None:
-            try:    d = int(subject_node.get("_current_day") or day_keys[0])
-            except (TypeError, ValueError): d = day_keys[0]
-        if d not in day_keys:
-            d = day_keys[0]
-        return str(val.get(str(d), "")).strip()
+            try:    d = int(subject_node.get("_current_day") or day_nums[0])
+            except (TypeError, ValueError): d = day_nums[0]
+        if d not in day_nums:
+            d = day_nums[0]
+        for dn, txt in days:
+            if dn == d:
+                return txt
+        return ""
+    if isinstance(val, str):
+        return val.strip()
     return ""
 
 

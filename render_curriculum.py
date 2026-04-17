@@ -370,24 +370,21 @@ def render_curriculum_page() -> str:
         all_weeks_data[child] = {}
         if subjects:
             rows = ""
+            from data_helpers import week_day_segments as _wds
             for subj, weeks in sorted(subjects.items()):
                 week_count = sum(1 for k in weeks if not k.startswith("_"))
                 stored_mins = weeks.get("_minutes", _recommended_minutes(subj))
                 subj_week   = int(weeks.get("_current_week", current_week))
                 subj_day    = int(weeks.get("_current_day", 1))
                 this_week_val = weeks.get(str(subj_week), "")
-                # this week's value may be a plain string OR a {day: text} dict
-                if isinstance(this_week_val, dict):
-                    day_keys = sorted(
-                        (int(k) for k in this_week_val.keys() if str(k).isdigit()),
-                    )
-                    if day_keys:
-                        if subj_day not in day_keys:
-                            subj_day = day_keys[0]
-                        this_week = str(this_week_val.get(str(subj_day), "")).strip()
-                    else:
-                        this_week = ""
-                    has_days = bool(day_keys)
+                # Days may come from either a {day: text} dict OR a `;`-split string
+                day_segs = _wds(this_week_val)
+                if day_segs:
+                    day_keys = [d for d, _ in day_segs]
+                    if subj_day not in day_keys:
+                        subj_day = day_keys[0]
+                    this_week = next((t for d, t in day_segs if d == subj_day), "")
+                    has_days = True
                 else:
                     this_week = str(this_week_val or "").strip()
                     has_days  = False
@@ -677,30 +674,59 @@ function _weekValue(child, subject, weekNum) {{
   return wm[String(weekNum)];
 }}
 
+/* Returns ordered [[dayNum, text], …] for a stored week value.
+   Mirrors data_helpers.week_day_segments — dicts use their digit keys;
+   `;`-separated strings split into Day 1..N. Empty list means "no days". */
+function _daySegments(val) {{
+  if (val && typeof val === 'object') {{
+    return Object.keys(val)
+      .filter(k => /^\d+$/.test(k))
+      .map(k => [parseInt(k), String(val[k] || '').trim()])
+      .filter(p => p[1])
+      .sort((a,b) => a[0]-b[0]);
+  }}
+  if (typeof val === 'string') {{
+    // Explicit "Day N:" markers — strongest signal.
+    const re = /(?:^|\n|;|\.)\s*Day\s*(\d+)\s*[:\-\.]\s*/gi;
+    const marks = [];
+    let m;
+    while ((m = re.exec(val)) !== null) {{
+      marks.push({{ start: m.index + m[0].length, prefixStart: m.index, n: parseInt(m[1]) }});
+    }}
+    if (marks.length >= 2) {{
+      const out = [];
+      for (let i = 0; i < marks.length; i++) {{
+        const stop = (i+1 < marks.length) ? marks[i+1].prefixStart : val.length;
+        const body = val.substring(marks[i].start, stop).replace(/[;\s.]+$/, '').trim();
+        if (body) out.push([marks[i].n, body]);
+      }}
+      if (out.length) return out;
+    }}
+    // No markers — split on semicolons only when there are 4+ segments.
+    const parts = val.split(';').map(s => s.trim()).filter(Boolean);
+    if (parts.length >= 4) return parts.map((t,i) => [i+1, t]);
+  }}
+  return [];
+}}
+
 function _dayKeysOf(val) {{
-  if (!val || typeof val !== 'object') return [];
-  return Object.keys(val)
-    .filter(k => /^\d+$/.test(k))
-    .map(k => parseInt(k))
-    .sort((a,b) => a-b);
+  return _daySegments(val).map(p => p[0]);
 }}
 
 function _renderAssignment(rid, val, dayPref) {{
   const assnEl = document.getElementById('assign-' + rid);
   const dayCell = document.getElementById('daycell-' + rid);
   const dayEl   = document.getElementById('daynum-'  + rid);
+  const segs = _daySegments(val);
   let text = '';
-  if (val && typeof val === 'object') {{
-    const days = _dayKeysOf(val);
-    if (days.length) {{
-      let d = parseInt(dayPref);
-      if (!days.includes(d)) d = days[0];
-      text = String(val[String(d)] || '');
-      if (dayEl)   dayEl.textContent = 'D' + d;
-      if (dayCell) dayCell.style.display = '';
-    }} else {{
-      if (dayCell) dayCell.style.display = 'none';
-    }}
+  if (segs.length) {{
+    let d = parseInt(dayPref);
+    const days = segs.map(p => p[0]);
+    if (!days.includes(d)) d = days[0];
+    const found = segs.find(p => p[0] === d);
+    text = found ? found[1] : '';
+    if (dayEl)   dayEl.textContent = 'D' + d;
+    if (dayCell) dayCell.style.display = '';
   }} else {{
     text = String(val || '');
     if (dayCell) dayCell.style.display = 'none';
