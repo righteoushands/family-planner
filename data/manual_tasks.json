@@ -411,5 +411,33 @@
     "recurring": true,
     "interval_value": 1,
     "interval_unit": "weeks"
+  },
+  {
+    "text": "Practice James' physical therapy exercises daily",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-18",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Updated PT exercises focus on left side strengthening and rolling. Keep James relaxed through hand and arm. If head dips low, adjust hips accordingly. Continue wearing hip shorts.",
+    "subtasks": [
+      "Have James sit on left side bearing weight on left hand for 5 minutes",
+      "Use toy to keep him positioned on left side, hold hand down 5 seconds",
+      "Practice crawling position with left hand and hip straight",
+      "Help James practice rolling to the left (he tends to roll right)",
+      "Continue daily situp practice with focus on rolling left"
+    ]
+  },
+  {
+    "text": "Ensure James continues wearing hip shorts",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-18",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Ongoing requirement from PT",
+    "subtasks": []
   }
 ]

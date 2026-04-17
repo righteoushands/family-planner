@@ -23,6 +23,16 @@ from ui_helpers import html_page, page_header
 from render_daily_bar import render_daily_bar, render_child_age_strip
 
 
+def _js_attr(s: str) -> str:
+    """Encode a string for safe use as a single-quoted JS string literal
+    that lives inside a double-quoted HTML attribute.
+    Order matters: backslash → JS-escape quotes → HTML-escape attribute chars."""
+    if s is None:
+        return ""
+    s = str(s).replace("\\", "\\\\").replace("'", "\\'")
+    return escape(s, quote=True)
+
+
 # ── Exercise assignment helper ────────────────────────────────────────────────
 _EXERCISE_PERSON_ALIAS = {"mom": "Lauren", "lauren": "Lauren", "jp": "JP",
                           "joseph": "Joseph", "michael": "Michael", "james": "James"}
@@ -516,12 +526,12 @@ def render_task_list(child: str, iso: str, items: list) -> str:
         done_class = "done"    if is_done else ""
         new_val    = "false"   if is_done else "true"
         tid_esc    = escape(task_id)
-        tid_js     = escape(task_id, quote=False).replace("'", "\\'")
+        tid_js     = _js_attr(task_id)
         label_id   = f"lbl-{tid_esc}"
         html += f"""
         <div class="task {done_class}" id="task-{tid_esc}">
             <input type="checkbox" id="{label_id}" {checked}
-                   onchange="toggleTask(this,'{tid_js}','/schedule/{escape(child)}?date={escape(iso)}')">
+                   onchange="toggleTask(this,'{tid_js}','/schedule/{_js_attr(child)}?date={_js_attr(iso)}')">
             <label for="{label_id}">{escape(item.get("text",""))}</label>
         </div>"""
     return html
@@ -768,7 +778,7 @@ def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str,
         elif sub.get("checkable") and sub.get("task_id"):
             raw_tid = sub["task_id"]
             tid     = escape(raw_tid)
-            tid_j   = raw_tid.replace("'", "\\'")
+            tid_j   = _js_attr(raw_tid)
             # Check for override on this sub-item
             _ov      = _day_ovs.get(raw_tid, {})
             _ov_act  = _ov.get("action", "")
@@ -814,7 +824,7 @@ def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str,
                     f'title="Clear time">⏰ {_t} ×</span>'
                 )
             _lbl_raw = sub.get("text", "")
-            _lbl_js  = _lbl_raw.replace("'", "\\'").replace('"', '\\"')
+            _lbl_js  = _js_attr(_lbl_raw)
             try:
                 from datetime import date as _d3, timedelta as _td3
                 _tmr = (_d3.fromisoformat(iso) + _td3(days=1)).isoformat()
@@ -1028,7 +1038,7 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
             # Single-checkbox item — apply any override
             raw_tid = item["task_id"]
             tid  = escape(raw_tid)
-            tidj = raw_tid.replace("'", "\\'")
+            tidj = _js_attr(raw_tid)
             _ov = _day_ovs.get(raw_tid, {})
             _ov_act = _ov.get("action", "")
             # Skip dismissed or postponed items entirely
@@ -1048,7 +1058,7 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
             except Exception:
                 _tmr = ""
             _lbl_raw = item.get("label", "")
-            _lbl_js  = _lbl_raw.replace("'", "\\'").replace('"', '\\"')
+            _lbl_js  = _js_attr(_lbl_raw)
             _ov_indicator = ""
             if _ov_act == "timed":
                 _ov_indicator = (
@@ -1604,7 +1614,7 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
 
     def _dash_row(item, extra_style="", is_chore=False, section=""):
         tid     = escape(item.get("task_id", ""))
-        tid_js  = escape(item.get("task_id", ""), quote=False).replace("'", "\\'")
+        tid_js  = _js_attr(item.get("task_id", ""))
         is_done = _item_done(item, progress)
         checked = "checked" if is_done else ""
         done_st = "opacity:.5;text-decoration:line-through;" if is_done else ""
