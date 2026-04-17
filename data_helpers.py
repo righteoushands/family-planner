@@ -930,16 +930,45 @@ def get_curriculum_subjects(child: str) -> dict:
     return cur.get(child, {})
 
 
+def resolve_week_text(subject_node: dict, week: int, day_pref: int | None = None) -> str:
+    """Return the assignment text for a (week, day) within a subject node.
+
+    Subject nodes may store a week's value as either:
+      - a plain string (whole-week assignment), or
+      - a {day_str: text} dict (per-day MODG format).
+
+    For dict-shaped weeks: prefer `day_pref`, fall back to subject_node's
+    `_current_day`, then the smallest available day. Returns "" if missing.
+    """
+    if not isinstance(subject_node, dict):
+        return ""
+    val = subject_node.get(str(week))
+    if isinstance(val, str):
+        return val.strip()
+    if isinstance(val, dict):
+        day_keys = sorted(int(k) for k in val.keys() if str(k).isdigit())
+        if not day_keys:
+            return ""
+        d = day_pref
+        if d is None:
+            try:    d = int(subject_node.get("_current_day") or day_keys[0])
+            except (TypeError, ValueError): d = day_keys[0]
+        if d not in day_keys:
+            d = day_keys[0]
+        return str(val.get(str(d), "")).strip()
+    return ""
+
+
 def get_curriculum_week_assignments(child: str, week: int) -> dict:
     """
     Return {subject: assignment_text} for a child on a specific week.
     Only includes subjects that have an assignment for that week.
+    Handles both plain-string and {day:text} dict week values.
     """
     subjects = get_curriculum_subjects(child)
     result = {}
-    week_str = str(week)
     for subject, weeks in subjects.items():
-        text = weeks.get(week_str, "").strip()
+        text = resolve_week_text(weeks, week)
         if text:
             result[subject] = text
     return result

@@ -222,7 +222,7 @@ def _parse_modg_locally(raw_text: str) -> dict:
             by_week.setdefault(wk, []).append((dy, body))
 
     if by_week:
-        out: dict[str, str] = {}
+        out: dict[str, object] = {}
         for wk, days in by_week.items():
             days.sort()
             seen, uniq = set(), []
@@ -232,9 +232,12 @@ def _parse_modg_locally(raw_text: str) -> dict:
                     continue
                 seen.add(norm); uniq.append((dy, body))
             if len(uniq) == 1:
+                # All days identical — collapse into a single string
                 out[str(wk)] = uniq[0][1]
             else:
-                out[str(wk)] = "\n".join(f"Day {dy}: {body}" for dy, body in uniq)
+                # Different per day — preserve as {day_num: text} dict so the UI
+                # can let the user pick which day to work on.
+                out[str(wk)] = {str(dy): body for dy, body in uniq}
         return out
 
     # Whole-week form
@@ -362,14 +365,31 @@ def render_curriculum_page() -> str:
                 week_count = sum(1 for k in weeks if not k.startswith("_"))
                 stored_mins = weeks.get("_minutes", _recommended_minutes(subj))
                 subj_week   = int(weeks.get("_current_week", current_week))
-                this_week   = weeks.get(str(subj_week), "")
+                subj_day    = int(weeks.get("_current_day", 1))
+                this_week_val = weeks.get(str(subj_week), "")
+                # this week's value may be a plain string OR a {day: text} dict
+                if isinstance(this_week_val, dict):
+                    day_keys = sorted(
+                        (int(k) for k in this_week_val.keys() if str(k).isdigit()),
+                    )
+                    if day_keys:
+                        if subj_day not in day_keys:
+                            subj_day = day_keys[0]
+                        this_week = str(this_week_val.get(str(subj_day), "")).strip()
+                    else:
+                        this_week = ""
+                    has_days = bool(day_keys)
+                else:
+                    this_week = str(this_week_val or "").strip()
+                    has_days  = False
+
                 preview = (this_week[:90] + "…") if len(this_week) > 90 else this_week
                 preview_html = (
-                    f'<span class="cur-preview">{preview}</span>'
+                    f'<span class="cur-preview">{_html_escape(preview)}</span>'
                     if preview else
                     '<span class="cur-no-assign">— no assignment —</span>'
                 )
-                # week texts for JS (skip _meta keys)
+                # week texts for JS (skip _meta keys; preserve dict shape for days)
                 all_weeks_data[child][subj] = {
                     k: v for k, v in weeks.items() if not k.startswith("_")
                 }
@@ -377,6 +397,7 @@ def render_curriculum_page() -> str:
                 row_id  = f"{child}___{subj}".replace(" ","_").replace("/","_").replace("'","_").replace(",","_")
                 subj_js = subj.replace("'", "\\'")
                 child_js = child.replace("'", "\\'")
+                day_cell_style = "" if has_days else "display:none;"
                 rows += f"""
                 <tr>
                   <td class="cur-subj"><a href="/subject?child={_url_quote(child)}&amp;subject={_url_quote(subj)}" style="color:inherit;text-decoration:none;border-bottom:1px dotted #c9a44a;">{_html_escape(subj)}</a></td>
@@ -394,6 +415,13 @@ def render_curriculum_page() -> str:
                       <button class="cur-wbtn-sm" onclick="setSubjectWeek('{child_js}','{subj_js}',1)">&#43;</button>
                     </div>
                   </td>
+                  <td class="cur-day-cell" id="daycell-{row_id}" style="{day_cell_style}">
+                    <div class="cur-subj-wk-ctrl">
+                      <button class="cur-wbtn-sm" onclick="setSubjectDay('{child_js}','{subj_js}',-1)">&#8722;</button>
+                      <span class="cur-subj-daynum" id="daynum-{row_id}">D{subj_day}</span>
+                      <button class="cur-wbtn-sm" onclick="setSubjectDay('{child_js}','{subj_js}',1)">&#43;</button>
+                    </div>
+                  </td>
                   <td class="cur-this-week" id="assign-{row_id}">{preview_html}</td>
                   <td class="cur-actions">
                     <button class="cur-del-btn" onclick="deleteSubject('{child_js}','{subj_js}')">&#10005;</button>
@@ -406,6 +434,7 @@ def render_curriculum_page() -> str:
                 <thead><tr>
                   <th>Subject</th><th>Total</th>
                   <th>Min/session</th><th>Week</th>
+                  <th>Day</th>
                   <th>Assignment</th><th></th>
                 </tr></thead>
                 <tbody>{rows}</tbody>
@@ -488,6 +517,9 @@ def render_curriculum_page() -> str:
   .cur-wbtn-sm:hover {{ background: #c4b5fd; }}
   .cur-subj-wknum {{ font-size: 0.92em; font-weight: bold; color: #5b21b6;
                      min-width: 22px; text-align: center; }}
+  .cur-subj-daynum {{ font-size: 0.92em; font-weight: bold; color: #b45309;
+                      min-width: 22px; text-align: center; }}
+  .cur-day-cell {{ white-space: nowrap; }}
 
   .cur-import-card {{ background: #fff; border: 2px solid #c4b5fd; border-radius: 12px;
                        padding: 20px 20px 24px; margin-top: 28px; }}
@@ -631,10 +663,49 @@ function _rowId(child, subject) {{
     .replace(/ /g,'_').replace(/\//g,'_')
     .replace(/'/g,'_').replace(/,/g,'_');
 }}
+function _weekValue(child, subject, weekNum) {{
+  const wm = (_allWeeks[child] && _allWeeks[child][subject]) || {{}};
+  return wm[String(weekNum)];
+}}
+
+function _dayKeysOf(val) {{
+  if (!val || typeof val !== 'object') return [];
+  return Object.keys(val)
+    .filter(k => /^\d+$/.test(k))
+    .map(k => parseInt(k))
+    .sort((a,b) => a-b);
+}}
+
+function _renderAssignment(rid, val, dayPref) {{
+  const assnEl = document.getElementById('assign-' + rid);
+  const dayCell = document.getElementById('daycell-' + rid);
+  const dayEl   = document.getElementById('daynum-'  + rid);
+  let text = '';
+  if (val && typeof val === 'object') {{
+    const days = _dayKeysOf(val);
+    if (days.length) {{
+      let d = parseInt(dayPref);
+      if (!days.includes(d)) d = days[0];
+      text = String(val[String(d)] || '');
+      if (dayEl)   dayEl.textContent = 'D' + d;
+      if (dayCell) dayCell.style.display = '';
+    }} else {{
+      if (dayCell) dayCell.style.display = 'none';
+    }}
+  }} else {{
+    text = String(val || '');
+    if (dayCell) dayCell.style.display = 'none';
+  }}
+  const preview = text.length > 90 ? text.substring(0,90) + '\u2026' : text;
+  assnEl.innerHTML = preview
+    ? '<span class="cur-preview">' + escHtml(preview) + '</span>'
+    : '<span class="cur-no-assign">\u2014 no assignment \u2014</span>';
+}}
+
 function setSubjectWeek(child, subject, delta) {{
   const rid     = _rowId(child, subject);
   const wkEl    = document.getElementById('wknum-'  + rid);
-  const assnEl  = document.getElementById('assign-' + rid);
+  const dayEl   = document.getElementById('daynum-' + rid);
   if (!wkEl) return;
   const current = parseInt(wkEl.textContent) || 1;
   const next    = Math.max(1, Math.min(40, current + delta));
@@ -644,12 +715,20 @@ function setSubjectWeek(child, subject, delta) {{
   wkEl.style.color = '#16a34a';
   setTimeout(function() {{ wkEl.style.color = ''; }}, 800);
 
-  const weekMap  = (_allWeeks[child] && _allWeeks[child][subject]) || {{}};
-  const text     = weekMap[String(next)] || '';
-  const preview  = text.length > 90 ? text.substring(0,90) + '\u2026' : text;
-  assnEl.innerHTML = preview
-    ? '<span class="cur-preview">' + escHtml(preview) + '</span>'
-    : '<span class="cur-no-assign">\u2014 no assignment \u2014</span>';
+  // Reset to Day 1 when switching weeks (most common workflow)
+  const val = _weekValue(child, subject, next);
+  _renderAssignment(rid, val, 1);
+  // Also persist day=1 if the new week has days
+  const days = _dayKeysOf(val);
+  if (days.length) {{
+    fetch('/curriculum-subject-day', {{
+      method: 'POST',
+      headers: {{'Content-Type':'application/x-www-form-urlencoded'}},
+      body: 'child=' + encodeURIComponent(child)
+          + '&subject=' + encodeURIComponent(subject)
+          + '&day=' + days[0]
+    }});
+  }}
 
   fetch('/curriculum-subject-week', {{
     method: 'POST',
@@ -657,6 +736,35 @@ function setSubjectWeek(child, subject, delta) {{
     body: 'child=' + encodeURIComponent(child)
         + '&subject=' + encodeURIComponent(subject)
         + '&week='    + next
+  }});
+}}
+
+function setSubjectDay(child, subject, delta) {{
+  const rid    = _rowId(child, subject);
+  const wkEl   = document.getElementById('wknum-' + rid);
+  const dayEl  = document.getElementById('daynum-' + rid);
+  if (!wkEl || !dayEl) return;
+  const week = parseInt(wkEl.textContent) || 1;
+  const val  = _weekValue(child, subject, week);
+  const days = _dayKeysOf(val);
+  if (!days.length) return;
+  const cur  = parseInt(String(dayEl.textContent || 'D1').replace(/^D/,'')) || days[0];
+  let idx    = days.indexOf(cur);
+  if (idx < 0) idx = 0;
+  let nextIdx = idx + delta;
+  if (nextIdx < 0 || nextIdx >= days.length) return;
+  const nextDay = days[nextIdx];
+
+  dayEl.style.color = '#16a34a';
+  setTimeout(function() {{ dayEl.style.color = ''; }}, 800);
+  _renderAssignment(rid, val, nextDay);
+
+  fetch('/curriculum-subject-day', {{
+    method: 'POST',
+    headers: {{'Content-Type':'application/x-www-form-urlencoded'}},
+    body: 'child=' + encodeURIComponent(child)
+        + '&subject=' + encodeURIComponent(subject)
+        + '&day=' + nextDay
   }});
 }}
 

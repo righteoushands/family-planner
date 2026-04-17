@@ -118,9 +118,14 @@ def _get_curriculum_context(iso: str) -> str:
             if not subjects:
                 continue
             child_lines = [f"  {child}:"]
+            from data_helpers import resolve_week_text as _rwt
             for subject, weeks in subjects.items():
                 if isinstance(weeks, dict):
-                    lesson = weeks.get(current_week, "").strip()
+                    try:
+                        wk_int = int(current_week)
+                    except (TypeError, ValueError):
+                        continue
+                    lesson = _rwt(weeks, wk_int)
                     if lesson:
                         child_lines.append(f"    {subject}: {lesson[:150]}")
             if len(child_lines) > 1:

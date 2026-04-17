@@ -5096,7 +5096,16 @@ class Handler(BaseHTTPRequestHandler):
                     # Preserve existing _minutes if not supplied
                     _existing_mins = (_cur_data.get(_child2, {})
                                       .get(_subject2, {}).get("_minutes"))
-                    _new_subj = {str(k): str(v) for k, v in _weeks2.items()}
+                    # Values may be plain strings (whole-week format) OR a
+                    # {day_num: text} dict (per-day format). Preserve both.
+                    _new_subj = {}
+                    for _wk, _wv in _weeks2.items():
+                        if isinstance(_wv, dict):
+                            _new_subj[str(_wk)] = {
+                                str(_d): str(_t) for _d, _t in _wv.items()
+                            }
+                        else:
+                            _new_subj[str(_wk)] = str(_wv)
                     if _mins2 is not None:
                         try: _new_subj["_minutes"] = int(_mins2)
                         except (TypeError, ValueError): pass
@@ -5194,6 +5203,30 @@ class Handler(BaseHTTPRequestHandler):
                         if _csw_child in _csw_cur and _csw_subject in _csw_cur[_csw_child]:
                             _csw_cur[_csw_child][_csw_subject]["_current_week"] = _csw_week
                             save_curriculum(_csw_cur)
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    try: self.wfile.write(b'{"ok":true}')
+                    except BrokenPipeError: pass
+                except Exception:
+                    self.send_response(500); self.end_headers()
+                return
+
+            elif path == "/curriculum-subject-day":
+                _csd_v = self._get_viewer()
+                if not (_csd_v and _auth.is_admin(_csd_v)):
+                    self.send_response(403); self.end_headers(); return
+                try:
+                    _csd_child   = clean_text(data.get("child",   [""])[0])
+                    _csd_subject = clean_text(data.get("subject", [""])[0])
+                    _csd_day     = int(data.get("day", [1])[0])
+                    _csd_day     = max(1, min(7, _csd_day))
+                    if _csd_child and _csd_subject:
+                        from data_helpers import load_curriculum, save_curriculum
+                        _csd_cur = load_curriculum()
+                        if _csd_child in _csd_cur and _csd_subject in _csd_cur[_csd_child]:
+                            _csd_cur[_csd_child][_csd_subject]["_current_day"] = _csd_day
+                            save_curriculum(_csd_cur)
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()

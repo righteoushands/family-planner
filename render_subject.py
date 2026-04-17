@@ -94,6 +94,18 @@ def subject_weeks(child: str, subject: str) -> list[tuple[int, str]]:
             continue
         if isinstance(v, str) and v.strip():
             out.append((n, v.strip()))
+        elif isinstance(v, dict):
+            # Per-day MODG format — flatten to "Day 1: …\nDay 2: …" for display
+            try:
+                days = sorted(
+                    ((int(dk), str(dv).strip()) for dk, dv in v.items()
+                     if str(dk).isdigit()),
+                    key=lambda t: t[0],
+                )
+            except Exception:
+                days = []
+            if days:
+                out.append((n, "\n".join(f"Day {dk}: {dv}" for dk, dv in days if dv)))
     out.sort(key=lambda t: t[0])
     return out
 
