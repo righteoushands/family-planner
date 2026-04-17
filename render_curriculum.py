@@ -209,10 +209,19 @@ def _parse_modg_locally(raw_text: str) -> dict:
     import re
     by_week: dict[int, list[tuple[int, str]]] = {}
 
-    # Per-day form (handles "Week 12, Day 3" / "Wk 12 Day 3" / etc.)
+    # Per-day form. Handles all observed MODG variations:
+    #   "Week 12, Day 3", "Week 12 Day 3", "Wk 12 - Day 3",
+    #   "Week 12: Day 3", "Week 12.Day.3", with optional punctuation/whitespace
+    #   (incl. unicode dashes) between week#, "Day", day#, and the body.
     day_pat = re.compile(
-        r'(?:Week|Wk\.?)\s*(\d+)\s*[,\-:]?\s*Day\s*(\d+)\b\s*[:\.\-]?\s*(.+?)'
-        r'(?=(?:Week|Wk\.?)\s*\d+|$)',
+        r'(?:Week|Wk\.?)\s*(\d+)'              # Week N
+        r'[\s,;:\.\-\u2013\u2014]*'             # any separator
+        r'Day\s*(\d+)'                          # Day M
+        r'[\s,;:\.\-\u2013\u2014]*'             # any separator before body
+        r'(.+?)'                                # body
+        r'(?=(?:Week|Wk\.?)\s*\d+\s*[\s,;:\.\-\u2013\u2014]*Day\s*\d+'
+            r'|(?:Week|Wk\.?)\s*\d+\s*[:\.\-]'
+            r'|$)',
         re.IGNORECASE | re.DOTALL,
     )
     for m in day_pat.finditer(raw_text):
@@ -611,12 +620,12 @@ def render_curriculum_page() -> str:
     </div>
     <p class="cur-hint">
       In MODG's online planner, open a subject's full year view, then select all and copy (Ctrl+A → Ctrl+C).
-      Paste it below — AI will extract each week's assignment automatically.
+      Paste it below — each week's assignment is extracted automatically.
     </p>
     <textarea class="cur-paste-area" id="impPaste"
               placeholder="Paste the MODG syllabus for this subject here…"></textarea>
     <button class="cur-parse-btn" id="parseBtn" onclick="parseCurriculum()">
-      Parse with AI
+      Parse Weeks
     </button>
     <div id="parseError" class="cur-error"></div>
 
@@ -797,7 +806,7 @@ async function parseCurriculum() {{
     errEl.textContent = 'Parse failed — check API key in Settings.';
   }} finally {{
     btn.disabled = false;
-    btn.textContent = 'Parse with AI';
+    btn.textContent = 'Parse Weeks';
   }}
 }}
 
