@@ -1294,7 +1294,7 @@ async function applyAllFixes(btn, fixes) {{
         errNote.textContent = fix.filename + ': ' + txt;
         errContainer.appendChild(errNote);
       }} else {{
-        // Backend returns "Applied to FILE\n\n--- DIFF ---\n<diff>"
+        // Backend returns: Applied to FILE, blank line, then --- DIFF --- and the unified diff
         const diffIdx = txt.indexOf('--- DIFF ---');
         if (diffIdx !== -1) diffs.push({{file: fix.filename, diff: txt.slice(diffIdx + 13).trim()}});
       }}
