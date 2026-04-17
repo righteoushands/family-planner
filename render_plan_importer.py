@@ -618,6 +618,7 @@ textarea.pi-paste:focus{{outline:none;border-color:var(--navy);}}
 <div class="pi-header">
   <a href="/">&#8592; Home</a>
   <h1>&#128203; Plan Importer</h1>
+  <a href="/plan-import-history" style="margin-left:auto;font-size:0.82em;">&#128190; Saved analyses</a>
 </div>
 
 <!-- Phase 1: Paste -->
@@ -663,10 +664,15 @@ textarea.pi-paste:focus{{outline:none;border-color:var(--navy);}}
   <!-- Restore banner (shown when session auto-restored) -->
   <div id="restore-banner" style="display:none;background:#f0fdf4;border:1px solid #86efac;
        border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:0.8em;
-       color:#166534;align-items:center;gap:8px;">
+       color:#166534;align-items:center;gap:8px;flex-wrap:wrap;">
     <span>&#x1F7E2;</span>
     <span>Your previous plan was restored. Selections are intact — continue where you left off.</span>
-    <button onclick="this.parentElement.style.display='none'" style="margin-left:auto;background:none;
+    <button id="save-to-server-btn" onclick="saveSessionToServer()" style="margin-left:auto;background:#166534;
+            color:#fff;border:none;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:0.85em;font-weight:600;">
+      &#128190; Save to server
+    </button>
+    <a href="/plan-import-history" style="color:#166534;text-decoration:underline;">Saved analyses</a>
+    <button onclick="this.parentElement.style.display='none'" style="background:none;
             border:none;cursor:pointer;color:#166534;font-size:1.1em;line-height:1;">&#10005;</button>
   </div>
 
@@ -902,6 +908,28 @@ function _saveSession() {{
 
 function _clearSession() {{
   try {{ localStorage.removeItem(_STORAGE_KEY); }} catch(e) {{}}
+}}
+
+async function saveSessionToServer() {{
+  const btn = document.getElementById('save-to-server-btn');
+  if (btn) {{ btn.disabled = true; btn.textContent = 'Saving…'; }}
+  try {{
+    const planText = document.getElementById('plan-text').value || '';
+    const resp = await fetch('/plan-import-save-session', {{
+      method: 'POST',
+      headers: {{'Content-Type': 'application/json'}},
+      body: JSON.stringify({{
+        plan_text: planText,
+        analysis: analysisData,
+        source: 'recovered',
+      }}),
+    }});
+    if (!resp.ok) throw new Error(await resp.text());
+    if (btn) {{ btn.textContent = '✓ Saved'; btn.style.background = '#166534'; }}
+  }} catch(e) {{
+    if (btn) {{ btn.disabled = false; btn.textContent = '⚠ Retry'; }}
+    alert('Could not save: ' + e.message);
+  }}
 }}
 
 function _restoreSession() {{

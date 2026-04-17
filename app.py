@@ -200,6 +200,7 @@ from render_subject import (
     add_link, delete_link, add_document, delete_document,
     GRADE_IMG_DIR, GRADE_DOC_DIR,
 )
+import plan_history as _plan_history
 from render_memory_book import render_memory_book_page, add_memory_entry, delete_memory_entry
 from render_chores import render_chores_page, render_van_roles_page, apply_laundry_defaults, apply_van_rotation
 from render_misc import (
@@ -940,6 +941,20 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Type","text/html; charset=utf-8")
             self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
             self.send_header("Pragma","no-cache")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
+        elif path == "/plan-import-history":
+            _ph_v = self._get_viewer()
+            if not (_ph_v and _auth.is_admin(_ph_v)):
+                self.send_response(302); self.send_header("Location","/"); self.end_headers(); return
+            entry_id = (query.get("id",[""])[0] or "").strip()
+            html = (_plan_history.render_history_entry(entry_id)
+                    if entry_id else _plan_history.render_history_index())
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store")
             self.end_headers()
             try: self.wfile.write(html.encode())
             except BrokenPipeError: pass
@@ -1736,6 +1751,41 @@ class Handler(BaseHTTPRequestHandler):
         _post_user = self._require_post_auth(path)
         if _post_user is None:
             return
+
+        if path == "/plan-import-save-session":
+            import json as _phj
+            _phv = self._get_viewer() or ""
+            if not _auth.is_admin(_phv):
+                self.send_response(403); self.end_headers(); return
+            try:
+                length = int(self.headers.get("Content-Length","0"))
+                raw = self.rfile.read(length).decode("utf-8", errors="replace")
+                payload = _phj.loads(raw) if raw.strip() else {}
+            except Exception:
+                payload = {}
+            res = _plan_history.append_entry(
+                payload.get("plan_text","") or "",
+                payload.get("analysis"),
+                viewer=_phv,
+                source=str(payload.get("source") or "recovered"),
+            )
+            self.send_response(200 if res.get("ok") else 400)
+            self.send_header("Content-Type","application/json")
+            self.end_headers()
+            try: self.wfile.write(_phj.dumps(res).encode())
+            except BrokenPipeError: pass
+            return
+
+        if path == "/plan-import-history-delete":
+            _phv = self._get_viewer() or ""
+            if not _auth.is_admin(_phv):
+                self.send_response(403); self.end_headers(); return
+            form = parse_urlencoded_body(self)
+            entry_id = (form.get("id",[""])[0] or "").strip()
+            _plan_history.delete_entry(entry_id)
+            self.send_response(303)
+            self.send_header("Location", "/plan-import-history")
+            self.end_headers(); return
 
         if path in ("/subject-upload-image", "/subject-doc-upload"):
             from urllib.parse import quote as _url_q
@@ -5317,6 +5367,13 @@ class Handler(BaseHTTPRequestHandler):
                         }
                         for k in _rel_keys if k in _COMPANION_KEYWORDS
                     ]
+                    # Always persist the full analysis to the server so it
+                    # can be recovered even if the browser tab is closed.
+                    try:
+                        _plan_history.append_entry(plan_text, _pi_parsed,
+                                                   viewer=_pi_v, source="live")
+                    except Exception:
+                        pass
                     self.send_response(200)
                     self.send_header("Content-Type","application/json; charset=utf-8")
                     self.send_header("Cache-Control","no-store")
