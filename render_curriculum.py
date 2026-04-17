@@ -199,27 +199,144 @@ def render_curriculum_library():
 
 
 def _parse_modg_locally(raw_text: str) -> dict:
-    """Fast local regex parse of a MODG paste. Returns week_str→assignment dict."""
+    """Fast local regex parse of a MODG paste. Returns {week_num_str: assignment}.
+
+    Handles two MODG layouts:
+      - "Week 12: <body...>"  (one block per week)
+      - "Week 12, Day 1\\n<body>\\nWeek 12, Day 2\\n<body>"  (per-day rows;
+        days are aggregated into a single week entry, deduped if identical)
+    """
     import re
-    weeks = {}
-    pattern = re.compile(r'(?:Week|Wk\.?)\s*(\d+)[:\s]+(.+?)(?=(?:Week|Wk\.?)\s*\d+|$)', re.IGNORECASE | re.DOTALL)
-    for m in pattern.finditer(raw_text):
-        key = f"Week {m.group(1).zfill(2)}"
-        weeks[key] = m.group(2).strip()
+    by_week: dict[int, list[tuple[int, str]]] = {}
+
+    # Per-day form (handles "Week 12, Day 3" / "Wk 12 Day 3" / etc.)
+    day_pat = re.compile(
+        r'(?:Week|Wk\.?)\s*(\d+)\s*[,\-:]?\s*Day\s*(\d+)\b\s*[:\.\-]?\s*(.+?)'
+        r'(?=(?:Week|Wk\.?)\s*\d+|$)',
+        re.IGNORECASE | re.DOTALL,
+    )
+    for m in day_pat.finditer(raw_text):
+        wk = int(m.group(1)); dy = int(m.group(2))
+        body = m.group(3).strip()
+        if body:
+            by_week.setdefault(wk, []).append((dy, body))
+
+    if by_week:
+        out: dict[str, str] = {}
+        for wk, days in by_week.items():
+            days.sort()
+            seen, uniq = set(), []
+            for dy, body in days:
+                norm = re.sub(r'\s+', ' ', body).strip().lower()
+                if norm in seen:
+                    continue
+                seen.add(norm); uniq.append((dy, body))
+            if len(uniq) == 1:
+                out[str(wk)] = uniq[0][1]
+            else:
+                out[str(wk)] = "\n".join(f"Day {dy}: {body}" for dy, body in uniq)
+        return out
+
+    # Whole-week form
+    week_pat = re.compile(
+        r'(?:Week|Wk\.?)\s*(\d+)\s*[:\.\-]\s*(.+?)(?=(?:Week|Wk\.?)\s*\d+|$)',
+        re.IGNORECASE | re.DOTALL,
+    )
+    weeks: dict[str, str] = {}
+    for m in week_pat.finditer(raw_text):
+        weeks[str(int(m.group(1)))] = m.group(2).strip()
     return weeks
 
 
 def _parse_with_ai(subject: str, raw_text: str) -> tuple:
-    """AI fallback parse — returns (weeks_dict, error_str)."""
-    return {}, "AI parse not yet implemented — please use the manual week format."
+    """AI fallback parse via OpenAI. Returns ({week_num_str: assignment}, error_str)."""
+    import json as _json
+    import urllib.request as _ur
+    import urllib.error as _ue
+
+    key = _get_openai_key()
+    if not key:
+        return {}, "OPENAI_API_KEY not configured — cannot use AI parsing."
+
+    # Cap input — MODG year pastes can be long; gpt-4o-mini handles ~120k tokens
+    # but we want speed. ~40k chars ≈ 10k tokens is plenty for a year of weeks.
+    snippet = raw_text[:40000]
+
+    sys_prompt = (
+        "You extract weekly homeschool assignments from Mother of Divine Grace "
+        "(MODG) syllabus text. Return STRICT JSON only — no prose, no markdown."
+    )
+    user_prompt = (
+        f"Subject: {subject}\n\n"
+        "From the syllabus text below, return an object mapping each week number "
+        "(as a string like \"1\", \"2\", … \"32\") to a concise assignment "
+        "description for that week. If the text uses 'Week N, Day M' rows, "
+        "merge that week's days into ONE assignment string (use 'Day 1: …\\n"
+        "Day 2: …' formatting; collapse duplicate day text). Skip preamble, "
+        "Q&A study questions, and anything that isn't a week's assignment. "
+        "Respond with ONLY JSON of the shape: "
+        "{\"weeks\": {\"1\": \"...\", \"2\": \"...\"}}.\n\n"
+        f"=== SYLLABUS ===\n{snippet}\n=== END ==="
+    )
+
+    body = _json.dumps({
+        "model": "gpt-4o-mini",
+        "messages": [
+            {"role": "system", "content": sys_prompt},
+            {"role": "user",   "content": user_prompt},
+        ],
+        "temperature": 0,
+        "response_format": {"type": "json_object"},
+    }).encode("utf-8")
+
+    req = _ur.Request(
+        "https://api.openai.com/v1/chat/completions",
+        data=body,
+        headers={
+            "Authorization": f"Bearer {key}",
+            "Content-Type":  "application/json",
+        },
+    )
+    try:
+        with _ur.urlopen(req, timeout=60) as resp:
+            payload = _json.loads(resp.read().decode("utf-8"))
+    except _ue.HTTPError as e:
+        try:    msg = e.read().decode("utf-8", errors="replace")[:300]
+        except Exception: msg = str(e)
+        return {}, f"OpenAI HTTP {e.code}: {msg}"
+    except Exception as e:
+        return {}, f"OpenAI request failed: {e}"
+
+    try:
+        content = payload["choices"][0]["message"]["content"]
+        parsed  = _json.loads(content)
+    except Exception as e:
+        return {}, f"AI returned unparseable JSON: {e}"
+
+    weeks_in = parsed.get("weeks") or parsed
+    if not isinstance(weeks_in, dict):
+        return {}, "AI response missing 'weeks' object."
+
+    out: dict[str, str] = {}
+    for k, v in weeks_in.items():
+        try:
+            wk = int(str(k).strip())
+        except (TypeError, ValueError):
+            continue
+        text = str(v or "").strip()
+        if text:
+            out[str(wk)] = text
+    if not out:
+        return {}, "AI did not extract any weeks from this text."
+    return out, ""
 
 
 def parse_modg_paste(subject: str, raw_text: str) -> tuple:
-    """Parse a MODG full-year subject paste into {week_str: assignment_text}.
+    """Parse a MODG full-year subject paste into {week_num_str: assignment_text}.
     Tries fast local regex first; falls back to AI only if that fails.
     Returns (weeks_dict, error_str)."""
     local = _parse_modg_locally(raw_text)
-    if len(local) >= 3:
+    if local:
         return local, ""
     return _parse_with_ai(subject, raw_text)
 
