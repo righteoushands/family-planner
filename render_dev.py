@@ -273,6 +273,55 @@ PRE-RESTART CHECKLIST — verify every box before triggering /dev-restart:
   □ All multi-file changes are written — no partial feature left half-done
   Uncertain about any box? READ that file first to confirm before restarting.
 
+════════════ REGRESSION RECOVERY — ABSOLUTE RULES ════════════
+The system keeps a STACK of file backups (last 30). Every [WRITE:] / [FIX:]
+pushes a backup BEFORE editing.  Lauren has TWO buttons next to every
+"Applied" message:
+  ↶ Undo last   → reverts ONLY the most recent change
+  ⤺ Revert ALL  → restores EVERY file Izzy touched back to its earliest
+                  captured state (pre-edit), then clears the stack.
+
+YOU MUST recommend Revert ALL — not propose a new patch — whenever ANY of
+the following are true.  These are HARD signals, not suggestions:
+
+  ▸ Lauren says: "you broke it", "still broken", "now it's worse",
+    "corrupted", "go back", "revert", "undo", "the old file", "before you
+    started", "back to how it was".
+  ▸ A file you edited in this session has now produced TWO failed fixes
+    in a row (an apply error, a syntax error, or Lauren reporting the
+    same regression after your second attempt).
+  ▸ You are about to suggest "let me rewrite this from scratch", "let me
+    regenerate the file", "let me start over", or any phrasing that means
+    replacing more than ~50 lines you did not just read.
+  ▸ You cannot explain in one sentence what your previous edit changed
+    and why the file still does not work — that means you have lost the
+    thread.
+
+WHAT TO SAY in those cases (one sentence, no preamble):
+  "Click ⤺ Revert ALL — that puts the file back the way it was before I
+   touched it; then tell me again what you'd like changed."
+
+NEVER:
+  ✗ Patch a patch. Two consecutive [FIX:]/[WRITE:] to the same file in
+    response to a regression report = STOP.  Recommend Revert ALL.
+  ✗ Propose rewriting an entire file because "the file is corrupted".
+    If it's corrupted, YOU corrupted it — undo, don't rewrite.
+  ✗ Apply a third edit to the same file in one session without first
+    re-reading it to confirm the CURRENT contents (your prior edit
+    changed the line numbers and surrounding context).
+  ✗ Say "the file is corrupted, let me regenerate it" — this phrase is
+    banned. The honest version is "I broke it; please click Revert ALL."
+
+ALWAYS:
+  ✓ After ANY apply error, your VERY NEXT response begins with:
+    "Click ↶ Undo last, then …" — never "Let me try a different fix."
+  ✓ Before ever proposing a SECOND edit to the same file in one session,
+    issue a fresh [READ:] of the affected lines so your edit references
+    the post-undo or post-edit reality, not your stale mental model.
+  ✓ Treat each new [FIX:]/[WRITE:] as if it could be the one that
+    breaks the app; if you are not certain, say so and ask Lauren to
+    decide rather than guessing.
+
 ════════════ LIMITS ════════════
 - Cannot run code or test fixes.
 - Cannot see the browser unless Lauren sends a screenshot.
@@ -1110,10 +1159,16 @@ async function applyAllFixes(btn, fixes) {{
   }}
 
   if (failCount === 0) {{
-    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 14px;background:#dcfce7;';
+    // Build "Applied" row with two undo options:
+    //   ↶ Undo last  — pops the single most recent backup off the stack
+    //   ⤺ Revert ALL — rolls every touched file back to its earliest state
+    //                 (i.e. before Izzy began editing anything in this run)
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px 14px;background:#dcfce7;flex-wrap:wrap;';
     row.innerHTML = `
       <span style="font-size:1.1em;">&#10003;</span>
-      <span style="flex:1;font-size:0.88em;color:#166534;font-weight:600;">Applied \u2014 restarting\u2026</span>`;
+      <span style="flex:1;min-width:120px;font-size:0.88em;color:#166534;font-weight:600;">Applied \u2014 restarting\u2026</span>
+      <button onclick="undoFix()" style="background:#fff;color:#92400e;border:1px solid #d97706;border-radius:6px;padding:4px 10px;font-size:0.78em;font-weight:600;cursor:pointer;">\u21B6 Undo last</button>
+      <button onclick="undoAll()" style="background:#fff;color:#7f1d1d;border:1px solid #b91c1c;border-radius:6px;padding:4px 10px;font-size:0.78em;font-weight:600;cursor:pointer;">\u27FA Revert ALL</button>`;
     restartServer();
   }} else {{
     btn.textContent = '\u274c ' + failCount + ' failed';
@@ -1122,23 +1177,50 @@ async function applyAllFixes(btn, fixes) {{
   }}
 }}
 
-// ── Undo the last applied fix ─────────────────────────────────────────────
+// ── Undo the last applied fix (multi-level stack) ────────────────────────
+// Pops the most recent backup off the stack. If `filename` is provided,
+// pops the most recent backup matching that file. With no arg, pops the
+// most recent backup of any file.
 async function undoFix(filename) {{
   try {{
+    const body = filename ? 'file=' + encodeURIComponent(filename) : '';
     const resp = await fetch('/dev-undo', {{
       method: 'POST',
       headers: {{'Content-Type':'application/x-www-form-urlencoded'}},
-      body: 'file=' + encodeURIComponent(filename),
+      body: body,
     }});
     const txt = await resp.text();
     if (!resp.ok) {{
       alert('Undo failed: ' + txt);
       return;
     }}
-    // Refresh so the restored file takes effect
     restartServer();
   }} catch(e) {{
     alert('Undo error: ' + e.message);
+  }}
+}}
+
+// ── Revert ALL — roll every touched file back to its earliest backup ─────
+// Use this when Izzy's edits broke things and successive patches just made
+// it worse. Each affected file is restored to its state BEFORE Izzy began
+// editing it in this session, then the entire undo stack is cleared.
+async function undoAll() {{
+  if (!confirm('Revert ALL of Izzy\\'s recent file changes back to the original state? This cannot be undone.')) return;
+  try {{
+    const resp = await fetch('/dev-undo', {{
+      method: 'POST',
+      headers: {{'Content-Type':'application/x-www-form-urlencoded'}},
+      body: 'all=1',
+    }});
+    const txt = await resp.text();
+    if (!resp.ok) {{
+      alert('Revert ALL failed: ' + txt);
+      return;
+    }}
+    alert(txt);
+    restartServer();
+  }} catch(e) {{
+    alert('Revert ALL error: ' + e.message);
   }}
 }}
 

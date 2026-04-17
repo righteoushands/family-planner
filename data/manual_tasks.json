@@ -389,5 +389,15 @@
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false
+  },
+  {
+    "text": "Put all Amazon returns in the back of the van.",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-15",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": true,
+    "interval_value": 1,
+    "interval_unit": "weeks"
   }
 ]

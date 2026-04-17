@@ -4164,11 +4164,23 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_response(422); self.send_header("Content-Type","text/plain"); self.end_headers()
                     self.wfile.write(b"FIND string not found in file - the code may have already been changed."); return
 
-                # Save undo backup before writing
+                # Push backup onto the undo STACK (multi-level — keep last 30)
+                # so Lauren / Izzy can roll back through several bad edits to
+                # the file's state BEFORE Izzy began touching it.
                 import json as _jundo, pathlib as _pupath
+                from datetime import datetime as _dtu
                 _undo_path = _pupath.Path("data/felix_undo.json")
                 try:
-                    _undo_path.write_text(_jundo.dumps({"file": filename, "content": content}), encoding="utf-8")
+                    _stack = []
+                    if _undo_path.exists():
+                        _raw = _jundo.loads(_undo_path.read_text(encoding="utf-8"))
+                        # Migrate single-dict legacy format into a list
+                        _stack = _raw if isinstance(_raw, list) else [_raw]
+                    _stack.append({"file": filename, "content": content,
+                                   "ts": _dtu.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                                   "kind": "find/replace"})
+                    _stack = _stack[-30:]
+                    _undo_path.write_text(_jundo.dumps(_stack), encoding="utf-8")
                 except Exception: pass
 
                 new_content = content.replace(find_str, repl_str, 1)
@@ -4212,11 +4224,20 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
                     self.wfile.write(f"Line range {w_start}-{w_end} is out of bounds (file has {total_lines} lines).".encode()); return
 
-                # Save undo backup
+                # Push backup onto the undo STACK (multi-level — keep last 30)
                 import json as _wjundo, pathlib as _wpupath
+                from datetime import datetime as _dtw
                 _wundo_path = _wpupath.Path("data/felix_undo.json")
                 try:
-                    _wundo_path.write_text(_wjundo.dumps({"file": w_filename, "content": w_file_content}), encoding="utf-8")
+                    _wstack = []
+                    if _wundo_path.exists():
+                        _wraw = _wjundo.loads(_wundo_path.read_text(encoding="utf-8"))
+                        _wstack = _wraw if isinstance(_wraw, list) else [_wraw]
+                    _wstack.append({"file": w_filename, "content": w_file_content,
+                                    "ts": _dtw.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                                    "kind": f"lines {w_start}-{w_end}"})
+                    _wstack = _wstack[-30:]
+                    _wundo_path.write_text(_wjundo.dumps(_wstack), encoding="utf-8")
                 except Exception: pass
 
                 # Replace lines w_start..w_end (1-indexed inclusive) with new content
@@ -4251,6 +4272,11 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             elif path == "/dev-undo":
+                # Multi-level undo: pop the most recent backup off the stack and
+                # restore that file. Optional ?file=NAME pops the most recent
+                # backup that matches NAME (skipping unrelated files).
+                # Optional ?all=1 reverts every backup in reverse order, taking
+                # each affected file all the way back to its earliest captured state.
                 import json as _jundo2, pathlib as _pupath2
                 _dvu = self._get_viewer()
                 if not (_dvu and _auth.is_admin(_dvu)):
@@ -4261,14 +4287,64 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_response(404); self.send_header("Content-Type","text/plain"); self.end_headers()
                     self.wfile.write(b"Nothing to undo."); return
                 try:
-                    saved = _jundo2.loads(_undo2.read_text(encoding="utf-8"))
-                    _pupath2.Path(saved["file"]).write_text(saved["content"], encoding="utf-8")
-                    _undo2.unlink()  # consume the undo — one level only
+                    _raw2 = _jundo2.loads(_undo2.read_text(encoding="utf-8"))
+                    stack = _raw2 if isinstance(_raw2, list) else [_raw2]
+                except Exception as ex:
+                    self.send_response(500); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    self.wfile.write(f"Undo read error: {ex}".encode()); return
+                if not stack:
+                    self.send_response(404); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    self.wfile.write(b"Undo stack is empty."); return
+
+                _wanted_file = clean_text(data.get("file",[""])[0]).strip()
+                _all_flag    = data.get("all",[""])[0] == "1"
+
+                restored_msgs: list = []
+                try:
+                    if _all_flag:
+                        # Walk backwards, restore each file to its EARLIEST
+                        # captured backup (i.e. the state before Izzy first
+                        # touched it in this run). Then clear the entire stack.
+                        earliest_per_file: dict = {}
+                        for entry in stack:
+                            f = entry.get("file"); c = entry.get("content","")
+                            if f and f not in earliest_per_file:
+                                earliest_per_file[f] = c
+                        for f, c in earliest_per_file.items():
+                            _pupath2.Path(f).write_text(c, encoding="utf-8")
+                            restored_msgs.append(f)
+                        _undo2.unlink()
+                        msg = f"Reverted {len(restored_msgs)} file(s) to pre-edit state: {', '.join(restored_msgs)}"
+                    elif _wanted_file:
+                        # Pop most recent backup whose file matches
+                        idx = None
+                        for i in range(len(stack) - 1, -1, -1):
+                            if stack[i].get("file") == _wanted_file:
+                                idx = i; break
+                        if idx is None:
+                            self.send_response(404); self.send_header("Content-Type","text/plain"); self.end_headers()
+                            self.wfile.write(f"No undo entry for {_wanted_file}".encode()); return
+                        entry = stack.pop(idx)
+                        _pupath2.Path(entry["file"]).write_text(entry["content"], encoding="utf-8")
+                        if stack:
+                            _undo2.write_text(_jundo2.dumps(stack), encoding="utf-8")
+                        else:
+                            _undo2.unlink()
+                        msg = f"Undone: {entry['file']} ({len(stack)} backup(s) remain)"
+                    else:
+                        # Pop the single most recent backup
+                        entry = stack.pop()
+                        _pupath2.Path(entry["file"]).write_text(entry["content"], encoding="utf-8")
+                        if stack:
+                            _undo2.write_text(_jundo2.dumps(stack), encoding="utf-8")
+                        else:
+                            _undo2.unlink()
+                        msg = f"Undone: {entry['file']} ({len(stack)} backup(s) remain)"
                 except Exception as ex:
                     self.send_response(500); self.send_header("Content-Type","text/plain"); self.end_headers()
                     self.wfile.write(f"Undo error: {ex}".encode()); return
                 self.send_response(200); self.send_header("Content-Type","text/plain"); self.end_headers()
-                try: self.wfile.write(b"Undone.")
+                try: self.wfile.write(msg.encode())
                 except BrokenPipeError: pass
                 return
 

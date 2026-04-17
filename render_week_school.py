@@ -343,11 +343,11 @@ def _render_poetry_passages_card() -> str:
   </div>
   <form id="poetry-passage-form"
         style="padding:12px 14px 10px;">
-    {child_blocks}
-    <button type="button" onclick="savePoetryPassages()"
-            style="background:#7c3aed;color:white;border:none;border-radius:8px;
-                   padding:8px 20px;font-size:0.85em;font-weight:700;cursor:pointer;
-                   font-family:inherit;">
+                font-size:0.85em;font-family:inherit;margin-bottom:6px;
+                background:#faf8f5;color:#3b2a1a;">
+  <textarea name="text__{_e(child)}" rows="5"
+            placeholder="Paste the Shakespeare passage here…"
+            style="width:100%;padding:8px 10px;border:1px solid #d4c9bc;border-radius:7px;
       Save Passages
     </button>
     <span id="poetry-save-status"
