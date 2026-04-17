@@ -2127,15 +2127,52 @@ class Handler(BaseHTTPRequestHandler):
                 due_date=clean_text(data.get("due_date",[""])[0]); priority=clean_priority(data.get("priority",["MEDIUM"])[0])
                 is_recurring=data.get("recurring",[""])[0]=="true"
                 iv=safe_int(data.get("interval_value",["1"])[0],1); iu=clean_text(data.get("interval_unit",["weeks"])[0])
-                _pattern_units = {"monthly_last_sat","monthly_last_sun","monthly_first_sat","monthly_first_sun","monthly_last_fri","monthly_first_fri"}
-                if iu not in ("days","weeks","months") and iu not in _pattern_units: iu="weeks"
+                _legacy_units = {"monthly_last_sat","monthly_last_sun","monthly_first_sat","monthly_first_sun","monthly_last_fri","monthly_first_fri"}
+                _allowed_units = {"days","weeks","months","years","weekdays","specific_weekdays","monthly_day","monthly_nth_weekday"} | _legacy_units
+                if iu not in _allowed_units: iu="weeks"
+                # Cap interval_value to a sane max so degenerate inputs can't drive expensive loops
                 if iv<1: iv=1
+                if iv>366: iv=366
+                # Mode-specific fields
+                _wdmask=[]
+                if iu=="specific_weekdays":
+                    for v in data.get("weekdays_mask",[]):
+                        n=safe_int(v,-1)
+                        if 0<=n<=6 and n not in _wdmask: _wdmask.append(n)
+                    # Required: at least one weekday must be selected
+                    if not _wdmask:
+                        iu="weeks"  # graceful fallback rather than hard reject
+                _mday=safe_int(data.get("month_day",["1"])[0],1)
+                if _mday!=-1: _mday=max(1, min(31, _mday))
+                _mnth=safe_int(data.get("month_nth",["1"])[0],1)
+                if _mnth not in (1,2,3,4,5,-1): _mnth=1
+                _mwd =safe_int(data.get("month_weekday",["0"])[0],0)
+                if not (0<=_mwd<=6): _mwd=0
+                # Strict ISO validation for end_date — reject silently if malformed
+                _end_date=clean_text(data.get("end_date",[""])[0])
+                if _end_date:
+                    try:
+                        from datetime import date as _vdate
+                        _vdate.fromisoformat(_end_date)
+                    except Exception:
+                        _end_date=""
+                _max_occ_raw=clean_text(data.get("max_occurrences",[""])[0])
+                _max_occ=safe_int(_max_occ_raw,0) if _max_occ_raw else 0
+                if _max_occ<0: _max_occ=0
+                if _max_occ>9999: _max_occ=9999
                 if text:
                     tasks=load_manual_tasks()
                     targets = assigned_to_list if assigned_to_list else [""]
                     for _who in targets:
                         t={"text":text,"assigned_to":_who,"due_date":due_date,"priority":priority,"status":"active","recurring":is_recurring}
-                        if is_recurring: t["interval_value"]=iv; t["interval_unit"]=iu
+                        if is_recurring:
+                            t["interval_value"]=iv; t["interval_unit"]=iu
+                            if iu=="specific_weekdays" and _wdmask: t["weekdays_mask"]=_wdmask
+                            if iu=="monthly_day": t["month_day"]=_mday
+                            if iu=="monthly_nth_weekday":
+                                t["month_nth"]=_mnth; t["month_weekday"]=_mwd
+                            if _end_date: t["end_date"]=_end_date
+                            if _max_occ>0: t["occurrences_remaining"]=_max_occ
                         tasks.append(t)
                     save_manual_tasks(tasks)
                 ru=data.get("return_url",["/tasks"])[0]

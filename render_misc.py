@@ -4337,20 +4337,18 @@ def render_tasks() -> str:
         is_recurring = task.get("recurring", False)
         recur_badge = ""
         if is_recurring:
-            _ru = task.get('interval_unit','weeks')
-            _rv = task.get('interval_value', 1)
-            _pattern_labels = {
-                "monthly_last_sat": "last Sat of each month",
-                "monthly_last_sun": "last Sun of each month",
-                "monthly_last_fri": "last Fri of each month",
-                "monthly_first_sat": "1st Sat of each month",
-                "monthly_first_sun": "1st Sun of each month",
-                "monthly_first_fri": "1st Fri of each month",
-            }
-            if _ru in _pattern_labels:
-                recur_badge = f" <span class='badge'>↻ {_pattern_labels[_ru]}</span>"
-            else:
-                recur_badge = f" <span class='badge'>↻ every {escape(str(_rv))} {escape(_ru)}</span>"
+            try:
+                from data_helpers import format_recurrence_label as _frl
+                _label = _frl(task)
+            except Exception:
+                _label = ""
+            if _label:
+                _end_extra = ""
+                if task.get("end_date"):
+                    _end_extra = f" until {escape(task['end_date'])}"
+                elif task.get("occurrences_remaining"):
+                    _end_extra = f" ({task['occurrences_remaining']} left)"
+                recur_badge = f" <span class='badge'>↻ {escape(_label)}{_end_extra}</span>"
         if status == "active":
             card_html = f"""
         <div class="card" id="task-card-{index}">
@@ -4467,6 +4465,20 @@ def render_tasks() -> str:
     else:
         _ty_widget = ""
 
+    # Build weekday checkbox boxes for the "specific weekdays" recurrence option
+    _wd_names = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+    _weekday_boxes_html = "".join(
+        f'<label style="display:inline-flex;align-items:center;gap:4px;'
+        f'padding:5px 9px;border:1px solid #d4c9bc;border-radius:14px;'
+        f'cursor:pointer;font-size:0.82em;background:#fff;margin:0;">'
+        f'<input type="checkbox" name="weekdays_mask" value="{i}"'
+        f' style="width:auto;margin:0;accent-color:#8b5a3c;"> {nm}</label>'
+        for i, nm in enumerate(_wd_names)
+    )
+    _month_day_opts_html = "".join(
+        f'<option value="{d}">Day {d}</option>' for d in range(1, 32)
+    )
+
     body = f"""
     {page_header("Tasks")}
     {_ty_widget}
@@ -4485,26 +4497,154 @@ def render_tasks() -> str:
                        style="width:auto;margin:0;">
                 <span>Repeat</span>
             </label>
-            <div id="recur-fields" style="display:none;padding:10px 0 4px 0;">
-                <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;">
-                    <span id="recur-every-label" style="white-space:nowrap;font-size:0.9em;">every</span>
-                    <input id="recur-n" type="number" name="interval_value" value="1" min="1" style="width:70px;max-width:70px;margin-bottom:0;">
-                    <select id="recur-unit" name="interval_unit" style="margin-bottom:0;"
-                            onchange="(function(s){{var n=document.getElementById('recur-n'),lbl=document.getElementById('recur-every-label');var isPattern=['monthly_last_sat','monthly_last_sun','monthly_last_fri','monthly_first_sat','monthly_first_sun','monthly_first_fri'].includes(s.value);n.style.display=isPattern?'none':'';lbl.style.display=isPattern?'none':'';}})(this)">
-                        <option value="days">Days</option>
-                        <option value="weeks" selected>Weeks</option>
-                        <option value="months">Months (same date)</option>
-                        <optgroup label="── Monthly patterns ──">
-                        <option value="monthly_last_sat">Last Saturday of each month</option>
-                        <option value="monthly_last_sun">Last Sunday of each month</option>
-                        <option value="monthly_last_fri">Last Friday of each month</option>
-                        <option value="monthly_first_sat">First Saturday of each month</option>
-                        <option value="monthly_first_sun">First Sunday of each month</option>
-                        <option value="monthly_first_fri">First Friday of each month</option>
-                        </optgroup>
+            <div id="recur-fields" style="display:none;padding:10px 0 4px 0;border-left:3px solid #e9d8c8;padding-left:14px;margin-bottom:6px;">
+                <label style="font-size:0.85em;font-weight:600;margin:0 0 4px;">Frequency</label>
+                <select id="recur-unit" name="interval_unit" style="margin-bottom:10px;"
+                        onchange="_recurUpdateUI()">
+                    <option value="days">Every N days</option>
+                    <option value="weekdays">Every weekday (Mon–Fri)</option>
+                    <option value="specific_weekdays">On specific days of the week…</option>
+                    <option value="weeks" selected>Every N weeks</option>
+                    <option value="monthly_day">Monthly on day…</option>
+                    <option value="monthly_nth_weekday">Monthly on Nth weekday…</option>
+                    <option value="months">Every N months (same date)</option>
+                    <option value="years">Yearly</option>
+                </select>
+
+                <div id="recur-row-n" style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+                    <span id="recur-every-label" style="white-space:nowrap;font-size:0.88em;">Every</span>
+                    <input id="recur-n" type="number" name="interval_value" value="1" min="1"
+                           style="width:70px;max-width:70px;margin:0;">
+                    <span id="recur-n-suffix" style="white-space:nowrap;font-size:0.88em;color:#6b7280;">week(s)</span>
+                </div>
+
+                <div id="recur-row-weekdays" style="display:none;margin-bottom:10px;">
+                    <div style="font-size:0.85em;font-weight:600;margin-bottom:4px;">Repeat on</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                        {_weekday_boxes_html}
+                    </div>
+                </div>
+
+                <div id="recur-row-monthday" style="display:none;margin-bottom:10px;">
+                    <label style="font-size:0.85em;font-weight:600;margin:0 0 4px;">Day of month</label>
+                    <select name="month_day" style="margin:0;">
+                        {_month_day_opts_html}
+                        <option value="-1">Last day of month</option>
                     </select>
                 </div>
+
+                <div id="recur-row-nthwd" style="display:none;margin-bottom:10px;gap:8px;">
+                    <label style="font-size:0.85em;font-weight:600;margin:0 0 4px;">On the</label>
+                    <div style="display:flex;gap:8px;">
+                        <select name="month_nth" style="margin:0;flex:1;">
+                            <option value="1">1st</option>
+                            <option value="2">2nd</option>
+                            <option value="3">3rd</option>
+                            <option value="4">4th</option>
+                            <option value="5">5th</option>
+                            <option value="-1">Last</option>
+                        </select>
+                        <select name="month_weekday" style="margin:0;flex:1;">
+                            <option value="0">Monday</option>
+                            <option value="1">Tuesday</option>
+                            <option value="2">Wednesday</option>
+                            <option value="3">Thursday</option>
+                            <option value="4">Friday</option>
+                            <option value="5">Saturday</option>
+                            <option value="6">Sunday</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="border-top:1px dashed #e9d8c8;padding-top:8px;margin-top:4px;">
+                    <label style="font-size:0.85em;font-weight:600;margin:0 0 4px;">Ends</label>
+                    <select id="recur-end-mode" style="margin:0 0 6px;" onchange="_recurUpdateEndUI()">
+                        <option value="never" selected>Never</option>
+                        <option value="on_date">On date…</option>
+                        <option value="after_n">After N times…</option>
+                    </select>
+                    <input id="recur-end-date" type="date" name="end_date"
+                           style="display:none;margin:0 0 6px;width:100%;">
+                    <input id="recur-max-occ" type="number" name="max_occurrences" min="1" placeholder="e.g. 12"
+                           style="display:none;margin:0;width:100%;">
+                </div>
+
+                <div id="recur-preview"
+                     style="margin-top:10px;padding:8px 10px;background:#fdf6f0;
+                            border-radius:6px;font-size:0.82em;color:#5b4636;">
+                    ↻ <span id="recur-preview-text">every week</span>
+                </div>
             </div>
+            <script>
+            function _recurUpdateUI() {{
+                var u = document.getElementById('recur-unit').value;
+                var rowN = document.getElementById('recur-row-n');
+                var rowWD = document.getElementById('recur-row-weekdays');
+                var rowMD = document.getElementById('recur-row-monthday');
+                var rowNW = document.getElementById('recur-row-nthwd');
+                var lbl = document.getElementById('recur-every-label');
+                var suf = document.getElementById('recur-n-suffix');
+                rowN.style.display='none'; rowWD.style.display='none';
+                rowMD.style.display='none'; rowNW.style.display='none';
+                if (u==='days')      {{ rowN.style.display='flex'; lbl.textContent='Every'; suf.textContent='day(s)'; }}
+                else if (u==='weeks'){{ rowN.style.display='flex'; lbl.textContent='Every'; suf.textContent='week(s)'; }}
+                else if (u==='months'){{ rowN.style.display='flex'; lbl.textContent='Every'; suf.textContent='month(s)'; }}
+                else if (u==='years'){{ rowN.style.display='flex'; lbl.textContent='Every'; suf.textContent='year(s)'; }}
+                else if (u==='specific_weekdays'){{ rowWD.style.display='block';
+                    rowN.style.display='flex'; lbl.textContent='Every'; suf.textContent='week(s)'; }}
+                else if (u==='monthly_day'){{ rowMD.style.display='block';
+                    rowN.style.display='flex'; lbl.textContent='Every'; suf.textContent='month(s)'; }}
+                else if (u==='monthly_nth_weekday'){{ rowNW.style.display='block';
+                    rowN.style.display='flex'; lbl.textContent='Every'; suf.textContent='month(s)'; }}
+                _recurPreview();
+            }}
+            function _recurUpdateEndUI() {{
+                var m = document.getElementById('recur-end-mode').value;
+                var d = document.getElementById('recur-end-date');
+                var n = document.getElementById('recur-max-occ');
+                d.style.display = (m==='on_date')?'block':'none';
+                n.style.display = (m==='after_n')?'block':'none';
+                if (m!=='on_date') d.value='';
+                if (m!=='after_n') n.value='';
+            }}
+            function _recurPreview() {{
+                var u = document.getElementById('recur-unit').value;
+                var n = parseInt(document.getElementById('recur-n').value)||1;
+                var WD=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+                var NW={{'1':'1st','2':'2nd','3':'3rd','4':'4th','-1':'last'}};
+                var s='every week';
+                if (u==='days')      s = (n===1?'every day':'every '+n+' days');
+                else if (u==='weeks'){{ s = (n===1?'every week':'every '+n+' weeks'); }}
+                else if (u==='months'){{ s = (n===1?'every month':'every '+n+' months'); }}
+                else if (u==='years'){{ s = (n===1?'every year':'every '+n+' years'); }}
+                else if (u==='weekdays'){{ s='every weekday (Mon–Fri)'; }}
+                else if (u==='specific_weekdays'){{
+                    var picked=[];
+                    document.querySelectorAll('input[name=\"weekdays_mask\"]:checked').forEach(function(cb){{picked.push(parseInt(cb.value));}});
+                    picked.sort(); var names=picked.map(function(i){{return WD[i];}}).join(', ');
+                    s = names || 'pick at least one day';
+                    if (n>1) s += ' every '+n+' weeks';
+                }} else if (u==='monthly_day'){{
+                    var md=document.querySelector('select[name=\"month_day\"]').value;
+                    var d=(md==='-1')?'last day':'day '+md;
+                    s = d + (n>1?(' of every '+n+' months'):' of each month');
+                }} else if (u==='monthly_nth_weekday'){{
+                    var nth=document.querySelector('select[name=\"month_nth\"]').value;
+                    var wd=parseInt(document.querySelector('select[name=\"month_weekday\"]').value);
+                    s = NW[nth]+' '+WD[wd]+(n>1?(' of every '+n+' months'):' of each month');
+                }}
+                document.getElementById('recur-preview-text').textContent = s;
+            }}
+            // Wire up live preview
+            document.addEventListener('change', function(e){{
+                if (e.target && (e.target.name==='weekdays_mask' || e.target.name==='month_day'
+                    || e.target.name==='month_nth' || e.target.name==='month_weekday'
+                    || e.target.id==='recur-n' || e.target.id==='recur-unit')) _recurPreview();
+            }});
+            document.addEventListener('input', function(e){{
+                if (e.target && e.target.id==='recur-n') _recurPreview();
+            }});
+            </script>
             <button type="submit">Add Task</button>
         </form>
     </div>

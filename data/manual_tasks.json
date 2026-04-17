@@ -391,5 +391,25 @@
     "recurring": true,
     "interval_value": 1,
     "interval_unit": "weeks"
+  },
+  {
+    "text": "Friday Penance: give up meat or make another sacrifice.",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-24",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": true,
+    "interval_value": 1,
+    "interval_unit": "weeks"
+  },
+  {
+    "text": "Friday Penance: give up meat or make another sacrifice.",
+    "assigned_to": "JP",
+    "due_date": "2026-04-24",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": true,
+    "interval_value": 1,
+    "interval_unit": "weeks"
   }
 ]

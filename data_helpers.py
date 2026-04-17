@@ -114,11 +114,129 @@ def active_manual_tasks():
         if isinstance(t, dict) and t.get("status", "active") == "active"
     ]
 
-def advance_recurring_task(task: dict) -> dict:
-    """Given a completed recurring task, return it reset with the next due date."""
+_LEGACY_PATTERN_TO_NTH_WD = {
+    "monthly_last_sat":  (-1, 5),
+    "monthly_last_sun":  (-1, 6),
+    "monthly_last_fri":  (-1, 4),
+    "monthly_first_sat": (1, 5),
+    "monthly_first_sun": (1, 6),
+    "monthly_first_fri": (1, 4),
+}
+
+def _nth_weekday_of_month(year: int, month: int, nth: int, weekday: int):
+    """Return the date of the Nth `weekday` (0=Mon..6=Sun) in given month/year.
+    `nth` is 1..4 for first..fourth, or -1 for the last occurrence.
+    Returns None if 5th-style nth doesn't exist that month."""
     import calendar as _cal
+    if nth == -1:
+        last_day = _cal.monthrange(year, month)[1]
+        d = date(year, month, last_day)
+        while d.weekday() != weekday:
+            d -= timedelta(days=1)
+        return d
+    # Walk from day 1 forward
+    d = date(year, month, 1)
+    while d.weekday() != weekday:
+        d += timedelta(days=1)
+    d = d + timedelta(weeks=nth - 1)
+    if d.month != month:
+        return None
+    return d
+
+
+def _add_months(d: date, n: int) -> date:
+    """Add `n` calendar months, clamping the day if the target month is shorter."""
+    import calendar as _cal
+    month = d.month - 1 + n
+    year  = d.year + month // 12
+    month = month % 12 + 1
+    day   = min(d.day, _cal.monthrange(year, month)[1])
+    return date(year, month, day)
+
+
+def _next_specific_weekday(base: date, weekdays_set, week_step: int = 1) -> date:
+    """Find the next date strictly after `base` whose weekday is in
+    `weekdays_set` (set of 0..6). `week_step`: 1=every week, 2=every other, etc.
+    Within a 'week_step' window, all selected weekdays are fired; week boundaries
+    are Monday."""
+    if not weekdays_set:
+        return base + timedelta(days=7 * max(week_step, 1))
+    # Walk forward day by day; honor week_step by anchoring on the Monday of base's week
+    base_monday = base - timedelta(days=base.weekday())
+    cand = base + timedelta(days=1)
+    for _ in range(7 * max(week_step, 1) + 7):
+        cand_monday = cand - timedelta(days=cand.weekday())
+        weeks_since_anchor = (cand_monday - base_monday).days // 7
+        in_active_week = (weeks_since_anchor % max(week_step, 1)) == 0
+        if in_active_week and cand.weekday() in weekdays_set:
+            return cand
+        cand += timedelta(days=1)
+    return base + timedelta(days=7)
+
+
+def _next_monthly_day(base: date, month_day: int, month_step: int = 1) -> date:
+    """Next occurrence on day `month_day` of the month (or -1 = last day),
+    advancing by `month_step` months from base's month."""
+    import calendar as _cal
+    target = _add_months(base.replace(day=1), max(month_step, 1))
+    last = _cal.monthrange(target.year, target.month)[1]
+    if month_day == -1:
+        d = last
+    else:
+        d = min(max(1, month_day), last)
+    return date(target.year, target.month, d)
+
+
+def format_recurrence_label(task: dict) -> str:
+    """Human-readable one-line summary of a task's recurrence."""
+    if not task.get("recurring"):
+        return ""
+    unit = task.get("interval_unit", "weeks")
+    val  = safe_int(task.get("interval_value", 1), 1) or 1
+    _wd_short = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+    _nth_word = {1:"1st", 2:"2nd", 3:"3rd", 4:"4th", 5:"5th", -1:"last"}
+    if unit in _LEGACY_PATTERN_TO_NTH_WD:
+        nth, wd = _LEGACY_PATTERN_TO_NTH_WD[unit]
+        return f"{_nth_word.get(nth,'?')} {_wd_short[wd]} of each month"
+    if unit == "specific_weekdays":
+        days = sorted(set(safe_int(d, -1) for d in task.get("weekdays_mask", []) if str(d).strip() != ""))
+        days = [d for d in days if 0 <= d <= 6]
+        if not days:
+            return "every week"
+        names = ", ".join(_wd_short[d] for d in days)
+        if val > 1:
+            return f"{names} every {val} weeks"
+        return names
+    if unit == "monthly_day":
+        d = safe_int(task.get("month_day", 1), 1)
+        d_label = "last day" if d == -1 else f"day {d}"
+        if val > 1:
+            return f"{d_label} of every {val} months"
+        return f"{d_label} of each month"
+    if unit == "monthly_nth_weekday":
+        nth = safe_int(task.get("month_nth", 1), 1)
+        wd  = safe_int(task.get("month_weekday", 0), 0) % 7
+        base = f"{_nth_word.get(nth, str(nth))} {_wd_short[wd]} of each month"
+        if val > 1:
+            return base.replace("each", f"every {val}")
+        return base
+    if unit == "weekdays":
+        return "every weekday (Mon–Fri)"
+    if unit == "years":
+        return "every year" if val == 1 else f"every {val} years"
+    # days/weeks/months
+    unit_word = {"days":"day","weeks":"week","months":"month"}.get(unit, unit)
+    if val == 1:
+        return f"every {unit_word}"
+    return f"every {val} {unit_word}s"
+
+
+def advance_recurring_task(task: dict) -> dict:
+    """Given a completed recurring task, return it reset with the next due date.
+    Honors end_date and max_occurrences — when exhausted, status becomes 'inactive'.
+    """
     unit  = task.get("interval_unit", "weeks")
-    value = safe_int(task.get("interval_value", 1), 1)
+    value = safe_int(task.get("interval_value", 1), 1) or 1
     if value < 1:
         value = 1
     base_str = task.get("due_date", "") or date.today().isoformat()
@@ -127,52 +245,76 @@ def advance_recurring_task(task: dict) -> dict:
     except Exception:
         base = date.today()
 
-    # ── Monthly "Nth weekday" patterns ─────────────────────────────────────
-    _weekday_patterns = {
-        "monthly_last_sat": (5, -1),  # Saturday, last occurrence
-        "monthly_last_sun": (6, -1),  # Sunday, last occurrence
-        "monthly_last_fri": (4, -1),  # Friday, last occurrence
-        "monthly_first_sat": (5, 1),  # Saturday, first occurrence
-        "monthly_first_sun": (6, 1),  # Sunday, first occurrence
-        "monthly_first_fri": (4, 1),  # Friday, first occurrence
-    }
-    if unit in _weekday_patterns:
-        wd, nth = _weekday_patterns[unit]
-        # Advance to the next calendar month
-        nm = base.month + 1
-        ny = base.year + (nm - 1) // 12
-        nm = (nm - 1) % 12 + 1
-        last_day = _cal.monthrange(ny, nm)[1]
-        if nth == -1:
-            # Last occurrence: start from end of month, walk back
-            d = date(ny, nm, last_day)
-            while d.weekday() != wd:
-                d -= timedelta(days=1)
+    # Legacy patterns → translate to monthly_nth_weekday on the fly
+    if unit in _LEGACY_PATTERN_TO_NTH_WD:
+        nth, wd = _LEGACY_PATTERN_TO_NTH_WD[unit]
+        # Walk forward month by month until a valid Nth weekday exists
+        cand = base
+        for _ in range(24):
+            cand = _add_months(cand.replace(day=1), 1)
+            d = _nth_weekday_of_month(cand.year, cand.month, nth, wd)
+            if d and d > base:
+                next_due = d
+                break
         else:
-            # First occurrence: start from day 1, walk forward
-            d = date(ny, nm, 1)
-            while d.weekday() != wd:
-                d += timedelta(days=1)
-        next_due = d
+            next_due = base + timedelta(days=30)
+    elif unit == "specific_weekdays":
+        raw = task.get("weekdays_mask", [])
+        wd_set = {safe_int(d, -1) for d in raw if str(d).strip() != ""}
+        wd_set = {d for d in wd_set if 0 <= d <= 6}
+        next_due = _next_specific_weekday(base, wd_set, week_step=value)
+    elif unit == "monthly_day":
+        md = safe_int(task.get("month_day", 1), 1)
+        next_due = _next_monthly_day(base, md, month_step=value)
+    elif unit == "monthly_nth_weekday":
+        nth = safe_int(task.get("month_nth", 1), 1)
+        wd  = safe_int(task.get("month_weekday", 0), 0) % 7
+        cand = base
+        for _ in range(36):
+            cand = _add_months(cand.replace(day=1), max(value, 1))
+            d = _nth_weekday_of_month(cand.year, cand.month, nth, wd)
+            if d and d > base:
+                next_due = d
+                break
+        else:
+            next_due = base + timedelta(days=30)
     elif unit == "weekdays":
-        # Advance 1 day at a time, skipping Saturday (5) and Sunday (6)
         next_due = base + timedelta(days=1)
         while next_due.weekday() >= 5:
             next_due += timedelta(days=1)
     elif unit == "days":
         next_due = base + timedelta(days=value)
     elif unit == "months":
-        month = base.month - 1 + value
-        year  = base.year + month // 12
-        month = month % 12 + 1
-        day   = min(base.day, _cal.monthrange(year, month)[1])
-        next_due = base.replace(year=year, month=month, day=day)
+        next_due = _add_months(base, value)
+    elif unit == "years":
+        try:
+            next_due = base.replace(year=base.year + value)
+        except ValueError:
+            # Feb 29 in non-leap year
+            next_due = base.replace(year=base.year + value, day=28)
     else:
         next_due = base + timedelta(weeks=value)
 
     task = dict(task)
     task["due_date"] = next_due.isoformat()
     task["status"]   = "active"
+
+    # End conditions
+    end_date = task.get("end_date", "")
+    if end_date:
+        try:
+            if next_due > date.fromisoformat(end_date):
+                task["status"] = "inactive"
+        except Exception:
+            pass
+    if "occurrences_remaining" in task:
+        try:
+            remaining = int(task["occurrences_remaining"]) - 1
+            task["occurrences_remaining"] = max(0, remaining)
+            if remaining <= 0:
+                task["status"] = "inactive"
+        except Exception:
+            pass
     return task
 
 
