@@ -560,12 +560,23 @@ def _is_prev_task_done(progress: dict, child: str, iso: str, raw: str) -> bool:
         if len(parts) >= 5 and parts[1] == child and parts[2] == iso:
             return bool(progress.get(raw))
         # Build canonical new-format key
+        subject = ""
         if len(parts) >= 3:
             # SCHOOL::subject::item  (short form)
             _, subject, *rest = parts
             key = f"SCHOOL::{child}::{iso}::{subject}::{'::'.join(rest)}"
             if progress.get(key):
                 return True
+        # Subject-level satisfaction: the registry is rebuilt every page-load
+        # from the current curriculum, so the exact checklist text can drift
+        # day-to-day (e.g. today says "Memorize.", but the user originally
+        # checked off the generic "Done" button).  If ANY progress entry exists
+        # for SCHOOL::child::iso::subject::*, the subject was done that day.
+        if subject:
+            subj_pfx = f"SCHOOL::{child}::{iso}::{subject}::"
+            for k, v in progress.items():
+                if v and k.startswith(subj_pfx):
+                    return True
         return False
 
     # 3. MANUAL:: — raw is MANUAL::MEDIUM::text or MANUAL::HIGH::text or MANUAL::text
