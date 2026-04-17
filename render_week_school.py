@@ -304,7 +304,10 @@ def _child_block_html(child: str, child_data: dict, days: list, today: date) -> 
 def _render_poetry_passages_card() -> str:
     passages = load_poetry_passages()
     child_blocks = ""
-    for child in CHILDREN_SCHOOL:
+    # Poetry editor includes Michael (5) for early memorization, even though he
+    # isn't part of the formal school grid above.
+    poetry_children = list(CHILDREN_SCHOOL) + [c for c in ("Michael",) if c not in CHILDREN_SCHOOL]
+    for child in poetry_children:
         color = CHILD_COLORS.get(child, {}).get("bg", "#555")
         p = passages.get(child, {})
         title_val = _e(p.get("title", ""))
