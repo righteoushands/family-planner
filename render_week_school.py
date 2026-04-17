@@ -9,6 +9,7 @@ from html import escape as _e
 from datetime import date, timedelta
 import json as _json
 import os as _os
+import re
 
 POETRY_PASSAGES_FILE = "data/poetry_passages.json"
 
@@ -91,8 +92,64 @@ def _registered_school_subjects(child: str, iso: str):
         return {}
 
 
+_LESSON_PREFIX_RE = re.compile(r"^Lesson\s+\S+\s+[—–-]\s+", re.IGNORECASE)
+_LEGACY_SUBJECT_DONE_TAILS = {"Done", "done", "Completed", "completed",
+                              "Test completed — given to Mom"}
+
+
+def _subject_marked_done_legacy(progress: dict, child: str, iso: str, subject: str) -> bool:
+    """Older days stored a single SCHOOL::child::iso::subject::Done checkbox per
+    subject, instead of one per assignment line. If that legacy marker is set,
+    treat every item in the subject as done."""
+    prefix = f"SCHOOL::{child}::{iso}::{subject}::"
+    for tail in _LEGACY_SUBJECT_DONE_TAILS:
+        if progress.get(prefix + tail, False):
+            return True
+    return False
+
+
+def _progress_done(progress: dict, child: str, iso: str, subject: str, item: str,
+                   _legacy_cache: dict = None) -> bool:
+    """Resilient progress lookup that tolerates historical task-ID variants:
+    (a) items stored with vs without the 'Lesson N — ' prefix, and
+    (b) older days that used a single subject-level 'Done' checkbox instead of
+        per-assignment-line checkboxes."""
+    # (b) Legacy subject-level "Done" marker — short-circuit
+    if _legacy_cache is not None:
+        cache_key = (child, iso, subject)
+        if cache_key not in _legacy_cache:
+            _legacy_cache[cache_key] = _subject_marked_done_legacy(progress, child, iso, subject)
+        if _legacy_cache[cache_key]:
+            return True
+    elif _subject_marked_done_legacy(progress, child, iso, subject):
+        return True
+
+    key = f"SCHOOL::{child}::{iso}::{subject}::{item}"
+    if progress.get(key, False):
+        return True
+    # (a) Try stripping a leading 'Lesson <n> — ' prefix
+    stripped = _LESSON_PREFIX_RE.sub("", item)
+    if stripped != item:
+        if progress.get(f"SCHOOL::{child}::{iso}::{subject}::{stripped}", False):
+            return True
+    # Suffix-match scan as a final safety net
+    prefix = f"SCHOOL::{child}::{iso}::{subject}::"
+    needles = {item, stripped} if stripped != item else {item}
+    for k, v in progress.items():
+        if not v or not k.startswith(prefix):
+            continue
+        tail = k[len(prefix):]
+        if tail in needles:
+            return True
+        tail_stripped = _LESSON_PREFIX_RE.sub("", tail)
+        if tail_stripped in needles:
+            return True
+    return False
+
+
 def _cell_status(child: str, iso: str, subject: str, items: list,
-                 progress: dict, is_future: bool, is_today: bool = False):
+                 progress: dict, is_future: bool, is_today: bool = False,
+                 _legacy_cache: dict = None):
     """
     Return 'done' | 'partial' | 'missed' | 'pending' | 'skip' | 'future'
     for a single (child, day, subject) cell.
@@ -106,7 +163,7 @@ def _cell_status(child: str, iso: str, subject: str, items: list,
         return "skip"
     done = sum(
         1 for item in items
-        if progress.get(f"SCHOOL::{child}::{iso}::{subject}::{item}", False)
+        if _progress_done(progress, child, iso, subject, item, _legacy_cache)
     )
     if done == len(items):
         return "done"
@@ -129,6 +186,8 @@ def _build_child_week(child: str, days: list, today: date):
         progress = load_progress()
     except Exception:
         progress = {}
+
+    _legacy_cache: dict = {}
 
     # Build ordered subject list across the whole week (curriculum order first)
     subject_order = {}
@@ -175,7 +234,8 @@ def _build_child_week(child: str, days: list, today: date):
             if subj in reg:
                 cells[subj] = _cell_status(child, iso, subj, reg[subj],
                                             progress, is_future=False,
-                                            is_today=is_today)
+                                            is_today=is_today,
+                                            _legacy_cache=_legacy_cache)
             else:
                 cells[subj] = "skip"
         day_cells[iso] = cells
