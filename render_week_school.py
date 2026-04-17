@@ -29,13 +29,21 @@ def save_poetry_passages(data: dict) -> None:
         _json.dump(data, f, ensure_ascii=False, indent=2)
     _os.replace(tmp, POETRY_PASSAGES_FILE)
 
-CHILDREN_SCHOOL = ["JP", "Joseph"]
+CHILDREN_SCHOOL = ["JP", "Joseph", "Michael"]
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
 # Per-child color palette  (same as config.py child_color)
 CHILD_COLORS = {
-    "JP":     {"bg": "#1e3566", "light": "#eef1f8"},
-    "Joseph": {"bg": "#14532d", "light": "#edf5f0"},
+    "JP":      {"bg": "#1e3566", "light": "#eef1f8"},
+    "Joseph":  {"bg": "#14532d", "light": "#edf5f0"},
+    "Michael": {"bg": "#e67e22", "light": "#fef6ed"},
+}
+
+# Per-child grade label rendered next to each child's weekly block.
+CHILD_GRADES = {
+    "JP":      "Grade 8",
+    "Joseph":  "Grade 7",
+    "Michael": "Kindergarten",
 }
 
 
@@ -226,7 +234,7 @@ def _child_block_html(child: str, child_data: dict, days: list, today: date) -> 
     subjects = child_data["subjects"]
 
     # Grade label
-    grade = {"JP": "Grade 8", "Joseph": "Grade 7"}.get(child, "")
+    grade = CHILD_GRADES.get(child, "")
 
     # Header
     bar_width = f"{pct}%"
@@ -304,10 +312,8 @@ def _child_block_html(child: str, child_data: dict, days: list, today: date) -> 
 def _render_poetry_passages_card() -> str:
     passages = load_poetry_passages()
     child_blocks = ""
-    # Poetry editor includes Michael (5) for early memorization, even though he
-    # isn't part of the formal school grid above.
-    poetry_children = list(CHILDREN_SCHOOL) + [c for c in ("Michael",) if c not in CHILDREN_SCHOOL]
-    for child in poetry_children:
+    # Poetry editor uses the same school roster (JP, Joseph, Michael).
+    for child in CHILDREN_SCHOOL:
         color = CHILD_COLORS.get(child, {}).get("bg", "#555")
         p = passages.get(child, {})
         title_val = _e(p.get("title", ""))
