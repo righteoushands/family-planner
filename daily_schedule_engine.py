@@ -488,14 +488,63 @@ def format_task_text(task_text: str) -> str:
     return task_text
 
 
+def _carry_completion_exists(progress: dict, child: str, display: str) -> bool:
+    """
+    Has the user EVER checked off a CARRY:: copy of this task on any later day?
+
+    When a task carries forward and the user checks it off, the click writes
+    `CARRY::child::TODAY::display` (today's iso, not the original day).  Without
+    this check, _is_prev_task_done would only ever look at the original key
+    (e.g. SCHOOL::JP::2026-04-13::…) — which never flips to True — and the task
+    would carry forever.
+
+    `display` should be the user-visible text (format_task_text output), which
+    is what the CARRY:: keys store.  We also tolerate a leading [PRIORITY]
+    marker because manual carryover keys keep that prefix.
+    """
+    if not display:
+        return False
+    import re as _re
+    target  = display.strip()
+    target2 = _re.sub(r"^\[(HIGH|MEDIUM|LOW)\]\s*", "", target).strip()
+    pfx = f"CARRY::{child}::"
+    for k, v in progress.items():
+        if not v or not k.startswith(pfx):
+            continue
+        # k = CARRY::child::iso::display
+        parts = k.split("::", 3)
+        if len(parts) != 4:
+            continue
+        ktext = parts[3].strip()
+        if ktext == target or ktext == target2:
+            return True
+        # Also tolerate the same priority-prefix asymmetry the other way
+        ktext2 = _re.sub(r"^\[(HIGH|MEDIUM|LOW)\]\s*", "", ktext).strip()
+        if ktext2 == target or ktext2 == target2:
+            return True
+    return False
+
+
 def _is_prev_task_done(progress: dict, child: str, iso: str, raw: str) -> bool:
     """Check whether a registered task was completed, handling all key formats.
 
     Progress keys use: TYPE::child::iso::... (new format)
     make_task_id() used: iso::child::raw (old/legacy format)
     Both are checked so old data still works.
+
+    A CARRY:: completion on ANY later day also counts — see
+    _carry_completion_exists for why.
     """
     raw = raw.strip()
+
+    # 0. Universal carry-completion check — if the user ever checked this off
+    #    while it was showing as a carryover item, treat it as done regardless
+    #    of which key family it belongs to.
+    try:
+        if _carry_completion_exists(progress, child, format_task_text(raw)):
+            return True
+    except Exception:
+        pass
 
     # 1. Legacy format (old make_task_id)
     if progress.get(f"{iso}::{child}::{raw}"):
@@ -641,31 +690,43 @@ def _is_prev_task_done(progress: dict, child: str, iso: str, raw: str) -> bool:
     return bool(progress.get(raw))
 
 
+_CARRYOVER_LOOKBACK_DAYS = 7
+
+
+def _collect_undone_history(child: str, target_day: date, progress: dict):
+    """
+    Walk back up to _CARRYOVER_LOOKBACK_DAYS and collect every registered task
+    that was never marked done.  Dedupes by raw task text so a weekly chore
+    registered on multiple days doesn't appear twice — the OLDEST occurrence
+    wins (so the "from Mon Apr 13" label points at the original assignment
+    date, not the most recent re-registration).
+
+    Returns list of (raw_text, prev_iso) sorted oldest-first.
+
+    Why 7 days, not 1: previously this looked at yesterday only, so a task
+    that wasn't done yesterday-or-the-day-before would silently disappear on
+    day 3.  School & chores need to nag until they're checked off.
+    """
+    seen: dict = {}  # raw_text -> earliest prev_iso it appeared on
+    for days_back in range(1, _CARRYOVER_LOOKBACK_DAYS + 1):
+        check_iso = (target_day - timedelta(days=days_back)).isoformat()
+        for raw in get_registered_tasks_for_day(child, check_iso) or []:
+            if _is_prev_task_done(progress, child, check_iso, raw):
+                continue
+            # Older days are visited later in this loop, so an earlier
+            # appearance (newer day) is overwritten only if the task was
+            # found again on an OLDER day → we keep the older prev_iso.
+            seen[raw] = check_iso
+    return list(seen.items())  # [(raw, prev_iso), ...]
+
+
 def get_carryover_tasks(child: str, target_day: date):
     progress = load_progress()
-
-    # Look back 1 day only — tasks older than yesterday are expired.
-    previous_tasks = []
-    prev_iso = ""
-    for days_back in range(1, 2):
-        check_day = target_day - timedelta(days=days_back)
-        check_iso = check_day.isoformat()
-        found = get_registered_tasks_for_day(child, check_iso)
-        if found:
-            previous_tasks = found
-            prev_iso = check_iso
-            break
-
-    if not previous_tasks:
+    items = _collect_undone_history(child, target_day, progress)
+    if not items:
         return []
-
-    carryover = []
-    for task_text in previous_tasks:
-        if not _is_prev_task_done(progress, child, prev_iso, task_text):
-            carryover.append(task_text)
-
-    carryover.sort(key=carryover_sort_key)
-    return [format_task_text(item) for item in carryover]
+    items.sort(key=lambda t: carryover_sort_key(t[0]))
+    return [format_task_text(raw) for raw, _ in items]
 
 
 def get_carryover_tasks_raw(child: str, target_day: date):
@@ -674,25 +735,10 @@ def get_carryover_tasks_raw(child: str, target_day: date):
     Used by build_day_list to group school carryover by subject before rendering.
     """
     progress = load_progress()
-    previous_tasks = []
-    prev_iso = ""
-    for days_back in range(1, 2):
-        check_day = target_day - timedelta(days=days_back)
-        check_iso = check_day.isoformat()
-        found = get_registered_tasks_for_day(child, check_iso)
-        if found:
-            previous_tasks = found
-            prev_iso = check_iso
-            break
-
-    if not previous_tasks:
+    items = _collect_undone_history(child, target_day, progress)
+    if not items:
         return []
-
-    result = []
-    for raw in previous_tasks:
-        if not _is_prev_task_done(progress, child, prev_iso, raw):
-            result.append((raw, format_task_text(raw), prev_iso))
-
+    result = [(raw, format_task_text(raw), prev_iso) for raw, prev_iso in items]
     result.sort(key=lambda t: carryover_sort_key(t[0]))
     return result
 
