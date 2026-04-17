@@ -47,10 +47,33 @@ def _latest_coach_program_for(person: str) -> tuple:
         return ("", "")
 
 
+def _slot_time_to_minutes(t: str) -> int:
+    """Parse a '9:00 AM' style time to minutes-since-midnight; -1 if not parseable."""
+    try:
+        from datetime import datetime as _dt
+        d = _dt.strptime((t or "").strip(), "%I:%M %p")
+        return d.hour * 60 + d.minute
+    except Exception:
+        return -1
+
+
+def _minutes_to_slot_time(m: int) -> str:
+    """Inverse of _slot_time_to_minutes — '9:00 AM' style."""
+    try:
+        m = max(0, m) % (24 * 60)
+        h, mm = divmod(m, 60)
+        ampm = "AM" if h < 12 else "PM"
+        h12 = h % 12 or 12
+        return f"{h12}:{mm:02d} {ampm}"
+    except Exception:
+        return ""
+
+
 def _get_exercise_assignment(child: str, weekday: str) -> tuple:
     """
-    Returns (slot_label, assignment_text) for the exercise slot on `weekday`
-    for `child`, or ("", "") if there is no exercise scheduled that day.
+    Returns (slot_time, slot_label, assignment_text) for the exercise slot on
+    `weekday` for `child`, or ("", "", "") if there is no exercise scheduled.
+    The slot_time follows whatever the FROL says — never hard-coded.
     Resolves 'Lauren'/'Mom' alias automatically.
     """
     from data_helpers import get_frol_day_slots, load_exercise_assignments
@@ -62,26 +85,115 @@ def _get_exercise_assignment(child: str, weekday: str) -> tuple:
     try:
         day_slots  = get_frol_day_slots(weekday, "Mom")
         ex_assigns = load_exercise_assignments().get(weekday, {})
+        slot_time  = ""
         slot_label = ""
         for t, v in day_slots.items():
             if v and any(kw in v.lower() for kw in _EXERCISE_KEYWORDS):
+                slot_time  = t
                 slot_label = v
                 break
         if not slot_label:
-            return ("", "")
+            return ("", "", "")
         assignment = ex_assigns.get(person_key, "")
-        return (slot_label, assignment)
+        return (slot_time, slot_label, assignment)
     except Exception:
-        return ("", "")
+        return ("", "", "")
 
 
-def _render_exercise_block_screen(child: str, weekday: str, c_bg: str, c_light: str) -> str:
+def _render_hydration_row_html(slot_time: str, c_bg: str) -> str:
+    """Small pre-workout hydration reminder row — chronological in the day list,
+    automatically scheduled 1 hour before the FROL exercise slot."""
+    ex_min = _slot_time_to_minutes(slot_time)
+    if ex_min < 0:
+        return ""
+    hyd_time = _minutes_to_slot_time(ex_min - 60)
+    if not hyd_time:
+        return ""
+    from html import escape as _e
+    return (
+        f'<div class="dl-row dl-info" style="border-left:3px solid {c_bg}aa;'
+        f'background:#f0f9ff;">'
+        f'<span class="dl-time">{_e(hyd_time)}</span>'
+        f'<span class="dl-kind-icon">&#128166;</span>'
+        f'<span class="dl-label" style="color:#0369a1;">'
+        f'Hydrate &mdash; water + electrolytes (1 hour before workout)</span>'
+        f'</div>'
+    )
+
+
+def _post_workout_log_print_line() -> str:
+    """Tiny one-line printable post-workout log — rendered under the exercise
+    block in BOTH screen and print POD views."""
+    return (
+        '<div style="margin-top:6px;font-size:0.78em;color:#555;line-height:1.4;'
+        'border-top:1px dotted #999;padding-top:5px;">'
+        '<strong>Log:</strong> Duration ______ &nbsp; Reps/Notes ______________ '
+        '&nbsp; Felt ______'
+        '</div>'
+    )
+
+
+def _render_post_workout_log_form(child: str, iso: str, c_bg: str) -> str:
+    """Full post-workout log form — visible on-screen only (no-print).
+
+    Three fields (Duration, Reps/Notes, How I Felt) with a Save button that
+    posts to /exercise-log. Pre-fills with any previously-saved entry.
+    """
+    from html import escape as _e
+    try:
+        from data_helpers import load_exercise_logs
+        existing = load_exercise_logs().get(f"{iso}::{child}", {})
+    except Exception:
+        existing = {}
+    dur  = _e(existing.get("duration", ""))
+    reps = _e(existing.get("reps", ""))
+    felt = _e(existing.get("felt", ""))
+    saved_at = _e(existing.get("saved_at", ""))
+    saved_note = (
+        f'<span style="font-size:.7em;color:#16a34a;margin-left:8px;">'
+        f'&#10003; saved {saved_at}</span>'
+    ) if saved_at else ""
+    return (
+        f'<div class="no-print" style="margin-top:8px;background:#fff;'
+        f'border:1px solid {c_bg}55;border-radius:8px;padding:10px 12px;">'
+        f'<div style="font-size:.72em;font-weight:800;letter-spacing:.08em;'
+        f'text-transform:uppercase;color:{c_bg};margin-bottom:8px;">'
+        f'&#128221; Post-Workout Log{saved_note}</div>'
+        f'<form method="POST" action="/exercise-log"'
+        f' style="display:flex;flex-direction:column;gap:6px;">'
+        f'<input type="hidden" name="person" value="{_e(child)}">'
+        f'<input type="hidden" name="iso" value="{_e(iso)}">'
+        f'<input type="hidden" name="return_url" value="/schedule/{_e(child)}?date={_e(iso)}">'
+        f'<label style="font-size:.78em;color:#555;">Duration'
+        f'<input type="text" name="duration" value="{dur}" placeholder="e.g. 30 min"'
+        f' style="width:100%;border:1px solid #ddd;border-radius:6px;'
+        f'padding:6px 8px;font-size:.88em;font-family:inherit;margin-top:2px;"></label>'
+        f'<label style="font-size:.78em;color:#555;">Reps / Notes'
+        f'<input type="text" name="reps" value="{reps}" placeholder="e.g. 3x10 push-ups"'
+        f' style="width:100%;border:1px solid #ddd;border-radius:6px;'
+        f'padding:6px 8px;font-size:.88em;font-family:inherit;margin-top:2px;"></label>'
+        f'<label style="font-size:.78em;color:#555;">How I Felt'
+        f'<input type="text" name="felt" value="{felt}" placeholder="e.g. strong / tired / energized"'
+        f' style="width:100%;border:1px solid #ddd;border-radius:6px;'
+        f'padding:6px 8px;font-size:.88em;font-family:inherit;margin-top:2px;"></label>'
+        f'<button type="submit"'
+        f' style="background:{c_bg};color:#fff;border:none;border-radius:6px;'
+        f'padding:7px 14px;font-size:.85em;font-weight:600;cursor:pointer;'
+        f'align-self:flex-start;margin-top:4px;">Save log</button>'
+        f'</form></div>'
+    )
+
+
+def _render_exercise_block_screen(child: str, weekday: str, c_bg: str, c_light: str,
+                                   iso: str = "") -> str:
     """Colored exercise block for the live POD card (visible on-screen and in print).
 
     Inlines the latest Coach-saved program body for this person so the actual
     workout is visible right here — no need to click through to /programs.
+    Uses the FROL slot time (never hard-coded). Includes a small printable
+    log line, plus a full no-print log form when iso is provided.
     """
-    slot_label, assignment = _get_exercise_assignment(child, weekday)
+    slot_time, slot_label, assignment = _get_exercise_assignment(child, weekday)
     if not slot_label:
         return ""
     from html import escape as _e
@@ -98,15 +210,19 @@ def _render_exercise_block_screen(child: str, weekday: str, c_bg: str, c_light: 
             f'white-space:normal;word-break:break-word;">{body_html}</div>'
             f'</div>'
         )
+    log_form_html = _render_post_workout_log_form(child, iso, c_bg) if iso else ""
+    time_disp = _e(slot_time) if slot_time else "Exercise"
     return (
         f'<div style="border-left:4px solid {c_bg};background:{c_light};'
         f'padding:10px 14px;margin-bottom:10px;border-radius:0 8px 8px 0;">'
         f'<div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;'
         f'text-transform:uppercase;color:{c_bg};margin-bottom:4px;">'
-        f'&#128170; 9:00 AM &middot; {_e(slot_label)}</div>'
+        f'&#128170; {time_disp} &middot; {_e(slot_label)}</div>'
         f'<div style="font-size:0.88em;color:#333;line-height:1.5;">'
         f'{_e(assignment) if assignment else _e(slot_label)}</div>'
         f'{program_html}'
+        f'{_post_workout_log_print_line()}'
+        f'{log_form_html}'
         f'</div>'
     )
 
@@ -114,9 +230,10 @@ def _render_exercise_block_screen(child: str, weekday: str, c_bg: str, c_light: 
 def _render_exercise_block_print(child: str, weekday: str) -> str:
     """Print-friendly exercise section for the child print page.
 
-    Includes the latest Coach-saved program body so the printout stands alone.
+    Includes the latest Coach-saved program body so the printout stands alone,
+    plus a small post-workout log line. Time follows the FROL.
     """
-    slot_label, assignment = _get_exercise_assignment(child, weekday)
+    slot_time, slot_label, assignment = _get_exercise_assignment(child, weekday)
     if not slot_label:
         return ""
     from html import escape as _e
@@ -132,11 +249,20 @@ def _render_exercise_block_print(child: str, weekday: str) -> str:
             f'<div style="font-size:9pt;line-height:1.5;color:#222;">{body_html}</div>'
             f'</div>'
         )
+    time_disp = _e(slot_time) if slot_time else "Exercise"
+    log_print = (
+        '<div style="margin-top:4pt;padding-top:4pt;border-top:1px dotted #999;'
+        'font-size:8.5pt;color:#444;">'
+        '<strong>Log:</strong> Duration ______ &nbsp; Reps/Notes ______________ '
+        '&nbsp; Felt ______'
+        '</div>'
+    )
     return (
-        f'<div class="section-title">Exercise &mdash; 9:00 AM</div>'
+        f'<div class="section-title">Exercise &mdash; {time_disp}</div>'
         f'<div style="padding:4pt 0 8pt;font-size:9pt;line-height:1.5;color:#222;">'
         f'<strong>{_e(slot_label)}</strong><br>{_e(text)}'
         f'{program_html}'
+        f'{log_print}'
         f'</div>'
     )
 
@@ -763,7 +889,9 @@ def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str,
 
 def _render_day_list_html(day_list: list, child: str, iso: str,
                            c_bg: str, meals: dict = None,
-                           inline_exercise_html: str = "") -> str:
+                           inline_exercise_html: str = "",
+                           exercise_slot_time: str = "",
+                           inline_hydration_html: str = "") -> str:
     if not day_list:
         from datetime import date as _date
         try:
@@ -795,18 +923,14 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
     rows_del = []   # parallel — None means use default "Hide" button
     seen_sub_texts: set = set()   # dedup: tracks sub-item texts already rendered
     seen_single_labels: set = set()  # dedup: tracks single-row labels already rendered
-    _exercise_injected = False  # ensure inline exercise block is added once at 9 AM
+    _exercise_injected = False  # ensure inline exercise block is added once
+    _hydration_injected = False  # ensure hydration row is added once
 
-    def _slot_to_minutes(t: str) -> int:
-        """Parse a '9:00 AM' style time to minutes-since-midnight; -1 if not parseable."""
-        try:
-            from datetime import datetime as _dt
-            return _dt.strptime((t or "").strip(), "%I:%M %p").hour * 60 + \
-                   _dt.strptime((t or "").strip(), "%I:%M %p").minute
-        except Exception:
-            return -1
-
-    _EX_THRESHOLD = 9 * 60  # 9:00 AM in minutes
+    # Compute injection thresholds from the actual FROL exercise slot.
+    # If no valid slot was provided, skip in-loop injection entirely — the
+    # exercise/hydration HTML (if any) will be tail-appended after the loop.
+    _EX_THRESHOLD = _slot_time_to_minutes(exercise_slot_time)
+    _HYD_THRESHOLD = (_EX_THRESHOLD - 60) if _EX_THRESHOLD >= 60 else -1
 
     for item in day_list:
         kind  = item.get("kind", "routine")
@@ -815,10 +939,20 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
         t_st  = item.get("time", "")
         t_en  = item.get("end_time", "")
         t_disp = f"{t_st} – {t_en}" if t_en and t_en != t_st else t_st
+        _t_min = _slot_time_to_minutes(t_st)
 
-        # Inject inline exercise block at the first row whose time reaches 9:00 AM
+        # Inject hydration reminder at the first row whose time reaches
+        # exercise-time minus 1 hour (printed + screen).
+        if (inline_hydration_html and not _hydration_injected
+                and _t_min >= _HYD_THRESHOLD):
+            rows.append(inline_hydration_html)
+            rows_del.append(False)
+            _hydration_injected = True
+
+        # Inject the exercise block at the first row whose time reaches the
+        # FROL exercise slot.
         if (inline_exercise_html and not _exercise_injected
-                and _slot_to_minutes(t_st) >= _EX_THRESHOLD):
+                and _t_min >= _EX_THRESHOLD):
             rows.append(inline_exercise_html)
             rows_del.append(False)  # raw render — no swipe wrapper
             _exercise_injected = True
@@ -972,7 +1106,11 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
                 f'</div>'
             )
             rows_del.append(None)
-    # Tail-inject exercise block if the day list never reached 9:00 AM
+    # Tail-inject hydration + exercise block if the day list never reached
+    # the FROL exercise slot.
+    if inline_hydration_html and not _hydration_injected:
+        rows.append(inline_hydration_html)
+        rows_del.append(False)
     if inline_exercise_html and not _exercise_injected:
         rows.append(inline_exercise_html)
         rows_del.append(False)
@@ -1168,9 +1306,12 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
     all_done  = total > 0 and pct == 100
     celebration_html = render_confetti_celebration(child) if all_done else ""
 
+    _ex_slot_time, _ex_slot_label, _ = _get_exercise_assignment(child, weekday)
     day_list_html = _render_day_list_html(
         day_list, child, iso, c_bg, meals,
-        inline_exercise_html=_render_exercise_block_screen(child, weekday, c_bg, c_light),
+        inline_exercise_html=_render_exercise_block_screen(child, weekday, c_bg, c_light, iso),
+        exercise_slot_time=_ex_slot_time,
+        inline_hydration_html=(_render_hydration_row_html(_ex_slot_time, c_bg) if _ex_slot_label else ""),
     )
     template_html = _render_template_editor(child, weekday, c_bg)
 

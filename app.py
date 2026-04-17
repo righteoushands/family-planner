@@ -2389,6 +2389,37 @@ class Handler(BaseHTTPRequestHandler):
                     save_thankyou_reminders(_reminders)
                 redirect = "/thankyou-reminders#top"
 
+            elif path == "/exercise-log":
+                _ALLOWED_PEOPLE = {"Lauren","John","JP","Joseph","Michael","James"}
+                _person = data.get("person",[""])[0].strip()
+                _iso    = data.get("iso",[""])[0].strip()
+                _dur    = (data.get("duration",[""])[0] or "")[:80]
+                _reps   = (data.get("reps",[""])[0] or "")[:500]
+                _felt   = (data.get("felt",[""])[0] or "")[:500]
+                # Validate person whitelist
+                if _person == "Mom":
+                    _person = "Lauren"
+                _ok_person = _person in _ALLOWED_PEOPLE
+                # Validate ISO date
+                _ok_iso = False
+                try:
+                    import datetime as _ddt
+                    _ddt.date.fromisoformat(_iso)
+                    _ok_iso = True
+                except Exception:
+                    _ok_iso = False
+                if _ok_person and _ok_iso:
+                    try:
+                        from data_helpers import save_exercise_log as _sxl
+                        _sxl(_person, _iso, _dur, _reps, _felt)
+                    except Exception:
+                        pass
+                _r = data.get("return_url",[f"/schedule/{_person}" if _ok_person else "/today"])[0]
+                # Restrict redirect to in-app schedule pages
+                if not _r.startswith("/schedule/") and _r not in ("/today",):
+                    _r = f"/schedule/{_person}" if _ok_person else "/today"
+                redirect = _r
+
             elif path == "/thankyou-done":
                 _tid = data.get("id",[""])[0].strip()
                 if _tid:

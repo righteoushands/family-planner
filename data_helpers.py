@@ -335,6 +335,35 @@ def save_coach_program(person: str, title: str, body: str) -> dict:
     safe_save_json(_COACH_PROGRAMS_FILE, data)
     return entry
 
+# ── Exercise logs ────────────────────────────────────────────────────────────
+# Per-person, per-day post-workout journals. Schema:
+#   { "<iso>::<Person>": {"duration":..., "reps":..., "felt":..., "saved_at":...} }
+from config import EXERCISE_LOGS_FILE as _EXERCISE_LOGS_FILE
+
+def load_exercise_logs() -> dict:
+    return ensure_file(_EXERCISE_LOGS_FILE, {})
+
+def save_exercise_log(person: str, iso: str, duration: str = "",
+                      reps: str = "", felt: str = "") -> dict:
+    """Save (or replace) a post-workout log for `person` on `iso`."""
+    from datetime import datetime as _dt
+    person = (person or "").strip()
+    iso    = (iso or "").strip()
+    if not person or not iso:
+        return {}
+    data = load_exercise_logs()
+    key  = f"{iso}::{person}"
+    entry = {
+        "duration": (duration or "").strip(),
+        "reps":     (reps or "").strip(),
+        "felt":     (felt or "").strip(),
+        "saved_at": _dt.now().strftime("%Y-%m-%d %H:%M"),
+    }
+    data[key] = entry
+    safe_save_json(_EXERCISE_LOGS_FILE, data)
+    return entry
+
+
 def delete_coach_program(person: str, program_id: str) -> bool:
     data   = load_coach_programs()
     bucket = data.get(person, [])
