@@ -762,7 +762,8 @@ def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str,
 
 
 def _render_day_list_html(day_list: list, child: str, iso: str,
-                           c_bg: str, meals: dict = None) -> str:
+                           c_bg: str, meals: dict = None,
+                           inline_exercise_html: str = "") -> str:
     if not day_list:
         from datetime import date as _date
         try:
@@ -794,6 +795,19 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
     rows_del = []   # parallel — None means use default "Hide" button
     seen_sub_texts: set = set()   # dedup: tracks sub-item texts already rendered
     seen_single_labels: set = set()  # dedup: tracks single-row labels already rendered
+    _exercise_injected = False  # ensure inline exercise block is added once at 9 AM
+
+    def _slot_to_minutes(t: str) -> int:
+        """Parse a '9:00 AM' style time to minutes-since-midnight; -1 if not parseable."""
+        try:
+            from datetime import datetime as _dt
+            return _dt.strptime((t or "").strip(), "%I:%M %p").hour * 60 + \
+                   _dt.strptime((t or "").strip(), "%I:%M %p").minute
+        except Exception:
+            return -1
+
+    _EX_THRESHOLD = 9 * 60  # 9:00 AM in minutes
+
     for item in day_list:
         kind  = item.get("kind", "routine")
         color = _dl_kind_color(kind)
@@ -801,6 +815,13 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
         t_st  = item.get("time", "")
         t_en  = item.get("end_time", "")
         t_disp = f"{t_st} – {t_en}" if t_en and t_en != t_st else t_st
+
+        # Inject inline exercise block at the first row whose time reaches 9:00 AM
+        if (inline_exercise_html and not _exercise_injected
+                and _slot_to_minutes(t_st) >= _EX_THRESHOLD):
+            rows.append(inline_exercise_html)
+            rows_del.append(False)  # raw render — no swipe wrapper
+            _exercise_injected = True
         label  = escape(item.get("label", ""))
         subs   = item.get("sub_items", [])
         # Deduplicate sub-items against texts already rendered in earlier blocks
@@ -951,6 +972,10 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
                 f'</div>'
             )
             rows_del.append(None)
+    # Tail-inject exercise block if the day list never reached 9:00 AM
+    if inline_exercise_html and not _exercise_injected:
+        rows.append(inline_exercise_html)
+        rows_del.append(False)
     _child_esc = escape(child)
     _iso_esc   = escape(iso)
     _std_del   = '<button class="sw-del no-print" onclick="_swDel(this)" aria-label="Hide">&#10005; Hide</button>'
@@ -1143,7 +1168,10 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
     all_done  = total > 0 and pct == 100
     celebration_html = render_confetti_celebration(child) if all_done else ""
 
-    day_list_html = _render_day_list_html(day_list, child, iso, c_bg, meals)
+    day_list_html = _render_day_list_html(
+        day_list, child, iso, c_bg, meals,
+        inline_exercise_html=_render_exercise_block_screen(child, weekday, c_bg, c_light),
+    )
     template_html = _render_template_editor(child, weekday, c_bg)
 
     # Pre-compute collapsible section bodies
@@ -1165,7 +1193,6 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
     )
     _daily_bar_sec  = _collapsible_wrap(f"{c_id}-dailybar",  "&#128197; Liturgical Calendar", _daily_bar_html,                              accent=c_bg)
     _lucy_sec       = _collapsible_wrap(f"{c_id}-lucy",      "&#10022; Lucy's Notes",         _lucy_inner,                                  accent=c_bg)
-    _exercise_sec   = _collapsible_wrap(f"{c_id}-exercise",  "&#128170; Exercise",            _render_exercise_block_screen(child, weekday, c_bg, c_light), accent=c_bg)
     _goals_sec      = _collapsible_wrap(f"{c_id}-goals",     "&#127919; Goals",               _render_child_goals_section(child),           accent=c_bg)
     _profile_sec    = _collapsible_wrap(f"{c_id}-profile",   "&#128203; Profile",             _render_child_profile_section(child, c_bg, c_light), accent=c_bg)
     _ty_sec         = _collapsible_wrap(f"{c_id}-thankyou",  "&#9993; Thank-You Cards",       _ty_pod_strip(due_thankyou_reminders_for(child), c_bg, f"/schedule/{child}"), accent="#92400e")
@@ -1201,7 +1228,6 @@ def render_child_schedule_card(child: str, target_date_str: str = "") -> str:
             <div style="margin-top:8px;">{render_calendar_today_strip(iso)}</div>
         </div>
         {_lucy_sec}
-        {_exercise_sec}
         {'<div style="background:#fef9c3;border:1px solid #fde047;border-radius:10px;padding:12px 16px;margin-bottom:10px;font-size:0.88em;color:#854d0e;">&#128197; <strong>No ' + escape(weekday) + ' schedule yet</strong> for ' + escape(child) + '. Ask Mom to build the ' + escape(weekday) + ' template in <a href="/settings#s-systems" style="color:#92400e;font-weight:600;">Settings → Rule of Life</a>.</div>' if _frol_missing else ''}
         <div class="day-list">
             {day_list_html}

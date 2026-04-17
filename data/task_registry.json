@@ -318,7 +318,34 @@
       "CHORE::LAUNDRY — Michael's laundry (Joseph assists)",
       "CHORE::Tidy basement zone — 10 minutes"
     ],
-    "James": []
+    "James": [],
+    "Lauren": [
+      "CHORE::Menu plan",
+      "CHORE::Wrap up the school week",
+      "MANUAL::MEDIUM::AI can grade homeschooling tests",
+      "MANUAL::MEDIUM::Bake and assemble 3-layer lemon curd cake",
+      "MANUAL::MEDIUM::Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
+      "MANUAL::MEDIUM::Buy caterpillars",
+      "MANUAL::MEDIUM::Call MD re: meds for hair loss",
+      "MANUAL::MEDIUM::Change air filters",
+      "MANUAL::MEDIUM::Choose Convention Class. https://heav.org/convention/children-and-teens/",
+      "MANUAL::MEDIUM::Consider making the lemon curd 2 days before (April 19th) to spread out the workload",
+      "MANUAL::MEDIUM::Ensure guest of honor attends baby shower",
+      "MANUAL::MEDIUM::Fertilize lawn with balanced 20-5-10 fertilizer",
+      "MANUAL::MEDIUM::Finish importing curriculum",
+      "MANUAL::MEDIUM::Keep a lawn care log to track what products were used and when, making next year's planning easier.",
+      "MANUAL::MEDIUM::Look up vibe coding",
+      "MANUAL::MEDIUM::Make lemon curd for baby shower cake",
+      "MANUAL::MEDIUM::Pack baby shower supplies",
+      "MANUAL::MEDIUM::Pickup library book after dropping JP off at Religious education class.",
+      "MANUAL::MEDIUM::Prepare Teddy Graham guessing game",
+      "MANUAL::MEDIUM::Put all Amazon returns in the back of the van.",
+      "MANUAL::MEDIUM::Schedule Confirmation Party",
+      "MANUAL::MEDIUM::Schedule meeting with Fr for JP’s confirmation interview.",
+      "MANUAL::MEDIUM::Set a reminder to confirm guest of honor's attendance a few days before the shower",
+      "MANUAL::MEDIUM::Set up a simple rain gauge to track weekly rainfall amounts during summer to optimize watering schedule.",
+      "MANUAL::MEDIUM::Sharpen knives"
+    ]
   },
   "2026-04-13": {
     "JP": [
