@@ -194,6 +194,12 @@ from render_plan_importer import (
     _load_upcoming_events, _format_events_summary,
 )
 from render_curriculum import render_curriculum_page, parse_modg_paste
+from render_subject import (
+    render_subject_page, render_grades_summary_page,
+    add_image_entry, add_manual_entry, delete_entry,
+    add_link, delete_link, add_document, delete_document,
+    GRADE_IMG_DIR, GRADE_DOC_DIR,
+)
 from render_memory_book import render_memory_book_page, add_memory_entry, delete_memory_entry
 from render_chores import render_chores_page, render_van_roles_page, apply_laundry_defaults, apply_van_rotation
 from render_misc import (
@@ -938,6 +944,61 @@ class Handler(BaseHTTPRequestHandler):
             try: self.wfile.write(html.encode())
             except BrokenPipeError: pass
             return
+        elif path == "/grades":
+            _gv = self._get_viewer()
+            if not (_gv and _auth.is_admin(_gv)):
+                self.send_response(302); self.send_header("Location","/"); self.end_headers(); return
+            html = render_grades_summary_page()
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
+        elif path == "/subject":
+            _sv = self._get_viewer()
+            child   = (query.get("child",[""])[0] or "").strip()
+            subject = (query.get("subject",[""])[0] or "").strip()
+            is_admin = bool(_sv and _auth.is_admin(_sv))
+            allowed = is_admin or (_sv and child and _sv.lower() == child.lower())
+            if not allowed:
+                self.send_response(302); self.send_header("Location","/"); self.end_headers(); return
+            html = render_subject_page(child, subject, viewer_is_admin=is_admin)
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
+        elif path.startswith("/uploads/grades/") or path.startswith("/uploads/grade_docs/"):
+            import mimetypes as _mt
+            from render_subject import safe_slug as _ss
+            rel = path[1:]  # strip leading /
+            # Block traversal
+            if ".." in rel.split("/"):
+                self.send_response(403); self.end_headers(); return
+            # Ownership: admin OR file's child segment matches viewer
+            _uv = self._get_viewer() or ""
+            parts = rel.split("/")
+            child_seg = parts[2] if len(parts) >= 3 else ""
+            if not _auth.is_admin(_uv) and _ss(_uv).lower() != child_seg.lower():
+                self.send_response(403); self.end_headers(); return
+            try:
+                with open(rel, "rb") as f:
+                    data = f.read()
+                mime, _ = _mt.guess_type(rel)
+                self.send_response(200)
+                self.send_header("Content-Type", mime or "application/octet-stream")
+                self.send_header("Cache-Control", "private, max-age=3600")
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                try: self.wfile.write(data)
+                except BrokenPipeError: pass
+            except FileNotFoundError:
+                self.send_response(404); self.end_headers()
+            return
         elif path == "/curriculum":
             _cur_viewer = self._get_viewer()
             if not (_cur_viewer and _auth.is_admin(_cur_viewer)):
@@ -1675,6 +1736,82 @@ class Handler(BaseHTTPRequestHandler):
         _post_user = self._require_post_auth(path)
         if _post_user is None:
             return
+
+        if path in ("/subject-upload-image", "/subject-doc-upload"):
+            from urllib.parse import quote as _url_q
+            form = parse_multipart_form(self)
+            child = (form.getfirst("child","") or "").strip()
+            subject = (form.getfirst("subject","") or "").strip()
+            viewer = self._get_viewer() or ""
+            if not (_auth.is_admin(viewer) or viewer.lower() == child.lower()):
+                self.send_response(403); self.end_headers(); return
+            uploaded = form["file"] if "file" in form else None
+            file_bytes = b""; original_name = ""; mime = ""
+            if uploaded is not None and getattr(uploaded, "filename", ""):
+                file_bytes = uploaded.file.read()
+                original_name = uploaded.filename
+                mime = (uploaded.type or "").strip()
+
+            if path == "/subject-upload-image":
+                week = form.getfirst("week","")
+                kind = (form.getfirst("kind","test") or "test").strip()
+                lesson = (form.getfirst("lesson","") or "").strip()
+                do_ai = bool(form.getfirst("ai_grade",""))
+                try:
+                    wk = int(week) if str(week).strip() else None
+                except Exception:
+                    wk = None
+                result = add_image_entry(child, subject, wk, kind, lesson,
+                                          file_bytes, mime, original_name, do_ai=do_ai)
+                self.send_response(303)
+                self.send_header("Location",
+                    f"/subject?child={_url_q(child)}&subject={_url_q(subject)}")
+                self.end_headers(); return
+            else:
+                label = (form.getfirst("label","") or "").strip()
+                add_document(child, subject, label, file_bytes, original_name)
+                self.send_response(303)
+                self.send_header("Location",
+                    f"/subject?child={_url_q(child)}&subject={_url_q(subject)}")
+                self.end_headers(); return
+
+        if path in ("/subject-grade-add", "/subject-grade-delete",
+                    "/subject-link-add", "/subject-link-delete",
+                    "/subject-doc-delete"):
+            from urllib.parse import quote as _url_q
+            form = parse_urlencoded_body(self)
+            def _f(key, default=""):
+                vals = form.get(key) or [default]
+                return vals[0] if vals else default
+            child = _f("child").strip()
+            subject = _f("subject").strip()
+            viewer = self._get_viewer() or ""
+            child_owner = viewer.lower() == child.lower()
+            is_adm = _auth.is_admin(viewer)
+            # Only admins can delete or manually grade
+            if path in ("/subject-grade-delete","/subject-link-delete",
+                        "/subject-doc-delete","/subject-grade-add") and not is_adm:
+                self.send_response(403); self.end_headers(); return
+            if path == "/subject-link-add" and not (is_adm or child_owner):
+                self.send_response(403); self.end_headers(); return
+
+            if path == "/subject-grade-add":
+                add_manual_entry(child, subject, _f("week"), _f("kind","assignment"),
+                                  _f("lesson"), _f("grade","0"), _f("feedback"))
+            elif path == "/subject-grade-delete":
+                delete_entry(child, subject, _f("id"))
+            elif path == "/subject-link-add":
+                add_link(child, subject, _f("label"), _f("url"))
+            elif path == "/subject-link-delete":
+                try: idx = int(_f("idx","-1"))
+                except: idx = -1
+                delete_link(child, subject, idx)
+            elif path == "/subject-doc-delete":
+                delete_document(child, subject, _f("path"))
+            self.send_response(303)
+            self.send_header("Location",
+                f"/subject?child={_url_q(child)}&subject={_url_q(subject)}")
+            self.end_headers(); return
 
         if path in ("/school-upload", "/prayer-intention-add", "/recipe-import"):
             form = parse_multipart_form(self)

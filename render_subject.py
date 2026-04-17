@@ -1,0 +1,781 @@
+"""
+render_subject.py — Per-subject curriculum review pages.
+
+Each child × subject has a page showing every week/day of the curriculum,
+a place for the boys to upload tests/work for AI grading, manual grade
+entries, plus a small library of reference links and documents.
+
+A summary page shows subjects × averages per kid (semester + year).
+
+Storage:
+  data/grades.json    — grades, links, documents
+  uploads/grades/<child>/<subject_slug>/<file>   — graded test images
+  uploads/grade_docs/<child>/<subject_slug>/<file> — reference documents
+"""
+from __future__ import annotations
+import os, json, re, uuid, base64, time
+from html import escape as _e
+from urllib.parse import quote, urlencode
+from datetime import datetime
+
+from ui_helpers import html_page, page_header
+
+GRADES_PATH = "data/grades.json"
+UPLOAD_ROOT = "uploads"
+GRADE_IMG_DIR = os.path.join(UPLOAD_ROOT, "grades")
+GRADE_DOC_DIR = os.path.join(UPLOAD_ROOT, "grade_docs")
+
+CHILDREN = ["JP", "Joseph", "Michael"]
+KIND_OPTIONS = ["test", "quiz", "assignment", "project", "exam"]
+
+
+# ── Storage helpers ───────────────────────────────────────────────────────────
+
+def _ensure_dirs():
+    for d in (GRADE_IMG_DIR, GRADE_DOC_DIR, "data"):
+        os.makedirs(d, exist_ok=True)
+
+
+def load_grades() -> dict:
+    try:
+        with open(GRADES_PATH) as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def save_grades(g: dict) -> None:
+    _ensure_dirs()
+    tmp = GRADES_PATH + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(g, f, indent=2)
+    os.replace(tmp, GRADES_PATH)
+
+
+def _node(g: dict, child: str, subject: str) -> dict:
+    g.setdefault(child, {})
+    n = g[child].setdefault(subject, {})
+    n.setdefault("entries", [])
+    n.setdefault("links", [])
+    n.setdefault("documents", [])
+    return n
+
+
+def safe_slug(s: str) -> str:
+    s = re.sub(r"[^A-Za-z0-9._-]+", "_", s).strip("._-")
+    return s[:80] or "x"
+
+
+def _rel_upload(*parts: str) -> str:
+    return "/".join(parts)
+
+
+# ── Curriculum reading ───────────────────────────────────────────────────────
+
+def _load_curriculum() -> dict:
+    try:
+        with open("data/curriculum.json") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def subject_weeks(child: str, subject: str) -> list[tuple[int, str]]:
+    """Return ordered [(week_num, lesson_text), ...] for the subject."""
+    cur = _load_curriculum()
+    sub = (cur.get(child) or {}).get(subject, {})
+    out = []
+    for k, v in sub.items():
+        if k.startswith("_"):
+            continue
+        try:
+            n = int(k)
+        except (TypeError, ValueError):
+            continue
+        if isinstance(v, str) and v.strip():
+            out.append((n, v.strip()))
+    out.sort(key=lambda t: t[0])
+    return out
+
+
+def subject_current_week(child: str, subject: str) -> int:
+    cur = _load_curriculum()
+    sub = (cur.get(child) or {}).get(subject, {})
+    cw = sub.get("_current_week") or cur.get("current_week") or 1
+    try:
+        return int(cw)
+    except Exception:
+        return 1
+
+
+def list_subjects(child: str) -> list[str]:
+    cur = _load_curriculum()
+    subs = (cur.get(child) or {})
+    return [k for k in subs.keys() if not k.startswith("_") and isinstance(subs[k], dict)]
+
+
+# ── Grade math ───────────────────────────────────────────────────────────────
+
+def _avg(nums: list[float]) -> float | None:
+    nums = [n for n in nums if isinstance(n, (int, float))]
+    if not nums:
+        return None
+    return round(sum(nums) / len(nums), 1)
+
+
+def subject_averages(node: dict) -> dict:
+    """Return overall, semester1, semester2 averages from a subject node.
+
+    Semester split is by week of the curriculum: weeks 1–17 = semester 1,
+    weeks 18+ = semester 2 (a 34-week MODG default). If an entry has no
+    week, it counts toward overall + the semester matching today's week.
+    """
+    entries = node.get("entries", [])
+    overall, sem1, sem2 = [], [], []
+    for e in entries:
+        g = e.get("grade")
+        if not isinstance(g, (int, float)):
+            continue
+        overall.append(float(g))
+        wk = e.get("week")
+        if isinstance(wk, int):
+            (sem1 if wk <= 17 else sem2).append(float(g))
+    return {
+        "overall": _avg(overall),
+        "semester1": _avg(sem1),
+        "semester2": _avg(sem2),
+        "count": len(overall),
+    }
+
+
+def letter_grade(pct: float | None) -> str:
+    if pct is None:
+        return "—"
+    if pct >= 93: return "A"
+    if pct >= 90: return "A-"
+    if pct >= 87: return "B+"
+    if pct >= 83: return "B"
+    if pct >= 80: return "B-"
+    if pct >= 77: return "C+"
+    if pct >= 73: return "C"
+    if pct >= 70: return "C-"
+    if pct >= 67: return "D+"
+    if pct >= 60: return "D"
+    return "F"
+
+
+# ── AI grading via OpenAI vision ─────────────────────────────────────────────
+
+def _openai_key() -> str:
+    return os.environ.get("OPENAI_API_KEY", "").strip()
+
+
+def ai_grade_image(image_bytes: bytes, mime: str, child: str, subject: str,
+                   lesson: str = "", kind: str = "test") -> dict:
+    """Ask OpenAI vision to grade a photo of student work.
+
+    Returns {"grade": float|None, "feedback": str, "ok": bool, "error": str}.
+    """
+    key = _openai_key()
+    if not key:
+        return {"ok": False, "grade": None, "feedback": "", "error": "no_api_key"}
+    if not image_bytes:
+        return {"ok": False, "grade": None, "feedback": "", "error": "no_image"}
+
+    if not mime or not mime.startswith("image/"):
+        mime = "image/jpeg"
+    b64 = base64.b64encode(image_bytes).decode("ascii")
+    data_url = f"data:{mime};base64,{b64}"
+
+    prompt = (
+        f"You are a kind, fair Catholic homeschool tutor grading {child}'s "
+        f"{kind} for the subject '{subject}'."
+        + (f" The assignment is: {lesson}." if lesson else "")
+        + " Carefully read the student's work in the photo. "
+        "Score it from 0 to 100 (where 100 is perfect). "
+        "Give specific, encouraging feedback: what the student got right, "
+        "any errors, and one concrete next step. "
+        "Reply ONLY with strict JSON of the form "
+        '{"grade": <number 0-100>, "feedback": "<2-5 sentences>"}'
+    )
+
+    body = json.dumps({
+        "model": "gpt-4o-mini",
+        "messages": [{
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                {"type": "image_url", "image_url": {"url": data_url}},
+            ],
+        }],
+        "response_format": {"type": "json_object"},
+        "temperature": 0.2,
+    }).encode()
+
+    import urllib.request as _ur
+    req = _ur.Request(
+        "https://api.openai.com/v1/chat/completions",
+        data=body,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {key}",
+        },
+        method="POST",
+    )
+    try:
+        with _ur.urlopen(req, timeout=60) as resp:
+            raw = resp.read().decode("utf-8", errors="replace")
+        payload = json.loads(raw)
+        msg = payload["choices"][0]["message"]["content"]
+        parsed = json.loads(msg)
+        g = parsed.get("grade")
+        try:
+            g = float(g)
+            g = max(0.0, min(100.0, g))
+        except Exception:
+            g = None
+        fb = str(parsed.get("feedback", "")).strip()
+        return {"ok": True, "grade": g, "feedback": fb, "error": ""}
+    except Exception as e:
+        return {"ok": False, "grade": None, "feedback": "",
+                "error": str(e)[:200]}
+
+
+# ── HTML rendering ───────────────────────────────────────────────────────────
+
+def _subj_url(child: str, subject: str) -> str:
+    return "/subject?" + urlencode({"child": child, "subject": subject})
+
+
+def subject_link(child: str, subject: str, label: str = "") -> str:
+    """Anchor that other modules can drop in to link a subject name."""
+    label = label or subject
+    return (f'<a href="{_e(_subj_url(child, subject))}" '
+            f'style="color:inherit;text-decoration:none;border-bottom:1px dotted #c9a44a;">'
+            f'{_e(label)}</a>')
+
+
+def render_subject_page(child: str, subject: str, viewer_is_admin: bool = True) -> str:
+    """Main per-subject page."""
+    if child not in CHILDREN:
+        return html_page("Subject", f"<p>Unknown student: {_e(child)}</p>")
+    if subject not in list_subjects(child):
+        body = (f'<p>No subject called "{_e(subject)}" was found for '
+                f'{_e(child)}.</p>'
+                f'<p><a href="/curriculum">Back to Curriculum</a></p>')
+        return html_page("Subject", body)
+
+    grades = load_grades()
+    node = _node(grades, child, subject)
+    weeks = subject_weeks(child, subject)
+    cur_week = subject_current_week(child, subject)
+    avgs = subject_averages(node)
+
+    # Index entries by week
+    by_week: dict[int | None, list[dict]] = {}
+    for e in node["entries"]:
+        by_week.setdefault(e.get("week") if isinstance(e.get("week"), int) else None, []).append(e)
+
+    # ── Header ──
+    head = f"""
+<div style="margin:8px 0 18px;">
+  <div style="font-size:.78rem;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.08em;">
+    {_e(child)} · Currently on Week {cur_week}
+  </div>
+  <h1 style="margin-top:4px;">{_e(subject)}</h1>
+  <div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:6px;font-size:.95rem;">
+    <span><strong>Overall:</strong> {avgs['overall'] if avgs['overall'] is not None else '—'}
+      ({letter_grade(avgs['overall'])})</span>
+    <span><strong>Sem 1:</strong> {avgs['semester1'] if avgs['semester1'] is not None else '—'}</span>
+    <span><strong>Sem 2:</strong> {avgs['semester2'] if avgs['semester2'] is not None else '—'}</span>
+    <span><strong>Graded:</strong> {avgs['count']}</span>
+  </div>
+  <div style="margin-top:6px;font-size:.85rem;">
+    <a href="/grades" style="color:var(--gold);">← Grades summary</a> ·
+    <a href="/curriculum" style="color:var(--gold);">Curriculum</a>
+  </div>
+</div>
+"""
+
+    # ── Upload (image → AI grade) ──
+    upload_form = f"""
+<section style="background:var(--warm-white);border:1px solid var(--border);
+                border-radius:var(--radius-md);padding:16px;margin-bottom:20px;">
+  <h2 style="margin-bottom:8px;">Upload a test or assignment</h2>
+  <p style="font-size:.9rem;color:var(--ink-muted);margin-bottom:10px;">
+    Snap a photo of your work. We'll save it and an AI tutor will give you a grade and feedback.
+  </p>
+  <form method="post" action="/subject-upload-image" enctype="multipart/form-data"
+        style="display:grid;gap:10px;">
+    <input type="hidden" name="child" value="{_e(child)}">
+    <input type="hidden" name="subject" value="{_e(subject)}">
+    <div style="display:flex;flex-wrap:wrap;gap:10px;">
+      <label style="flex:1;min-width:120px;">
+        Week
+        <input type="number" name="week" value="{cur_week}" min="1" max="60"
+               style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;">
+      </label>
+      <label style="flex:1;min-width:140px;">
+        Kind
+        <select name="kind" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;">
+          {''.join(f'<option value="{k}">{k.title()}</option>' for k in KIND_OPTIONS)}
+        </select>
+      </label>
+      <label style="flex:2;min-width:200px;">
+        Lesson / Title
+        <input type="text" name="lesson" placeholder="e.g. Lesson 75 chapter test"
+               style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;">
+      </label>
+    </div>
+    <input type="file" name="file" accept="image/*" capture="environment" required>
+    <label style="font-size:.9rem;">
+      <input type="checkbox" name="ai_grade" value="1" checked> Ask AI to grade and give feedback
+    </label>
+    <button type="submit" style="padding:10px 16px;background:var(--gold);color:#fff;
+            border:0;border-radius:8px;font-weight:600;cursor:pointer;">
+      Upload &amp; Grade
+    </button>
+  </form>
+</section>
+"""
+
+    # ── Manual grade entry (admins / parents) ──
+    manual_form = ""
+    if viewer_is_admin:
+        manual_form = f"""
+<section style="background:var(--warm-white);border:1px solid var(--border);
+                border-radius:var(--radius-md);padding:16px;margin-bottom:20px;">
+  <h2 style="margin-bottom:8px;">Record a grade by hand</h2>
+  <form method="post" action="/subject-grade-add"
+        style="display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
+    <input type="hidden" name="child" value="{_e(child)}">
+    <input type="hidden" name="subject" value="{_e(subject)}">
+    <label>Week<input type="number" name="week" value="{cur_week}" min="1" max="60"
+           style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;"></label>
+    <label>Kind
+      <select name="kind" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;">
+        {''.join(f'<option value="{k}">{k.title()}</option>' for k in KIND_OPTIONS)}
+      </select>
+    </label>
+    <label>Title<input type="text" name="lesson" placeholder="Lesson / title"
+           style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;"></label>
+    <label>Grade (0-100)<input type="number" name="grade" min="0" max="100" step="0.1" required
+           style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;"></label>
+    <label style="grid-column:1/-1;">Feedback / notes
+      <textarea name="feedback" rows="2"
+        style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;"></textarea>
+    </label>
+    <button type="submit" style="grid-column:1/-1;padding:8px 14px;background:var(--ink);color:#fff;
+            border:0;border-radius:8px;font-weight:600;cursor:pointer;">Save grade</button>
+  </form>
+</section>
+"""
+
+    # ── Curriculum-by-week table with attached entries ──
+    rows = []
+    weeks_with_extras = sorted(set(
+        [w for w, _ in weeks] +
+        [w for w in by_week.keys() if isinstance(w, int)]
+    ))
+    week_text = {w: txt for w, txt in weeks}
+    for w in weeks_with_extras:
+        txt = week_text.get(w, "(no curriculum text)")
+        ents = sorted(by_week.get(w, []), key=lambda e: e.get("created_at", ""))
+        ent_html = ""
+        if ents:
+            ent_html = "<div style='margin-top:6px;display:grid;gap:6px;'>"
+            for e in ents:
+                ent_html += _entry_card(e, viewer_is_admin)
+            ent_html += "</div>"
+        is_now = (w == cur_week)
+        rows.append(f"""
+<tr style="background:{'#fef9e8' if is_now else 'transparent'};">
+  <td style="padding:8px 6px;border-top:1px solid var(--border-light);
+             vertical-align:top;font-weight:700;width:64px;">Wk {w}</td>
+  <td style="padding:8px 6px;border-top:1px solid var(--border-light);">
+    <div style="white-space:pre-wrap;">{_e(txt)}</div>
+    {ent_html}
+  </td>
+</tr>""")
+
+    # Entries with no week
+    orphan = by_week.get(None, [])
+    orphan_html = ""
+    if orphan:
+        orphan_html = "<h3 style='margin:18px 0 6px;'>Other graded work</h3><div style='display:grid;gap:6px;'>"
+        for e in sorted(orphan, key=lambda e: e.get("created_at", "")):
+            orphan_html += _entry_card(e, viewer_is_admin)
+        orphan_html += "</div>"
+
+    weeks_section = f"""
+<section style="background:var(--warm-white);border:1px solid var(--border);
+                border-radius:var(--radius-md);padding:16px;margin-bottom:20px;">
+  <h2 style="margin-bottom:8px;">Curriculum &amp; graded work</h2>
+  <table style="width:100%;border-collapse:collapse;font-size:.95rem;">
+    <tbody>
+      {''.join(rows) or '<tr><td style="padding:10px;color:var(--ink-muted);">No curriculum entered yet.</td></tr>'}
+    </tbody>
+  </table>
+  {orphan_html}
+</section>
+"""
+
+    # ── Links + documents ──
+    links_html = ""
+    for i, lk in enumerate(node.get("links", [])):
+        delete_btn = ""
+        if viewer_is_admin:
+            delete_btn = (
+                f'<form method="post" action="/subject-link-delete" style="display:inline;">'
+                f'<input type="hidden" name="child" value="{_e(child)}">'
+                f'<input type="hidden" name="subject" value="{_e(subject)}">'
+                f'<input type="hidden" name="idx" value="{i}">'
+                f'<button type="submit" style="background:none;border:0;color:#b91c1c;'
+                f'cursor:pointer;font-size:.85rem;">remove</button></form>'
+            )
+        links_html += (
+            f'<li style="margin:4px 0;"><a href="{_e(lk.get("url",""))}" target="_blank" '
+            f'rel="noopener" style="color:var(--gold);">{_e(lk.get("label") or lk.get("url",""))}</a> '
+            f'{delete_btn}</li>'
+        )
+
+    docs_html = ""
+    for d in node.get("documents", []):
+        rel = d.get("path", "")
+        delete_btn = ""
+        if viewer_is_admin:
+            delete_btn = (
+                f'<form method="post" action="/subject-doc-delete" style="display:inline;">'
+                f'<input type="hidden" name="child" value="{_e(child)}">'
+                f'<input type="hidden" name="subject" value="{_e(subject)}">'
+                f'<input type="hidden" name="path" value="{_e(rel)}">'
+                f'<button type="submit" style="background:none;border:0;color:#b91c1c;'
+                f'cursor:pointer;font-size:.85rem;">remove</button></form>'
+            )
+        docs_html += (
+            f'<li style="margin:4px 0;"><a href="/{_e(rel)}" target="_blank" '
+            f'style="color:var(--gold);">{_e(d.get("label") or os.path.basename(rel))}</a> '
+            f'{delete_btn}</li>'
+        )
+
+    library = f"""
+<section style="background:var(--warm-white);border:1px solid var(--border);
+                border-radius:var(--radius-md);padding:16px;margin-bottom:20px;">
+  <h2 style="margin-bottom:8px;">Reference links &amp; documents</h2>
+  <div style="display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));">
+    <div>
+      <h3 style="font-size:1rem;margin-bottom:4px;">Links</h3>
+      <ul style="list-style:disc;padding-left:18px;">{links_html or '<li style="color:var(--ink-muted);list-style:none;padding:0;">None yet.</li>'}</ul>
+      <form method="post" action="/subject-link-add" style="margin-top:8px;display:grid;gap:6px;">
+        <input type="hidden" name="child" value="{_e(child)}">
+        <input type="hidden" name="subject" value="{_e(subject)}">
+        <input type="text" name="label" placeholder="Label (optional)"
+          style="padding:6px;border:1px solid var(--border);border-radius:6px;">
+        <input type="url" name="url" placeholder="https://..." required
+          style="padding:6px;border:1px solid var(--border);border-radius:6px;">
+        <button type="submit" style="padding:6px 10px;background:var(--ink);color:#fff;
+          border:0;border-radius:6px;cursor:pointer;">Add link</button>
+      </form>
+    </div>
+    <div>
+      <h3 style="font-size:1rem;margin-bottom:4px;">Documents</h3>
+      <ul style="list-style:disc;padding-left:18px;">{docs_html or '<li style="color:var(--ink-muted);list-style:none;padding:0;">None yet.</li>'}</ul>
+      <form method="post" action="/subject-doc-upload" enctype="multipart/form-data"
+            style="margin-top:8px;display:grid;gap:6px;">
+        <input type="hidden" name="child" value="{_e(child)}">
+        <input type="hidden" name="subject" value="{_e(subject)}">
+        <input type="text" name="label" placeholder="Label (optional)"
+          style="padding:6px;border:1px solid var(--border);border-radius:6px;">
+        <input type="file" name="file" required>
+        <button type="submit" style="padding:6px 10px;background:var(--ink);color:#fff;
+          border:0;border-radius:6px;cursor:pointer;">Upload document</button>
+      </form>
+    </div>
+  </div>
+</section>
+"""
+
+    body = head + upload_form + manual_form + weeks_section + library
+    return html_page(f"{subject} · {child}", body)
+
+
+def _entry_card(e: dict, viewer_is_admin: bool) -> str:
+    grade = e.get("grade")
+    grade_str = f"{grade:g}" if isinstance(grade, (int, float)) else "—"
+    letter = letter_grade(grade if isinstance(grade, (int, float)) else None)
+    img_html = ""
+    if e.get("image_path"):
+        img_html = (f'<a href="/{_e(e["image_path"])}" target="_blank">'
+                    f'<img src="/{_e(e["image_path"])}" alt="" '
+                    f'style="max-width:120px;max-height:120px;border-radius:6px;'
+                    f'border:1px solid var(--border);"></a>')
+    feedback = (e.get("feedback") or "").strip()
+    fb_html = f'<div style="font-size:.88rem;color:var(--ink-muted);margin-top:4px;white-space:pre-wrap;">{_e(feedback)}</div>' if feedback else ""
+    when = (e.get("created_at") or "")[:10]
+    title = e.get("lesson") or e.get("kind", "entry").title()
+    badge = "AI" if e.get("ai_assessed") else "manual"
+    delete_btn = ""
+    if viewer_is_admin:
+        delete_btn = (
+            f'<form method="post" action="/subject-grade-delete" style="display:inline;">'
+            f'<input type="hidden" name="child" value="{_e(e.get("child",""))}">'
+            f'<input type="hidden" name="subject" value="{_e(e.get("subject",""))}">'
+            f'<input type="hidden" name="id" value="{_e(e.get("id",""))}">'
+            f'<button type="submit" style="background:none;border:0;color:#b91c1c;'
+            f'cursor:pointer;font-size:.8rem;">delete</button></form>'
+        )
+    return f"""
+<div style="display:flex;gap:10px;padding:8px;background:#fcfaf6;
+            border:1px solid var(--border-light);border-radius:8px;">
+  {img_html}
+  <div style="flex:1;min-width:0;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+      <strong>{_e(title)}</strong>
+      <span style="font-size:1.05rem;font-weight:700;color:var(--gold);">
+        {grade_str} <span style="font-size:.8rem;color:var(--ink-muted);">({letter})</span>
+      </span>
+    </div>
+    <div style="font-size:.78rem;color:var(--ink-muted);">
+      {_e(e.get("kind","").title())} · {_e(when)} · {badge} {delete_btn}
+    </div>
+    {fb_html}
+  </div>
+</div>"""
+
+
+def render_grades_summary_page() -> str:
+    """Cross-child grades summary."""
+    grades = load_grades()
+    sections = []
+    for child in CHILDREN:
+        subjects = list_subjects(child)
+        if not subjects:
+            continue
+        rows = []
+        for subj in sorted(subjects):
+            node = (grades.get(child) or {}).get(subj) or {"entries": [], "links": [], "documents": []}
+            avg = subject_averages(node)
+            rows.append(f"""
+<tr>
+  <td style="padding:6px 8px;border-top:1px solid var(--border-light);">
+    {subject_link(child, subj)}
+  </td>
+  <td style="padding:6px 8px;border-top:1px solid var(--border-light);text-align:center;">
+    {avg['semester1'] if avg['semester1'] is not None else '—'}
+  </td>
+  <td style="padding:6px 8px;border-top:1px solid var(--border-light);text-align:center;">
+    {avg['semester2'] if avg['semester2'] is not None else '—'}
+  </td>
+  <td style="padding:6px 8px;border-top:1px solid var(--border-light);text-align:center;font-weight:700;">
+    {avg['overall'] if avg['overall'] is not None else '—'}
+  </td>
+  <td style="padding:6px 8px;border-top:1px solid var(--border-light);text-align:center;">
+    {letter_grade(avg['overall'])}
+  </td>
+  <td style="padding:6px 8px;border-top:1px solid var(--border-light);text-align:center;color:var(--ink-muted);">
+    {avg['count']}
+  </td>
+</tr>""")
+
+        # Child overall
+        all_grades = []
+        for subj in subjects:
+            node = (grades.get(child) or {}).get(subj) or {}
+            for e in node.get("entries", []):
+                if isinstance(e.get("grade"), (int, float)):
+                    all_grades.append(float(e["grade"]))
+        gpa = _avg(all_grades)
+
+        sections.append(f"""
+<section style="background:var(--warm-white);border:1px solid var(--border);
+                border-radius:var(--radius-md);padding:16px;margin-bottom:18px;">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;">
+    <h2>{_e(child)}</h2>
+    <div style="font-size:.95rem;">
+      <strong>Year average:</strong>
+      <span style="color:var(--gold);font-weight:700;">{gpa if gpa is not None else '—'}</span>
+      ({letter_grade(gpa)})
+    </div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;margin-top:8px;font-size:.95rem;">
+    <thead>
+      <tr style="text-align:left;color:var(--ink-muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;">
+        <th style="padding:6px 8px;">Subject</th>
+        <th style="padding:6px 8px;text-align:center;">Sem 1</th>
+        <th style="padding:6px 8px;text-align:center;">Sem 2</th>
+        <th style="padding:6px 8px;text-align:center;">Overall</th>
+        <th style="padding:6px 8px;text-align:center;">Letter</th>
+        <th style="padding:6px 8px;text-align:center;"># Grades</th>
+      </tr>
+    </thead>
+    <tbody>{''.join(rows)}</tbody>
+  </table>
+</section>""")
+
+    body = (f'{page_header("Grades Summary", "All students · all subjects")}'
+            + (''.join(sections) or "<p>No subjects in the curriculum yet.</p>"))
+    return html_page("Grades Summary", body)
+
+
+# ── POST helpers (called from app.py) ────────────────────────────────────────
+
+def add_image_entry(child: str, subject: str, week: int | None, kind: str,
+                    lesson: str, image_bytes: bytes, mime: str,
+                    original_name: str, do_ai: bool = True) -> dict:
+    """Save uploaded image, optionally call AI for a grade, append entry."""
+    _ensure_dirs()
+    if subject not in list_subjects(child):
+        return {"ok": False, "error": "unknown_subject"}
+
+    sub_dir = os.path.join(GRADE_IMG_DIR, safe_slug(child), safe_slug(subject))
+    os.makedirs(sub_dir, exist_ok=True)
+
+    ext = os.path.splitext(original_name or "")[1].lower()
+    if ext not in (".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic"):
+        # Guess from mime
+        ext = {"image/png": ".png", "image/gif": ".gif", "image/webp": ".webp",
+               "image/heic": ".heic"}.get(mime, ".jpg")
+
+    eid = uuid.uuid4().hex[:12]
+    fname = f"{int(time.time())}_{eid}{ext}"
+    abs_path = os.path.join(sub_dir, fname)
+    with open(abs_path, "wb") as f:
+        f.write(image_bytes)
+    rel_path = abs_path.replace(os.sep, "/")
+
+    grade = None
+    feedback = ""
+    ai_assessed = False
+    err = ""
+    if do_ai:
+        result = ai_grade_image(image_bytes, mime, child, subject, lesson, kind)
+        if result["ok"]:
+            grade = result["grade"]
+            feedback = result["feedback"]
+            ai_assessed = True
+        else:
+            err = result["error"]
+
+    entry = {
+        "id": eid,
+        "child": child,
+        "subject": subject,
+        "week": int(week) if isinstance(week, int) or (isinstance(week, str) and week.isdigit()) else None,
+        "kind": kind or "test",
+        "lesson": lesson or "",
+        "grade": grade,
+        "feedback": feedback,
+        "image_path": rel_path,
+        "created_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+        "ai_assessed": ai_assessed,
+    }
+    g = load_grades()
+    _node(g, child, subject)["entries"].append(entry)
+    save_grades(g)
+    return {"ok": True, "entry": entry, "ai_error": err}
+
+
+def add_manual_entry(child: str, subject: str, week, kind: str,
+                     lesson: str, grade: float, feedback: str) -> dict:
+    if subject not in list_subjects(child):
+        return {"ok": False, "error": "unknown_subject"}
+    try:
+        wk = int(week) if str(week).strip() else None
+    except Exception:
+        wk = None
+    try:
+        g_val = float(grade)
+        g_val = max(0.0, min(100.0, g_val))
+    except Exception:
+        return {"ok": False, "error": "bad_grade"}
+    entry = {
+        "id": uuid.uuid4().hex[:12],
+        "child": child, "subject": subject, "week": wk,
+        "kind": kind or "assignment", "lesson": lesson or "",
+        "grade": g_val, "feedback": feedback or "",
+        "image_path": "", "ai_assessed": False,
+        "created_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+    }
+    g = load_grades()
+    _node(g, child, subject)["entries"].append(entry)
+    save_grades(g)
+    return {"ok": True, "entry": entry}
+
+
+def delete_entry(child: str, subject: str, entry_id: str) -> bool:
+    g = load_grades()
+    n = _node(g, child, subject)
+    before = len(n["entries"])
+    n["entries"] = [e for e in n["entries"] if e.get("id") != entry_id]
+    if len(n["entries"]) != before:
+        save_grades(g)
+        return True
+    return False
+
+
+def add_link(child: str, subject: str, label: str, url: str) -> bool:
+    if not url.strip():
+        return False
+    if subject not in list_subjects(child):
+        return False
+    g = load_grades()
+    _node(g, child, subject)["links"].append({
+        "label": label.strip(), "url": url.strip(),
+        "added_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+    })
+    save_grades(g)
+    return True
+
+
+def delete_link(child: str, subject: str, idx: int) -> bool:
+    g = load_grades()
+    n = _node(g, child, subject)
+    if 0 <= idx < len(n["links"]):
+        n["links"].pop(idx)
+        save_grades(g)
+        return True
+    return False
+
+
+def add_document(child: str, subject: str, label: str,
+                 file_bytes: bytes, original_name: str) -> dict:
+    if subject not in list_subjects(child):
+        return {"ok": False, "error": "unknown_subject"}
+    if not file_bytes:
+        return {"ok": False, "error": "no_file"}
+    _ensure_dirs()
+    sub_dir = os.path.join(GRADE_DOC_DIR, safe_slug(child), safe_slug(subject))
+    os.makedirs(sub_dir, exist_ok=True)
+    fname = f"{int(time.time())}_{safe_slug(original_name or 'file')}"
+    abs_path = os.path.join(sub_dir, fname)
+    with open(abs_path, "wb") as f:
+        f.write(file_bytes)
+    rel_path = abs_path.replace(os.sep, "/")
+    g = load_grades()
+    _node(g, child, subject)["documents"].append({
+        "label": label.strip(), "path": rel_path,
+        "added_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+    })
+    save_grades(g)
+    return {"ok": True, "path": rel_path}
+
+
+def delete_document(child: str, subject: str, rel_path: str) -> bool:
+    g = load_grades()
+    n = _node(g, child, subject)
+    found = False
+    new_docs = []
+    for d in n["documents"]:
+        if d.get("path") == rel_path:
+            found = True
+            try:
+                if os.path.exists(rel_path) and rel_path.startswith(GRADE_DOC_DIR):
+                    os.remove(rel_path)
+            except Exception:
+                pass
+        else:
+            new_docs.append(d)
+    if found:
+        n["documents"] = new_docs
+        save_grades(g)
+    return found

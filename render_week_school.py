@@ -6,6 +6,7 @@ Missed subjects carry forward via the existing carryover engine.
 """
 
 from html import escape as _e
+from urllib.parse import quote
 from datetime import date, timedelta
 import json as _json
 import os as _os
@@ -350,7 +351,7 @@ def _child_block_html(child: str, child_data: dict, days: list, today: date) -> 
                 border-bottom:{border};">
       <div style="flex:1;font-size:0.78em;color:#374151;white-space:nowrap;
                   overflow:hidden;text-overflow:ellipsis;padding-right:6px;
-                  " title="{_e(subj)}">{_e(subj)}</div>'''
+                  " title="{_e(subj)}"><a href="/subject?child={_e(child)}&amp;subject={_e(quote(subj))}" style="color:inherit;text-decoration:none;">{_e(subj)}</a></div>'''
 
         for d, _ in days:
             iso = d.isoformat()

@@ -7,6 +7,8 @@ Four interconnected modules:
 4. Grading Interface - review and feedback workflow
 """
 import os
+from html import escape as _html_escape
+from urllib.parse import quote as _url_quote
 from data_helpers import (
     load_curriculum, save_curriculum,
     load_curriculum_library, save_curriculum_library, get_subject_by_id,
@@ -260,7 +262,7 @@ def render_curriculum_page() -> str:
                 child_js = child.replace("'", "\\'")
                 rows += f"""
                 <tr>
-                  <td class="cur-subj">{subj}</td>
+                  <td class="cur-subj"><a href="/subject?child={_url_quote(child)}&amp;subject={_url_quote(subj)}" style="color:inherit;text-decoration:none;border-bottom:1px dotted #c9a44a;">{_html_escape(subj)}</a></td>
                   <td class="cur-weeks">{week_count} wks</td>
                   <td class="cur-mins-cell">
                     <input class="cur-mins-input" type="number" min="5" max="240" step="5"

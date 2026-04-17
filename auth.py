@@ -26,17 +26,22 @@ USERS = {
 
 # ── Paths children may GET ────────────────────────────────────────────────────
 _SHARED = frozenset(["/", "/today", "/week", "/meals", "/recipes",
-                     "/chores", "/prayer", "/change-pin"])
+                     "/chores", "/prayer", "/change-pin", "/subject"])
+
+_UPLOADS = frozenset(["/uploads/grades", "/uploads/grade_docs"])
 
 CHILD_ALLOWED_GET: dict[str, frozenset] = {
-    "jp":      _SHARED | frozenset(["/schedule/jp"]),
-    "joseph":  _SHARED | frozenset(["/schedule/joseph"]),
-    "michael": _SHARED | frozenset(["/schedule/michael"]),
+    "jp":      _SHARED | _UPLOADS | frozenset(["/schedule/jp"]),
+    "joseph":  _SHARED | _UPLOADS | frozenset(["/schedule/joseph"]),
+    "michael": _SHARED | _UPLOADS | frozenset(["/schedule/michael"]),
     "james":   frozenset(["/"]),
 }
 
 # Paths children may POST to
-CHILD_POST_ALLOWED = frozenset(["/toggle-task", "/message-mom", "/change-pin", "/task-override"])
+CHILD_POST_ALLOWED = frozenset([
+    "/toggle-task", "/message-mom", "/change-pin", "/task-override",
+    "/subject-upload-image", "/subject-link-add", "/subject-doc-upload",
+])
 
 # ── PIN storage ───────────────────────────────────────────────────────────────
 AUTH_PATH = "data/auth/pins.json"
