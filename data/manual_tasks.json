@@ -359,14 +359,6 @@
     "interval_unit": "months"
   },
   {
-    "text": "Catchup on correcting all of JPs Math. Do it carefully or you’ll have to do it again.",
-    "assigned_to": "Joseph",
-    "due_date": "",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
     "text": "Choose Convention Class. https://heav.org/convention/children-and-teens/",
     "assigned_to": "Mom",
     "due_date": "2026-04-18",

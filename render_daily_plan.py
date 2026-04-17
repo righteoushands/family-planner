@@ -164,15 +164,30 @@ def is_grid_published(iso):
 def publish_day_grid(iso):
     safe_save_json(_meta_path(iso), {"published": True})
 
+def _slots_for_person(weekday: str, person: str) -> dict:
+    """
+    Per-person FROL slots for `person` on `weekday`.  If that person has NO
+    template entries at all (e.g. James on Sunday), fall back to Mom — but
+    only as a whole-person fallback, never slot-by-slot, so each person
+    keeps their own column when they have one.
+    """
+    own = get_frol_day_slots(weekday, person) or {}
+    if any(str(v).strip() for v in own.values()):
+        return own
+    return get_frol_day_slots(weekday, "Mom") or {}
+
+def _build_person_row(times: list, slots: dict) -> dict:
+    row = {}
+    for t in times:
+        # Allow :30 to inherit the :00 entry only WITHIN this person's column
+        row[t] = slots.get(t, "") or slots.get(t.replace(":30 ", ":00 "), "")
+    return row
+
 def seed_day_grid(iso, weekday, people):
-    times     = generate_half_hour_times()
-    mom_slots = get_frol_day_slots(weekday, "Mom")
-    grid = {}
+    times = generate_half_hour_times()
+    grid  = {}
     for person in people:
-        grid[person] = {}
-        for t in times:
-            text = mom_slots.get(t, "") or mom_slots.get(t.replace(":30 ", ":00 "), "")
-            grid[person][t] = text
+        grid[person] = _build_person_row(times, _slots_for_person(weekday, person))
     return grid
 
 def get_or_seed_grid(iso, weekday, people):
@@ -180,18 +195,39 @@ def get_or_seed_grid(iso, weekday, people):
     if not grid:
         grid = seed_day_grid(iso, weekday, people)
         save_day_grid(iso, grid)
-    else:
-        # Add any new people not yet in grid
-        times     = generate_half_hour_times()
-        mom_slots = get_frol_day_slots(weekday, "Mom")
-        changed = False
-        for person in people:
-            if person not in grid:
-                grid[person] = {t: (mom_slots.get(t, "") or mom_slots.get(t.replace(":30 ", ":00 "), ""))
-                                for t in times}
-                changed = True
-        if changed:
-            save_day_grid(iso, grid)
+        return grid
+
+    times   = generate_half_hour_times()
+    changed = False
+
+    # Add any new people not yet in grid (using THEIR own template column)
+    for person in people:
+        if person not in grid:
+            grid[person] = _build_person_row(times, _slots_for_person(weekday, person))
+            changed = True
+
+    # Self-heal grids saved by the old buggy seeder, where every person ended
+    # up with Mom's text byte-for-byte.  Only heal when:
+    #   (a) the per-weekday template actually has distinct per-person data, AND
+    #   (b) this person's saved row is identical to Mom's row in this grid.
+    # Anything the user has manually edited will differ from Mom and is left
+    # untouched.
+    mom_row = grid.get("Mom") or grid.get("Lauren") or {}
+    if mom_row:
+        for person in list(grid.keys()):
+            if person in ("Mom", "Lauren"):
+                continue
+            person_row = grid.get(person) or {}
+            # Identical-to-Mom check — both must be non-empty to count
+            if person_row and person_row == mom_row:
+                template_row = _build_person_row(times, get_frol_day_slots(weekday, person))
+                # Only heal if the template actually has distinct content for this person
+                if any(str(v).strip() for v in template_row.values()) and template_row != mom_row:
+                    grid[person] = template_row
+                    changed = True
+
+    if changed:
+        save_day_grid(iso, grid)
     return grid
 
 
