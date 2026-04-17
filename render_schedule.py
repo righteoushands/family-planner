@@ -24,6 +24,29 @@ from render_daily_bar import render_daily_bar, render_child_age_strip
 
 
 # ── Exercise assignment helper ────────────────────────────────────────────────
+_EXERCISE_PERSON_ALIAS = {"mom": "Lauren", "lauren": "Lauren", "jp": "JP",
+                          "joseph": "Joseph", "michael": "Michael", "james": "James"}
+
+
+def _latest_coach_program_for(person: str) -> tuple:
+    """Returns (title, body) of the most recently-saved Coach program for
+    `person`, or ("","") if none. Resolves Mom→Lauren alias."""
+    try:
+        from data_helpers import load_coach_programs
+        data = load_coach_programs() or {}
+        key  = _EXERCISE_PERSON_ALIAS.get((person or "").lower(), person)
+        bucket = data.get(key) or []
+        if not bucket and key == "Lauren":
+            bucket = data.get("Mom") or []
+        if not bucket:
+            return ("", "")
+        # Pick most recent by saved_at (string ISO sorts correctly)
+        latest = max(bucket, key=lambda p: p.get("saved_at", ""))
+        return (latest.get("title", ""), latest.get("body", ""))
+    except Exception:
+        return ("", "")
+
+
 def _get_exercise_assignment(child: str, weekday: str) -> tuple:
     """
     Returns (slot_label, assignment_text) for the exercise slot on `weekday`
@@ -32,9 +55,10 @@ def _get_exercise_assignment(child: str, weekday: str) -> tuple:
     """
     from data_helpers import get_frol_day_slots, load_exercise_assignments
     _EXERCISE_KEYWORDS = ("fortitude", "justice", "exercise", "family run", "family strength")
-    _alias = {"mom": "Mom", "lauren": "Mom", "jp": "JP", "joseph": "Joseph",
-              "michael": "Michael", "james": "James"}
-    person_key = _alias.get(child.lower(), child)
+    # exercise_assignments.json uses "Lauren" (not "Mom") as the key
+    _ex_alias = {"mom": "Lauren", "lauren": "Lauren", "jp": "JP", "joseph": "Joseph",
+                 "michael": "Michael", "james": "James"}
+    person_key = _ex_alias.get(child.lower(), child)
     try:
         day_slots  = get_frol_day_slots(weekday, "Mom")
         ex_assigns = load_exercise_assignments().get(weekday, {})
@@ -52,34 +76,68 @@ def _get_exercise_assignment(child: str, weekday: str) -> tuple:
 
 
 def _render_exercise_block_screen(child: str, weekday: str, c_bg: str, c_light: str) -> str:
-    """Colored exercise block for the live POD card (visible on-screen and in print)."""
+    """Colored exercise block for the live POD card (visible on-screen and in print).
+
+    Inlines the latest Coach-saved program body for this person so the actual
+    workout is visible right here — no need to click through to /programs.
+    """
     slot_label, assignment = _get_exercise_assignment(child, weekday)
     if not slot_label:
         return ""
     from html import escape as _e
+    prog_title, prog_body = _latest_coach_program_for(child)
+    program_html = ""
+    if prog_body:
+        body_html = _e(prog_body).replace("\n", "<br>")
+        title_html = _e(prog_title) if prog_title else "Coach&rsquo;s program"
+        program_html = (
+            f'<div style="margin-top:8px;padding-top:8px;border-top:1px dashed {c_bg}55;">'
+            f'<div style="font-size:0.7em;font-weight:700;color:{c_bg};margin-bottom:4px;">'
+            f'&#128221; {title_html}</div>'
+            f'<div style="font-size:0.85em;color:#333;line-height:1.55;'
+            f'white-space:normal;word-break:break-word;">{body_html}</div>'
+            f'</div>'
+        )
     return (
         f'<div style="border-left:4px solid {c_bg};background:{c_light};'
         f'padding:10px 14px;margin-bottom:10px;border-radius:0 8px 8px 0;">'
         f'<div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;'
         f'text-transform:uppercase;color:{c_bg};margin-bottom:4px;">'
-        f'&#128170; 9:00 AM · {_e(slot_label)}</div>'
+        f'&#128170; 9:00 AM &middot; {_e(slot_label)}</div>'
         f'<div style="font-size:0.88em;color:#333;line-height:1.5;">'
         f'{_e(assignment) if assignment else _e(slot_label)}</div>'
+        f'{program_html}'
         f'</div>'
     )
 
 
 def _render_exercise_block_print(child: str, weekday: str) -> str:
-    """Print-friendly exercise section for the child print page."""
+    """Print-friendly exercise section for the child print page.
+
+    Includes the latest Coach-saved program body so the printout stands alone.
+    """
     slot_label, assignment = _get_exercise_assignment(child, weekday)
     if not slot_label:
         return ""
     from html import escape as _e
     text = assignment if assignment else slot_label
+    prog_title, prog_body = _latest_coach_program_for(child)
+    program_html = ""
+    if prog_body:
+        body_html = _e(prog_body).replace("\n", "<br>")
+        program_html = (
+            f'<div style="margin-top:4pt;padding-top:4pt;border-top:1px dashed #999;">'
+            f'<div style="font-size:8.5pt;font-weight:700;color:#444;margin-bottom:2pt;">'
+            f'{_e(prog_title) if prog_title else "Coach&rsquo;s program"}</div>'
+            f'<div style="font-size:9pt;line-height:1.5;color:#222;">{body_html}</div>'
+            f'</div>'
+        )
     return (
-        f'<div class="section-title">Exercise — 9:00 AM</div>'
+        f'<div class="section-title">Exercise &mdash; 9:00 AM</div>'
         f'<div style="padding:4pt 0 8pt;font-size:9pt;line-height:1.5;color:#222;">'
-        f'<strong>{_e(slot_label)}</strong><br>{_e(text)}</div>'
+        f'<strong>{_e(slot_label)}</strong><br>{_e(text)}'
+        f'{program_html}'
+        f'</div>'
     )
 
 
@@ -1517,10 +1575,6 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
         f'<a href="/schedule/{escape(child)}?date={escape(iso)}"'
         f' style="font-size:.72em;color:var(--brown);font-weight:600;white-space:nowrap;">'
         f'Full list →</a>'
-        f'<a href="/programs?focus={escape(child)}"'
-        f' title="Coach\u2019s programs"'
-        f' style="font-size:.72em;color:#1a6e3e;font-weight:600;white-space:nowrap;'
-        f'text-decoration:none;">Programs →</a>'
         f'</div></div>'
 
         f'<div style="height:4px;background:#e0d8d0;border-radius:2px;margin-bottom:8px;">'
