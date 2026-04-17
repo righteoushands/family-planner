@@ -126,6 +126,40 @@ This is authoritative. If earlier messages mention a different date, ignore them
 ════════════ SOURCE FILES ════════════
 {file_list}
 
+════════════ WHERE THINGS LIVE — MODULE MAP ════════════
+Use this map BEFORE you grep. It saves a round-trip and points you at the right file
+on the first try. If the right file is obvious from this table, READ it directly.
+
+  app.py                      → HTTP routes, request handlers, all `path == "/x"` branches.
+                                Most "the X endpoint is broken" bugs live here.
+  daily_schedule_engine.py    → Per-person day computation; CHILDREN dict, build_schedule(),
+                                slot generation, carryover routing into school sub-items.
+  render_schedule.py          → /today HTML for each person; check-off UI; suggested-tasks
+                                widgets; thank-you suggestion widget on Lauren's POD.
+  render_dev.py               → Izzy himself — system prompt, tools, chat UI, [FIX:] cards.
+  data_helpers.py             → Every load_X / save_X that reads or writes data/*.json.
+                                Stale-edit guards, daily plan persistence, registries.
+  config.py                   → All data file path constants. Add new constants HERE FIRST
+                                before importing them anywhere else, or app.py crashes on
+                                startup.
+  ui_helpers.py               → top_nav(), html_page(), shared CSS, shared widget chrome.
+  companion_handoffs.py       → Cross-companion handoff buttons + frol_*() context blocks
+                                injected into every companion prompt.
+  auth.py                     → PINs, sessions, is_admin().  PINs: lauren=1026 john=0401
+                                jp=0120 joseph=0402 michael/james=0000.
+  render_<companion>.py       → Each AI companion's chat page (lucy, lorenzo, gregory,
+                                coach, monica, dev/izzy). Same shape across all of them.
+  render_misc.py              → Miscellaneous one-off renderers (less common).
+  daily_plans/, day_grids/    → Persisted day state per person per date.
+
+QUICK ROUTING HEURISTICS:
+  "broken endpoint / route / 500"     → app.py first
+  "wrong on /today / day list"        → render_schedule.py + daily_schedule_engine.py
+  "carryover / school / math lesson"  → daily_schedule_engine.py
+  "Izzy / Felix / dev page / undo"    → render_dev.py + the /dev-* routes in app.py
+  "data not loading / saving"         → data_helpers.py + config.py
+  "new data file"                     → STEP 1 config.py, STEP 2 data_helpers.py, STEP 3 callers
+
 ════════════ RESPONSE FORMAT — MANDATORY ════════════
 Your text reply must be ONE sentence. Maximum two if truly necessary. Never more.
 No bullet lists. No headers. No "I'll..." preambles. No summaries after a fix.
@@ -175,6 +209,30 @@ GIT DIFF: [GITDIFF:ref]
     [GITDIFF:HEAD~3]      — what changed 3 commits ago
   Use after [GITLOG] once you've identified which commit introduced a problem.
   ONE [GITDIFF:] per response. Cannot combine with [READ:], [GREP:], or [GITLOG:].
+
+SERVER LOG: [LOGS] / [LOGS:N] / [LOGS:grep=PATTERN]
+  Reads the live server log (data/server.log) — every traceback, every print,
+  every restart message. The chat page injects the last 10 lines automatically
+  with each turn; use [LOGS:] when you need MORE.
+  Examples:
+    [LOGS]                  — last 100 lines
+    [LOGS:300]              — last 300 lines (cap is 2000)
+    [LOGS:grep=Traceback]   — only lines matching /Traceback/i
+    [LOGS:grep=KeyError]    — only KeyError lines
+    [LOGS:grep=render_schedule] — anywhere render_schedule appears
+  Use BEFORE proposing a fix when Lauren says "broken / error / not working"
+  but the auto-injected 10-line tail did NOT contain a clear cause.
+
+DIAGNOSE A FILE: [DIAG: filename.py]
+  Static analysis without restarting. Catches before-the-fact:
+    • Syntax errors (line + column)
+    • Names imported via `from X import Y` where Y does not exist in X
+      (this is the #1 cause of startup crashes — the file imports a constant
+      from config.py that you forgot to add)
+    • Unused imports
+  Run [DIAG: filename.py] AFTER any [WRITE:]/[FIX:] to that file in your
+  same response. The system will run it after the apply (chained automatically).
+  Cheaper and faster than restarting just to discover the file won't load.
 
 APPLY FIXES — TWO METHODS (prefer WRITE):
 
@@ -230,12 +288,44 @@ You are a precise, senior-level programmer. You think before you act, verify bef
 you apply, and catch your own mistakes before they surface. Lauren should rarely if
 ever see a bug caused by your changes.
 
-PLAN BEFORE YOU WRITE:
-  Before proposing any [WRITE:] or [FIX:], mentally answer:
+PLAN BEFORE YOU WRITE — HYPOTHESIS RULE (MANDATORY):
+  Every [WRITE:] and [FIX:] block must be preceded — in the WHAT: line — by a
+  one-sentence HYPOTHESIS in this exact form:
+       WHAT: <symptom> because <root cause>; this change <what your edit does>.
+  Example:
+       WHAT: /today crashes with KeyError 'school_carry_by_subj' because that
+             dict isn't initialized when the day has no school block; this
+             change adds `school_carry_by_subj = {{}}` before the loop.
+  If you can't write that sentence, you don't understand the bug yet — go
+  read more code or check [LOGS:] before proposing the edit. The hypothesis
+  forces you to commit to a theory you can be proven wrong about, instead of
+  shotgunning speculative patches.
+
+  Before any [WRITE:]/[FIX:], also mentally answer:
   1. Exactly which line(s) need to change and why?
   2. What does the code look like immediately before and after my change?
   3. Could this change break anything adjacent — startup, other imports, routing?
   4. If this is multi-file: list ALL files that need updating before touching any of them.
+
+EDIT-SIZE CAP — STRUCTURAL:
+  The system rejects any single [WRITE:] or [FIX:] whose new content exceeds
+  ~120 lines. This is enforced server-side, not just guidance. If you find
+  yourself wanting to "rewrite this whole function" or "regenerate the file",
+  STOP — split into smaller, focused edits. The "let me rewrite from scratch"
+  pattern is the most common cause of corruption and is structurally blocked.
+
+RE-READ AFTER WRITE — STRUCTURAL:
+  Once you have written to a file in this session, the system rejects your
+  next write to that same file UNLESS you have issued a fresh [READ:] of it
+  since. Your line numbers and surrounding context become stale the moment
+  your edit lands. Always [READ: file:start-end] before a second edit to the
+  same file in the same conversation.
+
+USE THE DIFF YOU GET BACK:
+  Every successful [WRITE:]/[FIX:] returns a unified diff in the apply
+  response. Lauren can see it under "Show what changed". On your NEXT turn,
+  if Lauren reports the same bug, your first move is to re-READ the file —
+  not to patch the patch.
 
 VERIFY AFTER YOU WRITE:
   After composing a [WRITE:] or [FIX:] block, re-read your own new code and check:
@@ -655,6 +745,8 @@ function _stripIzzyCodeBlocks(text) {{
   text = text.replace(/\[GREP:[^\]]*\]/g, '');
   text = text.replace(/\[GITLOG\]/g, '');
   text = text.replace(/\[GITDIFF:[^\]]*\]/g, '');
+  text = text.replace(/\[LOGS(?::[^\]]*)?\]/g, '');
+  text = text.replace(/\[DIAG:[^\]]*\]/g, '');
   return text.trim();
 }}
 
@@ -737,12 +829,15 @@ async function streamFelix(payload, isAutoRead, image, depth) {{
     _renderHandoffBtns(full, bubble.lastElementChild || bubble);
     box.scrollTop = box.scrollHeight;
 
-    // ── Auto-process [READ:], [GREP:], and git tags — chain up to 4 rounds ──
+    // ── Auto-process [READ:], [GREP:], git, [LOGS:], [DIAG:] tags ──
+    // Chain up to 4 rounds so Izzy can do read → grep → diag → fix in one turn.
     if (full && depth < 4) {{
       await autoHandleReads(full, depth + 1);
       await autoHandleGreps(full, depth + 1);
       await autoHandleGitLog(full, depth + 1);
       await autoHandleGitDiff(full, depth + 1);
+      await autoHandleLogs(full, depth + 1);
+      await autoHandleDiag(full, depth + 1);
     }}
 
   }} catch(err) {{
@@ -853,6 +948,52 @@ async function autoHandleGitDiff(fullText, depth) {{
   const contextPayload =
     '[SYSTEM: You requested the git diff for ' + ref + '. Here it is \u2014 please continue your analysis.]\\n\\n' +
     result + '\\n\\n[END OF GIT DIFF]';
+  await streamFelix(contextPayload, true, null, depth);
+}}
+
+// ── Auto-handle [LOGS:N] / [LOGS:grep=PAT] — fetch server log tail ───────
+// Forms accepted:
+//   [LOGS]            → last 100 lines of server.log
+//   [LOGS:200]        → last 200 lines (capped at 2000)
+//   [LOGS:grep=Error] → last 300 lines that match the regex /Error/i
+// Lets Izzy actively dig deeper than the 10-line preview the chat-page
+// auto-injects with every turn.
+async function autoHandleLogs(fullText, depth) {{
+  const m = fullText.match(/\[LOGS(?::([^\]]*))?\]/i);
+  if (!m) return;
+  const arg = (m[1] || '').trim();
+  let qs = 'n=100';
+  if (arg.startsWith('grep=')) qs = 'n=300&grep=' + encodeURIComponent(arg.slice(5));
+  else if (/^\d+$/.test(arg))  qs = 'n=' + Math.min(2000, parseInt(arg));
+  setThinking('Izzy is reading the server log\u2026');
+  let result = '';
+  try {{
+    const resp = await fetch('/dev-logs?' + qs);
+    result = resp.ok ? (await resp.text()) : ('log fetch failed: ' + resp.status);
+  }} catch(e) {{ result = 'log fetch error: ' + e.message; }}
+  const contextPayload =
+    '[SYSTEM: You requested the server log. Here it is \u2014 please continue your analysis.]\\n\\n' +
+    result + '\\n\\n[END OF SERVER LOG]';
+  await streamFelix(contextPayload, true, null, depth);
+}}
+
+// ── Auto-handle [DIAG:file.py] — static analysis of a single file ────────
+// Returns syntax errors, missing names imported from local modules, and
+// unused imports. Cheaper and more targeted than restarting just to learn
+// the import chain is broken.
+async function autoHandleDiag(fullText, depth) {{
+  const m = fullText.match(/\[DIAG:\s*([^\]]+)\]/i);
+  if (!m) return;
+  const fname = m[1].trim();
+  setThinking('Izzy is checking ' + fname + ' for errors\u2026');
+  let result = '';
+  try {{
+    const resp = await fetch('/dev-diag?' + new URLSearchParams({{file: fname}}));
+    result = resp.ok ? (await resp.text()) : ('diag failed: ' + resp.status);
+  }} catch(e) {{ result = 'diag error: ' + e.message; }}
+  const contextPayload =
+    '[SYSTEM: You requested a diagnostic check on ' + fname + '. Here is the result \u2014 please continue your analysis.]\\n\\n' +
+    result + '\\n\\n[END OF DIAGNOSTIC]';
   await streamFelix(contextPayload, true, null, depth);
 }}
 
@@ -1123,12 +1264,12 @@ async function applyAllFixes(btn, fixes) {{
   const row = btn.closest('div');
   const errContainer = row.parentElement;
   let failCount = 0;
+  const diffs = [];   // collect "--- DIFF ---" tails so user can see what landed
 
   for (const fix of fixes) {{
     try {{
       let resp;
       if (fix.type === 'write') {{
-        // Line-range replacement — preferred, no text matching
         const body = new URLSearchParams({{
           file:    fix.filename,
           start:   fix.startLine,
@@ -1137,7 +1278,6 @@ async function applyAllFixes(btn, fixes) {{
         }});
         resp = await fetch('/dev-write', {{method:'POST', body}});
       }} else {{
-        // Classic find/replace fallback
         const body = new URLSearchParams({{
           file:    fix.filename,
           find:    fix.find,
@@ -1145,13 +1285,18 @@ async function applyAllFixes(btn, fixes) {{
         }});
         resp = await fetch('/dev-apply', {{method:'POST', body}});
       }}
+      const txt = await resp.text();
       if (!resp.ok) {{
         failCount++;
         const errNote = document.createElement('div');
         errNote.style.cssText = 'padding:6px 14px;font-size:0.75em;color:#dc2626;background:#fef2f2;'
           + 'border-radius:0 0 10px 10px;';
-        errNote.textContent = fix.filename + ': ' + await resp.text();
+        errNote.textContent = fix.filename + ': ' + txt;
         errContainer.appendChild(errNote);
+      }} else {{
+        // Backend returns "Applied to FILE\n\n--- DIFF ---\n<diff>"
+        const diffIdx = txt.indexOf('--- DIFF ---');
+        if (diffIdx !== -1) diffs.push({{file: fix.filename, diff: txt.slice(diffIdx + 13).trim()}});
       }}
     }} catch(e) {{
       failCount++;
@@ -1159,21 +1304,75 @@ async function applyAllFixes(btn, fixes) {{
   }}
 
   if (failCount === 0) {{
-    // Build "Applied" row with two undo options:
-    //   ↶ Undo last  — pops the single most recent backup off the stack
-    //   ⤺ Revert ALL — rolls every touched file back to its earliest state
-    //                 (i.e. before Izzy began editing anything in this run)
     row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px 14px;background:#dcfce7;flex-wrap:wrap;';
     row.innerHTML = `
       <span style="font-size:1.1em;">&#10003;</span>
-      <span style="flex:1;min-width:120px;font-size:0.88em;color:#166534;font-weight:600;">Applied \u2014 restarting\u2026</span>
+      <span style="flex:1;min-width:120px;font-size:0.88em;color:#166534;font-weight:600;" id="apply-status">Applied \u2014 restarting\u2026</span>
       <button onclick="undoFix()" style="background:#fff;color:#92400e;border:1px solid #d97706;border-radius:6px;padding:4px 10px;font-size:0.78em;font-weight:600;cursor:pointer;">\u21B6 Undo last</button>
       <button onclick="undoAll()" style="background:#fff;color:#7f1d1d;border:1px solid #b91c1c;border-radius:6px;padding:4px 10px;font-size:0.78em;font-weight:600;cursor:pointer;">\u27FA Revert ALL</button>`;
+
+    // Show collapsed unified diff so user (and Izzy on next turn) see what landed
+    if (diffs.length) {{
+      const diffBox = document.createElement('details');
+      diffBox.style.cssText = 'padding:6px 14px 10px;background:#f0fdf4;border-radius:0 0 10px 10px;';
+      diffBox.innerHTML = '<summary style="cursor:pointer;font-size:0.75em;color:#166534;font-weight:600;">Show what changed</summary>'
+        + diffs.map(d => '<pre style="font-size:0.7em;line-height:1.35;background:#fff;border:1px solid #d1fae5;border-radius:6px;padding:8px 10px;margin:6px 0 0;white-space:pre-wrap;overflow-x:auto;color:#0f172a;">'
+            + escHtml(d.diff || '(no diff)') + '</pre>').join('');
+      errContainer.appendChild(diffBox);
+    }}
+
+    // Auto-rollback if the app fails to come back up after restart.
+    // Capture the OLD pid first so we can detect a fresh process.
+    let oldPid = '';
+    try {{
+      const r = await fetch('/dev-health', {{cache:'no-store'}});
+      if (r.ok) oldPid = (await r.text()).trim();
+    }} catch(e) {{}}
+
     restartServer();
+    _watchHealthOrRollback(oldPid);
   }} else {{
     btn.textContent = '\u274c ' + failCount + ' failed';
     btn.style.background = '#dc2626';
     btn.disabled = false;
+  }}
+}}
+
+// ── Health-watch after restart — auto-rollback on startup crash ──────────
+// After applyAllFixes triggers a restart, poll /dev-health for ~14 seconds.
+// We require seeing a NEW pid (i.e. the new process) — not just any 200.
+// If the new process never appears, the apply broke startup → auto-revert
+// every file we just touched.
+async function _watchHealthOrRollback(oldPid) {{
+  const status = document.getElementById('apply-status');
+  const deadline = Date.now() + 14000;
+  let healthy = false;
+  while (Date.now() < deadline) {{
+    await new Promise(r => setTimeout(r, 700));
+    try {{
+      const r = await fetch('/dev-health', {{cache:'no-store'}});
+      if (r.ok) {{
+        const body = (await r.text()).trim();
+        if (body && body !== oldPid) {{ healthy = true; break; }}
+      }}
+    }} catch(e) {{}}
+  }}
+  if (healthy) {{
+    if (status) {{ status.textContent = 'Applied \u2014 server back up.'; status.style.color = '#15803d'; }}
+    return;
+  }}
+  // App did not come back up — auto-undo everything Izzy just touched
+  if (status) {{ status.textContent = 'Startup crashed \u2014 auto-reverting\u2026'; status.style.color = '#b91c1c'; }}
+  try {{
+    const r = await fetch('/dev-undo', {{
+      method:'POST',
+      headers:{{'Content-Type':'application/x-www-form-urlencoded'}},
+      body:'all=1',
+    }});
+    const msg = await r.text();
+    alert('The fix broke startup. Auto-reverted:\\n\\n' + msg + '\\n\\nTell Izzy what happened so he can try a different approach.');
+  }} catch(e) {{
+    alert('Auto-revert FAILED: ' + e.message + '\\n\\nClick Revert ALL manually.');
   }}
 }}
 

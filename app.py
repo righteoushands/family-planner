@@ -56,6 +56,90 @@ if not isinstance(sys.stderr, _TeeWriter):
 if not isinstance(sys.stdout, _TeeWriter):
     sys.stdout = _TeeWriter(sys.stdout)
 
+
+# ── Izzy session state — guards against stale edits ──────────────────────────
+# Tracks the last read and write timestamps per file in the current process
+# lifetime. Used by /dev-write and /dev-apply to enforce the rule:
+#   "Once you have written to a file, you must re-READ it before writing again."
+# This kills the #1 cause of file corruption — Izzy editing using stale line
+# numbers from before his own previous edit.  Resets on every app restart,
+# which is the right granularity (each restart starts a fresh session).
+_izzy_file_state: dict = {}   # {filename: {"last_read": float, "last_write": float}}
+
+
+def _izzy_check_stale(filename: str) -> str:
+    """Return error message if a write to `filename` would be stale, else ''."""
+    st = _izzy_file_state.get(filename)
+    if not st: return ""
+    lw = st.get("last_write", 0.0)
+    lr = st.get("last_read", 0.0)
+    if lw and lr <= lw:
+        return (f"STALE EDIT BLOCKED — you wrote to {filename} earlier in this session "
+                f"and have not re-READ it since. Your line numbers are stale. "
+                f"Issue [READ: {filename}:start-end] for the affected range, then "
+                f"propose your edit again with fresh line numbers.")
+    return ""
+
+
+def _izzy_mark_read(filename: str) -> None:
+    st = _izzy_file_state.setdefault(filename, {})
+    st["last_read"] = _time.time()
+
+
+def _izzy_mark_write(filename: str) -> None:
+    st = _izzy_file_state.setdefault(filename, {})
+    st["last_write"] = _time.time()
+
+
+def _izzy_diff(old: str, new: str, filename: str, ctx: int = 3) -> str:
+    """Return a short unified diff so Izzy can see what actually landed."""
+    import difflib as _dl
+    diff = list(_dl.unified_diff(
+        old.splitlines(keepends=True),
+        new.splitlines(keepends=True),
+        fromfile=f"a/{filename}", tofile=f"b/{filename}",
+        n=ctx,
+    ))
+    if not diff: return "(no textual change)"
+    out = "".join(diff)
+    # Cap the diff size sent back so we don't blow up the response
+    return out if len(out) < 8000 else out[:8000] + "\n… [diff truncated]"
+
+
+def _izzy_syntax_ok(filename: str, new_text: str) -> tuple[bool, str]:
+    """Validate proposed file content.  Returns (ok, error_message)."""
+    suffix = os.path.splitext(filename)[1]
+    if suffix == ".py":
+        import ast as _ast
+        try:
+            _ast.parse(new_text, filename=filename)
+            return True, ""
+        except SyntaxError as ex:
+            line = ex.lineno or "?"; col = ex.offset or "?"
+            return False, f"SyntaxError at {filename} line {line}, col {col}: {ex.msg}"
+    if suffix == ".json":
+        import json as _jc
+        try:
+            _jc.loads(new_text)
+            return True, ""
+        except Exception as ex:
+            return False, f"Invalid JSON in {filename}: {ex}"
+    return True, ""
+
+
+def _izzy_size_ok(new_text: str, old_span_lines: int = 0) -> tuple[bool, str]:
+    """Reject edits larger than ~120 lines of NEW content or ~120 lines of OLD span."""
+    nlines = new_text.count("\n") + 1
+    if nlines > 120:
+        return False, (f"EDIT TOO LARGE — {nlines} lines proposed (cap is 120). "
+                       f"Split this into smaller, focused edits. The 'rewrite the "
+                       f"whole file' pattern is exactly what causes the corruption "
+                       f"you are trying to avoid.")
+    if old_span_lines > 120:
+        return False, (f"REPLACEMENT SPAN TOO WIDE — {old_span_lines} lines targeted "
+                       f"(cap is 120). Edit a narrower range.")
+    return True, ""
+
 # ── Pin the process timezone to Eastern so date.today() / datetime.now()
 # ── always reflect the McAdams family's local time, not UTC.
 os.environ.setdefault("TZ", "America/New_York")
@@ -860,15 +944,28 @@ class Handler(BaseHTTPRequestHandler):
 
         # ── Felix: server error log ────────────────────────────────────────────
         elif path == "/dev-logs":
-            import pathlib as _pl
+            # Server log tail. Query params:
+            #   n=N         → last N lines (default 300, max 2000)
+            #   grep=PAT    → only lines matching regex PAT
+            # Used both by the live-errors panel and by Izzy's [LOGS:] tag.
+            import pathlib as _pl, re as _rl
             _dv = self._get_viewer()
             if not (_dv and _auth.is_admin(_dv)):
                 self.send_response(403); self.end_headers(); return
+            try: _n = max(1, min(2000, int(query.get("n", ["300"])[0])))
+            except (ValueError, IndexError): _n = 300
+            _grep_pat = query.get("grep", [""])[0].strip()
             log_path = _pl.Path("data/server.log")
             if log_path.exists():
                 raw = log_path.read_text(encoding="utf-8", errors="replace")
                 lines = raw.splitlines()
-                text = "\n".join(lines[-300:])
+                if _grep_pat:
+                    try:
+                        rx = _rl.compile(_grep_pat, _rl.IGNORECASE)
+                        lines = [ln for ln in lines if rx.search(ln)]
+                    except _rl.error as ex:
+                        lines = [f"(invalid regex: {ex})"]
+                text = "\n".join(lines[-_n:])
             else:
                 text = "No log file yet. Errors will appear here once the server logs something."
             self.send_response(200)
@@ -876,6 +973,107 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
             try: self.wfile.write(text.encode("utf-8", errors="replace"))
+            except BrokenPipeError: pass
+            return
+
+        elif path == "/dev-health":
+            # Tiny liveness probe. The Apply UI polls this for ~12 seconds after
+            # restartServer() to detect a startup crash and auto-rollback the
+            # undo stack. Returns 200 + the process pid+startup-time so the JS
+            # can confirm the new process actually came up (different pid than
+            # the one it talked to before).
+            import os as _ohp
+            pid = _ohp.getpid()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            try: self.wfile.write(f"OK pid={pid}".encode())
+            except BrokenPipeError: pass
+            return
+
+        elif path == "/dev-diag":
+            # Static analysis for one source file. Reports syntax errors,
+            # undefined names referenced at module scope, and obvious unused
+            # imports. Pure-Python — no external linter required.
+            import pathlib as _pdg, ast as _adg, builtins as _bdg
+            _dv = self._get_viewer()
+            if not (_dv and _auth.is_admin(_dv)):
+                self.send_response(403); self.end_headers(); return
+            fname = query.get("file", [""])[0].strip()
+            fp = _pdg.Path(fname)
+            if (not fname or fp.parent != _pdg.Path(".")
+                    or fp.suffix != ".py" or not fp.exists()):
+                self.send_response(404); self.send_header("Content-Type","text/plain"); self.end_headers()
+                try: self.wfile.write(b"Diag: only existing project-root .py files allowed.")
+                except BrokenPipeError: pass
+                return
+            src = fp.read_text(encoding="utf-8", errors="replace")
+            findings: list[str] = []
+            try:
+                tree = _adg.parse(src, filename=fname)
+            except SyntaxError as ex:
+                txt = f"SYNTAX ERROR at {fname}:{ex.lineno}:{ex.offset}: {ex.msg}\n"
+                self.send_response(200); self.send_header("Content-Type","text/plain"); self.end_headers()
+                try: self.wfile.write(txt.encode())
+                except BrokenPipeError: pass
+                return
+            # Collect module-level defined names + imported names
+            defined: set = set(dir(_bdg))
+            imports: dict = {}    # name -> line
+            used_names: set = set()
+            for node in tree.body:
+                if isinstance(node, (_adg.Import, _adg.ImportFrom)):
+                    for n in node.names:
+                        nm = n.asname or n.name.split(".")[0]
+                        defined.add(nm); imports[nm] = node.lineno
+                elif isinstance(node, (_adg.FunctionDef, _adg.AsyncFunctionDef, _adg.ClassDef)):
+                    defined.add(node.name)
+                elif isinstance(node, _adg.Assign):
+                    for tgt in node.targets:
+                        if isinstance(tgt, _adg.Name): defined.add(tgt.id)
+            for node in _adg.walk(tree):
+                if isinstance(node, _adg.Name) and isinstance(node.ctx, _adg.Load):
+                    used_names.add(node.id)
+                elif isinstance(node, _adg.Attribute) and isinstance(node.value, _adg.Name):
+                    used_names.add(node.value.id)
+            # Check for "from config import X" style — report missing X if config exists
+            for node in tree.body:
+                if isinstance(node, _adg.ImportFrom) and node.module:
+                    mod_path = _pdg.Path(node.module.replace(".", "/") + ".py")
+                    if mod_path.exists():
+                        try:
+                            mod_src = mod_path.read_text(encoding="utf-8", errors="replace")
+                            mod_tree = _adg.parse(mod_src, filename=str(mod_path))
+                            mod_defined: set = set()
+                            for mn in mod_tree.body:
+                                if isinstance(mn, _adg.Assign):
+                                    for tgt in mn.targets:
+                                        if isinstance(tgt, _adg.Name): mod_defined.add(tgt.id)
+                                elif isinstance(mn, (_adg.FunctionDef, _adg.AsyncFunctionDef, _adg.ClassDef)):
+                                    mod_defined.add(mn.name)
+                                elif isinstance(mn, (_adg.Import, _adg.ImportFrom)):
+                                    for n2 in mn.names:
+                                        mod_defined.add(n2.asname or n2.name.split(".")[0])
+                            for n in node.names:
+                                if n.name != "*" and n.name not in mod_defined:
+                                    findings.append(
+                                        f"line {node.lineno}: 'from {node.module} import {n.name}' "
+                                        f"— '{n.name}' is NOT defined in {mod_path}. "
+                                        f"This will crash on startup."
+                                    )
+                        except SyntaxError: pass
+            # Unused imports (lightweight check — module-level only)
+            for nm, ln in imports.items():
+                if nm not in used_names and nm not in ("annotations",):
+                    findings.append(f"line {ln}: import '{nm}' appears unused.")
+            if not findings:
+                msg = f"DIAG OK — {fname} parses cleanly, no obvious issues."
+            else:
+                msg = f"DIAG {fname} — {len(findings)} finding(s):\n" + "\n".join("  • " + f for f in findings)
+            self.send_response(200); self.send_header("Content-Type","text/plain; charset=utf-8")
+            self.end_headers()
+            try: self.wfile.write(msg.encode())
             except BrokenPipeError: pass
             return
 
@@ -912,6 +1110,8 @@ class Handler(BaseHTTPRequestHandler):
             if end == 0 or end > total:
                 end = total
             selected = "\n".join(all_lines[start:end])
+            # Mark this file as freshly read for stale-edit guarding
+            _izzy_mark_read(fname)
             result = (f"=== {fname}  (lines {start+1}–{end} of {total}) ===\n\n"
                       + selected)
             self.send_response(200)
@@ -4164,6 +4364,34 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_response(422); self.send_header("Content-Type","text/plain"); self.end_headers()
                     self.wfile.write(b"FIND string not found in file - the code may have already been changed."); return
 
+                # Stale-edit guard — if Izzy already edited this file in this
+                # session and hasn't re-READ it since, his line numbers and
+                # surrounding context are stale → reject.
+                _stale = _izzy_check_stale(filename)
+                if _stale:
+                    self.send_response(409); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(_stale.encode())
+                    except BrokenPipeError: pass
+                    return
+
+                new_content = content.replace(find_str, repl_str, 1)
+
+                # Edit-size cap — block "let me regenerate the file" patterns
+                _ok_sz, _sz_err = _izzy_size_ok(repl_str, old_span_lines=find_str.count("\n") + 1)
+                if not _ok_sz:
+                    self.send_response(413); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(_sz_err.encode())
+                    except BrokenPipeError: pass
+                    return
+
+                # Syntax check BEFORE writing — reject if proposed file is broken
+                _ok_syn, _syn_err = _izzy_syntax_ok(filename, new_content)
+                if not _ok_syn:
+                    self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(f"FIX REJECTED — file NOT saved:\n{_syn_err}".encode())
+                    except BrokenPipeError: pass
+                    return
+
                 # Push backup onto the undo STACK (multi-level — keep last 30)
                 # so Lauren / Izzy can roll back through several bad edits to
                 # the file's state BEFORE Izzy began touching it.
@@ -4174,7 +4402,6 @@ class Handler(BaseHTTPRequestHandler):
                     _stack = []
                     if _undo_path.exists():
                         _raw = _jundo.loads(_undo_path.read_text(encoding="utf-8"))
-                        # Migrate single-dict legacy format into a list
                         _stack = _raw if isinstance(_raw, list) else [_raw]
                     _stack.append({"file": filename, "content": content,
                                    "ts": _dtu.now().strftime("%Y-%m-%dT%H:%M:%S"),
@@ -4183,11 +4410,13 @@ class Handler(BaseHTTPRequestHandler):
                     _undo_path.write_text(_jundo.dumps(_stack), encoding="utf-8")
                 except Exception: pass
 
-                new_content = content.replace(find_str, repl_str, 1)
                 fpath.write_text(new_content, encoding="utf-8")
+                _izzy_mark_write(filename)
 
+                # Return the unified diff so Izzy can see what actually landed
+                _diff = _izzy_diff(content, new_content, filename)
                 self.send_response(200); self.send_header("Content-Type","text/plain"); self.end_headers()
-                try: self.wfile.write(f"Applied to {filename}".encode())
+                try: self.wfile.write(f"Applied to {filename}\n\n--- DIFF ---\n{_diff}".encode())
                 except BrokenPipeError: pass
                 return
 
@@ -4223,6 +4452,22 @@ class Handler(BaseHTTPRequestHandler):
                 if w_start < 1 or w_end < w_start or w_start > total_lines:
                     self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
                     self.wfile.write(f"Line range {w_start}-{w_end} is out of bounds (file has {total_lines} lines).".encode()); return
+
+                # Stale-edit guard
+                _wstale = _izzy_check_stale(w_filename)
+                if _wstale:
+                    self.send_response(409); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(_wstale.encode())
+                    except BrokenPipeError: pass
+                    return
+
+                # Edit-size cap
+                _wok_sz, _wsz_err = _izzy_size_ok(w_content, old_span_lines=(w_end - w_start + 1))
+                if not _wok_sz:
+                    self.send_response(413); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(_wsz_err.encode())
+                    except BrokenPipeError: pass
+                    return
 
                 # Push backup onto the undo STACK (multi-level — keep last 30)
                 import json as _wjundo, pathlib as _wpupath
@@ -4265,9 +4510,12 @@ class Handler(BaseHTTPRequestHandler):
                         return
 
                 w_fpath.write_text(new_text, encoding="utf-8")
+                _izzy_mark_write(w_filename)
 
+                # Return the unified diff so Izzy can verify what landed
+                _wdiff = _izzy_diff(w_file_content, new_text, w_filename)
                 self.send_response(200); self.send_header("Content-Type","text/plain"); self.end_headers()
-                try: self.wfile.write(f"Written lines {w_start}-{w_end} of {w_filename}".encode())
+                try: self.wfile.write(f"Written lines {w_start}-{w_end} of {w_filename}\n\n--- DIFF ---\n{_wdiff}".encode())
                 except BrokenPipeError: pass
                 return
 
