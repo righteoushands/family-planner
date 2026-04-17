@@ -94,6 +94,26 @@
       "role": "assistant",
       "content": "Good question, Lauren—and I need to be honest: **right now, there isn't a dedicated place for the kids to upload assignments.**\n\nYou can upload images or documents *here in our chat* and I can review them, but there's no formal assignment submission system built into your dashboard yet.\n\n**That's part of what Izzy needs to build.** The full system you're envisioning would include:\n\n1. **Curriculum Library** (where syllabi and standards live)\n2. **Reference Documents** (PDFs for rubrics, answer keys, etc.)\n3. **Assignment Submission Portal** (where JP, Joseph, and Michael upload their work)\n4. **Grading Interface** (where I review and give feedback)\n\n**Right now, the simplest workflow is:**\n- You photograph/scan the child's work\n- You upload it here to me\n- I review it and give detailed feedback\n- You file the feedback in your records\n\n**But you're right—we should build it properly.** \n\n**My question:** Should I ask Izzy to design the *entire* system (Curriculum Library + Reference Docs + Assignment Submission + Grading Interface) as one integrated feature? That way, everything connects and flows smoothly.",
       "ts": "2026-04-15T16:02:18"
+    },
+    {
+      "role": "user",
+      "content": "Where is the poetry text box? I need to add lines to JPs poetry to memorize",
+      "ts": "2026-04-17T08:51:57"
+    },
+    {
+      "role": "assistant",
+      "content": "Lauren, I want to help you right away, but I need to clarify something first.\n\n**Are you looking for a specific place in the dashboard where JP's poetry memorization list is stored?** Or are you asking me to create a text box/space where you can add lines for him to memorize going forward?\n\nIf it's the latter, I can absolutely set that up—but that's another feature Izzy would need to build (a Poetry Memorization tracker for each child).\n\n**Quick question:** Do you already have a place where JP's current poetry assignments are listed, or should we create one now?",
+      "ts": "2026-04-17T08:51:59"
+    },
+    {
+      "role": "user",
+      "content": "There’s already a place but I can’t find it. It used to be with the Weekly review chart but I asked it to be moved and grouped with the school things on the school page.",
+      "ts": "2026-04-17T08:53:11"
+    },
+    {
+      "role": "assistant",
+      "content": "Ah, I understand—it was reorganized and moved to the school page, but you can't locate it now.\n\n**I don't have visibility into your dashboard's current layout or file structure,** so I can't tell you exactly where Izzy moved it.\n\n**Let me ask Izzy directly:**\n\n[IZZY]Lauren is looking for the Poetry Memorization text box/tracker for JP. She recalls asking you to move it from the Weekly Review chart to the school page, but she can't find it now. Can you tell her where it currently lives on the dashboard, or if it needs to be relocated/rebuilt?[/IZZY]\n\nIn the meantime, **if you need to add lines to JP's poetry list right now,** you can tell me what they are and I can note them here, and then we'll make sure they're added to the proper place once Izzy confirms the location.\n\nWhat poem or passage is JP memorizing?",
+      "ts": "2026-04-17T08:53:14"
     }
   ]
 }
