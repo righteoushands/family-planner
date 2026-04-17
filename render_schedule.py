@@ -1517,6 +1517,10 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
         f'<a href="/schedule/{escape(child)}?date={escape(iso)}"'
         f' style="font-size:.72em;color:var(--brown);font-weight:600;white-space:nowrap;">'
         f'Full list →</a>'
+        f'<a href="/programs?focus={escape(child)}"'
+        f' title="Coach\u2019s programs"'
+        f' style="font-size:.72em;color:#1a6e3e;font-weight:600;white-space:nowrap;'
+        f'text-decoration:none;">Programs →</a>'
         f'</div></div>'
 
         f'<div style="height:4px;background:#e0d8d0;border-radius:2px;margin-bottom:8px;">'

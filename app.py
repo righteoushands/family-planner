@@ -226,6 +226,47 @@ from render_daily_plan import (
 _MANUAL_TASKS_LOCK = threading.Lock()
 
 
+def _apply_coach_program_saves(text: str) -> int:
+    """
+    Parse <save_program person="X" title="Y">...body...</save_program> tags from
+    Coach's response and persist each one via data_helpers.save_coach_program.
+    Returns the count of programs saved.  Silently ignores malformed tags so a
+    bad Coach response never breaks the chat reply.
+    """
+    import re as _re
+    _VALID = {"Lauren", "Mom", "JP", "Joseph", "Michael", "James", "John", "Family"}
+    rx = _re.compile(
+        r'<save_program\b([^>]*)>([\s\S]*?)</save_program>',
+        _re.IGNORECASE,
+    )
+    saved = 0
+    try:
+        from data_helpers import save_coach_program as _scp
+    except Exception:
+        return 0
+    for m in rx.finditer(text or ""):
+        attrs_raw = m.group(1) or ""
+        body = (m.group(2) or "").strip()
+        if not body:
+            continue
+        # Accept either single- or double-quoted attribute values
+        person_m = _re.search(r'''person\s*=\s*["']([^"']+)["']''', attrs_raw, _re.IGNORECASE)
+        title_m  = _re.search(r'''title\s*=\s*["']([^"']+)["']''',  attrs_raw, _re.IGNORECASE)
+        person = (person_m.group(1).strip() if person_m else "")
+        # Normalize Mom → Lauren so all entries land in one bucket
+        if person.lower() == "mom":
+            person = "Lauren"
+        if person not in _VALID:
+            continue
+        title = (title_m.group(1).strip() if title_m else "Untitled program")
+        try:
+            _scp(person, title, body)
+            saved += 1
+        except Exception:
+            continue
+    return saved
+
+
 def _apply_frol_updates(text: str, weekday: str) -> str:
     """
     Parse any <frol_update> action tags in `text` and apply them to the
@@ -609,6 +650,12 @@ class Handler(BaseHTTPRequestHandler):
 
         if   path == "/":                body = render_dashboard()
         elif path == "/today":           body = render_today_all(query.get("date",[""])[0])
+        elif path == "/programs":
+            from render_programs import render_programs_page
+            body = render_programs_page(
+                focus = clean_text(query.get("focus",[""])[0]),
+                flash = clean_text(query.get("msg",[""])[0]),
+            )
         elif path == "/set-school-mode":
             # Quick toggle: /set-school-mode?mode=normal|light_week|custom_pause
             _sm = clean_text(query.get("mode",["normal"])[0])
@@ -4150,6 +4197,7 @@ class Handler(BaseHTTPRequestHandler):
                             except Exception: pass
                     ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                     _apply_frol_updates(text, weekday)
+                    _apply_coach_program_saves(text)
                     append_coach_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
                 except Exception as e:
                     try: self.wfile.write(str(e).encode("utf-8"))
@@ -4160,6 +4208,23 @@ class Handler(BaseHTTPRequestHandler):
                 from data_helpers import clear_coach_history
                 clear_coach_history()
                 redirect = "/coach"
+
+            elif path == "/programs-save":
+                from data_helpers import save_coach_program as _scp
+                from urllib.parse import quote as _q
+                person = clean_text(data.get("person",[""])[0])
+                title  = clean_text(data.get("title",[""])[0])
+                body_t = (data.get("body",[""])[0] or "").strip()  # preserve newlines
+                _scp(person, title, body_t)
+                redirect = "/programs?focus=" + _q(person) + "&msg=" + _q(f"Saved \u201c{title}\u201d for {person}.")
+
+            elif path == "/programs-delete":
+                from data_helpers import delete_coach_program as _dcp
+                from urllib.parse import quote as _q
+                person = clean_text(data.get("person",[""])[0])
+                pid    = clean_text(data.get("id",[""])[0])
+                _dcp(person, pid)
+                redirect = "/programs?focus=" + _q(person) + "&msg=" + _q("Deleted.")
 
             # ── Felix (Dev companion) ─────────────────────────────────────────
             elif path == "/dev-chat":

@@ -294,6 +294,61 @@ def save_exercise_assignments(data: dict):
     safe_save_json(_EXERCISE_FILE, data)
 
 
+# ── Coach saved programs ─────────────────────────────────────────────────────
+# Long-form fitness program write-ups Coach (or Lauren) saves so they can be
+# referenced from each person's POD.  Schema:
+#   { "Lauren": [ {id, title, body, saved_at}, ... ], "JP": [...], ... }
+from config import COACH_PROGRAMS_FILE as _COACH_PROGRAMS_FILE
+
+def load_coach_programs() -> dict:
+    return ensure_file(_COACH_PROGRAMS_FILE, {})
+
+def save_coach_program(person: str, title: str, body: str) -> dict:
+    """
+    Append a new program for `person`.  Returns the saved entry (with id).
+    De-dupes: if an entry with the same case-insensitive title already exists
+    for this person, REPLACE it rather than create a duplicate.
+    """
+    import uuid as _uuid
+    from datetime import datetime as _dt
+    person = (person or "").strip()
+    title  = (title  or "Untitled program").strip()
+    body   = (body   or "").strip()
+    if not person or not body:
+        return {}
+    data = load_coach_programs()
+    bucket = data.setdefault(person, [])
+    entry = {
+        "id":       _uuid.uuid4().hex[:12],
+        "title":    title,
+        "body":     body,
+        "saved_at": _dt.now().strftime("%Y-%m-%dT%H:%M:%S"),
+    }
+    # Replace same-title entry if present
+    for i, p in enumerate(bucket):
+        if (p.get("title","") or "").strip().lower() == title.lower():
+            entry["id"] = p.get("id", entry["id"])  # preserve id for stable links
+            bucket[i] = entry
+            safe_save_json(_COACH_PROGRAMS_FILE, data)
+            return entry
+    bucket.append(entry)
+    safe_save_json(_COACH_PROGRAMS_FILE, data)
+    return entry
+
+def delete_coach_program(person: str, program_id: str) -> bool:
+    data   = load_coach_programs()
+    bucket = data.get(person, [])
+    new    = [p for p in bucket if p.get("id") != program_id]
+    if len(new) == len(bucket):
+        return False
+    if new:
+        data[person] = new
+    else:
+        data.pop(person, None)
+    safe_save_json(_COACH_PROGRAMS_FILE, data)
+    return True
+
+
 def get_family_rule_of_life_text(weekday: str) -> str:
     """
     Return the Family Rule of Life template for a given weekday as plain text.

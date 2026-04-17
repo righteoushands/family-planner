@@ -32,6 +32,7 @@ SUBSCRIBED_CACHE_FILE = "data/subscribed_calendar_cache.json"
 APP_SETTINGS_FILE    = "data/app_settings.json"
 CURRICULUM_FILE      = "data/curriculum.json"
 TASK_OVERRIDES_FILE  = "data/task_overrides.json"
+COACH_PROGRAMS_FILE  = "data/coach_programs.json"
 
 # ── Validation sets ──────────────────────────────────────────────────────────
 VALID_PRIORITIES = {"HIGH", "MEDIUM", "LOW"}
