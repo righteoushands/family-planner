@@ -14,8 +14,8 @@
   "days": {
     "Monday": {
       "breakfast": "Scrambled eggs with toast",
-      "lunch": "Split pea soup with rolls",
-      "dinner": "Brined roast chicken with mashed potatoes and steamed broccoli",
+      "lunch": "Leftover shredded chicken (finish it)",
+      "dinner": "Leftover shredded chicken + mashed potatoes + pork and beans",
       "snacks": "Canned peaches, cheese slices",
       "dad_lunch": "Leftover pizza slices with apple",
       "boys_help": "JP: brine the chicken in salt water \u00b7 Joseph: wash and peel potatoes for mashing \u00b7 Michael: rinse broccoli florets",
@@ -28,7 +28,7 @@
     "Tuesday": {
       "breakfast": "Oatmeal with canned pineapple",
       "lunch": "leftovers from Monday chicken dinner",
-      "dinner": "Leftover roast chicken (higher carb day)",
+      "dinner": "Tacos with leftover pot roast (need: salsa, refried beans)",
       "snacks": "Popcorn, canned pears",
       "dad_lunch": "Split pea soup in thermos with crackers",
       "boys_help": "JP: reheat chicken and sides in oven \u00b7 Joseph: measure rice for cooking \u00b7 Michael: set chicken pieces on serving plate",
@@ -41,7 +41,7 @@
     "Wednesday": {
       "breakfast": "Scrambled eggs with cheese",
       "lunch": "Leftover roast chicken with rice",
-      "dinner": "Leftover roast chicken with vegetables",
+      "dinner": "Leftovers",
       "snacks": "Cheese slices, canned peaches",
       "dad_lunch": "Leftover chicken with rice and fruit cup",
       "boys_help": "JP: sear roast beef in Dutch oven \u00b7 Joseph: wash and chop carrots for roasting \u00b7 Michael: rinse wild rice in strainer",
@@ -54,7 +54,7 @@
     "Thursday": {
       "breakfast": "Oatmeal with sugar and milk",
       "lunch": "Beef stew with bread",
-      "dinner": "Sheet Pan Chicken Thighs with roasted carrots and potatoes",
+      "dinner": "Lentil soup with ham jaw and biscuits",
       "snacks": "Tortilla chips, canned pears",
       "dad_lunch": "Beef stew in thermos with rolls",
       "boys_help": "JP: warm shredded chicken with taco seasoning \u00b7 Joseph: drain and rinse canned pork and beans \u00b7 Michael: tear lettuce for taco toppings",
@@ -67,7 +67,7 @@
     "Friday": {
       "breakfast": "Eggs, cereal, fruit, toast",
       "lunch": "Split pea soup",
-      "dinner": "Leftover beef stew",
+      "dinner": "Homemade cheese pizza (make crust early Friday)",
       "snacks": "Cheese slices, canned pineapple",
       "dad_lunch": "Sardine sandwich or split pea soup in thermos",
       "boys_help": "JP: bread and fry flounder fillets \u00b7 Joseph: prepare corn for cooking \u00b7 Michael: arrange french fries on baking sheet",
