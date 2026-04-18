@@ -14,7 +14,7 @@
   "days": {
     "Monday": {
       "breakfast": "Scrambled eggs with toast",
-      "lunch": "Leftover shredded chicken (finish it)",
+      "lunch": "Leftover shredded chicken (finish it) (or sardine salad sandwiches)",
       "dinner": "Jambalaya with beans and fish + coleslaw",
       "snacks": "Canned peaches, cheese slices",
       "dad_lunch": "Leftover pizza slices with apple",
@@ -27,7 +27,7 @@
     },
     "Tuesday": {
       "breakfast": "Oatmeal with canned pineapple",
-      "lunch": "Leftover pot roast",
+      "lunch": "Leftover pot roast (or sardine salad sandwiches)",
       "dinner": "Tacos with leftover pot roast (need: salsa, refried beans)",
       "snacks": "Popcorn, canned pears",
       "dad_lunch": "Split pea soup in thermos with crackers",
@@ -40,7 +40,7 @@
     },
     "Wednesday": {
       "breakfast": "Scrambled eggs with cheese",
-      "lunch": "Leftover jambalaya",
+      "lunch": "Leftover jambalaya (or sardine salad sandwiches)",
       "dinner": "Leftovers",
       "snacks": "Cheese slices, canned peaches",
       "dad_lunch": "Leftover chicken with rice and fruit cup",
@@ -53,7 +53,7 @@
     },
     "Thursday": {
       "breakfast": "Oatmeal with sugar and milk",
-      "lunch": "Leftover jambalaya",
+      "lunch": "Leftover jambalaya (or sardine salad sandwiches)",
       "dinner": "Lentil soup with ham jaw and biscuits",
       "snacks": "Tortilla chips, canned pears",
       "dad_lunch": "Beef stew in thermos with rolls",
@@ -66,7 +66,7 @@
     },
     "Friday": {
       "breakfast": "Eggs, cereal, fruit, toast",
-      "lunch": "Split pea soup",
+      "lunch": "Sardine sandwiches",
       "dinner": "Homemade cheese pizza (make crust early Friday)",
       "snacks": "Cheese slices, canned pineapple",
       "dad_lunch": "Sardine sandwich or split pea soup in thermos",
@@ -78,9 +78,9 @@
       "helpers": "JP makes pizza dough early morning \u2014 JP & Joseph assemble & bake pizzas at dinner \u2014 Michael spreads sauce & sprinkles cheese"
     },
     "Saturday": {
-      "breakfast": "Oatmeal with canned peaches",
-      "lunch": "Leftover sheet pan chicken thighs",
-      "dinner": "Leftover beef stew",
+      "breakfast": "Leftovers",
+      "lunch": "Leftovers",
+      "dinner": "Leftovers",
       "snacks": "Popcorn, cheese slices",
       "dad_lunch": "N/A",
       "boys_help": "JP: cook lentil soup on stovetop \u00b7 Joseph: wash and chop mixed vegetables for roasting \u00b7 Michael: rinse lentils in strainer",
@@ -88,20 +88,14 @@
       "prep_time": "10 minutes",
       "cook_time": "15 minutes",
       "serve_time": "18:00",
-      "helpers": "Joseph reheats leftovers \u2014 Michael sets the table"
+      "helpers": "Joseph reheats whatever needs reheating \u2014 Michael sets the table"
     },
     "Sunday": {
-      "breakfast": "Scrambled eggs with leftover vegetables",
-      "lunch": "Quinoa salad with leftover vegetables",
-      "dinner": "Ziplock Buffet (leftovers)",
-      "snacks": "Canned fruit, remaining cheese",
       "dad_lunch": "N/A",
       "boys_help": "JP: reheat and organize leftover containers \u00b7 Joseph: mix quinoa with vegetables for salad \u00b7 Michael: arrange leftover items on serving plates",
-      "dessert": "Canned fruit",
       "prep_time": "15 minutes",
       "cook_time": "20 minutes",
-      "serve_time": "18:00",
-      "helpers": "JP leads Ziplock Buffet (leftovers) assembly \u2014 Joseph organizes containers \u2014 Michael wipes table"
+      "serve_time": "18:00"
     }
   },
   "grocery_gaps": [
