@@ -103,15 +103,81 @@ def _get_current_meal_plan(iso: str) -> str:
             f"Treat it as authoritative.",
             "",
         ]
-        for day_name, slots in days_data.items():
-            if isinstance(slots, dict):
-                parts = []
-                for slot in ("breakfast", "lunch", "dinner", "dessert", "snacks", "dad_lunch"):
-                    val = slots.get(slot, "").strip()
-                    if val:
-                        parts.append(f"{slot.capitalize()}: {val}")
-                if parts:
-                    lines.append(f"  {day_name}: " + " | ".join(parts))
+        # Track gaps for the audit section
+        try:
+            from render_meals import DAYS as _CANON_DAYS
+        except Exception:
+            _CANON_DAYS = ("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday")
+        food_slots = ("breakfast", "lunch", "dinner", "dessert", "snacks", "dad_lunch")
+        meta_slots = ("prep_time", "cook_time", "serve_time", "helpers")
+        # Some legacy/alternate keys mean "filled" for a given canonical slot.
+        slot_aliases = {"helpers": ("helpers", "boys_help")}
+        gaps_food: dict = {s: [] for s in food_slots}
+        gaps_meta: dict = {s: [] for s in meta_slots}
+        vague_leftovers: list = []
+        malformed_days: list = []
+        for day_name in _CANON_DAYS:
+            slots = days_data.get(day_name)
+            if not isinstance(slots, dict):
+                malformed_days.append(day_name)
+                for s in food_slots: gaps_food[s].append(day_name)
+                for s in meta_slots: gaps_meta[s].append(day_name)
+                continue
+            parts = []
+            for slot in food_slots:
+                val = (slots.get(slot, "") or "").strip()
+                if val:
+                    parts.append(f"{slot.capitalize()}: {val}")
+                    if val.lower() in ("leftovers", "leftover"):
+                        vague_leftovers.append(f"{day_name} {slot}")
+                else:
+                    gaps_food[slot].append(day_name)
+            for slot in meta_slots:
+                keys_to_check = slot_aliases.get(slot, (slot,))
+                filled = False
+                for k in keys_to_check:
+                    raw = slots.get(k, "")
+                    v = (raw or "").strip() if isinstance(raw, str) else raw
+                    if v:
+                        filled = True
+                        break
+                if not filled:
+                    gaps_meta[slot].append(day_name)
+            if parts:
+                lines.append(f"  {day_name}: " + " | ".join(parts))
+        # Append gap audit
+        lines += ["", "== GAPS IN THIS WEEK'S PLAN (proactively offer to fill) =="]
+        any_gap = False
+        for slot, days in gaps_food.items():
+            if days:
+                any_gap = True
+                if len(days) == 7:
+                    lines.append(f"  • {slot}: BLANK every day (Mon–Sun)")
+                else:
+                    lines.append(f"  • {slot}: missing on {', '.join(days)}")
+        for slot, days in gaps_meta.items():
+            if days:
+                any_gap = True
+                if len(days) == 7:
+                    lines.append(f"  • {slot}: BLANK every day (Mon–Sun)")
+                else:
+                    lines.append(f"  • {slot}: missing on {', '.join(days)}")
+        if vague_leftovers:
+            any_gap = True
+            lines.append(f"  • vague 'leftovers' entries (specify which dish): "
+                         + ", ".join(vague_leftovers))
+        if malformed_days:
+            any_gap = True
+            lines.append(f"  • malformed/missing day data (whole day blank): "
+                         + ", ".join(malformed_days))
+        if not any_gap:
+            lines.append("  (none — every field on every day is filled in)")
+        lines += [
+            "",
+            "When Lauren mentions printing the fridge card, reviewing the week, or 'is",
+            "anything missing', volunteer the gaps above and offer concrete fills using",
+            "[MEAL_UPDATE:Day:slot] tags. Don't make her ask twice.",
+        ]
         return "\n".join(lines)
     except Exception as e:
         return f"Could not load meal plan: {e}"
