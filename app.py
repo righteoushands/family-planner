@@ -4230,11 +4230,40 @@ class Handler(BaseHTTPRequestHandler):
                             pass
                 ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                 _apply_frol_updates(text, weekday)
-                append_lorenzo_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
+                # ── Strip all parsed action tags from the user-facing reply ──
+                # (the server has already saved their effects; showing the raw
+                # markup just confuses Lauren and looks like "code")
+                _visible = text
+                _visible = _re.sub(
+                    r'\[MEAL_UPDATE:[^:\]]+:[^\]]+\][\s\S]*?\[\/MEAL_UPDATE\]',
+                    '', _visible, flags=_re.IGNORECASE)
+                _visible = _re.sub(
+                    r'\[RECIPE_CARD:add\][\s\S]*?\[\/RECIPE_CARD\]',
+                    '', _visible, flags=_re.IGNORECASE)
+                # NOTE: do NOT strip [RULE:add]…[/RULE] — the frontend parses
+                # those to render a "Save to meal rules" button.
+                _visible = _re.sub(
+                    r'<meal_constraint_update>[\s\S]*?</meal_constraint_update>',
+                    '', _visible, flags=_re.IGNORECASE)
+                _visible = _re.sub(
+                    r'<frol_update\b[^>]*>[\s\S]*?</frol_update>',
+                    '', _visible, flags=_re.IGNORECASE)
+                # Also strip hallucinated Anthropic tool-use markup (Lorenzo
+                # sometimes reaches for these from his training; they save
+                # nothing and look terrible in chat).
+                _visible = _re.sub(
+                    r'<function_calls>[\s\S]*?</function_calls>',
+                    '', _visible, flags=_re.IGNORECASE)
+                _visible = _re.sub(
+                    r'<invoke\b[^>]*>[\s\S]*?</invoke>',
+                    '', _visible, flags=_re.IGNORECASE)
+                # Collapse the blank lines left behind
+                _visible = _re.sub(r'\n{3,}', '\n\n', _visible).strip()
+                append_lorenzo_messages([{"role": "assistant", "content": _visible, "ts": ts_reply}])
                 self.send_response(200)
                 self.send_header("Content-Type","text/plain; charset=utf-8")
                 self.end_headers()
-                try: self.wfile.write(text.encode("utf-8"))
+                try: self.wfile.write(_visible.encode("utf-8"))
                 except BrokenPipeError: pass
                 return
 
