@@ -255,7 +255,6 @@
       "CHORE::Tidy-up school shelves",
       "MANUAL::MEDIUM::Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
       "MANUAL::MEDIUM::Choose Convention Class. https://heav.org/convention/children-and-teens/",
-      "MANUAL::MEDIUM::Friday Penance: give up meat or make another sacrifice.",
       "SCHOOL::Algebra 1/2::Test completed — given to Mom",
       "SCHOOL::Art 7::Read Unit 4, Chapter 16, Bartoleme Esteban Murillo.",
       "SCHOOL::Editing 7::Lesson 7, Selection 36: write the selection correctly.",
@@ -534,6 +533,59 @@
       "SCHOOL::Religion 7::Discuss the questions for Chapter 20, or write out your answers.1. Can you see, in verse 4, a sign of the catholicity of the Catholic Church?2. What miracle did Paul do at Troas?3. What are the important points of Paul's discourse?Practice defending your faith. Have someone ask you one or more of the questions you have been working on in your FriendlyDefender cards. Answer the question and give the Bible verse that pertains to that answer.",
       "SCHOOL::Science 6::Do the Review of Geology — Chapter 16 in your workbook.",
       "SCHOOL::Spelling & Vocabulary 8::Begin Lesson 9. First look at the meanings of the roots for Lesson 9. Then look at the Lesson 9 Key Words. Which do you knowwithout looking at the definitions? Use the roots to help you. Read over the entries for each of the key words. Add the key words toyour notebook, so that you practice spelling them. Write down definitions for any words you do not already know."
+    ],
+    "James": []
+  },
+  "2026-04-18": {
+    "JP": [
+      "CHORE::  → Clean sink",
+      "CHORE::  → Clear table + counters",
+      "CHORE::  → Load dishwasher",
+      "CHORE::  → Put food away",
+      "CHORE::  → Spray + wipe table and counters",
+      "CHORE::  → Sweep kitchen / dining room / foyer",
+      "CHORE::  → Take out trash + recycling",
+      "CHORE::  → Unload dishwasher",
+      "CHORE::After school, pickup all your school things and tidy your school shelf.",
+      "CHORE::Check CAP email",
+      "CHORE::Check Sea Cadet email",
+      "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
+      "CHORE::KITCHEN (After Breakfast — Role A):",
+      "CHORE::KITCHEN (Evening — Role A):",
+      "CHORE::Practice Piano for 15 minutes",
+      "CHORE::Prepare Mass clothes (with Mom approval)",
+      "CHORE::Tidy basement zone — 10 minutes",
+      "CHORE::Weekly room clean (~90 min): full clean, vacuum, laundry check",
+      "MANUAL::MEDIUM::Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
+      "MANUAL::MEDIUM::CAPTask: Wash the most used uniform of the month.",
+      "MANUAL::MEDIUM::Choose Convention Class. https://heav.org/convention/children-and-teens/"
+    ],
+    "Joseph": [
+      "CHORE::  → Clean sink",
+      "CHORE::  → Clear table + counters",
+      "CHORE::  → Load dishwasher",
+      "CHORE::  → Put food away",
+      "CHORE::  → Spray + wipe table and counters",
+      "CHORE::  → Sweep kitchen / dining room / foyer",
+      "CHORE::  → Take out trash + recycling",
+      "CHORE::  → Unload dishwasher",
+      "CHORE::After school: pickup your school things and tidy your school shelf.",
+      "CHORE::Check Sea Cadet email",
+      "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
+      "CHORE::KITCHEN (After Breakfast — Role B):",
+      "CHORE::KITCHEN (Evening — Role B):",
+      "CHORE::Practice piano for 15 minutes",
+      "CHORE::Prepare Mass clothes (with Mom approval)",
+      "CHORE::Tidy basement zone — 10 minutes",
+      "CHORE::Weekly room clean (~90 min): full clean, vacuum, laundry check",
+      "MANUAL::MEDIUM::Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
+      "MANUAL::MEDIUM::Choose Convention Class. https://heav.org/convention/children-and-teens/"
+    ],
+    "Michael": [
+      "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
+      "CHORE::Prepare Mass clothes",
+      "CHORE::Tidy basement zone — 10 minutes",
+      "CHORE::Weekly room clean"
     ],
     "James": []
   }

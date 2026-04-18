@@ -2,16 +2,6 @@
   "messages": [
     {
       "role": "user",
-      "content": "Give me printable lists",
-      "ts": "2026-04-06T12:54:03"
-    },
-    {
-      "role": "assistant",
-      "content": "\n\n\n\n\n\n\n\nYour printable lists are ready. The Print button should appear above this message.\n[PLAN_UPDATED:JP:2026-04-06]\n[PLAN_UPDATED:Joseph:2026-04-06]\n[PLAN_UPDATED:Michael:2026-04-06]\n[PLAN_UPDATED:James:2026-04-06]",
-      "ts": "2026-04-06T12:54:08"
-    },
-    {
-      "role": "user",
       "content": "Can you make sure the text size of the tasks are the same size? Also, remove all carryover jobs.",
       "ts": "2026-04-06T12:58:28"
     },
@@ -299,6 +289,16 @@
       "role": "assistant",
       "content": "That's real. So there's a gap both in *having* the conversations and in *how* they go when you do.\n\nHere's what might help: pick one concrete thing that happened recently — something small, even — where you felt that gap. What's one thing you wish you'd been able to say to John, or wish he'd understood about you?",
       "ts": "2026-04-17T14:08:56"
+    },
+    {
+      "role": "user",
+      "content": "Can you remember us talking about James pt exercises today?",
+      "ts": "2026-04-17T22:40:27"
+    },
+    {
+      "role": "assistant",
+      "content": "I don't have a record of us talking about James's PT exercises today in our conversation. This is the first time you've mentioned it.\n\nBut I'm listening now. What happened with James's PT today, and what do you wish you'd been able to communicate to John about it?",
+      "ts": "2026-04-17T22:40:29"
     }
   ]
 }
