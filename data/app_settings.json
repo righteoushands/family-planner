@@ -51,7 +51,8 @@
     "core_subjects": "Math, religion, reading",
     "paused_subjects": "",
     "lorenzo_rules": [
-      "Align higher-carb meals with John's lifting days (Tuesday, Thursday, and Friday); lower/moderate carbs on other days"
+      "Align higher-carb meals with John's lifting days (Tuesday, Thursday, and Friday); lower/moderate carbs on other days",
+      "End of month: use all on-hand proteins and ingredients before buying new. Freeze only what won't be eaten that week. Prioritize fresh consumption to clear inventory before month-end grocery run."
     ]
   },
   "show_liturgy_hours_widget": true,
@@ -66,5 +67,6 @@
       "bg": "#2563eb",
       "light": "#eff6ff"
     }
-  }
+  },
+  "anthropic_api_key": "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"
 }

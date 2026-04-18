@@ -30,8 +30,8 @@
     },
     "Wednesday": {
       "breakfast": "Scrambled eggs with cheese",
-      "lunch": "Chicken and vegetable soup",
-      "dinner": "Roast beef with roasted carrots and wild rice",
+      "lunch": "Leftovers",
+      "dinner": "Leftovers",
       "snacks": "Cheese slices, canned peaches",
       "dad_lunch": "Leftover chicken with rice and fruit cup",
       "boys_help": "JP: sear roast beef in Dutch oven · Joseph: wash and chop carrots for roasting · Michael: rinse wild rice in strainer"
@@ -39,23 +39,23 @@
     "Thursday": {
       "breakfast": "Oatmeal with sugar and milk",
       "lunch": "Beef stew with bread",
-      "dinner": "Shredded chicken tacos with beans (higher carb day)",
+      "dinner": "Sheet Pan Chicken Thighs with roasted carrots and potatoes",
       "snacks": "Tortilla chips, canned pears",
       "dad_lunch": "Beef stew in thermos with rolls",
       "boys_help": "JP: warm shredded chicken with taco seasoning · Joseph: drain and rinse canned pork and beans · Michael: tear lettuce for taco toppings"
     },
     "Friday": {
-      "breakfast": "Scrambled eggs with toast",
-      "lunch": "sardine sandwiches or soup",
-      "dinner": "Fish fry (fried flounder with french fries and corn)",
+      "breakfast": "Eggs, cereal, fruit, toast",
+      "lunch": "Split pea soup",
+      "dinner": "Leftovers",
       "snacks": "Cheese slices, canned pineapple",
       "dad_lunch": "Chicken taco leftovers wrapped in tortilla",
       "boys_help": "JP: bread and fry flounder fillets · Joseph: prepare corn for cooking · Michael: arrange french fries on baking sheet"
     },
     "Saturday": {
       "breakfast": "Oatmeal with canned peaches",
-      "lunch": "Lentil soup with bread",
-      "dinner": "Veggie burgers with roasted vegetables",
+      "lunch": "Leftovers",
+      "dinner": "Leftovers",
       "snacks": "Popcorn, cheese slices",
       "dad_lunch": "N/A",
       "boys_help": "JP: cook lentil soup on stovetop · Joseph: wash and chop mixed vegetables for roasting · Michael: rinse lentils in strainer"
