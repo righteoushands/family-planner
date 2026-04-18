@@ -3,7 +3,12 @@ data_helpers.py — All data loading, saving, and utility functions.
 Imports from: config, safe_utils, daily_schedule_engine, notes_router
 """
 from datetime import date, timedelta
-from safe_utils import ensure_file, safe_save_json, debug_log
+from safe_utils import (
+    ensure_file, safe_save_json, debug_log,
+    list_snapshots as _su_list_snapshots,
+    restore_snapshot as _su_restore_snapshot,
+    load_snapshot_data as _su_load_snapshot_data,
+)
 from daily_schedule_engine import CHILDREN
 
 from config import (
@@ -15,12 +20,15 @@ from config import (
 )
 
 
-# ── Snapshot stubs (system removed) ─────────────────────────────────────────
-def list_snapshots() -> list:
-    return []
+# ── Snapshot system (re-exported from safe_utils) ───────────────────────────
+def list_snapshots(original_path: str = None) -> list:
+    return _su_list_snapshots(original_path)
 
-def restore_snapshot(filename: str) -> tuple:
-    return False, "Snapshot system not available"
+def restore_snapshot(snapshot_key: str) -> tuple:
+    return _su_restore_snapshot(snapshot_key)
+
+def load_snapshot_data(snapshot_key: str):
+    return _su_load_snapshot_data(snapshot_key)
 
 
 # ── Date helpers ─────────────────────────────────────────────────────────────

@@ -4732,23 +4732,28 @@ def render_history_page(status_message: str = "") -> str:
     snapshots = list_snapshots()
     grouped   = {}
     for s in snapshots:
-        grouped.setdefault(s["stem"], []).append(s)
+        # Group by full original path so same-named files in different
+        # sub-dirs (e.g. day_templates/Monday vs day_grids/Monday) don't merge.
+        grouped.setdefault(s["original_path"], []).append(s)
     if not grouped:
         body = f"{page_header('Version History')}{render_status_message(status_message)}<div class='card'><p class='muted'>No snapshots yet.</p></div>"
         return html_page("Version History", body)
     sections_html = ""
-    for stem, snaps in sorted(grouped.items()):
-        label = SNAPSHOT_FILE_LABELS.get(stem, stem)
+    for original_path, snaps in sorted(grouped.items()):
+        stem  = snaps[0]["stem"]
+        label = SNAPSHOT_FILE_LABELS.get(stem, original_path)
         rows  = ""
         for snap in snaps:
-            ts = escape(snap["timestamp"]); fname = escape(snap["filename"])
+            ts    = escape(snap["timestamp"])
+            fname = escape(snap["filename"])
+            key   = escape(snap["key"])
             rows += f"""
             <div class="card card-tight" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
                 <div><strong>{ts}</strong><span class="small" style="margin-left:8px;">{fname}</span></div>
                 <div class="link-row" style="margin:0;">
-                    <a class="link-button" href="/history/preview?file={fname}">Preview</a>
+                    <a class="link-button" href="/history/preview?key={key}">Preview</a>
                     <form method="POST" action="/history-restore" style="display:inline;">
-                        <input type="hidden" name="filename" value="{fname}">
+                        <input type="hidden" name="key" value="{key}">
                         <button type="submit" class="secondary" onclick="return confirm('Restore this snapshot?')">Restore</button>
                     </form>
                 </div>

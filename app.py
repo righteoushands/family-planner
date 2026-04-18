@@ -175,6 +175,7 @@ from data_helpers import (
     load_liturgical_custom, save_liturgical_custom,
     advance_recurring_task,
     load_thankyou_reminders, save_thankyou_reminders,
+    list_snapshots, restore_snapshot, load_snapshot_data,
 )
 from ui_helpers import parse_urlencoded_body, parse_multipart_form
 from render_schedule import render_child_schedule, render_today_all, render_week, render_print_day, render_print_week, render_print_child_day_list
@@ -1414,6 +1415,22 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/liturgical/edit": body = render_liturgical_edit_page(query.get("date",[""])[0])
         elif path == "/settings":        body = render_settings_page(status_message=query.get("msg",[""])[0])
         elif path == "/history":         body = render_history_page(status_message=query.get("msg",[""])[0])
+        elif path == "/history/preview":
+            key = (query.get("key",[""])[0] or query.get("file",[""])[0]).strip()
+            data_obj = load_snapshot_data(key) if key else None
+            import json as _json
+            from html import escape as _esc
+            if data_obj is None:
+                body_html = f"<p class='muted'>Snapshot not found: {_esc(key)}</p>"
+            else:
+                pretty = _json.dumps(data_obj, indent=2, ensure_ascii=False)
+                body_html = f"<h2>Snapshot Preview</h2><p class='small'>{_esc(key)}</p><pre style='white-space:pre-wrap;'>{_esc(pretty)}</pre><p><a href='/history'>← Back to History</a></p>"
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.end_headers()
+            try: self.wfile.write(f"<html><body style='font-family:system-ui;padding:20px;'>{body_html}</body></html>".encode())
+            except BrokenPipeError: pass
+            return
         elif path == "/plan-fragment":
             iso  = clean_text(query.get("iso",[""])[0]) or date.today().isoformat()
             frag = render_plan_fragment_html(iso)
@@ -2901,7 +2918,14 @@ class Handler(BaseHTTPRequestHandler):
                     if str(note.get("id",""))==note_id: note["status"]="archived"; break
                 save_mom_notes(notes); redirect="/mom#top"
 
-            elif path == "/history-restore": redirect="/roadmap#top"
+            elif path == "/history-restore":
+                key = (data.get("key",[""])[0] or data.get("filename",[""])[0]).strip()
+                from urllib.parse import quote as _q
+                if not key:
+                    redirect = "/history?msg=" + _q("No snapshot specified.")
+                else:
+                    ok, msg = restore_snapshot(key)
+                    redirect = "/history?msg=" + _q(msg if ok else f"Restore failed: {msg}")
 
             elif path == "/plan-add-item":
                 iso    = clean_text(data.get("iso",[""])[0]) or date.today().isoformat()
