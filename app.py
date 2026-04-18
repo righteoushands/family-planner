@@ -5597,6 +5597,7 @@ class Handler(BaseHTTPRequestHandler):
                     headers={"x-api-key": _cc_key, "anthropic-version": "2023-06-01",
                              "content-type": "application/json"},
                 )
+                _cc_full_reply = []
                 try:
                     _cc_resp = _creq.urlopen(_cc_req, timeout=60)
                     self.send_response(200)
@@ -5614,12 +5615,39 @@ class Handler(BaseHTTPRequestHandler):
                                 _delta = _obj.get("delta",{})
                                 _piece = _delta.get("text","") if _delta.get("type") == "text_delta" else ""
                                 if _piece:
+                                    _cc_full_reply.append(_piece)
                                     try: self.wfile.write(_piece.encode("utf-8")); self.wfile.flush()
                                     except BrokenPipeError: break
                             except Exception: pass
                 except Exception as _cce:
                     try: self.wfile.write(str(_cce).encode("utf-8"))
                     except BrokenPipeError: pass
+                # ── Persist this Plan-Importer chat into the companion's own
+                #    history file so they "remember" it next time the user
+                #    opens their normal chat page (Lucy, Coach, etc.).
+                try:
+                    _reply_text = "".join(_cc_full_reply).strip()
+                    if _reply_text:
+                        _ts_now = datetime.now().isoformat(timespec="seconds")
+                        _user_tagged = f"[Plan Importer] {_cc_message}"
+                        _appender_map = {
+                            "lucy":    "append_lucy_messages",
+                            "lorenzo": "append_lorenzo_messages",
+                            "gregory": "append_gregory_messages",
+                            "coach":   "append_coach_messages",
+                            "monica":  "append_monica_messages",
+                        }
+                        _fn_name = _appender_map.get(_cc_companion.lower())
+                        if _fn_name:
+                            import data_helpers as _dh
+                            _fn = getattr(_dh, _fn_name, None)
+                            if _fn:
+                                _fn([
+                                    {"role": "user",      "content": _user_tagged, "ts": _ts_now},
+                                    {"role": "assistant", "content": _reply_text,  "ts": _ts_now},
+                                ])
+                except Exception:
+                    pass
                 return
 
             # ── Plan Import — Group Council (streaming, single call) ───────────
@@ -5673,6 +5701,7 @@ class Handler(BaseHTTPRequestHandler):
                     headers={"x-api-key": _gc_key, "anthropic-version": "2023-06-01",
                              "content-type": "application/json"},
                 )
+                _gc_full_reply = []
                 try:
                     _gc_resp = _gcreq.urlopen(_gc_req, timeout=90)
                     self.send_response(200)
@@ -5690,12 +5719,46 @@ class Handler(BaseHTTPRequestHandler):
                                 _delta = _obj.get("delta",{})
                                 _piece = _delta.get("text","") if _delta.get("type") == "text_delta" else ""
                                 if _piece:
+                                    _gc_full_reply.append(_piece)
                                     try: self.wfile.write(_piece.encode("utf-8")); self.wfile.flush()
                                     except BrokenPipeError: break
                             except Exception: pass
                 except Exception as _gce:
                     try: self.wfile.write(str(_gce).encode("utf-8"))
                     except BrokenPipeError: pass
+                # ── Persist roundtable into every participating companion's
+                #    history file so each one remembers what was said.
+                try:
+                    _gc_reply_text = "".join(_gc_full_reply).strip()
+                    if _gc_reply_text:
+                        _gc_ts  = datetime.now().isoformat(timespec="seconds")
+                        _gc_um  = f"[Plan Importer · Roundtable] {_gc_question}"
+                        _gc_map = {
+                            "lucy":    "append_lucy_messages",
+                            "lorenzo": "append_lorenzo_messages",
+                            "gregory": "append_gregory_messages",
+                            "coach":   "append_coach_messages",
+                            "monica":  "append_monica_messages",
+                        }
+                        # Always include Lucy (she always moderates) plus any
+                        # explicit participants the client passed in.
+                        _gc_keys = {str(_k).lower() for _k in _gc_companions if _k}
+                        _gc_keys.add("lucy")
+                        import data_helpers as _gc_dh
+                        for _k in _gc_keys:
+                            _fn_name = _gc_map.get(_k)
+                            if not _fn_name: continue
+                            _fn = getattr(_gc_dh, _fn_name, None)
+                            if not _fn: continue
+                            try:
+                                _fn([
+                                    {"role": "user",      "content": _gc_um,         "ts": _gc_ts},
+                                    {"role": "assistant", "content": _gc_reply_text, "ts": _gc_ts},
+                                ])
+                            except Exception:
+                                pass
+                except Exception:
+                    pass
                 return
 
             elif path in ("/calendar-config-save","/calendar-save-config"):
