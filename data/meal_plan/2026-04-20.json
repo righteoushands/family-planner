@@ -15,7 +15,7 @@
     "Monday": {
       "breakfast": "Scrambled eggs with toast",
       "lunch": "Leftover shredded chicken (finish it)",
-      "dinner": "Leftover shredded chicken + mashed potatoes + pork and beans",
+      "dinner": "Leftover shredded chicken + mashed potatoes + pork and beans + broccoli and cheese",
       "snacks": "Canned peaches, cheese slices",
       "dad_lunch": "Leftover pizza slices with apple",
       "boys_help": "JP: brine the chicken in salt water \u00b7 Joseph: wash and peel potatoes for mashing \u00b7 Michael: rinse broccoli florets",
@@ -23,11 +23,11 @@
       "prep_time": "20 minutes",
       "cook_time": "3 hours",
       "serve_time": "18:00",
-      "helpers": "JP leads brining prep & cooking \u2014 Joseph assists with potatoes \u2014 Michael washes vegetables"
+      "helpers": "JP shreds & reheats chicken, makes mashed potatoes \u2014 Joseph opens & heats pork and beans + broccoli with cheese \u2014 Michael sets the table & pours drinks"
     },
     "Tuesday": {
       "breakfast": "Oatmeal with canned pineapple",
-      "lunch": "leftovers from Monday chicken dinner",
+      "lunch": "Leftover pot roast",
       "dinner": "Tacos with leftover pot roast (need: salsa, refried beans)",
       "snacks": "Popcorn, canned pears",
       "dad_lunch": "Split pea soup in thermos with crackers",
@@ -36,11 +36,11 @@
       "prep_time": "10 minutes",
       "cook_time": "15 minutes",
       "serve_time": "18:00",
-      "helpers": "Joseph reheats chicken & sides \u2014 Michael stirs sides during reheating"
+      "helpers": "JP warms pot roast & assembles taco bar (meat, salsa, refried beans, cheese, tortillas) \u2014 Joseph plates sides \u2014 Michael folds tortillas & sets the table"
     },
     "Wednesday": {
       "breakfast": "Scrambled eggs with cheese",
-      "lunch": "Leftover roast chicken with rice",
+      "lunch": "Pot roast sandwiches",
       "dinner": "Leftovers",
       "snacks": "Cheese slices, canned peaches",
       "dad_lunch": "Leftover chicken with rice and fruit cup",
@@ -49,7 +49,7 @@
       "prep_time": "10 minutes",
       "cook_time": "15 minutes",
       "serve_time": "18:00",
-      "helpers": "Joseph reheats leftovers & assembles plates \u2014 Michael assembles plates with Joseph"
+      "helpers": "Joseph builds pot roast sandwiches for lunch \u2014 JP heats leftovers for dinner & plates \u2014 Michael clears table & wipes counters"
     },
     "Thursday": {
       "breakfast": "Oatmeal with sugar and milk",
@@ -62,7 +62,7 @@
       "prep_time": "15 minutes",
       "cook_time": "40 minutes",
       "serve_time": "18:00",
-      "helpers": "JP leads sheet pan chicken thighs assembly & roasting \u2014 Joseph preps vegetables \u2014 Michael pours seasonings"
+      "helpers": "JP makes biscuits from scratch \u2014 Joseph stirs lentil soup & shreds ham jaw meat \u2014 Michael sets the table & butters biscuits"
     },
     "Friday": {
       "breakfast": "Eggs, cereal, fruit, toast",
@@ -75,7 +75,7 @@
       "prep_time": "5 minutes",
       "cook_time": "10 minutes",
       "serve_time": "18:00",
-      "helpers": "Joseph reheats soup \u2014 Michael pours soup into bowls"
+      "helpers": "JP makes pizza dough early morning \u2014 JP & Joseph assemble & bake pizzas at dinner \u2014 Michael spreads sauce & sprinkles cheese"
     },
     "Saturday": {
       "breakfast": "Oatmeal with canned peaches",
@@ -101,7 +101,7 @@
       "prep_time": "15 minutes",
       "cook_time": "20 minutes",
       "serve_time": "18:00",
-      "helpers": "JP leads Ziplock Buffet assembly \u2014 Joseph organizes containers \u2014 Michael pours drinks"
+      "helpers": "JP leads Ziplock Buffet (leftovers) assembly \u2014 Joseph organizes containers \u2014 Michael wipes table"
     }
   },
   "grocery_gaps": [
