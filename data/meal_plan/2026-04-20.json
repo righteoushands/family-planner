@@ -15,7 +15,7 @@
     "Monday": {
       "breakfast": "Scrambled eggs with toast",
       "lunch": "Leftover shredded chicken (finish it)",
-      "dinner": "Leftover shredded chicken + mashed potatoes + pork and beans + broccoli and cheese",
+      "dinner": "Jambalaya with beans and fish + coleslaw",
       "snacks": "Canned peaches, cheese slices",
       "dad_lunch": "Leftover pizza slices with apple",
       "boys_help": "JP: brine the chicken in salt water \u00b7 Joseph: wash and peel potatoes for mashing \u00b7 Michael: rinse broccoli florets",
@@ -23,7 +23,7 @@
       "prep_time": "20 minutes",
       "cook_time": "3 hours",
       "serve_time": "18:00",
-      "helpers": "JP shreds & reheats chicken, makes mashed potatoes \u2014 Joseph opens & heats pork and beans + broccoli with cheese \u2014 Michael sets the table & pours drinks"
+      "helpers": "JP makes jambalaya (rice, beans, fish, seasoning) \u2014 Joseph reheats the leftover shredded chicken for lunch & makes coleslaw \u2014 Michael sets the table & pours drinks"
     },
     "Tuesday": {
       "breakfast": "Oatmeal with canned pineapple",
@@ -40,7 +40,7 @@
     },
     "Wednesday": {
       "breakfast": "Scrambled eggs with cheese",
-      "lunch": "Pot roast sandwiches",
+      "lunch": "Leftover jambalaya",
       "dinner": "Leftovers",
       "snacks": "Cheese slices, canned peaches",
       "dad_lunch": "Leftover chicken with rice and fruit cup",
@@ -49,11 +49,11 @@
       "prep_time": "10 minutes",
       "cook_time": "15 minutes",
       "serve_time": "18:00",
-      "helpers": "Joseph builds pot roast sandwiches for lunch \u2014 JP heats leftovers for dinner & plates \u2014 Michael clears table & wipes counters"
+      "helpers": "Joseph reheats jambalaya for lunch \u2014 JP heats and plates dinner leftovers \u2014 Michael clears table & wipes counters"
     },
     "Thursday": {
       "breakfast": "Oatmeal with sugar and milk",
-      "lunch": "Beef stew with bread",
+      "lunch": "Leftover jambalaya",
       "dinner": "Lentil soup with ham jaw and biscuits",
       "snacks": "Tortilla chips, canned pears",
       "dad_lunch": "Beef stew in thermos with rolls",
