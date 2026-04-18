@@ -486,7 +486,7 @@ def _render_mom_now_block(iso: str, weekday: str) -> str:
         f'width:100%;padding:7px;border-radius:10px;font-size:0.75em;font-weight:600;'
         f'background:rgba(30,53,102,0.07);color:#1e3566;border:1px solid rgba(30,53,102,0.18);'
         f'text-decoration:none;margin-bottom:6px;box-sizing:border-box;">'
-        f'&#128203; Import a plan from external AI</a>'
+        f'&#128203; Plan Importer</a>'
 
         # Curriculum Importer button
         + f'<a href="/curriculum" style="display:flex;align-items:center;justify-content:center;gap:6px;'
