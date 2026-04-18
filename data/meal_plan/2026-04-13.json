@@ -18,7 +18,12 @@
       "dinner": "Brined roast chicken with mashed potatoes and steamed broccoli",
       "snacks": "Canned peaches, cheese slices",
       "dad_lunch": "Leftover pizza slices with apple",
-      "boys_help": "JP: brine the chicken in salt water · Joseph: wash and peel potatoes for mashing · Michael: rinse broccoli florets"
+      "boys_help": "JP: brine the chicken in salt water · Joseph: wash and peel potatoes for mashing · Michael: rinse broccoli florets",
+      "dessert": "Canned peaches",
+      "prep_time": "20 minutes",
+      "cook_time": "3 hours",
+      "serve_time": "18:00",
+      "helpers": "JP leads brining prep — Joseph assists with potatoes — Michael washes vegetables"
     },
     "Tuesday": {
       "breakfast": "Oatmeal with canned pineapple",
@@ -26,15 +31,25 @@
       "dinner": "Leftover roast chicken (higher carb day)",
       "snacks": "Popcorn, canned pears",
       "dad_lunch": "Split pea soup in thermos with crackers",
-      "boys_help": "JP: reheat chicken and sides in oven · Joseph: measure rice for cooking · Michael: set chicken pieces on serving plate"
+      "boys_help": "JP: reheat chicken and sides in oven · Joseph: measure rice for cooking · Michael: set chicken pieces on serving plate",
+      "dessert": "Canned pears",
+      "prep_time": "10 minutes",
+      "cook_time": "15 minutes",
+      "serve_time": "18:00",
+      "helpers": "Joseph reheats chicken — Michael stirs sides"
     },
     "Wednesday": {
       "breakfast": "Scrambled eggs with cheese",
-      "lunch": "Leftovers",
-      "dinner": "Leftovers",
+      "lunch": "Leftover roast chicken with rice",
+      "dinner": "Leftover roast chicken with vegetables",
       "snacks": "Cheese slices, canned peaches",
       "dad_lunch": "Leftover chicken with rice and fruit cup",
-      "boys_help": "JP: sear roast beef in Dutch oven · Joseph: wash and chop carrots for roasting · Michael: rinse wild rice in strainer"
+      "boys_help": "JP: sear roast beef in Dutch oven · Joseph: wash and chop carrots for roasting · Michael: rinse wild rice in strainer",
+      "dessert": "Jello gelatin",
+      "prep_time": "10 minutes",
+      "cook_time": "15 minutes",
+      "serve_time": "18:00",
+      "helpers": "Joseph reheats — Michael assembles plates"
     },
     "Thursday": {
       "breakfast": "Oatmeal with sugar and milk",
@@ -42,23 +57,38 @@
       "dinner": "Sheet Pan Chicken Thighs with roasted carrots and potatoes",
       "snacks": "Tortilla chips, canned pears",
       "dad_lunch": "Beef stew in thermos with rolls",
-      "boys_help": "JP: warm shredded chicken with taco seasoning · Joseph: drain and rinse canned pork and beans · Michael: tear lettuce for taco toppings"
+      "boys_help": "JP: warm shredded chicken with taco seasoning · Joseph: drain and rinse canned pork and beans · Michael: tear lettuce for taco toppings",
+      "dessert": "Sugar cookies",
+      "prep_time": "15 minutes",
+      "cook_time": "40 minutes",
+      "serve_time": "18:00",
+      "helpers": "JP leads sheet pan assembly and roasting — Joseph preps vegetables — Michael pours seasonings"
     },
     "Friday": {
       "breakfast": "Eggs, cereal, fruit, toast",
       "lunch": "Split pea soup",
-      "dinner": "Leftovers",
+      "dinner": "Leftover beef stew",
       "snacks": "Cheese slices, canned pineapple",
-      "dad_lunch": "Chicken taco leftovers wrapped in tortilla",
-      "boys_help": "JP: bread and fry flounder fillets · Joseph: prepare corn for cooking · Michael: arrange french fries on baking sheet"
+      "dad_lunch": "Sardine sandwich or split pea soup in thermos",
+      "boys_help": "JP: bread and fry flounder fillets · Joseph: prepare corn for cooking · Michael: arrange french fries on baking sheet",
+      "dessert": "Canned pineapple",
+      "prep_time": "5 minutes",
+      "cook_time": "10 minutes",
+      "serve_time": "18:00",
+      "helpers": "Joseph reheats soup — Michael pours into bowls"
     },
     "Saturday": {
       "breakfast": "Oatmeal with canned peaches",
-      "lunch": "Leftovers",
-      "dinner": "Leftovers",
+      "lunch": "Leftover sheet pan chicken thighs",
+      "dinner": "Leftover beef stew",
       "snacks": "Popcorn, cheese slices",
       "dad_lunch": "N/A",
-      "boys_help": "JP: cook lentil soup on stovetop · Joseph: wash and chop mixed vegetables for roasting · Michael: rinse lentils in strainer"
+      "boys_help": "JP: cook lentil soup on stovetop · Joseph: wash and chop mixed vegetables for roasting · Michael: rinse lentils in strainer",
+      "dessert": "Yogurt with granola",
+      "prep_time": "10 minutes",
+      "cook_time": "15 minutes",
+      "serve_time": "18:00",
+      "helpers": "Joseph reheats — Michael sets table"
     },
     "Sunday": {
       "breakfast": "Scrambled eggs with leftover vegetables",
@@ -66,7 +96,12 @@
       "dinner": "Ziplock Buffet (leftovers)",
       "snacks": "Canned fruit, remaining cheese",
       "dad_lunch": "N/A",
-      "boys_help": "JP: reheat and organize leftover containers · Joseph: mix quinoa with vegetables for salad · Michael: arrange leftover items on serving plates"
+      "boys_help": "JP: reheat and organize leftover containers · Joseph: mix quinoa with vegetables for salad · Michael: arrange leftover items on serving plates",
+      "dessert": "Canned fruit",
+      "prep_time": "15 minutes",
+      "cook_time": "20 minutes",
+      "serve_time": "18:00",
+      "helpers": "JP leads assembly — Joseph organizes containers — Michael pours drinks"
     }
   },
   "grocery_gaps": [
