@@ -4223,6 +4223,7 @@ class Handler(BaseHTTPRequestHandler):
                     _mslot = _mm.group(2).strip().lower()
                     _mmeal = _mm.group(3).strip()
                     if _mday and _mslot:
+                        _save_ok = False
                         try:
                             _wk = _planning_week_key()
                             _plan = load_meal_plan(_wk)
@@ -4232,9 +4233,13 @@ class Handler(BaseHTTPRequestHandler):
                                 _plan["days"].setdefault(_mday, {}).pop(_mslot, None)
                             _plan["start"] = _plan.get("start") or _wk
                             save_meal_plan(_plan)
-                        except Exception:
-                            pass
-                        _meal_updates_found.append((_mday, _mslot))
+                            _save_ok = True
+                        except Exception as _se:
+                            print(f"[lorenzo MEAL_UPDATE] save failed for {_mday}/{_mslot}: {_se}")
+                        # Only count as "saved" if persistence actually succeeded —
+                        # otherwise the false-confirmation guard would let lies through.
+                        if _save_ok:
+                            _meal_updates_found.append((_mday, _mslot))
                 # ── Advance planning session for each saved slot ──────────────
                 if _meal_updates_found:
                     try:
@@ -4251,6 +4256,7 @@ class Handler(BaseHTTPRequestHandler):
                     r'\[RECIPE_CARD:add\]([\s\S]*?)\[\/RECIPE_CARD\]',
                     _re.IGNORECASE
                 )
+                _recipe_saves_ok = 0
                 for _rcm in _rc_rx.finditer(text):
                     _rc_raw = _rcm.group(1).strip()
                     try:
@@ -4258,6 +4264,7 @@ class Handler(BaseHTTPRequestHandler):
                         if isinstance(_rc_data, dict) and _rc_data.get("name"):
                             from data_helpers import add_recipe
                             add_recipe(_rc_data)
+                            _recipe_saves_ok += 1
                     except Exception:
                         pass
                 # ── Parse <meal_constraint_update> and save to app_settings ──
@@ -4265,6 +4272,7 @@ class Handler(BaseHTTPRequestHandler):
                     r'<meal_constraint_update>([\s\S]*?)</meal_constraint_update>',
                     _re.IGNORECASE
                 )
+                _constraint_saves_ok = 0
                 for _mcm in _mc_rx.finditer(text):
                     _new_mc = _mcm.group(1).strip()
                     if _new_mc:
@@ -4272,6 +4280,7 @@ class Handler(BaseHTTPRequestHandler):
                             _mcs = load_app_settings()
                             _mcs.setdefault("family_constraints", {})["meal_constraints"] = _new_mc
                             save_app_settings(_mcs)
+                            _constraint_saves_ok += 1
                         except Exception:
                             pass
                 ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
@@ -4305,6 +4314,58 @@ class Handler(BaseHTTPRequestHandler):
                     '', _visible, flags=_re.IGNORECASE)
                 # Collapse the blank lines left behind
                 _visible = _re.sub(r'\n{3,}', '\n\n', _visible).strip()
+                # ── False-confirmation guard ──────────────────────────────────
+                # If the user asked Lorenzo to save/change something AND he
+                # claims "Done!" / "Saved!" but emitted no actual save tag,
+                # prepend an honest warning so Lauren knows the save did NOT
+                # happen and her work isn't quietly lost.
+                try:
+                    _user_lc  = (message or "").lower()
+                    _reply_lc = _visible.lower()
+                    _save_intent_words = (
+                        "save", "add ", "update", "change", " set ", "swap",
+                        "replace", "put ", "write", "log ", "record", "lock",
+                        "plan ", "schedule", "assign", "move ", "fix ",
+                        "make it", "switch", "remove", "delete", "drop ",
+                        "for monday", "for tuesday", "for wednesday",
+                        "for thursday", "for friday", "for saturday",
+                        "for sunday", "dinner", "breakfast", "lunch",
+                        "snack", "dessert", "helper",
+                    )
+                    _confirm_words = (
+                        "done", "saved", "added", "updated", "changed",
+                        "got it", "all set", "i've added", "i have added",
+                        "i've updated", "i have updated", "i've saved",
+                        "i have saved", "is now", "are now",
+                    )
+                    _had_intent  = any(w in _user_lc  for w in _save_intent_words)
+                    _had_confirm = any(w in _reply_lc for w in _confirm_words)
+                    # OUTCOME-based — count only saves that actually persisted,
+                    # not just tags that appeared in the text (Lorenzo can emit
+                    # malformed JSON or unparseable bodies that look like saves
+                    # but aren't). frol = presence-of-tag (no outcome signal
+                    # plumbed through yet). RULE:add stays counted because the
+                    # frontend renders a button for it (Lauren can still save).
+                    _emitted_any_tag = bool(
+                        _meal_updates_found            # only successful MEAL saves
+                        or _recipe_saves_ok
+                        or _constraint_saves_ok
+                        or _re.search(r'<frol_update\b', text, _re.IGNORECASE)
+                        or _re.search(r'\[RULE:(add|delete)\]', text, _re.IGNORECASE)
+                    )
+                    if _had_intent and _had_confirm and not _emitted_any_tag:
+                        _warning = (
+                            "⚠️ **Heads up — nothing was actually saved.** "
+                            "I confirmed but didn't emit the proper save tag, "
+                            "so your meal plan / rules were NOT updated. "
+                            "Please re-ask and I'll do it correctly, or open "
+                            "the Meal Planner to make the change directly.\n\n"
+                        )
+                        _visible = _warning + _visible
+                        print(f"[lorenzo-guard] FALSE CONFIRMATION blocked. "
+                              f"user={message[:80]!r} reply={_visible[:120]!r}")
+                except Exception as _ge:
+                    print(f"[lorenzo-guard] error: {_ge}")
                 append_lorenzo_messages([{"role": "assistant", "content": _visible, "ts": ts_reply}])
                 self.send_response(200)
                 self.send_header("Content-Type","text/plain; charset=utf-8")

@@ -108,9 +108,45 @@ def load_meal_plan(week_key: str = None) -> dict:
             pass
     return ensure_file(path, default)
 
+def _backup_meal_plan(week_key: str) -> None:
+    """Snapshot the existing plan file (if any) into data/meal_plan/.backups/
+    before it gets overwritten. Keeps the last 30 versions per week so we can
+    recover from a bad save (Lorenzo wiping a slot, accidental clear, etc.)."""
+    try:
+        import shutil, datetime as _dt
+        src = _plan_path(week_key)
+        if not os.path.exists(src):
+            return
+        backup_dir = f"{MEALS_DIR}/.backups"
+        os.makedirs(backup_dir, exist_ok=True)
+        # Microseconds + random suffix → collision-proof when Lorenzo emits
+        # multiple [MEAL_UPDATE] tags in one reply (each triggers a save).
+        ts = _dt.datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+        import uuid as _uuid
+        dst = f"{backup_dir}/{week_key}__{ts}-{_uuid.uuid4().hex[:6]}.json"
+        shutil.copy2(src, dst)
+        # Rotate per-week: keep last 30 backups for this week_key
+        try:
+            prefix = f"{week_key}__"
+            entries = sorted(
+                [f for f in os.listdir(backup_dir) if f.startswith(prefix) and f.endswith(".json")],
+                reverse=True,
+            )
+            for old in entries[30:]:
+                try:
+                    os.remove(os.path.join(backup_dir, old))
+                except Exception:
+                    pass
+        except Exception:
+            pass
+    except Exception as _e:
+        print(f"[backup_meal_plan] failed for {week_key}: {_e}")
+
+
 def save_meal_plan(plan: dict):
     # Use "start" (ISO date) as primary key; fall back to "week" for old plans
     key = plan.get("start") or plan.get("week", date.today().isoformat())
+    _backup_meal_plan(key)  # snapshot prior version BEFORE overwriting
     safe_save_json(_plan_path(key), plan)
 
 

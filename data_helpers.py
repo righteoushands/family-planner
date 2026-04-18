@@ -590,6 +590,51 @@ def get_full_frol_context(current_weekday: str) -> str:
     return "\n".join(lines)
 
 
+# ── Companion-history archival (safety net for accidental "clear") ────────────
+# Whenever a user clicks "Clear chat", we never actually delete — we copy the
+# current history into a timestamped archive file so the conversation (and any
+# unsaved planning context) can be recovered.
+def _archive_history_file(history_path: str) -> str | None:
+    """Copy `history_path` into <history_path>.archive/<timestamp>.json.
+    Returns the archive path on success, None if there was nothing to archive."""
+    try:
+        import os, shutil, datetime as _dt
+        if not os.path.exists(history_path):
+            return None
+        # Skip empty/just-{messages:[]} files
+        try:
+            with open(history_path) as _f:
+                _data = json.load(_f)
+            if not _data.get("messages"):
+                return None
+        except Exception:
+            pass  # archive anyway if we can't parse
+        archive_dir = history_path + ".archive"
+        os.makedirs(archive_dir, exist_ok=True)
+        # Microseconds + random suffix → collision-proof even on rapid clears
+        ts = _dt.datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+        import uuid as _uuid
+        dst = f"{archive_dir}/{ts}-{_uuid.uuid4().hex[:6]}.json"
+        shutil.copy2(history_path, dst)
+        # Rotate: keep last 30 archives per companion
+        try:
+            entries = sorted(
+                [f for f in os.listdir(archive_dir) if f.endswith(".json")],
+                reverse=True,
+            )
+            for old in entries[30:]:
+                try:
+                    os.remove(os.path.join(archive_dir, old))
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        return dst
+    except Exception as _e:
+        print(f"[archive_history] failed for {history_path}: {_e}")
+        return None
+
+
 # ── Lucy conversation history ─────────────────────────────────────────────────
 LUCY_HISTORY_FILE = "data/lucy_history.json"
 LUCY_HISTORY_MAX  = 60   # max messages stored (30 back-and-forth turns)
@@ -611,9 +656,30 @@ def append_lucy_messages(new_msgs: list):
     history.extend(new_msgs)
     save_lucy_history(history)
 
-def clear_lucy_history():
-    """Wipe the history file."""
-    safe_save_json(LUCY_HISTORY_FILE, {"messages": []})
+def _safe_clear(history_path: str) -> bool:
+    """Archive then wipe a history file. FAIL-CLOSED: if the file exists and
+    has messages but archival fails, refuse to clear so we never silently
+    erase Lauren's conversation. Returns True if cleared, False if blocked."""
+    import os as _os
+    if _os.path.exists(history_path):
+        try:
+            with open(history_path) as _f:
+                _data = json.load(_f)
+            _has_msgs = bool(_data.get("messages"))
+        except Exception:
+            _has_msgs = True  # treat unparseable as "has data" → must archive
+        if _has_msgs:
+            arch = _archive_history_file(history_path)
+            if not arch:
+                print(f"[safe_clear] REFUSING to clear {history_path} — archive failed")
+                return False
+    safe_save_json(history_path, {"messages": []})
+    return True
+
+
+def clear_lucy_history() -> bool:
+    """Archive then wipe the history file. Returns False if archive failed."""
+    return _safe_clear(LUCY_HISTORY_FILE)
 
 
 # ── Lorenzo conversation history ──────────────────────────────────────────────
@@ -634,8 +700,8 @@ def append_lorenzo_messages(new_msgs: list):
     history.extend(new_msgs)
     save_lorenzo_history(history)
 
-def clear_lorenzo_history():
-    safe_save_json(LORENZO_HISTORY_FILE, {"messages": []})
+def clear_lorenzo_history() -> bool:
+    return _safe_clear(LORENZO_HISTORY_FILE)
 
 
 # ── Father Gregory (Headmaster) conversation history ──────────────────────────
@@ -656,8 +722,8 @@ def append_gregory_messages(new_msgs: list):
     history.extend(new_msgs)
     save_gregory_history(history)
 
-def clear_gregory_history():
-    safe_save_json(GREGORY_HISTORY_FILE, {"messages": []})
+def clear_gregory_history() -> bool:
+    return _safe_clear(GREGORY_HISTORY_FILE)
 
 
 # ── Coach conversation history ────────────────────────────────────────────────
@@ -678,8 +744,8 @@ def append_coach_messages(new_msgs: list):
     history.extend(new_msgs)
     save_coach_history(history)
 
-def clear_coach_history():
-    safe_save_json(COACH_HISTORY_FILE, {"messages": []})
+def clear_coach_history() -> bool:
+    return _safe_clear(COACH_HISTORY_FILE)
 
 
 # ── Felix (Dev) history ───────────────────────────────────────────────────────
@@ -700,8 +766,8 @@ def append_dev_messages(new_msgs: list):
     history.extend(new_msgs)
     save_dev_history(history)
 
-def clear_dev_history():
-    safe_save_json(DEV_HISTORY_FILE, {"messages": []})
+def clear_dev_history() -> bool:
+    return _safe_clear(DEV_HISTORY_FILE)
 
 
 # ── Dr. Monica conversation history ───────────────────────────────────────────
@@ -722,8 +788,8 @@ def append_monica_messages(new_msgs: list):
     history.extend(new_msgs)
     save_monica_history(history)
 
-def clear_monica_history():
-    safe_save_json(MONICA_HISTORY_FILE, {"messages": []})
+def clear_monica_history() -> bool:
+    return _safe_clear(MONICA_HISTORY_FILE)
 
 
 # ── Thank-you card reminders ──────────────────────────────────────────────────
