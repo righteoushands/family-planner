@@ -56,6 +56,16 @@ def _week_key(for_date: date = None) -> str:
     monday = d - timedelta(days=d.weekday())
     return monday.isoformat()
 
+def _planning_week_key(for_date: date = None) -> str:
+    """The Monday key Lauren is most likely actively PLANNING right now.
+    Mon–Thu → this week's Monday.  Fri/Sat/Sun → next week's Monday.
+    This must mirror the default in render_meal_print_page so that Lorenzo's
+    saved edits land on the same file the fridge card displays."""
+    d = for_date or date.today()
+    if d.weekday() >= 4:  # Fri=4, Sat=5, Sun=6
+        return (d + timedelta(days=(7 - d.weekday()))).isoformat()
+    return _week_key(d)
+
 def _week_start(for_date: date = None) -> date:
     d = for_date or date.today()
     return d - timedelta(days=d.weekday())  # Monday
@@ -827,15 +837,7 @@ def _cycle_nutrition_hint(phase: str) -> str:
 # ---------------------------------------------------------------------------
 
 def render_meal_print_page(week_key: str = None) -> str:
-    if week_key:
-        wk = week_key
-    else:
-        # Default to upcoming week when it's late in the week (Fri/Sat/Sun = planning time)
-        today = date.today()
-        if today.weekday() >= 4:  # Friday=4, Saturday=5, Sunday=6
-            wk = (today + timedelta(days=(7 - today.weekday()))).isoformat()
-        else:
-            wk = _week_key()
+    wk = week_key or _planning_week_key()
     plan = load_meal_plan(wk)
     ws   = date.fromisoformat(wk) if len(wk) == 10 else _week_start()
     days_data = plan.get("days", {})

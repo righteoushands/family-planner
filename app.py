@@ -216,7 +216,7 @@ from render_morning_anchor import save_anchor_state
 from render_meals import (
     render_meal_planner_page, render_meal_print_page,
     load_meal_plan, save_meal_plan, load_inventory, save_inventory,
-    load_recipes, save_recipe, _build_meal_prompt, _week_key,
+    load_recipes, save_recipe, _build_meal_prompt, _week_key, _planning_week_key,
 )
 from render_daily_plan import (
     get_or_seed_plan, add_item_to_plan, toggle_plan_item,
@@ -4224,7 +4224,7 @@ class Handler(BaseHTTPRequestHandler):
                     _mmeal = _mm.group(3).strip()
                     if _mday and _mslot:
                         try:
-                            _wk = _week_key()
+                            _wk = _planning_week_key()
                             _plan = load_meal_plan(_wk)
                             if _mmeal:
                                 _plan["days"].setdefault(_mday, {})[_mslot] = _mmeal

@@ -66,11 +66,15 @@ def _load_lorenzo_history_safe() -> list:
 def _get_current_meal_plan(iso: str) -> str:
     try:
         import os as _os, datetime as _dt2
-        from render_meals import load_meal_plan, _plan_path, _week_key
-        plan = load_meal_plan(iso)
+        from render_meals import load_meal_plan, _plan_path, _week_key, _planning_week_key
+        # Use the SAME week the fridge-card print page shows (Mon–Thu = this
+        # week; Fri/Sat/Sun = next week). Otherwise Lorenzo and the print
+        # card disagree about which file is "the plan."
+        _active_wk = _planning_week_key()
+        plan = load_meal_plan(_active_wk)
         days_data = plan.get("days", {})
         # Resolve the actual file path that load_meal_plan ended up reading.
-        _start = plan.get("start") or _week_key()
+        _start = plan.get("start") or _active_wk
         _path  = _plan_path(_start)
         if _os.path.exists(_path):
             try:
