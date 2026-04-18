@@ -65,12 +65,29 @@ def _load_lorenzo_history_safe() -> list:
 
 def _get_current_meal_plan(iso: str) -> str:
     try:
-        from render_meals import load_meal_plan
+        import os as _os, datetime as _dt2
+        from render_meals import load_meal_plan, _plan_path, _week_key
         plan = load_meal_plan(iso)
         days_data = plan.get("days", {})
+        # Resolve the actual file path that load_meal_plan ended up reading.
+        _start = plan.get("start") or _week_key()
+        _path  = _plan_path(_start)
+        if _os.path.exists(_path):
+            _mtime = _dt2.datetime.fromtimestamp(_os.path.getmtime(_path))
+            _saved = _mtime.strftime("%Y-%m-%d %H:%M")
+        else:
+            _saved = "never (no file on disk)"
+        _was_generated = "YES — by the AI generator" if plan.get("generated") else "no — manually edited or empty"
         if not days_data:
-            return "No meal plan found for this week."
-        lines = ["Current week's meal plan:"]
+            return (f"No meal plan found for the week of {_start}. "
+                    f"(File path: {_path}, last saved: {_saved}.)")
+        lines = [
+            f"This week's meal plan (week starting {_start}).",
+            f"  Last saved to disk: {_saved}.  AI-generated: {_was_generated}.",
+            f"  This is the CURRENT plan — there is no newer version. "
+            f"Treat it as authoritative.",
+            "",
+        ]
         for day_name, slots in days_data.items():
             if isinstance(slots, dict):
                 parts = []
@@ -80,7 +97,7 @@ def _get_current_meal_plan(iso: str) -> str:
                         parts.append(f"{slot.capitalize()}: {val}")
                 if parts:
                     lines.append(f"  {day_name}: " + " | ".join(parts))
-        return "\n".join(lines) if len(lines) > 1 else "Meal plan exists but is mostly empty."
+        return "\n".join(lines)
     except Exception as e:
         return f"Could not load meal plan: {e}"
 
