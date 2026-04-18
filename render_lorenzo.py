@@ -73,8 +73,23 @@ def _get_current_meal_plan(iso: str) -> str:
         _start = plan.get("start") or _week_key()
         _path  = _plan_path(_start)
         if _os.path.exists(_path):
-            _mtime = _dt2.datetime.fromtimestamp(_os.path.getmtime(_path))
-            _saved = _mtime.strftime("%Y-%m-%d %H:%M")
+            try:
+                from zoneinfo import ZoneInfo as _ZI
+                _tz = _ZI("America/New_York")
+            except Exception:
+                _tz = None
+            _mtime_utc = _dt2.datetime.fromtimestamp(_os.path.getmtime(_path), tz=_dt2.timezone.utc)
+            _mtime = _mtime_utc.astimezone(_tz) if _tz else _mtime_utc
+            _now   = _dt2.datetime.now(tz=_tz) if _tz else _dt2.datetime.now(tz=_dt2.timezone.utc)
+            _delta = _now - _mtime
+            _hrs   = _delta.total_seconds() / 3600
+            if _hrs < 1:
+                _ago = f"{int(_delta.total_seconds()/60)} minutes ago"
+            elif _hrs < 24:
+                _ago = f"about {int(_hrs)} hours ago"
+            else:
+                _ago = f"{int(_hrs/24)} days ago"
+            _saved = _mtime.strftime("%Y-%m-%d %I:%M %p %Z") + f" ({_ago})"
         else:
             _saved = "never (no file on disk)"
         _was_generated = "YES — by the AI generator" if plan.get("generated") else "no — manually edited or empty"
