@@ -73,10 +73,21 @@ def load_meal_plan(week_key: str = None) -> dict:
     # Fast path: file exists under given key
     if os.path.exists(path):
         return ensure_file(path, default)
-    # Backward compat: if key is ISO date, also try the old YYYY-WNN week key
+    # If key is an ISO date but not a Monday, try the Monday-of-that-week key.
+    # Plans are saved keyed on the Monday ISO date, so any other day in the
+    # same week should resolve to the same plan.
     if _re.match(r'\d{4}-\d{2}-\d{2}', key):
         try:
             d = date.fromisoformat(key)
+            monday = d - timedelta(days=d.weekday())
+            mon_key = monday.isoformat()
+            if mon_key != key:
+                mon_path = _plan_path(mon_key)
+                if os.path.exists(mon_path):
+                    plan = ensure_file(mon_path, default)
+                    plan.setdefault("start", mon_key)
+                    return plan
+            # Backward compat: also try the old YYYY-WNN week key
             old_key  = d.strftime("%Y-W%W")
             old_path = _plan_path(old_key)
             if os.path.exists(old_path):

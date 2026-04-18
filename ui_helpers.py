@@ -1167,7 +1167,7 @@ document.addEventListener('click', function(e) {{
         <a href="/meals" onclick="closeMobileMore()"
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
                   border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
-          &#127829; Meals
+          &#127829; Menu Planner
         </a>
         <a href="/recipes" onclick="closeMobileMore()"
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
@@ -1453,7 +1453,7 @@ def top_nav() -> str:
         <a href="/today">Today</a>
         <a href="/week">Week</a>
         <div class="nav-divider"></div>
-        <a href="/meals">🍽 Meals</a>
+        <a href="/meals">🍽 Menu Planner</a>
         <a href="/chores">🧹 Chores</a>
         <a href="/prayer">✝ Prayer</a>
         <div class="nav-divider"></div>

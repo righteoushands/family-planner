@@ -116,6 +116,13 @@
         "postpone_to": "2026-04-27",
         "label": "Pack baby shower supplies"
       }
+    },
+    "2026-04-18": {
+      "CARRY::Lauren::2026-04-18::Menu plan": {
+        "action": "timed",
+        "time": "09:44",
+        "label": "Menu plan (from Fri 17 Apr)"
+      }
     }
   }
 }

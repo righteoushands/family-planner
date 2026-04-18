@@ -1,79 +1,84 @@
 {
   "start": "2026-04-13",
   "week": "2026-04-13",
-  "generated": false,
+  "generated": true,
   "prep_notes": {
-    "Tuesday": "Brine chicken tonight for John's grilled dinner tomorrow. Mix brine (salt + sugar + water) and submerge chicken breasts — refrigerate overnight.",
-    "Wednesday": "Pull chicken from brine before John grills. Pat dry. Prep sides if serving any.",
-    "Thursday": "Thaw shredded chicken if frozen. Mash potatoes ahead — can do after lunch.",
-    "Friday": "Thaw flounder fillets in fridge tonight or cold water before lunch. Mix cornbread batter ahead."
+    "Monday": "Start brining chicken in morning, defrost any frozen vegetables needed",
+    "Tuesday": "No prep needed - leftover day",
+    "Wednesday": "Take roast beef out to come to room temperature, prep vegetable soup early",
+    "Thursday": "Defrost shredded chicken if frozen, start beef stew early",
+    "Friday": "Defrost flounder fillets, prepare breading station",
+    "Saturday": "Start lentil soup early in day, prep vegetables for roasting",
+    "Sunday": "Survey all leftovers morning, consolidate containers"
   },
   "days": {
     "Monday": {
-      "breakfast": "Eggs, cereal, fruit",
-      "lunch": "Pork chops, noodles, broccoli + Romaine + raw green beans",
-      "dinner": "Brined split chicken breasts + potatoes au gratin + broccoli",
-      "dessert": "Fruit cup",
-      "snacks": "",
-      "dad_lunch": "Leftovers (pork chops, noodles, broccoli) + Romaine + raw green beans",
-      "boys_help": "Lauren leads"
+      "breakfast": "Scrambled eggs with toast",
+      "lunch": "Split pea soup with rolls",
+      "dinner": "Brined roast chicken with mashed potatoes and steamed broccoli",
+      "snacks": "Canned peaches, cheese slices",
+      "dad_lunch": "Leftover pizza slices with apple",
+      "boys_help": "JP: brine the chicken in salt water · Joseph: wash and peel potatoes for mashing · Michael: rinse broccoli florets"
     },
     "Tuesday": {
-      "breakfast": "Eggs, cereal, fruit",
-      "lunch": "Out (Bible Study)",
-      "dinner": "Leftovers: beef stew",
-      "dessert": "Canned peaches + whipped cream",
-      "snacks": "",
-      "dad_lunch": "Leftovers from Monday + Romaine + raw green beans",
-      "boys_help": "Quick reheat — low capacity day"
+      "breakfast": "Oatmeal with canned pineapple",
+      "lunch": "leftovers from Monday chicken dinner",
+      "dinner": "Leftover roast chicken (higher carb day)",
+      "snacks": "Popcorn, canned pears",
+      "dad_lunch": "Split pea soup in thermos with crackers",
+      "boys_help": "JP: reheat chicken and sides in oven · Joseph: measure rice for cooking · Michael: set chicken pieces on serving plate"
     },
     "Wednesday": {
-      "breakfast": "Eggs, cereal, fruit",
-      "lunch": "Leftovers: chicken + potatoes au gratin + broccoli + rice + Romaine + raw green beans",
-      "dinner": "John's grilled chicken",
-      "dessert": "Homemade brownies or chocolate cake",
-      "snacks": "",
-      "dad_lunch": "Leftovers from Tuesday + Romaine + raw green beans",
-      "boys_help": "Dad grills · JP light duties (braces day) · Michael: set table",
-      "notes": "JP gets braces today"
+      "breakfast": "Scrambled eggs with cheese",
+      "lunch": "Chicken and vegetable soup",
+      "dinner": "Roast beef with roasted carrots and wild rice",
+      "snacks": "Cheese slices, canned peaches",
+      "dad_lunch": "Leftover chicken with rice and fruit cup",
+      "boys_help": "JP: sear roast beef in Dutch oven · Joseph: wash and chop carrots for roasting · Michael: rinse wild rice in strainer"
     },
     "Thursday": {
-      "breakfast": "Eggs, cereal, fruit",
-      "lunch": "Beef stew + sourdough + Romaine + raw green beans",
-      "dinner": "Shredded chicken + mashed potatoes + canned pork and beans",
-      "dessert": "Fresh oranges",
-      "snacks": "",
-      "dad_lunch": "Leftovers from Wednesday + Romaine + raw green beans",
-      "boys_help": "Quick reheat — medium-low capacity, Latin class · JP: soft food only (braces recovery)",
-      "notes": "JP braces recovery — soft meals"
+      "breakfast": "Oatmeal with sugar and milk",
+      "lunch": "Beef stew with bread",
+      "dinner": "Shredded chicken tacos with beans (higher carb day)",
+      "snacks": "Tortilla chips, canned pears",
+      "dad_lunch": "Beef stew in thermos with rolls",
+      "boys_help": "JP: warm shredded chicken with taco seasoning · Joseph: drain and rinse canned pork and beans · Michael: tear lettuce for taco toppings"
     },
     "Friday": {
-      "breakfast": "Eggs, cereal, fruit",
-      "lunch": "Sardine sandwiches",
-      "dinner": "Fried fish (flounder) + coleslaw + cornbread",
-      "dessert": "Store-bought special",
-      "snacks": "",
-      "dad_lunch": "Sardine sandwiches or leftovers from Thursday",
-      "boys_help": "JP: leads fish fry & plating · Joseph: coleslaw & cornbread · Michael: measure breading"
+      "breakfast": "Scrambled eggs with toast",
+      "lunch": "sardine sandwiches or soup",
+      "dinner": "Fish fry (fried flounder with french fries and corn)",
+      "snacks": "Cheese slices, canned pineapple",
+      "dad_lunch": "Chicken taco leftovers wrapped in tortilla",
+      "boys_help": "JP: bread and fry flounder fillets · Joseph: prepare corn for cooking · Michael: arrange french fries on baking sheet"
     },
     "Saturday": {
-      "breakfast": "Eggs, cereal, fruit",
-      "lunch": "Fried fish + coleslaw + cornbread + Romaine + raw green beans",
-      "dinner": "Black-eyed pea jambalaya with Cajun sausage + baked salmon with rice",
-      "dessert": "Homemade cookies or simple dessert",
-      "snacks": "",
-      "dad_lunch": "Leftovers from Friday + Romaine + raw green beans",
-      "boys_help": "Lauren leads (medium capacity, adventure block midday)"
+      "breakfast": "Oatmeal with canned peaches",
+      "lunch": "Lentil soup with bread",
+      "dinner": "Veggie burgers with roasted vegetables",
+      "snacks": "Popcorn, cheese slices",
+      "dad_lunch": "N/A",
+      "boys_help": "JP: cook lentil soup on stovetop · Joseph: wash and chop mixed vegetables for roasting · Michael: rinse lentils in strainer"
     },
     "Sunday": {
-      "breakfast": "Eggs, cereal, fruit",
-      "lunch": "Ziplock Buffet (leftover combinations)",
-      "dinner": "Ziplock Buffet (leftover combinations)",
-      "dessert": "From leftover stock",
-      "snacks": "",
-      "dad_lunch": "Ziplock Buffet",
-      "boys_help": "Light assembly only",
-      "notes": "Consolidate & discard spoiled items. Flag 'use soon' for next week."
+      "breakfast": "Scrambled eggs with leftover vegetables",
+      "lunch": "Quinoa salad with leftover vegetables",
+      "dinner": "Ziplock Buffet (leftovers)",
+      "snacks": "Canned fruit, remaining cheese",
+      "dad_lunch": "N/A",
+      "boys_help": "JP: reheat and organize leftover containers · Joseph: mix quinoa with vegetables for salad · Michael: arrange leftover items on serving plates"
     }
-  }
+  },
+  "grocery_gaps": [
+    "eggs",
+    "bread",
+    "milk",
+    "apples",
+    "crackers",
+    "taco seasoning",
+    "lettuce",
+    "cooking oil",
+    "flour for breading fish"
+  ],
+  "use_soon_used": []
 }
