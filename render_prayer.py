@@ -532,6 +532,13 @@ def render_prayer_page(status: str = "") -> str:
 
     modal_contents_js = json.dumps(modal_contents)
 
+    # Liturgy of the Hours widget (moved here from the dashboard)
+    try:
+        from render_liturgy_hours import render_hours_dashboard_widget
+        _loh_widget = render_hours_dashboard_widget()
+    except Exception:
+        _loh_widget = ""
+
     body = top_nav() + render_status_message(status) + f"""
 <div style="display:flex;align-items:flex-start;justify-content:space-between;
             flex-wrap:wrap;gap:8px;padding-top:4px;margin-bottom:16px;">
@@ -547,6 +554,9 @@ def render_prayer_page(status: str = "") -> str:
                  border:none;border-radius:10px;font-size:0.85em;font-weight:700;
                  font-family:inherit;cursor:pointer;">+ Add intention</button>
 </div>
+
+<!-- Liturgy of the Hours -->
+{_loh_widget}
 
 <!-- Lucy's Notes: one per family member + friends/intentions -->
 <div style="margin-bottom:20px;">

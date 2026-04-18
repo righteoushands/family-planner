@@ -1,0 +1,38 @@
+⚔️ JUNIORS TIER (Ages 8–12)
+Game Type: RPG Adventure — quests, manual battles, kingdom building, overworld map
+The Star of the Pitch ⭐
+Core Game Loop:
+Complete tasks → earn energy → explore overworld map → fight weak enemies → defeat 5 normal enemies per region → big boss unlocks → defeat boss → earn building materials → kingdom grows → new region unlocks → repeat
+Energy System:
+	•	Every map action costs energy
+	•	Completing a real task refills energy
+	•	Parent can grant bonus energy as a reward
+	•	No automatic refill — tied directly to real tasks
+The 5 Regions (unlock in order):
+	1.	🌿 Grass — home region, bandits/wolves/goblins, Boss: The Bandit King
+	2.	🌊 Water — crabs/jellyfish/pirates, Boss: The Kraken Lord
+	3.	🏜️ Desert — scorpions/sand warriors/serpents, Boss: The Sand Pharaoh
+	4.	❄️ Snow — ice wolves/frost giants/yetis, Boss: The Frost Queen
+	5.	🌋 Volcano — fire demons/lava beasts/dragons, Boss: The Dragon King
+Each Region Contains:
+	•	3 weak enemy types roaming freely — unlimited, easy fights, cost small energy
+	•	5 normal enemies to track and defeat — harder, scaled to player level
+	•	1 big boss — appears only after all 5 normal enemies are defeated, gives biggest rewards
+Manual Battle System (player chooses every action, nothing is automatic):
+	•	⚔️ Attack — deal damage based on level and equipped weapon
+	•	🛡️ Defend — reduce incoming damage this turn
+	•	🧪 Use Item — use a potion or special item
+5 Character Choices (parent picks at setup):
+	•	⚔️ Knight — sword + armor upgrades
+	•	🧙 Wizard — staff + spell upgrades
+	•	👑 Royal — scepter + robe upgrades
+	•	🌿 Ranger — bow + cloak upgrades
+	•	🌊 Captain — cutlass + coat upgrades
+Collectible Battle Items:
+	•	🧪 Health Potion — restore health during battle
+	•	⚡ Power Surge — double attack damage for one turn
+	•	🛡️ Iron Shield — block all damage for one turn
+	•	✨ Lucky Charm — guaranteed hit on next attack
+Kingdom Building (permanent, never resets):
+Structures unlock one at a time as bosses are defeated:
+Wooden watchtower → Stone walls → Main gate → Barracks → Market stall → Castle keep → Castle towers → Castle courtyard → Royal garden → Fully fortified castle (Version 1 end goal)

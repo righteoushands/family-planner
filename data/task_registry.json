@@ -255,6 +255,7 @@
       "CHORE::Tidy-up school shelves",
       "MANUAL::MEDIUM::Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
       "MANUAL::MEDIUM::Choose Convention Class. https://heav.org/convention/children-and-teens/",
+      "MANUAL::MEDIUM::Wegmans run",
       "SCHOOL::Algebra 1/2::Test completed — given to Mom",
       "SCHOOL::Art 7::Read Unit 4, Chapter 16, Bartoleme Esteban Murillo.",
       "SCHOOL::Editing 7::Lesson 7, Selection 36: write the selection correctly.",
@@ -291,6 +292,8 @@
       "CHORE::Tidy basement zone — 10 minutes",
       "MANUAL::MEDIUM::Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
       "MANUAL::MEDIUM::Choose Convention Class. https://heav.org/convention/children-and-teens/",
+      "MANUAL::MEDIUM::Text new friend Corey",
+      "MANUAL::MEDIUM::Wegmans run",
       "SCHOOL::Art 7::Optional: Do Art Pad #16, Genre Scene.",
       "SCHOOL::Beginning Latin III::Lesson 21. Review first and second declension adjectives (lesson XX). Read the twenty-first lesson. Oral drill: decline the adjective\"magnus, a, um\" and the noun \"servus, i.\" Then put them together, remembering that \"servus\" is masculine. Do the Day 1 exercises.Practice vocabulary for ten minutes.Oral Drill Answer Key:m: magnus, magni, magno, magnum, magno, magni, magnorum, magnis, magnos, magnisf: magna, magnae, magnae, magnam, magna, magnae, magnarum, magnis, magnas, magnisn: magnum, magni, magno, magnum, magno, magna, magnorum, magnis, magna, magnisservus, servi, servo, servum, servo, servi, servorum, servis, servos, servismagnus servus, magni servi, magno servo, magnum servum, magno servo, magni servi, magnorum servorum, magnis servis,magnos servos, magnis servis",
       "SCHOOL::Editing 7::Review Lessons 1-6, Selection 32: write the selection correctly.",
@@ -317,24 +320,25 @@
       "CHORE::Dinner helper: measure breading",
       "CHORE::LAUNDRY — Michael's laundry (Joseph assists)",
       "CHORE::Tidy basement zone — 10 minutes",
+      "MANUAL::MEDIUM::Wegmans run",
       "SCHOOL::Art K::Review and celebrate the week — recite, show, and share.",
       "SCHOOL::Handwriting K::Review and celebrate the week — recite, show, and share.",
       "SCHOOL::Math K::Review and celebrate the week — recite, show, and share.",
       "SCHOOL::Phonics & Reading K::Review and celebrate the week — recite, show, and share.",
       "SCHOOL::Religion K::Review and celebrate the week — recite, show, and share."
     ],
-    "James": [],
+    "James": [
+      "MANUAL::MEDIUM::Wegmans run"
+    ],
     "Lauren": [
       "CHORE::Menu plan",
       "CHORE::Wrap up the school week",
-      "MANUAL::MEDIUM::AI can grade homeschooling tests",
       "MANUAL::MEDIUM::Bake and assemble 3-layer lemon curd cake",
       "MANUAL::MEDIUM::Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
       "MANUAL::MEDIUM::Buy caterpillars",
       "MANUAL::MEDIUM::Call MD re: meds for hair loss",
       "MANUAL::MEDIUM::Change air filters",
       "MANUAL::MEDIUM::Choose Convention Class. https://heav.org/convention/children-and-teens/",
-      "MANUAL::MEDIUM::Consider making the lemon curd 2 days before (April 19th) to spread out the workload",
       "MANUAL::MEDIUM::Ensure James continues wearing hip shorts",
       "MANUAL::MEDIUM::Ensure guest of honor attends baby shower",
       "MANUAL::MEDIUM::Fertilize lawn with balanced 20-5-10 fertilizer",
@@ -345,14 +349,16 @@
       "MANUAL::MEDIUM::Make lemon curd for baby shower cake",
       "MANUAL::MEDIUM::Pack baby shower supplies",
       "MANUAL::MEDIUM::Pickup library book after dropping JP off at Religious education class.",
-      "MANUAL::MEDIUM::Practice James' physical therapy exercises daily",
       "MANUAL::MEDIUM::Prepare Teddy Graham guessing game",
       "MANUAL::MEDIUM::Put all Amazon returns in the back of the van.",
       "MANUAL::MEDIUM::Schedule Confirmation Party",
       "MANUAL::MEDIUM::Schedule meeting with Fr for JP’s confirmation interview.",
-      "MANUAL::MEDIUM::Set a reminder to confirm guest of honor's attendance a few days before the shower",
+      "MANUAL::MEDIUM::Send Easter thank you card",
       "MANUAL::MEDIUM::Set up a simple rain gauge to track weekly rainfall amounts during summer to optimize watering schedule.",
-      "MANUAL::MEDIUM::Sharpen knives"
+      "MANUAL::MEDIUM::Sharpen knives",
+      "MANUAL::MEDIUM::Use old bananas",
+      "MANUAL::MEDIUM::Water the backyard",
+      "MANUAL::MEDIUM::Wegmans run"
     ]
   },
   "2026-04-13": {
@@ -534,7 +540,8 @@
       "SCHOOL::Science 6::Do the Review of Geology — Chapter 16 in your workbook.",
       "SCHOOL::Spelling & Vocabulary 8::Begin Lesson 9. First look at the meanings of the roots for Lesson 9. Then look at the Lesson 9 Key Words. Which do you knowwithout looking at the definitions? Use the roots to help you. Read over the entries for each of the key words. Add the key words toyour notebook, so that you practice spelling them. Write down definitions for any words you do not already know."
     ],
-    "James": []
+    "James": [],
+    "Lauren": []
   },
   "2026-04-18": {
     "JP": [
@@ -558,7 +565,8 @@
       "CHORE::Weekly room clean (~90 min): full clean, vacuum, laundry check",
       "MANUAL::MEDIUM::Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
       "MANUAL::MEDIUM::CAPTask: Wash the most used uniform of the month.",
-      "MANUAL::MEDIUM::Choose Convention Class. https://heav.org/convention/children-and-teens/"
+      "MANUAL::MEDIUM::Choose Convention Class. https://heav.org/convention/children-and-teens/",
+      "MANUAL::MEDIUM::Wegmans run"
     ],
     "Joseph": [
       "CHORE::  → Clean sink",
@@ -579,14 +587,47 @@
       "CHORE::Tidy basement zone — 10 minutes",
       "CHORE::Weekly room clean (~90 min): full clean, vacuum, laundry check",
       "MANUAL::MEDIUM::Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
-      "MANUAL::MEDIUM::Choose Convention Class. https://heav.org/convention/children-and-teens/"
+      "MANUAL::MEDIUM::Choose Convention Class. https://heav.org/convention/children-and-teens/",
+      "MANUAL::MEDIUM::Text new friend Corey",
+      "MANUAL::MEDIUM::Wegmans run"
     ],
     "Michael": [
       "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
       "CHORE::Prepare Mass clothes",
       "CHORE::Tidy basement zone — 10 minutes",
-      "CHORE::Weekly room clean"
+      "CHORE::Weekly room clean",
+      "MANUAL::MEDIUM::Wegmans run"
     ],
-    "James": []
+    "James": [
+      "MANUAL::MEDIUM::Wegmans run"
+    ],
+    "Lauren": [
+      "CHORE::Tidy my room",
+      "MANUAL::MEDIUM::Bake and assemble 3-layer lemon curd cake",
+      "MANUAL::MEDIUM::Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
+      "MANUAL::MEDIUM::Buy caterpillars",
+      "MANUAL::MEDIUM::Call MD re: meds for hair loss",
+      "MANUAL::MEDIUM::Change air filters",
+      "MANUAL::MEDIUM::Choose Convention Class. https://heav.org/convention/children-and-teens/",
+      "MANUAL::MEDIUM::Ensure James continues wearing hip shorts",
+      "MANUAL::MEDIUM::Ensure guest of honor attends baby shower",
+      "MANUAL::MEDIUM::Fertilize lawn with balanced 20-5-10 fertilizer",
+      "MANUAL::MEDIUM::Finish importing curriculum",
+      "MANUAL::MEDIUM::Keep a lawn care log to track what products were used and when, making next year's planning easier.",
+      "MANUAL::MEDIUM::Look up vibe coding",
+      "MANUAL::MEDIUM::Make lemon curd for baby shower cake",
+      "MANUAL::MEDIUM::Pack baby shower supplies",
+      "MANUAL::MEDIUM::Pickup library book after dropping JP off at Religious education class.",
+      "MANUAL::MEDIUM::Prepare Teddy Graham guessing game",
+      "MANUAL::MEDIUM::Put all Amazon returns in the back of the van.",
+      "MANUAL::MEDIUM::Schedule Confirmation Party",
+      "MANUAL::MEDIUM::Schedule meeting with Fr for JP’s confirmation interview.",
+      "MANUAL::MEDIUM::Send Easter thank you card",
+      "MANUAL::MEDIUM::Set up a simple rain gauge to track weekly rainfall amounts during summer to optimize watering schedule.",
+      "MANUAL::MEDIUM::Sharpen knives",
+      "MANUAL::MEDIUM::Use old bananas",
+      "MANUAL::MEDIUM::Water the backyard",
+      "MANUAL::MEDIUM::Wegmans run"
+    ]
   }
 }

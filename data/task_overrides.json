@@ -94,6 +94,28 @@
         "postpone_to": "2026-04-27",
         "label": "Ensure guest of honor attends baby shower"
       }
+    },
+    "2026-04-17": {
+      "MANUAL::Lauren::2026-04-17::Bake and assemble 3-layer lemon curd cake": {
+        "action": "postpone",
+        "postpone_to": "2026-04-20",
+        "label": "Bake and assemble 3-layer lemon curd cake"
+      },
+      "MANUAL::Lauren::2026-04-17::Make lemon curd for baby shower cake": {
+        "action": "postpone",
+        "postpone_to": "2026-04-25",
+        "label": "Make lemon curd for baby shower cake"
+      },
+      "MANUAL::Lauren::2026-04-17::Ensure guest of honor attends baby shower": {
+        "action": "postpone",
+        "postpone_to": "2026-04-20",
+        "label": "Ensure guest of honor attends baby shower"
+      },
+      "MANUAL::Lauren::2026-04-17::Pack baby shower supplies": {
+        "action": "postpone",
+        "postpone_to": "2026-04-27",
+        "label": "Pack baby shower supplies"
+      }
     }
   }
 }

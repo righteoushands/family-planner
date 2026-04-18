@@ -1,0 +1,28 @@
+Ship Upgrades (paid with Credits, 3 tiers per ship):
+	•	Tier 1: +25% strength
+	•	Tier 2: +50% strength + new visual
+	•	Tier 3: +100% strength + fully upgraded look
+Battles are automatic — fleet strength vs enemy defense strength. Strategy is in building the right fleet, placing the right structures, and choosing when and where to attack.
+7 Planetary Structures (one per planet, bigger planet = more powerful version):
+	•	🏰 Fortress — heavy defense, enemies rarely attack (~400 each resource)
+	•	⚙️ Engineer Station — builds ships here, required for Star Crusher (~400 each resource)
+	•	🎯 Range Attacker — auto-assists battles in nearby systems (~400 each resource)
+	•	⛏️ Resource Mine — passively generates all 3 resources over time (expensive — hard to build)
+	•	🏪 Trade Hub — convert excess resources into what you need most (expensive — hard to build)
+	•	🔧 Repair Bay — ships that survive battles are auto-restored (~400 each resource)
+	•	🌀 Warp Gate — instant travel to connected systems, no Fuel cost (~400 each resource)
+💀 The Star Crusher (Ultimate Weapon):
+	•	Combat strength: 500 — nearly unstoppable
+	•	Special ability: destroys entire enemy solar systems permanently
+	•	Cost: 1,500 Metal + 2,000 Credits + 5,000 Fuel
+	•	Build location: home system ONLY
+	•	Requirement: Special Engineer Station must be built at home first
+	•	When built: all 3 enemy empires unite against you — the final challenge
+🔄 New Game Plus:
+	•	Beat the game (conquer all 73 systems + build the Star Crusher) → full reset
+	•	Enemies are 25% stronger every new run — gets harder forever
+	•	Legacy Points carry over permanently and unlock Commander titles and cosmetics
+	•	Hall of Conquest records every completed run forever
+	•	The game is truly endless — always a new challenge, always a reason to keep doing tasks
+Legacy Point Milestones:
+1,000 pts → “Veteran” title | 5,000 pts → “Conqueror” title | 10,000 pts → special fleet skin | 25,000 pts → “Galaxy Lord” title | 50,000 pts → “Eternal Commander” + golden fleet | 100,000 pts → “Legend” — the highest honor in the game

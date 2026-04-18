@@ -1347,9 +1347,6 @@ def render_dashboard() -> str:
     <!-- 5AM Club widget -->
     {_safe_widget('render_5am', 'render_5am_dashboard_widget')}
 
-    <!-- Liturgy of the Hours widget -->
-    {_safe_widget('render_liturgy_hours', 'render_hours_dashboard_widget')}
-
     <!-- Prayer Intentions widget -->
     {_safe_widget('render_prayer', 'render_prayer_dashboard_widget')}
 
