@@ -274,6 +274,51 @@ def _apply_coach_program_saves(text: str) -> int:
     return saved
 
 
+_AI_GUARDRAILS = """
+
+== UNIVERSAL OUTPUT RULES (apply on EVERY reply) ==
+🚫 NEVER emit Anthropic tool-use markup. This app does NOT use it. The following
+   patterns are FORBIDDEN — if you write them, the server ignores them, nothing
+   saves, and you will have lied to Lauren about what you did:
+     <function_calls>…</function_calls>
+     <invoke name="…">…</invoke>
+     <parameter name="…">…</parameter>
+     update_X({…}), function_call({…}), or any JSON-RPC-looking call.
+   These come from your training. Forget them here.
+
+✅ The ONLY real action tags are the explicit ones documented in the section(s)
+   above for your role (e.g. [MEAL_UPDATE:…], <plan_update>, <schedule_update>,
+   <frol_update>, <cycle_log>, etc.). Use those EXACT formats — character-for-
+   character — and nothing else.
+
+🔇 The server strips your action tags out of the message Lauren sees. Do NOT
+   show the raw tag syntax as "code" or explain it as "something Replit needs
+   to add to the codebase." Just emit the tag and confirm in plain English.
+
+🚫 NEVER claim you can't see her data, can't read other pages, that she needs
+   to paste anything, or that some other companion "needs to process" your
+   changes. You write directly to the same files everyone reads.
+"""
+
+
+_TOOL_USE_RX = __import__('re').compile(
+    r'<function_calls>[\s\S]*?</function_calls>|<invoke\b[^>]*>[\s\S]*?</invoke>',
+    __import__('re').IGNORECASE
+)
+
+def _strip_hallucinated_tool_use(text: str) -> str:
+    """Remove fake Anthropic tool-use markup that companions sometimes emit.
+    These never get parsed by anything in this app — they're hallucinations
+    from training data — and they look like ugly code in chat."""
+    if not text:
+        return text
+    cleaned = _TOOL_USE_RX.sub('', text)
+    # Collapse the blank lines we left behind, but keep paragraph breaks.
+    import re as _r
+    cleaned = _r.sub(r'\n{3,}', '\n\n', cleaned).strip()
+    return cleaned
+
+
 def _apply_frol_updates(text: str, weekday: str) -> str:
     """
     Parse any <frol_update> action tags in `text` and apply them to the
@@ -3357,7 +3402,7 @@ class Handler(BaseHTTPRequestHandler):
                 payload = _json.dumps({
                     "model":      "claude-haiku-4-5-20251001",
                     "max_tokens": 1500,
-                    "system":     lucy_context,
+                    "system":     lucy_context + _AI_GUARDRAILS,
                     "messages":   messages,
                 }).encode()
                 req = _req.Request(
@@ -3435,7 +3480,7 @@ class Handler(BaseHTTPRequestHandler):
                         _pay2 = _json.dumps({
                             "model":      "claude-haiku-4-5-20251001",
                             "max_tokens": 1500,
-                            "system":     lucy_context,
+                            "system":     lucy_context + _AI_GUARDRAILS,
                             "messages":   _msgs2,
                         }).encode()
                         try:
@@ -4062,6 +4107,7 @@ class Handler(BaseHTTPRequestHandler):
                 if _frol_markers:
                     _display_text = _display_text + _frol_markers
                 # ── Save assistant response to server-side history ────────────
+                _display_text = _strip_hallucinated_tool_use(_display_text)
                 ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                 append_lucy_messages([{"role": "assistant", "content": _display_text, "ts": ts_reply}])
                 self.send_response(200)
@@ -4147,7 +4193,7 @@ class Handler(BaseHTTPRequestHandler):
                 payload = _json.dumps({
                     "model":      "claude-haiku-4-5-20251001",
                     "max_tokens": 1500,
-                    "system":     lorenzo_context,
+                    "system":     lorenzo_context + _AI_GUARDRAILS,
                     "messages":   messages,
                 }).encode()
                 req = _req.Request(
@@ -4366,7 +4412,7 @@ class Handler(BaseHTTPRequestHandler):
                 payload = _json.dumps({
                     "model":      "claude-haiku-4-5-20251001",
                     "max_tokens": 1500,
-                    "system":     gregory_context,
+                    "system":     gregory_context + _AI_GUARDRAILS,
                     "messages":   messages,
                     "stream":     True,
                 }).encode("utf-8")
@@ -4398,6 +4444,7 @@ class Handler(BaseHTTPRequestHandler):
                             except Exception: pass
                     ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                     _apply_frol_updates(text, weekday)
+                    text = _strip_hallucinated_tool_use(text)
                     append_gregory_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
                 except Exception as e:
                     try: self.wfile.write(str(e).encode("utf-8"))
@@ -4449,7 +4496,7 @@ class Handler(BaseHTTPRequestHandler):
                 payload = _json.dumps({
                     "model":      "claude-haiku-4-5-20251001",
                     "max_tokens": 1200,
-                    "system":     coach_context,
+                    "system":     coach_context + _AI_GUARDRAILS,
                     "messages":   messages,
                     "stream":     True,
                 }).encode("utf-8")
@@ -4482,6 +4529,7 @@ class Handler(BaseHTTPRequestHandler):
                     ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                     _apply_frol_updates(text, weekday)
                     _apply_coach_program_saves(text)
+                    text = _strip_hallucinated_tool_use(text)
                     append_coach_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
                 except Exception as e:
                     try: self.wfile.write(str(e).encode("utf-8"))
@@ -5029,7 +5077,7 @@ class Handler(BaseHTTPRequestHandler):
                 payload = _json.dumps({
                     "model":      "claude-haiku-4-5-20251001",
                     "max_tokens": 1500,
-                    "system":     monica_context,
+                    "system":     monica_context + _AI_GUARDRAILS,
                     "messages":   messages,
                     "stream":     True,
                 }).encode("utf-8")
@@ -5061,6 +5109,7 @@ class Handler(BaseHTTPRequestHandler):
                             except Exception: pass
                     ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                     _apply_frol_updates(text, weekday)
+                    text = _strip_hallucinated_tool_use(text)
                     append_monica_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
                 except Exception as e:
                     try: self.wfile.write(str(e).encode("utf-8"))
@@ -5656,6 +5705,7 @@ class Handler(BaseHTTPRequestHandler):
                 #    opens their normal chat page (Lucy, Coach, etc.).
                 try:
                     _reply_text = "".join(_cc_full_reply).strip()
+                    _reply_text = _strip_hallucinated_tool_use(_reply_text)
                     if _reply_text:
                         _ts_now = datetime.now().isoformat(timespec="seconds")
                         _user_tagged = f"[Plan Importer] {_cc_message}"
@@ -5759,6 +5809,7 @@ class Handler(BaseHTTPRequestHandler):
                 #    history file so each one remembers what was said.
                 try:
                     _gc_reply_text = "".join(_gc_full_reply).strip()
+                    _gc_reply_text = _strip_hallucinated_tool_use(_gc_reply_text)
                     if _gc_reply_text:
                         _gc_ts  = datetime.now().isoformat(timespec="seconds")
                         _gc_um  = f"[Plan Importer · Roundtable] {_gc_question}"
