@@ -4846,6 +4846,22 @@ def render_school_page(status_message: str = "") -> str:
       <span style="font-size:1.3em;color:#b88a4a;">›</span>
     </a>
 
+    <!-- Gradebook (companion to analyzer) -->
+    <a href="/gradebook" style="display:flex;align-items:center;gap:14px;
+         background:linear-gradient(135deg,#ecfccb 0%,#d9f99d 100%);
+         border:1.5px solid #84cc16;border-radius:12px;padding:14px 18px;
+         margin-bottom:12px;text-decoration:none;color:inherit;
+         box-shadow:0 1px 3px rgba(132,204,22,.15);">
+      <span style="font-size:1.9em;line-height:1;">📓</span>
+      <div style="flex:1;">
+        <div style="font-weight:800;font-size:0.98em;color:#3f6212;">Gradebook</div>
+        <div style="font-size:0.78em;color:#4d7c0f;margin-top:2px;">
+          Recorded grades by subject &amp; school year — GPA for JP &amp; Joseph
+        </div>
+      </div>
+      <span style="font-size:1.3em;color:#65a30d;">›</span>
+    </a>
+
     <!-- Quick-access row -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px;">
       <a href="/curriculum" style="display:flex;align-items:center;gap:12px;

@@ -42,6 +42,51 @@ def _resolved(rec: dict, key: str, default=""):
     return parsed.get(key, default)
 
 
+def _record_grade_block(rid: str, child: str, subject: str, title: str,
+                        suggested_grade: str, recorded_id: str,
+                        recorded_pct, recorded_letter: str) -> str:
+    """Footer block — either '✓ Recorded' chip or the inline 'Record grade' form."""
+    from datetime import date as _date
+    from data_helpers import GRADE_LETTERS
+    if recorded_id:
+        chip_bits = ["✓ Recorded"]
+        if recorded_pct not in ("", None):
+            try: chip_bits.append(f"{float(recorded_pct):.0f}%")
+            except Exception: pass
+        if recorded_letter:
+            chip_bits.append(_esc(str(recorded_letter)))
+        chip = " · ".join(chip_bits)
+        return (
+            f'<a class="aa-status aa-status-recorded" '
+            f'href="/gradebook?child={_q(str(child) or "JP")}">{chip}</a>'
+        )
+
+    # Otherwise: inline record-grade form (collapsed by default)
+    today = _date.today().isoformat()
+    letter_opts = "".join(
+        f'<option value="{_esc(l)}"{" selected" if l == suggested_grade else ""}>{_esc(l)}</option>'
+        for l in [""] + GRADE_LETTERS
+    )
+    return f"""
+      <span class="aa-status">⏳ Pending grade</span>
+      <button type="button" class="aa-record-toggle" data-id="{_esc(rid)}">📓 Record grade</button>
+      <form class="aa-record-form" data-id="{_esc(rid)}" style="display:none;">
+        <input type="hidden" name="source_analysis_id" value="{_esc(rid)}"/>
+        <input type="hidden" name="child" value="{_esc(str(child) or "JP")}"/>
+        <input type="hidden" name="subject" value="{_esc(str(subject) or "Other")}"/>
+        <input type="hidden" name="title" value="{_esc(str(title))}"/>
+        <input type="date" name="date" value="{today}"/>
+        <input type="text" name="raw_score" placeholder="Score" inputmode="decimal" class="aa-rec-num"/>
+        <span class="aa-rec-sep">/</span>
+        <input type="text" name="total" placeholder="Total" inputmode="decimal" class="aa-rec-num"/>
+        <select name="letter" title="Letter grade (auto-filled)">{letter_opts}</select>
+        <input type="text" name="note" placeholder="Note (optional)" class="aa-rec-note"/>
+        <button type="submit" class="aa-rec-save">Save</button>
+        <button type="button" class="aa-rec-cancel">Cancel</button>
+      </form>
+    """
+
+
 def _render_one_card(rec: dict) -> str:
     rid = rec.get("id", "")
     parsed = rec.get("parsed", {}) or {}
@@ -72,6 +117,11 @@ def _render_one_card(rec: dict) -> str:
     work_present = _resolved(rec, "work_present", False)
     suggested_grade = _resolved(rec, "suggested_grade", "")
     grade_rationale = _resolved(rec, "grade_rationale", "")
+    # Has this card already been recorded in the gradebook?
+    edits = rec.get("user_edits", {}) or {}
+    recorded_id     = edits.get("_gradebook_id", "")
+    recorded_pct    = edits.get("_gradebook_pct", "")
+    recorded_letter = edits.get("_gradebook_letter", "")
 
     if not isinstance(sub_items, list):
         sub_items = [str(sub_items)]
@@ -212,7 +262,7 @@ def _render_one_card(rec: dict) -> str:
       {mat_html}
       {notes_html}
       <div class="aa-card-foot">
-        <span class="aa-status">⏳ Pending curriculum placement</span>
+        {_record_grade_block(rid, child_guess, subject, title, suggested_grade, recorded_id, recorded_pct, recorded_letter)}
         <span class="aa-saved" data-id="{_esc(rid)}"></span>
       </div>
     </article>
@@ -230,6 +280,7 @@ def render_assignment_analyzer_page() -> str:
     body = f"""
     <div class="aa-wrap">
       <a href="/curriculum" class="aa-back">← Curriculum</a>
+      <a href="/gradebook" class="aa-back" style="margin-left:14px;">📓 Gradebook →</a>
       <h1 class="aa-h1">📥 Assignment Analyzer</h1>
       <p class="aa-sub">Upload a photo or paste text. The AI will identify the
         subject, child, type, sub-tasks, and estimated time, and save it to a
@@ -343,8 +394,19 @@ def render_assignment_analyzer_page() -> str:
       .aa-summary {{ font-size: 14px; line-height: 1.5; color: var(--ink); }}
       .aa-notes {{ background: var(--gold-light); padding: 10px 12px; border-radius: 6px; border-top: 0; }}
       .aa-error {{ background: #fdebeb; color: var(--crimson); padding: 8px 12px; border-radius: 6px; margin: 8px 0; font-size: 13px; }}
-      .aa-card-foot {{ display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-light); font-size: 12px; color: var(--ink-faint); }}
+      .aa-card-foot {{ display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-light); font-size: 12px; color: var(--ink-faint); }}
       .aa-saved {{ color: var(--forest); }}
+      .aa-record-toggle {{ background: var(--gold-light); border: 1px solid var(--gold-mid); color: var(--ink); border-radius: 6px; padding: 5px 10px; font-size: 12px; font-weight: 500; cursor: pointer; }}
+      .aa-record-toggle:hover {{ background: var(--gold-mid); color: white; }}
+      .aa-status-recorded {{ background: rgba(46,125,50,0.10); color: #246b3a; padding: 4px 10px; border-radius: 999px; font-weight: 600; text-decoration: none; border: 1px solid rgba(46,125,50,0.25); }}
+      .aa-status-recorded:hover {{ background: rgba(46,125,50,0.18); }}
+      .aa-record-form {{ display: flex; flex-wrap: wrap; gap: 6px; align-items: center; width: 100%; padding: 10px; background: rgba(0,0,0,0.025); border-radius: 8px; margin-top: 6px; }}
+      .aa-record-form input[type="date"], .aa-record-form input[type="text"], .aa-record-form select {{ padding: 6px 8px; border: 1px solid var(--border); border-radius: 5px; font-size: 13px; font-family: inherit; background: white; color: var(--ink); }}
+      .aa-rec-num {{ width: 60px; text-align: center; }}
+      .aa-rec-sep {{ color: var(--ink-faint); }}
+      .aa-rec-note {{ flex: 1; min-width: 140px; }}
+      .aa-rec-save {{ background: var(--gold-mid); color: white; border: 0; padding: 6px 12px; border-radius: 5px; font-size: 13px; font-weight: 500; cursor: pointer; }}
+      .aa-rec-cancel {{ background: transparent; border: 1px solid var(--border); padding: 6px 10px; border-radius: 5px; font-size: 13px; cursor: pointer; color: var(--ink-muted); }}
 
       @media (max-width: 600px) {{
         .aa-grid {{ grid-template-columns: 1fr 1fr; }}
@@ -501,6 +563,79 @@ def render_assignment_analyzer_page() -> str:
           fetch('/assignment-delete', {{ method: 'POST', body: fd }})
             .then(function(r) {{ if (r.ok) card.remove(); }});
         }});
+
+        // Record-grade interactions
+        var recToggle = card.querySelector('.aa-record-toggle');
+        var recForm   = card.querySelector('.aa-record-form');
+        if (recToggle && recForm) {{
+          recToggle.addEventListener('click', function() {{
+            recForm.style.display = (recForm.style.display === 'none') ? 'flex' : 'none';
+            if (recForm.style.display === 'flex') {{
+              var s = recForm.querySelector('input[name="raw_score"]');
+              if (s) s.focus();
+            }}
+          }});
+          var cancel = recForm.querySelector('.aa-rec-cancel');
+          if (cancel) cancel.addEventListener('click', function() {{
+            recForm.style.display = 'none';
+          }});
+          // Auto-letter from score+total
+          function gbLetterFromPct(p) {{
+            var scale = [['A+',97],['A',93],['A-',90],['B+',87],['B',83],['B-',80],['C+',77],['C',73],['C-',70],['D',60],['F',0]];
+            for (var i=0;i<scale.length;i++) {{ if (p >= scale[i][1]) return scale[i][0]; }}
+            return 'F';
+          }}
+          function gbAutoCalc() {{
+            var raw = parseFloat(recForm.raw_score.value);
+            var tot = parseFloat(recForm.total.value);
+            if (!isNaN(raw) && !isNaN(tot) && tot > 0) {{
+              recForm.letter.value = gbLetterFromPct((raw/tot)*100);
+            }}
+          }}
+          recForm.raw_score.addEventListener('input', gbAutoCalc);
+          recForm.total.addEventListener('input', gbAutoCalc);
+
+          recForm.addEventListener('submit', function(ev) {{
+            ev.preventDefault();
+            gbAutoCalc();
+            var fd = new FormData(recForm);
+            // Pull title from the latest edit (Mom may have changed it)
+            var titleInput = card.querySelector('[data-field="title"]');
+            if (titleInput) fd.set('title', titleInput.value);
+            var subjectSel = card.querySelector('[data-field="subject"]');
+            if (subjectSel) fd.set('subject', subjectSel.value);
+            var childSel = card.querySelector('[data-field="child_guess"]');
+            if (childSel && childSel.value) fd.set('child', childSel.value);
+            var saveBtn = recForm.querySelector('.aa-rec-save');
+            if (saveBtn) {{ saveBtn.disabled = true; saveBtn.textContent = '…'; }}
+            fetch('/gradebook-add', {{ method: 'POST', body: fd }})
+              .then(function(r) {{ return r.json(); }})
+              .then(function(j) {{
+                if (j && j.ok) {{
+                  // Replace footer with recorded chip
+                  var pct = (j.entry && j.entry.percentage != null) ? j.entry.percentage : '';
+                  var letter = (j.entry && j.entry.letter) || '';
+                  var chip = '✓ Recorded';
+                  if (pct !== '') chip += ' · ' + Math.round(parseFloat(pct)) + '%';
+                  if (letter) chip += ' · ' + letter;
+                  var foot = card.querySelector('.aa-card-foot');
+                  if (foot) {{
+                    var childForLink = (childSel && childSel.value) || (j.entry && j.entry.child) || 'JP';
+                    foot.innerHTML = '<a class="aa-status aa-status-recorded" href="/gradebook?child=' +
+                      encodeURIComponent(childForLink) + '">' + chip + '</a>' +
+                      '<span class="aa-saved" data-id="' + id + '"></span>';
+                  }}
+                }} else {{
+                  if (saveBtn) {{ saveBtn.disabled = false; saveBtn.textContent = 'Save'; }}
+                  alert((j && j.error) || 'Save failed');
+                }}
+              }})
+              .catch(function(e) {{
+                if (saveBtn) {{ saveBtn.disabled = false; saveBtn.textContent = 'Save'; }}
+                alert('Network error: ' + e);
+              }});
+          }});
+        }}
       }});
     }})();
     </script>

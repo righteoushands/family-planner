@@ -1123,6 +1123,22 @@ class Handler(BaseHTTPRequestHandler):
             except BrokenPipeError: pass
             return
 
+        elif path == "/gradebook":
+            _cur_viewer = self._get_viewer()
+            if not (_cur_viewer and _auth.is_admin(_cur_viewer)):
+                self.send_response(302); self.send_header("Location", "/"); self.end_headers(); return
+            from render_gradebook import render_gradebook_page
+            _child = (query.get("child",[""])[0] or "").strip()
+            _year  = (query.get("year",[""])[0] or "").strip()
+            html = render_gradebook_page(child=_child, year=_year)
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
+
         elif path == "/assignment-analyzer":
             _cur_viewer = self._get_viewer()
             if not (_cur_viewer and _auth.is_admin(_cur_viewer)):
@@ -2026,7 +2042,8 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers(); return
 
         if path in ("/school-upload", "/prayer-intention-add", "/recipe-import",
-                    "/assignment-analyze", "/assignment-update", "/assignment-delete"):
+                    "/assignment-analyze", "/assignment-update", "/assignment-delete",
+                    "/gradebook-add", "/gradebook-update", "/gradebook-delete"):
             form = parse_multipart_form(self)
 
             if path == "/assignment-analyze":
@@ -2399,6 +2416,92 @@ class Handler(BaseHTTPRequestHandler):
                 from data_helpers import delete_assignment_analysis
                 _id = clean_text(form.getfirst("id",""))
                 ok = delete_assignment_analysis(_id) if _id else False
+                self.send_response(200 if ok else 404)
+                self.send_header("Content-Type","application/json"); self.end_headers()
+                try: self.wfile.write(_aj.dumps({"ok": ok}).encode())
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/gradebook-add":
+                import json as _aj
+                from data_helpers import (
+                    add_gradebook_entry, percent_to_letter, update_assignment_analysis,
+                )
+                def _f(name, default=""):
+                    v = form.getfirst(name, default)
+                    return clean_text(v) if isinstance(v, str) else default
+                _entry = {
+                    "child":               _f("child"),
+                    "subject":             _f("subject") or "Other",
+                    "title":               _f("title"),
+                    "date":                _f("date"),
+                    "raw_score":           _f("raw_score"),
+                    "total":               _f("total"),
+                    "percentage":          _f("percentage"),
+                    "letter":              _f("letter"),
+                    "note":                _f("note"),
+                    "source_analysis_id":  _f("source_analysis_id"),
+                }
+                # Auto-compute percentage if score+total provided but pct missing
+                try:
+                    if _entry["raw_score"] not in ("", None) and _entry["total"] not in ("", None):
+                        _r = float(_entry["raw_score"]); _t = float(_entry["total"])
+                        if _t > 0 and _entry["percentage"] in ("", None):
+                            _entry["percentage"] = round((_r / _t) * 100, 1)
+                except Exception: pass
+                # Auto-letter from pct if missing
+                if not _entry["letter"] and _entry["percentage"] not in ("", None):
+                    _entry["letter"] = percent_to_letter(_entry["percentage"])
+                # Validate child + title
+                if not _entry["child"] or not _entry["title"]:
+                    self.send_response(400)
+                    self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(_aj.dumps({"ok": False, "error": "child and title required"}).encode())
+                    except BrokenPipeError: pass
+                    return
+                _saved = add_gradebook_entry(_entry)
+                # Mark the source analysis as recorded so the card can show it
+                if _entry["source_analysis_id"]:
+                    update_assignment_analysis(_entry["source_analysis_id"], {
+                        "_gradebook_id": _saved["id"],
+                        "_gradebook_pct": _entry.get("percentage", ""),
+                        "_gradebook_letter": _entry.get("letter", ""),
+                    })
+                self.send_response(200)
+                self.send_header("Content-Type","application/json"); self.end_headers()
+                try: self.wfile.write(_aj.dumps({"ok": True, "id": _saved["id"], "entry": _saved}).encode())
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/gradebook-update":
+                import json as _aj
+                from data_helpers import update_gradebook_entry, percent_to_letter
+                _id = clean_text(form.getfirst("id",""))
+                _edits_raw = form.getfirst("edits","") or "{}"
+                try:    _edits = _aj.loads(_edits_raw)
+                except Exception: _edits = {}
+                if not isinstance(_edits, dict): _edits = {}
+                # If raw_score+total provided, recompute pct + letter
+                try:
+                    if _edits.get("raw_score") not in (None, "") and _edits.get("total") not in (None, ""):
+                        _r = float(_edits["raw_score"]); _t = float(_edits["total"])
+                        if _t > 0:
+                            _edits["percentage"] = round((_r / _t) * 100, 1)
+                            if not _edits.get("letter"):
+                                _edits["letter"] = percent_to_letter(_edits["percentage"])
+                except Exception: pass
+                ok = update_gradebook_entry(_id, _edits) if _id else False
+                self.send_response(200 if ok else 404)
+                self.send_header("Content-Type","application/json"); self.end_headers()
+                try: self.wfile.write(_aj.dumps({"ok": ok}).encode())
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/gradebook-delete":
+                import json as _aj
+                from data_helpers import delete_gradebook_entry
+                _id = clean_text(form.getfirst("id",""))
+                ok = delete_gradebook_entry(_id) if _id else False
                 self.send_response(200 if ok else 404)
                 self.send_header("Content-Type","application/json"); self.end_headers()
                 try: self.wfile.write(_aj.dumps({"ok": ok}).encode())

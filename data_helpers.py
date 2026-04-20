@@ -892,6 +892,114 @@ def delete_assignment_analysis(analysis_id: str) -> bool:
     return len(keep) < before
 
 
+# ── Gradebook (per-child recorded scores) ──────────────────────────────────
+GRADEBOOK_FILE = "data/gradebook.json"
+
+# Standard 4.0 scale (A+ same as A — common US homeschool convention).
+GRADE_LETTER_SCALE = [
+    ("A+", 97, 4.0),
+    ("A",  93, 4.0),
+    ("A-", 90, 3.7),
+    ("B+", 87, 3.3),
+    ("B",  83, 3.0),
+    ("B-", 80, 2.7),
+    ("C+", 77, 2.3),
+    ("C",  73, 2.0),
+    ("C-", 70, 1.7),
+    ("D",  60, 1.0),
+    ("F",   0, 0.0),
+]
+GRADE_LETTERS = [row[0] for row in GRADE_LETTER_SCALE]
+# Younger-child encouragement marks (Michael, James not in school yet)
+ENCOURAGEMENT_MARKS = ["✦ Excellent", "✓ Good work", "↻ Try again"]
+# Children who get GPA-style scoring (older boys). Michael/James do not.
+GPA_CHILDREN = ["JP", "Joseph"]
+
+def percent_to_letter(pct) -> str:
+    try: p = float(pct)
+    except (TypeError, ValueError): return ""
+    for letter, cutoff, _gpa in GRADE_LETTER_SCALE:
+        if p >= cutoff:
+            return letter
+    return "F"
+
+def letter_to_gpa(letter: str):
+    if not letter: return None
+    for l, _c, g in GRADE_LETTER_SCALE:
+        if l == letter:
+            return g
+    return None
+
+def school_year_for_date(iso_date: str) -> str:
+    """McAdams homeschool year runs Aug 1 – Jul 31. '2026-09-15' -> '2026-2027'."""
+    from datetime import date as _d
+    try:
+        d = _d.fromisoformat(iso_date[:10])
+    except Exception:
+        d = _d.today()
+    if d.month >= 8:
+        return f"{d.year}-{d.year + 1}"
+    return f"{d.year - 1}-{d.year}"
+
+def load_gradebook() -> dict:
+    """Returns {'entries': [...]}. Each entry is a dict — see add_gradebook_entry."""
+    data = ensure_file(GRADEBOOK_FILE, {"entries": []})
+    if not isinstance(data, dict):
+        data = {"entries": []}
+    data.setdefault("entries", [])
+    return data
+
+def save_gradebook(data: dict):
+    safe_save_json(GRADEBOOK_FILE, data)
+
+def add_gradebook_entry(entry: dict) -> dict:
+    """Insert a new gradebook entry. Returns the saved entry (with id)."""
+    import uuid
+    from datetime import datetime as _dt, date as _d
+    data = load_gradebook()
+    today = _d.today().isoformat()
+    entry.setdefault("id", "g-" + _dt.now().strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:6])
+    entry.setdefault("ts", _dt.now().isoformat(timespec="seconds"))
+    entry.setdefault("date", today)
+    entry.setdefault("school_year", school_year_for_date(entry["date"]))
+    entry.setdefault("extras", {})  # reserved for future rubrics / MODG bricks
+    data["entries"].append(entry)
+    save_gradebook(data)
+    return entry
+
+def update_gradebook_entry(entry_id: str, edits: dict) -> bool:
+    data = load_gradebook()
+    changed = False
+    for e in data["entries"]:
+        if e.get("id") == entry_id:
+            for k, v in (edits or {}).items():
+                e[k] = v
+            # Recompute school_year if date changed
+            if "date" in (edits or {}):
+                e["school_year"] = school_year_for_date(e["date"])
+            changed = True
+            break
+    if changed:
+        save_gradebook(data)
+    return changed
+
+def delete_gradebook_entry(entry_id: str) -> bool:
+    data = load_gradebook()
+    before = len(data["entries"])
+    data["entries"] = [e for e in data["entries"] if e.get("id") != entry_id]
+    if len(data["entries"]) < before:
+        save_gradebook(data)
+        return True
+    return False
+
+def gradebook_for_child(child: str, school_year: str = "") -> list:
+    """Entries for a child, optionally filtered to a school year. Sorted newest first."""
+    entries = [e for e in load_gradebook()["entries"] if e.get("child") == child]
+    if school_year:
+        entries = [e for e in entries if e.get("school_year") == school_year]
+    return sorted(entries, key=lambda e: (e.get("date",""), e.get("ts","")), reverse=True)
+
+
 RECIPES_FILE = "data/recipes.json"
 
 def load_recipes() -> list:
