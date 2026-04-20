@@ -66,11 +66,19 @@ def _render_one_card(rec: dict) -> str:
     sub_items = _resolved(rec, "sub_items", []) or []
     materials = _resolved(rec, "materials_needed", []) or []
     notes = _resolved(rec, "notes_for_mom", "")
+    gregory_feedback = _resolved(rec, "gregory_feedback", "")
+    strengths = _resolved(rec, "strengths", []) or []
+    growth_edges = _resolved(rec, "growth_edges", []) or []
+    work_present = _resolved(rec, "work_present", False)
 
     if not isinstance(sub_items, list):
         sub_items = [str(sub_items)]
     if not isinstance(materials, list):
         materials = [str(materials)]
+    if not isinstance(strengths, list):
+        strengths = [str(strengths)] if strengths else []
+    if not isinstance(growth_edges, list):
+        growth_edges = [str(growth_edges)] if growth_edges else []
 
     thumb_html = ""
     if upload_paths:
@@ -115,6 +123,34 @@ def _render_one_card(rec: dict) -> str:
         if notes else ""
     )
 
+    # Father Gregory's review (only shown if AI returned feedback)
+    gregory_html = ""
+    if gregory_feedback or strengths or growth_edges:
+        _strength_html = ""
+        if strengths:
+            _strength_html = (
+                '<div class="aa-fg-block"><div class="aa-fg-label">✦ Strengths</div><ul>'
+                + "".join(f'<li>{_esc(str(s))}</li>' for s in strengths)
+                + '</ul></div>'
+            )
+        _growth_html = ""
+        if growth_edges:
+            _growth_html = (
+                '<div class="aa-fg-block"><div class="aa-fg-label">↗ Where to grow</div><ul>'
+                + "".join(f'<li>{_esc(str(g))}</li>' for g in growth_edges)
+                + '</ul></div>'
+            )
+        _quote_html = (
+            f'<blockquote class="aa-fg-quote">{_esc(str(gregory_feedback))}</blockquote>'
+            if gregory_feedback else ""
+        )
+        gregory_html = (
+            '<div class="aa-section aa-fg">'
+            '<h4>🎓 Father Gregory&rsquo;s review</h4>'
+            f'{_quote_html}{_strength_html}{_growth_html}'
+            '</div>'
+        )
+
     err_html = (
         f'<div class="aa-error">⚠️ AI analysis failed: {_esc(err)}</div>'
         if err else ""
@@ -158,6 +194,7 @@ def _render_one_card(rec: dict) -> str:
         </label>
       </div>
       <div class="aa-section"><h4>Summary</h4><div class="aa-summary">{_esc(str(summary))}</div></div>
+      {gregory_html}
       {sub_html}
       {mat_html}
       {notes_html}
@@ -266,6 +303,13 @@ def render_assignment_analyzer_page() -> str:
       .aa-grid {{ display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }}
       .aa-grid .aa-span2 {{ grid-column: span 2; }}
       .aa-section {{ margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-light); }}
+      .aa-fg {{ background: linear-gradient(135deg, #f5f0e6 0%, #ede4d0 100%); border-left: 3px solid #1e3566; padding: 14px 16px 12px; border-radius: 8px; border-top: none; margin-top: 14px; }}
+      .aa-fg h4 {{ color: #1e3566 !important; font-weight: 600; }}
+      .aa-fg-quote {{ font-family: 'Cormorant Garamond', Georgia, serif; font-size: 16px; line-height: 1.5; font-style: italic; color: #2a2520; margin: 0 0 10px; padding: 0; border: none; }}
+      .aa-fg-block {{ margin-top: 8px; }}
+      .aa-fg-label {{ font-size: 12px; font-weight: 700; color: #1e3566; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }}
+      .aa-fg ul {{ margin: 2px 0 0; padding-left: 20px; font-size: 14px; color: var(--ink); }}
+      .aa-fg ul li {{ margin: 3px 0; }}
       .aa-section h4 {{ font-family: 'Cormorant Garamond', serif; font-size: 15px; color: var(--ink-muted); margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; }}
       .aa-section ul {{ margin: 0; padding-left: 20px; font-size: 14px; color: var(--ink); }}
       .aa-section ul li {{ margin: 2px 0; }}
