@@ -371,10 +371,6 @@ def load_snapshot_data(snapshot_key: str):
 _writes_recorder = threading.local()
 
 
-def _active_recorders():
-    return getattr(_writes_recorder, "stack", [])
-
-
 def _record_path_for_active_recorders(path: str):
     """Called from inside safe_save_json. Adds path ONLY to the top-of-stack
     recorder on this thread (the current companion turn). Skipping deeper
