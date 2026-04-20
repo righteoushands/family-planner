@@ -180,6 +180,33 @@ def frol_edit_instructions() -> list:
     ]
 
 
+def undo_instructions() -> list:
+    """Return system-prompt lines explaining the <undo_last_change/> action tag.
+    Every companion gets these so Mom can simply say 'undo that' in chat."""
+    return [
+        "",
+        "== HOW TO UNDO YOUR LAST CHANGE ==",
+        "If Mom explicitly asks you to undo, revert, take back, or 'put back'",
+        "the change you just made (e.g. 'undo that', 'never mind, undo',",
+        "'revert your last change', 'put it back the way it was'), reply with",
+        "the action tag <undo_last_change/> on its own line.",
+        "",
+        "What happens when you emit <undo_last_change/>:",
+        "  - The system restores every file you wrote in your previous turn",
+        "    to the snapshot taken just before that turn (full automatic).",
+        "  - Mom will see a confirmation listing exactly which files were",
+        "    rolled back. You don't need to spell those out yourself.",
+        "  - Use it ALONE — do not combine <undo_last_change/> with",
+        "    <plan_update>, <frol_update>, or any other action tag in the",
+        "    same response.",
+        "",
+        "Only use this tag when Mom clearly wants to reverse YOUR most",
+        "recent edit. Do not use it pre-emptively, do not use it for older",
+        "edits, and do not invent it without an explicit request.",
+        "",
+    ]
+
+
 def _js_companions_dict(self_tag: str) -> str:
     """Return a JS object literal of other companions for handoff rendering."""
     others = {tag: c for tag, c in COMPANIONS.items() if tag != self_tag}

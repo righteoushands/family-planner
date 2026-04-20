@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import threading
 from datetime import datetime, date, timedelta
 
 
@@ -80,6 +81,13 @@ def safe_save_json(path, data):
                 snapshot_before_save(path)
         except Exception as _se:
             debug_log("Auto-snapshot failed (continuing save):", path, str(_se))
+        # Record this write into any active companion-turn recorder so that
+        # /<companion>-chat handlers can implement an "undo my last change"
+        # action via natural-language requests.
+        try:
+            _record_path_for_active_recorders(path)
+        except Exception as _re:
+            debug_log("Write recorder failed (continuing save):", path, str(_re))
         ensure_parent_dir(path)
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
@@ -137,8 +145,9 @@ SNAPSHOT_DENYLIST_PREFIXES = (
     "data/auth/",  # session tokens — sensitive + high churn, no audit value
 )
 SNAPSHOT_DENYLIST_SUBSTRINGS = (
-    ".archive/",      # any companion *_history.json.archive/ tree
-    "/.backups/",     # any future per-area .backups dir
+    ".archive/",         # any companion *_history.json.archive/ tree
+    "/.backups/",        # any future per-area .backups dir
+    "_last_writes.json", # per-companion undo manifests (rewritten every turn)
 )
 # Files that should be snapshotted before saving (kept for backward compat;
 # now obsolete because EVERY data file is auto-snapshotted by default).
@@ -342,3 +351,158 @@ def load_snapshot_data(snapshot_key: str):
     """Load and return the JSON data from a snapshot file without restoring it."""
     snapshot_path = _resolve_snapshot_path(snapshot_key)
     return safe_load_json(snapshot_path, None)
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# COMPANION-TURN WRITE RECORDER  (powers the natural-language "undo" feature)
+# ────────────────────────────────────────────────────────────────────────────
+#
+# Each AI-companion chat endpoint wraps its turn with begin/finish calls.
+# While a recorder is active on the current thread, every safe_save_json
+# call appends its target path to the active recorder's set (skipping the
+# companion's own history file and undo-manifest file). When the turn ends,
+# the recorder is persisted to data/<companion>_last_writes.json so that a
+# later turn can ask undo_last_writes(companion) to restore those files to
+# the snapshot taken just before they were modified.
+#
+# We use a thread-local stack so that nested or concurrent companion turns
+# don't bleed writes into each other.
+
+_writes_recorder = threading.local()
+
+
+def _active_recorders():
+    return getattr(_writes_recorder, "stack", [])
+
+
+def _record_path_for_active_recorders(path: str):
+    """Called from inside safe_save_json. Adds path ONLY to the top-of-stack
+    recorder on this thread (the current companion turn). Skipping deeper
+    recorders prevents a recorder leaked from a crashed prior turn from
+    accumulating writes that belong to a different companion."""
+    if not path:
+        return
+    stack = getattr(_writes_recorder, "stack", None)
+    if not stack:
+        return
+    rec = stack[-1]
+    comp = rec.get("companion") or ""
+    if not comp:
+        return
+    p = _normalise(path)
+    if p.endswith(f"/{comp}_history.json") or p == f"data/{comp}_history.json":
+        return
+    if p.endswith(f"/{comp}_last_writes.json") or p == f"data/{comp}_last_writes.json":
+        return
+    # Only track real data files; same rule as snapshotting
+    if not _should_snapshot(path):
+        return
+    rec["paths"].add(p)
+
+
+def _manifest_path(companion: str) -> str:
+    return f"data/{companion}_last_writes.json"
+
+
+def begin_companion_turn(companion: str):
+    """Start tracking writes for one companion's chat turn. Drops any stale
+    recorder from a prior crashed turn (same companion, same thread) to
+    avoid leaking write tracking across HTTP requests."""
+    if not companion:
+        return
+    if not hasattr(_writes_recorder, "stack"):
+        _writes_recorder.stack = []
+    # Drop any leftover recorder for this companion from a prior failed turn.
+    _writes_recorder.stack = [
+        r for r in _writes_recorder.stack if r.get("companion") != companion
+    ]
+    _writes_recorder.stack.append({"companion": companion, "paths": set()})
+
+
+def _pop_top_recorder_for(companion: str):
+    """Pop the most recent active recorder matching this companion, or
+    return None if none on the stack."""
+    stack = getattr(_writes_recorder, "stack", None)
+    if not stack:
+        return None
+    for i in range(len(stack) - 1, -1, -1):
+        if stack[i].get("companion") == companion:
+            return stack.pop(i)
+    return None
+
+
+def finish_companion_turn(companion: str, assistant_text: str) -> str:
+    """End tracking, optionally execute an <undo_last_change/> action found
+    in the assistant text, and persist the write manifest for this turn so
+    a future turn can undo it. Returns the (possibly rewritten) assistant
+    text — callers should save this rewritten text to the chat history."""
+    import re as _re
+    rec = _pop_top_recorder_for(companion)
+    text = assistant_text or ""
+    has_undo = bool(_re.search(r'<undo_last_change\s*/?>', text, _re.I))
+    if has_undo:
+        # Strip the tag from visible text
+        cleaned = _re.sub(r'<undo_last_change\s*/?>', '', text).strip()
+        ok, restored, err = undo_last_writes(companion)
+        if ok:
+            files_str = "\n".join(f"  • {p}" for p in restored)
+            marker = (
+                f"\n\n[UNDONE — restored {len(restored)} file"
+                f"{'s' if len(restored) != 1 else ''} to the version "
+                f"saved just before my last change:\n{files_str}]"
+            )
+            if err:
+                marker += f"\n[Note: {err}]"
+            text = (cleaned + marker).strip() if cleaned else marker.strip()
+            # CRITICAL: clear the manifest after a successful undo so a
+            # second 'undo' is a true no-op rather than restoring the
+            # snapshot that restore_snapshot() just wrote of the
+            # pre-undo state (which would flip-flop the data).
+            try:
+                if os.path.exists(_manifest_path(companion)):
+                    os.remove(_manifest_path(companion))
+            except OSError as _ce:
+                debug_log("undo manifest cleanup failed:", str(_ce))
+        else:
+            text = (cleaned + f"\n\n[I couldn't undo: {err}]").strip()
+        return text
+    # Persist this turn's writes (if any) for future undo.
+    if rec and rec.get("paths"):
+        try:
+            paths = sorted(rec["paths"])
+            manifest = {
+                "companion": companion,
+                "ts":        datetime.now().isoformat(timespec="seconds"),
+                "paths":     paths,
+            }
+            # Bypass safe_save_json to avoid recursion (the manifest itself
+            # is on the snapshot deny-list anyway).
+            mp = _manifest_path(companion)
+            ensure_parent_dir(mp)
+            with open(mp, "w", encoding="utf-8") as f:
+                json.dump(manifest, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            debug_log("finish_companion_turn manifest save failed:", str(e))
+    return text
+
+
+def undo_last_writes(companion: str) -> tuple:
+    """Restore each file in the companion's last-writes manifest to its
+    most recent snapshot (the version saved just before the companion's
+    most recent edit). Returns (success, restored_paths, error_string)."""
+    manifest = safe_load_json(_manifest_path(companion), None)
+    if not manifest or not manifest.get("paths"):
+        return False, [], "no recent change recorded for me to undo"
+    restored, errors = [], []
+    for orig in manifest["paths"]:
+        snaps = list_snapshots(orig)
+        if not snaps:
+            errors.append(f"{orig} (no snapshot available)")
+            continue
+        ok, msg = restore_snapshot(snaps[0]["key"])
+        if ok:
+            restored.append(orig)
+        else:
+            errors.append(f"{orig} ({msg})")
+    err_str = "; ".join(errors) if errors else ""
+    return (len(restored) > 0), restored, err_str

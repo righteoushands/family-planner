@@ -159,7 +159,9 @@ from school_pdf_engine import (
     load_school_preview, parse_school_pdf_text, save_school_preview,
 )
 import gdrive as _gdrive
-from safe_utils import safe_save_json
+from safe_utils import safe_save_json, begin_companion_turn, finish_companion_turn
+from companion_handoffs import undo_instructions as _undo_instructions
+_UNDO_BLOCK = "\n" + "\n".join(_undo_instructions())
 
 from config import HOST, PORT, ROADMAP_STATUSES, WEEKDAYS
 from data_helpers import (
@@ -387,8 +389,7 @@ def _apply_frol_updates(text: str, weekday: str) -> str:
                         _mom_col[_t] = _v
                     else:
                         _mom_col.pop(_t, None)
-                _tp2.parent.mkdir(parents=True, exist_ok=True)
-                _tp2.write_text(_fj.dumps(_td2, indent=2), encoding="utf-8")
+                safe_save_json(str(_tp2), _td2)
                 markers += f"\n[FROL_UPDATED:Mom:{_wday}:{len(_slots)} slots]"
             else:
                 # ── Person-specific → day_templates/{Weekday}.json ────────────
@@ -404,7 +405,7 @@ def _apply_frol_updates(text: str, weekday: str) -> str:
                         _pg[_t] = _v
                     else:
                         _pg.pop(_t, None)
-                _tp.write_text(_fj.dumps(_td, ensure_ascii=False, indent=2), encoding="utf-8")
+                safe_save_json(str(_tp), _td)
                 markers += f"\n[FROL_UPDATED:{_per}:{_wday}:{len(_slots)} slots]"
         except Exception as _fe:
             markers += f"\n(frol_update error: {_fe})"
@@ -3379,7 +3380,8 @@ class Handler(BaseHTTPRequestHandler):
                 weekday    = _now_et.strftime("%A")
                 date_label = _now_et.strftime("%B %d, %Y")
                 _time_et   = _now_et.strftime("%-I:%M %p")
-                lucy_context = build_lucy_context(iso, weekday, date_label, capacity)
+                lucy_context = build_lucy_context(iso, weekday, date_label, capacity) + _UNDO_BLOCK
+                begin_companion_turn("lucy")
                 # ── Fetch any URLs in the user's message ──────────────────────
                 _urls = extract_urls(message)
                 if _urls:
@@ -4132,6 +4134,7 @@ class Handler(BaseHTTPRequestHandler):
                     _display_text = _display_text + _frol_markers
                 # ── Save assistant response to server-side history ────────────
                 _display_text = _strip_hallucinated_tool_use(_display_text)
+                _display_text = finish_companion_turn("lucy", _display_text)
                 ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                 append_lucy_messages([{"role": "assistant", "content": _display_text, "ts": ts_reply}])
                 self.send_response(200)
@@ -4174,7 +4177,8 @@ class Handler(BaseHTTPRequestHandler):
                 date_label = _now_et.strftime("%B %d, %Y")
                 _time_et   = _now_et.strftime("%-I:%M %p")
                 # Inject capacity override into context if user set it in UI
-                lorenzo_context = build_lorenzo_context(iso, weekday, date_label)
+                lorenzo_context = build_lorenzo_context(iso, weekday, date_label) + _UNDO_BLOCK
+                begin_companion_turn("lorenzo")
                 if capacity:
                     cap_note = {"high": "OVERRIDE: Lauren says her energy is HIGH today.",
                                 "medium": "OVERRIDE: Lauren says her energy is MEDIUM today.",
@@ -4390,6 +4394,7 @@ class Handler(BaseHTTPRequestHandler):
                               f"user={message[:80]!r} reply={_visible[:120]!r}")
                 except Exception as _ge:
                     print(f"[lorenzo-guard] error: {_ge}")
+                _visible = finish_companion_turn("lorenzo", _visible)
                 append_lorenzo_messages([{"role": "assistant", "content": _visible, "ts": ts_reply}])
                 self.send_response(200)
                 self.send_header("Content-Type","text/plain; charset=utf-8")
@@ -4479,7 +4484,8 @@ class Handler(BaseHTTPRequestHandler):
                     try: self.wfile.write(b"No API key configured.")
                     except BrokenPipeError: pass
                     return
-                gregory_context = build_gregory_context(iso, weekday, date_label)
+                gregory_context = build_gregory_context(iso, weekday, date_label) + _UNDO_BLOCK
+                begin_companion_turn("gregory")
                 ts_now = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                 append_gregory_messages([{"role": "user", "content": message, "ts": ts_now}])
                 server_history = load_gregory_history()
@@ -4530,6 +4536,7 @@ class Handler(BaseHTTPRequestHandler):
                     ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                     _apply_frol_updates(text, weekday)
                     text = _strip_hallucinated_tool_use(text)
+                    text = finish_companion_turn("gregory", text)
                     append_gregory_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
                 except Exception as e:
                     try: self.wfile.write(str(e).encode("utf-8"))
@@ -4563,7 +4570,8 @@ class Handler(BaseHTTPRequestHandler):
                     try: self.wfile.write(b"No API key configured.")
                     except BrokenPipeError: pass
                     return
-                coach_context = build_coach_context(iso, weekday, date_label)
+                coach_context = build_coach_context(iso, weekday, date_label) + _UNDO_BLOCK
+                begin_companion_turn("coach")
                 ts_now = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                 append_coach_messages([{"role": "user", "content": message, "ts": ts_now}])
                 server_history = load_coach_history()
@@ -4615,6 +4623,7 @@ class Handler(BaseHTTPRequestHandler):
                     _apply_frol_updates(text, weekday)
                     _apply_coach_program_saves(text)
                     text = _strip_hallucinated_tool_use(text)
+                    text = finish_companion_turn("coach", text)
                     append_coach_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
                 except Exception as e:
                     try: self.wfile.write(str(e).encode("utf-8"))
@@ -4678,7 +4687,8 @@ class Handler(BaseHTTPRequestHandler):
                     for fname, content in relevant:
                         file_context += f"\n── {fname} ──\n{content}\n"
 
-                felix_context = build_felix_context()
+                felix_context = build_felix_context() + _UNDO_BLOCK
+                begin_companion_turn("dev")
                 ts_now = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                 _now_et_iz  = datetime.now()
                 _date_stamp_iz = (f"[Today: {_now_et_iz.strftime('%A')}, "
@@ -4817,6 +4827,7 @@ class Handler(BaseHTTPRequestHandler):
                 ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                 if text:
                     _apply_frol_updates(text, _dt.now().strftime("%A"))
+                    text = finish_companion_turn("dev", text)
                     append_dev_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
                 return
 
@@ -5144,7 +5155,8 @@ class Handler(BaseHTTPRequestHandler):
                     try: self.wfile.write(b"No API key configured.")
                     except BrokenPipeError: pass
                     return
-                monica_context = build_monica_context(iso, weekday, date_label)
+                monica_context = build_monica_context(iso, weekday, date_label) + _UNDO_BLOCK
+                begin_companion_turn("monica")
                 ts_now = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                 append_monica_messages([{"role": "user", "content": message, "ts": ts_now}])
                 server_history = load_monica_history()
@@ -5195,6 +5207,7 @@ class Handler(BaseHTTPRequestHandler):
                     ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                     _apply_frol_updates(text, weekday)
                     text = _strip_hallucinated_tool_use(text)
+                    text = finish_companion_turn("monica", text)
                     append_monica_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
                 except Exception as e:
                     try: self.wfile.write(str(e).encode("utf-8"))

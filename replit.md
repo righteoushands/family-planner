@@ -164,3 +164,23 @@ Whenever a new feature includes any form, text input, textarea, or multi-step wo
 - Expire drafts older than 24 hours
 - Prefer server-side auto-save (fetch POST on change) over localStorage when a server endpoint already exists for that data; only use localStorage when there is no immediate server save
 - For multi-step AI workflows (like Plan Importer), persist the full result JSON + original input so the user can return to the results phase after any interruption
+
+## Companion Undo (Natural-Language Revert)
+
+Every AI companion (Lucy, Lorenzo, Gregory, Coach, Felix/Izzy, Dr. Monica) can undo its most recent change when Lauren asks in plain English ("undo that", "never mind, undo", "put it back", etc.). No buttons.
+
+**How it works (no per-companion logic):**
+- `safe_utils.begin_companion_turn(name)` is called at the top of each `/<companion>-chat` handler. It pushes a thread-local recorder onto a stack.
+- Every `safe_save_json()` call inside `do_POST` (which IS the chokepoint for all data writes) records its target path into all active recorders, except the companion's own `<name>_history.json` and `<name>_last_writes.json`.
+- `safe_utils.finish_companion_turn(name, text)` is called just before each companion appends its assistant message to history. It does two things:
+  1. If `text` contains `<undo_last_change/>`, restore the latest snapshot of every path in `data/<name>_last_writes.json` (from the previous turn) and rewrite `text` to a "[UNDONE — restored N files…]" confirmation. The previous-turn manifest is preserved (so an undo turn doesn't overwrite the rollback target).
+  2. Otherwise, persist the current turn's recorded paths to `data/<name>_last_writes.json` for next time.
+- The system-prompt block telling the companion how to use the tag lives in `companion_handoffs.undo_instructions()` and is appended to every companion's system prompt as `_UNDO_BLOCK` (defined once in app.py).
+
+**Files involved:**
+- `safe_utils.py` — `begin_companion_turn`, `finish_companion_turn`, `undo_last_writes`, `_record_path_for_active_recorders` (called from `safe_save_json`).
+- `companion_handoffs.py` — `undo_instructions()` system-prompt block.
+- `app.py` — three lines per companion endpoint (`+ _UNDO_BLOCK` on the context, `begin_companion_turn(name)` after context build, `text = finish_companion_turn(name, text)` just before the assistant `append_*_messages` call).
+- `data/<companion>_last_writes.json` — per-companion manifest, rewritten each turn that wrote anything; on the snapshot deny-list (substring `_last_writes.json`) so it doesn't pollute history.
+
+**Limitations:** Single-step only — undoes the last turn's writes, not earlier ones (older versions are still available manually via Settings → History). Restores happen via the existing snapshot system in `data/history/`, so anything outside that system (cache files, auth, archives — all on the deny-list) cannot be undone this way and shouldn't need to be.
