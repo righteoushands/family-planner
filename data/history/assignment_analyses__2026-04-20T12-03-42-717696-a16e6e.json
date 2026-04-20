@@ -1,0 +1,65 @@
+{
+  "items": [
+    {
+      "source_kind": "image",
+      "source_filename": "IMG_5785.jpeg",
+      "source_mime": "image/jpeg",
+      "upload_path": "data/assignment_uploads/up-d3e49ffbad.jpeg",
+      "upload_paths": [
+        {
+          "path": "data/assignment_uploads/up-d3e49ffbad.jpeg",
+          "kind": "image",
+          "mime": "image/jpeg",
+          "filename": "IMG_5785.jpeg"
+        },
+        {
+          "path": "data/assignment_uploads/up-6b0a48aa95.jpeg",
+          "kind": "image",
+          "mime": "image/jpeg",
+          "filename": "IMG_5784.jpeg"
+        }
+      ],
+      "raw_text": "",
+      "child_hint": "Joseph",
+      "subject_hint": "History",
+      "parsed": {
+        "title": "The Greek Gods: Their Origin",
+        "subject": "History",
+        "child_guess": "Joseph",
+        "assignment_type": "essay",
+        "estimated_minutes": 45,
+        "due_date_hint": "",
+        "instructions_summary": "Write a narrative essay retelling the origin story of the Greek gods, including Gea, Uranus, Cronus, and Zeus, with attention to key mythological events and characters.",
+        "sub_items": [
+          "Introduce Gea (Mother Earth) and Uranus",
+          "Explain Uranus casting the Cyclopes and hundred-handed ones into Tartarus",
+          "Describe Gea's plan and the scythe",
+          "Tell how Cronus took the throne",
+          "Explain Cronus eating his children",
+          "Narrate Rhea saving Zeus",
+          "Describe Zeus's return and overthrow of Cronus",
+          "Conclude with Zeus casting the Titans into Tartarus"
+        ],
+        "materials_needed": [],
+        "notes_for_mom": "Joseph has clearly been engaged with Greek mythology — his narrative arc is complete and shows genuine comprehension. The illustrations are a nice touch. You might consider having him read this aloud as an oral narration exercise; it would help him catch some spelling inconsistencies and strengthen his sense of sentence rhythm.",
+        "work_present": true,
+        "gregory_feedback": "Joseph, my dear boy, what a spirited retelling of the Theogony! You have captured the essential drama of the Greek origin story — from Gea's righteous anger to Zeus's cunning triumph. Your narrative moves well, and I can see you understand the *why* behind each event, not just the *what*. Your illustrations of the gods add personality and show you are truly picturing these ancient figures. I am particularly pleased that you included Prometheus's role and the detail about the aegis breastplate — these show careful attention to your source. Now, for your next draft, read your work aloud slowly: do you hear any places where a period or comma might help your reader breathe?",
+        "strengths": [
+          "Complete narrative arc from Gea and Uranus through Zeus's victory",
+          "Includes important details like the aegis, Prometheus's trickery, and the nymphs raising Zeus",
+          "Original illustrations show engagement and imagination",
+          "Demonstrates clear understanding of cause-and-effect in the myth"
+        ],
+        "growth_edges": [
+          "Could you read this aloud and listen for spots where a sentence runs long — might a period give your reader a rest?",
+          "Some names are spelled differently in different places (Cronus/Cronhs, Tartarus/Tarturis) — what if you picked one spelling for each name and checked it throughout?",
+          "What would happen if you added a brief introduction telling your reader *why* you are sharing this story?"
+        ]
+      },
+      "id": "a-20260420-113428-16cbfb",
+      "ts": "2026-04-20T11:34:28",
+      "status": "pending_curriculum_placement",
+      "user_edits": {}
+    }
+  ]
+}

@@ -23,6 +23,17 @@
       "source": "subscribed"
     },
     {
+      "title": "Confirmation Interview, JP",
+      "start": "2026-04-20T16:30",
+      "end": "2026-04-20T18:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "Haircut for Mama!",
       "start": "2026-04-21T08:00",
       "end": "2026-04-21T09:00",
@@ -173,6 +184,17 @@
       "location": "",
       "notes": "",
       "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Tomorrow is the last day to edit Amazon subscriptions",
+      "start": "2026-04-25",
+      "end": "2026-04-25",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Apple Calendar",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -1728,5 +1750,5 @@
       "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-04-20T11:30:34.246078"
+  "fetched_at": "2026-04-20T14:31:51.088938"
 }

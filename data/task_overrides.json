@@ -184,6 +184,13 @@
         "postpone_to": "2026-04-21",
         "label": "Schedule meeting with Fr for JP’s confirmation interview."
       }
+    },
+    "2026-04-20": {
+      "CHORE::Lauren::2026-04-20::weekly::Bathe the Littles (Michael & James)": {
+        "action": "timed",
+        "time": "18:22",
+        "label": "Bathe the Littles (Michael & James)"
+      }
     }
   }
 }
