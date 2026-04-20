@@ -2042,6 +2042,7 @@ class Handler(BaseHTTPRequestHandler):
                 raw_text     = clean_text(form.getfirst("raw_text",""))
                 child_hint   = clean_text(form.getfirst("child_hint",""))
                 subject_hint = clean_text(form.getfirst("subject_hint",""))
+                description  = clean_text(form.getfirst("description",""))
 
                 # Collect ALL uploaded files (FieldStorage gives a list when there
                 # are multiple items with the same name, single object otherwise).
@@ -2258,6 +2259,13 @@ class Handler(BaseHTTPRequestHandler):
                     _instructions += f"\nMom hinted this is for: {child_hint}.\n"
                 if subject_hint:
                     _instructions += f"Mom hinted the subject is: {subject_hint}.\n"
+                if description:
+                    _instructions += (
+                        "\nMom provided this description of what was assigned — "
+                        "use it as authoritative context for what the student was "
+                        "asked to do, and judge the work against it:\n"
+                        f"\"\"\"\n{description[:4000]}\n\"\"\"\n"
+                    )
 
                 if image_payload_blocks:
                     # Vision call — Claude Opus 4.5 (matches the working
@@ -2359,6 +2367,7 @@ class Handler(BaseHTTPRequestHandler):
                     "raw_text":        extracted_text[:8000],
                     "child_hint":      child_hint,
                     "subject_hint":    subject_hint,
+                    "description":     description,
                     "parsed":          parsed,
                 }
                 _saved = add_assignment_analysis(_record)

@@ -249,6 +249,13 @@ def render_assignment_analyzer_page() -> str:
           <textarea name="raw_text" id="aa-text" rows="6"
             placeholder="Paste assignment text here (instructions, problems, reading list, etc.)"></textarea>
         </div>
+        <div class="aa-row">
+          <label class="aa-desc-label">
+            <span class="aa-desc-title">📝 What was the assignment? <span class="aa-desc-opt">(optional but helps Father Gregory grade fairly)</span></span>
+            <textarea name="description" id="aa-description" rows="3"
+              placeholder="e.g. &quot;Write a one-page narration of the origins of the Greek gods, in your own words, with at least 3 named gods.&quot;"></textarea>
+          </label>
+        </div>
         <div class="aa-row aa-hints">
           <label>Child hint (optional)
             <select name="child_hint" id="aa-child">{children_opts}</select>
@@ -286,8 +293,11 @@ def render_assignment_analyzer_page() -> str:
       .aa-file-btn {{ display: inline-block; background: var(--gold-light); color: var(--ink); border: 1px solid var(--gold-mid); border-radius: 8px; padding: 10px 14px; font-weight: 500; font-size: 14px; }}
       .aa-file-btn:hover {{ background: var(--gold-mid); color: white; }}
       .aa-file-name {{ color: var(--ink-muted); font-size: 13px; }}
-      #aa-text {{ width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 14px; resize: vertical; background: white; }}
-      #aa-text:focus {{ outline: none; border-color: var(--gold-mid); box-shadow: 0 0 0 3px rgba(201,164,74,0.15); }}
+      #aa-text, #aa-description {{ width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 14px; resize: vertical; background: white; }}
+      #aa-text:focus, #aa-description:focus {{ outline: none; border-color: var(--gold-mid); box-shadow: 0 0 0 3px rgba(201,164,74,0.15); }}
+      .aa-desc-label {{ display: block; }}
+      .aa-desc-title {{ display: block; font-size: 13px; color: var(--ink-muted); margin-bottom: 6px; font-weight: 600; }}
+      .aa-desc-opt {{ font-weight: 400; color: var(--ink-faint); }}
       .aa-hints {{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }}
       .aa-hints label, .aa-grid label {{ display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.05em; }}
       .aa-hints select, .aa-grid select, .aa-grid input {{ padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; font-family: inherit; background: white; color: var(--ink); }}
@@ -350,6 +360,7 @@ def render_assignment_analyzer_page() -> str:
       var fileInput = $('aa-file');
       var fileName  = $('aa-file-name');
       var textArea  = $('aa-text');
+      var descArea  = $('aa-description');
       var childSel  = $('aa-child');
       var subjSel   = $('aa-subject');
       var status    = $('aa-status');
@@ -363,9 +374,10 @@ def render_assignment_analyzer_page() -> str:
           var d = JSON.parse(raw);
           if ((Date.now() - (d._ts || 0)) < 24*3600*1000) {{
             if (d.text) textArea.value = d.text;
+            if (d.desc) descArea.value = d.desc;
             if (d.child) childSel.value = d.child;
             if (d.subject) subjSel.value = d.subject;
-            if (d.text || d.child || d.subject) {{
+            if (d.text || d.desc || d.child || d.subject) {{
               status.textContent = 'Your draft was restored.';
               status.className = 'aa-status-msg aa-ok';
               setTimeout(function() {{ status.textContent = ''; status.className = 'aa-status-msg'; }}, 4000);
@@ -381,6 +393,7 @@ def render_assignment_analyzer_page() -> str:
           localStorage.setItem(DRAFT_KEY, JSON.stringify({{
             _ts: Date.now(),
             text: textArea.value,
+            desc: descArea.value,
             child: childSel.value,
             subject: subjSel.value,
           }}));
@@ -388,6 +401,7 @@ def render_assignment_analyzer_page() -> str:
       }}
       ['input','change'].forEach(function(ev) {{
         textArea.addEventListener(ev, saveDraft);
+        descArea.addEventListener(ev, saveDraft);
         childSel.addEventListener(ev, saveDraft);
         subjSel.addEventListener(ev, saveDraft);
       }});
