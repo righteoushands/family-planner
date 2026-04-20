@@ -114,16 +114,6 @@
       "role": "assistant",
       "content": "Ah, I understand—it was reorganized and moved to the school page, but you can't locate it now.\n\n**I don't have visibility into your dashboard's current layout or file structure,** so I can't tell you exactly where Izzy moved it.\n\n**Let me ask Izzy directly:**\n\n[IZZY]Lauren is looking for the Poetry Memorization text box/tracker for JP. She recalls asking you to move it from the Weekly Review chart to the school page, but she can't find it now. Can you tell her where it currently lives on the dashboard, or if it needs to be relocated/rebuilt?[/IZZY]\n\nIn the meantime, **if you need to add lines to JP's poetry list right now,** you can tell me what they are and I can note them here, and then we'll make sure they're added to the proper place once Izzy confirms the location.\n\nWhat poem or passage is JP memorizing?",
       "ts": "2026-04-17T08:53:14"
-    },
-    {
-      "role": "user",
-      "content": "We are beginning to simplify school assignments in order to finish the year on time",
-      "ts": "2026-04-20T06:17:17"
-    },
-    {
-      "role": "assistant",
-      "content": "Good morning, Lauren. I hear you—we're at a natural pivot point. Simplifying now to ensure a strong finish by year's end is wise stewardship of the time you have left.\n\n**Before we make changes, I need to understand the situation better:**\n\n**What does \"finish the year on time\" mean for your family—do you have a target end date in mind, or are you feeling behind where you'd hoped to be by now?**",
-      "ts": "2026-04-20T06:17:20"
     }
   ]
 }

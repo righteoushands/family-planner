@@ -119,11 +119,6 @@
       "role": "user",
       "content": "We are beginning to simplify school assignments in order to finish the year on time",
       "ts": "2026-04-20T06:17:17"
-    },
-    {
-      "role": "assistant",
-      "content": "Good morning, Lauren. I hear you—we're at a natural pivot point. Simplifying now to ensure a strong finish by year's end is wise stewardship of the time you have left.\n\n**Before we make changes, I need to understand the situation better:**\n\n**What does \"finish the year on time\" mean for your family—do you have a target end date in mind, or are you feeling behind where you'd hoped to be by now?**",
-      "ts": "2026-04-20T06:17:20"
     }
   ]
 }
