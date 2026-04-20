@@ -438,50 +438,12 @@ def _section_systems(settings: dict) -> str:
         step_html = " ".join(s.lstrip("  →").strip() for s in steps)
         wipe_ref += f"<div style='padding:5px 0;border-bottom:1px solid #f0ebe4;font-size:0.86em;'><strong>Wk {wk}:</strong> {escape(step_html)}</div>"
 
-    # Weekly schedule grid — pivot from FROL day templates (Mom column)
-    from render_schedule_support import generate_half_hour_times, _slot_minutes, get_eastern_now
-    from config import SCHEDULE_DAYS as _SCHED_DAYS
-    times       = generate_half_hour_times()
-    now         = get_eastern_now()
-    now_minutes = now.hour * 60 + now.minute
-    today_name  = now.strftime("%A")
-    # Load all days' Mom slots once
-    days_data = {d: get_frol_day_slots(d, "Mom") for d in _SCHED_DAYS}
-
-    header_cells = "<th style='width:72px;background:#f5f0eb;position:sticky;left:0;z-index:2;'>Time</th>" + "".join(
-        f"<th style='background:#f5f0eb;font-size:0.85em;padding:5px 3px;min-width:110px;'>{escape(d)}</th>"
-        for d in SCHEDULE_DAYS
-    )
-    grid_rows = ""
-    for t in times:
-        sm         = _slot_minutes(t)
-        is_half    = t.endswith(":30 AM") or t.endswith(":30 PM")
-        is_now_row = (sm <= now_minutes < sm + 30)
-        time_bg    = "#fff3e0" if is_now_row else ("#faf8f5" if not is_half else "#f5f5f5")
-        time_fw    = "bold"   if not is_half else "normal"
-        time_color = "#e67e22" if is_now_row else ("#888" if not is_half else "#bbb")
-        now_marker = " 🟠"   if is_now_row else ""
-        row_bg     = "background:#fffbf5;" if is_now_row else ""
-        cells = (
-            f"<td style='font-size:0.75em;color:{time_color};font-weight:{time_fw};"
-            f"padding:2px 5px;white-space:nowrap;background:{time_bg};"
-            f"position:sticky;left:0;z-index:1;border-right:1px solid #e8e0d8;'>"
-            f"{escape(t)}{now_marker}</td>"
-        )
-        for d in SCHEDULE_DAYS:
-            val     = days_data.get(d, {}).get(t, "")
-            cell_bg = "#fffbf5" if (is_now_row and d == today_name) else "white"
-            border_c = "#f0c080" if (is_now_row and d == today_name) else "#ddd"
-            cells += (
-                f"<td style='padding:1px 2px;{row_bg}'>"
-                f"<input type='text' name='slot__{escape(d)}__{escape(t)}' value='{escape(val)}'"
-                f" data-day='{escape(d)}' data-ts='{escape(t)}'"
-                f" oninput='_rolCellSave(this)'"
-                f" style='width:100%;font-size:0.78em;padding:2px 4px;border:1px solid {border_c};"
-                f"border-radius:3px;background:{cell_bg};margin:0;'></td>"
-            )
-        grid_rows += f"<tr>{cells}</tr>"
-
+    # NOTE: The full FROL editor used to live here as a duplicate half-hour
+    # grid. It has been removed in favour of the canonical "Family day grid"
+    # on the Mom dashboard (/mom#grid), which is the single editor the More
+    # menu's "Family Rule of Life" tile already opens. Both editors wrote to
+    # the same day_templates files, so removing this one loses no data — it
+    # just eliminates a confusing duplicate UI.
     return f"""
     <div class="settings-section" id="s-systems">
         <h2>Systems</h2>
@@ -569,26 +531,18 @@ def _section_systems(settings: dict) -> str:
 
         <hr style="border:none;border-top:1px solid #f0ebe4;margin:20px 0;">
 
-        <!-- Family Rule of Life -->
+        <!-- Family Rule of Life — pointer to the single source of truth -->
         <div>
-            <h3 style="margin-bottom:14px;">📅 Family Rule of Life <span class="small" style="font-weight:400;">— weekly schedule, half-hour slots</span></h3>
-            <div>
-                <p class="small" style="margin-bottom:10px;">
-                    This is the family's Rule of Life — the standing weekly rhythm that drives everyone's daily plan. Edit any cell to update the schedule; changes save automatically. Current time is highlighted in orange.
+            <h3 style="margin-bottom:14px;">📅 Family Rule of Life</h3>
+            <div class="card card-tight" style="background:#faf8f5;border:1px solid #e4dbd2;">
+                <p style="margin:0 0 10px;">
+                    The Family Rule of Life now lives in one place — the
+                    <strong>Family day grid</strong> on the Mom dashboard.
+                    That grid is the single source of truth for everyone's
+                    weekly rhythm and is what drives every Day List.
                 </p>
-                <div style='overflow-x:auto;max-height:55vh;overflow-y:auto;
-                            border:1px solid #e4dbd2;border-radius:10px;'>
-                    <table style='border-collapse:collapse;width:100%;'>
-                        <thead style='position:sticky;top:0;z-index:3;'>
-                            <tr>{header_cells}</tr>
-                        </thead>
-                        <tbody>{grid_rows}</tbody>
-                    </table>
-                </div>
-                <div style='padding:12px;background:#faf8f5;border-top:1px solid #e4dbd2;'>
-                    <button id="rol-save-btn" type="button" onclick="_rolSaveAll();">Save Schedule Now</button>
-                </div>
-            </div>
+                <a class="link-button" href="/mom#grid"
+                   style="font-weight:600;">📋✓ Open Family Rule of Life →</a>
             </div>
         </div>
     </div>"""
@@ -1383,7 +1337,7 @@ def render_settings_page(status_message: str = "") -> str:
             section_id="s-household",
             number="4",
             title="Household Systems",
-            summary="Laundry rotation, van cleaning schedule, and the Family Rule of Life weekly schedule.",
+            summary="Laundry rotation, van cleaning schedule, and a shortcut to the Family Rule of Life.",
             detail=(
                 "<strong>Laundry System</strong> — a locked weekly rotation assigns each day's laundry "
                 "to a specific person. This section is read-only reference; the rotation is built into "
@@ -1391,10 +1345,9 @@ def render_settings_page(status_message: str = "") -> str:
                 "<strong>Van Cleaning Rotation</strong> — a 3-week rotation with Role A (vacuum) and "
                 "Role B (wipe-down). Set the epoch date once and the app tracks which week you're in. "
                 "Current week and roles are shown live.<br><br>"
-                "<strong>Family Rule of Life</strong> — the family's standing weekly rhythm in a full "
-                "Monday–Saturday, 30-minute slot grid. This is the same schedule that drives everyone's "
-                "daily plan of the day. Edit cells here to update the Rule of Life for the whole family. "
-                "The current time slot is highlighted orange.<br><br>"
+                "<strong>Family Rule of Life</strong> — the family's standing weekly rhythm now lives "
+                "in one place: the Family day grid on the Mom dashboard. This section is just a "
+                "shortcut so you can jump there from Settings.<br><br>"
                 "See also: <a href='/chores' style='color:var(--brown);'>Chores</a> · "
                 "<a href='/tasks' style='color:var(--brown);'>Tasks</a>"
             ),
@@ -1474,37 +1427,8 @@ def render_settings_page(status_message: str = "") -> str:
 
     js = """
 <script>
-// ── Rule of Life per-cell save ─────────────────────────────────────────────
-var _rolTimers = {};
-
-function _rolCellSave(input) {
-  var day = input.getAttribute('data-day');
-  var ts  = input.getAttribute('data-ts');
-  var val = input.value;
-  if (!day || !ts) return;
-  var key = day + '|' + ts;
-  clearTimeout(_rolTimers[key]);
-  input.style.background = '#fffde7';
-  _rolTimers[key] = setTimeout(function() {
-    var body = 'day=' + encodeURIComponent(day) + '&ts=' + encodeURIComponent(ts) + '&value=' + encodeURIComponent(val);
-    fetch('/rol-cell-save', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:body})
-      .then(function(r){return r.json();}).then(function(d){
-        input.style.background = d.ok ? '#f0fff4' : '#fff0f0';
-        setTimeout(function(){ input.style.background = ''; }, 1200);
-      }).catch(function(){
-        input.style.background = '#fff0f0';
-        setTimeout(function(){ input.style.background = ''; }, 1200);
-      });
-  }, 600);
-}
-
-function _rolSaveAll() {
-  document.querySelectorAll('input[data-day][data-ts]').forEach(function(inp) {
-    _rolCellSave(inp);
-  });
-  var btn = document.getElementById('rol-save-btn');
-  if (btn) { btn.textContent = 'Saving…'; setTimeout(function(){ btn.textContent = 'Save Schedule Now'; }, 1500); }
-}
+// (Rule-of-Life per-cell save helpers were removed — the FROL editor now
+//  lives only on /mom#grid, which has its own save wiring.)
 
 // ── Autosave system ────────────────────────────────────────────────────────
 var _saveTimer      = null;

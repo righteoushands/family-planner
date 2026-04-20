@@ -139,11 +139,6 @@
       "role": "user",
       "content": "JP Only: add a Latin assignment saying: complete or retake one Quiz until all Quizzes have a score of 85% or better.",
       "ts": "2026-04-20T06:22:54"
-    },
-    {
-      "role": "assistant",
-      "content": "Done, Lauren. Adding that to JP's Monday POD now.\n\n<frol_update weekday=\"Monday\" person=\"JP\">\n10:00 AM: School — Latin: Complete or retake one Quiz until all Quizzes have a score of 85% or better.\n</frol_update>\n\nJP now has a clear mastery standard for Latin: **retake quizzes until 85%+**. That's a solid way to ensure he's solidifying the material before moving forward.\n\nAnything else for the boys' schedules today?",
-      "ts": "2026-04-20T06:22:57"
     }
   ]
 }

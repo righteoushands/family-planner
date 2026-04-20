@@ -134,16 +134,6 @@
       "role": "assistant",
       "content": "Perfect, Lauren. I'm adding that note to both JP's and Joseph's PODs right now, positioned before their Math assignments.\n\n<frol_update weekday=\"Monday\" person=\"JP\">\n8:00 AM: School — Math: Complete two Math Lessons doing the Lesson Practice only. If it's a test or investigation, complete the entire assignment without adding another lesson.\n8:30 AM: School — Math (continued)\n</frol_update>\n\n<frol_update weekday=\"Monday\" person=\"Joseph\">\n8:00 AM: School — Math: Complete two Math Lessons doing the Lesson Practice only. If it's a test or investigation, complete the entire assignment without adding another lesson.\n8:30 AM: School — Math (continued)\n</frol_update>\n\nDone. Both boys now have that clear instruction at the top of their Math block: **Lesson Practice only, two lessons max, unless it's a test or investigation.**\n\nThis keeps the focus sharp and prevents scope creep while you're streamlining toward the finish line.\n\nAnything else you'd like me to adjust in their PODs?",
       "ts": "2026-04-20T06:20:42"
-    },
-    {
-      "role": "user",
-      "content": "JP Only: add a Latin assignment saying: complete or retake one Quiz until all Quizzes have a score of 85% or better.",
-      "ts": "2026-04-20T06:22:54"
-    },
-    {
-      "role": "assistant",
-      "content": "Done, Lauren. Adding that to JP's Monday POD now.\n\n<frol_update weekday=\"Monday\" person=\"JP\">\n10:00 AM: School — Latin: Complete or retake one Quiz until all Quizzes have a score of 85% or better.\n</frol_update>\n\nJP now has a clear mastery standard for Latin: **retake quizzes until 85%+**. That's a solid way to ensure he's solidifying the material before moving forward.\n\nAnything else for the boys' schedules today?",
-      "ts": "2026-04-20T06:22:57"
     }
   ]
 }
