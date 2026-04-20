@@ -1099,14 +1099,22 @@ class Handler(BaseHTTPRequestHandler):
             import os as _os
             from data_helpers import load_assignment_analyses
             wanted = clean_text(query.get("id",[""])[0])
+            try:    n_idx = int(query.get("n",["0"])[0])
+            except Exception: n_idx = 0
             rec = next((r for r in load_assignment_analyses() if r.get("id") == wanted), None)
-            up_path = (rec or {}).get("upload_path", "")
+            up_list = (rec or {}).get("upload_paths") or []
+            if up_list and 0 <= n_idx < len(up_list):
+                up_path = up_list[n_idx].get("path", "")
+                mime    = up_list[n_idx].get("mime") or "application/octet-stream"
+            else:
+                # back-compat: old records have only upload_path / source_mime
+                up_path = (rec or {}).get("upload_path", "")
+                mime    = (rec or {}).get("source_mime") or "application/octet-stream"
             if not rec or not up_path or not _os.path.exists(up_path):
                 self.send_response(404); self.send_header("Content-Type","text/plain"); self.end_headers()
                 try: self.wfile.write(b"Not found")
                 except BrokenPipeError: pass
                 return
-            mime = rec.get("source_mime") or "application/octet-stream"
             try:
                 with open(up_path, "rb") as f: blob = f.read()
                 self.send_response(200)
@@ -1988,72 +1996,130 @@ class Handler(BaseHTTPRequestHandler):
                 raw_text     = clean_text(form.getfirst("raw_text",""))
                 child_hint   = clean_text(form.getfirst("child_hint",""))
                 subject_hint = clean_text(form.getfirst("subject_hint",""))
-                uploaded     = form["file"] if "file" in form else None
-                file_bytes   = b""
-                file_name    = ""
-                file_mime    = ""
-                _MAX_UPLOAD_BYTES = 15 * 1024 * 1024  # 15 MB
-                if uploaded is not None and getattr(uploaded, "filename", ""):
-                    file_name  = uploaded.filename
-                    try:    file_bytes = uploaded.file.read(_MAX_UPLOAD_BYTES + 1) if uploaded.file else b""
-                    except Exception: file_bytes = b""
-                    file_mime  = (getattr(uploaded, "type", "") or "").strip()
-                    if len(file_bytes) > _MAX_UPLOAD_BYTES:
+
+                # Collect ALL uploaded files (FieldStorage gives a list when there
+                # are multiple items with the same name, single object otherwise).
+                _raw_uploaded = form["file"] if "file" in form else None
+                if _raw_uploaded is None:
+                    _file_list = []
+                elif isinstance(_raw_uploaded, list):
+                    _file_list = _raw_uploaded
+                else:
+                    _file_list = [_raw_uploaded]
+
+                _MAX_UPLOAD_BYTES = 15 * 1024 * 1024  # 15 MB per file
+                _MAX_TOTAL_BYTES  = 40 * 1024 * 1024  # 40 MB combined safety cap
+
+                # files = list of {bytes, name, mime, ext_lc, kind}
+                files = []
+                _total = 0
+                for _u in _file_list:
+                    _fn = getattr(_u, "filename", "") or ""
+                    if not _fn: continue
+                    try:    _b = _u.file.read(_MAX_UPLOAD_BYTES + 1) if _u.file else b""
+                    except Exception: _b = b""
+                    if not _b: continue
+                    if len(_b) > _MAX_UPLOAD_BYTES:
                         self.send_response(413); self.send_header("Content-Type","application/json"); self.end_headers()
-                        try: self.wfile.write(b'{"error":"That file is over 15 MB. Try a smaller photo or PDF."}')
+                        try: self.wfile.write((f'{{"error":"\\"{_fn}\\" is over 15 MB. Try a smaller photo or PDF."}}').encode())
                         except BrokenPipeError: pass
                         return
+                    _total += len(_b)
+                    if _total > _MAX_TOTAL_BYTES:
+                        self.send_response(413); self.send_header("Content-Type","application/json"); self.end_headers()
+                        try: self.wfile.write(b'{"error":"Combined uploads are over 40 MB. Please pick fewer or smaller files."}')
+                        except BrokenPipeError: pass
+                        return
+                    _mime = (getattr(_u, "type", "") or "").strip()
+                    _ext_lc = ("." + _fn.rsplit(".",1)[-1].lower()) if "." in _fn else ""
+                    _is_pdf = (_b[:4] == b"%PDF") or _ext_lc == ".pdf" or "pdf" in _mime.lower()
+                    _is_img = ((_mime.startswith("image/") if _mime else False)
+                               or _ext_lc in (".jpg",".jpeg",".png",".webp",".heic",".gif"))
+                    _kind = "pdf" if _is_pdf else ("image" if _is_img else "other")
+                    files.append({"bytes": _b, "name": _fn, "mime": _mime,
+                                  "ext_lc": _ext_lc, "kind": _kind})
 
-                if not file_bytes and not raw_text.strip():
+                if not files and not raw_text.strip():
                     self.send_response(400); self.send_header("Content-Type","application/json"); self.end_headers()
                     try: self.wfile.write(b'{"error":"Please choose a file or paste text."}')
                     except BrokenPipeError: pass
                     return
 
-                # Determine source kind + extracted text + saved upload path
-                source_kind = "text"
-                upload_path = ""
-                source_mime = ""
-                extracted_text = raw_text.strip()
-                ext_lc = ("." + file_name.rsplit(".",1)[-1].lower()) if "." in file_name else ""
-                is_pdf = bool(file_bytes) and (
-                    file_bytes[:4] == b"%PDF" or ext_lc == ".pdf" or "pdf" in file_mime.lower()
-                )
-                is_image = bool(file_bytes) and (
-                    (file_mime.startswith("image/") if file_mime else False)
-                    or ext_lc in (".jpg",".jpeg",".png",".webp",".heic",".gif")
-                )
+                # Persist each file + extract PDF text. Build per-file metadata
+                # for storage and a content-array for the AI request.
+                _save_warning_parts = []
+                upload_paths = []   # list of {path, kind, mime, filename}
+                pdf_text_chunks = []
+                image_payload_blocks = []  # for Anthropic content array
+                for _f in files:
+                    _kind = _f["kind"]
+                    _b    = _f["bytes"]
+                    _ext  = _f["ext_lc"]
+                    _path = ""
+                    _mime = _f["mime"]
 
-                _save_warning = ""
-                if is_pdf:
-                    source_kind = "pdf"
-                    source_mime = "application/pdf"
-                    extracted_text = (extract_pdf_text(file_bytes) or "").strip()
-                    if not extracted_text:
-                        # Skip orphan write entirely; bounce error to Mom.
-                        self.send_response(400); self.send_header("Content-Type","application/json"); self.end_headers()
-                        try: self.wfile.write(b'{"error":"That PDF has no extractable text (probably a scan). Take a photo of the page instead, or paste the text."}')
-                        except BrokenPipeError: pass
-                        return
-                    # Persist the PDF for later viewing
-                    upload_path = f"{ASSIGNMENT_UPLOADS_DIR}/up-{_auuid.uuid4().hex[:10]}.pdf"
-                    try:
-                        with open(upload_path, "wb") as _wf: _wf.write(file_bytes)
-                    except Exception:
-                        upload_path = ""
-                        _save_warning = "Couldn't save the original PDF; analysis kept but the source file isn't viewable."
-                elif is_image:
-                    source_kind = "image"
-                    source_mime = file_mime if file_mime.startswith("image/") else {
-                        ".jpg":"image/jpeg",".jpeg":"image/jpeg",".png":"image/png",
-                        ".webp":"image/webp",".gif":"image/gif",".heic":"image/heic",
-                    }.get(ext_lc, "image/jpeg")
-                    upload_path = f"{ASSIGNMENT_UPLOADS_DIR}/up-{_auuid.uuid4().hex[:10]}{ext_lc or '.jpg'}"
-                    try:
-                        with open(upload_path, "wb") as _wf: _wf.write(file_bytes)
-                    except Exception:
-                        upload_path = ""
-                        _save_warning = "Couldn't save the original photo; analysis kept but thumbnail won't show."
+                    if _kind == "pdf":
+                        _txt = (extract_pdf_text(_b) or "").strip()
+                        if _txt:
+                            pdf_text_chunks.append(f"--- {_f['name']} ---\n{_txt}")
+                        else:
+                            _save_warning_parts.append(f"\"{_f['name']}\" had no extractable text (probably a scan)")
+                        _mime = "application/pdf"
+                        _path = f"{ASSIGNMENT_UPLOADS_DIR}/up-{_auuid.uuid4().hex[:10]}.pdf"
+                        try:
+                            with open(_path, "wb") as _wf: _wf.write(_b)
+                        except Exception:
+                            _path = ""
+                            _save_warning_parts.append(f"couldn't save \"{_f['name']}\"")
+                    elif _kind == "image":
+                        _mime = _mime if _mime.startswith("image/") else {
+                            ".jpg":"image/jpeg",".jpeg":"image/jpeg",".png":"image/png",
+                            ".webp":"image/webp",".gif":"image/gif",".heic":"image/jpeg",
+                        }.get(_ext, "image/jpeg")
+                        # Anthropic does not accept HEIC; fall back to JPEG label
+                        # (most iPhones now upload as JPEG; if it really is HEIC,
+                        # the API will reject the single block, not the whole call)
+                        if _mime == "image/heic": _mime = "image/jpeg"
+                        _path = f"{ASSIGNMENT_UPLOADS_DIR}/up-{_auuid.uuid4().hex[:10]}{_ext or '.jpg'}"
+                        try:
+                            with open(_path, "wb") as _wf: _wf.write(_b)
+                        except Exception:
+                            _path = ""
+                            _save_warning_parts.append(f"couldn't save \"{_f['name']}\"")
+                        image_payload_blocks.append({
+                            "type":"image",
+                            "source":{"type":"base64","media_type":_mime,
+                                      "data": _ab64.b64encode(_b).decode("ascii")},
+                        })
+                    else:
+                        _save_warning_parts.append(f"\"{_f['name']}\" is an unsupported file type — skipped")
+                        continue
+
+                    upload_paths.append({
+                        "path":     _path,
+                        "kind":     _kind,
+                        "mime":     _mime,
+                        "filename": _f["name"],
+                    })
+
+                # If there were files but none yielded anything analyzable + no text
+                _has_pdf_text = bool(pdf_text_chunks)
+                _has_images   = bool(image_payload_blocks)
+                _has_pasted   = bool(raw_text.strip())
+                if not (_has_pdf_text or _has_images or _has_pasted):
+                    self.send_response(400); self.send_header("Content-Type","application/json"); self.end_headers()
+                    _msg = "No analyzable content. " + ("; ".join(_save_warning_parts) if _save_warning_parts else "Try a clearer photo or paste the text.")
+                    try: self.wfile.write(_aj.dumps({"error": _msg}).encode())
+                    except BrokenPipeError: pass
+                    return
+
+                # Back-compat fields (first file = primary)
+                source_kind     = upload_paths[0]["kind"] if upload_paths else "text"
+                source_mime     = upload_paths[0]["mime"] if upload_paths else ""
+                source_filename = upload_paths[0]["filename"] if upload_paths else ""
+                upload_path     = upload_paths[0]["path"] if upload_paths else ""
+                extracted_text  = "\n\n".join(pdf_text_chunks) if pdf_text_chunks else raw_text.strip()
+                _save_warning   = "; ".join(_save_warning_parts)
 
                 # Build the AI prompt and call Anthropic Claude
                 _settings = load_app_settings()
@@ -2097,21 +2163,29 @@ class Handler(BaseHTTPRequestHandler):
                 if subject_hint:
                     _instructions += f"Mom hinted the subject is: {subject_hint}.\n"
 
-                if source_kind == "image":
-                    img_b64 = _ab64.b64encode(file_bytes).decode("ascii")
+                if image_payload_blocks:
+                    # Vision call — Claude Opus 4.5 (matches the working
+                    # recipe-import flow). One assignment may include several
+                    # photos (e.g. front + back of a worksheet); send them all.
+                    _content_blocks = list(image_payload_blocks)
+                    _text_part = _instructions
+                    if pdf_text_chunks or raw_text.strip():
+                        _text_part += "\n\nADDITIONAL TEXT FROM PDFs / PASTED:\n" + (
+                            (extracted_text or raw_text)[:12000]
+                        )
+                    if len(image_payload_blocks) > 1:
+                        _text_part += (
+                            f"\n\nNOTE: {len(image_payload_blocks)} images were "
+                            "uploaded for ONE assignment — synthesize them together."
+                        )
+                    _content_blocks.append({"type":"text","text": _text_part})
                     _payload = {
-                        "model": "claude-haiku-4-5-20251001",
+                        "model": "claude-opus-4-5",
                         "max_tokens": 1500,
-                        "messages": [{
-                            "role": "user",
-                            "content": [
-                                {"type":"image","source":{"type":"base64","media_type":source_mime,"data":img_b64}},
-                                {"type":"text","text": _instructions},
-                            ],
-                        }],
+                        "messages": [{"role":"user","content": _content_blocks}],
                     }
                 else:
-                    snippet = extracted_text[:18000]  # generous cap
+                    snippet = (extracted_text or raw_text)[:18000]
                     _payload = {
                         "model": "claude-haiku-4-5-20251001",
                         "max_tokens": 1500,
@@ -2172,10 +2246,11 @@ class Handler(BaseHTTPRequestHandler):
 
                 _record = {
                     "source_kind":     source_kind,
-                    "source_filename": file_name,
+                    "source_filename": source_filename,
                     "source_mime":     source_mime,
-                    "upload_path":     upload_path,
-                    "raw_text":        extracted_text[:8000] if source_kind != "image" else "",
+                    "upload_path":     upload_path,        # back-compat: first file
+                    "upload_paths":    upload_paths,        # full list (NEW)
+                    "raw_text":        extracted_text[:8000],
                     "child_hint":      child_hint,
                     "subject_hint":    subject_hint,
                     "parsed":          parsed,

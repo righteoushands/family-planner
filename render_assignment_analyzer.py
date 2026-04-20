@@ -50,6 +50,11 @@ def _render_one_card(rec: dict) -> str:
     src_kind = rec.get("source_kind", "text")
     src_name = rec.get("source_filename", "")
     upload_path = rec.get("upload_path", "")
+    upload_paths = rec.get("upload_paths") or []
+    # Back-compat: synthesize a single-item list for older records
+    if not upload_paths and upload_path:
+        upload_paths = [{"path": upload_path, "kind": src_kind,
+                         "mime": rec.get("source_mime",""), "filename": src_name}]
 
     title = _resolved(rec, "title", "(untitled assignment)")
     subject = _resolved(rec, "subject", "")
@@ -68,23 +73,27 @@ def _render_one_card(rec: dict) -> str:
         materials = [str(materials)]
 
     thumb_html = ""
-    if src_kind == "image" and upload_path:
-        thumb_html = (
-            f'<a href="/assignment-image?id={_q(rid)}" target="_blank" '
-            f'class="aa-thumb-link" title="Click to view original">'
-            f'<img src="/assignment-image?id={_q(rid)}" alt="uploaded scan" '
-            f'class="aa-thumb"/></a>'
-        )
-    elif src_kind == "pdf":
-        if upload_path:
-            thumb_html = (
-                f'<a href="/assignment-image?id={_q(rid)}" target="_blank" '
-                f'class="aa-thumb-link" title="Open original PDF">'
-                f'<div class="aa-thumb aa-thumb-pdf">📄<br/><small>{_esc(src_name or "PDF")}</small></div>'
-                f'</a>'
-            )
-        else:
-            thumb_html = f'<div class="aa-thumb aa-thumb-pdf">📄<br/><small>{_esc(src_name or "PDF")}</small></div>'
+    if upload_paths:
+        _thumbs = []
+        for _i, _u in enumerate(upload_paths):
+            _ukind = _u.get("kind","")
+            _ufn   = _u.get("filename","") or ("file %d" % (_i+1))
+            _img_url = f"/assignment-image?id={_q(rid)}&n={_i}"
+            if _ukind == "image":
+                _thumbs.append(
+                    f'<a href="{_img_url}" target="_blank" class="aa-thumb-link" title="{_esc(_ufn)}">'
+                    f'<img src="{_img_url}" alt="{_esc(_ufn)}" class="aa-thumb"/></a>'
+                )
+            elif _ukind == "pdf":
+                _thumbs.append(
+                    f'<a href="{_img_url}" target="_blank" class="aa-thumb-link" title="Open {_esc(_ufn)}">'
+                    f'<div class="aa-thumb aa-thumb-pdf">📄<br/><small>{_esc(_ufn)}</small></div></a>'
+                )
+            else:
+                _thumbs.append(
+                    f'<div class="aa-thumb aa-thumb-text">📎<br/><small>{_esc(_ufn)}</small></div>'
+                )
+        thumb_html = '<div class="aa-thumbs">' + "".join(_thumbs) + '</div>'
     else:
         thumb_html = '<div class="aa-thumb aa-thumb-text">📝<br/><small>Pasted text</small></div>'
 
@@ -180,9 +189,9 @@ def render_assignment_analyzer_page() -> str:
       <form id="aa-form" class="aa-form" enctype="multipart/form-data">
         <div class="aa-row">
           <label class="aa-file-label">
-            <span class="aa-file-btn">📷 Choose photo or PDF</span>
-            <input type="file" name="file" id="aa-file" accept="image/*,application/pdf,.pdf,.jpg,.jpeg,.png,.webp,.heic"/>
-            <span id="aa-file-name" class="aa-file-name">No file chosen</span>
+            <span class="aa-file-btn">📷 Choose photo(s) or PDF(s)</span>
+            <input type="file" name="file" id="aa-file" multiple accept="image/*,application/pdf,.pdf,.jpg,.jpeg,.png,.webp,.heic"/>
+            <span id="aa-file-name" class="aa-file-name">No files chosen — you can pick more than one</span>
           </label>
         </div>
         <div class="aa-or">— or —</div>
@@ -245,6 +254,7 @@ def render_assignment_analyzer_page() -> str:
       .aa-card-head {{ display: flex; gap: 14px; align-items: flex-start; margin-bottom: 12px; }}
       .aa-card-thumbwrap {{ flex-shrink: 0; }}
       .aa-thumb {{ width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); display: block; }}
+      .aa-thumbs {{ display: flex; flex-wrap: wrap; gap: 8px; }}
       .aa-thumb-pdf, .aa-thumb-text {{ display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--gold-light); color: var(--ink-muted); font-size: 24px; line-height: 1.2; text-align: center; padding: 6px; box-sizing: border-box; }}
       .aa-thumb-pdf small, .aa-thumb-text small {{ font-size: 9px; margin-top: 4px; word-break: break-word; }}
       .aa-card-titlebox {{ flex: 1; min-width: 0; }}
@@ -322,13 +332,21 @@ def render_assignment_analyzer_page() -> str:
       }});
 
       fileInput.addEventListener('change', function() {{
-        var f = fileInput.files && fileInput.files[0];
-        fileName.textContent = f ? (f.name + ' (' + Math.round(f.size/1024) + ' KB)') : 'No file chosen';
+        var fs = fileInput.files;
+        if (!fs || !fs.length) {{ fileName.textContent = 'No files chosen — you can pick more than one'; return; }}
+        if (fs.length === 1) {{
+          fileName.textContent = fs[0].name + ' (' + Math.round(fs[0].size/1024) + ' KB)';
+        }} else {{
+          var total = 0; var names = [];
+          for (var i = 0; i < fs.length; i++) {{ total += fs[i].size; names.push(fs[i].name); }}
+          fileName.textContent = fs.length + ' files (' + Math.round(total/1024) + ' KB total): ' + names.join(', ');
+        }}
       }});
 
       form.addEventListener('submit', function(ev) {{
         ev.preventDefault();
-        var f = fileInput.files && fileInput.files[0];
+        var fs = fileInput.files;
+        var f = fs && fs.length ? fs[0] : null;
         var t = textArea.value.trim();
         if (!f && !t) {{
           status.textContent = 'Please choose a file or paste some text.';
