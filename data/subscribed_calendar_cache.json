@@ -2,35 +2,13 @@
   "events": [
     {
       "title": "John's class",
-      "start": "2026-04-18T08:00",
-      "end": "2026-04-18T17:00",
+      "start": "2026-04-20T08:00",
+      "end": "2026-04-20T17:00",
       "all_day": false,
       "location": "",
       "notes": "",
       "calendar": "Lauren's Proton Mail",
       "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Third Sunday of Easter",
-      "start": "2026-04-19",
-      "end": "2026-04-19",
-      "all_day": true,
-      "location": "",
-      "notes": "//bible.usccb.org/bible/readings/041926.cfm",
-      "calendar": "Liturgical Calendar (Little Rose Shop)",
-      "color": "#e91e8c",
-      "source": "subscribed"
-    },
-    {
-      "title": "USNSCC Pentagon Division - Sea-Air-Space Expo",
-      "start": "2026-04-19T10:00",
-      "end": "2026-04-19T15:00",
-      "all_day": false,
-      "location": "201 Waterfront St, Oxon Hill, MD 20745",
-      "notes": "Gaylord National Convention Center  Navy League STEM",
-      "calendar": "USNSCC Pentagon Division (JP & Joe)",
-      "color": "#e74c3c",
       "source": "subscribed"
     },
     {
@@ -41,17 +19,6 @@
       "location": "",
       "notes": "",
       "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Baby shower during Bible study?",
-      "start": "2026-04-21",
-      "end": "2026-04-21",
-      "all_day": true,
-      "location": "",
-      "notes": "",
-      "calendar": "Apple Calendar",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -283,6 +250,17 @@
       "location": "2015",
       "notes": "",
       "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Baby shower during Bible study?",
+      "start": "2026-04-28",
+      "end": "2026-04-28",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Apple Calendar",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -1715,7 +1693,40 @@
       "calendar": "Apple Calendar",
       "color": "#9b59b6",
       "source": "subscribed"
+    },
+    {
+      "title": "John Miller's birthday",
+      "start": "2026-06-18",
+      "end": "2026-06-18",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Hilton Head Vacation",
+      "start": "2026-06-19",
+      "end": "2026-06-19",
+      "all_day": true,
+      "location": "",
+      "notes": "John Manuel and family and UJ and AVvare arriving Saturday an",
+      "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Elena Sutphin",
+      "start": "2026-06-19T10:30",
+      "end": "2026-06-19T11:30",
+      "all_day": false,
+      "location": "1955 Emancipation Hwy Ste 100 Fredericksburg VA-22401-6226",
+      "notes": "Appointment with Elena Sutphin at 1955 Emancipation Hwy Ste 1",
+      "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-04-18T16:53:53.162032"
+  "fetched_at": "2026-04-20T06:01:53.246741"
 }

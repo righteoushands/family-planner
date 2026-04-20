@@ -35,6 +35,13 @@
         "action": "dismiss",
         "label": "Switch load before lunch"
       }
+    },
+    "2026-04-20": {
+      "ROUTINE::JP::2026-04-20::FORTITUDE — Family Run (continued) & Cool-down": {
+        "action": "postpone",
+        "postpone_to": "2026-04-20",
+        "label": "FORTITUDE — Family Run (continued) & Cool-down"
+      }
     }
   },
   "Joseph": {
@@ -122,6 +129,13 @@
         "action": "timed",
         "time": "09:44",
         "label": "Menu plan (from Fri 17 Apr)"
+      }
+    },
+    "2026-04-19": {
+      "MANUAL::Lauren::2026-04-19::Schedule meeting with Fr for JP’s confirmation interview.": {
+        "action": "postpone",
+        "postpone_to": "2026-04-21",
+        "label": "Schedule meeting with Fr for JP’s confirmation interview."
       }
     }
   }

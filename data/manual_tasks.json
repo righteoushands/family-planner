@@ -97,14 +97,6 @@
     "interval_unit": "months"
   },
   {
-    "text": "Finish importing curriculum",
-    "assigned_to": "Mom",
-    "due_date": "",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
     "text": "Schedule meeting with Fr for JP’s confirmation interview.",
     "assigned_to": "Mom",
     "due_date": "2026-04-13",
@@ -411,22 +403,6 @@
   },
   {
     "text": "Wegmans run",
-    "assigned_to": "Mom",
-    "due_date": "2026-04-18",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Wegmans run",
-    "assigned_to": "JP",
-    "due_date": "2026-04-18",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Wegmans run",
     "assigned_to": "Joseph",
     "due_date": "2026-04-18",
     "priority": "MEDIUM",
@@ -452,14 +428,6 @@
   {
     "text": "Text new friend Corey",
     "assigned_to": "Joseph",
-    "due_date": "2026-04-18",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Water the backyard",
-    "assigned_to": "Mom",
     "due_date": "2026-04-18",
     "priority": "MEDIUM",
     "status": "active",
