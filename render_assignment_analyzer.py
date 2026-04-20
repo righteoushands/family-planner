@@ -70,6 +70,8 @@ def _render_one_card(rec: dict) -> str:
     strengths = _resolved(rec, "strengths", []) or []
     growth_edges = _resolved(rec, "growth_edges", []) or []
     work_present = _resolved(rec, "work_present", False)
+    suggested_grade = _resolved(rec, "suggested_grade", "")
+    grade_rationale = _resolved(rec, "grade_rationale", "")
 
     if not isinstance(sub_items, list):
         sub_items = [str(sub_items)]
@@ -125,7 +127,18 @@ def _render_one_card(rec: dict) -> str:
 
     # Father Gregory's review (only shown if AI returned feedback)
     gregory_html = ""
-    if gregory_feedback or strengths or growth_edges:
+    grade_html = ""
+    if suggested_grade or grade_rationale:
+        _g = _esc(str(suggested_grade)) if suggested_grade else "—"
+        _gr = _esc(str(grade_rationale)) if grade_rationale else ""
+        grade_html = (
+            '<div class="aa-fg-grade">'
+            f'<div class="aa-fg-grade-mark">{_g}</div>'
+            f'<div class="aa-fg-grade-why"><div class="aa-fg-label">Suggested grade</div>'
+            f'<div class="aa-fg-grade-text">{_gr}</div></div>'
+            '</div>'
+        )
+    if gregory_feedback or strengths or growth_edges or grade_html:
         _strength_html = ""
         if strengths:
             _strength_html = (
@@ -147,7 +160,7 @@ def _render_one_card(rec: dict) -> str:
         gregory_html = (
             '<div class="aa-section aa-fg">'
             '<h4>🎓 Father Gregory&rsquo;s review</h4>'
-            f'{_quote_html}{_strength_html}{_growth_html}'
+            f'{grade_html}{_quote_html}{_strength_html}{_growth_html}'
             '</div>'
         )
 
@@ -310,6 +323,10 @@ def render_assignment_analyzer_page() -> str:
       .aa-fg-label {{ font-size: 12px; font-weight: 700; color: #1e3566; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }}
       .aa-fg ul {{ margin: 2px 0 0; padding-left: 20px; font-size: 14px; color: var(--ink); }}
       .aa-fg ul li {{ margin: 3px 0; }}
+      .aa-fg-grade {{ display: flex; gap: 14px; align-items: center; background: rgba(30,53,102,0.06); border: 1px solid rgba(30,53,102,0.18); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }}
+      .aa-fg-grade-mark {{ font-family: 'Cormorant Garamond', Georgia, serif; font-size: 36px; line-height: 1; font-weight: 600; color: #1e3566; min-width: 56px; text-align: center; padding: 4px 8px; background: #fff; border: 1px solid rgba(30,53,102,0.25); border-radius: 6px; }}
+      .aa-fg-grade-why {{ flex: 1; }}
+      .aa-fg-grade-text {{ font-size: 13.5px; line-height: 1.5; color: var(--ink); margin-top: 2px; }}
       .aa-section h4 {{ font-family: 'Cormorant Garamond', serif; font-size: 15px; color: var(--ink-muted); margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; }}
       .aa-section ul {{ margin: 0; padding-left: 20px; font-size: 14px; color: var(--ink); }}
       .aa-section ul li {{ margin: 2px 0; }}

@@ -2245,6 +2245,14 @@ class Handler(BaseHTTPRequestHandler):
                     "(\"What if you tried…\", \"Could you find one place where…\"). Empty list if no "
                     "work or if the work is essentially perfect for the child's level. "
                     "(array of strings)\n"
+                    '  "suggested_grade": Father Gregory\'s suggested letter grade for the work as it '
+                    "stands, age-normed for the child (A+, A, A-, B+, B, B-, C+, C, C-, D, F). For "
+                    "Michael (5) prefer encouragement marks instead of letters: \"✦ Excellent\", "
+                    "\"✓ Good work\", \"↻ Try again\". Empty string if no work is present. (string)\n"
+                    '  "grade_rationale": 1-3 sentences in Father Gregory\'s voice explaining WHY he '
+                    "gave that grade — what it reflects about completeness, accuracy, effort, and "
+                    "craftsmanship for the child's age. No rubric is set up yet, so use sound "
+                    "headmaster judgement. Empty string if no work. (string)\n"
                 )
                 if child_hint:
                     _instructions += f"\nMom hinted this is for: {child_hint}.\n"
