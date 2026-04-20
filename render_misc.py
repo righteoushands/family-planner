@@ -4830,6 +4830,22 @@ def render_school_page(status_message: str = "") -> str:
       <span style="font-size:1.4em;opacity:.6;">›</span>
     </a>
 
+    <!-- Analyze Assignment (primary entry) -->
+    <a href="/assignment-analyzer" style="display:flex;align-items:center;gap:14px;
+         background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);
+         border:1.5px solid #d4a574;border-radius:12px;padding:14px 18px;
+         margin-bottom:12px;text-decoration:none;color:inherit;
+         box-shadow:0 1px 3px rgba(180,140,80,.15);">
+      <span style="font-size:1.9em;line-height:1;">📥</span>
+      <div style="flex:1;">
+        <div style="font-weight:800;font-size:0.98em;color:#7c4a1e;">Analyze Assignment</div>
+        <div style="font-size:0.78em;color:#8b6f47;margin-top:2px;">
+          Snap a photo, upload a PDF, or paste text — AI sorts it for you
+        </div>
+      </div>
+      <span style="font-size:1.3em;color:#b88a4a;">›</span>
+    </a>
+
     <!-- Quick-access row -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px;">
       <a href="/curriculum" style="display:flex;align-items:center;gap:12px;
