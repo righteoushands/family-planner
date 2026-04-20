@@ -836,7 +836,62 @@ def due_thankyou_reminders_for(person: str) -> list:
     return [r for r in due if r.get("assigned_to", "Family").strip().lower() == person_lower]
 
 
-# ── Recipe cards ─────────────────────────────────────────────────────────────
+# ── Assignment analyses (AI-parsed assignments) ─────────────────────────────
+ASSIGNMENT_ANALYSES_FILE = "data/assignment_analyses.json"
+ASSIGNMENT_UPLOADS_DIR = "data/assignment_uploads"
+
+def load_assignment_analyses() -> list:
+    """Return list of analyzed assignments (newest first by ts)."""
+    data = ensure_file(ASSIGNMENT_ANALYSES_FILE, {"items": []})
+    items = data.get("items", []) if isinstance(data, dict) else []
+    return sorted(items, key=lambda x: x.get("ts", ""), reverse=True)
+
+def save_assignment_analyses(items: list):
+    safe_save_json(ASSIGNMENT_ANALYSES_FILE, {"items": items})
+
+def add_assignment_analysis(record: dict) -> dict:
+    """Insert a new analysis record. Returns the saved record."""
+    import uuid
+    from datetime import datetime as _dt
+    items = load_assignment_analyses()
+    record.setdefault("id", "a-" + _dt.now().strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:6])
+    record.setdefault("ts", _dt.now().isoformat(timespec="seconds"))
+    record.setdefault("status", "pending_curriculum_placement")
+    record.setdefault("user_edits", {})
+    items.append(record)
+    save_assignment_analyses(items)
+    return record
+
+def update_assignment_analysis(analysis_id: str, edits: dict) -> bool:
+    items = load_assignment_analyses()
+    changed = False
+    for it in items:
+        if it.get("id") == analysis_id:
+            it.setdefault("user_edits", {}).update(edits or {})
+            changed = True
+            break
+    if changed:
+        save_assignment_analyses(items)
+    return changed
+
+def delete_assignment_analysis(analysis_id: str) -> bool:
+    import os as _os
+    items = load_assignment_analyses()
+    before = len(items)
+    keep = []
+    for it in items:
+        if it.get("id") == analysis_id:
+            # Best-effort delete the stored upload, if any
+            up = it.get("upload_path", "")
+            if up and _os.path.exists(up):
+                try: _os.remove(up)
+                except OSError: pass
+        else:
+            keep.append(it)
+    save_assignment_analyses(keep)
+    return len(keep) < before
+
+
 RECIPES_FILE = "data/recipes.json"
 
 def load_recipes() -> list:

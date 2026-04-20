@@ -403,14 +403,6 @@
   },
   {
     "text": "Wegmans run",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-18",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Wegmans run",
     "assigned_to": "Michael",
     "due_date": "2026-04-18",
     "priority": "MEDIUM",
@@ -426,9 +418,9 @@
     "recurring": false
   },
   {
-    "text": "Text new friend Corey",
+    "text": "Finish laundry",
     "assigned_to": "Joseph",
-    "due_date": "2026-04-18",
+    "due_date": "",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false

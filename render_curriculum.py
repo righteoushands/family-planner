@@ -82,7 +82,8 @@ def render_curriculum_main():
             
             <div class="quick-actions">
                 <h3>Quick Actions</h3>
-                <a href="/curriculum-library/new-subject" class="btn btn-primary">➕ Add New Subject</a>
+                <a href="/assignment-analyzer" class="btn btn-primary">📥 Analyze Assignment</a>
+                <a href="/curriculum-library/new-subject" class="btn btn-secondary">➕ Add New Subject</a>
                 <a href="/curriculum-docs/upload" class="btn btn-secondary">📁 Upload Document</a>
                 <a href="/grading-queue" class="btn btn-accent">🔍 Review Work</a>
             </div>

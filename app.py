@@ -1076,6 +1076,51 @@ class Handler(BaseHTTPRequestHandler):
             try: self.wfile.write(html.encode())
             except BrokenPipeError: pass
             return
+
+        elif path == "/assignment-analyzer":
+            _cur_viewer = self._get_viewer()
+            if not (_cur_viewer and _auth.is_admin(_cur_viewer)):
+                self.send_response(302); self.send_header("Location", "/"); self.end_headers(); return
+            from render_assignment_analyzer import render_assignment_analyzer_page
+            html = render_assignment_analyzer_page()
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
+
+        elif path == "/assignment-image":
+            # Serve the original uploaded scan/photo for an analysis card.
+            _cur_viewer = self._get_viewer()
+            if not (_cur_viewer and _auth.is_admin(_cur_viewer)):
+                self.send_response(302); self.send_header("Location", "/"); self.end_headers(); return
+            import os as _os
+            from data_helpers import load_assignment_analyses
+            wanted = clean_text(query.get("id",[""])[0])
+            rec = next((r for r in load_assignment_analyses() if r.get("id") == wanted), None)
+            up_path = (rec or {}).get("upload_path", "")
+            if not rec or not up_path or not _os.path.exists(up_path):
+                self.send_response(404); self.send_header("Content-Type","text/plain"); self.end_headers()
+                try: self.wfile.write(b"Not found")
+                except BrokenPipeError: pass
+                return
+            mime = rec.get("source_mime") or "application/octet-stream"
+            try:
+                with open(up_path, "rb") as f: blob = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", mime)
+                self.send_header("Content-Length", str(len(blob)))
+                self.send_header("Cache-Control","private, max-age=300")
+                self.end_headers()
+                try: self.wfile.write(blob)
+                except BrokenPipeError: pass
+            except Exception as _e:
+                self.send_response(500); self.send_header("Content-Type","text/plain"); self.end_headers()
+                try: self.wfile.write(str(_e).encode())
+                except BrokenPipeError: pass
+            return
         elif path == "/plan-import":
             _pi_viewer = self._get_viewer()
             if not (_pi_viewer and _auth.is_admin(_pi_viewer)):
@@ -1926,8 +1971,249 @@ class Handler(BaseHTTPRequestHandler):
                 f"/subject?child={_url_q(child)}&subject={_url_q(subject)}")
             self.end_headers(); return
 
-        if path in ("/school-upload", "/prayer-intention-add", "/recipe-import"):
+        if path in ("/school-upload", "/prayer-intention-add", "/recipe-import",
+                    "/assignment-analyze", "/assignment-update", "/assignment-delete"):
             form = parse_multipart_form(self)
+
+            if path == "/assignment-analyze":
+                # AI-analyze an uploaded assignment (image, PDF, or pasted text)
+                # and stash the structured result for later curriculum placement.
+                import os as _os, json as _aj, base64 as _ab64, uuid as _auuid
+                import urllib.request as _aur
+                from data_helpers import (
+                    add_assignment_analysis, ASSIGNMENT_UPLOADS_DIR
+                )
+                _os.makedirs(ASSIGNMENT_UPLOADS_DIR, exist_ok=True)
+
+                raw_text     = clean_text(form.getfirst("raw_text",""))
+                child_hint   = clean_text(form.getfirst("child_hint",""))
+                subject_hint = clean_text(form.getfirst("subject_hint",""))
+                uploaded     = form["file"] if "file" in form else None
+                file_bytes   = b""
+                file_name    = ""
+                file_mime    = ""
+                _MAX_UPLOAD_BYTES = 15 * 1024 * 1024  # 15 MB
+                if uploaded is not None and getattr(uploaded, "filename", ""):
+                    file_name  = uploaded.filename
+                    try:    file_bytes = uploaded.file.read(_MAX_UPLOAD_BYTES + 1) if uploaded.file else b""
+                    except Exception: file_bytes = b""
+                    file_mime  = (getattr(uploaded, "type", "") or "").strip()
+                    if len(file_bytes) > _MAX_UPLOAD_BYTES:
+                        self.send_response(413); self.send_header("Content-Type","application/json"); self.end_headers()
+                        try: self.wfile.write(b'{"error":"That file is over 15 MB. Try a smaller photo or PDF."}')
+                        except BrokenPipeError: pass
+                        return
+
+                if not file_bytes and not raw_text.strip():
+                    self.send_response(400); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(b'{"error":"Please choose a file or paste text."}')
+                    except BrokenPipeError: pass
+                    return
+
+                # Determine source kind + extracted text + saved upload path
+                source_kind = "text"
+                upload_path = ""
+                source_mime = ""
+                extracted_text = raw_text.strip()
+                ext_lc = ("." + file_name.rsplit(".",1)[-1].lower()) if "." in file_name else ""
+                is_pdf = bool(file_bytes) and (
+                    file_bytes[:4] == b"%PDF" or ext_lc == ".pdf" or "pdf" in file_mime.lower()
+                )
+                is_image = bool(file_bytes) and (
+                    (file_mime.startswith("image/") if file_mime else False)
+                    or ext_lc in (".jpg",".jpeg",".png",".webp",".heic",".gif")
+                )
+
+                _save_warning = ""
+                if is_pdf:
+                    source_kind = "pdf"
+                    source_mime = "application/pdf"
+                    extracted_text = (extract_pdf_text(file_bytes) or "").strip()
+                    if not extracted_text:
+                        # Skip orphan write entirely; bounce error to Mom.
+                        self.send_response(400); self.send_header("Content-Type","application/json"); self.end_headers()
+                        try: self.wfile.write(b'{"error":"That PDF has no extractable text (probably a scan). Take a photo of the page instead, or paste the text."}')
+                        except BrokenPipeError: pass
+                        return
+                    # Persist the PDF for later viewing
+                    upload_path = f"{ASSIGNMENT_UPLOADS_DIR}/up-{_auuid.uuid4().hex[:10]}.pdf"
+                    try:
+                        with open(upload_path, "wb") as _wf: _wf.write(file_bytes)
+                    except Exception:
+                        upload_path = ""
+                        _save_warning = "Couldn't save the original PDF; analysis kept but the source file isn't viewable."
+                elif is_image:
+                    source_kind = "image"
+                    source_mime = file_mime if file_mime.startswith("image/") else {
+                        ".jpg":"image/jpeg",".jpeg":"image/jpeg",".png":"image/png",
+                        ".webp":"image/webp",".gif":"image/gif",".heic":"image/heic",
+                    }.get(ext_lc, "image/jpeg")
+                    upload_path = f"{ASSIGNMENT_UPLOADS_DIR}/up-{_auuid.uuid4().hex[:10]}{ext_lc or '.jpg'}"
+                    try:
+                        with open(upload_path, "wb") as _wf: _wf.write(file_bytes)
+                    except Exception:
+                        upload_path = ""
+                        _save_warning = "Couldn't save the original photo; analysis kept but thumbnail won't show."
+
+                # Build the AI prompt and call Anthropic Claude
+                _settings = load_app_settings()
+                _api_key = (
+                    _settings.get("family_constraints",{}).get("anthropic_api_key","")
+                    or _settings.get("anthropic_api_key","")
+                ).strip()
+                if not _api_key:
+                    self.send_response(400); self.send_header("Content-Type","application/json"); self.end_headers()
+                    try: self.wfile.write(b'{"error":"No Anthropic API key. Add one in Settings."}')
+                    except BrokenPipeError: pass
+                    return
+
+                _instructions = (
+                    "You are an assistant helping a homeschooling Catholic mom of four boys "
+                    "(JP age 14, Joseph age 12, Michael age 5, James 13 months) sort an assignment. "
+                    "Analyze the assignment and return ONE JSON object — no markdown, no commentary, "
+                    "just raw JSON — with these exact keys:\n"
+                    '  "title": short descriptive title (string)\n'
+                    '  "subject": best-guess subject from this list: '
+                    "Math, Latin, Greek, Religion, History, Science, Reading, Writing, Grammar, "
+                    "Literature, Art, Music, Logic, PE, Other (string)\n"
+                    '  "child_guess": which boy this is most likely for, from JP/Joseph/Michael, '
+                    "or empty string if unclear (string)\n"
+                    '  "assignment_type": e.g. worksheet, reading, test, quiz, project, practice, '
+                    "essay, copywork, oral recitation, problem set, other (string)\n"
+                    '  "estimated_minutes": realistic time-on-task for the suggested child (integer)\n'
+                    '  "due_date_hint": any due-date language you can infer ("today", "Friday", '
+                    'an explicit date, or empty string) (string)\n'
+                    '  "instructions_summary": 1-3 sentences in plain English summarizing what the '
+                    "child needs to do (string)\n"
+                    '  "sub_items": list of individual sub-tasks if the assignment is multi-part '
+                    "(e.g., problems #1-20 → [\"Problem 1\", \"Problem 2\", …] up to 30, or list of "
+                    "essay prompts, or list of vocabulary words). Empty list if not applicable. (array of strings)\n"
+                    '  "materials_needed": list of supplies (e.g., "ruler", "Bible", "Latin book"). Empty list if none obvious. (array of strings)\n'
+                    '  "notes_for_mom": anything Mom should know — pitfalls, prep needed, '
+                    "context, or empty string (string)\n"
+                )
+                if child_hint:
+                    _instructions += f"\nMom hinted this is for: {child_hint}.\n"
+                if subject_hint:
+                    _instructions += f"Mom hinted the subject is: {subject_hint}.\n"
+
+                if source_kind == "image":
+                    img_b64 = _ab64.b64encode(file_bytes).decode("ascii")
+                    _payload = {
+                        "model": "claude-haiku-4-5-20251001",
+                        "max_tokens": 1500,
+                        "messages": [{
+                            "role": "user",
+                            "content": [
+                                {"type":"image","source":{"type":"base64","media_type":source_mime,"data":img_b64}},
+                                {"type":"text","text": _instructions},
+                            ],
+                        }],
+                    }
+                else:
+                    snippet = extracted_text[:18000]  # generous cap
+                    _payload = {
+                        "model": "claude-haiku-4-5-20251001",
+                        "max_tokens": 1500,
+                        "messages": [{
+                            "role": "user",
+                            "content": _instructions + "\n\nASSIGNMENT TEXT:\n" + snippet,
+                        }],
+                    }
+
+                parsed = {}
+                ai_text = ""
+                ai_error = ""
+                try:
+                    _req = _aur.Request(
+                        "https://api.anthropic.com/v1/messages",
+                        data=_aj.dumps(_payload).encode(),
+                        headers={
+                            "Content-Type": "application/json",
+                            "x-api-key": _api_key,
+                            "anthropic-version": "2023-06-01",
+                        },
+                        method="POST",
+                    )
+                    with _aur.urlopen(_req, timeout=60) as _r:
+                        _resp = _aj.loads(_r.read().decode())
+                    ai_text = _resp.get("content",[{}])[0].get("text","").strip()
+                    # Strip ```json fences if the model added them
+                    _t = ai_text
+                    if _t.startswith("```"):
+                        _t = _t.strip("`")
+                        if _t.lower().startswith("json"):
+                            _t = _t[4:].lstrip()
+                    try:
+                        parsed = _aj.loads(_t)
+                    except Exception:
+                        # Try to find a JSON object inside the response
+                        import re as _are
+                        _m = _are.search(r'\{[\s\S]*\}', ai_text)
+                        if _m:
+                            try: parsed = _aj.loads(_m.group(0))
+                            except Exception as _je: ai_error = f"could not parse AI JSON: {_je}"
+                        else:
+                            ai_error = "AI response was not JSON"
+                except Exception as _ae:
+                    ai_error = str(_ae)[:200]
+
+                if not isinstance(parsed, dict):
+                    parsed = {}
+                if ai_error:
+                    parsed["error"] = ai_error
+                    parsed["raw_response"] = ai_text[:2000]
+                # Coerce a couple of fields to expected types
+                try: parsed["estimated_minutes"] = int(parsed.get("estimated_minutes") or 0) or ""
+                except Exception: parsed["estimated_minutes"] = ""
+                for _lk in ("sub_items","materials_needed"):
+                    if _lk in parsed and not isinstance(parsed[_lk], list):
+                        parsed[_lk] = [str(parsed[_lk])] if parsed[_lk] else []
+
+                _record = {
+                    "source_kind":     source_kind,
+                    "source_filename": file_name,
+                    "source_mime":     source_mime,
+                    "upload_path":     upload_path,
+                    "raw_text":        extracted_text[:8000] if source_kind != "image" else "",
+                    "child_hint":      child_hint,
+                    "subject_hint":    subject_hint,
+                    "parsed":          parsed,
+                }
+                _saved = add_assignment_analysis(_record)
+                _resp_obj = {"ok": True, "id": _saved["id"], "parsed": parsed}
+                if _save_warning:
+                    _resp_obj["warning"] = _save_warning
+                self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
+                try: self.wfile.write(_aj.dumps(_resp_obj).encode())
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/assignment-update":
+                import json as _aj
+                from data_helpers import update_assignment_analysis
+                _id    = clean_text(form.getfirst("id",""))
+                _edits_raw = form.getfirst("edits","") or "{}"
+                try:    _edits = _aj.loads(_edits_raw)
+                except Exception: _edits = {}
+                if not isinstance(_edits, dict): _edits = {}
+                ok = update_assignment_analysis(_id, _edits) if _id else False
+                self.send_response(200 if ok else 404)
+                self.send_header("Content-Type","application/json"); self.end_headers()
+                try: self.wfile.write(_aj.dumps({"ok": ok}).encode())
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/assignment-delete":
+                import json as _aj
+                from data_helpers import delete_assignment_analysis
+                _id = clean_text(form.getfirst("id",""))
+                ok = delete_assignment_analysis(_id) if _id else False
+                self.send_response(200 if ok else 404)
+                self.send_header("Content-Type","application/json"); self.end_headers()
+                try: self.wfile.write(_aj.dumps({"ok": ok}).encode())
+                except BrokenPipeError: pass
+                return
 
             if path == "/school-upload":
                 import urllib.parse as _up, urllib.request as _ur, re as _re

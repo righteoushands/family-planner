@@ -165,6 +165,21 @@ Whenever a new feature includes any form, text input, textarea, or multi-step wo
 - Prefer server-side auto-save (fetch POST on change) over localStorage when a server endpoint already exists for that data; only use localStorage when there is no immediate server save
 - For multi-step AI workflows (like Plan Importer), persist the full result JSON + original input so the user can return to the results phase after any interruption
 
+## Assignment Analyzer
+
+A standalone page where Mom uploads a photo, PDF, or pasted text of an assignment and Claude analyzes it into a structured record (title, subject, child guess, type, estimated minutes, due-date hint, instructions summary, sub-items, materials, notes for Mom). Records sit in a "pending curriculum placement" queue for later auto-placement (curriculum side not yet built).
+
+- Page: `/assignment-analyzer` (admin only, accessible from Curriculum dashboard via "📥 Analyze Assignment" quick action).
+- Routes:
+  - `POST /assignment-analyze` (multipart) — does the AI work; uploads kept as binary in `data/assignment_uploads/`, metadata in `data/assignment_analyses.json`.
+  - `POST /assignment-update` — debounced auto-save of per-card edits (Mom can correct any field, edits stored in `user_edits` so AI guess is preserved alongside her override).
+  - `POST /assignment-delete` — removes record + uploaded file.
+  - `GET /assignment-image?id=…` — serves the original scan/photo.
+- Render: `render_assignment_analyzer.py`.
+- Storage helpers: `data_helpers.load_assignment_analyses` / `add_assignment_analysis` / `update_assignment_analysis` / `delete_assignment_analysis`.
+- Uses Anthropic Claude (`claude-haiku-4-5-20251001`) with vision for images, plain text for PDF (extracted via `extract_pdf_text`) and pasted text. Strict JSON output is requested in the prompt; falls back to regex-extract a JSON object from the response if the model adds prose.
+- Form auto-saves a draft (text + child/subject hints) to localStorage per the standing rule. File picker can't be restored, but text content survives interruption.
+
 ## Companion Undo (Natural-Language Revert)
 
 Every AI companion (Lucy, Lorenzo, Gregory, Coach, Felix/Izzy, Dr. Monica) can undo its most recent change when Lauren asks in plain English ("undo that", "never mind, undo", "put it back", etc.). No buttons.

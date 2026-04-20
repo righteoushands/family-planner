@@ -56,6 +56,53 @@
         "action": "dismiss",
         "label": "Travel"
       }
+    },
+    "2026-04-20": {
+      "CARRY::Joseph::2026-04-20::History & Geog 7 — Write.": {
+        "action": "dismiss",
+        "label": "History & Geog 7 — Write. (from Fri 17 Apr)"
+      },
+      "SCHOOL::Joseph::2026-04-20::Science 6::Do the Review of Geology — Chapter 17 in your workbook.": {
+        "action": "dismiss",
+        "label": "Science 6: Do the Review of Geology — Chapter 17 in your workbook."
+      },
+      "ROUTINE::Joseph::2026-04-20::FORTITUDE — Family Run (JP & Joseph run 1.5-2mi & 1-1.5mi for CAP training; Lauren run/walk intervals 0.75-1mi for ankle loading & core engagement; Michael bikes/scoots alongside; James in stroller). Warm-up 5min easy pace, main work 18min, cool-down 5min walk & breathe together.": {
+        "action": "dismiss",
+        "label": "FORTITUDE — Family Run (JP & Joseph run 1.5-2mi & 1-1.5mi for CAP training; Lauren run/walk intervals 0.75-1mi for ankle loading & core engagement; Michael bikes/scoots alongside; James in stroller). Warm-up 5min easy pace, main work 18min, cool-down 5min walk & breathe together."
+      },
+      "ROUTINE::Joseph::2026-04-20::FORTITUDE — Family Run (continued) & Cool-down": {
+        "action": "dismiss",
+        "label": "FORTITUDE — Family Run (continued) & Cool-down"
+      },
+      "CARRY::Joseph::2026-04-20::Music 7 — Finish listening to the \"Christmas Oratorio\" by Bach.": {
+        "action": "dismiss",
+        "label": "Music 7 — Finish listening to the \"Christmas Oratorio\" by Bach. (from Thu 16 Apr)"
+      },
+      "ROUTINE::Joseph::2026-04-20::Assist JP with potatoes & sides prep": {
+        "action": "dismiss",
+        "label": "Assist JP with potatoes & sides prep"
+      },
+      "MANUAL::Joseph::2026-04-20::Text new friend Corey": {
+        "action": "dismiss",
+        "label": "Text new friend Corey"
+      },
+      "MANUAL::Joseph::2026-04-20::Wegmans run": {
+        "action": "dismiss",
+        "label": "Wegmans run"
+      },
+      "CARRY::Joseph::2026-04-20::[MEDIUM] Text new friend Corey": {
+        "action": "dismiss",
+        "label": "[MEDIUM] Text new friend Corey (from Thu 16 Apr)"
+      },
+      "CARRY::Joseph::2026-04-20::[MEDIUM] Wegmans run": {
+        "action": "dismiss",
+        "label": "[MEDIUM] Wegmans run (from Thu 16 Apr)"
+      },
+      "MANUAL::Joseph::2026-04-20::Finish laundry": {
+        "action": "timed",
+        "time": "14:43",
+        "label": "Finish laundry"
+      }
     }
   },
   "Lauren": {

@@ -1,0 +1,415 @@
+"""
+render_assignment_analyzer.py — AI Assignment Analyzer
+
+A page where Lauren can upload a photo or paste text of an assignment, get an
+AI analysis (subject, child, type, instructions, sub-items, time estimate,
+etc.), and stash the result for later placement into the curriculum.
+
+The actual analysis work and storage live in app.py (POST /assignment-analyze).
+This file only renders the UI.
+"""
+from html import escape as _esc
+from urllib.parse import quote as _q
+from data_helpers import load_assignment_analyses
+from ui_helpers import html_page
+
+CHILDREN = ["JP", "Joseph", "Michael"]
+SUBJECTS = [
+    "Math", "Latin", "Greek", "Religion", "History", "Science",
+    "Reading", "Writing", "Grammar", "Literature", "Art", "Music",
+    "Logic", "PE", "Other",
+]
+
+
+def _fmt_ts(ts: str) -> str:
+    """'2026-04-20T10:45:30' -> 'Apr 20, 10:45 AM'."""
+    if not ts:
+        return ""
+    try:
+        from datetime import datetime as _dt
+        d = _dt.fromisoformat(ts)
+        return d.strftime("%b %-d, %-I:%M %p")
+    except Exception:
+        return ts
+
+
+def _resolved(rec: dict, key: str, default=""):
+    """Prefer Mom's edited value over the AI-parsed value."""
+    edits = rec.get("user_edits", {}) or {}
+    if key in edits and edits[key] not in (None, ""):
+        return edits[key]
+    parsed = rec.get("parsed", {}) or {}
+    return parsed.get(key, default)
+
+
+def _render_one_card(rec: dict) -> str:
+    rid = rec.get("id", "")
+    parsed = rec.get("parsed", {}) or {}
+    err = parsed.get("error", "")
+    ts_label = _fmt_ts(rec.get("ts", ""))
+    src_kind = rec.get("source_kind", "text")
+    src_name = rec.get("source_filename", "")
+    upload_path = rec.get("upload_path", "")
+
+    title = _resolved(rec, "title", "(untitled assignment)")
+    subject = _resolved(rec, "subject", "")
+    child_guess = _resolved(rec, "child_guess", "")
+    atype = _resolved(rec, "assignment_type", "")
+    minutes = _resolved(rec, "estimated_minutes", "")
+    due_hint = _resolved(rec, "due_date_hint", "")
+    summary = _resolved(rec, "instructions_summary", "")
+    sub_items = _resolved(rec, "sub_items", []) or []
+    materials = _resolved(rec, "materials_needed", []) or []
+    notes = _resolved(rec, "notes_for_mom", "")
+
+    if not isinstance(sub_items, list):
+        sub_items = [str(sub_items)]
+    if not isinstance(materials, list):
+        materials = [str(materials)]
+
+    thumb_html = ""
+    if src_kind == "image" and upload_path:
+        thumb_html = (
+            f'<a href="/assignment-image?id={_q(rid)}" target="_blank" '
+            f'class="aa-thumb-link" title="Click to view original">'
+            f'<img src="/assignment-image?id={_q(rid)}" alt="uploaded scan" '
+            f'class="aa-thumb"/></a>'
+        )
+    elif src_kind == "pdf":
+        if upload_path:
+            thumb_html = (
+                f'<a href="/assignment-image?id={_q(rid)}" target="_blank" '
+                f'class="aa-thumb-link" title="Open original PDF">'
+                f'<div class="aa-thumb aa-thumb-pdf">📄<br/><small>{_esc(src_name or "PDF")}</small></div>'
+                f'</a>'
+            )
+        else:
+            thumb_html = f'<div class="aa-thumb aa-thumb-pdf">📄<br/><small>{_esc(src_name or "PDF")}</small></div>'
+    else:
+        thumb_html = '<div class="aa-thumb aa-thumb-text">📝<br/><small>Pasted text</small></div>'
+
+    sub_html = ""
+    if sub_items:
+        lis = "".join(f"<li>{_esc(str(s))}</li>" for s in sub_items[:30])
+        sub_html = f'<div class="aa-section"><h4>Sub-items ({len(sub_items)})</h4><ul>{lis}</ul></div>'
+
+    mat_html = ""
+    if materials:
+        mat_html = (
+            '<div class="aa-section"><h4>Materials</h4>'
+            + ", ".join(_esc(str(m)) for m in materials)
+            + "</div>"
+        )
+
+    notes_html = (
+        f'<div class="aa-section aa-notes"><h4>Notes</h4>{_esc(str(notes))}</div>'
+        if notes else ""
+    )
+
+    err_html = (
+        f'<div class="aa-error">⚠️ AI analysis failed: {_esc(err)}</div>'
+        if err else ""
+    )
+
+    children_opts = "".join(
+        f'<option value="{_esc(c)}"{" selected" if str(child_guess) == c else ""}>{_esc(c)}</option>'
+        for c in [""] + CHILDREN
+    )
+    subj_opts = "".join(
+        f'<option value="{_esc(s)}"{" selected" if str(subject).lower() == s.lower() else ""}>{_esc(s)}</option>'
+        for s in [""] + SUBJECTS
+    )
+
+    return f"""
+    <article class="aa-card" data-id="{_esc(rid)}">
+      <header class="aa-card-head">
+        <div class="aa-card-thumbwrap">{thumb_html}</div>
+        <div class="aa-card-titlebox">
+          <input class="aa-title-input" data-field="title" value="{_esc(str(title))}" placeholder="Assignment title"/>
+          <div class="aa-meta">{_esc(ts_label)} · {_esc(src_kind)}{' · ' + _esc(src_name) if src_name else ''}</div>
+        </div>
+        <button class="aa-delete" data-id="{_esc(rid)}" title="Delete">✕</button>
+      </header>
+      {err_html}
+      <div class="aa-grid">
+        <label>Subject
+          <select class="aa-field" data-field="subject">{subj_opts}</select>
+        </label>
+        <label>Child
+          <select class="aa-field" data-field="child_guess">{children_opts}</select>
+        </label>
+        <label>Type
+          <input class="aa-field" data-field="assignment_type" value="{_esc(str(atype))}" placeholder="worksheet, test, reading…"/>
+        </label>
+        <label>Est. min
+          <input class="aa-field" data-field="estimated_minutes" value="{_esc(str(minutes))}" placeholder="30" inputmode="numeric"/>
+        </label>
+        <label class="aa-span2">Due
+          <input class="aa-field" data-field="due_date_hint" value="{_esc(str(due_hint))}" placeholder="today / Friday / 2026-05-01"/>
+        </label>
+      </div>
+      <div class="aa-section"><h4>Summary</h4><div class="aa-summary">{_esc(str(summary))}</div></div>
+      {sub_html}
+      {mat_html}
+      {notes_html}
+      <div class="aa-card-foot">
+        <span class="aa-status">⏳ Pending curriculum placement</span>
+        <span class="aa-saved" data-id="{_esc(rid)}"></span>
+      </div>
+    </article>
+    """
+
+
+def render_assignment_analyzer_page() -> str:
+    items = load_assignment_analyses()
+    cards = "\n".join(_render_one_card(r) for r in items) if items else \
+        '<p class="aa-empty">No analyses yet. Upload your first assignment above.</p>'
+
+    children_opts = "".join(f'<option value="{_esc(c)}">{_esc(c)}</option>' for c in [""] + CHILDREN)
+    subject_opts = "".join(f'<option value="{_esc(s)}">{_esc(s)}</option>' for s in [""] + SUBJECTS)
+
+    body = f"""
+    <div class="aa-wrap">
+      <a href="/curriculum" class="aa-back">← Curriculum</a>
+      <h1 class="aa-h1">📥 Assignment Analyzer</h1>
+      <p class="aa-sub">Upload a photo or paste text. The AI will identify the
+        subject, child, type, sub-tasks, and estimated time, and save it to a
+        review queue. (Curriculum auto-placement coming soon — for now items
+        wait here for you to slot in by hand.)</p>
+
+      <form id="aa-form" class="aa-form" enctype="multipart/form-data">
+        <div class="aa-row">
+          <label class="aa-file-label">
+            <span class="aa-file-btn">📷 Choose photo or PDF</span>
+            <input type="file" name="file" id="aa-file" accept="image/*,application/pdf,.pdf,.jpg,.jpeg,.png,.webp,.heic"/>
+            <span id="aa-file-name" class="aa-file-name">No file chosen</span>
+          </label>
+        </div>
+        <div class="aa-or">— or —</div>
+        <div class="aa-row">
+          <textarea name="raw_text" id="aa-text" rows="6"
+            placeholder="Paste assignment text here (instructions, problems, reading list, etc.)"></textarea>
+        </div>
+        <div class="aa-row aa-hints">
+          <label>Child hint (optional)
+            <select name="child_hint" id="aa-child">{children_opts}</select>
+          </label>
+          <label>Subject hint (optional)
+            <select name="subject_hint" id="aa-subject">{subject_opts}</select>
+          </label>
+        </div>
+        <div class="aa-row aa-actions">
+          <button type="submit" id="aa-submit" class="aa-submit">✨ Analyze</button>
+          <span id="aa-status" class="aa-status-msg"></span>
+        </div>
+      </form>
+
+      <div class="aa-list">
+        <h2 class="aa-h2">Analyzed assignments <span class="aa-count">({len(items)})</span></h2>
+        {cards}
+      </div>
+    </div>
+
+    <style>
+      .aa-wrap {{ max-width: 880px; margin: 0 auto; padding: 18px 16px 80px; color: var(--ink); font-family: 'DM Sans', system-ui, sans-serif; }}
+      .aa-back {{ color: var(--ink-muted); text-decoration: none; font-size: 14px; }}
+      .aa-back:hover {{ color: var(--gold); }}
+      .aa-h1 {{ font-family: 'Cormorant Garamond', serif; font-size: 32px; margin: 8px 0 4px; color: var(--ink); }}
+      .aa-h2 {{ font-family: 'Cormorant Garamond', serif; font-size: 22px; margin: 28px 0 12px; color: var(--ink); border-bottom: 1px solid var(--border); padding-bottom: 6px; }}
+      .aa-count {{ color: var(--ink-faint); font-size: 16px; font-weight: 400; }}
+      .aa-sub {{ color: var(--ink-muted); font-size: 14px; line-height: 1.45; margin: 0 0 18px; }}
+      .aa-form {{ background: var(--warm-white); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(28,22,16,0.04); }}
+      .aa-row {{ margin-bottom: 12px; }}
+      .aa-row:last-child {{ margin-bottom: 0; }}
+      .aa-or {{ text-align: center; color: var(--ink-faint); font-size: 12px; margin: 8px 0; letter-spacing: 0.1em; }}
+      .aa-file-label {{ display: flex; align-items: center; gap: 12px; cursor: pointer; }}
+      .aa-file-label input[type="file"] {{ display: none; }}
+      .aa-file-btn {{ display: inline-block; background: var(--gold-light); color: var(--ink); border: 1px solid var(--gold-mid); border-radius: 8px; padding: 10px 14px; font-weight: 500; font-size: 14px; }}
+      .aa-file-btn:hover {{ background: var(--gold-mid); color: white; }}
+      .aa-file-name {{ color: var(--ink-muted); font-size: 13px; }}
+      #aa-text {{ width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 14px; resize: vertical; background: white; }}
+      #aa-text:focus {{ outline: none; border-color: var(--gold-mid); box-shadow: 0 0 0 3px rgba(201,164,74,0.15); }}
+      .aa-hints {{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }}
+      .aa-hints label, .aa-grid label {{ display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.05em; }}
+      .aa-hints select, .aa-grid select, .aa-grid input {{ padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; font-family: inherit; background: white; color: var(--ink); }}
+      .aa-actions {{ display: flex; align-items: center; gap: 14px; }}
+      .aa-submit {{ background: var(--ink); color: white; border: 0; border-radius: 8px; padding: 12px 22px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; }}
+      .aa-submit:hover {{ background: var(--gold); }}
+      .aa-submit:disabled {{ opacity: 0.5; cursor: wait; }}
+      .aa-status-msg {{ color: var(--ink-muted); font-size: 13px; }}
+      .aa-status-msg.aa-err {{ color: var(--crimson); }}
+      .aa-status-msg.aa-ok {{ color: var(--forest); }}
+      .aa-empty {{ color: var(--ink-faint); text-align: center; padding: 40px 0; font-style: italic; }}
+
+      .aa-card {{ background: var(--warm-white); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(28,22,16,0.03); }}
+      .aa-card-head {{ display: flex; gap: 14px; align-items: flex-start; margin-bottom: 12px; }}
+      .aa-card-thumbwrap {{ flex-shrink: 0; }}
+      .aa-thumb {{ width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); display: block; }}
+      .aa-thumb-pdf, .aa-thumb-text {{ display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--gold-light); color: var(--ink-muted); font-size: 24px; line-height: 1.2; text-align: center; padding: 6px; box-sizing: border-box; }}
+      .aa-thumb-pdf small, .aa-thumb-text small {{ font-size: 9px; margin-top: 4px; word-break: break-word; }}
+      .aa-card-titlebox {{ flex: 1; min-width: 0; }}
+      .aa-title-input {{ width: 100%; box-sizing: border-box; font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 600; border: 0; border-bottom: 1px dashed transparent; background: transparent; color: var(--ink); padding: 2px 0; }}
+      .aa-title-input:focus {{ outline: none; border-bottom-color: var(--gold-mid); }}
+      .aa-meta {{ color: var(--ink-faint); font-size: 12px; margin-top: 2px; }}
+      .aa-delete {{ background: transparent; border: 0; color: var(--ink-faint); font-size: 18px; cursor: pointer; padding: 4px 8px; }}
+      .aa-delete:hover {{ color: var(--crimson); }}
+      .aa-grid {{ display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }}
+      .aa-grid .aa-span2 {{ grid-column: span 2; }}
+      .aa-section {{ margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-light); }}
+      .aa-section h4 {{ font-family: 'Cormorant Garamond', serif; font-size: 15px; color: var(--ink-muted); margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; }}
+      .aa-section ul {{ margin: 0; padding-left: 20px; font-size: 14px; color: var(--ink); }}
+      .aa-section ul li {{ margin: 2px 0; }}
+      .aa-summary {{ font-size: 14px; line-height: 1.5; color: var(--ink); }}
+      .aa-notes {{ background: var(--gold-light); padding: 10px 12px; border-radius: 6px; border-top: 0; }}
+      .aa-error {{ background: #fdebeb; color: var(--crimson); padding: 8px 12px; border-radius: 6px; margin: 8px 0; font-size: 13px; }}
+      .aa-card-foot {{ display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-light); font-size: 12px; color: var(--ink-faint); }}
+      .aa-saved {{ color: var(--forest); }}
+
+      @media (max-width: 600px) {{
+        .aa-grid {{ grid-template-columns: 1fr 1fr; }}
+        .aa-grid .aa-span2 {{ grid-column: span 2; }}
+        .aa-hints {{ grid-template-columns: 1fr; }}
+      }}
+    </style>
+
+    <script>
+    (function() {{
+      var DRAFT_KEY = 'assignment_analyzer_draft_v1';
+      var $ = function(id) {{ return document.getElementById(id); }};
+      var fileInput = $('aa-file');
+      var fileName  = $('aa-file-name');
+      var textArea  = $('aa-text');
+      var childSel  = $('aa-child');
+      var subjSel   = $('aa-subject');
+      var status    = $('aa-status');
+      var submitBtn = $('aa-submit');
+      var form      = $('aa-form');
+
+      // Restore draft (text fields only — file pickers can't be restored)
+      try {{
+        var raw = localStorage.getItem(DRAFT_KEY);
+        if (raw) {{
+          var d = JSON.parse(raw);
+          if ((Date.now() - (d._ts || 0)) < 24*3600*1000) {{
+            if (d.text) textArea.value = d.text;
+            if (d.child) childSel.value = d.child;
+            if (d.subject) subjSel.value = d.subject;
+            if (d.text || d.child || d.subject) {{
+              status.textContent = 'Your draft was restored.';
+              status.className = 'aa-status-msg aa-ok';
+              setTimeout(function() {{ status.textContent = ''; status.className = 'aa-status-msg'; }}, 4000);
+            }}
+          }} else {{
+            localStorage.removeItem(DRAFT_KEY);
+          }}
+        }}
+      }} catch(e) {{}}
+
+      function saveDraft() {{
+        try {{
+          localStorage.setItem(DRAFT_KEY, JSON.stringify({{
+            _ts: Date.now(),
+            text: textArea.value,
+            child: childSel.value,
+            subject: subjSel.value,
+          }}));
+        }} catch(e) {{}}
+      }}
+      ['input','change'].forEach(function(ev) {{
+        textArea.addEventListener(ev, saveDraft);
+        childSel.addEventListener(ev, saveDraft);
+        subjSel.addEventListener(ev, saveDraft);
+      }});
+
+      fileInput.addEventListener('change', function() {{
+        var f = fileInput.files && fileInput.files[0];
+        fileName.textContent = f ? (f.name + ' (' + Math.round(f.size/1024) + ' KB)') : 'No file chosen';
+      }});
+
+      form.addEventListener('submit', function(ev) {{
+        ev.preventDefault();
+        var f = fileInput.files && fileInput.files[0];
+        var t = textArea.value.trim();
+        if (!f && !t) {{
+          status.textContent = 'Please choose a file or paste some text.';
+          status.className = 'aa-status-msg aa-err';
+          return;
+        }}
+        submitBtn.disabled = true;
+        status.textContent = '🤔 Analyzing… (this can take 10–25 seconds)';
+        status.className = 'aa-status-msg';
+        var fd = new FormData(form);
+        fetch('/assignment-analyze', {{ method: 'POST', body: fd }})
+          .then(function(r) {{ return r.json().then(function(j) {{ return {{ ok: r.ok, body: j }}; }}); }})
+          .then(function(res) {{
+            submitBtn.disabled = false;
+            if (!res.ok || !res.body || res.body.error) {{
+              status.textContent = '✗ ' + ((res.body && res.body.error) || 'Analysis failed');
+              status.className = 'aa-status-msg aa-err';
+              return;
+            }}
+            // Success: clear draft and reload to show the new card
+            localStorage.removeItem(DRAFT_KEY);
+            if (res.body.warning) {{
+              status.textContent = '✓ Saved — note: ' + res.body.warning;
+              status.className = 'aa-status-msg aa-ok';
+              setTimeout(function() {{ window.location.reload(); }}, 2200);
+            }} else {{
+              status.textContent = '✓ Saved — reloading';
+              status.className = 'aa-status-msg aa-ok';
+              setTimeout(function() {{ window.location.reload(); }}, 600);
+            }}
+          }})
+          .catch(function(e) {{
+            submitBtn.disabled = false;
+            status.textContent = '✗ Network error: ' + e;
+            status.className = 'aa-status-msg aa-err';
+          }});
+      }});
+
+      // Per-card editing — debounced auto-save
+      var debounceTimers = {{}};
+      function scheduleSave(card, id) {{
+        if (debounceTimers[id]) clearTimeout(debounceTimers[id]);
+        debounceTimers[id] = setTimeout(function() {{ doSave(card, id); }}, 500);
+      }}
+      function doSave(card, id) {{
+        var edits = {{}};
+        card.querySelectorAll('[data-field]').forEach(function(el) {{
+          edits[el.dataset.field] = el.value;
+        }});
+        var savedSpan = card.querySelector('.aa-saved');
+        if (savedSpan) savedSpan.textContent = 'saving…';
+        var fd = new FormData();
+        fd.append('id', id);
+        fd.append('edits', JSON.stringify(edits));
+        fetch('/assignment-update', {{ method: 'POST', body: fd }})
+          .then(function(r) {{ return r.ok; }})
+          .then(function(ok) {{
+            if (savedSpan) {{
+              savedSpan.textContent = ok ? '✓ saved' : '✗ save failed';
+              setTimeout(function() {{ savedSpan.textContent = ''; }}, 1800);
+            }}
+          }})
+          .catch(function() {{
+            if (savedSpan) savedSpan.textContent = '✗ network error';
+          }});
+      }}
+      document.querySelectorAll('.aa-card').forEach(function(card) {{
+        var id = card.dataset.id;
+        card.querySelectorAll('[data-field]').forEach(function(el) {{
+          el.addEventListener('input', function() {{ scheduleSave(card, id); }});
+          el.addEventListener('change', function() {{ scheduleSave(card, id); }});
+        }});
+        var del = card.querySelector('.aa-delete');
+        if (del) del.addEventListener('click', function() {{
+          if (!confirm('Delete this analysis?')) return;
+          var fd = new FormData(); fd.append('id', id);
+          fetch('/assignment-delete', {{ method: 'POST', body: fd }})
+            .then(function(r) {{ if (r.ok) card.remove(); }});
+        }});
+      }});
+    }})();
+    </script>
+    """
+    return html_page("Assignment Analyzer · Sancta Familia", body)
