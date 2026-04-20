@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "source_kind": "image",
+      "source_filename": "IMG_5784.jpeg",
+      "source_mime": "image/jpeg",
+      "upload_path": "data/assignment_uploads/up-dd95698ba9.jpeg",
+      "raw_text": "",
+      "child_hint": "Joseph",
+      "subject_hint": "History",
+      "parsed": {
+        "error": "HTTP Error 400: Bad Request",
+        "raw_response": "",
+        "estimated_minutes": ""
+      },
+      "id": "a-20260420-104958-7d1cc7",
+      "ts": "2026-04-20T10:49:58",
+      "status": "pending_curriculum_placement",
+      "user_edits": {}
+    }
+  ]
+}

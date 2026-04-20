@@ -163,6 +163,52 @@ from safe_utils import safe_save_json, begin_companion_turn, finish_companion_tu
 from companion_handoffs import undo_instructions as _undo_instructions
 _UNDO_BLOCK = "\n" + "\n".join(_undo_instructions())
 
+
+def _shrink_image_for_anthropic(raw_bytes: bytes, mime: str):
+    """Anthropic enforces a 5 MB cap on the BASE64 representation of each
+    image (~3.7 MB raw). iPhone JPEGs routinely exceed that. This shrinks
+    the image (resizing + JPEG re-encoding with progressively lower quality)
+    until it fits, returning (bytes, mime). Falls back to the original bytes
+    if Pillow isn't available — caller will get a clearer error from the API.
+    """
+    _CAP_RAW = 3 * 1024 * 1024  # ~4 MB base64; safe margin under 5 MB cap
+    if len(raw_bytes) <= _CAP_RAW:
+        return raw_bytes, mime
+    try:
+        from PIL import Image
+        import io
+    except Exception:
+        return raw_bytes, mime
+    try:
+        im = Image.open(io.BytesIO(raw_bytes))
+        # Honor EXIF orientation so portrait photos don't end up sideways
+        try:
+            from PIL import ImageOps
+            im = ImageOps.exif_transpose(im)
+        except Exception:
+            pass
+        if im.mode not in ("RGB", "L"):
+            im = im.convert("RGB")
+        # Iteratively shrink the long edge and lower JPEG quality.
+        long_edge = max(im.size)
+        for max_dim, qual in [(2200, 88), (1800, 85), (1400, 82), (1100, 78), (900, 75)]:
+            if long_edge > max_dim:
+                ratio = max_dim / float(long_edge)
+                new_w = int(im.size[0] * ratio)
+                new_h = int(im.size[1] * ratio)
+                im2 = im.resize((new_w, new_h), Image.LANCZOS)
+            else:
+                im2 = im
+            buf = io.BytesIO()
+            im2.save(buf, format="JPEG", quality=qual, optimize=True)
+            data = buf.getvalue()
+            if len(data) <= _CAP_RAW:
+                return data, "image/jpeg"
+        # Last resort: return whatever the smallest pass produced
+        return data, "image/jpeg"
+    except Exception:
+        return raw_bytes, mime
+
 from config import HOST, PORT, ROADMAP_STATUSES, WEEKDAYS
 from data_helpers import (
     safe_int, clean_text, clean_child, clean_weekday, clean_priority,
@@ -2077,8 +2123,6 @@ class Handler(BaseHTTPRequestHandler):
                             ".webp":"image/webp",".gif":"image/gif",".heic":"image/jpeg",
                         }.get(_ext, "image/jpeg")
                         # Anthropic does not accept HEIC; fall back to JPEG label
-                        # (most iPhones now upload as JPEG; if it really is HEIC,
-                        # the API will reject the single block, not the whole call)
                         if _mime == "image/heic": _mime = "image/jpeg"
                         _path = f"{ASSIGNMENT_UPLOADS_DIR}/up-{_auuid.uuid4().hex[:10]}{_ext or '.jpg'}"
                         try:
@@ -2086,10 +2130,14 @@ class Handler(BaseHTTPRequestHandler):
                         except Exception:
                             _path = ""
                             _save_warning_parts.append(f"couldn't save \"{_f['name']}\"")
+                        # Anthropic enforces a 5 MB BASE64 cap per image
+                        # (~3.7 MB raw). iPhone photos blow past this, so
+                        # downscale before encoding. Original is preserved on disk.
+                        _api_bytes, _api_mime = _shrink_image_for_anthropic(_b, _mime)
                         image_payload_blocks.append({
                             "type":"image",
-                            "source":{"type":"base64","media_type":_mime,
-                                      "data": _ab64.b64encode(_b).decode("ascii")},
+                            "source":{"type":"base64","media_type":_api_mime,
+                                      "data": _ab64.b64encode(_api_bytes).decode("ascii")},
                         })
                     else:
                         _save_warning_parts.append(f"\"{_f['name']}\" is an unsupported file type — skipped")
@@ -2229,8 +2277,16 @@ class Handler(BaseHTTPRequestHandler):
                             except Exception as _je: ai_error = f"could not parse AI JSON: {_je}"
                         else:
                             ai_error = "AI response was not JSON"
+                except _aur.HTTPError as _ahe:
+                    # Anthropic returns the real error in the response body —
+                    # urllib hides it inside the HTTPError object. Capture it.
+                    try:
+                        _body = _ahe.read().decode("utf-8", errors="ignore")
+                    except Exception:
+                        _body = ""
+                    ai_error = f"HTTP {_ahe.code}: {_body[:600]}"
                 except Exception as _ae:
-                    ai_error = str(_ae)[:200]
+                    ai_error = str(_ae)[:300]
 
                 if not isinstance(parsed, dict):
                     parsed = {}
