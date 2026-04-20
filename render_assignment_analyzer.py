@@ -279,8 +279,10 @@ def render_assignment_analyzer_page() -> str:
 
     body = f"""
     <div class="aa-wrap">
-      <a href="/curriculum" class="aa-back">← Curriculum</a>
-      <a href="/gradebook" class="aa-back" style="margin-left:14px;">📓 Gradebook →</a>
+      <div class="aa-topnav">
+        <a href="/curriculum" class="aa-back">← Curriculum</a>
+        <a href="/gradebook" class="aa-back aa-back-gradebook">📓 Gradebook →</a>
+      </div>
       <h1 class="aa-h1">📥 Assignment Analyzer</h1>
       <p class="aa-sub">Upload a photo or paste text. The AI will identify the
         subject, child, type, sub-tasks, and estimated time, and save it to a
@@ -329,8 +331,11 @@ def render_assignment_analyzer_page() -> str:
 
     <style>
       .aa-wrap {{ max-width: 880px; margin: 0 auto; padding: 18px 16px 80px; color: var(--ink); font-family: 'DM Sans', system-ui, sans-serif; }}
-      .aa-back {{ color: var(--ink-muted); text-decoration: none; font-size: 14px; }}
+      .aa-topnav {{ display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }}
+      .aa-back {{ color: var(--ink-muted); text-decoration: none; font-size: 14px; padding: 8px 4px; display: inline-block; }}
       .aa-back:hover {{ color: var(--gold); }}
+      .aa-back-gradebook {{ background: #ecfccb; border: 1.5px solid #84cc16; color: #3f6212; padding: 8px 14px; border-radius: 999px; font-weight: 600; }}
+      .aa-back-gradebook:hover {{ background: #d9f99d; color: #3f6212; }}
       .aa-h1 {{ font-family: 'Cormorant Garamond', serif; font-size: 32px; margin: 8px 0 4px; color: var(--ink); }}
       .aa-h2 {{ font-family: 'Cormorant Garamond', serif; font-size: 22px; margin: 28px 0 12px; color: var(--ink); border-bottom: 1px solid var(--border); padding-bottom: 6px; }}
       .aa-count {{ color: var(--ink-faint); font-size: 16px; font-weight: 400; }}

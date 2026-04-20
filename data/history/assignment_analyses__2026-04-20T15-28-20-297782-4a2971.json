@@ -1,0 +1,67 @@
+{
+  "items": [
+    {
+      "source_kind": "image",
+      "source_filename": "IMG_5785.jpeg",
+      "source_mime": "image/jpeg",
+      "upload_path": "data/assignment_uploads/up-ff44910146.jpeg",
+      "upload_paths": [
+        {
+          "path": "data/assignment_uploads/up-ff44910146.jpeg",
+          "kind": "image",
+          "mime": "image/jpeg",
+          "filename": "IMG_5785.jpeg"
+        },
+        {
+          "path": "data/assignment_uploads/up-7332a882e0.jpeg",
+          "kind": "image",
+          "mime": "image/jpeg",
+          "filename": "IMG_5784.jpeg"
+        }
+      ],
+      "raw_text": "",
+      "child_hint": "Joseph",
+      "subject_hint": "History",
+      "description": "Pick a topic from the following suggestions, or come up with a topic of your own for a writing assignment (aim for 700 words):\r\n\r\nWhat was the Golden Age of Greece?\r\nWhich are the most important battles in Greek history?\r\nDescribe the art and architecture of Greece.\r\nThe Gods of Greece.\r\nThe Trojan War.\r\nA Profile of ...... (any of the important people you studied).",
+      "parsed": {
+        "title": "The Greek Gods: Their Origin",
+        "subject": "History",
+        "child_guess": "Joseph",
+        "assignment_type": "essay",
+        "estimated_minutes": 75,
+        "due_date_hint": "",
+        "instructions_summary": "Write a 700-word essay on a topic related to ancient Greece, choosing from suggested topics including the Greek gods, the Golden Age, important battles, art and architecture, the Trojan War, or a profile of an important figure.",
+        "sub_items": [
+          "Choose a topic from the provided list or create your own",
+          "Write approximately 700 words on the chosen topic",
+          "Organize the essay with clear structure and flow"
+        ],
+        "materials_needed": [
+          "Lined paper",
+          "Pencil",
+          "Reference materials on Greek mythology"
+        ],
+        "notes_for_mom": "Joseph has chosen to write about the Greek gods and their origins, covering the story of Gea, Uranus, Cronus, and Zeus. He has included charming illustrations. The word count notations at the top (1=133, 1=276, 11=366) suggest he is tracking his progress toward the 700-word goal — he appears to have reached approximately 366 words across both pages, so he may need to continue writing to meet the full requirement.",
+        "work_present": true,
+        "gregory_feedback": "Joseph, my boy, what a spirited retelling of the Theogony you have undertaken! I can see you have absorbed the grand drama of the Greek origin story — the treachery of Cronus, the cleverness of Rhea hiding baby Zeus, the stone wrapped in swaddling clothes, and that marvelous trick with the herb that made Cronus sick. Your inclusion of Prometheus secretly aiding Zeus shows you understand the web of alliances among these ancient figures. The little drawings of the gods add real personality to your work. I notice you have written roughly half of the 700 words assigned — might you continue the tale? What happened after Zeus cast the Titans into Tartarus? How did the Olympians divide up the cosmos?",
+        "strengths": [
+          "Strong narrative voice that captures the drama of Greek myth",
+          "Accurate sequencing of events from Gea and Uranus through Zeus's victory",
+          "Includes lesser-known details like the Aegis breastplate and Epimetheus catching the piece of sky",
+          "Creative illustrations that show engagement with the material"
+        ],
+        "growth_edges": [
+          "Your essay reaches about 366 words — could you add another page telling what Zeus did after he defeated Cronus to reach the 700-word goal?",
+          "I see a few spots where words run together or spelling wavers (like 'witch' for 'which') — what if you read it aloud slowly to catch those places?",
+          "Could you add a short introduction telling the reader why the origin of the gods matters, and a conclusion wrapping up what you've learned?"
+        ],
+        "suggested_grade": "B+",
+        "grade_rationale": "Joseph demonstrates genuine understanding of Greek mythology and tells the story with energy and accuracy. The work shows effort and engagement, including thoughtful illustrations. The grade reflects that the essay is approximately half the assigned length; completing the full 700 words with an introduction and conclusion would raise this to an A. A quick proofread for spelling and word clarity would polish it further."
+      },
+      "id": "a-20260420-120610-f2708c",
+      "ts": "2026-04-20T12:06:10",
+      "status": "pending_curriculum_placement",
+      "user_edits": {}
+    }
+  ]
+}
