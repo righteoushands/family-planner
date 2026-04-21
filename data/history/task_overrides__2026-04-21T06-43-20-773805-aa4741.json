@@ -42,12 +42,6 @@
         "postpone_to": "2026-04-20",
         "label": "FORTITUDE — Family Run (continued) & Cool-down"
       }
-    },
-    "2026-04-21": {
-      "ROUTINE::JP::2026-04-21::Prepare to leave for Bible Study. Pack everything you need for school and Homeschool PE. Confirm who has the Y card.": {
-        "action": "dismiss",
-        "label": "Prepare to leave for Bible Study. Pack everything you need for school and Homeschool PE. Confirm who has the Y card."
-      }
     }
   },
   "Joseph": {

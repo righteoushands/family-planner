@@ -424,21 +424,5 @@
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false
-  },
-  {
-    "text": "Tea party: pot, cups and saucers, sugar bowl, creamer and serving tray",
-    "assigned_to": "Mom",
-    "due_date": "2026-04-21",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Puff paint",
-    "assigned_to": "Mom",
-    "due_date": "2026-04-20",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
   }
 ]

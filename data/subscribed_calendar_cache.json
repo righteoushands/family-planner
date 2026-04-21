@@ -2,34 +2,12 @@
   "events": [
     {
       "title": "John's class",
-      "start": "2026-04-20T08:00",
-      "end": "2026-04-20T17:00",
+      "start": "2026-04-21T08:00",
+      "end": "2026-04-21T17:00",
       "all_day": false,
       "location": "",
       "notes": "",
       "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Mama haircut",
-      "start": "2026-04-20T10:00",
-      "end": "2026-04-20T10:30",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Confirmation Interview, JP",
-      "start": "2026-04-20T16:30",
-      "end": "2026-04-20T18:00",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Apple Calendar",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -1761,5 +1739,5 @@
       "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-04-20T15:45:36.050536"
+  "fetched_at": "2026-04-21T06:42:08.850916"
 }

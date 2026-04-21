@@ -854,6 +854,7 @@ def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str,
             )
             rows.append(
                 f'<div class="sw-wrap" data-child="{_child_esc}" data-iso="{_iso_esc}">'
+                f'<button class="sw-add no-print" onclick="_swAdd(this)" aria-label="Add task below">+ Add</button>'
                 f'<div class="sw-inner">{row_html}</div>'
                 f'{tray_html}'
                 f'</div>'
@@ -1135,6 +1136,7 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
         else:
             wrapped.append(
                 f'<div class="sw-wrap" data-child="{_child_esc}" data-iso="{_iso_esc}">'
+                '<button class="sw-add no-print" onclick="_swAdd(this)" aria-label="Add task below">+ Add</button>'
                 '<div class="sw-inner">' + r + '</div>'
                 + (d if d is not None else _std_del) +
                 '</div>'
