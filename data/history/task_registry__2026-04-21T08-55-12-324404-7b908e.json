@@ -803,6 +803,19 @@
       "SCHOOL::Math 87::Lesson 69 — Received brother's math (Algebra 1/2 Lesson 78)",
       "SCHOOL::Reading 7::Read for about 1 hour.",
       "SCHOOL::Spelling & Vocabulary 8::Have someone read you the definition of the Key Words for Lesson 10 and you write down the word. If you had trouble spelling anyof them, practice."
+    ],
+    "Michael": [
+      "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
+      "CHORE::Tidy basement zone — 10 minutes",
+      "MANUAL::MEDIUM::Wegmans run",
+      "SCHOOL::Art K::Practice and reinforce Monday's lesson; oral review.",
+      "SCHOOL::Handwriting K::Practice and reinforce Monday's lesson; oral review.",
+      "SCHOOL::Math K::Practice and reinforce Monday's lesson; oral review.",
+      "SCHOOL::Phonics & Reading K::Practice and reinforce Monday's lesson; oral review.",
+      "SCHOOL::Religion K::Practice and reinforce Monday's lesson; oral review."
+    ],
+    "James": [
+      "MANUAL::MEDIUM::Wegmans run"
     ]
   }
 }

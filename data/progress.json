@@ -1315,5 +1315,8 @@
   "ROUTINE::JP::2026-04-21::Break": true,
   "ROUTINE::JP::2026-04-21::Leave for RE": true,
   "ROUTINE::JP::2026-04-21::RE": true,
-  "ROUTINE::JP::2026-04-21::Travel / Buffer": true
+  "ROUTINE::JP::2026-04-21::Travel / Buffer": true,
+  "CARRY::Lauren::2026-04-21::[MEDIUM] Water the backyard": true,
+  "CARRY::Lauren::2026-04-21::[MEDIUM] Wegmans run": true,
+  "CARRY::Lauren::2026-04-21::Wrap up the school week": true
 }
