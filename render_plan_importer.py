@@ -647,7 +647,37 @@ textarea.pi-paste:focus{{outline:none;border-color:var(--navy);}}
       detail you include, the better the results.
     </p>
     <textarea class="pi-paste" id="plan-text"
-      placeholder="Paste your plan here...&#10;&#10;For example:&#10;• Monday: dentist for Michael at 2pm, Lauren driving&#10;• JP needs to finish his history essay by Friday&#10;• Family picnic Saturday at Riverside Park&#10;• Joseph: read chapters 5–8 of The Hobbit this week"></textarea>
+      placeholder="Paste your plan here, or attach an image below...&#10;&#10;For example:&#10;• Monday: dentist for Michael at 2pm, Lauren driving&#10;• JP needs to finish his history essay by Friday&#10;• Family picnic Saturday at Riverside Park&#10;• Joseph: read chapters 5–8 of The Hobbit this week"></textarea>
+
+    <!-- Image upload (file picker, drag-drop, paste) -->
+    <div id="img-drop" style="margin-top:10px;padding:14px;border:1.5px dashed #cbd5e1;
+         border-radius:10px;background:#fafaf7;text-align:center;cursor:pointer;
+         transition:background 0.15s,border-color 0.15s;">
+      <div style="font-size:0.82em;color:var(--ink-soft);">
+        &#128247; <strong>Add an image</strong> &mdash; tap to choose, drag &amp; drop, or paste a screenshot
+      </div>
+      <div style="font-size:0.72em;color:var(--ink-faint);margin-top:4px;">
+        (handwritten notes, calendar screenshots, itineraries, etc.)
+      </div>
+      <input type="file" id="plan-image-input" accept="image/*" style="display:none;">
+    </div>
+    <div id="img-preview-wrap" style="display:none;margin-top:10px;padding:10px;
+         background:#f0fdf4;border-radius:10px;border:1.5px solid #86efac;">
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <img id="img-preview" alt="Attached image" style="max-width:120px;max-height:120px;
+             border-radius:6px;border:1px solid #cbd5e1;object-fit:cover;">
+        <div style="flex:1;font-size:0.8em;color:#166534;">
+          <div style="font-weight:600;" id="img-preview-name">image attached</div>
+          <div style="font-size:0.78em;color:var(--ink-soft);margin-top:2px;" id="img-preview-size"></div>
+          <button type="button" onclick="clearPlanImage()" class="pi-btn pi-btn-sm"
+                  style="margin-top:6px;background:#fee2e2;color:#991b1b;border:none;
+                         padding:4px 10px;font-size:0.78em;border-radius:6px;cursor:pointer;">
+            &#10005; Remove image
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div style="margin-top:10px;display:flex;align-items:center;gap:10px;">
       <button class="pi-btn pi-btn-primary" id="analyze-btn" onclick="analyzePlan()">
         &#128269; Analyze Plan
@@ -983,27 +1013,98 @@ function resetToPaste() {{
   showPhase('phase-paste');
 }}
 
+// ── Image upload (file / drag-drop / paste) ────────────────────────────────
+let _planImageFile = null;
+function _setPlanImageFile(file) {{
+  if (!file || !file.type || !file.type.startsWith('image/')) return;
+  // Cap at ~8 MB to keep request size reasonable for Claude vision
+  if (file.size > 8 * 1024 * 1024) {{
+    const e = document.getElementById('paste-error');
+    e.textContent = 'Image is too large (max 8 MB). Please use a smaller screenshot.';
+    e.style.display = 'block';
+    return;
+  }}
+  _planImageFile = file;
+  const wrap = document.getElementById('img-preview-wrap');
+  const img  = document.getElementById('img-preview');
+  document.getElementById('img-preview-name').textContent = file.name || 'pasted image';
+  document.getElementById('img-preview-size').textContent =
+    Math.round(file.size / 1024) + ' KB · ' + file.type;
+  const reader = new FileReader();
+  reader.onload = ev => {{ img.src = ev.target.result; }};
+  reader.readAsDataURL(file);
+  wrap.style.display = 'block';
+  document.getElementById('img-drop').style.display = 'none';
+  document.getElementById('paste-error').style.display = 'none';
+}}
+function clearPlanImage() {{
+  _planImageFile = null;
+  document.getElementById('img-preview-wrap').style.display = 'none';
+  document.getElementById('img-drop').style.display = 'block';
+  document.getElementById('plan-image-input').value = '';
+}}
+(function initImageUpload() {{
+  const drop = document.getElementById('img-drop');
+  const input = document.getElementById('plan-image-input');
+  if (!drop || !input) return;
+  drop.addEventListener('click', () => input.click());
+  input.addEventListener('change', e => {{
+    if (e.target.files && e.target.files[0]) _setPlanImageFile(e.target.files[0]);
+  }});
+  ['dragenter','dragover'].forEach(ev =>
+    drop.addEventListener(ev, e => {{ e.preventDefault(); drop.style.background = '#ecfdf5';
+                                       drop.style.borderColor = '#86efac'; }}));
+  ['dragleave','drop'].forEach(ev =>
+    drop.addEventListener(ev, e => {{ e.preventDefault(); drop.style.background = '#fafaf7';
+                                       drop.style.borderColor = '#cbd5e1'; }}));
+  drop.addEventListener('drop', e => {{
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0])
+      _setPlanImageFile(e.dataTransfer.files[0]);
+  }});
+  // Paste-from-clipboard anywhere on the page during paste phase
+  document.addEventListener('paste', e => {{
+    const phase = document.getElementById('phase-paste');
+    if (!phase || !phase.classList.contains('active')) return;
+    const items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    for (const it of items) {{
+      if (it.kind === 'file' && it.type.startsWith('image/')) {{
+        const f = it.getAsFile();
+        if (f) {{ _setPlanImageFile(f); e.preventDefault(); break; }}
+      }}
+    }}
+  }});
+}})();
+
 // ── Analyze ────────────────────────────────────────────────────────────────
 async function analyzePlan(extraAnswers) {{
   const text = document.getElementById('plan-text').value.trim();
-  if (!text) {{
+  if (!text && !_planImageFile) {{
     const e = document.getElementById('paste-error');
-    e.textContent = 'Please paste a plan first.';
+    e.textContent = 'Please paste a plan or attach an image first.';
     e.style.display = 'block';
     return;
   }}
   document.getElementById('paste-error').style.display = 'none';
   document.getElementById('analyze-btn').disabled = true;
-  document.getElementById('thinking-label').textContent = 'Analyzing your plan\u2026';
+  document.getElementById('thinking-label').textContent = _planImageFile
+    ? 'Reading your image and analyzing\u2026'
+    : 'Analyzing your plan\u2026';
   showPhase('phase-thinking');
 
-  const body = new URLSearchParams({{plan_text: text}});
-  if (extraAnswers) {{
-    body.append('answers', JSON.stringify(extraAnswers));
-  }}
-
+  let resp;
   try {{
-    const resp = await fetch('/plan-import-analyze', {{method:'POST', body}});
+    if (_planImageFile) {{
+      const fd = new FormData();
+      fd.append('plan_text', text);
+      fd.append('plan_image', _planImageFile, _planImageFile.name || 'pasted.png');
+      if (extraAnswers) fd.append('answers', JSON.stringify(extraAnswers));
+      resp = await fetch('/plan-import-analyze', {{method:'POST', body: fd}});
+    }} else {{
+      const body = new URLSearchParams({{plan_text: text}});
+      if (extraAnswers) body.append('answers', JSON.stringify(extraAnswers));
+      resp = await fetch('/plan-import-analyze', {{method:'POST', body}});
+    }}
     if (!resp.ok) throw new Error(await resp.text());
     const data = await resp.json();
     analysisData = data;

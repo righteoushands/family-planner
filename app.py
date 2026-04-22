@@ -6013,6 +6013,7 @@ class Handler(BaseHTTPRequestHandler):
             # ── Plan Import — Analyze ─────────────────────────────────────────
             elif path == "/plan-import-analyze":
                 import json as _pij, re as _pire, urllib.request as _pireq
+                import base64 as _pib64
                 from datetime import datetime as _pidt
                 _pi_v = self._get_viewer()
                 if not (_pi_v and _auth.is_admin(_pi_v)):
@@ -6020,13 +6021,35 @@ class Handler(BaseHTTPRequestHandler):
                     try: self.wfile.write(b"Forbidden")
                     except BrokenPipeError: pass
                     return
-                plan_text = clean_text(data.get("plan_text",[""])[0])
-                answers_raw = data.get("answers",[""])[0]
+                # Detect multipart (image upload) vs urlencoded
+                _pi_img_b64 = ""
+                _pi_img_mime = ""
+                _pi_ctype = (self.headers.get("Content-Type","") or "").lower()
+                if _pi_ctype.startswith("multipart/form-data"):
+                    try:
+                        form = parse_multipart_form(self)
+                        plan_text = clean_text(form.getfirst("plan_text","") or "")
+                        answers_raw = form.getfirst("answers","") or ""
+                        _img_field = form["plan_image"] if "plan_image" in form else None
+                        if _img_field is not None and getattr(_img_field, "filename", ""):
+                            _img_bytes = _img_field.file.read()
+                            _pi_img_mime = (_img_field.type or "image/png").strip()
+                            # Cap at 8 MB server-side too
+                            if len(_img_bytes) <= 8 * 1024 * 1024 and _img_bytes:
+                                _pi_img_b64 = _pib64.b64encode(_img_bytes).decode("ascii")
+                    except Exception as _mpe:
+                        self.send_response(400); self.send_header("Content-Type","application/json"); self.end_headers()
+                        try: self.wfile.write(_pij.dumps({"error": f"Bad upload: {_mpe}"}).encode())
+                        except BrokenPipeError: pass
+                        return
+                else:
+                    plan_text = clean_text(data.get("plan_text",[""])[0])
+                    answers_raw = data.get("answers",[""])[0]
                 try: answers = _pij.loads(answers_raw) if answers_raw.strip() else {}
                 except Exception: answers = {}
-                if not plan_text:
+                if not plan_text and not _pi_img_b64:
                     self.send_response(400); self.send_header("Content-Type","application/json"); self.end_headers()
-                    try: self.wfile.write(_pij.dumps({"error":"No plan text"}).encode())
+                    try: self.wfile.write(_pij.dumps({"error":"No plan text or image"}).encode())
                     except BrokenPipeError: pass
                     return
                 # API key
@@ -6052,17 +6075,34 @@ class Handler(BaseHTTPRequestHandler):
                 _pi_safe_text = (plan_text
                     .replace('\u201c', '\u2018').replace('\u201d', '\u2019')  # curly → single
                     .replace('"', "'"))                                        # straight → single
-                _pi_user = f"Here is the plan to parse:\n\n{_pi_safe_text}"
+                if _pi_safe_text:
+                    _pi_user = f"Here is the plan to parse:\n\n{_pi_safe_text}"
+                else:
+                    _pi_user = ("The plan is in the attached image. Read it carefully "
+                                "(including any handwriting), extract every event/task, "
+                                "and parse it according to the rules above.")
                 if answers:
                     _pi_user += "\n\n== ANSWERS TO PREVIOUS QUESTIONS ==\n"
                     for qid, ans in answers.items():
                         if ans.strip():
                             _pi_user += f"- {qid}: {ans}\n"
+                # Build message content: image first (if any), then text
+                if _pi_img_b64:
+                    _msg_content = [
+                        {"type": "image", "source": {
+                            "type": "base64",
+                            "media_type": _pi_img_mime or "image/png",
+                            "data": _pi_img_b64,
+                        }},
+                        {"type": "text", "text": _pi_user},
+                    ]
+                else:
+                    _msg_content = _pi_user
                 _pi_payload = _pij.dumps({
                     "model": "claude-sonnet-4-20250514",
                     "max_tokens": 4000,
                     "system": _pi_sys,
-                    "messages": [{"role": "user", "content": _pi_user}],
+                    "messages": [{"role": "user", "content": _msg_content}],
                     "stream": False,
                 }).encode("utf-8")
                 _pi_req = _pireq.Request(
@@ -6158,7 +6198,8 @@ class Handler(BaseHTTPRequestHandler):
                     # Always persist the full analysis to the server so it
                     # can be recovered even if the browser tab is closed.
                     try:
-                        _plan_history.append_entry(plan_text, _pi_parsed,
+                        _hist_text = plan_text or "[image upload — no text]"
+                        _plan_history.append_entry(_hist_text, _pi_parsed,
                                                    viewer=_pi_v, source="live")
                     except Exception:
                         pass
