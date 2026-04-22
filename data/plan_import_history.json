@@ -1,1 +1,108 @@
-[]
+[
+  {
+    "id": "4308afdea803",
+    "created_at": "2026-04-22T17:52:11Z",
+    "viewer": "lauren",
+    "source": "live",
+    "plan_text": "Sarah Ori visiting May 15\u201317\nSouthwest Flight 3702 arrives DCA 12:20 PM on 5/15\nSouthwest Flight 1731 departs DCA 6:50 PM on 5/15\nAmtrak Train 95 Northeast Regional departs ALX 2:56 PM arrives FBG 3:42 PM on 5/15\nAmtrak Train 80 Carolinian departs FBG 3:00 PM arrives ALX 4:00 PM on 5/17\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b",
+    "analysis": {
+      "events": [
+        {
+          "id": "e1",
+          "title": "Sarah Ori visit",
+          "date": "2026-05-15",
+          "time": "3:42 PM",
+          "end_time": "3:00 PM",
+          "who": [
+            "Lauren"
+          ],
+          "notes": "Visit from May 15-17",
+          "recurrence": "none",
+          "confidence": "medium"
+        },
+        {
+          "id": "e2",
+          "title": "Pick up Sarah Ori at Fredericksburg station",
+          "date": "2026-05-15",
+          "time": "3:42 PM",
+          "end_time": "4:00 PM",
+          "who": [
+            "Lauren"
+          ],
+          "notes": "Amtrak Train 95 Northeast Regional arrives FBG 3:42 PM",
+          "recurrence": "none",
+          "confidence": "high"
+        },
+        {
+          "id": "e3",
+          "title": "Drop off Sarah Ori at Fredericksburg station",
+          "date": "2026-05-17",
+          "time": "2:30 PM",
+          "end_time": "3:00 PM",
+          "who": [
+            "Lauren"
+          ],
+          "notes": "Amtrak Train 80 Carolinian departs FBG 3:00 PM",
+          "recurrence": "none",
+          "confidence": "high"
+        }
+      ],
+      "tasks": [],
+      "questions": [
+        {
+          "id": "q1",
+          "text": "Who is Sarah Ori and what is the purpose of her visit?",
+          "related_to": "e1",
+          "field": "context"
+        },
+        {
+          "id": "q2",
+          "text": "The flight times suggest Sarah is connecting from a flight to Amtrak - is someone picking her up at DCA and bringing her to Alexandria station?",
+          "related_to": "e1",
+          "field": "transportation"
+        },
+        {
+          "id": "q3",
+          "text": "There's only 36 minutes between the flight arrival (12:20 PM) and Southwest departure (6:50 PM) - this seems like a very tight connection. Is this correct?",
+          "related_to": "e1",
+          "field": "timing"
+        }
+      ],
+      "warnings": [
+        {
+          "text": "The transportation timeline is confusing - Southwest Flight 3702 arrives DCA at 12:20 PM and Southwest Flight 1731 departs DCA at 6:50 PM the same day, but Sarah is taking Amtrak from Alexandria at 2:56 PM. This suggests someone else may be using the flights.",
+          "severity": "high",
+          "related_to": "e1"
+        },
+        {
+          "text": "Only 36 minutes between Southwest flight arrival and departure at DCA - this is an extremely tight connection that may not be feasible.",
+          "severity": "high",
+          "related_to": "e1"
+        }
+      ],
+      "suggestions": [
+        {
+          "text": "Clarify the transportation plan - it appears the flight information may be for someone else, or there may be additional transportation steps missing.",
+          "related_to": "e1"
+        },
+        {
+          "text": "Consider preparing the guest room and planning meals for Sarah's 2-night stay.",
+          "related_to": "e1"
+        },
+        {
+          "text": "Add buffer time before departure to Fredericksburg station in case of traffic or other delays.",
+          "related_to": "e3"
+        }
+      ],
+      "_companions": [
+        {
+          "key": "lucy",
+          "label": "Lucy",
+          "color": "#5b3a8a",
+          "emoji": "\u2728",
+          "role": "Family Companion"
+        }
+      ]
+    }
+  }
+]

@@ -70,6 +70,20 @@ TODAY IS: {label_today} ({iso_today})
 5. For tasks with natural sub-steps, list as subtasks (max 5)
 6. Set confidence: "high" = certain; "medium" = best inference; "low" = critical info missing
 7. Items with missing critical info (date or person unknown) MUST appear in "questions" too
+8. NEVER set end_time earlier than time on the same date — if you can't compute a sensible end, leave end_time empty
+9. NEVER mix data from two different source lines into one event — each distinct trip / flight / train / appointment is its own event
+
+== TRAVEL & MULTI-DAY RULES ==
+A. Multi-day visits ("X visiting May 15–17", "guest stays 5/15 to 5/17"):
+   → ONE event with date = first day, end_date = last day, time = "" and end_time = "" (treat as all-day span). Title like "Sarah Ori visiting".
+B. Flights — create ONE event per flight segment. Title format: "Flight [airline] [#] — [arrives|departs] [airport]".
+   • Arrival flight ("arrives DCA 12:20 PM on 5/15"): time = arrival time, end_time empty.
+   • Departure flight ("departs DCA 6:50 PM on 5/15"): time = departure time, end_time empty.
+   • If the visitor is being picked up/dropped off, ALSO create a related task ("Pick up Sarah Ori at DCA — Southwest 3702") assigned to the most likely driver (Lauren by default), due_date = same day.
+C. Trains/buses with both depart and arrive times ("Amtrak 95 departs ALX 2:56 PM arrives FBG 3:42 PM on 5/15"):
+   → ONE event. time = depart time, end_time = arrive time. Title like "Amtrak 95 — ALX → FBG". Notes: include train name and full depart/arrive details.
+D. If a visitor's arrival logistics include both a flight AND a connecting train on the same day, those are TWO separate events plus optional pickup tasks — never merge them.
+E. Date ranges with en-dash (–), em-dash (—), or hyphen (-) between two dates ALWAYS mean a span; resolve both endpoints.
 
 == EXISTING CALENDAR (next 30 days — scan for conflicts) ==
 {events_summary}
@@ -101,6 +115,7 @@ CRITICAL JSON RULES:
       "id": "e1",
       "title": "Dentist — Michael",
       "date": "YYYY-MM-DD",
+      "end_date": "YYYY-MM-DD",
       "time": "10:00 AM",
       "end_time": "11:00 AM",
       "who": ["Lauren", "Michael"],
