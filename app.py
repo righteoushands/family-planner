@@ -2718,21 +2718,30 @@ class Handler(BaseHTTPRequestHandler):
                 # ── If upload is a PDF, extract text and treat as text_in ────
                 _is_pdf = ("pdf" in photo_mime) or photo_name.endswith(".pdf") or (
                     photo_bytes and photo_bytes[:4] == b"%PDF")
+                _pdf_no_text = False  # flag: PDF was uploaded but yielded no extractable text
                 if photo_bytes and _is_pdf:
                     try:
                         import io as _io2, PyPDF2 as _ppdf
                         reader = _ppdf.PdfReader(_io2.BytesIO(photo_bytes))
                         _pdf_text = []
-                        for _pg in reader.pages[:10]:  # cap at first 10 pages
+                        for _pg in reader.pages[:10]:
                             try: _pdf_text.append(_pg.extract_text() or "")
                             except Exception: pass
                         _joined = "\n".join(t for t in _pdf_text if t.strip())
                         if _joined.strip():
                             text_in = (text_in + "\n\n" + _joined).strip() if text_in else _joined
-                        photo_bytes = None  # don't ALSO send to vision
-                    except Exception:
-                        # PDF couldn't be parsed as text — leave bytes alone, vision will skip it
+                            photo_bytes = None  # don't ALSO send to vision
+                        else:
+                            # No extractable text (likely a scanned/image PDF). Mark so we
+                            # can surface a useful note and skip the unreadable bytes.
+                            _pdf_no_text = True
+                            photo_bytes = None
+                            print(f"[recipe-import] PDF {photo_name} had no extractable text "
+                                  f"(likely scanned image); falling back.")
+                    except Exception as _pdf_err:
+                        _pdf_no_text = True
                         photo_bytes = None
+                        print(f"[recipe-import] PDF parse error for {photo_name}: {_pdf_err}")
                 # ── Fetch URL if provided and no text/photo ──────────────────
                 if url_in and not text_in and not photo_bytes:
                     try:
@@ -2816,6 +2825,7 @@ class Handler(BaseHTTPRequestHandler):
                         text_in = url_in  # fallback: pass the URL itself
 
                 ingr = ""; instr = ""; tags = []; prep = ""; ai_name = ""
+                _ai_error = ""
                 try:
                     from render_ai_planner import get_api_key
                     api_key = get_api_key()
@@ -2846,7 +2856,7 @@ class Handler(BaseHTTPRequestHandler):
                         else:
                             content = text_in or url_in
                             _vision_payload = _rj.dumps({
-                                "model": "claude-sonnet-4-5",
+                                "model": "claude-sonnet-4-6",
                                 "max_tokens": 4000,
                                 "messages": [{"role": "user", "content": (
                                     "Parse this recipe into structured JSON. "
@@ -2880,20 +2890,36 @@ class Handler(BaseHTTPRequestHandler):
                         prep    = parsed_r.get("prep_time", "")
                         ai_name = (parsed_r.get("name") or "").strip()
                 except Exception as _re_err:
-                    if not ingr:
-                        ingr = text_in[:2000] if text_in else ""
+                    _ai_error = str(_re_err)[:200]
+                    print(f"[recipe-import] AI parse failed: {_ai_error}")
+                    # Fallback: drop the raw extracted text into instructions so the user
+                    # can at least see/edit something rather than getting a blank form.
+                    if text_in and not instr:
+                        instr = text_in[:8000]
                 # Pick a name: form input wins, then AI-detected, then a sensible fallback
                 final_name = name_in or ai_name or (
                     "Imported recipe " + date.today().isoformat()
                 )
                 # Render preview/approval page instead of saving immediately
                 from render_meals import render_recipe_import_preview
-                _src_note = ""
-                if url_in:    _src_note = f"Imported from {url_in[:120]}"
+                _src_note_parts = []
+                if url_in:
+                    _src_note_parts.append(f"Imported from {url_in[:120]}")
                 elif photo_name and photo_name.endswith(".pdf"):
-                    _src_note = f"Imported from PDF: {photo_name}"
+                    _src_note_parts.append(f"Imported from PDF: {photo_name}")
                 elif photo_bytes is None and dish_image_url:
-                    _src_note = "Imported from photo"
+                    _src_note_parts.append("Imported from photo")
+                if _pdf_no_text:
+                    _src_note_parts.append(
+                        "⚠ This PDF appears to be a scan/image with no extractable text. "
+                        "Try uploading the recipe as a JPEG/PNG photo instead — the AI can read images directly."
+                    )
+                if _ai_error and not ingr and not instr:
+                    _src_note_parts.append(
+                        f"⚠ AI extraction failed: {_ai_error}. "
+                        "You can paste the recipe text manually into the fields below."
+                    )
+                _src_note = " · ".join(_src_note_parts)
                 _preview_html = render_recipe_import_preview(
                     final_name, ingr, instr, tags or [], prep,
                     image_url=dish_image_url, source_note=_src_note,
