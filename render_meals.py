@@ -1158,6 +1158,56 @@ DEFAULT_RECIPES = [
 ]
 
 
+def render_recipe_import_preview(name: str, ingredients: str, instructions: str,
+                                 tags: list, prep_time: str, image_url: str = "",
+                                 source_note: str = "") -> str:
+    """Show parsed-recipe preview after import — user can review/edit then Save or Cancel."""
+    from ui_helpers import html_page, top_nav
+    tags_str = ", ".join(tags) if isinstance(tags, list) else str(tags or "")
+    img_block = (
+        f'<div style="margin:0 0 14px;"><img src="{escape(image_url)}" alt="" '
+        f'style="width:100%;max-height:300px;object-fit:cover;border-radius:8px;"></div>'
+    ) if image_url else ""
+    note_block = (
+        f'<p style="font-size:0.78em;color:var(--ink-faint);margin:0 0 12px;">{escape(source_note)}</p>'
+    ) if source_note else ""
+    body = (
+        top_nav() +
+        '<div style="max-width:640px;margin:0 auto;">'
+        '<h2 style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:1.6rem;font-weight:600;'
+        'color:var(--ink);margin-bottom:6px;">Review imported recipe</h2>'
+        '<p style="font-size:0.85em;color:var(--ink-muted);margin-bottom:16px;">'
+        'Edit anything that looks wrong, then save it to your library. '
+        'Nothing is saved until you click <b>Save recipe</b>.</p>'
+        + note_block +
+        '<div class="card">'
+        + img_block +
+        '<form method="POST" action="/recipe-save" enctype="multipart/form-data">'
+        f'<input type="hidden" name="image_url" value="{escape(image_url)}">'
+        '<label>Name</label>'
+        f'<input type="text" name="name" required value="{escape(name)}" style="margin-bottom:10px;">'
+        '<label>Prep time</label>'
+        f'<input type="text" name="prep_time" value="{escape(prep_time)}" style="margin-bottom:10px;">'
+        '<label>Tags <span style="font-weight:400;font-size:0.85em;color:#888;">(comma-separated)</span></label>'
+        f'<input type="text" name="tags" value="{escape(tags_str)}" style="margin-bottom:10px;">'
+        '<label>Replace dish photo <span style="font-weight:400;font-size:0.85em;color:#888;">(optional)</span></label>'
+        '<input type="file" name="dish_photo" accept="image/*" style="margin-bottom:10px;font-size:0.85em;">'
+        '<label>Ingredients</label>'
+        f'<textarea name="ingredients" rows="8" style="margin-bottom:10px;font-family:inherit;">{escape(ingredients)}</textarea>'
+        '<label>Instructions</label>'
+        f'<textarea name="instructions" rows="10" style="margin-bottom:14px;font-family:inherit;">{escape(instructions)}</textarea>'
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;">'
+        '<button type="submit" style="padding:10px 22px;background:var(--ink);color:var(--gold-light);'
+        'border:none;border-radius:8px;font-family:inherit;font-size:0.9em;cursor:pointer;font-weight:600;">Save recipe</button>'
+        '<a href="/recipes" style="padding:10px 18px;background:transparent;border:1.5px solid var(--border);'
+        'border-radius:8px;font-family:inherit;font-size:0.9em;color:var(--ink-muted);text-decoration:none;'
+        'display:inline-block;">Cancel</a>'
+        '</div></form>'
+        '</div></div>'
+    )
+    return html_page("Review recipe", body)
+
+
 def _seed_default_recipes():
     """Only seed if the recipe file is empty or missing."""
     recipes = load_recipes()
@@ -1334,8 +1384,8 @@ def render_recipes_page(status: str = "") -> str:
         'style="margin-bottom:8px;"></textarea>'
         '</div>'
         '<div style="margin-bottom:14px;">'
-        '<label>Recipe name <span style="font-weight:400;font-size:0.85em;color:#888;">(required)</span></label>'
-        '<input type="text" name="name" required placeholder="Name this recipe" style="margin-bottom:8px;">'
+        '<label>Recipe name <span style="font-weight:400;font-size:0.85em;color:#888;">(optional — we\'ll grab it from the source if blank)</span></label>'
+        '<input type="text" name="name" placeholder="Leave blank to auto-detect" style="margin-bottom:8px;">'
         '</div>'
         '<div id="recipe-import-status" style="font-size:0.82em;color:var(--brown);min-height:18px;margin-bottom:8px;"></div>'
         '<div style="display:flex;gap:8px;">'

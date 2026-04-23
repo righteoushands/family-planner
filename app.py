@@ -2680,9 +2680,12 @@ class Handler(BaseHTTPRequestHandler):
                 tags_raw = clean_text(form.getfirst("tags", ""))
                 tags     = [t.strip() for t in tags_raw.split(",") if t.strip()]
                 prep     = clean_text(form.getfirst("prep_time", ""))
-                remove_image = clean_text(form.getfirst("remove_image", "")) == "1"
+                remove_image  = clean_text(form.getfirst("remove_image", "")) == "1"
+                hidden_image  = clean_text(form.getfirst("image_url", ""))  # from import-preview flow
                 _, dish_raw, _dm, _dn = _read_upload("dish_photo")
                 new_image_url = _save_dish_photo(dish_raw, _dn) if dish_raw else ""
+                # Effective image: newly uploaded > hidden carry-over > none
+                effective_image = new_image_url or hidden_image
                 if name:
                     if rid_edit:
                         recipes = load_recipes()
@@ -2698,7 +2701,7 @@ class Handler(BaseHTTPRequestHandler):
                         from render_meals import save_recipes
                         save_recipes(recipes)
                     else:
-                        save_recipe(name, ingr, instr, tags, prep, image=new_image_url)
+                        save_recipe(name, ingr, instr, tags, prep, image=effective_image)
                 self.send_response(302)
                 self.send_header("Location", "/recipes?msg=Recipe+saved")
                 self.end_headers(); return
@@ -2812,7 +2815,7 @@ class Handler(BaseHTTPRequestHandler):
                     except Exception:
                         text_in = url_in  # fallback: pass the URL itself
 
-                ingr = ""; instr = ""; tags = []; prep = ""
+                ingr = ""; instr = ""; tags = []; prep = ""; ai_name = ""
                 try:
                     from render_ai_planner import get_api_key
                     api_key = get_api_key()
@@ -2824,17 +2827,18 @@ class Handler(BaseHTTPRequestHandler):
                             media_type = "image/jpeg"
                             _vision_payload = _rj.dumps({
                                 "model": "claude-opus-4-5",
-                                "max_tokens": 2000,
+                                "max_tokens": 4000,
                                 "messages": [{
                                     "role": "user",
                                     "content": [
                                         {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": img_b64}},
                                         {"type": "text", "text": (
-                                            "Read this recipe image and return ONLY valid JSON with keys: "
-                                            "ingredients (string with one item per line), "
-                                            "instructions (string with the COMPLETE step-by-step directions, every step, do NOT abbreviate or summarize), "
+                                            "Read this recipe and return ONLY valid JSON (no markdown fences) with keys: "
+                                            "name (string, the recipe title), "
+                                            "ingredients (string, one item per line — ONLY ingredient amounts and items), "
+                                            "instructions (string, the COMPLETE numbered/step-by-step cooking directions — every step, verbatim, do NOT summarize), "
                                             "tags (array of strings), prep_time (string). "
-                                            "No markdown fences, just raw JSON."
+                                            "Critical: ingredients and instructions MUST be split correctly. Anything that describes a cooking action (heat, mix, bake, stir, simmer, season) belongs in instructions, NOT ingredients."
                                         )},
                                     ]
                                 }]
@@ -2842,14 +2846,18 @@ class Handler(BaseHTTPRequestHandler):
                         else:
                             content = text_in or url_in
                             _vision_payload = _rj.dumps({
-                                "model": "claude-haiku-4-5-20251001",
-                                "max_tokens": 2000,
+                                "model": "claude-sonnet-4-5",
+                                "max_tokens": 4000,
                                 "messages": [{"role": "user", "content": (
                                     "Parse this recipe into structured JSON. "
                                     "Return ONLY valid JSON (no markdown fences) with keys: "
-                                    "ingredients (string with one item per line), "
-                                    "instructions (string with the COMPLETE step-by-step directions — copy every step verbatim from the source, do NOT abbreviate or summarize), "
+                                    "name (string, the recipe title from the source), "
+                                    "ingredients (string, one item per line — ONLY ingredient amounts and items, e.g. \"2 cups flour\"), "
+                                    "instructions (string, the COMPLETE step-by-step cooking directions — copy every step verbatim from the source, do NOT abbreviate or summarize), "
                                     "tags (array of strings), prep_time (string).\n\n"
+                                    "Critical: ingredients and instructions MUST be split correctly. Anything that describes a cooking action "
+                                    "(preheat, heat, mix, combine, whisk, bake, stir, simmer, season, fold, knead, etc.) belongs in instructions, NOT ingredients. "
+                                    "If the source does not clearly separate them, you must infer the split from context.\n\n"
                                     f"Recipe source:\n{content[:12000]}"
                                 )}]
                             }).encode()
@@ -2866,16 +2874,36 @@ class Handler(BaseHTTPRequestHandler):
                         raw_text_out = _rre.sub(r'^```(?:json)?\s*\n?', '', raw_text_out)
                         raw_text_out = _rre.sub(r'\n?```\s*$', '', raw_text_out).strip()
                         parsed_r = _rj.loads(raw_text_out)
-                        ingr  = parsed_r.get("ingredients", "")
-                        instr = parsed_r.get("instructions", "")
-                        tags  = parsed_r.get("tags", [])
-                        prep  = parsed_r.get("prep_time", "")
+                        ingr    = parsed_r.get("ingredients", "")
+                        instr   = parsed_r.get("instructions", "")
+                        tags    = parsed_r.get("tags", [])
+                        prep    = parsed_r.get("prep_time", "")
+                        ai_name = (parsed_r.get("name") or "").strip()
                 except Exception as _re_err:
                     if not ingr:
-                        ingr = text_in[:500] if text_in else ""
-                if name_in:
-                    save_recipe(name_in, ingr, instr, tags, prep, image=dish_image_url)
-                redirect = "/recipes?msg=Recipe+imported"
+                        ingr = text_in[:2000] if text_in else ""
+                # Pick a name: form input wins, then AI-detected, then a sensible fallback
+                final_name = name_in or ai_name or (
+                    "Imported recipe " + date.today().isoformat()
+                )
+                # Render preview/approval page instead of saving immediately
+                from render_meals import render_recipe_import_preview
+                _src_note = ""
+                if url_in:    _src_note = f"Imported from {url_in[:120]}"
+                elif photo_name and photo_name.endswith(".pdf"):
+                    _src_note = f"Imported from PDF: {photo_name}"
+                elif photo_bytes is None and dish_image_url:
+                    _src_note = "Imported from photo"
+                _preview_html = render_recipe_import_preview(
+                    final_name, ingr, instr, tags or [], prep,
+                    image_url=dish_image_url, source_note=_src_note,
+                )
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.end_headers()
+                try: self.wfile.write(_preview_html.encode())
+                except BrokenPipeError: pass
+                return
 
         else:
             # /plan-import-apply reads its own raw JSON body — don't consume it with URL form parse
