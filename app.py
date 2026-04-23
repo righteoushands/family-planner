@@ -2861,16 +2861,14 @@ class Handler(BaseHTTPRequestHandler):
                             _vision_payload = _rj.dumps({
                                 "model": "claude-sonnet-4-20250514",
                                 "max_tokens": 4000,
+                                "system": "You are a recipe parser. Output ONLY a single JSON object, no prose, no markdown fences, no preamble.",
                                 "messages": [{"role": "user", "content": (
-                                    "Parse this recipe into structured JSON. "
-                                    "Return ONLY valid JSON (no markdown fences) with keys: "
-                                    "name (string, the recipe title from the source), "
-                                    "ingredients (string, one item per line — ONLY ingredient amounts and items, e.g. \"2 cups flour\"), "
-                                    "instructions (string, the COMPLETE step-by-step cooking directions — copy every step verbatim from the source, do NOT abbreviate or summarize), "
+                                    "Parse this recipe into a JSON object with these exact keys: "
+                                    "name (string), ingredients (string, one item per line — amounts + items only), "
+                                    "instructions (string, COMPLETE step-by-step directions copied verbatim), "
                                     "tags (array of strings), prep_time (string).\n\n"
-                                    "Critical: ingredients and instructions MUST be split correctly. Anything that describes a cooking action "
-                                    "(preheat, heat, mix, combine, whisk, bake, stir, simmer, season, fold, knead, etc.) belongs in instructions, NOT ingredients. "
-                                    "If the source does not clearly separate them, you must infer the split from context.\n\n"
+                                    "Cooking actions (preheat, mix, whisk, bake, stir, simmer, fold, knead, etc.) go in instructions, NEVER ingredients.\n\n"
+                                    "Begin your response with { and end with }. Output only the JSON.\n\n"
                                     f"Recipe source:\n{content[:12000]}"
                                 )}]
                             }).encode()
@@ -2891,18 +2889,20 @@ class Handler(BaseHTTPRequestHandler):
                             except Exception: pass
                             print(f"[recipe-import] Anthropic HTTP error: {_http_err} — body: {_err_body}")
                             raise
-                        raw_text_out = (_res.get("content", [{}])[0].get("text", "") or "").strip()
+                        # Concatenate all text blocks (some responses split across multiple)
+                        _blocks = _res.get("content", []) or []
+                        raw_text_out = "".join((b.get("text","") or "") for b in _blocks if isinstance(b, dict)).strip()
                         try:
                             with open("/tmp/recipe_import_error.log", "a") as _ef0:
                                 import datetime as _dt0
                                 _ef0.write(f"\n=== {_dt0.datetime.now().isoformat()} RAW RES ===\n{_rj.dumps(_res)[:3000]}\n")
                         except Exception: pass
-                        if not raw_text_out:
-                            print(f"[recipe-import] Empty response body. _res keys: {list(_res.keys())} stop_reason: {_res.get('stop_reason')}", flush=True)
-                        # Strip markdown fences properly
-                        raw_text_out = _rre.sub(r'^```(?:json)?\s*\n?', '', raw_text_out)
-                        raw_text_out = _rre.sub(r'\n?```\s*$', '', raw_text_out).strip()
-                        parsed_r = _rj.loads(raw_text_out)
+                        # Tolerant extraction: find first {...} block in the response
+                        _json_match = _rre.search(r'\{.*\}', raw_text_out, _rre.DOTALL)
+                        if _json_match:
+                            parsed_r = _rj.loads(_json_match.group(0))
+                        else:
+                            raise ValueError(f"No JSON object in response (stop_reason={_res.get('stop_reason')}, len={len(raw_text_out)})")
                         ingr    = parsed_r.get("ingredients", "")
                         instr   = parsed_r.get("instructions", "")
                         tags    = parsed_r.get("tags", [])
