@@ -2859,7 +2859,7 @@ class Handler(BaseHTTPRequestHandler):
                         else:
                             content = text_in or url_in
                             _vision_payload = _rj.dumps({
-                                "model": "claude-sonnet-4-6",
+                                "model": "claude-sonnet-4-20250514",
                                 "max_tokens": 4000,
                                 "messages": [{"role": "user", "content": (
                                     "Parse this recipe into structured JSON. "
@@ -2880,9 +2880,20 @@ class Handler(BaseHTTPRequestHandler):
                             headers={"Content-Type": "application/json", "x-api-key": api_key,
                                      "anthropic-version": "2023-06-01"},
                         )
-                        with _ur3.urlopen(_rq, timeout=30) as _resp2:
-                            _res = _rj.loads(_resp2.read())
-                        raw_text_out = _res["content"][0]["text"].strip()
+                        try:
+                            with _ur3.urlopen(_rq, timeout=60) as _resp2:
+                                _res = _rj.loads(_resp2.read())
+                        except Exception as _http_err:
+                            # Pull the actual error body from Anthropic so we can see what's wrong
+                            _err_body = ""
+                            try:
+                                _err_body = getattr(_http_err, "read", lambda: b"")().decode("utf-8", "ignore")[:500]
+                            except Exception: pass
+                            print(f"[recipe-import] Anthropic HTTP error: {_http_err} — body: {_err_body}")
+                            raise
+                        raw_text_out = (_res.get("content", [{}])[0].get("text", "") or "").strip()
+                        if not raw_text_out:
+                            print(f"[recipe-import] Empty response body. _res keys: {list(_res.keys())} stop_reason: {_res.get('stop_reason')}")
                         # Strip markdown fences properly
                         raw_text_out = _rre.sub(r'^```(?:json)?\s*\n?', '', raw_text_out)
                         raw_text_out = _rre.sub(r'\n?```\s*$', '', raw_text_out).strip()
