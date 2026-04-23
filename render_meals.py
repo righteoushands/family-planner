@@ -1172,9 +1172,12 @@ def render_recipes_page(status: str = "") -> str:
     from ui_helpers import html_page, render_status_message, top_nav
     _seed_default_recipes()
     recipes = load_recipes()
+    # Defensive: silently drop any malformed (non-dict) entries so a single
+    # corrupt row can't blank-page the entire library.
+    recipes = [r for r in recipes if isinstance(r, dict)]
 
     # Collect all unique tags for filter chips
-    all_tags = sorted(set(t for r in recipes for t in r.get("tags", [])))
+    all_tags = sorted(set(t for r in recipes for t in r.get("tags", []) if isinstance(t, str)))
 
     # Recipe cards
     cards = ""
