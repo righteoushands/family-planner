@@ -2832,7 +2832,12 @@ class Handler(BaseHTTPRequestHandler):
                         _settings_r.get("family_constraints", {}).get("anthropic_api_key", "")
                         or _settings_r.get("anthropic_api_key", "")
                     ).strip()
-                    if api_key:
+                    # Skip the API call entirely if we have nothing to parse.
+                    # Otherwise the model rightly says "no recipe content" and we get an empty response.
+                    _has_content = bool(photo_bytes) or bool((text_in or "").strip()) or bool((url_in or "").strip())
+                    if not _has_content and not _pdf_no_text:
+                        _ai_error = "No recipe content provided. Paste text, enter a URL, or upload a photo/PDF."
+                    if api_key and _has_content:
                         import urllib.request as _ur3
                         if photo_bytes:
                             # Vision: read recipe from photo
