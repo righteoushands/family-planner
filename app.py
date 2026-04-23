@@ -1080,6 +1080,25 @@ class Handler(BaseHTTPRequestHandler):
             try: self.wfile.write(html.encode())
             except BrokenPipeError: pass
             return
+        elif path.startswith("/uploads/recipes/"):
+            import mimetypes as _mt
+            rel = "data" + path  # actual file lives at data/uploads/recipes/<file>
+            if ".." in rel.split("/"):
+                self.send_response(403); self.end_headers(); return
+            try:
+                with open(rel, "rb") as f:
+                    data = f.read()
+                mime, _ = _mt.guess_type(rel)
+                self.send_response(200)
+                self.send_header("Content-Type", mime or "application/octet-stream")
+                self.send_header("Cache-Control", "private, max-age=86400")
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                try: self.wfile.write(data)
+                except BrokenPipeError: pass
+            except FileNotFoundError:
+                self.send_response(404); self.end_headers()
+            return
         elif path.startswith("/uploads/grades/") or path.startswith("/uploads/grade_docs/"):
             import mimetypes as _mt
             from render_subject import safe_slug as _ss
@@ -2042,6 +2061,7 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers(); return
 
         if path in ("/school-upload", "/prayer-intention-add", "/recipe-import",
+                    "/recipe-save",
                     "/assignment-analyze", "/assignment-update", "/assignment-delete",
                     "/gradebook-add", "/gradebook-update", "/gradebook-delete"):
             form = parse_multipart_form(self)
@@ -2622,24 +2642,76 @@ class Handler(BaseHTTPRequestHandler):
                 except BrokenPipeError: pass
                 return
 
-            elif path == "/recipe-import":
-                import json as _rj, base64 as _b64, re as _rre
+            elif path in ("/recipe-import", "/recipe-save"):
+                import json as _rj, base64 as _b64, re as _rre, os as _ros, uuid as _ruuid
+                # Common helper: read an uploaded image field (dish_photo or recipe_photo)
+                # and write it to data/uploads/recipes/. Returns ("/uploads/recipes/<file>", bytes, mime, name).
+                def _read_upload(field_name):
+                    try:
+                        pf = form[field_name] if field_name in form else None
+                        if not pf or not getattr(pf, "filename", ""):
+                            return None, b"", "", ""
+                        raw = pf.file.read() if pf.file else b""
+                        if len(raw) <= 500:
+                            return None, b"", "", ""
+                        return None, raw, (getattr(pf, "type", "") or "").lower(), (pf.filename or "").lower()
+                    except Exception:
+                        return None, b"", "", ""
+                def _save_dish_photo(raw, name_hint):
+                    if not raw: return ""
+                    ext = ""
+                    nl = (name_hint or "").lower()
+                    for e in (".jpg", ".jpeg", ".png", ".webp", ".gif", ".heic"):
+                        if nl.endswith(e): ext = e; break
+                    if not ext: ext = ".jpg"
+                    _ros.makedirs("data/uploads/recipes", exist_ok=True)
+                    fname = f"dish-{_ruuid.uuid4().hex[:10]}{ext}"
+                    fpath = f"data/uploads/recipes/{fname}"
+                    with open(fpath, "wb") as fh:
+                        fh.write(raw)
+                    return f"/uploads/recipes/{fname}"
+
+            if path == "/recipe-save":
+                # Manual create OR inline edit (now multipart so dish_photo can be uploaded)
+                rid_edit = clean_text(form.getfirst("id", ""))
+                name     = clean_text(form.getfirst("name", ""))
+                ingr     = clean_text(form.getfirst("ingredients", ""))
+                instr    = clean_text(form.getfirst("instructions", ""))
+                tags_raw = clean_text(form.getfirst("tags", ""))
+                tags     = [t.strip() for t in tags_raw.split(",") if t.strip()]
+                prep     = clean_text(form.getfirst("prep_time", ""))
+                remove_image = clean_text(form.getfirst("remove_image", "")) == "1"
+                _, dish_raw, _dm, _dn = _read_upload("dish_photo")
+                new_image_url = _save_dish_photo(dish_raw, _dn) if dish_raw else ""
+                if name:
+                    if rid_edit:
+                        recipes = load_recipes()
+                        for r in recipes:
+                            if isinstance(r, dict) and r.get("id") == rid_edit:
+                                r["name"] = name; r["ingredients"] = ingr
+                                r["instructions"] = instr; r["tags"] = tags
+                                r["prep_time"] = prep
+                                if new_image_url:
+                                    r["image"] = new_image_url
+                                elif remove_image:
+                                    r["image"] = ""
+                        from render_meals import save_recipes
+                        save_recipes(recipes)
+                    else:
+                        save_recipe(name, ingr, instr, tags, prep, image=new_image_url)
+                self.send_response(302)
+                self.send_header("Location", "/recipes?msg=Recipe+saved")
+                self.end_headers(); return
+
+            if path == "/recipe-import":
                 name_in    = clean_text(form.getfirst("name", ""))
                 url_in     = clean_text(form.getfirst("url", ""))
                 text_in    = clean_text(form.getfirst("text", ""))
-                photo_bytes = None
-                photo_mime  = ""
-                photo_name  = ""
-                try:
-                    pf = form["recipe_photo"] if "recipe_photo" in form else None
-                    if pf and getattr(pf, "filename", ""):
-                        raw_photo = pf.file.read() if pf.file else b""
-                        if len(raw_photo) > 500:
-                            photo_bytes = raw_photo
-                            photo_mime  = (getattr(pf, "type", "") or "").lower()
-                            photo_name  = (pf.filename or "").lower()
-                except Exception:
-                    pass
+                _, photo_bytes_tmp, photo_mime, photo_name = _read_upload("recipe_photo")
+                photo_bytes = photo_bytes_tmp if photo_bytes_tmp else None
+                # Optional separate "dish photo" for the card
+                _, dish_raw, _dpm, _dpn = _read_upload("dish_photo")
+                dish_image_url = _save_dish_photo(dish_raw, _dpn) if dish_raw else ""
                 # ── If upload is a PDF, extract text and treat as text_in ────
                 _is_pdf = ("pdf" in photo_mime) or photo_name.endswith(".pdf") or (
                     photo_bytes and photo_bytes[:4] == b"%PDF")
@@ -2752,14 +2824,16 @@ class Handler(BaseHTTPRequestHandler):
                             media_type = "image/jpeg"
                             _vision_payload = _rj.dumps({
                                 "model": "claude-opus-4-5",
-                                "max_tokens": 800,
+                                "max_tokens": 2000,
                                 "messages": [{
                                     "role": "user",
                                     "content": [
                                         {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": img_b64}},
                                         {"type": "text", "text": (
                                             "Read this recipe image and return ONLY valid JSON with keys: "
-                                            "ingredients (string), instructions (string), tags (array of strings), prep_time (string). "
+                                            "ingredients (string with one item per line), "
+                                            "instructions (string with the COMPLETE step-by-step directions, every step, do NOT abbreviate or summarize), "
+                                            "tags (array of strings), prep_time (string). "
                                             "No markdown fences, just raw JSON."
                                         )},
                                     ]
@@ -2769,12 +2843,14 @@ class Handler(BaseHTTPRequestHandler):
                             content = text_in or url_in
                             _vision_payload = _rj.dumps({
                                 "model": "claude-haiku-4-5-20251001",
-                                "max_tokens": 700,
+                                "max_tokens": 2000,
                                 "messages": [{"role": "user", "content": (
                                     "Parse this recipe into structured JSON. "
                                     "Return ONLY valid JSON (no markdown fences) with keys: "
-                                    "ingredients (string), instructions (string), tags (array of strings), prep_time (string).\n\n"
-                                    f"Recipe source:\n{content[:2500]}"
+                                    "ingredients (string with one item per line), "
+                                    "instructions (string with the COMPLETE step-by-step directions — copy every step verbatim from the source, do NOT abbreviate or summarize), "
+                                    "tags (array of strings), prep_time (string).\n\n"
+                                    f"Recipe source:\n{content[:12000]}"
                                 )}]
                             }).encode()
                         _rq = _ur3.Request(
@@ -2798,7 +2874,7 @@ class Handler(BaseHTTPRequestHandler):
                     if not ingr:
                         ingr = text_in[:500] if text_in else ""
                 if name_in:
-                    save_recipe(name_in, ingr, instr, tags, prep)
+                    save_recipe(name_in, ingr, instr, tags, prep, image=dish_image_url)
                 redirect = "/recipes?msg=Recipe+imported"
 
         else:
@@ -7579,28 +7655,9 @@ class Handler(BaseHTTPRequestHandler):
                 except BrokenPipeError: pass
                 return
 
-            elif path == "/recipe-save":
-                import json as _json
-                rid_edit = clean_text(data.get("id",[""])[0])
-                name    = clean_text(data.get("name",[""])[0])
-                ingr    = clean_text(data.get("ingredients",[""])[0])
-                instr   = clean_text(data.get("instructions",[""])[0])
-                tags_raw = clean_text(data.get("tags",[""])[0])
-                tags    = [t.strip() for t in tags_raw.split(",") if t.strip()]
-                prep    = clean_text(data.get("prep_time",[""])[0])
-                if name:
-                    if rid_edit:
-                        # Update existing recipe
-                        recipes = load_recipes()
-                        for r in recipes:
-                            if r.get("id") == rid_edit:
-                                r["name"] = name; r["ingredients"] = ingr
-                                r["instructions"] = instr; r["tags"] = tags; r["prep_time"] = prep
-                        from render_meals import save_recipes
-                        save_recipes(recipes)
-                    else:
-                        save_recipe(name, ingr, instr, tags, prep)
-                redirect = "/recipes?msg=Recipe+saved"
+            # NOTE: /recipe-save is handled in the multipart branch above so it
+            # can accept a dish-photo upload. The previous urlencoded handler
+            # was removed.
 
             elif path == "/recipe-delete":
                 rid = clean_text(data.get("id",[""])[0])

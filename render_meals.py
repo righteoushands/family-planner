@@ -348,7 +348,7 @@ def save_recipes(recipes: list):
     safe_save_json(RECIPES_FILE, recipes)
 
 def save_recipe(name: str, ingredients: str, instructions: str,
-                tags: list = None, prep_time: str = "") -> dict:
+                tags: list = None, prep_time: str = "", image: str = "") -> dict:
     recipes = load_recipes()
     recipe = {
         "id": str(uuid.uuid4())[:8],
@@ -357,6 +357,7 @@ def save_recipe(name: str, ingredients: str, instructions: str,
         "instructions": instructions.strip(),
         "tags": tags or [],
         "prep_time": prep_time.strip(),
+        "image": (image or "").strip(),
         "created": date.today().isoformat(),
     }
     recipes.append(recipe)
@@ -1188,12 +1189,22 @@ def render_recipes_page(status: str = "") -> str:
         instr = escape(r.get("instructions",""))
         prep  = escape(r.get("prep_time",""))
         tags  = r.get("tags", [])
+        img   = escape(r.get("image","") or "")
         tag_pills = "".join(
             f'<span class="pill pill-{_tag_class(t)}" style="font-size:0.7em;margin-right:4px;">{escape(t)}</span>'
             for t in tags[:6]
         )
+        thumb = (
+            f'<div style="margin:-14px -14px 10px;height:160px;background:#f3eee4 center/cover no-repeat;'
+            f'background-image:url(\'{img}\');border-radius:10px 10px 0 0;"></div>'
+        ) if img else ""
+        big_img = (
+            f'<div style="margin:0 0 12px;"><img src="{img}" alt="" '
+            f'style="width:100%;max-height:340px;object-fit:cover;border-radius:8px;"></div>'
+        ) if img else ""
         cards += (
             f'<div class="card" data-tags="{escape(",".join(tags))}" style="margin-bottom:14px;">'
+            f'{thumb}'
             f'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">'
             f'<div style="font-weight:700;font-size:1.05em;color:var(--ink);">{name}</div>'
             f'<div style="display:flex;gap:6px;flex-shrink:0;">'
@@ -1213,6 +1224,7 @@ def render_recipes_page(status: str = "") -> str:
             f'<div style="margin-bottom:8px;">{tag_pills}</div>'
             f'<div style="font-size:0.78em;color:var(--ink-faint);">Prep: {prep}</div>'
             f'<div id="recipe-detail-{rid}" style="display:none;margin-top:12px;border-top:1px solid var(--border-light);padding-top:12px;">'
+            f'{big_img}'
             f'<div style="font-size:0.82em;margin-bottom:8px;">'
             f'<div style="font-weight:700;margin-bottom:4px;">Ingredients</div>'
             f'<div style="color:var(--ink-muted);white-space:pre-wrap;">{ingr}</div>'
@@ -1224,7 +1236,7 @@ def render_recipes_page(status: str = "") -> str:
             f'</div>'
             # Inline edit form (hidden by default)
             f'<div id="recipe-edit-{rid}" style="display:none;margin-top:12px;border-top:1px solid var(--border-light);padding-top:12px;">'
-            f'<form method="POST" action="/recipe-save">'
+            f'<form method="POST" action="/recipe-save" enctype="multipart/form-data">'
             f'<input type="hidden" name="id" value="{rid}">'
             f'<label style="font-size:0.75em;">Name</label>'
             f'<input type="text" name="name" value="{name}" style="margin-bottom:8px;">'
@@ -1233,6 +1245,12 @@ def render_recipes_page(status: str = "") -> str:
             f'<label style="font-size:0.75em;">Tags (comma-separated)</label>'
             f'<input type="text" name="tags" value="{escape(",".join(tags))}" style="margin-bottom:8px;" '
             f'placeholder="chicken, easy, Friday, Lent-safe">'
+            f'<label style="font-size:0.75em;">Dish photo {("(replace current)" if img else "(optional)")}</label>'
+            f'<input type="file" name="dish_photo" accept="image/*" style="margin-bottom:4px;font-size:0.8em;">'
+            + (f'<label style="display:block;font-size:0.72em;color:var(--ink-faint);margin-bottom:8px;">'
+               f'<input type="checkbox" name="remove_image" value="1"> Remove current photo</label>'
+               if img else '<div style="margin-bottom:8px;"></div>')
+            +
             f'<label style="font-size:0.75em;">Ingredients</label>'
             f'<textarea name="ingredients" rows="4" style="margin-bottom:8px;">{ingr}</textarea>'
             f'<label style="font-size:0.75em;">Instructions</label>'
@@ -1265,13 +1283,15 @@ def render_recipes_page(status: str = "") -> str:
         '</div>'
         # Manual entry tab
         '<div id="recipe-manual-tab">'
-        '<form method="POST" action="/recipe-save" onsubmit="recipeDraftClear()">'
+        '<form method="POST" action="/recipe-save" enctype="multipart/form-data" onsubmit="recipeDraftClear()">'
         '<label>Name</label>'
         '<input type="text" id="rc-name" name="name" required placeholder="Recipe name" style="margin-bottom:10px;" oninput="recipeDraftSave()">'
         '<label>Prep time</label>'
         '<input type="text" id="rc-prep" name="prep_time" placeholder="20 min" style="margin-bottom:10px;" oninput="recipeDraftSave()">'
         '<label>Tags <span style="font-weight:400;font-size:0.85em;color:#888;">(comma-separated)</span></label>'
         '<input type="text" id="rc-tags" name="tags" placeholder="chicken, easy, Friday, Lent-safe" style="margin-bottom:10px;" oninput="recipeDraftSave()">'
+        '<label>Dish photo <span style="font-weight:400;font-size:0.85em;color:#888;">(optional)</span></label>'
+        '<input type="file" name="dish_photo" accept="image/*" style="margin-bottom:10px;font-size:0.85em;">'
         '<label>Ingredients</label>'
         '<textarea id="rc-ingr" name="ingredients" rows="4" placeholder="List all ingredients..." style="margin-bottom:10px;" oninput="recipeDraftSave()"></textarea>'
         '<label>Instructions</label>'
@@ -1288,11 +1308,17 @@ def render_recipes_page(status: str = "") -> str:
         '<div id="recipe-import-tab" style="display:none;">'
         '<form method="POST" action="/recipe-import" enctype="multipart/form-data">'
         '<div style="margin-bottom:14px;">'
-        '<label>\U0001f4f8 Photo or PDF of recipe</label>'
-        '<input type="file" name="recipe_photo" accept="image/*,application/pdf,.pdf" capture="environment" '
+        '<label>\U0001f4f8 Photo or PDF of recipe <span style="font-weight:400;font-size:0.85em;color:#888;">(source)</span></label>'
+        '<input type="file" name="recipe_photo" accept="image/*,application/pdf,.pdf" '
         'style="margin-bottom:6px;font-size:0.85em;">'
-        '<p style="font-size:0.78em;color:var(--ink-faint);margin-top:2px;">Take a photo, upload an image, '
-        'or attach a PDF — AI will read the ingredients and instructions automatically.</p>'
+        '<p style="font-size:0.78em;color:var(--ink-faint);margin-top:2px;">Pick from your files, photo library, '
+        'or take a new photo — AI will read the ingredients and instructions. PDFs work too.</p>'
+        '</div>'
+        '<div style="margin-bottom:14px;">'
+        '<label>\U0001f37d Dish photo <span style="font-weight:400;font-size:0.85em;color:#888;">(optional, separate from source)</span></label>'
+        '<input type="file" name="dish_photo" accept="image/*" '
+        'style="margin-bottom:4px;font-size:0.85em;">'
+        '<p style="font-size:0.78em;color:var(--ink-faint);margin-top:2px;">A pretty picture of the finished dish to show on the recipe card.</p>'
         '</div>'
         '<div style="margin-bottom:4px;font-size:0.72em;font-weight:700;color:var(--ink-faint);'
         'text-transform:uppercase;letter-spacing:.08em;">Or</div>'
