@@ -2827,8 +2827,11 @@ class Handler(BaseHTTPRequestHandler):
                 ingr = ""; instr = ""; tags = []; prep = ""; ai_name = ""
                 _ai_error = ""
                 try:
-                    from render_ai_planner import get_api_key
-                    api_key = get_api_key()
+                    _settings_r = load_app_settings()
+                    api_key = (
+                        _settings_r.get("family_constraints", {}).get("anthropic_api_key", "")
+                        or _settings_r.get("anthropic_api_key", "")
+                    ).strip()
                     if api_key:
                         import urllib.request as _ur3
                         if photo_bytes:
