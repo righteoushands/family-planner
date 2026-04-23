@@ -2892,8 +2892,13 @@ class Handler(BaseHTTPRequestHandler):
                             print(f"[recipe-import] Anthropic HTTP error: {_http_err} — body: {_err_body}")
                             raise
                         raw_text_out = (_res.get("content", [{}])[0].get("text", "") or "").strip()
+                        try:
+                            with open("/tmp/recipe_import_error.log", "a") as _ef0:
+                                import datetime as _dt0
+                                _ef0.write(f"\n=== {_dt0.datetime.now().isoformat()} RAW RES ===\n{_rj.dumps(_res)[:3000]}\n")
+                        except Exception: pass
                         if not raw_text_out:
-                            print(f"[recipe-import] Empty response body. _res keys: {list(_res.keys())} stop_reason: {_res.get('stop_reason')}")
+                            print(f"[recipe-import] Empty response body. _res keys: {list(_res.keys())} stop_reason: {_res.get('stop_reason')}", flush=True)
                         # Strip markdown fences properly
                         raw_text_out = _rre.sub(r'^```(?:json)?\s*\n?', '', raw_text_out)
                         raw_text_out = _rre.sub(r'\n?```\s*$', '', raw_text_out).strip()
