@@ -2904,10 +2904,18 @@ class Handler(BaseHTTPRequestHandler):
                         prep    = parsed_r.get("prep_time", "")
                         ai_name = (parsed_r.get("name") or "").strip()
                 except Exception as _re_err:
-                    import traceback as _tb
+                    import traceback as _tb, sys as _sys_err
                     _ai_error = str(_re_err)[:200]
-                    print(f"[recipe-import] AI parse failed: {_ai_error}")
-                    print("[recipe-import] traceback:\n" + _tb.format_exc())
+                    print(f"[recipe-import] AI parse failed: {_ai_error}", flush=True)
+                    print("[recipe-import] traceback:\n" + _tb.format_exc(), flush=True)
+                    _sys_err.stderr.write(f"[recipe-import] AI parse failed: {_ai_error}\n{_tb.format_exc()}\n")
+                    _sys_err.stderr.flush()
+                    try:
+                        with open("/tmp/recipe_import_error.log", "a") as _ef:
+                            import datetime as _dt_e
+                            _ef.write(f"\n=== {_dt_e.datetime.now().isoformat()} ===\n{_ai_error}\n{_tb.format_exc()}\n")
+                    except Exception:
+                        pass
                     # Fallback: drop the raw extracted text into instructions so the user
                     # can at least see/edit something rather than getting a blank form.
                     if text_in and not instr:
