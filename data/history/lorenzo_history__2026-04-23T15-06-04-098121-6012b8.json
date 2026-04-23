@@ -284,11 +284,6 @@
       "role": "user",
       "content": "Take me to the recipe page",
       "ts": "2026-04-23T15:06:01"
-    },
-    {
-      "role": "assistant",
-      "content": "I don't have a direct link to navigate you to a specific page — that's a dashboard feature question for Izzy.\n\nBut here's what I can do right now: I have access to your 17 saved recipe cards. Tell me which recipe you're looking for, or what you want to cook, and I'll pull up the full details — ingredients, instructions, prep/cook times, and any family notes.\n\nWhat recipe do you need?",
-      "ts": "2026-04-23T15:06:04"
     }
   ]
 }

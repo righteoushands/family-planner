@@ -1327,18 +1327,5 @@
   "CARRY::Lauren::2026-04-22::Clean the boys' tubs": true,
   "CARRY::Lauren::2026-04-22::Kitchen": true,
   "CARRY::Lauren::2026-04-22::Tidy the van": true,
-  "CARRY::Lauren::2026-04-22::Trim nails — Lauren, Michael & James": true,
-  "MANUAL::Lauren::2026-04-22::Pickup library book after dropping JP off at Religious education class.": true,
-  "MANUAL::Lauren::2026-04-22::Schedule meeting with Fr for JP’s confirmation interview.": true,
-  "ROUTINE::Lauren::2026-04-23::HSPE / errands": true,
-  "ROUTINE::Lauren::2026-04-23::Travel": true,
-  "MEALPREP::Lauren::2026-04-23::meal_prep": true,
-  "CARRY::Lauren::2026-04-23::[MEDIUM] Pickup library book after dropping JP off at Religious education class.": true,
-  "CARRY::Lauren::2026-04-23::[MEDIUM] Schedule meeting with Fr for JP’s confirmation interview.": true,
-  "MANUAL::Lauren::2026-04-23::Schedule Confirmation Party": true,
-  "CARRY::Lauren::2026-04-23::[MEDIUM] Schedule Confirmation Party": true,
-  "CARRY::Lauren::2026-04-23::Supervise basement zone cleaning": true,
-  "ROUTINE::JP::2026-04-23::Prep for HSPE": true,
-  "ROUTINE::JP::2026-04-23::Travel": true,
-  "ROUTINE::JP::2026-04-23::HSPE": true
+  "CARRY::Lauren::2026-04-22::Trim nails — Lauren, Michael & James": true
 }

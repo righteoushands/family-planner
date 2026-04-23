@@ -1340,5 +1340,6 @@
   "CARRY::Lauren::2026-04-23::Supervise basement zone cleaning": true,
   "ROUTINE::JP::2026-04-23::Prep for HSPE": true,
   "ROUTINE::JP::2026-04-23::Travel": true,
-  "ROUTINE::JP::2026-04-23::HSPE": true
+  "ROUTINE::JP::2026-04-23::HSPE": true,
+  "CHORE::Michael::2026-04-23::morning::Tidy basement zone — 10 minutes": true
 }

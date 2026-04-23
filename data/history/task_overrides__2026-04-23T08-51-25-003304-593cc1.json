@@ -57,10 +57,6 @@
       "ROUTINE::JP::2026-04-23::Travel": {
         "action": "dismiss",
         "label": "Travel"
-      },
-      "ROUTINE::JP::2026-04-23::HSPE": {
-        "action": "dismiss",
-        "label": "HSPE"
       }
     }
   },

@@ -2,6 +2,16 @@
   "messages": [
     {
       "role": "user",
+      "content": "Look at my FROL and add a daily 15 minute task: “Update YNAB”. Use your judgment for placement. YNAB is my budgeting software.",
+      "ts": "2026-04-12T08:09:52"
+    },
+    {
+      "role": "assistant",
+      "content": "Looking at your Sunday Rule of Life — I notice it's currently empty with no family-wide time slots set.\n\nSince YNAB is personal financial work and you're in your follicular phase (energy rising), this is a good window for focused admin tasks. I'd suggest placing it in the morning, after breakfast settles but before the day gets busy.\n\nHere's what I'm thinking: **8:00 AM: Update YNAB (15 min)** — right after you've had your coffee and morning prayer, before the boys need much from you.\n\nDoes that time work, or would you prefer a different slot?",
+      "ts": "2026-04-12T08:09:56"
+    },
+    {
+      "role": "user",
       "content": "Yes that works. Find a spot to put it into the FROL of the daily routine",
       "ts": "2026-04-12T08:10:46"
     },
@@ -289,16 +299,6 @@
       "role": "assistant",
       "content": "Oh, Lauren.\n\nYou just told him. You already said it.\n\nThat message — that long, honest, desperate, clear message — **that's the conversation**. You didn't need a list. You needed to name what's true, and you did.\n\nNow the question isn't what to say tonight. It's what you do with his response.\n\nHe said \"Oohh\" and \"Omwh\" (oh my, what happened?). He's reading. He's receiving that you're in pain.\n\nTonight at date night, you don't come with talking points. You come **open**. You say: \"I sent that message because I'm drowning a little. I need you to hear me — not fix it, not defend it — just hear that I'm carrying a lot, and I need you to want to carry some of it with me.\"\n\nThen you listen to what he says back.\n\nThe resentment you felt writing that list? That's real and valid. But it's also a signal — a sign that you've been silent too long, that you've been managing alone. That message was you breaking the silence.\n\nDon't weaponize it tonight by adding more ammunition. Let it do its work.\n\nHow are you feeling right now, reading back what you wrote to him?",
       "ts": "2026-04-22T08:13:36"
-    },
-    {
-      "role": "user",
-      "content": "[Plan Importer · Roundtable] How does this plan fit our Catholic family rhythms and faith life?",
-      "ts": "2026-04-23T14:56:46"
-    },
-    {
-      "role": "assistant",
-      "content": "**Lorenzo:** This plan beautifully centers food as an act of love and celebration for JP's sacrament — the jambalaya made the night before, the custom cake with its faith inscription, the thoughtful cheese and fruit spreads all create a feast worthy of this milestone. I'd suggest we think about the meal not just as party food but as a true reception table where guests can linger and celebrate what Confirmation means. Perhaps we set the cake in a place of honor with JP's candle from the Mass nearby, making the reveal moment feel sacred as well as celebratory.\n\n**Coach:** The week leading up to Confirmation is packed with indoor tasks — cleaning, shopping, prep — so I want to make sure the boys, especially Joseph and Michael, get outside time to burn energy and stay regulated. I'd recommend we protect a few outdoor windows: maybe Joseph helps inflate and test the bounce house on May 10 as active play, and the morning of May 16 we do a short family walk before getting dressed. This keeps everyone grounded in their bodies so they can be fully present for the Mass and celebration.\n\n**Dr. Monica:** For James at 13 months, a 1:30 PM Mass lands right in typical nap territory, so Lauren should plan for him to nap earlier that morning or accept he may be drowsy or fussy during the service — having a quiet exit strategy is wise. Michael at 5 can participate meaningfully if we prepare him ahead of time: explain what Confirmation is in simple terms, maybe read a picture book about the Holy Spirit, so he feels included rather than just told to sit still. Both little ones will do better at the reception if the bounce house is ready as an immediate outlet after the more formal church time.\n\n**Lucy's Synthesis:** Lauren, this plan is already beautifully ordered around what matters most — JP's step deeper into his faith, witnessed and celebrated by the people who love him. I'd encourage you to add a few intentional faith touches: perhaps a family prayer the night before as you finish the jambalaya together, asking the Holy Spirit to prepare JP's heart. On the morning of May 16, before the rush of getting dressed, gather everyone briefly to pray over JP — this grounds the whole day in its true purpose. Consider placing his Confirmation candle on the food table near the cake, creating a visual reminder that this feast flows from the altar. The gift reveal during cake time is a perfect moment to speak words of blessing over him — let John or both of you share what you hope for his life in the Spirit. Everything else — the clean house, the food, the bounce house for the little ones — serves this sacred center. You've built a plan that honors both the sacrament and your family's real life; trust it, and let the Holy Spirit do the rest.",
-      "ts": "2026-04-23T14:56:46"
     }
   ]
 }

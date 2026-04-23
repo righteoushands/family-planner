@@ -2628,24 +2628,115 @@ class Handler(BaseHTTPRequestHandler):
                 url_in     = clean_text(form.getfirst("url", ""))
                 text_in    = clean_text(form.getfirst("text", ""))
                 photo_bytes = None
+                photo_mime  = ""
+                photo_name  = ""
                 try:
                     pf = form["recipe_photo"] if "recipe_photo" in form else None
                     if pf and getattr(pf, "filename", ""):
                         raw_photo = pf.file.read() if pf.file else b""
                         if len(raw_photo) > 500:
                             photo_bytes = raw_photo
+                            photo_mime  = (getattr(pf, "type", "") or "").lower()
+                            photo_name  = (pf.filename or "").lower()
                 except Exception:
                     pass
-                # Fetch URL if provided and no text/photo
+                # ── If upload is a PDF, extract text and treat as text_in ────
+                _is_pdf = ("pdf" in photo_mime) or photo_name.endswith(".pdf") or (
+                    photo_bytes and photo_bytes[:4] == b"%PDF")
+                if photo_bytes and _is_pdf:
+                    try:
+                        import io as _io2, PyPDF2 as _ppdf
+                        reader = _ppdf.PdfReader(_io2.BytesIO(photo_bytes))
+                        _pdf_text = []
+                        for _pg in reader.pages[:10]:  # cap at first 10 pages
+                            try: _pdf_text.append(_pg.extract_text() or "")
+                            except Exception: pass
+                        _joined = "\n".join(t for t in _pdf_text if t.strip())
+                        if _joined.strip():
+                            text_in = (text_in + "\n\n" + _joined).strip() if text_in else _joined
+                        photo_bytes = None  # don't ALSO send to vision
+                    except Exception:
+                        # PDF couldn't be parsed as text — leave bytes alone, vision will skip it
+                        photo_bytes = None
+                # ── Fetch URL if provided and no text/photo ──────────────────
                 if url_in and not text_in and not photo_bytes:
                     try:
                         import urllib.request as _ur2
-                        req_url = _ur2.Request(url_in, headers={"User-Agent": "Mozilla/5.0"})
-                        with _ur2.urlopen(req_url, timeout=10) as _resp:
+                        req_url = _ur2.Request(url_in, headers={
+                            "User-Agent": "Mozilla/5.0 (compatible; SanctaFamiliaBot/1.0)",
+                            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                        })
+                        with _ur2.urlopen(req_url, timeout=15) as _resp:
                             raw_html = _resp.read().decode("utf-8", errors="ignore")
-                        # Strip HTML tags for a plain text approximation
-                        text_in = _rre.sub(r'<[^>]+>', ' ', raw_html)
-                        text_in = _rre.sub(r'\s{2,}', ' ', text_in).strip()[:3000]
+                        # 1) Look for JSON-LD <script type="application/ld+json"> with @type "Recipe"
+                        _ld_blocks = _rre.findall(
+                            r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>([\s\S]*?)</script>',
+                            raw_html, _rre.IGNORECASE)
+                        _recipe_obj = None
+                        def _walk_for_recipe(node):
+                            if isinstance(node, dict):
+                                t = node.get("@type")
+                                if (isinstance(t, str) and t == "Recipe") or (
+                                    isinstance(t, list) and "Recipe" in t):
+                                    return node
+                                for v in node.values():
+                                    found = _walk_for_recipe(v)
+                                    if found: return found
+                            elif isinstance(node, list):
+                                for v in node:
+                                    found = _walk_for_recipe(v)
+                                    if found: return found
+                            return None
+                        for _b in _ld_blocks:
+                            try: _data = _rj.loads(_b.strip())
+                            except Exception:
+                                # Some sites embed multiple comma-separated objects
+                                try: _data = _rj.loads("[" + _b.strip().rstrip(",") + "]")
+                                except Exception: continue
+                            _recipe_obj = _walk_for_recipe(_data)
+                            if _recipe_obj: break
+                        if _recipe_obj:
+                            # Direct extraction — no LLM needed for the basics
+                            def _flatten(v):
+                                if isinstance(v, list):
+                                    return "\n".join(_flatten(x) for x in v)
+                                if isinstance(v, dict):
+                                    return v.get("text") or v.get("name") or ""
+                                return str(v) if v else ""
+                            _ldn   = _recipe_obj.get("name") or ""
+                            _ldi   = _flatten(_recipe_obj.get("recipeIngredient") or
+                                              _recipe_obj.get("ingredients") or [])
+                            _ldins = _flatten(_recipe_obj.get("recipeInstructions") or [])
+                            _ldp   = (_recipe_obj.get("totalTime") or
+                                      _recipe_obj.get("cookTime") or
+                                      _recipe_obj.get("prepTime") or "")
+                            # ISO 8601 duration → human (e.g. PT45M → "45 min")
+                            _dm = _rre.match(r"PT(?:(\d+)H)?(?:(\d+)M)?", str(_ldp))
+                            if _dm:
+                                _h, _m = _dm.group(1), _dm.group(2)
+                                _parts = []
+                                if _h: _parts.append(f"{_h} hr")
+                                if _m: _parts.append(f"{_m} min")
+                                _ldp = " ".join(_parts) if _parts else ""
+                            _kw = _recipe_obj.get("keywords") or _recipe_obj.get("recipeCategory") or ""
+                            if isinstance(_kw, list): _kw = ", ".join(str(k) for k in _kw)
+                            text_in = (
+                                f"Recipe: {_ldn}\n\n"
+                                f"Ingredients:\n{_ldi}\n\n"
+                                f"Instructions:\n{_ldins}\n\n"
+                                f"Total time: {_ldp}\n"
+                                f"Tags/keywords: {_kw}"
+                            ).strip()
+                            # If the form didn't get a name, use the one from the page
+                            if not name_in and _ldn:
+                                name_in = _ldn[:120]
+                        else:
+                            # 2) Fallback — strip HTML tags for plain text approximation
+                            _no_script = _rre.sub(
+                                r'<(script|style|nav|header|footer|aside)[^>]*>[\s\S]*?</\1>',
+                                ' ', raw_html, flags=_rre.IGNORECASE)
+                            text_in = _rre.sub(r'<[^>]+>', ' ', _no_script)
+                            text_in = _rre.sub(r'\s{2,}', ' ', text_in).strip()[:6000]
                     except Exception:
                         text_in = url_in  # fallback: pass the URL itself
 
