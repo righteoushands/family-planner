@@ -556,6 +556,24 @@ def _render_change_pin_page(viewer: str, error: str = "", ok: str = "") -> str:
     return html_page("Change PIN", body)
 
 
+# ── Plan Importer placement undo registry ────────────────────────────────────
+# Each entry maps an undo_id (12-char hex) -> reversal metadata produced when
+# /plan-import-apply files a placement. The registry is in-memory only:
+# server restart wipes it and the UI's Undo buttons report a clean
+# "can't undo — server restarted" error on lookup miss. FIFO eviction at 50.
+_placement_undo_registry: dict = {}
+_placement_undo_order: list = []
+_PLACEMENT_UNDO_CAP = 50
+
+
+def _placement_undo_remember(undo_id: str, metadata: dict) -> None:
+    _placement_undo_registry[undo_id] = metadata
+    _placement_undo_order.append(undo_id)
+    while len(_placement_undo_order) > _PLACEMENT_UNDO_CAP:
+        old = _placement_undo_order.pop(0)
+        _placement_undo_registry.pop(old, None)
+
+
 class Handler(BaseHTTPRequestHandler):
 
     # ── Auth helpers ──────────────────────────────────────────────────────────
@@ -2967,7 +2985,7 @@ class Handler(BaseHTTPRequestHandler):
 
         else:
             # /plan-import-apply reads its own raw JSON body — don't consume it with URL form parse
-            _JSON_PATHS = {"/plan-import-apply", "/curriculum-save", "/curriculum-minutes", "/poetry-passage-save"}
+            _JSON_PATHS = {"/plan-import-apply", "/plan-import-undo-placement", "/curriculum-save", "/curriculum-minutes", "/poetry-passage-save"}
             data = {} if path in _JSON_PATHS else parse_urlencoded_body(self)
 
             if path == "/toggle-task":
@@ -6507,6 +6525,10 @@ class Handler(BaseHTTPRequestHandler):
                 _today_ai  = date.today().isoformat()
                 events_added = 0
                 tasks_added  = 0
+                # Receipt: one entry per item that lands during this apply.
+                # Events and tasks get rows for visibility but no undo_id;
+                # placements get an undo_id wired to _placement_undo_registry.
+                _receipt: list = []
                 # Write events
                 if _ai_events:
                     try:
@@ -6548,6 +6570,13 @@ class Handler(BaseHTTPRequestHandler):
                             }
                             _aievdata.setdefault("data", []).append(_new_ev)
                             events_added += 1
+                            _receipt.append({
+                                "type": "event",
+                                "label": "Calendar",
+                                "title": ev["title"],
+                                "meta": " · ".join(x for x in [ev["date"], ev.get("time",""), ", ".join(_who)] if x),
+                                "action": "CREATE",
+                            })
                         _aievdata["updated_at"] = _today_ai
                         safe_save_json("data/events.json", _aievdata)
                     except Exception as _aieve:
@@ -6577,6 +6606,13 @@ class Handler(BaseHTTPRequestHandler):
                                 **({"project": _ai_proj} if _ai_proj else {}),
                             })
                             tasks_added += 1
+                            _receipt.append({
+                                "type": "task",
+                                "label": f"Tasks ({person})",
+                                "title": text,
+                                "meta": (("due " + due) if due else ""),
+                                "action": "CREATE",
+                            })
                         save_manual_tasks(_all_tasks)
                     except Exception:
                         pass
@@ -6659,14 +6695,16 @@ class Handler(BaseHTTPRequestHandler):
                             return default
 
                     def _pi_append_note(text, suggested_dest):
-                        """Add a note to data/notes.json with suggested_destination."""
+                        """Add a note to data/notes.json with suggested_destination.
+                        Returns the new note's id (or None if save failed)."""
                         notes_path = "data/notes.json"
                         notes_data = _pi_load_json(notes_path, {"version":1,"updated_at":_today_ai,"data":[]})
                         if not isinstance(notes_data, dict):
                             notes_data = {"version":1,"updated_at":_today_ai,"data":[]}
                         notes_data.setdefault("data", [])
+                        new_id = "note_" + _piuuid.uuid4().hex[:8]
                         notes_data["data"].append({
-                            "id": "note_" + _piuuid.uuid4().hex[:8],
+                            "id": new_id,
                             "text": str(text or ""),
                             "created_at": _pidt.now().isoformat(timespec="seconds"),
                             "status": "open",
@@ -6675,7 +6713,24 @@ class Handler(BaseHTTPRequestHandler):
                             "archived_at": None,
                         })
                         notes_data["updated_at"] = _today_ai
-                        safe_save_json(notes_path, notes_data)
+                        return new_id if safe_save_json(notes_path, notes_data) else None
+
+                    def _pi_read_field(record, field):
+                        """Read leaf of a dot-path. Returns (found, value). Doesn't mutate."""
+                        if not field or not isinstance(record, dict):
+                            return (False, None)
+                        parts = str(field).split(".")
+                        target = record
+                        for p in parts[:-1]:
+                            if not isinstance(target, dict):
+                                return (False, None)
+                            target = target.get(p)
+                            if not isinstance(target, dict):
+                                return (False, None)
+                        leaf = parts[-1]
+                        if isinstance(target, dict) and leaf in target:
+                            return (True, target.get(leaf))
+                        return (False, None)
 
                     def _pi_apply_field_write(record, field, value, action):
                         """Write `value` to `field` on `record` (a dict).
@@ -6718,6 +6773,36 @@ class Handler(BaseHTTPRequestHandler):
                             target[leaf] = value
                         return True
 
+                    def _pi_value_preview(v):
+                        s = "" if v is None else str(v)
+                        return (s[:80] + "…") if len(s) > 80 else s
+
+                    def _pi_record(receipt_entry, undo_meta):
+                        """Push a receipt row + register undo metadata. Returns undo_id."""
+                        undo_id = _piuuid.uuid4().hex[:12]
+                        receipt_entry = dict(receipt_entry)
+                        receipt_entry["type"] = "placement"
+                        receipt_entry["undo_id"] = undo_id
+                        _receipt.append(receipt_entry)
+                        _placement_undo_remember(undo_id, undo_meta)
+                        return undo_id
+
+                    def _pi_record_notes_fallback(value, suggested_dest, label, hint, field, action):
+                        """Common helper for any branch that drops into the notes inbox."""
+                        nid = _pi_append_note(value, suggested_dest)
+                        # Record the receipt row even on save failure — we still tried;
+                        # undo will report cleanly that the note can't be found.
+                        _pi_record(
+                            {
+                                "label": label,
+                                "title": (hint or field or "(untitled)"),
+                                "field": field or "",
+                                "action": action or "CREATE",
+                                "value_preview": _pi_value_preview(value),
+                            },
+                            {"kind": "notes_fallback", "path": "data/notes.json", "note_id": nid},
+                        )
+
                     for _pl in _ai_placements:
                         try:
                             dest = (_pl.get("destination") or "").strip()
@@ -6728,7 +6813,9 @@ class Handler(BaseHTTPRequestHandler):
 
                             if not dest:
                                 # No destination at all — drop into notes for review
-                                _pi_append_note(value, hint)
+                                _pi_record_notes_fallback(
+                                    value, hint, "Notes inbox", hint, field, "CREATE"
+                                )
                                 placements_applied += 1
                                 continue
 
@@ -6766,25 +6853,65 @@ class Handler(BaseHTTPRequestHandler):
                                     target_field = field or "notes"
                                     existing_notes = match.get(target_field, "") or ""
                                     wrote = False
+                                    used_string_append = False
                                     if isinstance(existing_notes, str):
                                         match[target_field] = (
                                             existing_notes + ("\n" if existing_notes else "") + str(value)
                                         )
                                         wrote = True
+                                        used_string_append = True
                                     else:
                                         # Unexpected type — fall back to write-through helper
                                         wrote = _pi_apply_field_write(match, target_field, value, "APPEND")
                                     if wrote:
                                         ev_data["updated_at"] = _today_ai
                                         if safe_save_json(ev_path, ev_data):
+                                            ev_label = "Event notes — " + (match.get("title") or "(untitled)")
+                                            if used_string_append:
+                                                undo_meta = {
+                                                    "kind": "event_field_append_string",
+                                                    "path": ev_path,
+                                                    "event_id": match.get("id"),
+                                                    "field": target_field,
+                                                    "appended_text": str(value),
+                                                    "had_prior_content": bool(existing_notes),
+                                                }
+                                            else:
+                                                undo_meta = {
+                                                    "kind": "event_field_generic_append",
+                                                    "path": ev_path,
+                                                    "event_id": match.get("id"),
+                                                    "field": target_field,
+                                                    "appended_text": str(value),
+                                                }
+                                            _pi_record(
+                                                {
+                                                    "label": ev_label,
+                                                    "title": hint or match.get("title") or "(untitled)",
+                                                    "field": target_field,
+                                                    "action": "APPEND",
+                                                    "value_preview": _pi_value_preview(value),
+                                                },
+                                                undo_meta,
+                                            )
                                             placements_applied += 1
                                         else:
-                                            _pi_append_note(value, f"WRITE_FAILED::events.json::{hint}")
+                                            _pi_record_notes_fallback(
+                                                value, f"WRITE_FAILED::events.json::{hint}",
+                                                "Notes inbox (write failed)", hint, target_field, "APPEND",
+                                            )
+                                            placements_applied += 1
                                     else:
-                                        _pi_append_note(value, f"events.json::{target_field}::{hint}")
+                                        _pi_record_notes_fallback(
+                                            value, f"events.json::{target_field}::{hint}",
+                                            "Notes inbox", hint, target_field, "APPEND",
+                                        )
                                         placements_applied += 1
                                 else:
-                                    _pi_append_note(value, hint or "events.json")
+                                    _pi_record_notes_fallback(
+                                        value, hint or "events.json",
+                                        "Notes inbox", hint, field, "CREATE",
+                                    )
                                     placements_applied += 1
                                 continue
 
@@ -6795,14 +6922,40 @@ class Handler(BaseHTTPRequestHandler):
                                     prof_path = f"data/profiles/{slug}.json"
                                     prof = _pi_load_json(prof_path, None)
                                     if isinstance(prof, dict):
+                                        prior_existed, prior_value = _pi_read_field(prof, field)
                                         if _pi_apply_field_write(prof, field, value, action):
                                             if safe_save_json(prof_path, prof):
+                                                _pi_record(
+                                                    {
+                                                        "label": slug.capitalize() + "'s profile",
+                                                        "title": hint or field or "(untitled)",
+                                                        "field": field,
+                                                        "action": action,
+                                                        "value_preview": _pi_value_preview(value),
+                                                    },
+                                                    {
+                                                        "kind": "profile_field_write",
+                                                        "path": prof_path,
+                                                        "field": field,
+                                                        "action": action,
+                                                        "value_written": str(value),
+                                                        "prior_existed": prior_existed,
+                                                        "prior_value": prior_value,
+                                                    },
+                                                )
                                                 placements_applied += 1
                                             else:
-                                                _pi_append_note(value, f"WRITE_FAILED::{dest}::{field}::{hint}")
+                                                _pi_record_notes_fallback(
+                                                    value, f"WRITE_FAILED::{dest}::{field}::{hint}",
+                                                    "Notes inbox (write failed)", hint, field, action,
+                                                )
+                                                placements_applied += 1
                                             continue
                                 # Unknown slug or write refused — fall back
-                                _pi_append_note(value, f"{dest}::{field}::{hint}")
+                                _pi_record_notes_fallback(
+                                    value, f"{dest}::{field}::{hint}",
+                                    "Notes inbox", hint, field, action,
+                                )
                                 placements_applied += 1
                                 continue
 
@@ -6820,14 +6973,42 @@ class Handler(BaseHTTPRequestHandler):
                                             family = entry
                                             break
                                     if family is not None:
+                                        prior_existed, prior_value = _pi_read_field(family, field)
                                         if _pi_apply_field_write(family, field, value, action):
                                             if safe_save_json(fr_path, fr_data):
+                                                fam_label = family.get("family_name") or "Friend"
+                                                _pi_record(
+                                                    {
+                                                        "label": fam_label,
+                                                        "title": hint or field or "(untitled)",
+                                                        "field": field,
+                                                        "action": action,
+                                                        "value_preview": _pi_value_preview(value),
+                                                    },
+                                                    {
+                                                        "kind": "friend_field_write",
+                                                        "path": fr_path,
+                                                        "family_name": family.get("family_name") or "",
+                                                        "field": field,
+                                                        "action": action,
+                                                        "value_written": str(value),
+                                                        "prior_existed": prior_existed,
+                                                        "prior_value": prior_value,
+                                                    },
+                                                )
                                                 placements_applied += 1
                                             else:
-                                                _pi_append_note(value, f"WRITE_FAILED::friends.json::{field}::{hint}")
+                                                _pi_record_notes_fallback(
+                                                    value, f"WRITE_FAILED::friends.json::{field}::{hint}",
+                                                    "Notes inbox (write failed)", hint, field, action,
+                                                )
+                                                placements_applied += 1
                                             continue
                                 # No family matched — fall back to notes
-                                _pi_append_note(value, f"friends.json::{field}::{hint}")
+                                _pi_record_notes_fallback(
+                                    value, f"friends.json::{field}::{hint}",
+                                    "Notes inbox", hint, field, action,
+                                )
                                 placements_applied += 1
                                 continue
 
@@ -6845,12 +7026,35 @@ class Handler(BaseHTTPRequestHandler):
                                     mi[target_field] = (existing + ("\n" if existing else "") + str(value))
                                     mi["last_updated"] = _today_ai
                                     if safe_save_json(mi_path, mi):
+                                        _pi_record(
+                                            {
+                                                "label": "Meal inventory — " + target_field,
+                                                "title": hint or target_field,
+                                                "field": target_field,
+                                                "action": "APPEND",
+                                                "value_preview": _pi_value_preview(value),
+                                            },
+                                            {
+                                                "kind": "meal_inventory_append",
+                                                "path": mi_path,
+                                                "field": target_field,
+                                                "appended_text": str(value),
+                                                "had_prior_content": bool(existing),
+                                            },
+                                        )
                                         placements_applied += 1
                                     else:
-                                        _pi_append_note(value, f"WRITE_FAILED::meal_inventory.json::{target_field}")
+                                        _pi_record_notes_fallback(
+                                            value, f"WRITE_FAILED::meal_inventory.json::{target_field}",
+                                            "Notes inbox (write failed)", hint, target_field, "APPEND",
+                                        )
+                                        placements_applied += 1
                                     continue
                                 # Loaded data wasn't a dict — fall back rather than skip silently
-                                _pi_append_note(value, f"meal_inventory.json::{field or 'pantry'}")
+                                _pi_record_notes_fallback(
+                                    value, f"meal_inventory.json::{field or 'pantry'}",
+                                    "Notes inbox", hint, field or "pantry", "APPEND",
+                                )
                                 placements_applied += 1
                                 continue
 
@@ -6862,8 +7066,9 @@ class Handler(BaseHTTPRequestHandler):
                                     pi_list = []
                                 title_src = (hint or str(value)).strip()
                                 title_truncated = (title_src[:80] + "...") if len(title_src) > 80 else title_src
+                                new_int_id = "int_" + _piuuid.uuid4().hex[:8]
                                 pi_list.append({
-                                    "id": "int_" + _piuuid.uuid4().hex[:8],
+                                    "id": new_int_id,
                                     "title": title_truncated or "Untitled intention",
                                     "description": str(value or ""),
                                     "photo": "",
@@ -6874,9 +7079,28 @@ class Handler(BaseHTTPRequestHandler):
                                     "share_token": "",
                                 })
                                 if safe_save_json(pi_path, pi_list):
+                                    _pi_record(
+                                        {
+                                            "label": "Prayer intentions",
+                                            "title": title_truncated or "Untitled intention",
+                                            "field": "",
+                                            "action": "CREATE",
+                                            "value_preview": _pi_value_preview(value),
+                                        },
+                                        {
+                                            "kind": "list_record_create",
+                                            "path": pi_path,
+                                            "record_id": new_int_id,
+                                            "id_field": "id",
+                                        },
+                                    )
                                     placements_applied += 1
                                 else:
-                                    _pi_append_note(value, f"WRITE_FAILED::prayer/intentions.json::{hint}")
+                                    _pi_record_notes_fallback(
+                                        value, f"WRITE_FAILED::prayer/intentions.json::{hint}",
+                                        "Notes inbox (write failed)", hint, "", "CREATE",
+                                    )
+                                    placements_applied += 1
                                 continue
 
                             # ── thankyou_reminders.json ──
@@ -6886,8 +7110,9 @@ class Handler(BaseHTTPRequestHandler):
                                 if not isinstance(ty_list, list):
                                     ty_list = []
                                 hint_date = _pi_parse_hint_date(hint)
+                                new_ty_id = "ty_" + _piuuid.uuid4().hex[:8]
                                 ty_list.append({
-                                    "id": "ty_" + _piuuid.uuid4().hex[:8],
+                                    "id": new_ty_id,
                                     "event_name": hint or "Thank-you",
                                     "people": [],
                                     "assigned_to": "Lauren",
@@ -6897,18 +7122,47 @@ class Handler(BaseHTTPRequestHandler):
                                     "status": "pending",
                                 })
                                 if safe_save_json(ty_path, ty_list):
+                                    _pi_record(
+                                        {
+                                            "label": "Thank-you reminders",
+                                            "title": hint or "Thank-you",
+                                            "field": "",
+                                            "action": "CREATE",
+                                            "value_preview": _pi_value_preview(value),
+                                        },
+                                        {
+                                            "kind": "list_record_create",
+                                            "path": ty_path,
+                                            "record_id": new_ty_id,
+                                            "id_field": "id",
+                                        },
+                                    )
                                     placements_applied += 1
                                 else:
-                                    _pi_append_note(value, f"WRITE_FAILED::thankyou_reminders.json::{hint}")
+                                    _pi_record_notes_fallback(
+                                        value, f"WRITE_FAILED::thankyou_reminders.json::{hint}",
+                                        "Notes inbox (write failed)", hint, "", "CREATE",
+                                    )
+                                    placements_applied += 1
                                 continue
 
                             # ── Catch-all: unrecognized destination → notes ──
-                            _pi_append_note(value, f"{dest}::{hint}")
+                            _pi_record_notes_fallback(
+                                value, f"{dest}::{hint}",
+                                "Notes inbox", hint, field, action,
+                            )
                             placements_applied += 1
                         except Exception:
                             # One bad placement must not break the rest of the apply.
                             try:
-                                _pi_append_note(_pl.get("value") or "", f"ERROR::{_pl.get('destination','?')}::{_pl.get('match_hint','')}")
+                                _pi_record_notes_fallback(
+                                    _pl.get("value") or "",
+                                    f"ERROR::{_pl.get('destination','?')}::{_pl.get('match_hint','')}",
+                                    "Notes inbox (error)",
+                                    _pl.get("match_hint") or "",
+                                    _pl.get("field") or "",
+                                    "CREATE",
+                                )
                                 placements_applied += 1
                             except Exception:
                                 pass
@@ -6921,9 +7175,310 @@ class Handler(BaseHTTPRequestHandler):
                     "events_added": events_added,
                     "tasks_added": tasks_added,
                     "placements_applied": placements_applied,
+                    "receipt": _receipt,
                 }).encode())
                 except BrokenPipeError: pass
                 return
+
+            # ── Plan Import — Undo a single placement ─────────────────────────
+            elif path == "/plan-import-undo-placement":
+                import json as _uij
+                _u_v = self._get_viewer()
+                if not (_u_v and _auth.is_admin(_u_v)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Forbidden")
+                    except BrokenPipeError: pass
+                    return
+                _u_cl = int(self.headers.get("Content-Length","0") or 0)
+                _u_raw = self.rfile.read(_u_cl).decode("utf-8","ignore") if _u_cl else ""
+                try: _u_payload = _uij.loads(_u_raw)
+                except Exception:
+                    self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Invalid JSON")
+                    except BrokenPipeError: pass
+                    return
+                _u_id = (_u_payload.get("undo_id") or "").strip()
+
+                def _u_send(ok, reason=""):
+                    self.send_response(200)
+                    self.send_header("Content-Type","application/json; charset=utf-8")
+                    self.send_header("Cache-Control","no-store")
+                    self.end_headers()
+                    try: self.wfile.write(_uij.dumps({"ok": bool(ok), "reason": reason}).encode())
+                    except BrokenPipeError: pass
+
+                meta = _placement_undo_registry.get(_u_id) if _u_id else None
+                if not meta:
+                    return _u_send(False, "undo expired (server restarted) or already used")
+
+                def _u_load(p, default):
+                    try:
+                        with open(p) as _f: return _uij.load(_f)
+                    except Exception:
+                        return default
+
+                def _u_strip_appended(current, appended, had_prior):
+                    """Tail-strip appended text from a string field. Returns
+                    (new_value, ok, reason)."""
+                    if not isinstance(current, str):
+                        return (None, False, "field type changed since import")
+                    sep = "\n" if had_prior else ""
+                    suffix = sep + appended
+                    if current.endswith(suffix):
+                        return (current[: len(current) - len(suffix)], True, "")
+                    if current == appended:
+                        return ("", True, "")
+                    return (None, False, "field has been edited since import")
+
+                def _u_walk_set(record, field, new_value):
+                    """Set leaf of a dot-path. Returns True on success."""
+                    parts = str(field or "").split(".")
+                    if not parts or not parts[0]:
+                        return False
+                    target = record
+                    for p in parts[:-1]:
+                        if not isinstance(target, dict): return False
+                        target = target.get(p)
+                        if not isinstance(target, dict): return False
+                    if not isinstance(target, dict): return False
+                    target[parts[-1]] = new_value
+                    return True
+
+                def _u_walk_delete(record, field):
+                    """Delete leaf of a dot-path. Returns True on success."""
+                    parts = str(field or "").split(".")
+                    if not parts or not parts[0]:
+                        return False
+                    target = record
+                    for p in parts[:-1]:
+                        if not isinstance(target, dict): return False
+                        target = target.get(p)
+                        if not isinstance(target, dict): return False
+                    if not isinstance(target, dict): return False
+                    target.pop(parts[-1], None)
+                    return True
+
+                def _u_walk_read(record, field):
+                    """Read leaf of a dot-path. Returns (found, value).
+                    Local copy so this route doesn't depend on the apply route's
+                    inner _pi_read_field helper (which lives in a different scope)."""
+                    if not field or not isinstance(record, dict):
+                        return (False, None)
+                    parts = str(field).split(".")
+                    target = record
+                    for p in parts[:-1]:
+                        if not isinstance(target, dict): return (False, None)
+                        target = target.get(p)
+                        if not isinstance(target, dict): return (False, None)
+                    leaf = parts[-1]
+                    if isinstance(target, dict) and leaf in target:
+                        return (True, target.get(leaf))
+                    return (False, None)
+
+                def _u_consume():
+                    """Pop the entry from the registry once an undo has been
+                    attempted (success OR clean refusal). Prevents replay."""
+                    _placement_undo_registry.pop(_u_id, None)
+                    try: _placement_undo_order.remove(_u_id)
+                    except ValueError: pass
+
+                kind = meta.get("kind")
+                try:
+                    if kind == "notes_fallback":
+                        nid = meta.get("note_id")
+                        if not nid:
+                            _u_consume()
+                            return _u_send(False, "note was never saved")
+                        nd = _u_load(meta.get("path") or "data/notes.json", None)
+                        if not isinstance(nd, dict) or not isinstance(nd.get("data"), list):
+                            _u_consume()
+                            return _u_send(False, "notes file unavailable")
+                        before = len(nd["data"])
+                        nd["data"] = [n for n in nd["data"] if n.get("id") != nid]
+                        if len(nd["data"]) == before:
+                            _u_consume()
+                            return _u_send(False, "note already removed")
+                        nd["updated_at"] = date.today().isoformat()
+                        ok = safe_save_json(meta.get("path") or "data/notes.json", nd)
+                        _u_consume()
+                        return _u_send(ok, "" if ok else "save failed")
+
+                    if kind == "list_record_create":
+                        path = meta.get("path"); rid = meta.get("record_id")
+                        idf = meta.get("id_field") or "id"
+                        lst = _u_load(path, None)
+                        if not isinstance(lst, list):
+                            _u_consume()
+                            return _u_send(False, "target file unavailable")
+                        before = len(lst)
+                        lst = [r for r in lst if not (isinstance(r, dict) and r.get(idf) == rid)]
+                        if len(lst) == before:
+                            _u_consume()
+                            return _u_send(False, "record already removed")
+                        ok = safe_save_json(path, lst)
+                        _u_consume()
+                        return _u_send(ok, "" if ok else "save failed")
+
+                    if kind == "meal_inventory_append":
+                        path = meta.get("path"); fld = meta.get("field")
+                        appended = meta.get("appended_text") or ""
+                        had_prior = bool(meta.get("had_prior_content"))
+                        mi = _u_load(path, None)
+                        if not isinstance(mi, dict):
+                            _u_consume()
+                            return _u_send(False, "meal inventory unavailable")
+                        new_val, ok, reason = _u_strip_appended(mi.get(fld, ""), appended, had_prior)
+                        if not ok:
+                            _u_consume()
+                            return _u_send(False, reason)
+                        mi[fld] = new_val
+                        mi["last_updated"] = date.today().isoformat()
+                        saved = safe_save_json(path, mi)
+                        _u_consume()
+                        return _u_send(saved, "" if saved else "save failed")
+
+                    if kind == "event_field_append_string":
+                        path = meta.get("path"); eid = meta.get("event_id")
+                        fld = meta.get("field"); appended = meta.get("appended_text") or ""
+                        had_prior = bool(meta.get("had_prior_content"))
+                        ev_data = _u_load(path, None)
+                        if not isinstance(ev_data, dict):
+                            _u_consume()
+                            return _u_send(False, "events file unavailable")
+                        events_list = ev_data.get("data") or []
+                        target = next((e for e in events_list if isinstance(e, dict) and e.get("id") == eid), None)
+                        if target is None:
+                            _u_consume()
+                            return _u_send(False, "event no longer exists")
+                        new_val, ok, reason = _u_strip_appended(target.get(fld, ""), appended, had_prior)
+                        if not ok:
+                            _u_consume()
+                            return _u_send(False, reason)
+                        target[fld] = new_val
+                        ev_data["updated_at"] = date.today().isoformat()
+                        saved = safe_save_json(path, ev_data)
+                        _u_consume()
+                        return _u_send(saved, "" if saved else "save failed")
+
+                    if kind == "event_field_generic_append":
+                        # Generic helper APPEND on non-string field — best effort
+                        # tail-strip on the parent list/string, otherwise refuse.
+                        path = meta.get("path"); eid = meta.get("event_id")
+                        fld = meta.get("field"); appended = meta.get("appended_text") or ""
+                        ev_data = _u_load(path, None)
+                        if not isinstance(ev_data, dict):
+                            _u_consume()
+                            return _u_send(False, "events file unavailable")
+                        events_list = ev_data.get("data") or []
+                        target = next((e for e in events_list if isinstance(e, dict) and e.get("id") == eid), None)
+                        if target is None:
+                            _u_consume()
+                            return _u_send(False, "event no longer exists")
+                        cur = target.get(fld)
+                        if isinstance(cur, list):
+                            # Remove last occurrence of the appended value
+                            for i in range(len(cur) - 1, -1, -1):
+                                if cur[i] == appended:
+                                    del cur[i]
+                                    target[fld] = cur
+                                    ev_data["updated_at"] = date.today().isoformat()
+                                    saved = safe_save_json(path, ev_data)
+                                    _u_consume()
+                                    return _u_send(saved, "" if saved else "save failed")
+                            _u_consume()
+                            return _u_send(False, "value not found in field")
+                        _u_consume()
+                        return _u_send(False, "field type unsupported for undo")
+
+                    if kind in ("profile_field_write", "friend_field_write"):
+                        path = meta.get("path"); fld = meta.get("field")
+                        action = (meta.get("action") or "UPDATE").upper()
+                        prior_existed = bool(meta.get("prior_existed"))
+                        prior_value = meta.get("prior_value")
+                        value_written = meta.get("value_written") or ""
+
+                        doc = _u_load(path, None)
+                        # Locate parent record
+                        if kind == "friend_field_write":
+                            if not isinstance(doc, list):
+                                _u_consume()
+                                return _u_send(False, "friends file unavailable")
+                            fname_target = (meta.get("family_name") or "").lower()
+                            record = next(
+                                (e for e in doc if isinstance(e, dict)
+                                 and (e.get("family_name") or "").lower() == fname_target),
+                                None,
+                            )
+                            if record is None:
+                                _u_consume()
+                                return _u_send(False, "family no longer in friends file")
+                        else:
+                            if not isinstance(doc, dict):
+                                _u_consume()
+                                return _u_send(False, "profile file unavailable")
+                            record = doc
+
+                        # Read current leaf
+                        cur_existed, cur_value = _u_walk_read(record, fld)
+
+                        if action == "APPEND":
+                            if isinstance(cur_value, list):
+                                # Remove last matching occurrence
+                                removed = False
+                                for i in range(len(cur_value) - 1, -1, -1):
+                                    if cur_value[i] == value_written:
+                                        del cur_value[i]
+                                        removed = True
+                                        break
+                                if not removed:
+                                    _u_consume()
+                                    return _u_send(False, "value not found in list")
+                                _u_walk_set(record, fld, cur_value)
+                            elif isinstance(cur_value, str):
+                                had_prior = bool(prior_existed and isinstance(prior_value, str) and prior_value != "")
+                                new_val, ok, reason = _u_strip_appended(cur_value, value_written, had_prior)
+                                if not ok:
+                                    _u_consume()
+                                    return _u_send(False, reason)
+                                _u_walk_set(record, fld, new_val)
+                            else:
+                                _u_consume()
+                                return _u_send(False, "field type changed since import")
+                        else:
+                            # UPDATE (overwrite) — only act if the current leaf
+                            # still equals what we wrote, so we never clobber
+                            # changes the user made after import.
+                            if not prior_existed:
+                                # Field was created by import — delete only if
+                                # nobody has edited it since.
+                                if cur_existed and cur_value == value_written:
+                                    _u_walk_delete(record, fld)
+                                elif not cur_existed:
+                                    # Already absent — treat as success (idempotent).
+                                    pass
+                                else:
+                                    _u_consume()
+                                    return _u_send(False, "field has been edited since import")
+                            else:
+                                # Field existed before — restore prior value only
+                                # if the current leaf still matches what we wrote.
+                                if cur_existed and cur_value == value_written:
+                                    _u_walk_set(record, fld, prior_value)
+                                elif cur_existed and cur_value == prior_value:
+                                    # Already at prior value — nothing to do, treat as success
+                                    pass
+                                else:
+                                    _u_consume()
+                                    return _u_send(False, "field has been edited since import")
+                        saved = safe_save_json(path, doc)
+                        _u_consume()
+                        return _u_send(saved, "" if saved else "save failed")
+
+                    _u_consume()
+                    return _u_send(False, f"unknown undo kind: {kind}")
+                except Exception as _u_e:
+                    _u_consume()
+                    return _u_send(False, f"undo error: {_u_e}")
 
             # ── Plan Import — Companion Consult (streaming) ───────────────────
             elif path == "/plan-import-consult":

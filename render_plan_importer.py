@@ -635,6 +635,43 @@ textarea.placement-value:focus{{outline:none;border-color:var(--navy);}}
 .success-icon{{font-size:3em;margin-bottom:12px;}}
 .success-title{{font-size:1.2em;font-weight:700;color:var(--green);margin-bottom:8px;}}
 .success-body{{font-size:0.88em;color:var(--ink-soft);line-height:1.6;}}
+/* Receipt phase ────────────────────────────────────────────────────────── */
+.receipt-card{{background:#fff;border:1px solid var(--border);border-radius:14px;
+               margin:0 16px 24px;padding:18px 16px 14px;}}
+.receipt-banner{{display:flex;align-items:center;gap:10px;margin-bottom:18px;
+                 padding-bottom:14px;border-bottom:1px solid var(--border);}}
+.receipt-icon{{font-size:1.6em;}}
+.receipt-title{{font-size:1.05em;font-weight:700;color:var(--green);}}
+.receipt-summary{{font-size:0.78em;color:var(--ink-soft);margin-top:2px;}}
+.receipt-section{{margin-bottom:14px;}}
+.receipt-section:last-child{{margin-bottom:0;}}
+.receipt-section-head{{display:flex;align-items:center;gap:8px;margin-bottom:8px;
+                       font-size:0.84em;font-weight:700;color:var(--ink);}}
+.receipt-section-count{{background:var(--ink-faint);color:#fff;border-radius:10px;
+                        padding:2px 8px;font-size:0.7em;font-weight:700;}}
+.receipt-row{{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;
+              border:1px solid var(--border);border-radius:9px;
+              background:var(--cream);margin-bottom:6px;}}
+.receipt-row.undone{{opacity:.55;background:#f3efe5;}}
+.receipt-row-info{{flex:1;min-width:0;}}
+.receipt-row-label{{font-size:0.74em;font-weight:700;color:var(--ink-soft);
+                    text-transform:uppercase;letter-spacing:.04em;}}
+.receipt-row-title{{font-size:0.88em;font-weight:600;color:var(--ink);
+                    margin-top:2px;word-wrap:break-word;}}
+.receipt-row-preview{{font-size:0.78em;color:var(--ink-soft);margin-top:3px;
+                      line-height:1.4;word-wrap:break-word;}}
+.receipt-row-meta{{font-size:0.72em;color:var(--ink-faint);margin-top:3px;}}
+.receipt-undo-btn{{background:rgba(185,28,28,.08);color:var(--red);
+                   border:1px solid rgba(185,28,28,.2);
+                   border-radius:14px;padding:5px 12px;font-size:0.74em;
+                   font-weight:700;cursor:pointer;flex-shrink:0;
+                   font-family:inherit;}}
+.receipt-undo-btn:hover{{background:rgba(185,28,28,.14);}}
+.receipt-undo-btn:disabled{{opacity:.4;cursor:not-allowed;}}
+.receipt-undo-status{{font-size:0.74em;color:var(--ink-faint);
+                      font-style:italic;flex-shrink:0;align-self:center;}}
+.receipt-empty{{font-size:0.78em;color:var(--ink-faint);font-style:italic;
+                padding:8px 0;}}
 .person-tag{{display:inline-block;padding:1px 7px;border-radius:8px;
              font-size:0.7em;font-weight:700;margin-right:3px;
              background:rgba(30,53,102,.1);color:var(--navy);}}
@@ -1007,6 +1044,52 @@ textarea.placement-value:focus{{outline:none;border-color:var(--navy);}}
       <button class="pi-btn" style="background:var(--ink-faint);color:#fff;"
               onclick="resetToPaste()">&#128203; Import Another</button>
     </div>
+  </div>
+</div>
+</div>
+
+<!-- Phase 4b: Receipt (added alongside phase-success — see Task #15) -->
+<div id="phase-receipt" class="phase">
+<div class="pi-body">
+  <div class="receipt-card">
+    <div class="receipt-banner">
+      <div class="receipt-icon">&#127881;</div>
+      <div>
+        <div class="receipt-title">Plan Applied</div>
+        <div class="receipt-summary" id="receipt-summary"></div>
+      </div>
+    </div>
+    <div class="receipt-section" id="receipt-events-section">
+      <div class="receipt-section-head">
+        <span>&#128197; Events Added</span>
+        <span class="receipt-section-count" id="receipt-events-count">0</span>
+      </div>
+      <div id="receipt-events-body"></div>
+    </div>
+    <div class="receipt-section" id="receipt-tasks-section">
+      <div class="receipt-section-head">
+        <span>&#9989; Tasks Added</span>
+        <span class="receipt-section-count" id="receipt-tasks-count">0</span>
+      </div>
+      <div id="receipt-tasks-body"></div>
+    </div>
+    <div class="receipt-section" id="receipt-placements-section">
+      <div class="receipt-section-head">
+        <span>&#128221; Placements Filed</span>
+        <span class="receipt-section-count" id="receipt-placements-count">0</span>
+      </div>
+      <div id="receipt-placements-body"></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;justify-content:center;margin:0 16px 24px;flex-wrap:wrap;">
+    <a href="/calendar" class="pi-btn pi-btn-primary" style="text-decoration:none;">
+      &#128197; View Calendar
+    </a>
+    <a href="/today" class="pi-btn" style="background:var(--green);color:#fff;text-decoration:none;">
+      &#9989; View Today
+    </a>
+    <button class="pi-btn" style="background:var(--ink-faint);color:#fff;"
+            onclick="resetToPaste()">&#128203; Import Another</button>
   </div>
 </div>
 </div>
@@ -1725,12 +1808,104 @@ async function applyPlan() {{
       `<strong>${{evAdded}} event${{evAdded!==1?'s':''}}</strong>,
        <strong>${{tAdded}} task${{tAdded!==1?'s':''}}</strong>,
        <strong>${{pAdded}} placement${{pAdded!==1?'s':''}}</strong> applied to the family plan.`;
+    renderReceipt(result);
     _clearSession();
-    showPhase('phase-success');
+    showPhase('phase-receipt');
   }} catch(err) {{
     btn.disabled = false;
     btn.innerHTML = '&#9989; Apply Selected Items';
     alert('Apply failed: ' + err.message);
+  }}
+}}
+
+// ── Receipt rendering ─────────────────────────────────────────────────────
+function renderReceipt(result) {{
+  const receipt = Array.isArray(result.receipt) ? result.receipt : [];
+  const events = receipt.filter(r => r.type === 'event');
+  const tasks  = receipt.filter(r => r.type === 'task');
+  const places = receipt.filter(r => r.type === 'placement');
+
+  const evCount = result.events_added || 0;
+  const tkCount = result.tasks_added  || 0;
+  const plCount = result.placements_applied || 0;
+  const total   = evCount + tkCount + plCount;
+  document.getElementById('receipt-summary').textContent =
+    `${{total}} item${{total!==1?'s':''}} filed to the family plan.`;
+
+  document.getElementById('receipt-events-count').textContent = events.length;
+  document.getElementById('receipt-tasks-count').textContent = tasks.length;
+  document.getElementById('receipt-placements-count').textContent = places.length;
+
+  document.getElementById('receipt-events-body').innerHTML =
+    events.length ? events.map(renderReceiptRow).join('')
+                  : '<div class="receipt-empty">No new events.</div>';
+  document.getElementById('receipt-tasks-body').innerHTML =
+    tasks.length ? tasks.map(renderReceiptRow).join('')
+                 : '<div class="receipt-empty">No new tasks.</div>';
+  document.getElementById('receipt-placements-body').innerHTML =
+    places.length ? places.map(renderReceiptRow).join('')
+                  : '<div class="receipt-empty">No placements filed.</div>';
+}}
+
+let _receiptRowSeq = 0;
+function renderReceiptRow(entry) {{
+  const rowId = 'rcpt-' + (++_receiptRowSeq);
+  const label = esc(entry.label || '');
+  const title = esc(entry.title || '(untitled)');
+  const action = esc(entry.action || '');
+  const fld = entry.field ? ' · field: ' + esc(entry.field) : '';
+  const meta = entry.meta ? esc(entry.meta) : '';
+  const preview = entry.value_preview
+    ? '<div class="receipt-row-preview">' + esc(entry.value_preview) + '</div>' : '';
+  const metaLine = (meta || fld || action)
+    ? '<div class="receipt-row-meta">' + (action ? esc(action) : '')
+      + (meta ? (action ? ' · ' : '') + meta : '')
+      + fld + '</div>'
+    : '';
+  let undoCell = '';
+  if (entry.undo_id) {{
+    undoCell = '<button class="receipt-undo-btn" id="' + rowId + '-btn" '
+             + 'onclick="undoPlacement(\\'' + entry.undo_id + '\\',\\'' + rowId + '\\')">'
+             + '&#8617; Undo</button>';
+  }}
+  return '<div class="receipt-row" id="' + rowId + '">'
+       +   '<div class="receipt-row-info">'
+       +     '<div class="receipt-row-label">' + label + '</div>'
+       +     '<div class="receipt-row-title">' + title + '</div>'
+       +     preview + metaLine
+       +   '</div>'
+       +   undoCell
+       + '</div>';
+}}
+
+async function undoPlacement(undoId, rowId) {{
+  const row = document.getElementById(rowId);
+  const btn = document.getElementById(rowId + '-btn');
+  if (btn) {{ btn.disabled = true; btn.textContent = 'Undoing…'; }}
+  try {{
+    const resp = await fetch('/plan-import-undo-placement', {{
+      method: 'POST',
+      headers: {{'Content-Type': 'application/json'}},
+      body: JSON.stringify({{undo_id: undoId}}),
+    }});
+    const result = await resp.json();
+    if (result.ok) {{
+      if (row) row.classList.add('undone');
+      if (btn) {{
+        btn.outerHTML = '<span class="receipt-undo-status">&#8617; Undone</span>';
+      }}
+    }} else {{
+      if (btn) {{
+        btn.outerHTML = '<span class="receipt-undo-status">Can\\'t undo: '
+                      + esc(result.reason || 'unknown') + '</span>';
+      }}
+    }}
+  }} catch(err) {{
+    if (btn) {{
+      btn.disabled = false;
+      btn.textContent = '↩ Undo';
+    }}
+    alert('Undo failed: ' + err.message);
   }}
 }}
 
