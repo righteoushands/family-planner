@@ -383,6 +383,11 @@ def render_dev_page(history: list, q: str = "", from_: str = "") -> str:
        background:#1e3a8a;color:white;padding:10px 20px;border-radius:12px;z-index:9999;
        font-size:0.85em;font-weight:600;">Server restarting&hellip; reloading in ~10 seconds.</div>
 
+  <!-- Copy-prompt toast -->
+  <div id="copy-toast" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);
+       background:#166534;color:white;padding:10px 20px;border-radius:12px;z-index:9999;
+       font-size:0.85em;font-weight:600;">Replit prompt copied</div>
+
 </div>
 
 <!-- Fixed input bar -->
@@ -848,6 +853,16 @@ function escHtml(str) {{
          .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }}
 
+// ── Floating toast for "Replit prompt copied" ────────────────────────────
+let _copyToastTimer = null;
+function showCopyToast() {{
+  const t = document.getElementById('copy-toast');
+  if (!t) return;
+  t.style.display = 'block';
+  if (_copyToastTimer) clearTimeout(_copyToastTimer);
+  _copyToastTimer = setTimeout(() => {{ t.style.display = 'none'; }}, 1500);
+}}
+
 // ── Copy-Replit-prompt button ─────────────────────────────────────────────
 // If an Izzy bubble's body contains the literal label "Replit prompt:", add
 // a small button under the body that copies just the text following that
@@ -893,17 +908,7 @@ function addCopyPromptBtn(bubble) {{
         return;
       }}
     }}
-    const orig = btn.innerHTML;
-    btn.innerHTML = '\u2713 Copied';
-    btn.style.background = '#dcfce7';
-    btn.style.borderColor = '#86efac';
-    btn.style.color = '#166534';
-    setTimeout(() => {{
-      btn.innerHTML = orig;
-      btn.style.background = '#e0f2fe';
-      btn.style.borderColor = '#bae6fd';
-      btn.style.color = '#0369a1';
-    }}, 1500);
+    showCopyToast();
   }});
   raw.parentElement.insertBefore(btn, raw.nextSibling);
 }}
