@@ -379,12 +379,12 @@ def render_dev_page(history: list, q: str = "", from_: str = "") -> str:
        border-radius:10px;font-size:0.82em;color:#dc2626;margin-bottom:8px;"></div>
 
   <!-- Restart toast -->
-  <div id="restart-toast" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);
+  <div id="restart-toast" role="status" aria-live="polite" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);
        background:#1e3a8a;color:white;padding:10px 20px;border-radius:12px;z-index:9999;
        font-size:0.85em;font-weight:600;">Server restarting&hellip; reloading in ~10 seconds.</div>
 
   <!-- Copy-prompt toast -->
-  <div id="copy-toast" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);
+  <div id="copy-toast" role="status" aria-live="polite" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);
        background:#166534;color:white;padding:10px 20px;border-radius:12px;z-index:9999;
        font-size:0.85em;font-weight:600;">Replit prompt copied</div>
 
