@@ -408,8 +408,16 @@ def get_frol_day_slots(weekday: str, person: str = "Mom") -> dict:
     """
     Return the FROL time slots {time: label} for a person on a given weekday.
     Reads from data/day_templates/{weekday}.json (the per-person Rule of Life).
-    Falls back to 'Mom' or the first available person if the requested one is
-    not found.  Returns an empty dict when no template exists for that day.
+
+    Lauren and Mom are the same person.  When asked for either, this function
+    returns the UNION of slots stored under both keys — the Mom baseline plus
+    any Lauren-only personal additions — so a sparse "Lauren" entry can never
+    accidentally hide the full daily rhythm stored under "Mom" (or vice versa).
+    Same-time conflicts are resolved in favor of the requested name.
+
+    For children (JP, Joseph, Michael, James), only their own grid is returned;
+    no fallback to another person's template, so a missing child template
+    yields an empty dict instead of accidentally inheriting Mom's day.
     """
     import json as _json
     from pathlib import Path as _Path
@@ -417,15 +425,20 @@ def get_frol_day_slots(weekday: str, person: str = "Mom") -> dict:
     if not p.exists():
         return {}
     grid = _json.loads(p.read_text(encoding="utf-8")).get("grid", {})
-    # Lauren / Mom are the same person — only alias-fallback for them
-    aliases = {"Lauren": "Mom", "Mom": "Lauren"}
-    # Primary lookup: the requested person and their alias (Mom↔Lauren only)
-    for candidate in [person, aliases.get(person, "")]:
-        if candidate and candidate in grid and grid[candidate]:
-            return dict(grid[candidate])
-    # Do NOT fall through to another person's template for children —
-    # that would give JP or Joseph Lauren's tasks when their day is missing.
-    return {}
+    if person in ("Lauren", "Mom"):
+        mom_grid    = dict(grid.get("Mom", {})    or {})
+        lauren_grid = dict(grid.get("Lauren", {}) or {})
+        # Union of both keys; the requested name wins on time-slot conflicts.
+        if person == "Mom":
+            merged = {**lauren_grid, **mom_grid}
+        else:
+            merged = {**mom_grid, **lauren_grid}
+        return {t: v for t, v in merged.items() if (v or "").strip()}
+    # Children: own grid only.  Do NOT fall through to another person's
+    # template — that would give JP or Joseph Lauren's tasks when their
+    # day is missing.
+    own = grid.get(person, {}) or {}
+    return {t: v for t, v in dict(own).items() if (v or "").strip()}
 
 
 def get_frol_times() -> list:
