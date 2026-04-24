@@ -199,3 +199,31 @@ Every AI companion (Lucy, Lorenzo, Gregory, Coach, Felix/Izzy, Dr. Monica) can u
 - `data/<companion>_last_writes.json` — per-companion manifest, rewritten each turn that wrote anything; on the snapshot deny-list (substring `_last_writes.json`) so it doesn't pollute history.
 
 **Limitations:** Single-step only — undoes the last turn's writes, not earlier ones (older versions are still available manually via Settings → History). Restores happen via the existing snapshot system in `data/history/`, so anything outside that system (cache files, auth, archives — all on the deny-list) cannot be undone this way and shouldn't need to be.
+
+## Critical Python 3.11 Rules
+- No backslashes inside f-strings — ever
+- No imports inside if/elif/else blocks — all imports at top of file
+- Never use walrus operator (:=) in f-strings
+
+## Routing Rules — Most Important
+- All POST routing uses elif chains in do_POST — never restructure to if chains
+- All GET routing uses elif chains in do_GET — never restructure to if chains
+- Never add a bare `if request.method == "POST"` where an elif already exists
+- Never refactor or "clean up" routing structure unless explicitly asked
+- Every new route needs both a do_GET and do_POST entry in the correct elif chain
+
+## File Responsibility Rules
+- data_helpers.py is the ONLY file that should read/write JSON files
+- config.py owns ALL file paths — never hardcode a path in app.py
+- family_quest/ is a separate directory — don't touch it when fixing app.py issues
+
+## Change Discipline
+- Edit the minimum number of files necessary to solve the problem
+- Never refactor code that isn't directly related to the requested change
+- After every change confirm: do_POST and do_GET routing structure is intact
+- After every change confirm: no imports were added inside conditional blocks
+
+## Help Desk AI
+- The in-app help desk AI is a diagnostic tool only — it does not write code
+- If the help desk AI produces a Replit prompt, treat it as a precise scoped instruction
+- Follow it exactly without expanding scope
