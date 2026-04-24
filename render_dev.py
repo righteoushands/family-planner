@@ -634,6 +634,7 @@ async function streamFelix(payload, isAutoRead, image, depth) {{
     // Post-process: render [FIX:] cards and companion handoff buttons
     parseFixes(bubble, full);
     _renderHandoffBtns(full, bubble.lastElementChild || bubble);
+    addCopyPromptBtn(bubble);
     box.scrollTop = box.scrollHeight;
 
     // ── Auto-process [READ:], [GREP:], git, [LOGS:], [DIAG:] tags ──
@@ -846,6 +847,81 @@ function escHtml(str) {{
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
          .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }}
+
+// ── Copy-Replit-prompt button ─────────────────────────────────────────────
+// If an Izzy bubble's body contains the literal label "Replit prompt:", add
+// a small button under the body that copies just the text following that
+// label (the section Lauren is meant to paste into Replit's AI agent).
+function addCopyPromptBtn(bubble) {{
+  if (!bubble || !bubble.querySelector) return;
+  if (bubble.querySelector('.copy-prompt-btn')) return;  // already added
+  const raw = bubble.querySelector('.felix-raw');
+  if (!raw) return;
+  const text = raw.textContent || '';
+  const idx = text.indexOf('Replit prompt:');
+  if (idx === -1) return;
+  const promptText = text.slice(idx + 'Replit prompt:'.length).trim();
+  if (!promptText) return;
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'copy-prompt-btn';
+  btn.style.cssText = 'margin-top:10px;padding:6px 12px;font-size:0.78em;border-radius:8px;'
+    + 'border:1.5px solid #bae6fd;background:#e0f2fe;color:#0369a1;font-family:inherit;'
+    + 'cursor:pointer;font-weight:600;';
+  btn.innerHTML = '\U0001F4CB Copy Replit prompt';
+  btn.addEventListener('click', async function() {{
+    // Re-read in case the bubble's body was updated after the button was added
+    const t = raw.textContent || '';
+    const i = t.indexOf('Replit prompt:');
+    const p = i === -1 ? '' : t.slice(i + 'Replit prompt:'.length).trim();
+    if (!p) return;
+    try {{
+      await navigator.clipboard.writeText(p);
+    }} catch(e) {{
+      // Fallback for browsers without clipboard API access
+      try {{
+        const ta = document.createElement('textarea');
+        ta.value = p;
+        ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }} catch(e2) {{
+        alert('Could not copy: ' + e.message);
+        return;
+      }}
+    }}
+    const orig = btn.innerHTML;
+    btn.innerHTML = '\u2713 Copied';
+    btn.style.background = '#dcfce7';
+    btn.style.borderColor = '#86efac';
+    btn.style.color = '#166534';
+    setTimeout(() => {{
+      btn.innerHTML = orig;
+      btn.style.background = '#e0f2fe';
+      btn.style.borderColor = '#bae6fd';
+      btn.style.color = '#0369a1';
+    }}, 1500);
+  }});
+  raw.parentElement.insertBefore(btn, raw.nextSibling);
+}}
+
+function scanCopyPromptBtns() {{
+  const box = document.getElementById('felix-msgs');
+  if (!box) return;
+  box.querySelectorAll('.felix-raw').forEach(raw => {{
+    // Walk up to the outer bubble container (the one appended to #felix-msgs)
+    let bubble = raw;
+    while (bubble && bubble.parentElement && bubble.parentElement !== box) {{
+      bubble = bubble.parentElement;
+    }}
+    addCopyPromptBtn(bubble);
+  }});
+}}
+
+document.addEventListener('DOMContentLoaded', scanCopyPromptBtns);
 
 // ── Parse [FIX:...], [WRITE:...] and [READ:...] blocks ───────────────────
 // All fixes/writes → ONE card, ONE button. READ tags stripped silently.
@@ -1315,7 +1391,7 @@ def _felix_bubble(text: str, ts: str) -> str:
               display:flex;align-items:center;justify-content:center;font-size:1em;flex-shrink:0;">&#128187;</div>
   <div style="flex:1;background:#f8faff;border:1px solid #dbeafe;padding:12px 14px;
               border-radius:4px 14px 14px 14px;">
-    <div style="font-size:0.87em;line-height:1.6;white-space:pre-wrap;color:#1e293b;">{safe}</div>
+    <div class="felix-raw" style="font-size:0.87em;line-height:1.6;white-space:pre-wrap;color:#1e293b;">{safe}</div>
     {ts_label}
   </div>
 </div>"""
