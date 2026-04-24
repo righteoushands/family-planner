@@ -782,13 +782,5 @@
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false
-  },
-  {
-    "text": "Prayer",
-    "assigned_to": "Lauren",
-    "due_date": "2026-04-24",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
   }
 ]

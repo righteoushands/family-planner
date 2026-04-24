@@ -1,0 +1,9 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "My POD doesn’t include the FROL time blocks.",
+      "ts": "2026-04-24T08:00:02"
+    }
+  ]
+}
