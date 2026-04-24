@@ -101,6 +101,30 @@ E. Date ranges with en-dash (–), em-dash (—), or hyphen (-) between two date
 - Breaking multi-week projects into milestone tasks
 - Anything else you notice that would help the family
 
+== ROUTING & PLACEMENT ==
+Some lines in a pasted plan don't represent new events or tasks — they're info that belongs on an existing record. Examples:
+- "Bring snacks for soccer practice on Tuesday" → a NOTE on the existing Tuesday soccer event
+- "JP wants the Lego Bionicle set for his birthday" → APPEND to JP's profile gift_ideas
+- "The Smiths can't have peanuts" → UPDATE the Smith family's food_allergies in friends.json
+- "Restocked pantry: flour, sugar, baking soda" → APPEND to meal_inventory.json pantry
+- "Pray for Aunt Mary's surgery on May 12" → CREATE in prayer/intentions.json
+- "Remember to thank the Joneses for the casserole" → CREATE in thankyou_reminders.json
+
+Emit these as "placements" — separate from events and tasks. Each placement targets ONE field on ONE existing (or new) record.
+
+Available destinations (use these exact strings — do not invent others):
+- events.json — info to attach to an existing calendar event
+- profiles/jp.json, profiles/joseph.json, profiles/michael.json, profiles/james.json — child profile data
+- profiles/mom.json, profiles/john.json — adult profile data
+- friends.json — info about a friend family
+- meal_inventory.json — pantry / fridge / freezer / use_soon updates
+- prayer/intentions.json — a new prayer intention
+- thankyou_reminders.json — a thank-you reminder to send
+
+Each placement carries: id, destination, action ("UPDATE" / "APPEND" / "CREATE"), match_hint (free text to find the right record — event title+date, family name, etc.), field (the specific field name like "notes", "gift_ideas", "food_allergies", "pantry"), value (the actual content), confidence, and reason (one short line explaining why this routing was chosen).
+
+If one record needs multiple field updates, emit each as a SEPARATE placement entry — never combine fields into one placement. If a line doesn't fit any of the destinations above, leave it as a regular task or event instead — do not invent a destination.
+
 == OUTPUT FORMAT ==
 Respond with ONLY valid JSON inside ```json ... ``` code fences. No other text outside the fences.
 CRITICAL JSON RULES:
@@ -154,6 +178,28 @@ CRITICAL JSON RULES:
     {{
       "text": "Consider moving the grocery run to Monday to prepare for Tuesday's dinner.",
       "related_to": null
+    }}
+  ],
+  "placements": [
+    {{
+      "id": "p1",
+      "destination": "events.json",
+      "action": "UPDATE",
+      "match_hint": "Sea Cadets Drill — May 3",
+      "field": "notes",
+      "value": "Bring water bottle and Class B uniform",
+      "confidence": "high",
+      "reason": "Detail belongs on the existing event, not as a new event"
+    }},
+    {{
+      "id": "p2",
+      "destination": "profiles/jp.json",
+      "action": "APPEND",
+      "match_hint": "JP",
+      "field": "gift_ideas",
+      "value": "Lego Bionicle set",
+      "confidence": "high",
+      "reason": "Birthday gift idea belongs on JP's profile"
     }}
   ]
 }}"""
@@ -503,6 +549,26 @@ textarea.pi-paste:focus{{outline:none;border-color:var(--navy);}}
 .section-count.green{{background:var(--green);}}
 .section-count.amber{{background:var(--amber);}}
 .section-count.red{{background:var(--red);}}
+.section-count.blue{{background:var(--navy);}}
+.placement-row{{border:1px solid rgba(30,53,102,.18);border-radius:10px;margin-bottom:8px;overflow:hidden;background:rgba(30,53,102,.03);}}
+.placement-main{{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;
+                 background:rgba(30,53,102,.06);transition:background .1s;}}
+.placement-main:hover{{background:rgba(30,53,102,.10);}}
+.action-badge{{display:inline-block;font-size:0.66em;font-weight:700;letter-spacing:.04em;
+               padding:2px 7px;border-radius:6px;text-transform:uppercase;flex-shrink:0;}}
+.action-badge.update{{background:rgba(30,53,102,.12);color:var(--navy);}}
+.action-badge.append{{background:rgba(26,110,62,.12);color:var(--green);}}
+.action-badge.create{{background:rgba(91,58,138,.12);color:var(--purple);}}
+.placement-dest{{font-size:0.72em;color:var(--ink-soft);margin-top:2px;}}
+.placement-reason{{font-size:0.78em;color:var(--ink-soft);font-style:italic;
+                   margin-top:6px;line-height:1.45;}}
+.placement-meta-row{{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:0.74em;
+                     color:var(--ink-soft);margin-bottom:8px;}}
+.placement-meta-row strong{{color:var(--ink);font-weight:700;}}
+textarea.placement-value{{width:100%;min-height:64px;border:1px solid var(--border);
+  border-radius:7px;padding:7px 10px;font-family:inherit;font-size:0.84em;
+  color:var(--ink);background:#fafafa;resize:vertical;line-height:1.5;}}
+textarea.placement-value:focus{{outline:none;border-color:var(--navy);}}
 .item-row{{border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;}}
 .item-main{{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;
             background:var(--cream);transition:background .1s;}}
@@ -766,6 +832,22 @@ textarea.pi-paste:focus{{outline:none;border-color:var(--navy);}}
       </div>
       <div id="warnings-list"></div>
       <div id="suggestions-list"></div>
+    </div>
+  </div>
+
+  <!-- Placements (info to file onto existing records) -->
+  <div id="section-placements" style="display:none;">
+    <div class="pi-card">
+      <div class="section-header">
+        <span class="section-icon">&#128204;</span>
+        <span class="section-title">Placements &mdash; info for existing records</span>
+        <span class="section-count blue" id="placements-count">0</span>
+      </div>
+      <p style="font-size:0.78em;color:var(--ink-soft);margin-bottom:12px;">
+        These pieces of info will be filed onto existing records (event notes, profiles, friends,
+        pantry, etc.) instead of becoming new tasks or events.
+      </p>
+      <div id="placements-list"></div>
     </div>
   </div>
 
@@ -1150,8 +1232,9 @@ function renderResults(data) {{
   const questions = data.questions || [];
   const warnings  = data.warnings  || [];
   const suggestions = data.suggestions || [];
+  const placements = data.placements || [];
 
-  const hasAnything = events.length + tasks.length > 0;
+  const hasAnything = events.length + tasks.length + placements.length > 0;
 
   // Questions
   const qSec = document.getElementById('section-questions');
@@ -1202,6 +1285,16 @@ function renderResults(data) {{
     `).join('');
   }} else {{
     wsSec.style.display = 'none';
+  }}
+
+  // Placements
+  const plSec = document.getElementById('section-placements');
+  if (placements.length) {{
+    plSec.style.display = '';
+    document.getElementById('placements-count').textContent = placements.length;
+    document.getElementById('placements-list').innerHTML = placements.map(p => renderPlacementItem(p)).join('');
+  }} else {{
+    plSec.style.display = 'none';
   }}
 
   // Events
@@ -1346,6 +1439,63 @@ function renderTaskItem(t) {{
       </div>`}}
       <div style="margin-top:10px;display:flex;justify-content:flex-end;">
         <button class="pi-btn pi-btn-sm pi-btn-remove" onclick="removeItem('${{t.id}}')">
+          &#128465; Remove
+        </button>
+      </div>
+    </div>
+  </div>`;
+}}
+
+const PLACEMENT_DEST_LABELS = {{
+  'events.json':              '\uD83D\uDCCC Event note',
+  'profiles/jp.json':         '\uD83D\uDC66 JP\u2019s Profile',
+  'profiles/joseph.json':     '\uD83D\uDC66 Joseph\u2019s Profile',
+  'profiles/michael.json':    '\uD83D\uDC66 Michael\u2019s Profile',
+  'profiles/james.json':      '\uD83D\uDC76 James\u2019 Profile',
+  'profiles/mom.json':        '\uD83D\uDC69 Mom\u2019s Profile',
+  'profiles/john.json':       '\uD83D\uDC68 John\u2019s Profile',
+  'friends.json':             '\uD83C\uDFE1 Friend Family',
+  'meal_inventory.json':      '\uD83E\uDDFA Pantry / Inventory',
+  'prayer/intentions.json':   '\uD83D\uDE4F Prayer Intention',
+  'thankyou_reminders.json':  '\uD83D\uDC8C Thank-You Reminder',
+}};
+
+function placementDestLabel(dest) {{
+  return PLACEMENT_DEST_LABELS[dest] || ('\uD83D\uDCC2 ' + (dest || 'unknown'));
+}}
+
+function renderPlacementItem(p) {{
+  const conf   = p.confidence || 'medium';
+  const action = (p.action || 'UPDATE').toLowerCase();
+  const actionClass = ['update','append','create'].includes(action) ? action : 'update';
+  const destLabel = placementDestLabel(p.destination);
+  const fieldLabel = p.field ? ('\u00B7 ' + esc(p.field)) : '';
+  const matchLabel = p.match_hint ? esc(p.match_hint) : '\u2014';
+  return `<div class="placement-row" id="item-${{p.id}}">
+    <div class="placement-main" onclick="toggleEdit('${{p.id}}')">
+      <input type="checkbox" class="item-cb" id="cb-${{p.id}}" checked
+             onclick="event.stopPropagation();updateApplySummary()">
+      <div class="item-info">
+        <div class="item-title">${{destLabel}} ${{fieldLabel}}</div>
+        <div class="placement-dest">&rarr; ${{matchLabel}}</div>
+      </div>
+      <span class="action-badge ${{actionClass}}">${{esc(p.action || 'update')}}</span>
+      <span class="item-conf conf-${{conf}}">${{conf}}</span>
+      <span style="color:var(--ink-faint);font-size:0.75em;margin-left:4px;">&#9660;</span>
+    </div>
+    <div class="item-edit" id="edit-${{p.id}}">
+      <div class="placement-meta-row">
+        <span><strong>Destination:</strong> ${{esc(p.destination || '')}}</span>
+        <span><strong>Field:</strong> ${{esc(p.field || '')}}</span>
+        <span><strong>Match:</strong> ${{matchLabel}}</span>
+      </div>
+      <div class="edit-field">
+        <label>Value (edit before applying)</label>
+        <textarea class="placement-value" id="pf-value-${{p.id}}">${{esc(p.value || '')}}</textarea>
+      </div>
+      ${{p.reason ? `<div class="placement-reason">&#128161; ${{esc(p.reason)}}</div>` : ''}}
+      <div style="margin-top:10px;display:flex;justify-content:flex-end;">
+        <button class="pi-btn pi-btn-sm pi-btn-remove" onclick="removeItem('${{p.id}}')">
           &#128465; Remove
         </button>
       </div>
@@ -1532,7 +1682,25 @@ function collectApproved() {{
     }};
   }});
 
-  return {{events, tasks, project_label: projectLabel}};
+  const placements = (analysisData.placements || []).filter(p => {{
+    const cb = document.getElementById('cb-' + p.id);
+    const row = document.getElementById('item-' + p.id);
+    return cb && cb.checked && row;
+  }}).map(p => {{
+    const valueEl = document.getElementById('pf-value-' + p.id);
+    const liveValue = valueEl ? valueEl.value : (p.value || '');
+    return {{
+      id:          p.id,
+      destination: p.destination || '',
+      action:      p.action || 'UPDATE',
+      match_hint:  p.match_hint || '',
+      field:       p.field || '',
+      value:       liveValue,
+      confidence:  p.confidence || 'medium',
+    }};
+  }});
+
+  return {{events, tasks, placements, project_label: projectLabel}};
 }}
 
 // ── Apply ──────────────────────────────────────────────────────────────────
@@ -1552,9 +1720,11 @@ async function applyPlan() {{
     const result = await resp.json();
     const evAdded = result.events_added || 0;
     const tAdded  = result.tasks_added  || 0;
+    const pAdded  = result.placements_applied || 0;
     document.getElementById('success-body').innerHTML =
-      `Added <strong>${{evAdded}} calendar event${{evAdded!==1?'s':''}}</strong> and
-       <strong>${{tAdded}} task${{tAdded!==1?'s':''}}</strong> to the family plan.`;
+      `<strong>${{evAdded}} event${{evAdded!==1?'s':''}}</strong>,
+       <strong>${{tAdded}} task${{tAdded!==1?'s':''}}</strong>,
+       <strong>${{pAdded}} placement${{pAdded!==1?'s':''}}</strong> applied to the family plan.`;
     _clearSession();
     showPhase('phase-success');
   }} catch(err) {{

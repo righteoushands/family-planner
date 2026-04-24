@@ -6580,6 +6580,339 @@ class Handler(BaseHTTPRequestHandler):
                         save_manual_tasks(_all_tasks)
                     except Exception:
                         pass
+
+                # ── Placements: file each piece of info onto its target record ──
+                _ai_placements_raw = _ai_payload.get("placements", []) or []
+                if not isinstance(_ai_placements_raw, list):
+                    _ai_placements_raw = []
+                _ai_placements = [p for p in _ai_placements_raw if isinstance(p, dict)]
+                placements_applied = 0
+                if _ai_placements:
+                    import re as _pre
+                    import uuid as _piuuid
+                    from datetime import datetime as _pidt
+
+                    _PI_PROFILE_SLUGS = {"jp","joseph","michael","james","mom","john"}
+                    _PI_MONTHS = {
+                        "january":1,"jan":1,"february":2,"feb":2,"march":3,"mar":3,
+                        "april":4,"apr":4,"may":5,"june":6,"jun":6,"july":7,"jul":7,
+                        "august":8,"aug":8,"september":9,"sep":9,"sept":9,
+                        "october":10,"oct":10,"november":11,"nov":11,"december":12,"dec":12,
+                    }
+                    _pi_today = date.today()
+
+                    def _pi_parse_hint_date(hint):
+                        """Conservative date extraction from a match_hint string.
+                        Returns a date or None. Only matches obvious patterns to
+                        avoid false positives that would suppress title fallback."""
+                        if not hint:
+                            return None
+                        s = str(hint).strip()
+                        # ISO YYYY-MM-DD
+                        m = _pre.search(r'\b(\d{4})-(\d{1,2})-(\d{1,2})\b', s)
+                        if m:
+                            try:
+                                return date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+                            except Exception: pass
+                        # M/D or M/D/YY[YY]
+                        m = _pre.search(r'\b(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?\b', s)
+                        if m:
+                            try:
+                                mo, da = int(m.group(1)), int(m.group(2))
+                                if not (1 <= mo <= 12 and 1 <= da <= 31):
+                                    raise ValueError
+                                if m.group(3):
+                                    yr = int(m.group(3))
+                                    if yr < 100: yr += 2000
+                                else:
+                                    yr = _pi_today.year
+                                d = date(yr, mo, da)
+                                # If no year given and the date is well in the past, bump to next year
+                                if not m.group(3) and (d - _pi_today).days < -60:
+                                    d = date(yr+1, mo, da)
+                                return d
+                            except Exception: pass
+                        # Month-name D[, YYYY]
+                        m = _pre.search(
+                            r'\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|'
+                            r'jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|'
+                            r'nov(?:ember)?|dec(?:ember)?)\.?\s+(\d{1,2})(?:st|nd|rd|th)?'
+                            r'(?:,?\s*(\d{4}))?\b',
+                            s, _pre.IGNORECASE)
+                        if m:
+                            try:
+                                mo = _PI_MONTHS[m.group(1).lower().rstrip('.')]
+                                da = int(m.group(2))
+                                yr = int(m.group(3)) if m.group(3) else _pi_today.year
+                                d = date(yr, mo, da)
+                                if not m.group(3) and (d - _pi_today).days < -60:
+                                    d = date(yr+1, mo, da)
+                                return d
+                            except Exception: pass
+                        return None
+
+                    def _pi_load_json(path, default):
+                        try:
+                            with open(path) as _f:
+                                return _aij.load(_f)
+                        except Exception:
+                            return default
+
+                    def _pi_append_note(text, suggested_dest):
+                        """Add a note to data/notes.json with suggested_destination."""
+                        notes_path = "data/notes.json"
+                        notes_data = _pi_load_json(notes_path, {"version":1,"updated_at":_today_ai,"data":[]})
+                        if not isinstance(notes_data, dict):
+                            notes_data = {"version":1,"updated_at":_today_ai,"data":[]}
+                        notes_data.setdefault("data", [])
+                        notes_data["data"].append({
+                            "id": "note_" + _piuuid.uuid4().hex[:8],
+                            "text": str(text or ""),
+                            "created_at": _pidt.now().isoformat(timespec="seconds"),
+                            "status": "open",
+                            "tags": [],
+                            "suggested_destination": str(suggested_dest or ""),
+                            "archived_at": None,
+                        })
+                        notes_data["updated_at"] = _today_ai
+                        safe_save_json(notes_path, notes_data)
+
+                    def _pi_apply_field_write(record, field, value, action):
+                        """Write `value` to `field` on `record` (a dict).
+                        Honors dot-path (a.b.c) for nested dicts.
+                        list field -> append; string field UPDATE -> overwrite;
+                        string field APPEND -> newline-concat. Creates field if missing.
+                        Refuses (returns False) if any intermediate path segment exists
+                        as a non-dict scalar/list — never clobbers existing data."""
+                        field = str(field or "").strip()
+                        value = "" if value is None else str(value)
+                        action = (action or "UPDATE").upper()
+                        if not field:
+                            return False
+                        # Walk dot-path to the parent
+                        parts = field.split(".")
+                        target = record
+                        for p in parts[:-1]:
+                            nxt = target.get(p)
+                            if nxt is None:
+                                nxt = {}
+                                target[p] = nxt
+                            elif not isinstance(nxt, dict):
+                                # Refuse to clobber a non-dict intermediate
+                                return False
+                            target = nxt
+                        leaf = parts[-1]
+                        existing = target.get(leaf)
+                        if isinstance(existing, list):
+                            existing.append(value)
+                            target[leaf] = existing
+                        elif isinstance(existing, str) or existing is None:
+                            if action == "UPDATE" or existing in (None, ""):
+                                target[leaf] = value
+                            else:  # APPEND or CREATE on existing string
+                                target[leaf] = (existing + ("\n" if existing else "") + value)
+                        elif isinstance(existing, dict):
+                            # Field is a dict but no sub-path provided — refuse silently
+                            return False
+                        else:
+                            target[leaf] = value
+                        return True
+
+                    for _pl in _ai_placements:
+                        try:
+                            dest = (_pl.get("destination") or "").strip()
+                            action = (_pl.get("action") or "UPDATE").strip().upper()
+                            field = (_pl.get("field") or "").strip()
+                            value = _pl.get("value") or ""
+                            hint  = (_pl.get("match_hint") or "").strip()
+
+                            if not dest:
+                                # No destination at all — drop into notes for review
+                                _pi_append_note(value, hint)
+                                placements_applied += 1
+                                continue
+
+                            # ── events.json: attach to existing event's notes ──
+                            if dest == "events.json":
+                                ev_path = "data/events.json"
+                                ev_data = _pi_load_json(ev_path, {"version":1,"updated_at":_today_ai,"data":[]})
+                                if not isinstance(ev_data, dict):
+                                    ev_data = {"version":1,"updated_at":_today_ai,"data":[]}
+                                events_list = [e for e in (ev_data.get("data") or []) if not e.get("archived")]
+                                hint_date = _pi_parse_hint_date(hint)
+                                hint_lower = hint.lower()
+                                match = None
+                                if hint_date:
+                                    iso_h = hint_date.isoformat()
+                                    cand = [e for e in events_list if (e.get("start_date") or "") == iso_h]
+                                    if cand:
+                                        # Narrow by title substring among same-date events
+                                        sub = [e for e in cand if hint_lower and (hint_lower in (e.get("title","").lower()))]
+                                        match = (sub or cand)[0] if (sub or cand) else None
+                                    # If no events on that date, treat as no-match (fall to notes — strict priority)
+                                else:
+                                    cand = [e for e in events_list if hint_lower and (hint_lower in (e.get("title","").lower()))]
+                                    if cand:
+                                        # Tiebreak by nearest start_date to today
+                                        def _pi_proximity(e):
+                                            try:
+                                                ed = date.fromisoformat(e.get("start_date",""))
+                                                return abs((ed - _pi_today).days)
+                                            except Exception:
+                                                return 10**6
+                                        cand.sort(key=_pi_proximity)
+                                        match = cand[0]
+                                if match is not None:
+                                    target_field = field or "notes"
+                                    existing_notes = match.get(target_field, "") or ""
+                                    wrote = False
+                                    if isinstance(existing_notes, str):
+                                        match[target_field] = (
+                                            existing_notes + ("\n" if existing_notes else "") + str(value)
+                                        )
+                                        wrote = True
+                                    else:
+                                        # Unexpected type — fall back to write-through helper
+                                        wrote = _pi_apply_field_write(match, target_field, value, "APPEND")
+                                    if wrote:
+                                        ev_data["updated_at"] = _today_ai
+                                        if safe_save_json(ev_path, ev_data):
+                                            placements_applied += 1
+                                        else:
+                                            _pi_append_note(value, f"WRITE_FAILED::events.json::{hint}")
+                                    else:
+                                        _pi_append_note(value, f"events.json::{target_field}::{hint}")
+                                        placements_applied += 1
+                                else:
+                                    _pi_append_note(value, hint or "events.json")
+                                    placements_applied += 1
+                                continue
+
+                            # ── profiles/<slug>.json ──
+                            if dest.startswith("profiles/") and dest.endswith(".json"):
+                                slug = dest[len("profiles/"):-len(".json")].strip().lower()
+                                if slug in _PI_PROFILE_SLUGS:
+                                    prof_path = f"data/profiles/{slug}.json"
+                                    prof = _pi_load_json(prof_path, None)
+                                    if isinstance(prof, dict):
+                                        if _pi_apply_field_write(prof, field, value, action):
+                                            if safe_save_json(prof_path, prof):
+                                                placements_applied += 1
+                                            else:
+                                                _pi_append_note(value, f"WRITE_FAILED::{dest}::{field}::{hint}")
+                                            continue
+                                # Unknown slug or write refused — fall back
+                                _pi_append_note(value, f"{dest}::{field}::{hint}")
+                                placements_applied += 1
+                                continue
+
+                            # ── friends.json ──
+                            if dest == "friends.json":
+                                fr_path = "data/friends.json"
+                                fr_data = _pi_load_json(fr_path, [])
+                                if isinstance(fr_data, list) and hint:
+                                    hl = hint.lower()
+                                    family = None
+                                    for entry in fr_data:
+                                        if not isinstance(entry, dict): continue
+                                        fname = (entry.get("family_name") or "").lower()
+                                        if fname and (hl in fname or fname in hl):
+                                            family = entry
+                                            break
+                                    if family is not None:
+                                        if _pi_apply_field_write(family, field, value, action):
+                                            if safe_save_json(fr_path, fr_data):
+                                                placements_applied += 1
+                                            else:
+                                                _pi_append_note(value, f"WRITE_FAILED::friends.json::{field}::{hint}")
+                                            continue
+                                # No family matched — fall back to notes
+                                _pi_append_note(value, f"friends.json::{field}::{hint}")
+                                placements_applied += 1
+                                continue
+
+                            # ── meal_inventory.json ──
+                            if dest == "meal_inventory.json":
+                                mi_path = "data/meal_inventory.json"
+                                mi = _pi_load_json(mi_path, {"fridge":"","freezer":"","pantry":"","use_soon":"","last_updated":""})
+                                if isinstance(mi, dict):
+                                    target_field = (field or "pantry").strip().lower()
+                                    if target_field not in ("fridge","freezer","pantry","use_soon"):
+                                        target_field = "pantry"
+                                    existing = mi.get(target_field, "") or ""
+                                    if not isinstance(existing, str):
+                                        existing = str(existing)
+                                    mi[target_field] = (existing + ("\n" if existing else "") + str(value))
+                                    mi["last_updated"] = _today_ai
+                                    if safe_save_json(mi_path, mi):
+                                        placements_applied += 1
+                                    else:
+                                        _pi_append_note(value, f"WRITE_FAILED::meal_inventory.json::{target_field}")
+                                    continue
+                                # Loaded data wasn't a dict — fall back rather than skip silently
+                                _pi_append_note(value, f"meal_inventory.json::{field or 'pantry'}")
+                                placements_applied += 1
+                                continue
+
+                            # ── prayer/intentions.json ──
+                            if dest == "prayer/intentions.json":
+                                pi_path = "data/prayer/intentions.json"
+                                pi_list = _pi_load_json(pi_path, [])
+                                if not isinstance(pi_list, list):
+                                    pi_list = []
+                                title_src = (hint or str(value)).strip()
+                                title_truncated = (title_src[:80] + "...") if len(title_src) > 80 else title_src
+                                pi_list.append({
+                                    "id": "int_" + _piuuid.uuid4().hex[:8],
+                                    "title": title_truncated or "Untitled intention",
+                                    "description": str(value or ""),
+                                    "photo": "",
+                                    "created": _pidt.now().isoformat(timespec="seconds"),
+                                    "active": True,
+                                    "answered": False,
+                                    "prayer_log": [],
+                                    "share_token": "",
+                                })
+                                if safe_save_json(pi_path, pi_list):
+                                    placements_applied += 1
+                                else:
+                                    _pi_append_note(value, f"WRITE_FAILED::prayer/intentions.json::{hint}")
+                                continue
+
+                            # ── thankyou_reminders.json ──
+                            if dest == "thankyou_reminders.json":
+                                ty_path = "data/thankyou_reminders.json"
+                                ty_list = _pi_load_json(ty_path, [])
+                                if not isinstance(ty_list, list):
+                                    ty_list = []
+                                hint_date = _pi_parse_hint_date(hint)
+                                ty_list.append({
+                                    "id": "ty_" + _piuuid.uuid4().hex[:8],
+                                    "event_name": hint or "Thank-you",
+                                    "people": [],
+                                    "assigned_to": "Lauren",
+                                    "event_date": hint_date.isoformat() if hint_date else "",
+                                    "reminder_date": "",
+                                    "note": str(value or ""),
+                                    "status": "pending",
+                                })
+                                if safe_save_json(ty_path, ty_list):
+                                    placements_applied += 1
+                                else:
+                                    _pi_append_note(value, f"WRITE_FAILED::thankyou_reminders.json::{hint}")
+                                continue
+
+                            # ── Catch-all: unrecognized destination → notes ──
+                            _pi_append_note(value, f"{dest}::{hint}")
+                            placements_applied += 1
+                        except Exception:
+                            # One bad placement must not break the rest of the apply.
+                            try:
+                                _pi_append_note(_pl.get("value") or "", f"ERROR::{_pl.get('destination','?')}::{_pl.get('match_hint','')}")
+                                placements_applied += 1
+                            except Exception:
+                                pass
+
                 self.send_response(200)
                 self.send_header("Content-Type","application/json; charset=utf-8")
                 self.send_header("Cache-Control","no-store")
@@ -6587,6 +6920,7 @@ class Handler(BaseHTTPRequestHandler):
                 try: self.wfile.write(_aij.dumps({
                     "events_added": events_added,
                     "tasks_added": tasks_added,
+                    "placements_applied": placements_applied,
                 }).encode())
                 except BrokenPipeError: pass
                 return
