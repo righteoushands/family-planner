@@ -16,6 +16,21 @@
     "recurring": false
   },
   {
+    "text": "Prepare Teddy Graham guessing game",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-20",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "For baby shower game",
+    "subtasks": [
+      "Fill large clear plastic baby bottle with Teddy Grahams",
+      "Count exact number",
+      "Buy small prize for winner"
+    ]
+  },
+  {
     "text": "Pack baby shower supplies",
     "assigned_to": "Lauren",
     "due_date": "2026-04-21",

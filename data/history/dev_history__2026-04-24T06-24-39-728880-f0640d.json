@@ -1,0 +1,29 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Can you explain how this app is structured?",
+      "ts": "2026-04-24T06:20:42"
+    },
+    {
+      "role": "assistant",
+      "content": "The Sancta Familia app is a comprehensive Python HTTP server running on port 5000, built as a Catholic family management dashboard for the McAdams family (Lauren, John, and four boys: JP 14, Joseph 12, Michael 5, James 13 months).\n\n**Core Architecture:**\n- `app.py` handles all HTTP routing and request processing\n- `daily_schedule_engine.py` generates personalized daily schedules for each family member\n- `data_helpers.py` manages all JSON file operations with stale-edit protection\n- `config.py` defines file paths and constants\n- Authentication via PIN codes stored in `auth.py`\n\n**Key Features:**\n- **Daily Schedules**: Each person gets a customized \"Plan of the Day\" (POD) based on the Family Rule of Life\n- **AI Companions**: Five specialized assistants (Lucy for spiritual life, Lorenzo for meals, Father Gregory for academics, Coach for fitness, Dr. Monica for child development, plus me for technical support)\n- **School Management**: Homeschool curriculum tracking, carryover assignments, gradebook\n- **Family Life**: Chores, meal planning, calendar, liturgical readings, saint data\n\n**Family Quest RPG**: A separate game system in the `family_quest/` directory with dual currencies (real coins for actual rewards, game coins for in-game purchases), heroes, bosses, equipment, and mines - all designed to gamify household tasks and learning.\n\n**Data Storage**: Everything lives in JSON files under `data/` - no database, making it simple but requiring careful file management.\n\nThe app serves both parents and children with age-appropriate interfaces, integrating Catholic spiritual practices with practical homeschool and household management.",
+      "ts": "2026-04-24T06:20:54"
+    },
+    {
+      "role": "user",
+      "content": "Can you put the app.py file here ?",
+      "ts": "2026-04-24T06:24:35"
+    },
+    {
+      "role": "assistant",
+      "content": "I'll read the app.py file for you.\n\n[READ: app.py:1-150]",
+      "ts": "2026-04-24T06:24:36"
+    },
+    {
+      "role": "user",
+      "content": "[FILE_READ]\n[SYSTEM: You requested the following file sections. Here they are — please continue your analysis.]\n\n=== app.py  (lines 1–150 of 8817) ===\n\n\"\"\"\napp.py — HTTP server and router only.\nAll rendering lives in render_*.py modules.\nAll data I/O lives in data_helpers.py.\n\"\"\"\nimport os, uuid, time as _time, sys, threading\n\n# ── Tee stderr → data/server.log so Felix can see runtime errors ──────────────\nos.makedirs(\"data\", exist_ok=True)\nclass _TeeWriter:\n    \"\"\"Writes to both the original stream and data/server.log.\"\"\"\n    _lock = threading.Lock()\n    _log_path = \"data/server.log\"\n    _max_bytes = 300_000   # ~300 KB; trimmed to half when exceeded\n    def __init__(self, original):\n        self._orig = original\n        # Trim log file to last 150 KB on startup\n        try:\n            if os.path.getsize(self._log_path) > self._max_bytes:\n                with open(self._log_path, \"r\", encoding=\"utf-8\", errors=\"replace\") as f:\n                    content = f.read()\n                keep = content[-(self._max_bytes // 2):]\n                nl = keep.find(\"\\n\")\n                if nl >= 0:\n                    keep = keep[nl + 1:]\n                with open(self._log_path, \"w\", encoding=\"utf-8\", errors=\"replace\") as f:\n                    f.write(keep)\n        except Exception:\n            pass\n    def write(self, data):\n        if data:\n            try: self._orig.write(data)\n            except Exception: pass\n            try:\n                with _TeeWriter._lock:\n                    with open(self._log_path, \"a\", encoding=\"utf-8\", errors=\"replace\") as f:\n                        f.write(data)\n                    if os.path.getsize(self._log_path) > self._max_bytes:\n                        with open(self._log_path, \"r\", encoding=\"utf-8\", errors=\"replace\") as f:\n                            content = f.read()\n                        keep = content[-(self._max_bytes // 2):]\n                        nl = keep.find(\"\\n\")\n                        if nl >= 0: keep = keep[nl + 1:]\n                        with open(self._log_path, \"w\", encoding=\"utf-8\", errors=\"replace\") as f:\n                            f.write(keep)\n            except Exception:\n                pass\n    def flush(self):\n        try: self._orig.flush()\n        except Exception: pass\n    def __getattr__(self, name):\n        return getattr(self._orig, name)\n\nif not isinstance(sys.stderr, _TeeWriter):\n    sys.stderr = _TeeWriter(sys.stderr)\nif not isinstance(sys.stdout, _TeeWriter):\n    sys.stdout = _TeeWriter(sys.stdo",
+      "ts": "2026-04-24T06:24:36"
+    }
+  ]
+}

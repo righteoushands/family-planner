@@ -16,6 +16,49 @@
     "recurring": false
   },
   {
+    "text": "Make lemon curd for baby shower cake",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-20",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Make day before the shower",
+    "subtasks": []
+  },
+  {
+    "text": "Bake and assemble 3-layer lemon curd cake",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-20",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Assemble day before shower. Transport refrigerated.",
+    "subtasks": [
+      "Bake 3 vanilla almond sponge layers",
+      "Fill with lemon curd",
+      "Apply whipped cream cheese frosting",
+      "Decorate with fresh flowers/lemon slices/edible pearls",
+      "Refrigerate for transport"
+    ]
+  },
+  {
+    "text": "Prepare Teddy Graham guessing game",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-20",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "For baby shower game",
+    "subtasks": [
+      "Fill large clear plastic baby bottle with Teddy Grahams",
+      "Count exact number",
+      "Buy small prize for winner"
+    ]
+  },
+  {
     "text": "Pack baby shower supplies",
     "assigned_to": "Lauren",
     "due_date": "2026-04-21",
