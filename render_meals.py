@@ -1012,6 +1012,59 @@ def render_meal_print_page(week_key: str = None) -> str:
             helper_cells += f"<td style='border:1px solid #ddd;padding:3pt 5pt;font-size:7.5pt;background:{bg};vertical-align:top;color:#92400e;'>{escape(val)}</td>"
         rows += f"<tr>{helper_cells}</tr>"
 
+    # ── Recipes This Week — compact summary of every linked recipe ────────────
+    def _ingredient_count(ing):
+        """Count ingredients across both schema shapes used in recipes.json.
+        Lists use len() per spec. Strings split on newline (preferred) or
+        comma (fallback) and count non-empty stripped entries."""
+        if isinstance(ing, list):
+            return len(ing)
+        if not ing:
+            return 0
+        text = str(ing)
+        sep = "\n" if "\n" in text else ","
+        return sum(1 for p in text.split(sep) if p.strip())
+
+    from data_helpers import get_recipe_by_id  # lazy — matches existing pattern
+    _seen_rids = []
+    for _day in DAYS:
+        _day_slots = days_data.get(_day, {})
+        for _slot in ("breakfast", "lunch", "dinner", "snacks", "dessert", "dad_lunch"):
+            _rid = slot_recipe_id(_day_slots.get(_slot, ""))
+            if _rid and _rid not in _seen_rids:
+                _seen_rids.append(_rid)
+
+    recipes_html = ""
+    if _seen_rids:
+        _recipe_rows = []
+        for _rid in _seen_rids:
+            _rec = get_recipe_by_id(_rid)
+            if not _rec:
+                continue  # silently skip deleted/missing recipes
+            _name = str(_rec.get("name", "") or "").strip() or "(unnamed)"
+            _prep = str(_rec.get("prep_time", "") or "").strip() or "—"
+            _cook = str(_rec.get("cook_time", "") or "").strip() or "—"
+            _n    = _ingredient_count(_rec.get("ingredients"))
+            _ing_label = "ingredient" if _n == 1 else "ingredients"
+            _recipe_rows.append(
+                f"<div style='font-size:8pt;padding:3pt 0;border-bottom:0.5pt solid #eee;'>"
+                f"<a href='/recipes#recipe-{escape(_rid)}' "
+                f"style='text-decoration:underline;color:inherit;font-weight:600;'>"
+                f"{escape(_name)}</a>"
+                f"<span style='color:#888;margin-left:10pt;font-size:7.5pt;'>"
+                f"Prep: {escape(_prep)} · Cook: {escape(_cook)} · {_n} {_ing_label}"
+                f"</span>"
+                f"</div>"
+            )
+        if _recipe_rows:
+            recipes_html = (
+                "<div style='margin-top:18pt;border-top:2pt solid #1a3870;padding-top:10pt;page-break-inside:avoid;'>"
+                "<div style='font-family:Georgia,serif;font-size:10pt;font-weight:600;color:#1a3870;"
+                "margin-bottom:8pt;'>Recipes This Week</div>"
+                + "".join(_recipe_rows) +
+                "</div>"
+            )
+
     # Grocery list section — shown below the table
     grocery_gaps = plan.get("grocery_gaps", [])
     grocery_html = ""
@@ -1086,6 +1139,7 @@ def render_meal_print_page(week_key: str = None) -> str:
         f"<thead><tr>{header_row}</tr></thead>"
         f"<tbody>{rows}</tbody>"
         "</table>"
+        f"{recipes_html}"
         f"{grocery_html}"
         "</body></html>"
     )
