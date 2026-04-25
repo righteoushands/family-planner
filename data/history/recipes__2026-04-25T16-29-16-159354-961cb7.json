@@ -121,52 +121,18 @@
     {
       "id": "r011",
       "name": "Grilled Cheese + Tomato Soup",
-      "servings": "6",
-      "prep_time": "15 min",
-      "cook_time": "20 min",
-      "ingredients": [
-        "— TOMATO SOUP —",
-        "2 cans (28 oz each) crushed tomatoes",
-        "1 cup chicken or vegetable broth",
-        "1/2 cup heavy cream",
-        "1 medium onion, diced",
-        "2 tbsp butter",
-        "1 tsp dried basil (or 1 tbsp fresh)",
-        "Salt, pepper, pinch of sugar",
-        "— GRILLED CHEESE —",
-        "12 slices good bread",
-        "8-10 slices American or cheddar cheese",
-        "4 tbsp butter, softened"
-      ],
-      "instructions": [
-        "Soup: melt butter, sauté onion 3-4 min.",
-        "Soup: add tomatoes + broth, simmer 15 min.",
-        "Soup: stir in cream + basil, heat through (don't boil).",
-        "Sandwiches: heat skillet over medium.",
-        "Sandwiches: butter one side of each bread slice.",
-        "Sandwiches: assemble cheese between two slices, butter sides out.",
-        "Sandwiches: cook 3-4 min per side until golden and melted.",
-        "Cut sandwiches diagonally. Serve hot with soup."
-      ],
-      "notes": "Soup batch-cooks Saturday morning, reheats for lunch and dinner; freezes well. Pairing is Lent-safe and Friday-friendly.",
+      "ingredients": "Good bread, American or cheddar cheese, butter. Serve with tomato soup.",
+      "instructions": "Butter outside of bread. Fill with cheese. Cook in skillet over medium heat until golden and melted, 3-4 min per side. Cut diagonally. Serve with soup.",
       "tags": [
         "vegetarian",
         "Friday",
         "Lent-safe",
         "Michael-friendly",
         "James-friendly",
-        "soup",
-        "sandwich",
-        "comfort food",
-        "quick",
-        "make-ahead",
-        "family-friendly"
+        "quick"
       ],
-      "created": "2026-01-01",
-      "merged_from": [
-        "aae4b891",
-        "7660dbcd"
-      ]
+      "prep_time": "10 min",
+      "created": "2026-01-01"
     },
     {
       "id": "r012",
@@ -318,6 +284,69 @@
         "side dish"
       ],
       "id": "1eb564a1",
+      "date_added": "2026-04-25"
+    },
+    {
+      "name": "Tomato Soup",
+      "servings": "6",
+      "prep_time": "10 minutes",
+      "cook_time": "20 minutes",
+      "ingredients": [
+        "2 cans (28 oz each) crushed tomatoes",
+        "1 cup chicken or vegetable broth",
+        "1/2 cup heavy cream",
+        "1 medium onion, diced",
+        "2 tbsp butter",
+        "1 tsp dried basil (or 1 tbsp fresh)",
+        "Salt and pepper to taste",
+        "Pinch of sugar (optional, to balance acidity)"
+      ],
+      "instructions": [
+        "Melt butter in large pot over medium heat.",
+        "Add diced onion. Sauté 3-4 minutes until softened.",
+        "Add crushed tomatoes and broth. Stir well.",
+        "Bring to simmer. Cook 15 minutes.",
+        "Stir in cream and basil. Heat through (do not boil).",
+        "Taste and adjust salt, pepper, and sugar as needed.",
+        "Serve hot with grilled cheese."
+      ],
+      "notes": "Can be made Saturday morning and reheated for lunch and dinner. Batch-cook friendly. Freezes well.",
+      "tags": [
+        "soup",
+        "comfort food",
+        "quick",
+        "make-ahead"
+      ],
+      "id": "aae4b891",
+      "date_added": "2026-04-25"
+    },
+    {
+      "name": "Grilled Cheese Sandwiches",
+      "servings": "6",
+      "prep_time": "5 minutes",
+      "cook_time": "8-10 minutes per sandwich",
+      "ingredients": [
+        "12 slices good bread (white, wheat, or sourdough)",
+        "8-10 slices American or cheddar cheese",
+        "4 tbsp butter, softened"
+      ],
+      "instructions": [
+        "Heat skillet or griddle over medium heat.",
+        "Butter one side of each bread slice generously.",
+        "Place one slice butter-side down in skillet. Layer one slice of cheese on top.",
+        "Top with second bread slice, butter-side up.",
+        "Cook 3-4 minutes until golden brown.",
+        "Flip carefully. Cook another 3-4 minutes until second side is golden and cheese is melted.",
+        "Cut diagonally. Serve immediately with tomato soup."
+      ],
+      "notes": "Michael can help butter the bread. Joseph can assist with flipping. Simple and satisfying.",
+      "tags": [
+        "sandwich",
+        "comfort food",
+        "quick",
+        "family-friendly"
+      ],
+      "id": "7660dbcd",
       "date_added": "2026-04-25"
     }
   ]
