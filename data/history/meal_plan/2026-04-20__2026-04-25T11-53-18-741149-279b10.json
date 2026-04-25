@@ -23,7 +23,9 @@
       "prep_time": "20 minutes",
       "cook_time": "45 minutes",
       "serve_time": "17:00",
-      "helpers": "JP leads jambalaya prep & cooking — Joseph chops vegetables & assembles — Michael washes vegetables and stirs"
+      "helpers": "JP leads jambalaya prep & cooking — Joseph chops vegetables & assembles — Michael washes vegetables and stirs",
+      "prep_instructions": "Soak rice if needed; chop onion, bell pepper, celery in morning; check that shredded chicken is thawed",
+      "prep_notes": "Soak rice; chop onions, bell peppers, celery; measure spices"
     },
     "Tuesday": {
       "breakfast": "Oatmeal with canned pineapple",
@@ -36,7 +38,9 @@
       "prep_time": "15 minutes",
       "cook_time": "20 minutes",
       "serve_time": "17:00",
-      "helpers": "Joseph reheats pot roast & assembles tacos — Michael sets out taco toppings"
+      "helpers": "Joseph reheats pot roast & assembles tacos — Michael sets out taco toppings",
+      "prep_instructions": "Defrost pot roast in fridge overnight (should be ready by dinner); chop lettuce, tomatoes, onions for taco toppings",
+      "prep_notes": "Shred leftover chicken; dice tomatoes; warm tortillas"
     },
     "Wednesday": {
       "breakfast": "Scrambled eggs with cheese",
@@ -48,8 +52,10 @@
       "dessert": "Jello gelatin",
       "prep_time": "5 minutes",
       "cook_time": "10 minutes",
-      "serve_time": "5:00 PM",
-      "helpers": "Joseph reheats leftovers — Michael sets the table"
+      "serve_time": "17:00",
+      "helpers": "Joseph reheats leftovers — Michael sets the table",
+      "prep_instructions": "Identify which leftovers you're reheating; set them out to come to room temp by afternoon",
+      "prep_notes": "Pull jambalaya and pot roast from fridge; reheat gently"
     },
     "Thursday": {
       "breakfast": "Oatmeal with sugar and milk",
@@ -59,10 +65,12 @@
       "dad_lunch": "Beef stew in thermos with rolls",
       "boys_help": "JP: warm shredded chicken with taco seasoning · Joseph: drain and rinse canned pork and beans · Michael: tear lettuce for taco toppings",
       "dessert": "Sugar cookies",
-      "prep_time": "20 minutes",
-      "cook_time": "40 minutes",
-      "serve_time": "5:00 PM",
-      "helpers": "JP leads lentil soup & biscuit assembly — Joseph stirs soup — Michael pours water and sets table"
+      "prep_time": "15 minutes",
+      "cook_time": "1 hour 15 minutes",
+      "serve_time": "17:00",
+      "helpers": "JP leads lentil soup & biscuit assembly — Joseph stirs soup — Michael pours water and sets table",
+      "prep_instructions": "Rinse lentils in morning; chop onion, carrots, celery; check ham jaw is thawed",
+      "prep_notes": "Soak lentils; chop vegetables; measure ham jaw"
     },
     "Friday": {
       "breakfast": "Eggs, cereal, fruit, toast",
@@ -72,10 +80,12 @@
       "dad_lunch": "Sardine sandwich",
       "boys_help": "JP: bread and fry flounder fillets · Joseph: prepare corn for cooking · Michael: arrange french fries on baking sheet",
       "dessert": "Canned pineapple",
-      "prep_time": "15 minutes",
-      "cook_time": "35 minutes",
-      "serve_time": "5:00 PM",
-      "helpers": "JP leads pizza crust prep (early) & assembly — Joseph tops pizza — Michael pours drinks"
+      "prep_time": "30 minutes",
+      "cook_time": "25 minutes",
+      "serve_time": "17:00",
+      "helpers": "JP leads pizza crust prep (early) & assembly — Joseph tops pizza — Michael pours drinks",
+      "prep_instructions": "Make pizza dough early (by 2 PM) so it can rise; prep toppings (cheese, sauce) by 4 PM",
+      "prep_notes": "Make pizza dough early; prep toppings; preheat oven"
     },
     "Saturday": {
       "breakfast": "Leftovers",
@@ -87,16 +97,25 @@
       "dessert": "Yogurt with granola",
       "prep_time": "5 minutes",
       "cook_time": "10 minutes",
-      "serve_time": "5:00 PM",
-      "helpers": "Joseph reheats leftovers — Michael sets the table"
+      "serve_time": "17:00",
+      "helpers": "Joseph reheats leftovers — Michael sets the table",
+      "prep_instructions": "Identify leftovers to reheat; set out containers and plan assembly",
+      "prep_notes": "Gather leftover containers; organize fridge"
     },
     "Sunday": {
       "dad_lunch": "N/A",
       "boys_help": "JP: reheat and organize leftover containers · Joseph: mix quinoa with vegetables for salad · Michael: arrange leftover items on serving plates",
-      "prep_time": "10 minutes",
-      "cook_time": "5 minutes",
-      "serve_time": "5:00 PM",
-      "helpers": "JP organizes Ziplock Buffet containers — Joseph arranges leftovers — Michael pours drinks"
+      "prep_time": "15 minutes",
+      "cook_time": "10 minutes",
+      "serve_time": "17:00",
+      "helpers": "JP organizes Ziplock Buffet containers — Joseph arranges leftovers — Michael pours drinks",
+      "prep_instructions": "Consolidate all remaining leftovers into containers; discard spoiled items; label everything",
+      "prep_notes": "Organize Ziplock Buffet containers; consolidate leftovers",
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
+      "snacks": ""
     }
   },
   "grocery_gaps": [

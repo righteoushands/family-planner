@@ -14,7 +14,8 @@
       "prep_time": "20 minutes (chop veggies, sear meat: 4:00-4:20 PM)",
       "cook_time": "2 hours 30 minutes (Dutch oven: 4:30-7:00 PM)",
       "serve_time": "18:00",
-      "notes": "Finger sandwiches (egg salad & strawberry cream cheese) made Monday afternoon for Tuesday shower lunch"
+      "notes": "Finger sandwiches (egg salad & strawberry cream cheese) made Monday afternoon for Tuesday shower lunch",
+      "prep_notes": "4:00 PM: Chop onions, carrots, potatoes. Sear beef in Dutch oven. 4:30 PM: Add broth, vegetables; cover and into oven at 325°F for 2.5 hrs. Finger sandwiches for Tuesday shower: prep Monday (cream cheese, strawberries, white bread — crusts off, cut diagonals). Chill overnight."
     },
     "Tuesday": {
       "breakfast": "Quick oats with honey",
@@ -26,7 +27,8 @@
       "helpers": "Joseph reheats pot roast — Michael sets table",
       "prep_time": "10 minutes (reheat pot roast)",
       "cook_time": "15 minutes",
-      "serve_time": "6:30 PM"
+      "serve_time": "6:30 PM",
+      "prep_notes": "Reheat pot roast at 5:00 PM (low & slow, ~20 min covered). No cooking — busy day. Joseph reheats; Michael stirs sides."
     },
     "Wednesday": {
       "breakfast": "Scrambled eggs with toast",
@@ -38,7 +40,8 @@
       "helpers": "JP leads fish prep — Joseph assists with rice & vegetables — Michael washes vegetables",
       "prep_time": "15 minutes (prep vegetables & sardine salad: 4:00-4:15 PM)",
       "cook_time": "15 minutes (flounder in oven: 4:15-4:30 PM)",
-      "serve_time": "18:00"
+      "serve_time": "18:00",
+      "prep_notes": "11:30 AM: Make sardine salad (1 can sardines, mayo, Dijon, lemon, celery, red onion). Chill. 4:00 PM: Prep vegetables (broccoli, carrots). Season flounder fillets with lemon, dill, salt, pepper. 4:15 PM: Into oven at 400°F for 12-15 min. Rice on stovetop (20 min)."
     },
     "Thursday": {
       "breakfast": "Muesli with yogurt",
@@ -50,7 +53,8 @@
       "helpers": "Joseph: Reheat flounder & sides; Michael: stir vegetables",
       "prep_time": "15 minutes (prep vegetables & season chicken: 4:00-4:15 PM)",
       "cook_time": "40 minutes (sheet pan: 4:15-4:55 PM)",
-      "serve_time": "18:00"
+      "serve_time": "18:00",
+      "prep_notes": "Reheat flounder & rice at 5:00 PM (low oven, ~15 min covered). JP leads sheet pan chicken assembly at 5:00 PM for Friday dinner prep (bone-in thighs, potatoes, broccoli, oil, salt, pepper — ready to roast Friday). Joseph preps vegetables. Michael seasons."
     },
     "Friday": {
       "breakfast": "Boiled eggs, muesli, and fruit for John's Drill travel pack",
@@ -68,7 +72,7 @@
       "dessert": "Fresh strawberries",
       "snacks": "Cheese and fruit",
       "dad_lunch": "N/A — weekend",
-      "helpers": "JP leads brine prep & roasting — Joseph preps potatoes & sides — Michael washes vegetables",
+      "helpers": "JP leads brine prep & oven management — Joseph assists with vegetable prep — Michael rinses breasts and washes vegetables",
       "prep_time": "20 minutes (brine prep: 7:00-7:20 AM; remove & season: 2:46-3:00 PM)",
       "cook_time": "50 minutes (oven: 3:00-3:50 PM)",
       "serve_time": "17:00",
@@ -84,7 +88,8 @@
       "helpers": "JP leads assembly — Joseph organizes leftover containers — Michael pours drinks",
       "prep_time": "15 minutes (rice reheating, vegetable prep)",
       "cook_time": "20 minutes",
-      "serve_time": "6:00 PM"
+      "serve_time": "6:00 PM",
+      "prep_notes": "Use roast chicken leftovers from Saturday. Aging vegetables: snap peas, carrots, broccoli, green beans. Shred chicken; stir-fry rice, veggies, and chicken. Batch-cook or reheat Sunday afternoon."
     }
   }
 }
