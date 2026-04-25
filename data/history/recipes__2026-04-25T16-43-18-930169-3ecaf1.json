@@ -116,33 +116,7 @@
         "family-favorite"
       ],
       "prep_time": "15 min",
-      "created": "2026-01-01",
-      "kid_steps": [
-        {
-          "step": "Wash the broccoli or green beans in the colander",
-          "age_min": 5
-        },
-        {
-          "step": "Tear the broccoli into bite-sized florets with your hands",
-          "age_min": 5
-        },
-        {
-          "step": "Toss the vegetables with olive oil in the big bowl until shiny",
-          "age_min": 5
-        },
-        {
-          "step": "Sprinkle the seasoning over the vegetables and stir to coat",
-          "age_min": 5
-        },
-        {
-          "step": "Pat the chicken thighs dry with paper towels and season both sides",
-          "age_min": 12
-        },
-        {
-          "step": "Slide the sheet pan in and out of the 425°F oven with oven mitts",
-          "age_min": 14
-        }
-      ]
+      "created": "2026-01-01"
     },
     {
       "id": "r011",
@@ -192,36 +166,6 @@
       "merged_from": [
         "aae4b891",
         "7660dbcd"
-      ],
-      "kid_steps": [
-        {
-          "step": "Butter one side of each bread slice",
-          "age_min": 5
-        },
-        {
-          "step": "Lay the cheese between two slices, butter facing out",
-          "age_min": 5
-        },
-        {
-          "step": "Sprinkle the dried basil into the soup pot after the cream goes in",
-          "age_min": 5
-        },
-        {
-          "step": "Open the tomato cans with a manual can opener (adult-supervised)",
-          "age_min": 12
-        },
-        {
-          "step": "Stir the simmering soup so it doesn't catch on the bottom",
-          "age_min": 12
-        },
-        {
-          "step": "Flip the sandwiches in the skillet (adult holds the pan handle)",
-          "age_min": 12
-        },
-        {
-          "step": "Sauté the onion, run the soup from start to simmer, and cook the grilled cheeses through",
-          "age_min": 14
-        }
       ]
     },
     {
@@ -237,29 +181,7 @@
         "low-carb"
       ],
       "prep_time": "8 min",
-      "created": "2026-01-01",
-      "kid_steps": [
-        {
-          "step": "Crack the eggs into a bowl — adult helps with shell bits",
-          "age_min": 5
-        },
-        {
-          "step": "Whisk the eggs with a splash of milk until pale yellow",
-          "age_min": 5
-        },
-        {
-          "step": "Spread butter on the warm toast once it pops up",
-          "age_min": 5
-        },
-        {
-          "step": "Stir the eggs in the pan while they cook (adult holds the pan handle)",
-          "age_min": 12
-        },
-        {
-          "step": "Cook the eggs start-to-finish on the stovetop, melting the butter and pulling the pan early",
-          "age_min": 14
-        }
-      ]
+      "created": "2026-01-01"
     },
     {
       "id": "r013",
@@ -273,33 +195,7 @@
         "low-effort"
       ],
       "prep_time": "5 min (or overnight)",
-      "created": "2026-01-01",
-      "kid_steps": [
-        {
-          "step": "Pour the oats into the jar or pot",
-          "age_min": 5
-        },
-        {
-          "step": "Pour the milk over the oats",
-          "age_min": 5
-        },
-        {
-          "step": "Drizzle in the honey or maple syrup, then sprinkle cinnamon on top",
-          "age_min": 5
-        },
-        {
-          "step": "Mash a banana with a fork for the youngest portion",
-          "age_min": 5
-        },
-        {
-          "step": "Slice fresh fruit with a butter knife for the toppings",
-          "age_min": 12
-        },
-        {
-          "step": "Simmer the oats on the stovetop for 5 minutes (hot version)",
-          "age_min": 14
-        }
-      ]
+      "created": "2026-01-01"
     },
     {
       "id": "r014",
@@ -314,29 +210,7 @@
         "Michael-friendly"
       ],
       "prep_time": "10 min",
-      "created": "2026-01-01",
-      "kid_steps": [
-        {
-          "step": "Tear lettuce or shred cabbage into a bowl with your hands",
-          "age_min": 5
-        },
-        {
-          "step": "Squeeze the lime wedges over the toppings bowls",
-          "age_min": 5
-        },
-        {
-          "step": "Sprinkle shredded cheese into a serving bowl",
-          "age_min": 5
-        },
-        {
-          "step": "Pull the leftover chicken apart with two forks",
-          "age_min": 12
-        },
-        {
-          "step": "Warm the tortillas in a dry skillet and heat the pulled chicken in a pan with a splash of broth or salsa to keep it moist — lead the whole assembly.",
-          "age_min": 14
-        }
-      ]
+      "created": "2026-01-01"
     },
     {
       "id": "r015",
