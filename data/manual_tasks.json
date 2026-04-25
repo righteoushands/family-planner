@@ -343,14 +343,6 @@
     "recurring": false
   },
   {
-    "text": "Finish laundry",
-    "assigned_to": "Joseph",
-    "due_date": "",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
     "text": "Tea party: pot, cups and saucers, sugar bowl, creamer and serving tray",
     "assigned_to": "Mom",
     "due_date": "2026-04-21",

@@ -1,0 +1,9 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Lauren wants to replace the Dad_lunch row in the meal plan with a Prep Notes row that shows start times for each meal (e.g., \"7:06 AM — Brined Roast Chicken\", \"4:00 PM — Beef Pot Roast\"). Can you update the meal plan card template to swap that row out and rebuild it with the new structure?",
+      "ts": "2026-04-25T07:21:00"
+    }
+  ]
+}

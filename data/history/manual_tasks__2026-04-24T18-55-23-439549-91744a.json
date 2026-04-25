@@ -1,0 +1,786 @@
+[
+  {
+    "text": "Change air filters",
+    "assigned_to": "Mom",
+    "due_date": "",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Sharpen knives",
+    "assigned_to": "Mom",
+    "due_date": "",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Pack baby shower supplies",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-21",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Pack morning of shower",
+    "subtasks": [
+      "Large picnic blanket for kids",
+      "Completed cake",
+      "Teddy Graham game bottle",
+      "Small prize",
+      "Written diaper messages"
+    ]
+  },
+  {
+    "text": "Ensure guest of honor attends baby shower",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-21",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Make sure guest of honor shows up / cajole if needed",
+    "subtasks": []
+  },
+  {
+    "text": "CAPTask: Wash the most used uniform of the month.",
+    "assigned_to": "JP",
+    "due_date": "2026-04-25",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": true,
+    "interval_value": 1,
+    "interval_unit": "months"
+  },
+  {
+    "text": "Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-11",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
+    "assigned_to": "JP",
+    "due_date": "2026-04-11",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-11",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Call MD re: meds for hair loss",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-15",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Fertilize lawn with balanced 20-5-10 fertilizer",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-20",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Mid-April timing for cool-season grass",
+    "subtasks": [
+      "Purchase 20-5-10 fertilizer",
+      "Check weather forecast",
+      "Apply fertilizer to entire lawn",
+      "Water lightly after application"
+    ]
+  },
+  {
+    "text": "Test soil pH and add lime if needed",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "April timing - lime application can be done now or saved for winter",
+    "subtasks": [
+      "Purchase soil test kit",
+      "Test soil in multiple areas",
+      "Review results",
+      "Purchase lime if pH is low",
+      "Apply lime if needed"
+    ]
+  },
+  {
+    "text": "Overseed thin and bare patches in lawn",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-31",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "April-May timing for spring overseeding",
+    "subtasks": [
+      "Identify thin/bare areas",
+      "Purchase appropriate grass seed",
+      "Prepare soil in bare spots",
+      "Apply seed",
+      "Keep seeded areas moist"
+    ]
+  },
+  {
+    "text": "Maintain proper mowing height at 3-3.5 inches",
+    "assigned_to": "Lauren",
+    "due_date": "2026-10-31",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "All season maintenance - ongoing through fall",
+    "subtasks": [
+      "Check mower blade height setting",
+      "Mow regularly throughout growing season",
+      "Never cut more than 1/3 of grass height"
+    ]
+  },
+  {
+    "text": "Begin deep watering schedule (1 inch/week)",
+    "assigned_to": "Lauren",
+    "due_date": "2026-06-01",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Summer watering plan - starts June, no fertilizing during summer",
+    "subtasks": [
+      "Set up irrigation schedule",
+      "Water 1-2 times per week deeply",
+      "Water early morning (6-10 AM)",
+      "Monitor rainfall amounts"
+    ]
+  },
+  {
+    "text": "Overseed entire lawn (fall priority #1)",
+    "assigned_to": "Lauren",
+    "due_date": "2026-09-15",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Early September - most important annual task",
+    "subtasks": [
+      "Purchase high-quality grass seed",
+      "Aerate lawn if needed",
+      "Broadcast seed over entire lawn",
+      "Apply starter fertilizer",
+      "Keep soil moist for germination"
+    ]
+  },
+  {
+    "text": "Apply fall fertilizer (September application)",
+    "assigned_to": "Lauren",
+    "due_date": "2026-09-15",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Early September fertilization - priority #2",
+    "subtasks": [
+      "Purchase fall fertilizer",
+      "Apply to entire lawn",
+      "Water in lightly"
+    ]
+  },
+  {
+    "text": "Apply late fall fertilizer (October/November application)",
+    "assigned_to": "Lauren",
+    "due_date": "2026-11-15",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Late October/Early November - priority #2",
+    "subtasks": [
+      "Purchase winterizing fertilizer",
+      "Apply before ground freezes",
+      "Final fertilization of the year"
+    ]
+  },
+  {
+    "text": "Set up a simple rain gauge to track weekly rainfall amounts during summer to optimize watering schedule.",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-12",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "From counsel suggestion",
+    "subtasks": []
+  },
+  {
+    "text": "Keep a lawn care log to track what products were used and when, making next year's planning easier.",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-12",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "From counsel suggestion",
+    "subtasks": []
+  },
+  {
+    "text": "Look up vibe coding",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-15",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Buy caterpillars",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-16",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": true,
+    "interval_value": 11,
+    "interval_unit": "months"
+  },
+  {
+    "text": "Choose Convention Class. https://heav.org/convention/children-and-teens/",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-18",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Choose Convention Class. https://heav.org/convention/children-and-teens/",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-18",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Put all Amazon returns in the back of the van.",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-15",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": true,
+    "interval_value": 1,
+    "interval_unit": "weeks"
+  },
+  {
+    "text": "Friday Penance: give up meat or make another sacrifice.",
+    "assigned_to": "Mom",
+    "due_date": "2026-05-01",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": true,
+    "interval_value": 1,
+    "interval_unit": "weeks"
+  },
+  {
+    "text": "Friday Penance: give up meat or make another sacrifice.",
+    "assigned_to": "JP",
+    "due_date": "2026-05-01",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": true,
+    "interval_value": 1,
+    "interval_unit": "weeks"
+  },
+  {
+    "text": "Ensure James continues wearing hip shorts",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-18",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Ongoing requirement from PT",
+    "subtasks": []
+  },
+  {
+    "text": "Send Easter thank you card",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-18",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Use old bananas",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-18",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Wegmans run",
+    "assigned_to": "Michael",
+    "due_date": "2026-04-18",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Wegmans run",
+    "assigned_to": "James",
+    "due_date": "2026-04-18",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Finish laundry",
+    "assigned_to": "Joseph",
+    "due_date": "",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Tea party: pot, cups and saucers, sugar bowl, creamer and serving tray",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-21",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Order JP's Confirmation cake",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "Custom inscription: 'Congratulations JP — Confirmed in the Faith'",
+      "Holy Spirit or cross design",
+      "Confirm pickup for May 15 or morning May 16",
+      "Get deposit receipt"
+    ]
+  },
+  {
+    "text": "Begin shopping for JP's special gift from parents",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Order must be placed by April 30 for timely delivery.",
+    "subtasks": [
+      "Ideas: quality rosary, patron saint medal, leather-bound Bible",
+      "Cross necklace or meaningful keepsake",
+      "If ordering online, allow 2 weeks for shipping"
+    ]
+  },
+  {
+    "text": "Take JP to shop for Confirmation suit",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Complete by May 1-3.",
+    "subtasks": [
+      "Navy, charcoal, or black suit",
+      "Fit shoulders first — hardest to alter",
+      "Try JCPenney, Men's Wearhouse, or Target"
+    ]
+  },
+  {
+    "text": "Complete JP's Confirmation outfit",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-05",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "White or light blue dress shirt",
+      "Tie (consider red — JP's color)",
+      "Black/brown leather dress shoes and matching belt",
+      "Dark dress socks",
+      "Full dress rehearsal at home"
+    ]
+  },
+  {
+    "text": "Finalize and order/purchase JP's special gift",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-05",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "If online, order by May 5",
+      "Wrap and store safely",
+      "Plan reveal moment during cake"
+    ]
+  },
+  {
+    "text": "Collect RSVPs and follow up with non-responders",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "RSVP deadline: May 6",
+      "Follow up with non-responders May 7",
+      "Finalize headcount for food planning"
+    ]
+  },
+  {
+    "text": "Shampoo the sofas",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-09",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "Use upholstery shampoo or rented machine",
+      "Allow 3-4 full days to dry",
+      "Fan on cushions for airflow",
+      "Sniff-check the day before"
+    ]
+  },
+  {
+    "text": "Inflate and test bounce house",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-10",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "Check for slow leaks",
+      "Confirm blower motor and extension cord work",
+      "Measure basement space for indoor option"
+    ]
+  },
+  {
+    "text": "Deep-clean entertaining spaces",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-12",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Complete by May 10-12.",
+    "subtasks": [
+      "Living room, dining area, kitchen",
+      "Guest bathroom",
+      "Wash and press table linens"
+    ]
+  },
+  {
+    "text": "Plan food layout and table setup",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-12",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "Decide placement: apps table, jambalaya station, dessert table",
+      "Pull out serving dishes, platters, tongs, utensils",
+      "Confirm you have everything needed"
+    ]
+  },
+  {
+    "text": "Plan pollen-control strategy",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-12",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "Identify windows/doors to close morning of party",
+      "Set HVAC to recirculate/indoor air mode",
+      "Consider portable HEPA purifier in main room",
+      "Text friend with plan"
+    ]
+  },
+  {
+    "text": "Main grocery run for reception",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-14",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Complete May 14-15.",
+    "subtasks": [
+      "Jambalaya ingredients (andouille, shrimp/chicken, trinity veg, rice)",
+      "Cheese plate items (2-3 cheeses, crackers, grapes, honey, nuts)",
+      "Fruit and veggie plate produce, rolls, drinks, ice, napkins"
+    ]
+  },
+  {
+    "text": "Pick up JP's Confirmation cake",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-15",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "Confirm bakery pickup time",
+      "Clear refrigerator shelf",
+      "Transport level"
+    ]
+  },
+  {
+    "text": "Partial food prep the night before",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-15",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Evening of May 15.",
+    "subtasks": [
+      "Wash/cut all produce",
+      "Pre-arrange cheese boards (covered, no crackers yet)",
+      "Prep fruits that won't brown",
+      "Set serving boards on counter"
+    ]
+  },
+  {
+    "text": "Make jambalaya the night before",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-15",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Evening of May 15. Flavors deepen overnight.",
+    "subtasks": [
+      "Cook jambalaya fully",
+      "Refrigerate overnight",
+      "Plan to reheat May 16 with splash of broth"
+    ]
+  },
+  {
+    "text": "Final house tidy and setup",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-15",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Evening of May 15.",
+    "subtasks": [
+      "Vacuum and wipe kitchen",
+      "Set out serving dishes in position",
+      "Set up drinks station with cups/ice/labels",
+      "Stock guest bathroom (soap, towels, TP)"
+    ]
+  },
+  {
+    "text": "Check pollen forecast and decide bounce house location",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-15",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "Check pollen forecast for May 16",
+      "Decide: bounce house outside or basement",
+      "Text friend the update"
+    ]
+  },
+  {
+    "text": "Close windows and set HVAC for pollen control",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-16",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Complete by 9:00 AM on May 16.",
+    "subtasks": [
+      "Close all windows and doors",
+      "Set HVAC to recirculate/indoor air only"
+    ]
+  },
+  {
+    "text": "Set up bounce house in chosen location",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-16",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Complete by 10:00 AM on May 16.",
+    "subtasks": [
+      "Inflate bounce house",
+      "Confirm blower running steadily",
+      "Clear safety perimeter"
+    ]
+  },
+  {
+    "text": "Final food preparation morning of reception",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-16",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Everything guest-ready by 11:30 AM.",
+    "subtasks": [
+      "Reheat jambalaya on low with splash of broth",
+      "Finish assembling all plates (add crackers now)",
+      "Warm rolls in foil at 200°F"
+    ]
+  },
+  {
+    "text": "Get family dressed for Confirmation",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-16",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Complete by 12:15 PM.",
+    "subtasks": [
+      "JP in full suit",
+      "Take photos at home before leaving",
+      "Allow 45 minutes for everyone"
+    ]
+  },
+  {
+    "text": "Place JP's wrapped gift for reveal moment",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-16",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Before leaving for church.",
+    "subtasks": [
+      "Place gift somewhere special",
+      "Plan reveal during cake time"
+    ]
+  },
+  {
+    "text": "Prepare Michael for Confirmation Mass",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-15",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Help 5-year-old understand and participate meaningfully",
+    "subtasks": [
+      "Explain Confirmation in simple terms",
+      "Read picture book about Holy Spirit",
+      "Practice sitting quietly"
+    ]
+  },
+  {
+    "text": "Plan James's nap schedule for Confirmation day",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-16",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "1:30 PM Mass conflicts with typical nap time",
+    "subtasks": [
+      "Schedule earlier morning nap",
+      "Prepare quiet exit strategy",
+      "Pack baby bag"
+    ]
+  },
+  {
+    "text": "Family prayer night before Confirmation",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-15",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Pray together while finishing jambalaya prep, ask Holy Spirit to prepare JP's heart",
+    "subtasks": []
+  },
+  {
+    "text": "Morning family prayer for JP on Confirmation day",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-16",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Before getting dressed, gather family to pray over JP",
+    "subtasks": []
+  },
+  {
+    "text": "Plan the gift reveal moment during cake time with prepared words of blessing from John and Lauren about hopes for JP's life in the Spirit.",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-23",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "From counsel suggestion",
+    "subtasks": []
+  },
+  {
+    "text": "family walk on May 16 morning as a specific time block to ensure it happens before getting dressed for Mass.",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-16",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "From counsel suggestion",
+    "subtasks": []
+  },
+  {
+    "text": "Breakfast, planning",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-24",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Prayer",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-24",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  }
+]
