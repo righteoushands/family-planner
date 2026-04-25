@@ -1,6 +1,11 @@
 {
   "messages": [
     {
+      "role": "assistant",
+      "content": "Perfect. **Sunday = Chicken Fried Rice** using roast chicken leftovers + aging fresh veggies (snap peas, carrots, broccoli, green beans, salad greens as base).\n\nNow I'm locking in your **complete 8-day meal plan: Saturday, April 25 through Friday, May 2** with all meals, helpers, and shopping list.\n\nHere we go:\n\n---\n\n[MEAL_UPDATE:",
+      "ts": "2026-04-25T07:07:24"
+    },
+    {
       "role": "user",
       "content": "John’s Monday lunch can’t be the pot roast before it was made",
       "ts": "2026-04-25T07:08:29"
@@ -294,11 +299,6 @@
       "role": "user",
       "content": "1",
       "ts": "2026-04-25T17:53:33"
-    },
-    {
-      "role": "assistant",
-      "content": "Perfect. Linking Saturday dinner only.\n\nDone. Saturday dinner is now linked to the Brined Roast Chicken recipe [90f98712]. The fridge card will show the recipe link, and you can tap straight through to prep/cook times and full instructions.\n\nThe roasted vegetables are built into that same dinner service, so one link covers both components.",
-      "ts": "2026-04-25T17:53:35"
     }
   ]
 }

@@ -73,7 +73,10 @@
     "Saturday": {
       "breakfast": "Grilled cheese sandwiches with tomato soup",
       "lunch": "Grilled cheese sandwiches with tomato soup",
-      "dinner": "Brined roast chicken with roasted broccoli, carrots, and snap peas",
+      "dinner": {
+        "display": "Brined roast chicken with roasted broccoli, carrots, and snap peas",
+        "recipe_id": "90f98712"
+      },
       "dessert": "Fresh strawberries",
       "snacks": "Cheese and fruit",
       "dad_lunch": "N/A — weekend",
