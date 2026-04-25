@@ -66,7 +66,10 @@ def _load_lorenzo_history_safe() -> list:
 def _get_current_meal_plan(iso: str) -> str:
     try:
         import os as _os, datetime as _dt2
-        from render_meals import load_meal_plan, _plan_path, _week_key, _planning_week_key
+        from render_meals import (
+            load_meal_plan, _plan_path, _week_key, _planning_week_key,
+            slot_display_text, slot_recipe_id,
+        )
         # Use the SAME week the fridge-card print page shows (Mon–Thu = this
         # week; Fri/Sat/Sun = next week). Otherwise Lorenzo and the print
         # card disagree about which file is "the plan."
@@ -129,9 +132,14 @@ def _get_current_meal_plan(iso: str) -> str:
                 continue
             parts = []
             for slot in food_slots:
-                val = (slots.get(slot, "") or "").strip()
+                raw = slots.get(slot, "")
+                val = slot_display_text(raw)
+                rid = slot_recipe_id(raw)
                 if val:
-                    parts.append(f"{slot.capitalize()}: {val}")
+                    rendered = f"{slot.capitalize()}: {val}"
+                    if rid:
+                        rendered += f"  [recipe {rid}]"
+                    parts.append(rendered)
                     if val.lower() in ("leftovers", "leftover"):
                         vague_leftovers.append(f"{day_name} {slot}")
                 else:
@@ -200,14 +208,22 @@ def _get_inventory() -> str:
         return "Inventory unavailable."
 
 def _get_saved_recipes() -> str:
-    """Return a compact summary of saved recipe cards for the system prompt."""
+    """Return a compact summary of saved recipe cards for the system prompt.
+    Each line begins with the recipe id in square brackets so Lorenzo can
+    drop it straight into a [MEAL_UPDATE:Day:slot|recipe=ID] tag without
+    guessing or hallucinating an id."""
     try:
         from data_helpers import load_recipes
         recipes = load_recipes()
         if not recipes:
             return "No recipe cards saved yet."
-        lines = [f"Saved recipe cards ({len(recipes)} total):"]
+        lines = [
+            f"Saved recipe cards ({len(recipes)} total).",
+            "Each entry starts with its recipe id in [brackets]. To link a meal-plan",
+            "slot to one of these recipes, use [MEAL_UPDATE:Day:slot|recipe=ID]name[/MEAL_UPDATE].",
+        ]
         for r in recipes:
+            rid       = r.get("id", "")
             name      = r.get("name", "Unknown")
             servings  = r.get("servings", "")
             prep      = r.get("prep_time", "")
@@ -222,7 +238,8 @@ def _get_saved_recipes() -> str:
             timing    = " | ".join(x for x in [f"Serves {servings}" if servings else "",
                                                f"Prep {prep}" if prep else "",
                                                f"Cook {cook}" if cook else ""] if x)
-            lines.append(f"  - {name}" + (f" ({timing})" if timing else "") +
+            id_tag    = f"[{rid}] " if rid else ""
+            lines.append(f"  - {id_tag}{name}" + (f" ({timing})" if timing else "") +
                          (f": {ingr_preview}" if ingr_preview else ""))
         return "\n".join(lines)
     except Exception:
@@ -347,14 +364,17 @@ def _get_planning_session_block() -> str:
 
         # What has already been planned this session?
         try:
-            from render_meals import load_meal_plan
+            from render_meals import load_meal_plan, slot_display_text, slot_recipe_id
             plan  = load_meal_plan(week_iso)
             filled = []
             for d in days:
                 for s in slots:
-                    val = plan.get("days", {}).get(d, {}).get(s, "").strip()
+                    raw = plan.get("days", {}).get(d, {}).get(s, "")
+                    val = slot_display_text(raw)
+                    rid = slot_recipe_id(raw)
                     if val:
-                        filled.append(f"  {d} {s}: {val}")
+                        suffix = f"  [recipe {rid}]" if rid else ""
+                        filled.append(f"  {d} {s}: {val}{suffix}")
             filled_text = "\n".join(filled) if filled else "  (nothing filled in yet)"
         except Exception:
             filled_text = "  (meal plan unavailable)"
@@ -493,6 +513,12 @@ def build_lorenzo_context(iso: str, weekday: str, date_label: str) -> str:
         "in your replies (the server parses them and saves to the same file Lauren sees in the Menu Planner):",
         "  • [MEAL_UPDATE:Day:slot]meal name[/MEAL_UPDATE]   ← edit a single slot",
         "  • [MEAL_UPDATE:Day:slot][/MEAL_UPDATE]            ← clear a slot",
+        "  • [MEAL_UPDATE:Day:slot|recipe=rNNN]meal name[/MEAL_UPDATE]",
+        "       ← same as above but ALSO links the slot to a saved recipe card.",
+        "       Use the bracketed id from the SAVED RECIPE CARDS section. Only valid",
+        "       on the food slots: breakfast, lunch, dinner, dessert, snacks, dad_lunch.",
+        "       Linked slots auto-populate prep & cook times for the cook timer and let",
+        "       Lauren tap straight through to the recipe from the meal-plan UI.",
         "  • [MEAL_UPDATE:Day:helpers]…[/MEAL_UPDATE]        ← assign kids",
         "  • [MEAL_UPDATE:Day:prep_time|cook_time|serve_time]…[/MEAL_UPDATE]",
         "  • [RECIPE_CARD:add]{json}[/RECIPE_CARD]           ← save a recipe to the library",
@@ -595,6 +621,16 @@ def build_lorenzo_context(iso: str, weekday: str, date_label: str) -> str:
         "This will save directly to the meal plan. Example:",
         "[MEAL_UPDATE:Monday:dinner]Sheet pan chicken thighs with roasted broccoli[/MEAL_UPDATE]",
         "Slots are: breakfast, lunch, dinner, dessert, snacks, dad_lunch.",
+        "",
+        "LINKING A MEAL TO A SAVED RECIPE CARD: When the dish you're putting in a slot",
+        "matches one of the recipe cards in the SAVED RECIPE CARDS section above, append",
+        "|recipe=<id> to the slot name so the cook timer can pull prep & cook times from",
+        "the card and Lauren can tap through to the full recipe. Example:",
+        "[MEAL_UPDATE:Tuesday:dinner|recipe=r004]Chicken Chili[/MEAL_UPDATE]",
+        "Only the food slots accept |recipe= (breakfast, lunch, dinner, dessert, snacks,",
+        "dad_lunch). Never put |recipe= on prep_time, cook_time, serve_time, or helpers.",
+        "Never invent a recipe id — only use ids you can see in the SAVED RECIPE CARDS",
+        "section. If the meal is freestyle and isn't in the library, just omit |recipe=.",
         "",
         "HELPER JOB ASSIGNMENTS: To save kitchen helper roles for a day (who leads, who assists,",
         "who does simple tasks), use the 'helpers' slot:",
@@ -1700,11 +1736,15 @@ function lzSend() {{
                         }})(m[1], m[2]);
                     }}
 
-                    // ── Parse [MEAL_UPDATE:Day:slot]meal[/MEAL_UPDATE] ──────
-                    var mealRx = /\[MEAL_UPDATE:([^:]+):([^\]]+)\]([\s\S]*?)\[\/MEAL_UPDATE\]/g;
+                    // ── Parse [MEAL_UPDATE:Day:slot[|recipe=ID]]meal[/MEAL_UPDATE] ─
+                    // Slot may carry an optional "|recipe=<id>" — strip it out
+                    // of the displayed slot name and surface the recipe id as
+                    // a small badge after the meal.
+                    var mealRx = /\[MEAL_UPDATE:([^:]+):([^|\]]+)(?:\|recipe=([^\]]+))?\]([\s\S]*?)\[\/MEAL_UPDATE\]/g;
                     while ((m = mealRx.exec(full)) !== null) {{
-                        (function(mDay, mSlot, mMeal) {{
+                        (function(mDay, mSlot, mRid, mMeal) {{
                             mMeal = mMeal.trim();
+                            mRid  = (mRid || '').trim();
                             var mRow = document.createElement('div');
                             mRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:6px;'
                                 + 'padding:7px 10px;background:#fffbea;border:1px solid #e6c84a;border-radius:8px;';
@@ -1712,7 +1752,8 @@ function lzSend() {{
                             mIcon.textContent = '\U0001F37D\uFE0F';
                             mIcon.style.cssText = 'font-size:1em;flex-shrink:0;';
                             var mMsg = document.createElement('span');
-                            mMsg.textContent = mDay + ' ' + mSlot + ': ' + mMeal;
+                            mMsg.textContent = mDay + ' ' + mSlot + ': ' + mMeal
+                                + (mRid ? '  (recipe ' + mRid + ')' : '');
                             mMsg.style.cssText = 'font-size:0.82em;color:#7a5a00;flex:1;';
                             var mBtn = document.createElement('a');
                             mBtn.textContent = '\U0001F35D Meal Plan';
@@ -1723,7 +1764,7 @@ function lzSend() {{
                                 + 'font-family:inherit;flex-shrink:0;';
                             mRow.appendChild(mIcon); mRow.appendChild(mMsg); mRow.appendChild(mBtn);
                             if (bubble._wrap) bubble._wrap.appendChild(mRow);
-                        }})(m[1], m[2], m[3]);
+                        }})(m[1], m[2], m[3], m[4]);
                     }}
 
                     // ── Print Fridge Card link after any meal updates ─────────

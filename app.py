@@ -5092,23 +5092,41 @@ class Handler(BaseHTTPRequestHandler):
                     text = result.get("content",[{}])[0].get("text","").strip()
                 except Exception as e:
                     text = f"Lorenzo is away from the stove. ({e})"
-                # ── Parse [MEAL_UPDATE:Day:slot]meal[/MEAL_UPDATE] and save ──
+                # ── Parse [MEAL_UPDATE:Day:slot[|recipe=ID]]meal[/MEAL_UPDATE] and save ──
+                # Slot may optionally carry "|recipe=<id>" to link a saved recipe
+                # card; in that case (and only for the food slots in MEAL_SLOTS)
+                # we persist a dict {"display","recipe_id"} so downstream readers
+                # can show a "View recipe" link / pull prep & cook times from
+                # the card.  Every other slot — and every plain bare slot — keeps
+                # writing a plain string, exactly like before.
                 _meal_rx = _re.compile(
-                    r'\[MEAL_UPDATE:([^:\]]+):([^\]]+)\]([\s\S]*?)\[\/MEAL_UPDATE\]',
+                    r'\[MEAL_UPDATE:([^:\]]+):([^|\]]+)(?:\|recipe=([^\]]+))?\]'
+                    r'([\s\S]*?)\[\/MEAL_UPDATE\]',
                     _re.IGNORECASE
                 )
+                try:
+                    from render_meals import MEAL_SLOT_SET as _DICT_OK_SLOTS
+                except Exception:
+                    _DICT_OK_SLOTS = {"breakfast","lunch","dinner","dessert","snacks","dad_lunch"}
                 _meal_updates_found = []
                 for _mm in _meal_rx.finditer(text):
-                    _mday = _mm.group(1).strip()
+                    _mday  = _mm.group(1).strip()
                     _mslot = _mm.group(2).strip().lower()
-                    _mmeal = _mm.group(3).strip()
+                    _mrid  = (_mm.group(3) or "").strip()
+                    _mmeal = _mm.group(4).strip()
                     if _mday and _mslot:
                         _save_ok = False
                         try:
                             _wk = _planning_week_key()
                             _plan = load_meal_plan(_wk)
                             if _mmeal:
-                                _plan["days"].setdefault(_mday, {})[_mslot] = _mmeal
+                                if _mrid and _mslot in _DICT_OK_SLOTS:
+                                    _plan["days"].setdefault(_mday, {})[_mslot] = {
+                                        "display":   _mmeal,
+                                        "recipe_id": _mrid,
+                                    }
+                                else:
+                                    _plan["days"].setdefault(_mday, {})[_mslot] = _mmeal
                             else:
                                 _plan["days"].setdefault(_mday, {}).pop(_mslot, None)
                             _plan["start"] = _plan.get("start") or _wk

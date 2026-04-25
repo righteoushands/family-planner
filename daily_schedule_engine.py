@@ -250,13 +250,13 @@ def get_meal_helper_task_for_child(child: str, weekday: str, iso: str):
     Returns None if no helper entry exists for this child today.
     """
     try:
-        from render_meals import load_meal_plan
+        from render_meals import load_meal_plan, slot_display_text as _sdt
         from datetime import date as _date, timedelta as _td
         d      = _date.fromisoformat(iso)
         monday = d - _td(days=d.weekday())          # load by Monday ISO date so the
         plan   = load_meal_plan(monday.isoformat())  # filename-based lookup hits the right file
         day    = plan.get("days", {}).get(weekday, {})
-        raw    = (day.get("helpers") or day.get("boys_help") or "").strip()
+        raw    = (_sdt(day.get("helpers")) or _sdt(day.get("boys_help"))).strip()
         if not raw:
             return None
         sep   = "|" if "|" in raw else "\u00b7"

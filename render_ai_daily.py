@@ -148,11 +148,11 @@ def ai_meal_plan(week_key: str) -> dict:
         rules_str  = "\n".join(f"- {r.get('rule','')}" for r in meal_rules) if meal_rules else "No specific rules saved."
 
         try:
-            from render_meals import load_meal_plan
+            from render_meals import load_meal_plan, slot_display_text
             existing = load_meal_plan(week_key)
             existing_meals = []
             for day, meals in existing.get("days", {}).items():
-                dinner = meals.get("Dinner","") or meals.get("dinner","")
+                dinner = slot_display_text(meals.get("Dinner") or meals.get("dinner"))
                 if dinner:
                     existing_meals.append(f"{day}: {dinner}")
             existing_str = "\n".join(existing_meals) if existing_meals else "None planned yet."

@@ -51,13 +51,13 @@ def _gather_tomorrow_data(tomorrow: date) -> dict:
 
     # ── Meals ─────────────────────────────────────────────────────────────────
     try:
-        from render_meals import load_meal_plan, _week_key
+        from render_meals import load_meal_plan, _week_key, slot_display_text
         plan = load_meal_plan(_week_key(tomorrow))
         day_meals = plan.get("days", {}).get(weekday, {})
         result["meals"] = {
-            "breakfast": day_meals.get("breakfast",""),
-            "lunch":     day_meals.get("lunch",""),
-            "dinner":    day_meals.get("dinner",""),
+            "breakfast": slot_display_text(day_meals.get("breakfast","")),
+            "lunch":     slot_display_text(day_meals.get("lunch","")),
+            "dinner":    slot_display_text(day_meals.get("dinner","")),
         }
     except Exception:
         result["meals"] = {}

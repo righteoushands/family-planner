@@ -86,15 +86,16 @@ def _render_john_quicklook(profile: dict) -> str:
     plan    = _load_week_plan()
     today_data = plan.get(weekday, {})
 
-    dad_lunch = escape(today_data.get("dad_lunch") or "—")
-    tonight   = escape(today_data.get("dinner")    or "—")
+    from render_meals import slot_display_text
+    dad_lunch = escape(slot_display_text(today_data.get("dad_lunch")) or "—")
+    tonight   = escape(slot_display_text(today_data.get("dinner"))    or "—")
     note      = escape(profile.get("note_for_john","") or "")
 
     # Week dinner grid (Mon–Sun)
     week_rows = ""
     for day in WEEKDAYS_ORDER:
         d_data   = plan.get(day, {})
-        dinner   = escape(d_data.get("dinner","") or "—")
+        dinner   = escape(slot_display_text(d_data.get("dinner","")) or "—")
         is_today = (day == weekday)
         row_style = (
             f"padding:6px 10px;display:flex;gap:10px;align-items:baseline;"

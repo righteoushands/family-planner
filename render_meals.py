@@ -21,6 +21,7 @@ RECIPES_FILE  = "data/recipes.json"
 DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
 
 MEAL_SLOTS = ["breakfast","lunch","dinner","dessert","snacks","dad_lunch"]
+MEAL_SLOT_SET = set(MEAL_SLOTS)
 
 MEAL_SLOT_LABELS = {
     "breakfast": "Breakfast",
@@ -30,6 +31,33 @@ MEAL_SLOT_LABELS = {
     "snacks":    "Snacks",
     "dad_lunch": "Dad's Lunch",
 }
+
+# ---------------------------------------------------------------------------
+# Slot value accessors — Lorenzo can save a slot as a plain string (legacy)
+# OR as a dict {"display": "Chicken Chili", "recipe_id": "r004"} when she
+# links it to a saved recipe card.  Every reader in the codebase MUST go
+# through these two helpers so the UI never accidentally renders {...} or
+# crashes on `.strip()`.
+# ---------------------------------------------------------------------------
+
+def slot_display_text(value) -> str:
+    """Return the user-facing meal text for a slot value.
+    Accepts plain string, dict {'display','recipe_id'}, None, or anything
+    else.  Always returns a stripped str ('' if there's nothing to show)."""
+    if isinstance(value, dict):
+        return str(value.get("display", "") or "").strip()
+    if value is None:
+        return ""
+    return str(value).strip()
+
+def slot_recipe_id(value):
+    """Return the linked recipe_id (str) for a slot value, or None."""
+    if isinstance(value, dict):
+        rid = value.get("recipe_id")
+        if rid:
+            rid = str(rid).strip()
+            return rid or None
+    return None
 
 # Child colors for grid headers
 CHILD_COLORS = {
@@ -221,7 +249,8 @@ def get_cook_start_for_day(day_data: dict, fallback_recipes: bool = True, weekda
     """
     import re as _re
 
-    dinner = (day_data.get("dinner") or "").strip()
+    _dinner_raw = day_data.get("dinner")
+    dinner = slot_display_text(_dinner_raw)
     if not dinner or dinner.lower().startswith("tbd") or dinner.lower().startswith("leftover"):
         return None
 
@@ -465,11 +494,11 @@ def render_meal_today_card(target_date=None, compact: bool = False) -> str:
     meal_icons  = {"breakfast": "☀️", "lunch": "🥗", "dinner": "🍽️", "dessert": "🍮", "snacks": "🍎"}
     meal_labels = {"breakfast": "Breakfast", "lunch": "Lunch",
                    "dinner": "Dinner", "dessert": "Dessert", "snacks": "Snacks"}
-    boys_help   = (slots.get("boys_help") or "").strip()
+    boys_help   = slot_display_text(slots.get("boys_help"))
 
     rows_html = ""
     for slot in ["breakfast", "lunch", "dinner", "dessert", "snacks"]:
-        val = (slots.get(slot) or "").strip()
+        val = slot_display_text(slots.get(slot))
         if not val:
             continue
         icon  = meal_icons[slot]
@@ -687,7 +716,11 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
             f'{escape(slot_label)}</td>'
         )
         for day in ordered_days:
-            val = days_data.get(day, {}).get(slot, "")
+            # Editor saves plain strings via /meal-save-plan (recipe links are
+            # set by Lorenzo, not the grid).  Show only the display text — if
+            # Lauren manually edits a linked slot here it'll drop the recipe
+            # link on save, which is the documented Phase-2 trade-off.
+            val = slot_display_text(days_data.get(day, {}).get(slot, ""))
             cells += (
                 f'<td style="padding:3px;background:{slot_bg};border-bottom:1px solid var(--border-light);">'
                 f'<textarea data-day="{escape(day)}" data-slot="{escape(slot)}"'
@@ -893,14 +926,14 @@ def render_meal_print_page(week_key: str = None) -> str:
         label = MEAL_SLOT_LABELS[slot]
         cells = f"<td style='border:1px solid #ddd;padding:4pt 5pt;font-size:8pt;font-weight:700;color:#888;background:#fafaf7;white-space:nowrap;'>{label}</td>"
         for day in DAYS:
-            val = days_data.get(day, {}).get(slot, "").strip()
+            val = slot_display_text(days_data.get(day, {}).get(slot, ""))
             is_fri = (day == "Friday")
             bg = "#fdf0ef" if is_fri else "white"
             cells += f"<td style='border:1px solid #ddd;padding:4pt 5pt;font-size:8pt;background:{bg};vertical-align:top;'>{escape(val)}</td>"
         rows += f"<tr>{cells}</tr>"
 
     # Dessert row
-    dessert_vals = {day: days_data.get(day, {}).get("dessert", "").strip() for day in DAYS}
+    dessert_vals = {day: slot_display_text(days_data.get(day, {}).get("dessert", "")) for day in DAYS}
     if any(dessert_vals.values()):
         dessert_cells = "<td style='border:1px solid #ddd;padding:4pt 5pt;font-size:8pt;font-weight:700;color:#8b4513;background:#fff8f0;white-space:nowrap;'>Dessert</td>"
         for day in DAYS:
@@ -913,7 +946,7 @@ def render_meal_print_page(week_key: str = None) -> str:
     # Dad's lunches row
     dad_cells = "<td style='border:1px solid #ddd;padding:4pt 5pt;font-size:8pt;font-weight:700;color:#6b1a8a;background:#faf5ff;white-space:nowrap;'>Dad's Lunch</td>"
     for day in DAYS:
-        val = days_data.get(day, {}).get("dad_lunch", "").strip()
+        val = slot_display_text(days_data.get(day, {}).get("dad_lunch", ""))
         dad_cells += f"<td style='border:1px solid #ddd;padding:4pt 5pt;font-size:8pt;background:{'#faf5ff' if val else 'white'};vertical-align:top;color:#6b1a8a;'>{escape(val)}</td>"
     rows += f"<tr>{dad_cells}</tr>"
 

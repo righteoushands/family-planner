@@ -922,7 +922,7 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
 
     lines += ["", "== TODAY'S MEAL PLAN =="]
     try:
-        from render_meals import load_meal_plan, _week_key
+        from render_meals import load_meal_plan, _week_key, slot_display_text
         plan = load_meal_plan(_week_key())
         days_data = plan.get("days", {})
         day_meals = days_data.get(weekday, {})
@@ -930,7 +930,7 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
         if day_meals:
             for slot, label in [("breakfast","Breakfast"),("lunch","Lunch"),
                                   ("dinner","Dinner"),("snacks","Snacks")]:
-                val = day_meals.get(slot, "")
+                val = slot_display_text(day_meals.get(slot, ""))
                 if val:
                     lines.append(f"- {label}: {val}")
         else:
@@ -942,15 +942,17 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
 
     lines += ["", "== THIS WEEK'S FULL MEAL PLAN =="]
     try:
-        from render_meals import load_meal_plan, _week_key
+        from render_meals import load_meal_plan, _week_key, slot_display_text
         _wplan = load_meal_plan(_week_key())
         _wdays = _wplan.get("days", {})
         _any_w = False
         for _wd in ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]:
             _wd_meals = _wdays.get(_wd, {})
-            _wd_items = [f"{sl.capitalize()}: {_wd_meals[sl]}" for sl in
-                         ["breakfast","lunch","dinner","dessert","snacks","dad_lunch"]
-                         if _wd_meals.get(sl)]
+            _wd_items = []
+            for sl in ["breakfast","lunch","dinner","dessert","snacks","dad_lunch"]:
+                _v = slot_display_text(_wd_meals.get(sl))
+                if _v:
+                    _wd_items.append(f"{sl.capitalize()}: {_v}")
             if _wd_items:
                 lines.append(f"- {_wd}: " + " | ".join(_wd_items))
                 _any_w = True

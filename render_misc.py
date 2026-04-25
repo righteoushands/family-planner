@@ -3287,10 +3287,11 @@ def _render_meals_step(iso: str, target_date) -> str:
     icons = {"breakfast":"☀️","lunch":"🥗","dinner":"🍽","dessert":"🍮","snacks":"🍎","dad_lunch":"💼"}
     labels = {"breakfast":"Breakfast","lunch":"Lunch","dinner":"Dinner","dessert":"Dessert","snacks":"Snacks","dad_lunch":"Dad's Lunch"}
 
+    from render_meals import slot_display_text as _slot_text
     meal_rows = ""
     has_meals = False
     for slot in ["breakfast","lunch","dinner","dessert","snacks","dad_lunch"]:
-        val = (slots.get(slot) or "").strip()
+        val = _slot_text(slots.get(slot))
         if not val: continue
         has_meals = True
         icon  = icons.get(slot,"")

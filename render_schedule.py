@@ -1100,7 +1100,8 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
                 label_low = item.get("label", "").lower()
                 for keyword, slot_key in _meal_slot_map.items():
                     if keyword in label_low:
-                        meal_text = (meals.get(slot_key) or "").strip()
+                        from render_meals import slot_display_text as _sdt
+                        meal_text = _sdt(meals.get(slot_key))
                         if meal_text:
                             meal_note = (
                                 f'<span style="font-size:.75em;color:#8b3a5c;'
@@ -2373,11 +2374,12 @@ def _render_meal_print_section(target_date, weekday: str) -> str:
     meal_icons  = {"breakfast": "☀", "lunch": "▸", "dinner": "●", "dessert": "◇", "snacks": "◆"}
     meal_labels = {"breakfast": "Breakfast", "lunch": "Lunch",
                    "dinner": "Dinner", "dessert": "Dessert", "snacks": "Snacks"}
-    boys_help   = (slots.get("boys_help") or "").strip()
+    from render_meals import slot_display_text as _slot_text
+    boys_help   = _slot_text(slots.get("boys_help"))
 
     rows = ""
     for slot in ["breakfast", "lunch", "dinner", "dessert", "snacks"]:
-        val = (slots.get(slot) or "").strip()
+        val = _slot_text(slots.get(slot))
         if not val:
             continue
         icon  = meal_icons[slot]
