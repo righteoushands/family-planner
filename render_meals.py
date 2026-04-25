@@ -1281,6 +1281,7 @@ def _seed_default_recipes():
 
 def render_recipes_page(status: str = "") -> str:
     from ui_helpers import html_page, render_status_message, top_nav
+    from data_helpers import as_text
     _seed_default_recipes()
     recipes = load_recipes()
     # Defensive: silently drop any malformed (non-dict) entries so a single
@@ -1295,8 +1296,12 @@ def render_recipes_page(status: str = "") -> str:
     for r in recipes:
         rid   = escape(r.get("id",""))
         name  = escape(r.get("name",""))
-        ingr  = escape(r.get("ingredients",""))
-        instr = escape(r.get("instructions",""))
+        # Form-safe (newlines preserved) — used in <textarea> for round-trip edits.
+        ingr  = escape(as_text(r.get("ingredients","")))
+        instr = escape(as_text(r.get("instructions","")))
+        # Display-safe (newlines as <br>) — used in the read-only detail divs.
+        ingr_html  = ingr.replace("\n", "<br>")
+        instr_html = instr.replace("\n", "<br>")
         prep  = escape(r.get("prep_time",""))
         tags  = r.get("tags", [])
         img   = escape(r.get("image","") or "")
@@ -1337,11 +1342,11 @@ def render_recipes_page(status: str = "") -> str:
             f'{big_img}'
             f'<div style="font-size:0.82em;margin-bottom:8px;">'
             f'<div style="font-weight:700;margin-bottom:4px;">Ingredients</div>'
-            f'<div style="color:var(--ink-muted);white-space:pre-wrap;">{ingr}</div>'
+            f'<div style="color:var(--ink-muted);white-space:pre-wrap;">{ingr_html}</div>'
             f'</div>'
             f'<div style="font-size:0.82em;margin-bottom:12px;">'
             f'<div style="font-weight:700;margin-bottom:4px;">Instructions</div>'
-            f'<div style="color:var(--ink-muted);white-space:pre-wrap;">{instr}</div>'
+            f'<div style="color:var(--ink-muted);white-space:pre-wrap;">{instr_html}</div>'
             f'</div>'
             f'</div>'
             # Inline edit form (hidden by default)

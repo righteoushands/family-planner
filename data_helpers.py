@@ -1015,6 +1015,18 @@ def gradebook_for_child(child: str, school_year: str = "") -> list:
 
 RECIPES_FILE = "data/recipes.json"
 
+def as_text(value) -> str:
+    """Normalize a recipe ingredients/instructions field to a single string.
+
+    Recipes carry these fields as either a single string (legacy curated
+    cards) or a list of strings (newer structured cards). Returning a
+    line-joined string in both cases lets renderers and text-search code
+    treat the value uniformly without each caller re-implementing the check.
+    """
+    if isinstance(value, list):
+        return "\n".join(str(x) for x in value)
+    return str(value or "")
+
 def load_recipes() -> list:
     data = ensure_file(RECIPES_FILE, {"recipes": []})
     # Legacy format: top-level list
@@ -1071,7 +1083,7 @@ def search_recipes(query: str) -> list:
     results = []
     for r in load_recipes():
         haystack = (r.get("name","") + " " +
-                    " ".join(r.get("ingredients", [])) + " " +
+                    as_text(r.get("ingredients", "")) + " " +
                     " ".join(r.get("tags", []))).lower()
         if q in haystack:
             results.append(r)
