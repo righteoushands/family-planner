@@ -246,7 +246,7 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
         # ── Inject "Start cooking" into the day list ──────────────────────
         _cook = get_cook_start_for_day(meals, weekday=weekday)
         if _cook:
-            day_list.append({
+            _cook_item = {
                 "time":      fmt_time_12h(_cook["hhmm"]),
                 "time_sort": _cook["hhmm"],
                 "end_time":  fmt_time_12h(_cook["serve_hhmm"]),
@@ -257,7 +257,14 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
                 "done":      False,
                 "sub_items": [],
                 "is_event":  False,
-            })
+            }
+            # Pass through the pre-escaped HTML version when the cook
+            # result includes one (i.e. the dinner slot has a recipe_id)
+            # so _render_day_list_html renders the dish name as a link
+            # to its recipe card.
+            if _cook.get("label_html"):
+                _cook_item["label_html"] = _cook["label_html"]
+            day_list.append(_cook_item)
             day_list.sort(key=lambda x: x.get("time_sort", "00:00"))
     except Exception:
         meal_html = ""

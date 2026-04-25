@@ -967,7 +967,13 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
             rows.append(inline_exercise_html)
             rows_del.append(False)  # raw render — no swipe wrapper
             _exercise_injected = True
-        label  = escape(item.get("label", ""))
+        # Allow callers (e.g. the cook task carrying a recipe link) to
+        # pass pre-escaped HTML via `label_html` that bypasses the
+        # escape() default. Caller is responsible for sanitizing.
+        if item.get("label_html") is not None:
+            label = item["label_html"]
+        else:
+            label  = escape(item.get("label", ""))
         subs   = item.get("sub_items", [])
         # Deduplicate sub-items against texts already rendered in earlier blocks
         if subs:

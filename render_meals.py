@@ -371,12 +371,28 @@ def get_cook_start_for_day(day_data: dict, fallback_recipes: bool = True, weekda
     # Short dinner name for the label (max ~35 chars)
     short_dinner = dinner if len(dinner) <= 35 else dinner[:32].rstrip() + "…"
 
-    return {
+    plain_label = f"🍳 Start cooking: {short_dinner}  ({duration_label})"
+    result = {
         "hhmm": start_hhmm,
         "serve_hhmm": serve_hhmm,
-        "label": f"🍳 Start cooking: {short_dinner}  ({duration_label})",
+        "label": plain_label,
         "total_minutes": total_min,
     }
+    # When the dinner slot carries a recipe_id, also expose label_html so
+    # the day-list consumer can render the dish name as a link to its
+    # recipe card. The plain `label` key stays unchanged for JS attrs and
+    # tooltip use. Only the dish name is wrapped — emoji prefix and
+    # duration suffix stay outside the anchor for clean visual emphasis.
+    _link_rid = slot_recipe_id(_dinner_raw)
+    if _link_rid:
+        result["label_html"] = (
+            f"🍳 Start cooking: "
+            f'<a href="/recipes#recipe-{escape(_link_rid)}" '
+            f'style="text-decoration:underline;color:inherit;">'
+            f'{escape(short_dinner)}</a>'
+            f"  ({escape(duration_label)})"
+        )
+    return result
 
 
 def load_inventory() -> dict:
