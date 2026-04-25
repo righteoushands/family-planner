@@ -1318,7 +1318,7 @@ def render_recipes_page(status: str = "") -> str:
             f'style="width:100%;max-height:340px;object-fit:cover;border-radius:8px;"></div>'
         ) if img else ""
         cards += (
-            f'<div class="card" data-tags="{escape(",".join(tags))}" style="margin-bottom:14px;">'
+            f'<div id="recipe-{rid}" class="card" data-tags="{escape(",".join(tags))}" style="margin-bottom:14px;">'
             f'{thumb}'
             f'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">'
             f'<div style="font-weight:700;font-size:1.05em;color:var(--ink);">{name}</div>'
