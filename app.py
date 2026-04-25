@@ -5133,6 +5133,7 @@ class Handler(BaseHTTPRequestHandler):
                                     # serve_time from the FROL for the same reason.
                                     # Existing values win — we only fill blanks so
                                     # Lauren's manual overrides are never clobbered.
+                                    # Dinner-only by design: dad_lunch is intentionally excluded — widen this condition if John's lunch ever gets cook-start reminders.
                                     if _mslot == "dinner":
                                         try:
                                             from data_helpers import get_recipe_by_id as _grbi
