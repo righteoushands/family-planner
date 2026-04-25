@@ -259,36 +259,58 @@ def get_cook_start_for_day(day_data: dict, fallback_recipes: bool = True, weekda
     cook_str  = day_data.get("cook_time", "")
     serve_str = day_data.get("serve_time", "")  # "18:00" or "6:00 PM"
 
-    # Fall back to matching recipe — only if explicit times are not set
+    # ── Recipe lookup for missing timing fields ───────────────────────────
+    # Priority order:
+    #   1. Direct lookup by recipe_id (Phase-2 dict-shape slot) — exact, no cap.
+    #      When Lorenzo links a saved card we trust its declared prep/cook
+    #      times verbatim; if a recipe really takes 4 h prep, we honour it.
+    #   2. Fuzzy name search — legacy fallback for plain-string slots.
+    #      Capped at 90 min prep because fuzzy hits often pull in recipes
+    #      whose "prep" includes brining/marinating/rising — inactive time
+    #      that isn't really "start cooking" time.
     _recipe_fallback_prep = 0
     _recipe_fallback_cook = 0
     if fallback_recipes and (not prep_str or not cook_str):
+        _rid = slot_recipe_id(_dinner_raw)
+        r = None
         try:
-            import re as _re2
-            from data_helpers import search_recipes
-            # Try the full dinner string first, then progressively shorter candidates
-            # (dinner entries often have sides appended: "Beef stew + sourdough bread")
-            _search_candidates = [dinner]
-            # Split on common separators to get just the primary dish name
-            _primary = _re2.split(r'\s*[+/]\s*|\s+with\s+|\s+and\s+', dinner, maxsplit=1)[0].strip()
-            if _primary and _primary.lower() != dinner.lower():
-                _search_candidates.append(_primary)
-            hits = []
-            for _cand in _search_candidates:
-                hits = search_recipes(_cand)
-                if hits:
-                    break
-            if hits:
-                r = hits[0]
-                if not prep_str:
-                    # Cap recipe prep at 90 min — recipes often include inactive
-                    # time (brining, marinating) that isn't "start cooking" time
-                    _rp = parse_duration_minutes(r.get("prep_time", ""))
-                    _recipe_fallback_prep = min(_rp, 90) if _rp else 0
-                if not cook_str:
-                    _recipe_fallback_cook = parse_duration_minutes(r.get("cook_time", ""))
+            if _rid:
+                from data_helpers import get_recipe_by_id
+                r = get_recipe_by_id(_rid)
         except Exception:
-            pass
+            r = None
+
+        if r is not None:
+            # Tier 1: exact match via recipe_id — no cap
+            if not prep_str:
+                _recipe_fallback_prep = parse_duration_minutes(r.get("prep_time", "")) or 0
+            if not cook_str:
+                _recipe_fallback_cook = parse_duration_minutes(r.get("cook_time", "")) or 0
+        else:
+            # Tier 2: fuzzy name search — keep the 90-min cap
+            try:
+                import re as _re2
+                from data_helpers import search_recipes
+                # Try the full dinner string first, then progressively shorter candidates
+                # (dinner entries often have sides appended: "Beef stew + sourdough bread")
+                _search_candidates = [dinner]
+                _primary = _re2.split(r'\s*[+/]\s*|\s+with\s+|\s+and\s+', dinner, maxsplit=1)[0].strip()
+                if _primary and _primary.lower() != dinner.lower():
+                    _search_candidates.append(_primary)
+                hits = []
+                for _cand in _search_candidates:
+                    hits = search_recipes(_cand)
+                    if hits:
+                        break
+                if hits:
+                    r = hits[0]
+                    if not prep_str:
+                        _rp = parse_duration_minutes(r.get("prep_time", ""))
+                        _recipe_fallback_prep = min(_rp, 90) if _rp else 0
+                    if not cook_str:
+                        _recipe_fallback_cook = parse_duration_minutes(r.get("cook_time", ""))
+            except Exception:
+                pass
 
     prep_min  = parse_duration_minutes(prep_str) if prep_str else _recipe_fallback_prep
     cook_min  = parse_duration_minutes(cook_str) if cook_str else _recipe_fallback_cook
@@ -317,10 +339,15 @@ def get_cook_start_for_day(day_data: dict, fallback_recipes: bool = True, weekda
                     hh = 0
                 serve_hhmm = f"{hh:02d}:{mm:02d}"
 
-    # Subtract total cooking time from serve time
+    # Subtract total cooking time + 15-min buffer from serve time.
+    # The buffer absorbs little real-world losses (kitchen wandering, an oven
+    # that hasn't quite hit temperature, a knock at the door) so dinner still
+    # lands on the table at serve_hhmm.  The buffer is invisible in the label
+    # — Lauren just sees an earlier "Start cooking" time.
+    COOK_BUFFER_MIN = 15
     sh, sm = [int(x) for x in serve_hhmm.split(":")]
     serve_total_min = sh * 60 + sm
-    start_total_min = serve_total_min - total_min
+    start_total_min = serve_total_min - total_min - COOK_BUFFER_MIN
 
     if start_total_min < 0:
         return None  # sanity check

@@ -1,0 +1,22 @@
+{
+  "recipes": [
+    {
+      "id": "rTEST_LONG",
+      "name": "4-hour brisket",
+      "prep_time": "4 hr",
+      "cook_time": "6 hr"
+    },
+    {
+      "id": "rTEST_SHORT",
+      "name": "Quick stir fry",
+      "prep_time": "15 min",
+      "cook_time": "20 min"
+    },
+    {
+      "id": "rTEST_NOTIME",
+      "name": "Mystery meal",
+      "prep_time": "",
+      "cook_time": ""
+    }
+  ]
+}

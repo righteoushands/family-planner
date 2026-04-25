@@ -1025,6 +1025,23 @@ def load_recipes() -> list:
 def save_recipes(recipes: list):
     safe_save_json(RECIPES_FILE, {"recipes": recipes})
 
+def get_recipe_by_id(rid: str) -> dict | None:
+    """Return the recipe dict whose id equals rid, or None.
+
+    Used by Lorenzo's recipe-link feature so a meal slot carrying
+    {"display": "...", "recipe_id": "rNNN"} can resolve back to the
+    saved card without a fuzzy-name search.
+    """
+    if not rid:
+        return None
+    rid = str(rid).strip()
+    if not rid:
+        return None
+    for r in load_recipes():
+        if str(r.get("id", "")).strip() == rid:
+            return r
+    return None
+
 def add_recipe(recipe: dict) -> dict:
     """Add or update a recipe (match by name, case-insensitive). Returns saved recipe."""
     import uuid

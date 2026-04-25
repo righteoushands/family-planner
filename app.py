@@ -5125,6 +5125,32 @@ class Handler(BaseHTTPRequestHandler):
                                         "display":   _mmeal,
                                         "recipe_id": _mrid,
                                     }
+                                    # ── Phase-3 timing stamp ───────────────────────────
+                                    # When the slot is a recipe-linked dinner, resolve
+                                    # the card and stamp prep_time / cook_time onto the
+                                    # day so subsequent renders are pure reads (no
+                                    # disk-search on the render path).  Also stamp
+                                    # serve_time from the FROL for the same reason.
+                                    # Existing values win — we only fill blanks so
+                                    # Lauren's manual overrides are never clobbered.
+                                    if _mslot == "dinner":
+                                        try:
+                                            from data_helpers import get_recipe_by_id as _grbi
+                                            from render_meals import get_frol_dinner_time as _gfdt
+                                            _r = _grbi(_mrid)
+                                            _day_bucket = _plan["days"][_mday]
+                                            if _r:
+                                                _rprep = (_r.get("prep_time") or "").strip()
+                                                _rcook = (_r.get("cook_time") or "").strip()
+                                                if _rprep and not _day_bucket.get("prep_time"):
+                                                    _day_bucket["prep_time"] = _rprep
+                                                if _rcook and not _day_bucket.get("cook_time"):
+                                                    _day_bucket["cook_time"] = _rcook
+                                            _serve = _gfdt(_mday)
+                                            if _serve and not _day_bucket.get("serve_time"):
+                                                _day_bucket["serve_time"] = _serve
+                                        except Exception as _stamp_err:
+                                            print(f"[lorenzo MEAL_UPDATE] timing stamp skipped for {_mday}: {_stamp_err}")
                                 else:
                                     _plan["days"].setdefault(_mday, {})[_mslot] = _mmeal
                             else:
