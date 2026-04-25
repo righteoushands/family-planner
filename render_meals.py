@@ -939,6 +939,21 @@ def render_meal_print_page(week_key: str = None) -> str:
     ws   = date.fromisoformat(wk) if len(wk) == 10 else _week_start()
     days_data = plan.get("days", {})
 
+    def _meal_cell_html(raw):
+        """Render a meal slot value for one print-card cell.
+        When the slot carries a recipe_id AND has visible text, wrap the
+        text in an anchor pointing at /recipes#recipe-<id> so Lauren can
+        tap the printed name and jump straight to that recipe card. When
+        there's no recipe_id (the plain-string shape every old plan file
+        uses), return plain escaped text — identical to prior behavior."""
+        _val = slot_display_text(raw)
+        _rid = slot_recipe_id(raw)
+        if _rid and _val:
+            return (f'<a href="/recipes#recipe-{escape(_rid)}" '
+                    f'style="text-decoration:underline;color:inherit;">'
+                    f'{escape(_val)}</a>')
+        return escape(_val)
+
     week_label = ws.strftime("Week of %B %d, %Y")
 
     header_row = "<th style='width:80pt;border:1px solid #ccc;padding:5pt;background:#f5ead8;font-size:8pt;color:#888;'>Meal</th>"
@@ -953,28 +968,30 @@ def render_meal_print_page(week_key: str = None) -> str:
         label = MEAL_SLOT_LABELS[slot]
         cells = f"<td style='border:1px solid #ddd;padding:4pt 5pt;font-size:8pt;font-weight:700;color:#888;background:#fafaf7;white-space:nowrap;'>{label}</td>"
         for day in DAYS:
-            val = slot_display_text(days_data.get(day, {}).get(slot, ""))
+            raw = days_data.get(day, {}).get(slot, "")
             is_fri = (day == "Friday")
             bg = "#fdf0ef" if is_fri else "white"
-            cells += f"<td style='border:1px solid #ddd;padding:4pt 5pt;font-size:8pt;background:{bg};vertical-align:top;'>{escape(val)}</td>"
+            cells += f"<td style='border:1px solid #ddd;padding:4pt 5pt;font-size:8pt;background:{bg};vertical-align:top;'>{_meal_cell_html(raw)}</td>"
         rows += f"<tr>{cells}</tr>"
 
     # Dessert row
-    dessert_vals = {day: slot_display_text(days_data.get(day, {}).get("dessert", "")) for day in DAYS}
+    dessert_raw  = {day: days_data.get(day, {}).get("dessert", "") for day in DAYS}
+    dessert_vals = {day: slot_display_text(dessert_raw[day]) for day in DAYS}
     if any(dessert_vals.values()):
         dessert_cells = "<td style='border:1px solid #ddd;padding:4pt 5pt;font-size:8pt;font-weight:700;color:#8b4513;background:#fff8f0;white-space:nowrap;'>Dessert</td>"
         for day in DAYS:
             val = dessert_vals[day]
             is_fri = (day == "Friday")
             bg = "#fdf0ef" if is_fri else ("#fff8f0" if val else "white")
-            dessert_cells += f"<td style='border:1px solid #ddd;padding:4pt 5pt;font-size:8pt;background:{bg};vertical-align:top;color:#8b4513;font-style:italic;'>{escape(val)}</td>"
+            dessert_cells += f"<td style='border:1px solid #ddd;padding:4pt 5pt;font-size:8pt;background:{bg};vertical-align:top;color:#8b4513;font-style:italic;'>{_meal_cell_html(dessert_raw[day])}</td>"
         rows += f"<tr>{dessert_cells}</tr>"
 
     # Dad's lunches row
     dad_cells = "<td style='border:1px solid #ddd;padding:4pt 5pt;font-size:8pt;font-weight:700;color:#6b1a8a;background:#faf5ff;white-space:nowrap;'>Dad's Lunch</td>"
     for day in DAYS:
-        val = slot_display_text(days_data.get(day, {}).get("dad_lunch", ""))
-        dad_cells += f"<td style='border:1px solid #ddd;padding:4pt 5pt;font-size:8pt;background:{'#faf5ff' if val else 'white'};vertical-align:top;color:#6b1a8a;'>{escape(val)}</td>"
+        raw = days_data.get(day, {}).get("dad_lunch", "")
+        val = slot_display_text(raw)
+        dad_cells += f"<td style='border:1px solid #ddd;padding:4pt 5pt;font-size:8pt;background:{'#faf5ff' if val else 'white'};vertical-align:top;color:#6b1a8a;'>{_meal_cell_html(raw)}</td>"
     rows += f"<tr>{dad_cells}</tr>"
 
     prep_notes = plan.get("prep_notes", {})
