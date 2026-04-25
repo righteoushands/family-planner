@@ -5208,8 +5208,26 @@ class Handler(BaseHTTPRequestHandler):
                     try:
                         _rc_data = _rj.loads(_rc_raw)
                         if isinstance(_rc_data, dict) and _rc_data.get("name"):
-                            from data_helpers import add_recipe
-                            add_recipe(_rc_data)
+                            from data_helpers import add_recipe, load_recipes, save_recipes
+                            # Phase-4: if the JSON carries an id matching an
+                            # existing recipe, merge fields into it (shallow
+                            # overlay) rather than appending a duplicate. This
+                            # is how Lauren-confirmed kid_steps land on an
+                            # existing card. Unknown / missing ids fall
+                            # through to the original add-as-new path, which
+                            # preserves Lorenzo-supplied id (via setdefault)
+                            # or generates a fresh uuid.
+                            _rc_id = str(_rc_data.get("id", "")).strip()
+                            _all = load_recipes() if _rc_id else None
+                            _match = next(
+                                (r for r in (_all or []) if str(r.get("id", "")).strip() == _rc_id),
+                                None,
+                            )
+                            if _match:
+                                _match.update(_rc_data)
+                                save_recipes(_all)
+                            else:
+                                add_recipe(_rc_data)
                             _recipe_saves_ok += 1
                     except Exception:
                         pass
