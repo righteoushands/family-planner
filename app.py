@@ -5147,6 +5147,27 @@ class Handler(BaseHTTPRequestHandler):
                                                     _day_bucket["prep_time"] = _rprep
                                                 if _rcook and not _day_bucket.get("cook_time"):
                                                     _day_bucket["cook_time"] = _rcook
+                                                # Phase-4 kid-helpers auto-fill — same
+                                                # "fill blanks only" rule as the timing
+                                                # stamps above. Lowercase the leading
+                                                # verb and strip trailing terminal
+                                                # punctuation so per-boy fragments join
+                                                # cleanly with "; ".
+                                                try:
+                                                    _ks = _r.get("kid_steps")
+                                                    if _ks and not _day_bucket.get("helpers"):
+                                                        from kid_helpers import assign_kid_steps as _aks
+                                                        _pairs = _aks(_ks)
+                                                        _parts = []
+                                                        for _boy, _step in _pairs:
+                                                            _s = (_step or "").strip().rstrip(".,;:!?")
+                                                            if _s:
+                                                                _s = _s[:1].lower() + _s[1:]
+                                                                _parts.append(f"{_boy} {_s}")
+                                                        if _parts:
+                                                            _day_bucket["helpers"] = "; ".join(_parts)
+                                                except Exception as _kh_err:
+                                                    print(f"[lorenzo MEAL_UPDATE] kid-helpers auto-fill skipped for {_mday}: {_kh_err}")
                                             _serve = _gfdt(_mday)
                                             if _serve and not _day_bucket.get("serve_time"):
                                                 _day_bucket["serve_time"] = _serve
