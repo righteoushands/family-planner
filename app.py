@@ -5207,16 +5207,17 @@ class Handler(BaseHTTPRequestHandler):
                     _rc_raw = _rcm.group(1).strip()
                     try:
                         _rc_data = _rj.loads(_rc_raw)
-                        if isinstance(_rc_data, dict) and _rc_data.get("name"):
+                        if isinstance(_rc_data, dict):
                             from data_helpers import add_recipe, load_recipes, save_recipes
-                            # Phase-4: if the JSON carries an id matching an
-                            # existing recipe, merge fields into it (shallow
-                            # overlay) rather than appending a duplicate. This
-                            # is how Lauren-confirmed kid_steps land on an
-                            # existing card. Unknown / missing ids fall
-                            # through to the original add-as-new path, which
-                            # preserves Lorenzo-supplied id (via setdefault)
-                            # or generates a fresh uuid.
+                            # Phase-4: id-based merge path. If the JSON carries
+                            # an id matching an existing recipe, shallow-overlay
+                            # supplied fields onto it — this is how Lauren-
+                            # confirmed kid_steps land on an existing card via
+                            # a minimal {id, kid_steps} payload (no 'name'
+                            # required, since we're updating, not creating).
+                            # Add-as-new path still requires 'name' as before.
+                            # Unknown id with name supplied -> add_recipe
+                            # preserves the Lorenzo-supplied id via setdefault.
                             _rc_id = str(_rc_data.get("id", "")).strip()
                             _all = load_recipes() if _rc_id else None
                             _match = next(
@@ -5226,9 +5227,10 @@ class Handler(BaseHTTPRequestHandler):
                             if _match:
                                 _match.update(_rc_data)
                                 save_recipes(_all)
-                            else:
+                                _recipe_saves_ok += 1
+                            elif _rc_data.get("name"):
                                 add_recipe(_rc_data)
-                            _recipe_saves_ok += 1
+                                _recipe_saves_ok += 1
                     except Exception:
                         pass
                 # ── Parse <meal_constraint_update> and save to app_settings ──
