@@ -265,8 +265,9 @@ from render_morning_anchor import save_anchor_state
 from render_meals import (
     render_meal_planner_page, render_meal_print_page,
     load_meal_plan, save_meal_plan, load_inventory, save_inventory,
-    load_recipes, save_recipe, _build_meal_prompt, _week_key, _planning_week_key,
+    _build_meal_prompt, _week_key, _planning_week_key,
 )
+from data_helpers import load_recipes, save_recipe, save_recipes
 from render_daily_plan import (
     get_or_seed_plan, add_item_to_plan, toggle_plan_item,
     delete_plan_item, reorder_plan_items, update_item_time,
@@ -2716,7 +2717,6 @@ class Handler(BaseHTTPRequestHandler):
                                     r["image"] = new_image_url
                                 elif remove_image:
                                     r["image"] = ""
-                        from render_meals import save_recipes
                         save_recipes(recipes)
                     else:
                         save_recipe(name, ingr, instr, tags, prep, image=effective_image)
@@ -8727,7 +8727,6 @@ class Handler(BaseHTTPRequestHandler):
                 if rid:
                     recipes = load_recipes()
                     recipes = [r for r in recipes if r.get("id") != rid]
-                    from render_meals import save_recipes
                     save_recipes(recipes)
                 redirect = "/recipes"
 

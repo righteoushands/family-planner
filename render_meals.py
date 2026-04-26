@@ -12,6 +12,7 @@ import os, json, uuid
 from datetime import date, timedelta
 from html import escape
 from safe_utils import ensure_file, safe_save_json
+from data_helpers import load_recipes, save_recipes, save_recipe
 
 MEALS_DIR     = "data/meal_plan"
 RULES_FILE    = "data/meal_rules.json"
@@ -412,29 +413,6 @@ def load_meal_rules() -> dict:
     except Exception:
         pass
     return {}
-
-def load_recipes() -> list:
-    return ensure_file(RECIPES_FILE, [])
-
-def save_recipes(recipes: list):
-    safe_save_json(RECIPES_FILE, recipes)
-
-def save_recipe(name: str, ingredients: str, instructions: str,
-                tags: list = None, prep_time: str = "", image: str = "") -> dict:
-    recipes = load_recipes()
-    recipe = {
-        "id": str(uuid.uuid4())[:8],
-        "name": name.strip(),
-        "ingredients": ingredients.strip(),
-        "instructions": instructions.strip(),
-        "tags": tags or [],
-        "prep_time": prep_time.strip(),
-        "image": (image or "").strip(),
-        "created": date.today().isoformat(),
-    }
-    recipes.append(recipe)
-    save_recipes(recipes)
-    return recipe
 
 # ---------------------------------------------------------------------------
 # AI generation prompt builder

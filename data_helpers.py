@@ -1054,6 +1054,28 @@ def get_recipe_by_id(rid: str) -> dict | None:
             return r
     return None
 
+def save_recipe(name: str, ingredients: str, instructions: str,
+                tags: list = None, prep_time: str = "", image: str = "") -> dict:
+    """Append a new recipe to the library. Always creates a new id; does NOT
+    dedupe by name (use add_recipe for dedup-by-name behavior). Preserved as
+    the form-input wrapper for /recipe-save."""
+    import uuid
+    from datetime import date as _d
+    recipes = load_recipes()
+    recipe = {
+        "id": str(uuid.uuid4())[:8],
+        "name": name.strip(),
+        "ingredients": ingredients.strip(),
+        "instructions": instructions.strip(),
+        "tags": tags or [],
+        "prep_time": prep_time.strip(),
+        "image": (image or "").strip(),
+        "created": _d.today().isoformat(),
+    }
+    recipes.append(recipe)
+    save_recipes(recipes)
+    return recipe
+
 def add_recipe(recipe: dict) -> dict:
     """Add or update a recipe (match by name, case-insensitive). Returns saved recipe."""
     import uuid
