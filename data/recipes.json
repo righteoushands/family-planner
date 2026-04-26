@@ -445,6 +445,235 @@
       ],
       "id": "1eb564a1",
       "date_added": "2026-04-25"
+    },
+    {
+      "name": "Beef Pot Roast",
+      "servings": "6-8",
+      "prep_time": "30 minutes",
+      "cook_time": "2 hours 30 minutes",
+      "ingredients": [
+        "3-4 lb chuck or rump roast",
+        "3 tbsp olive oil",
+        "1 large onion, cut into chunks",
+        "4-5 carrots, cut into 2-inch pieces",
+        "1 lb baby potatoes, halved if large",
+        "4 cloves garlic, minced",
+        "2 cups beef broth",
+        "1 can (6 oz) tomato paste",
+        "2 tbsp balsamic vinegar",
+        "2 tsp dried thyme",
+        "1 tsp dried rosemary",
+        "Salt and pepper to taste"
+      ],
+      "instructions": [
+        "Preheat oven to 325°F.",
+        "Pat roast dry with paper towels. Season all sides with salt and pepper.",
+        "Heat olive oil in large Dutch oven over medium-high heat.",
+        "Sear roast on all sides until deeply browned, about 3-4 minutes per side. Remove to a plate.",
+        "Add onion and garlic to the pot. Sauté 2-3 minutes until softened.",
+        "Stir in tomato paste. Cook 1 minute.",
+        "Add beef broth, balsamic vinegar, thyme, and rosemary. Stir to combine.",
+        "Return roast to pot. Add carrots and potatoes around the roast.",
+        "Cover and transfer to oven. Braise 2 hr 30 min until roast is fork-tender and vegetables are soft.",
+        "Remove from oven. Let rest 10 minutes. Slice and serve with vegetables and broth."
+      ],
+      "kid_steps": [
+        {
+          "step": "Wash and chop carrots and potatoes into chunks",
+          "age_min": 12
+        },
+        {
+          "step": "Rinse vegetables under cold water",
+          "age_min": 5
+        },
+        {
+          "step": "Help sear the roast on the stovetop (with supervision)",
+          "age_min": 14
+        }
+      ],
+      "notes": "JP leads prep and searing at 4:00 PM. Joseph assists with potatoes. Michael washes vegetables. Roast goes into Dutch oven at 4:30 PM. Leftover roast + vegetables = Tuesday dinner and Wednesday lunch for John.",
+      "tags": [
+        "beef",
+        "pot roast",
+        "JP",
+        "Dutch oven",
+        "family meal"
+      ],
+      "id": "301977ef",
+      "date_added": "2026-04-25"
+    },
+    {
+      "name": "Baked Flounder with Rice and Roasted Vegetables",
+      "servings": "6",
+      "prep_time": "15 minutes",
+      "cook_time": "12-15 minutes",
+      "ingredients": [
+        "6 flounder fillets, 4-5 oz each",
+        "3 tbsp olive oil",
+        "2 cloves garlic, minced",
+        "Juice of 1 lemon",
+        "2 tsp fresh dill or 1 tsp dried dill",
+        "Salt and pepper to taste",
+        "3 cups cooked rice",
+        "2 cups roasted vegetables (broccoli, carrots, or mixed)"
+      ],
+      "instructions": [
+        "Preheat oven to 400°F.",
+        "Pat flounder fillets dry. Arrange on a parchment-lined baking sheet.",
+        "Drizzle with olive oil. Sprinkle minced garlic, lemon juice, dill, salt, and pepper over each fillet.",
+        "Bake 12-15 minutes until fish flakes easily with a fork and is opaque throughout.",
+        "Serve flounder over cooked rice with roasted vegetables alongside."
+      ],
+      "kid_steps": [
+        {
+          "step": "Pat fish fillets dry with paper towels",
+          "age_min": 5
+        },
+        {
+          "step": "Prep vegetables for roasting",
+          "age_min": 12
+        },
+        {
+          "step": "Arrange fillets on baking sheet",
+          "age_min": 12
+        }
+      ],
+      "notes": "Prep starts at 4:00 PM Wednesday. Fish cooks quickly—just 12-15 minutes. Joseph can prep the vegetables. Rice and vegetables can be cooked ahead and reheated.",
+      "tags": [
+        "fish",
+        "flounder",
+        "baked",
+        "quick meal",
+        "Wednesday"
+      ],
+      "id": "9d96dde2",
+      "date_added": "2026-04-25"
+    },
+    {
+      "name": "Chicken Fried Rice",
+      "servings": "6",
+      "prep_time": "15 minutes",
+      "cook_time": "10-15 minutes",
+      "ingredients": [
+        "3 cups cooked shredded roast chicken (from roasted chicken)",
+        "3 cups cooked rice, day-old and cooled",
+        "2 eggs, beaten",
+        "2 cups mixed vegetables (snap peas, carrots, broccoli, green beans—fresh or leftover roasted)",
+        "3 cloves garlic, minced",
+        "1 tbsp soy sauce",
+        "1 tsp sesame oil",
+        "2 tbsp vegetable oil",
+        "Salt and pepper to taste",
+        "Green onions for garnish, optional"
+      ],
+      "instructions": [
+        "Heat vegetable oil in large skillet or wok over medium-high heat.",
+        "Add minced garlic. Stir-fry 30 seconds until fragrant.",
+        "Push garlic to side. Pour beaten eggs into pan. Scramble lightly, breaking into small pieces. Once nearly set, mix with garlic.",
+        "Add cooked rice, breaking up clumps. Stir-fry 3-4 minutes.",
+        "Add chicken and vegetables. Stir-fry 3-4 minutes until heated through.",
+        "Drizzle soy sauce and sesame oil. Toss well.",
+        "Taste and adjust salt and pepper. Garnish with green onions if desired.",
+        "Serve hot."
+      ],
+      "kid_steps": [
+        {
+          "step": "Wash and prepare vegetables",
+          "age_min": 5
+        },
+        {
+          "step": "Beat eggs in a bowl",
+          "age_min": 5
+        },
+        {
+          "step": "Stir-fry rice and vegetables over heat (with supervision)",
+          "age_min": 12
+        },
+        {
+          "step": "Lead the entire stir-fry assembly",
+          "age_min": 14
+        }
+      ],
+      "notes": "Cook rice Sunday morning. Shred chicken Saturday night after dinner cools. Sunday lunch prep is just the stir-fry assembly (15 min active). JP can lead this solo. Double batch works well for leftovers.",
+      "tags": [
+        "chicken",
+        "rice",
+        "fried rice",
+        "leftover",
+        "Sunday",
+        "quick"
+      ],
+      "id": "77024add",
+      "date_added": "2026-04-25"
+    },
+    {
+      "name": "Beef Pot Roast (Instant Pot)",
+      "servings": "6-8",
+      "prep_time": "15 minutes",
+      "cook_time": "1 hour 40 minutes (90 min pressure cook + 10 min vegetable cook + natural release)",
+      "ingredients": [
+        "3-4 lb chuck or rump roast",
+        "1 cup water",
+        "4-5 carrots, cut into 2-inch pieces",
+        "1 lb baby potatoes, halved if large",
+        "1 large onion, cut into chunks",
+        "4 cloves garlic, minced or pressed",
+        "2 tsp dried thyme",
+        "2 tsp dried rosemary",
+        "1 tsp paprika",
+        "Salt and pepper to taste",
+        "2 tbsp cornstarch or flour (for gravy)",
+        "2 tbsp water (for gravy slurry)",
+        "Rice for serving"
+      ],
+      "instructions": [
+        "Pat roast dry with paper towels.",
+        "Using a sharp knife, stab the roast 8-10 times all over to allow seasonings to penetrate during cooking.",
+        "Season roast generously with thyme, rosemary, paprika, salt, and pepper on all sides, working seasonings into the knife cuts.",
+        "Add 1 cup water to Instant Pot inner pot. Place trivet in pot.",
+        "Place seasoned roast on trivet.",
+        "Close lid. Set to Manual (or Pressure Cook) HIGH for 90 minutes.",
+        "Allow natural release when cooking completes (do not quick release). This takes 10-15 minutes.",
+        "Carefully remove roast. Check for doneness — meat should be tender and falling apart or nearly there. If not quite done, return to pot and cook 10 more minutes on manual.",
+        "Remove trivet. Place roast back in pot with liquid.",
+        "Add baby potatoes, carrots, and onion around roast.",
+        "Close lid. Set to Manual HIGH for 10 minutes.",
+        "Quick release pressure when done.",
+        "Remove roast and vegetables. Set aside on serving platter.",
+        "Make gravy: Whisk cornstarch and 2 tbsp water together to form slurry. Turn Instant Pot to sauté mode. Stir slurry into pot liquid. Simmer 2-3 minutes until thickened and no lumps remain. Taste and adjust seasoning.",
+        "Serve roast and vegetables over rice. Spoon gravy over top."
+      ],
+      "kid_steps": [
+        {
+          "step": "Stab the roast with a knife to allow seasonings to flow through — work carefully with adult supervision",
+          "age_min": 12
+        },
+        {
+          "step": "Measure and pour seasonings onto the roast",
+          "age_min": 5
+        },
+        {
+          "step": "Add water to the pot and place trivet",
+          "age_min": 10
+        },
+        {
+          "step": "Help arrange vegetables around the roast after first cook",
+          "age_min": 5
+        }
+      ],
+      "notes": "Instant Pot version is faster and more hands-off than oven braising. Natural release is key for tender, juicy meat. Serve over rice instead of with potatoes as a side. JP can supervise the whole process; Joseph can help with vegetable prep and button-pushing; Michael can measure seasonings and pour water.",
+      "tags": [
+        "beef",
+        "instant pot",
+        "roast",
+        "JP",
+        "Joseph",
+        "Michael",
+        "quick dinner",
+        "make-ahead"
+      ],
+      "id": "2ef28b6c",
+      "date_added": "2026-04-25"
     }
   ]
 }

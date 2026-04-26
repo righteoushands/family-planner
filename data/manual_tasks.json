@@ -16,34 +16,6 @@
     "recurring": false
   },
   {
-    "text": "Pack baby shower supplies",
-    "assigned_to": "Lauren",
-    "due_date": "2026-04-21",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "plan_importer",
-    "recurring": false,
-    "notes": "Pack morning of shower",
-    "subtasks": [
-      "Large picnic blanket for kids",
-      "Completed cake",
-      "Teddy Graham game bottle",
-      "Small prize",
-      "Written diaper messages"
-    ]
-  },
-  {
-    "text": "Ensure guest of honor attends baby shower",
-    "assigned_to": "Lauren",
-    "due_date": "2026-04-21",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "plan_importer",
-    "recurring": false,
-    "notes": "Make sure guest of honor shows up / cajole if needed",
-    "subtasks": []
-  },
-  {
     "text": "CAPTask: Wash the most used uniform of the month.",
     "assigned_to": "JP",
     "due_date": "2026-04-25",
@@ -236,14 +208,6 @@
     "subtasks": []
   },
   {
-    "text": "Look up vibe coding",
-    "assigned_to": "Mom",
-    "due_date": "2026-04-15",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
     "text": "Buy caterpillars",
     "assigned_to": "Mom",
     "due_date": "2026-04-16",
@@ -282,7 +246,7 @@
   {
     "text": "Friday Penance: give up meat or make another sacrifice.",
     "assigned_to": "Mom",
-    "due_date": "2026-05-01",
+    "due_date": "2026-05-08",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": true,
@@ -312,14 +276,6 @@
   },
   {
     "text": "Send Easter thank you card",
-    "assigned_to": "Mom",
-    "due_date": "2026-04-18",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Use old bananas",
     "assigned_to": "Mom",
     "due_date": "2026-04-18",
     "priority": "MEDIUM",
@@ -768,9 +724,9 @@
     "recurring": false
   },
   {
-    "text": "Prayer",
-    "assigned_to": "Lauren",
-    "due_date": "2026-04-24",
+    "text": "Sign Michael up for swim lessons",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-29",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false

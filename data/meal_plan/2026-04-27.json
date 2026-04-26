@@ -6,7 +6,10 @@
     "Monday": {
       "breakfast": "Muesli with Greek yogurt and strawberries",
       "lunch": "Leftover chicken fried rice",
-      "dinner": "Beef pot roast with baby potatoes, carrots, and onion",
+      "dinner": {
+        "display": "Beef pot roast with baby potatoes, carrots, and onion",
+        "recipe_id": "r016"
+      },
       "dessert": "Apple cider and cinnamon cake",
       "snacks": "Cheese and crackers",
       "dad_lunch": "Chicken fried rice (leftover)",
@@ -35,7 +38,10 @@
     "Wednesday": {
       "breakfast": "Scrambled eggs with toast",
       "lunch": "Sardine salad with fresh greens (John: choice of leftover pot roast or chicken fried rice)",
-      "dinner": "Baked flounder with rice and roasted vegetables",
+      "dinner": {
+        "display": "Baked flounder with rice and roasted vegetables",
+        "recipe_id": "r017"
+      },
       "dessert": "Yogurt with cinnamon",
       "snacks": "Popcorn",
       "dad_lunch": "Sardine salad with fresh greens",
@@ -63,12 +69,16 @@
     "Friday": {
       "breakfast": "Boiled eggs, muesli, and fruit for John's Drill travel pack",
       "lunch": "Mac & cheese with frozen mixed vegetables",
-      "dinner": "Pizza (using ingredients already in fridge) with simple salad",
+      "dinner": {
+        "display": "Pizza (using ingredients already in fridge) with simple salad",
+        "recipe_id": "r018"
+      },
       "dessert": "Brownies",
       "snacks": "Cheese and crackers",
       "dad_lunch": "",
       "helpers": "JP leads pizza assembly — Joseph preps salad — Michael pours drinks",
-      "boys_help": ""
+      "boys_help": "",
+      "serve_time": "17:00"
     },
     "Saturday": {
       "breakfast": "Grilled cheese sandwiches with tomato soup",
@@ -90,11 +100,14 @@
     "Sunday": {
       "breakfast": "Oatmeal with cinnamon and fresh fruit",
       "lunch": "Chicken fried rice with aging fresh vegetables",
-      "dinner": "Chicken fried rice with aging fresh vegetables",
+      "dinner": {
+        "display": "Chicken fried rice with aging fresh vegetables",
+        "recipe_id": "r019"
+      },
       "dessert": "Brownies",
       "snacks": "Yogurt with cinnamon",
       "dad_lunch": "N/A — weekend",
-      "helpers": "JP leads assembly — Joseph organizes leftover containers — Michael pours drinks",
+      "helpers": "JP leads fried rice assembly and stovetop work — Joseph preps vegetables and assists — Michael pours drinks",
       "prep_time": "15 minutes (rice reheating, vegetable prep)",
       "cook_time": "20 minutes",
       "serve_time": "6:00 PM",

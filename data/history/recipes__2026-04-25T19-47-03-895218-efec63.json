@@ -1,0 +1,506 @@
+{
+  "recipes": [
+    {
+      "id": "r002",
+      "name": "Sunday Roast Beef",
+      "ingredients": "3-4 lb chuck or rump roast, olive oil, salt, pepper, garlic, onion, carrots, potatoes, beef broth, fresh rosemary",
+      "instructions": "Sear roast on all sides in hot oil. Transfer to roasting pan with vegetables and broth. Roast at 325°F 3-4 hrs until fork-tender. Rest 15 min. Use drippings for gravy.",
+      "tags": [
+        "red-meat",
+        "anchor-meal",
+        "Sunday",
+        "high-carb"
+      ],
+      "prep_time": "20 min",
+      "created": "2026-01-01"
+    },
+    {
+      "id": "r003",
+      "name": "Friday Fish Fry (Fried Flounder)",
+      "ingredients": "Flounder fillets, buttermilk, cornmeal, flour, Old Bay seasoning, salt, pepper, oil for frying, lemon wedges, tartar sauce",
+      "instructions": "Soak fillets in buttermilk 30 min. Mix cornmeal, flour, Old Bay. Dredge fish. Fry in 350°F oil 3-4 min per side until golden. Drain on paper towels.",
+      "tags": [
+        "fish",
+        "Friday",
+        "Lent-safe",
+        "anchor-meal"
+      ],
+      "prep_time": "15 min + 30 min soak",
+      "created": "2026-01-01"
+    },
+    {
+      "id": "r004",
+      "name": "Chicken Chili (Batch Soup)",
+      "ingredients": "2 lbs ground or shredded chicken, 2 cans white beans, 1 can green chiles, chicken broth, onion, garlic, cumin, chili powder, sour cream, shredded cheese",
+      "instructions": "Sauté onion and garlic. Add chicken, cook through. Add beans, chiles, broth, and spices. Simmer 30 min. Serve with sour cream and cheese. Freezes well.",
+      "tags": [
+        "chicken",
+        "soup",
+        "batch-cook",
+        "easy"
+      ],
+      "prep_time": "15 min",
+      "created": "2026-01-01"
+    },
+    {
+      "id": "r006",
+      "name": "Lentil Soup",
+      "ingredients": "1.5 cups red lentils, 1 can diced tomatoes, onion, garlic, carrots, celery, cumin, turmeric, smoked paprika, lemon juice, chicken or vegetable broth",
+      "instructions": "Sauté onion, garlic, carrots, celery. Add spices, cook 1 min. Add lentils, tomatoes, broth. Simmer 25-30 min until lentils dissolve. Finish with lemon juice.",
+      "tags": [
+        "legume",
+        "soup",
+        "batch-cook",
+        "Friday",
+        "Lent-safe",
+        "iron-rich"
+      ],
+      "prep_time": "15 min",
+      "created": "2026-01-01"
+    },
+    {
+      "id": "r007",
+      "name": "Beef Stew (Batch)",
+      "ingredients": "2 lbs stew beef, potatoes, carrots, celery, onion, garlic, beef broth, tomato paste, Worcestershire, flour, rosemary, thyme",
+      "instructions": "Coat beef in flour, brown in batches. Sauté vegetables. Add beef, broth, tomato paste, herbs. Simmer 2-3 hrs low and slow until beef is tender. Thickens as it cools.",
+      "tags": [
+        "red-meat",
+        "soup",
+        "batch-cook",
+        "high-carb",
+        "Sunday"
+      ],
+      "prep_time": "30 min",
+      "cook_time": "2 hr 30 min",
+      "created": "2026-01-01"
+    },
+    {
+      "id": "r008",
+      "name": "Black-Eyed Pea Jambalaya",
+      "ingredients": "2 cans black-eyed peas, 1 lb andouille or chicken sausage, rice, onion, bell pepper, celery, garlic, diced tomatoes, chicken broth, Cajun seasoning, bay leaf",
+      "instructions": "Brown sausage. Sauté the holy trinity (onion, bell pepper, celery). Add garlic, tomatoes, peas, broth, rice. Season generously. Simmer covered 20 min until rice is cooked.",
+      "tags": [
+        "legume",
+        "poultry",
+        "high-carb",
+        "one-pot"
+      ],
+      "prep_time": "20 min",
+      "created": "2026-01-01"
+    },
+    {
+      "id": "r009",
+      "name": "Sardine Sandwiches (Friday Lunch)",
+      "ingredients": "1 can sardines in olive oil, mayo, Dijon mustard, lemon juice, celery, red onion, salt, pepper, bread or crackers",
+      "instructions": "Drain sardines. Mix with mayo, mustard, lemon, celery, onion. Season. Serve on good bread or with crackers. Michael version: just butter and sardines, no mix-ins.",
+      "tags": [
+        "fish",
+        "Friday",
+        "Lent-safe",
+        "quick",
+        "dad-lunch"
+      ],
+      "prep_time": "5 min",
+      "created": "2026-01-01"
+    },
+    {
+      "id": "r010",
+      "name": "Sheet Pan Chicken Thighs with Vegetables",
+      "ingredients": "6-8 bone-in chicken thighs, potatoes or sweet potatoes, broccoli or green beans, olive oil, garlic powder, paprika, Italian seasoning, salt, pepper",
+      "instructions": "Toss vegetables in oil and seasoning. Season chicken. Arrange on sheet pan, chicken skin-up. Roast at 425°F 35-40 min until chicken is golden and cooked through.",
+      "tags": [
+        "chicken",
+        "easy",
+        "one-pan",
+        "high-carb",
+        "family-favorite"
+      ],
+      "prep_time": "15 min",
+      "created": "2026-01-01",
+      "kid_steps": [
+        {
+          "step": "Wash the broccoli or green beans in the colander",
+          "age_min": 5
+        },
+        {
+          "step": "Tear the broccoli into bite-sized florets with your hands",
+          "age_min": 5
+        },
+        {
+          "step": "Toss the vegetables with olive oil in the big bowl until shiny",
+          "age_min": 5
+        },
+        {
+          "step": "Sprinkle the seasoning over the vegetables and stir to coat",
+          "age_min": 5
+        },
+        {
+          "step": "Pat the chicken thighs dry with paper towels and season both sides",
+          "age_min": 12
+        },
+        {
+          "step": "Slide the sheet pan in and out of the 425°F oven with oven mitts",
+          "age_min": 14
+        }
+      ]
+    },
+    {
+      "id": "r011",
+      "name": "Grilled Cheese + Tomato Soup",
+      "servings": "6",
+      "prep_time": "15 min",
+      "cook_time": "20 min",
+      "ingredients": [
+        "— TOMATO SOUP —",
+        "2 cans (28 oz each) crushed tomatoes",
+        "1 cup chicken or vegetable broth",
+        "1/2 cup heavy cream",
+        "1 medium onion, diced",
+        "2 tbsp butter",
+        "1 tsp dried basil (or 1 tbsp fresh)",
+        "Salt, pepper, pinch of sugar",
+        "— GRILLED CHEESE —",
+        "12 slices good bread",
+        "8-10 slices American or cheddar cheese",
+        "4 tbsp butter, softened"
+      ],
+      "instructions": [
+        "Soup: melt butter, sauté onion 3-4 min.",
+        "Soup: add tomatoes + broth, simmer 15 min.",
+        "Soup: stir in cream + basil, heat through (don't boil).",
+        "Sandwiches: heat skillet over medium.",
+        "Sandwiches: butter one side of each bread slice.",
+        "Sandwiches: assemble cheese between two slices, butter sides out.",
+        "Sandwiches: cook 3-4 min per side until golden and melted.",
+        "Cut sandwiches diagonally. Serve hot with soup."
+      ],
+      "notes": "Soup batch-cooks Saturday morning, reheats for lunch and dinner; freezes well. Pairing is Lent-safe and Friday-friendly.",
+      "tags": [
+        "vegetarian",
+        "Friday",
+        "Lent-safe",
+        "Michael-friendly",
+        "James-friendly",
+        "soup",
+        "sandwich",
+        "comfort food",
+        "quick",
+        "make-ahead",
+        "family-friendly"
+      ],
+      "created": "2026-01-01",
+      "merged_from": [
+        "aae4b891",
+        "7660dbcd"
+      ],
+      "kid_steps": [
+        {
+          "step": "Butter one side of each bread slice",
+          "age_min": 5
+        },
+        {
+          "step": "Lay the cheese between two slices, butter facing out",
+          "age_min": 5
+        },
+        {
+          "step": "Sprinkle the dried basil into the soup pot after the cream goes in",
+          "age_min": 5
+        },
+        {
+          "step": "Open the tomato cans with a manual can opener (adult-supervised)",
+          "age_min": 12
+        },
+        {
+          "step": "Stir the simmering soup so it doesn't catch on the bottom",
+          "age_min": 12
+        },
+        {
+          "step": "Flip the sandwiches in the skillet (adult holds the pan handle)",
+          "age_min": 12
+        },
+        {
+          "step": "Sauté the onion, run the soup from start to simmer, and cook the grilled cheeses through",
+          "age_min": 14
+        }
+      ]
+    },
+    {
+      "id": "r012",
+      "name": "Scrambled Eggs with Toast",
+      "ingredients": "Eggs, butter, salt, pepper, milk (splash), bread for toast",
+      "instructions": "Beat eggs with milk. Melt butter in pan over medium-low. Add eggs, stir constantly until just set. Remove from heat slightly early — carryover cooks them. Serve with buttered toast.",
+      "tags": [
+        "breakfast",
+        "quick",
+        "James-friendly",
+        "Michael-friendly",
+        "low-carb"
+      ],
+      "prep_time": "8 min",
+      "created": "2026-01-01",
+      "kid_steps": [
+        {
+          "step": "Crack the eggs into a bowl — adult helps with shell bits",
+          "age_min": 5
+        },
+        {
+          "step": "Whisk the eggs with a splash of milk until pale yellow",
+          "age_min": 5
+        },
+        {
+          "step": "Spread butter on the warm toast once it pops up",
+          "age_min": 5
+        },
+        {
+          "step": "Stir the eggs in the pan while they cook (adult holds the pan handle)",
+          "age_min": 12
+        },
+        {
+          "step": "Cook the eggs start-to-finish on the stovetop, melting the butter and pulling the pan early",
+          "age_min": 14
+        }
+      ]
+    },
+    {
+      "id": "r013",
+      "name": "Overnight Oats / Morning Oatmeal",
+      "ingredients": "Rolled oats, milk or water, honey or maple syrup, cinnamon, fruit (banana, berries, apple)",
+      "instructions": "Hot: simmer oats in milk/water 5 min. Overnight: combine oats and milk in jar, refrigerate. Top with fruit and honey. James version: soft, with mashed banana.",
+      "tags": [
+        "breakfast",
+        "James-friendly",
+        "batch-prep",
+        "low-effort"
+      ],
+      "prep_time": "5 min (or overnight)",
+      "created": "2026-01-01",
+      "kid_steps": [
+        {
+          "step": "Pour the oats into the jar or pot",
+          "age_min": 5
+        },
+        {
+          "step": "Pour the milk over the oats",
+          "age_min": 5
+        },
+        {
+          "step": "Drizzle in the honey or maple syrup, then sprinkle cinnamon on top",
+          "age_min": 5
+        },
+        {
+          "step": "Mash a banana with a fork for the youngest portion",
+          "age_min": 5
+        },
+        {
+          "step": "Slice fresh fruit with a butter knife for the toppings",
+          "age_min": 12
+        },
+        {
+          "step": "Simmer the oats on the stovetop for 5 minutes (hot version)",
+          "age_min": 14
+        }
+      ]
+    },
+    {
+      "id": "r014",
+      "name": "Roast Chicken Tacos (Leftover Night)",
+      "ingredients": "Leftover roast chicken, corn or flour tortillas, shredded cheese, sour cream, salsa, lettuce or cabbage, lime, cilantro (optional)",
+      "instructions": "Shred leftover chicken. Warm tortillas. Set up taco bar. Michael version: plain chicken in tortilla with cheese only.",
+      "tags": [
+        "chicken",
+        "leftover",
+        "Tuesday",
+        "quick",
+        "Michael-friendly"
+      ],
+      "prep_time": "10 min",
+      "created": "2026-01-01",
+      "kid_steps": [
+        {
+          "step": "Tear lettuce or shred cabbage into a bowl with your hands",
+          "age_min": 5
+        },
+        {
+          "step": "Squeeze the lime wedges over the toppings bowls",
+          "age_min": 5
+        },
+        {
+          "step": "Sprinkle shredded cheese into a serving bowl",
+          "age_min": 5
+        },
+        {
+          "step": "Pull the leftover chicken apart with two forks",
+          "age_min": 12
+        },
+        {
+          "step": "Warm the tortillas in a dry skillet and heat the pulled chicken in a pan with a splash of broth or salsa to keep it moist — lead the whole assembly.",
+          "age_min": 14
+        }
+      ]
+    },
+    {
+      "id": "r015",
+      "name": "Baked Salmon with Rice",
+      "ingredients": "Salmon fillets, olive oil, garlic, lemon, dill or parsley, salt, pepper. Serve with white rice and steamed broccoli.",
+      "instructions": "Season salmon with oil, garlic, lemon, dill. Bake at 400°F 12-15 min until flakes easily. Serve over rice with a vegetable.",
+      "tags": [
+        "fish",
+        "Friday",
+        "Lent-safe",
+        "high-carb",
+        "healthy"
+      ],
+      "prep_time": "10 min",
+      "created": "2026-01-01"
+    },
+    {
+      "id": "38d50580",
+      "name": "Strawberry and Cream Cheese Finger Sandwiches",
+      "ingredients": "# Strawberry & Cream Cheese Finger Sandwiches\r\n\r\nLight, sweet, and elegant — perfect for a high tea baby shower.\r\n\r\n## Ingredients\r\n\r\n- 12 slices soft white sandwich bread (crusts removed)\r\n- 8 oz cream cheese, softened\r\n- 2 tbsp powdered sugar\r\n- 1/2 tsp vanilla extract\r\n- 1 cup fresh strawberries, thinly sliced\r\n- 12 fresh mint leaves (optional, for garnish)",
+      "instructions": "1. Beat 8 oz cream cheese, softened with 2 tbsp powdered sugar and 1/2 tsp vanilla extract until smooth and fluffy. Taste and adjust sweetness.\r\n2. Spread the cream cheese mixture generously on all 12 slices soft white sandwich bread (crusts removed). Lay thinly sliced 1 cup fresh strawberries, thinly sliced in a single layer on half the slices, covering edge to edge.\r\n3. Top each strawberry slice with a plain cream cheese slice, press gently, and wrap the whole tray tightly in plastic wrap. Refrigerate for at least 30 minutes — this firms them up for clean cutting.\r\n4. Using a sharp serrated knife, cut each sandwich into 3 fingers (or 4 triangles for a pretty look). Wipe the blade between cuts for clean edges. Garnish each with a small 12 fresh mint leaves (optional, for garnish) if using. Arrange on a tiered tray or platter.\r\n\r\n## Notes\r\n\r\nMake these the morning of the shower and keep refrigerated until serving. Don't assemble more than 4 hours ahead or the bread may get soggy. A thin layer of butter under the cream cheese acts as a moisture barrier if making further in advance.",
+      "tags": [
+        "Tea party",
+        "finger sandwiches"
+      ],
+      "prep_time": "",
+      "created": "2026-04-23"
+    },
+    {
+      "id": "39bce65d",
+      "name": "Egg Salad Finger Sandwiches",
+      "ingredients": "8 large eggs\r\n3 tbsp mayonnaise\r\n1 tsp Dijon mustard\r\n2 celery stalks, very finely minced\r\n2 tbsp fresh chives, finely chopped\r\n1/2 tsp salt\r\n1/4 tsp white pepper\r\n12 slices soft white or wheat bread (crusts removed)\r\n2 tbsp unsalted butter, softened",
+      "instructions": "Place 8 large eggs in a single layer in a saucepan, cover with cold water by 1 inch. \r\n\r\nBring to a boil, then cover, remove from heat, and let sit 12 minutes. \r\n\r\nTransfer immediately to an ice bath for 10 minutes, then peel. \r\n\r\nChop peeled eggs finely — not too chunky, not paste-like. You want a cohesive mixture that won't fall out of the sandwich. \r\n\r\nIn a bowl, combine chopped eggs with 3 tbsp mayonnaise, 1 tsp Dijon mustard, 2 celery stalks, very finely minced, 2 tbsp fresh chives, finely chopped, 1/2 tsp salt, and 1/4 tsp white pepper. Stir gently to combine. Taste and adjust salt. \r\n\r\nCover and refrigerate at least 30 minutes to let flavors meld. \r\n\r\nSpread a thin layer of 2 tbsp unsalted butter, softened on all 12 slices soft white or wheat bread (crusts removed). \r\n\r\nSpoon a generous layer of egg salad onto half the slices, spreading evenly to the edges. \r\n\r\nTop with remaining bread slices and press gently. \r\n\r\nUsing a sharp serrated knife, cut each sandwich into 3 neat fingers. Wipe blade between cuts. \r\n\r\nArrange on a platter, garnish with a sprinkle of extra chives or a small sprig of dill if desired.",
+      "tags": [
+        "sandwiches",
+        "finger food",
+        "tea",
+        "eggs",
+        "appetizers"
+      ],
+      "prep_time": "30 minutes plus chilling time",
+      "image": "",
+      "created": "2026-04-23"
+    },
+    {
+      "name": "Brined Roast Chicken",
+      "servings": "6",
+      "prep_time": "20 minutes",
+      "cook_time": "40-50 minutes",
+      "ingredients": [
+        "1 whole chicken (4-5 lbs) or split breasts",
+        "1/4 cup kosher salt",
+        "1/4 cup sugar",
+        "6 cups water",
+        "4 garlic cloves, crushed",
+        "3-4 sprigs fresh thyme",
+        "2 tbsp olive oil",
+        "Salt and pepper for roasting"
+      ],
+      "instructions": [
+        "Combine salt, sugar, water, garlic, and thyme in large pot. Stir until dissolved. Cool completely (15 min in fridge or ice bath).",
+        "Place chicken in large bowl or resealable bag. Pour brine over, fully submerged. Cover or seal. Refrigerate 8 hours minimum (or up to 12 hrs). For split breasts: 6 hours minimum.",
+        "Remove chicken from brine. Pat completely dry inside and out with paper towels.",
+        "Preheat oven to 425°F.",
+        "Rub chicken lightly with olive oil. Season generously with salt and pepper inside and out.",
+        "Place chicken breast-side up on roasting pan.",
+        "Roast 40-50 minutes (whole bird) or 20-25 minutes (split breasts) until internal temp at thigh reaches 165°F.",
+        "Rest 10 minutes. Carve and serve."
+      ],
+      "notes": "JP leads brine prep. Joseph assists with seasoning. Michael washes vegetables for roasting. Split breasts cook faster than whole birds.",
+      "tags": [
+        "chicken",
+        "JP",
+        "roasted",
+        "brined"
+      ],
+      "id": "90f98712",
+      "date_added": "2026-04-25"
+    },
+    {
+      "name": "Roasted Vegetables (Broccoli, Carrots, Snap Peas)",
+      "servings": "6",
+      "prep_time": "10 minutes",
+      "cook_time": "20-25 minutes",
+      "ingredients": [
+        "3 cups fresh broccoli florets",
+        "2 cups baby carrots (or carrots cut into batons)",
+        "2 cups fresh snap peas",
+        "3 tbsp olive oil",
+        "1 tsp garlic powder",
+        "Salt and pepper to taste"
+      ],
+      "instructions": [
+        "Preheat oven to 425°F (same as chicken).",
+        "Toss broccoli, carrots, and snap peas with olive oil, garlic powder, salt, and pepper.",
+        "Spread on a sheet pan in a single layer.",
+        "Roast 20-25 minutes, stirring halfway through, until tender and lightly browned.",
+        "Serve alongside chicken."
+      ],
+      "notes": "Can be roasted at same time as chicken. Joseph or Michael can prep vegetables.",
+      "tags": [
+        "vegetables",
+        "roasted",
+        "sheet pan",
+        "side dish"
+      ],
+      "id": "1eb564a1",
+      "date_added": "2026-04-25"
+    },
+    {
+      "name": "Beef Pot Roast",
+      "servings": "6-8",
+      "prep_time": "30 minutes",
+      "cook_time": "2 hours 30 minutes",
+      "ingredients": [
+        "3-4 lb chuck or rump roast",
+        "3 tbsp olive oil",
+        "1 large onion, cut into chunks",
+        "4-5 carrots, cut into 2-inch pieces",
+        "1 lb baby potatoes, halved if large",
+        "4 cloves garlic, minced",
+        "2 cups beef broth",
+        "1 can (6 oz) tomato paste",
+        "2 tbsp balsamic vinegar",
+        "2 tsp dried thyme",
+        "1 tsp dried rosemary",
+        "Salt and pepper to taste"
+      ],
+      "instructions": [
+        "Preheat oven to 325°F.",
+        "Pat roast dry with paper towels. Season all sides with salt and pepper.",
+        "Heat olive oil in large Dutch oven over medium-high heat.",
+        "Sear roast on all sides until deeply browned, about 3-4 minutes per side. Remove to a plate.",
+        "Add onion and garlic to the pot. Sauté 2-3 minutes until softened.",
+        "Stir in tomato paste. Cook 1 minute.",
+        "Add beef broth, balsamic vinegar, thyme, and rosemary. Stir to combine.",
+        "Return roast to pot. Add carrots and potatoes around the roast.",
+        "Cover and transfer to oven. Braise 2 hr 30 min until roast is fork-tender and vegetables are soft.",
+        "Remove from oven. Let rest 10 minutes. Slice and serve with vegetables and broth."
+      ],
+      "kid_steps": [
+        {
+          "step": "Wash and chop carrots and potatoes into chunks",
+          "age_min": 12
+        },
+        {
+          "step": "Rinse vegetables under cold water",
+          "age_min": 5
+        },
+        {
+          "step": "Help sear the roast on the stovetop (with supervision)",
+          "age_min": 14
+        }
+      ],
+      "notes": "JP leads prep and searing at 4:00 PM. Joseph assists with potatoes. Michael washes vegetables. Roast goes into Dutch oven at 4:30 PM. Leftover roast + vegetables = Tuesday dinner and Wednesday lunch for John.",
+      "tags": [
+        "beef",
+        "pot roast",
+        "JP",
+        "Dutch oven",
+        "family meal"
+      ],
+      "id": "301977ef",
+      "date_added": "2026-04-25"
+    }
+  ]
+}
