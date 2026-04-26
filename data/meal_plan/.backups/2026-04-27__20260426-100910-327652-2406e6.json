@@ -131,10 +131,7 @@
         "display": "Chicken fried rice with aging fresh vegetables",
         "recipe_id": "r019"
       },
-      "dessert": {
-        "display": "Brownies",
-        "recipe_id": "r021"
-      },
+      "dessert": "Brownies",
       "snacks": "Yogurt with cinnamon",
       "dad_lunch": "N/A — weekend",
       "helpers": "JP leads fried rice assembly and stovetop work — Joseph preps vegetables and assists — Michael pours drinks",

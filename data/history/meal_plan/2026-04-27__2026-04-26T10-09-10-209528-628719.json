@@ -88,10 +88,7 @@
         "display": "Pizza (using ingredients already in fridge) with simple salad",
         "recipe_id": "r018"
       },
-      "dessert": {
-        "display": "Brownies",
-        "recipe_id": "r021"
-      },
+      "dessert": "Brownies",
       "snacks": "Cheese and crackers",
       "dad_lunch": "",
       "helpers": "JP leads pizza assembly — Joseph preps salad — Michael pours drinks",
@@ -99,14 +96,8 @@
       "serve_time": "17:00"
     },
     "Saturday": {
-      "breakfast": {
-        "display": "Grilled cheese sandwiches with tomato soup",
-        "recipe_id": "r011"
-      },
-      "lunch": {
-        "display": "Grilled cheese sandwiches with tomato soup",
-        "recipe_id": "r011"
-      },
+      "breakfast": "Grilled cheese sandwiches with tomato soup",
+      "lunch": "Grilled cheese sandwiches with tomato soup",
       "dinner": {
         "display": "Brined roast chicken with roasted broccoli, carrots, and snap peas",
         "recipe_id": "90f98712"
@@ -123,18 +114,12 @@
     },
     "Sunday": {
       "breakfast": "Oatmeal with cinnamon and fresh fruit",
-      "lunch": {
-        "display": "Chicken fried rice with aging fresh vegetables",
-        "recipe_id": "r019"
-      },
+      "lunch": "Chicken fried rice with aging fresh vegetables",
       "dinner": {
         "display": "Chicken fried rice with aging fresh vegetables",
         "recipe_id": "r019"
       },
-      "dessert": {
-        "display": "Brownies",
-        "recipe_id": "r021"
-      },
+      "dessert": "Brownies",
       "snacks": "Yogurt with cinnamon",
       "dad_lunch": "N/A — weekend",
       "helpers": "JP leads fried rice assembly and stovetop work — Joseph preps vegetables and assists — Michael pours drinks",
