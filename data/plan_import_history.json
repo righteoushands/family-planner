@@ -708,5 +708,519 @@
         }
       ]
     }
+  },
+  {
+    "id": "1a28e8a7a4c1",
+    "created_at": "2026-04-27T20:46:33Z",
+    "viewer": "lauren",
+    "source": "live",
+    "plan_text": "Week 1 (now \u2014 this week)\nDay 1: Buy supplies: cardboard (free), 5 bags compost/topsoil mix, 1 lb blood meal, 3 lbs bone meal. Lay cardboard directly on your chosen 4x8 area, overlapping edges 6 inches so weeds can\u2019t push through. Wet it thoroughly.\nDay 2-3: Mix blood meal and bone meal into your compost/topsoil. Layer 4-6 inches of that mixture on top of the wet cardboard. Water it all thoroughly. Then leave it alone for 5-7 days minimum. Blood meal needs to mellow or it\u2019ll burn roots.\nWeek 2: Buy transplants, not seeds \u2014 you\u2019ve lost the window for direct seeding tomatoes and peppers. Look for transplants that are stocky and short, not tall and leggy. Leggy means stressed already. Set up your trellis or cucumber support structure before planting \u2014 doing it after damages roots. Check soil temp with a cheap thermometer. Don\u2019t plant until it reads 65\u00b0F consistently.\nPlanting day (ideally day 10-14 from now): Cucumbers on the north end with trellis. 2 tomatoes center, caged. 2-3 peppers south end (they like heat, benefit from tomato shade later in summer). Tomatoes: bury them deep, up to the first set of leaves \u2014 they root along the buried stem. Peppers: plant at same depth as their pot, no deeper. Cucumbers: plant at same depth, handle roots gently, they hate disturbance. Water in with diluted fish emulsion immediately after planting.\nWeeks 3-4: Water consistently \u2014 these crops hate wet/dry cycles. 1 inch per week minimum, more in heat. Mulch around plants with straw or wood chips once they\u2019re established (3-5 days after planting). Don\u2019t fertilize again yet. Let them establish.\nWeek 6 (when flowers appear): Side-dress with blood meal lightly around each plant. Switch to a low-nitrogen, higher phosphorus liquid fertilizer (look for something like 5-10-5) to support fruit set rather than leaf growth. This is where most home gardeners go wrong \u2014 they keep feeding nitrogen and get huge plants with little fruit.\nOngoing through summer: Tomatoes: pinch suckers weekly, keep to 1-2 main stems. Cucumbers: harvest aggressively \u2014 leaving overripe cucumbers on the vine signals the plant to stop producing. Peppers: largely leave alone, they\u2019re slow and don\u2019t like fussing.\nYear one on unknown ground with a lasagna bed is somewhat experimental. You may hit drainage issues, compaction below the cardboard, or weed pressure from edges. The bed will be significantly better in year two once the cardboard breaks down and your amendments have cycled through fully.\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b",
+    "analysis": {
+      "events": [],
+      "tasks": [
+        {
+          "id": "t1",
+          "person": "Lauren",
+          "text": "Buy garden supplies and lay cardboard for lasagna bed",
+          "due_date": "2026-04-27",
+          "subtasks": [
+            "Get cardboard (free)",
+            "Buy 5 bags compost/topsoil mix",
+            "Buy 1 lb blood meal",
+            "Buy 3 lbs bone meal",
+            "Lay cardboard on 4x8 area with 6-inch overlap",
+            "Wet cardboard thoroughly"
+          ],
+          "notes": "This is Day 1 of the garden plan",
+          "confidence": "high"
+        },
+        {
+          "id": "t2",
+          "person": "Lauren",
+          "text": "Mix amendments and layer on cardboard bed",
+          "due_date": "2026-04-29",
+          "subtasks": [
+            "Mix blood meal and bone meal into compost/topsoil",
+            "Layer 4-6 inches of mixture on wet cardboard",
+            "Water thoroughly",
+            "Let sit undisturbed for 5-7 days minimum"
+          ],
+          "notes": "Days 2-3 of garden plan. Blood meal needs to mellow to avoid burning roots",
+          "confidence": "high"
+        },
+        {
+          "id": "t3",
+          "person": "Lauren",
+          "text": "Buy transplants and set up garden support structures",
+          "due_date": "2026-05-04",
+          "subtasks": [
+            "Buy stocky (not leggy) tomato transplants",
+            "Buy cucumber transplants",
+            "Buy pepper transplants",
+            "Set up trellis for cucumbers",
+            "Set up tomato cages",
+            "Check soil temperature with thermometer"
+          ],
+          "notes": "Week 2 of garden plan. Don't plant until soil reads 65\u00b0F consistently",
+          "confidence": "medium"
+        },
+        {
+          "id": "t4",
+          "person": "Lauren",
+          "text": "Plant vegetables in lasagna bed",
+          "due_date": "2026-05-11",
+          "subtasks": [
+            "Verify soil temp is 65\u00b0F consistently",
+            "Plant cucumbers on north end with trellis",
+            "Plant 2 tomatoes in center with cages (bury deep)",
+            "Plant 2-3 peppers on south end (same depth as pot)",
+            "Water in with diluted fish emulsion"
+          ],
+          "notes": "Planting day (days 10-14). Tomatoes root along buried stem. Handle cucumber roots gently",
+          "confidence": "medium"
+        },
+        {
+          "id": "t5",
+          "person": "Lauren",
+          "text": "Establish consistent watering and mulching routine",
+          "due_date": "2026-05-25",
+          "subtasks": [
+            "Water consistently 1+ inch per week",
+            "Avoid wet/dry cycles",
+            "Mulch with straw or wood chips after 3-5 days",
+            "Do not fertilize yet - let plants establish"
+          ],
+          "notes": "Weeks 3-4 of garden plan. Focus on establishment",
+          "confidence": "medium"
+        },
+        {
+          "id": "t6",
+          "person": "Lauren",
+          "text": "Begin flowering phase fertilization",
+          "due_date": "2026-06-08",
+          "subtasks": [
+            "Side-dress plants lightly with blood meal",
+            "Switch to low-nitrogen, higher phosphorus fertilizer (5-10-5)",
+            "Continue consistent watering"
+          ],
+          "notes": "Week 6 when flowers appear. Support fruit set rather than leaf growth",
+          "confidence": "low"
+        },
+        {
+          "id": "t7",
+          "person": "Lauren",
+          "text": "Ongoing summer garden maintenance",
+          "due_date": "2026-06-15",
+          "subtasks": [
+            "Pinch tomato suckers weekly, keep 1-2 main stems",
+            "Harvest cucumbers aggressively",
+            "Leave peppers alone (they don't like fussing)",
+            "Continue consistent watering and fertilizing"
+          ],
+          "notes": "Ongoing through summer maintenance routine",
+          "confidence": "low"
+        }
+      ],
+      "questions": [
+        {
+          "id": "q1",
+          "text": "What is the exact location of the 4x8 garden area?",
+          "related_to": "t1",
+          "field": "notes"
+        },
+        {
+          "id": "q2",
+          "text": "When exactly will flowers appear to trigger the Week 6 fertilization change?",
+          "related_to": "t6",
+          "field": "due_date"
+        }
+      ],
+      "warnings": [
+        {
+          "text": "This is an experimental first-year lasagna bed - expect potential drainage, compaction, or weed pressure issues",
+          "severity": "medium",
+          "related_to": "t4"
+        },
+        {
+          "text": "Several tasks have estimated dates based on garden timing rather than specific calendar dates - monitor plant development",
+          "severity": "medium",
+          "related_to": "t6"
+        }
+      ],
+      "suggestions": [
+        {
+          "text": "Consider adding JP or Joseph to help with some of the physical garden tasks like laying cardboard or mixing soil",
+          "related_to": "t1"
+        },
+        {
+          "text": "Set up a weekly reminder to check soil temperature before planting day",
+          "related_to": "t3"
+        },
+        {
+          "text": "Break down the ongoing summer maintenance into weekly recurring tasks once planting is complete",
+          "related_to": "t7"
+        }
+      ],
+      "placements": [],
+      "_companions": [
+        {
+          "key": "lorenzo",
+          "label": "Lorenzo",
+          "color": "#8b3a1a",
+          "emoji": "\ud83c\udf7d\ufe0f",
+          "role": "Personal Chef"
+        },
+        {
+          "key": "coach",
+          "label": "Coach",
+          "color": "#1a6e3e",
+          "emoji": "\ud83d\udcaa",
+          "role": "Fitness"
+        },
+        {
+          "key": "monica",
+          "label": "Dr. Monica",
+          "color": "#8b3a5c",
+          "emoji": "\ud83c\udf38",
+          "role": "Health & Development"
+        },
+        {
+          "key": "lucy",
+          "label": "Lucy",
+          "color": "#5b3a8a",
+          "emoji": "\u2728",
+          "role": "Family Companion"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ee8745d14c8c",
+    "created_at": "2026-04-27T20:58:52Z",
+    "viewer": "lauren",
+    "source": "live",
+    "plan_text": "Week 1 (now \u2014 this week)\nDay 1: Buy supplies: cardboard (free), 5 bags compost/topsoil mix, 1 lb blood meal, 3 lbs bone meal. Lay cardboard directly on your chosen 4x8 area, overlapping edges 6 inches so weeds can\u2019t push through. Wet it thoroughly.\nDay 2-3: Mix blood meal and bone meal into your compost/topsoil. Layer 4-6 inches of that mixture on top of the wet cardboard. Water it all thoroughly. Then leave it alone for 5-7 days minimum. Blood meal needs to mellow or it\u2019ll burn roots.\nWeek 2: Buy transplants, not seeds \u2014 you\u2019ve lost the window for direct seeding tomatoes and peppers. Look for transplants that are stocky and short, not tall and leggy. Leggy means stressed already. Set up your trellis or cucumber support structure before planting \u2014 doing it after damages roots. Check soil temp with a cheap thermometer. Don\u2019t plant until it reads 65\u00b0F consistently.\nPlanting day (ideally day 10-14 from now): Cucumbers on the north end with trellis. 2 tomatoes center, caged. 2-3 peppers south end (they like heat, benefit from tomato shade later in summer). Tomatoes: bury them deep, up to the first set of leaves \u2014 they root along the buried stem. Peppers: plant at same depth as their pot, no deeper. Cucumbers: plant at same depth, handle roots gently, they hate disturbance. Water in with diluted fish emulsion immediately after planting.\nWeeks 3-4: Water consistently \u2014 these crops hate wet/dry cycles. 1 inch per week minimum, more in heat. Mulch around plants with straw or wood chips once they\u2019re established (3-5 days after planting). Don\u2019t fertilize again yet. Let them establish.\nWeek 6 (when flowers appear): Side-dress with blood meal lightly around each plant. Switch to a low-nitrogen, higher phosphorus liquid fertilizer (look for something like 5-10-5) to support fruit set rather than leaf growth. This is where most home gardeners go wrong \u2014 they keep feeding nitrogen and get huge plants with little fruit.\nOngoing through summer: Tomatoes: pinch suckers weekly, keep to 1-2 main stems. Cucumbers: harvest aggressively \u2014 leaving overripe cucumbers on the vine signals the plant to stop producing. Peppers: largely leave alone, they\u2019re slow and don\u2019t like fussing.\nYear one on unknown ground with a lasagna bed is somewhat experimental. You may hit drainage issues, compaction below the cardboard, or weed pressure from edges. The bed will be significantly better in year two once the cardboard breaks down and your amendments have cycled through fully.\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b\u200b",
+    "analysis": {
+      "events": [],
+      "tasks": [
+        {
+          "id": "t1",
+          "person": "Lauren",
+          "text": "Buy garden bed supplies and lay cardboard",
+          "due_date": "2026-04-27",
+          "subtasks": [
+            "Get cardboard (free)",
+            "Buy 5 bags compost/topsoil mix",
+            "Buy 1 lb blood meal",
+            "Buy 3 lbs bone meal",
+            "Lay cardboard on 4x8 area with 6-inch overlaps",
+            "Wet cardboard thoroughly"
+          ],
+          "notes": "Day 1 of garden bed project in backyard near walkout",
+          "confidence": "high"
+        },
+        {
+          "id": "t2",
+          "person": "Lauren",
+          "text": "Mix amendments and layer on garden bed",
+          "due_date": "2026-04-29",
+          "subtasks": [
+            "Mix blood meal and bone meal into compost/topsoil",
+            "Layer 4-6 inches of mixture on wet cardboard",
+            "Water thoroughly",
+            "Leave undisturbed for 5-7 days minimum"
+          ],
+          "notes": "Days 2-3 of garden bed project. Blood meal needs to mellow to avoid burning roots",
+          "confidence": "high"
+        },
+        {
+          "id": "t3",
+          "person": "Lauren",
+          "text": "Buy transplants and set up garden supports",
+          "due_date": "2026-05-04",
+          "subtasks": [
+            "Buy stocky tomato transplants (avoid leggy ones)",
+            "Buy cucumber transplants",
+            "Buy pepper transplants",
+            "Set up trellis for cucumbers",
+            "Set up tomato cages",
+            "Get soil thermometer to check temperature"
+          ],
+          "notes": "Week 2 of garden project. Look for stocky, short transplants not tall leggy ones",
+          "confidence": "medium"
+        },
+        {
+          "id": "t4",
+          "person": "Lauren",
+          "text": "Check soil temperature for planting readiness",
+          "due_date": "2026-05-11",
+          "subtasks": [
+            "Use thermometer to check soil temp",
+            "Wait for consistent 65\u00b0F reading",
+            "Verify soil has been undisturbed for 5-7 days minimum"
+          ],
+          "notes": "Don't plant until soil consistently reads 65\u00b0F. This is days 10-14 of project",
+          "confidence": "medium"
+        },
+        {
+          "id": "t5",
+          "person": "Lauren",
+          "text": "Plant garden bed crops",
+          "due_date": "2026-05-11",
+          "subtasks": [
+            "Plant cucumbers on north end with trellis",
+            "Plant 2 tomatoes in center with cages (bury deep to first leaves)",
+            "Plant 2-3 peppers on south end (same depth as pot)",
+            "Water in with diluted fish emulsion immediately"
+          ],
+          "notes": "Planting day (day 10-14). Tomatoes root along buried stem. Handle cucumber roots gently. Peppers like heat and benefit from tomato shade later",
+          "confidence": "medium"
+        },
+        {
+          "id": "t6",
+          "person": "Lauren",
+          "text": "Establish watering routine and mulch plants",
+          "due_date": "2026-05-18",
+          "subtasks": [
+            "Water consistently 1 inch per week minimum",
+            "Monitor for wet/dry cycles",
+            "Mulch with straw or wood chips 3-5 days after planting",
+            "Avoid fertilizing during establishment"
+          ],
+          "notes": "Weeks 3-4. These crops hate wet/dry cycles. Let plants establish before fertilizing",
+          "confidence": "medium"
+        },
+        {
+          "id": "t7",
+          "person": "Lauren",
+          "text": "Side-dress plants when flowering begins",
+          "due_date": "2026-06-01",
+          "subtasks": [
+            "Apply blood meal lightly around each plant",
+            "Switch to low-nitrogen, higher phosphorus fertilizer (like 5-10-5)",
+            "Focus on fruit set rather than leaf growth"
+          ],
+          "notes": "Week 6 when flowers appear. Avoid high nitrogen which creates huge plants with little fruit",
+          "confidence": "medium"
+        },
+        {
+          "id": "t8",
+          "person": "Lauren",
+          "text": "Ongoing summer garden maintenance",
+          "due_date": "2026-06-08",
+          "subtasks": [
+            "Pinch tomato suckers weekly, keep 1-2 main stems",
+            "Harvest cucumbers aggressively to keep plants producing",
+            "Leave peppers largely alone (they don't like fussing)"
+          ],
+          "notes": "Ongoing through summer. Don't leave overripe cucumbers on vine as it stops production",
+          "confidence": "medium"
+        }
+      ],
+      "questions": [],
+      "warnings": [
+        {
+          "text": "This is year one experimental garden bed - may encounter drainage issues, compaction, or weed pressure from edges",
+          "severity": "medium",
+          "related_to": "t1"
+        },
+        {
+          "text": "Task t1 is due today (2026-04-27) - needs immediate attention to stay on schedule",
+          "severity": "high",
+          "related_to": "t1"
+        }
+      ],
+      "suggestions": [
+        {
+          "text": "Consider having JP help with the physical aspects of garden bed construction as an educational project",
+          "related_to": "t1"
+        },
+        {
+          "text": "The garden bed will be significantly better in year two once cardboard breaks down and amendments cycle through",
+          "related_to": null
+        }
+      ],
+      "placements": [],
+      "_companions": [
+        {
+          "key": "gregory",
+          "label": "Fr. Gregory",
+          "color": "#1e3566",
+          "emoji": "\ud83d\udcda",
+          "role": "Headmaster \u00b7 School"
+        },
+        {
+          "key": "lorenzo",
+          "label": "Lorenzo",
+          "color": "#8b3a1a",
+          "emoji": "\ud83c\udf7d\ufe0f",
+          "role": "Personal Chef"
+        },
+        {
+          "key": "coach",
+          "label": "Coach",
+          "color": "#1a6e3e",
+          "emoji": "\ud83d\udcaa",
+          "role": "Fitness"
+        },
+        {
+          "key": "monica",
+          "label": "Dr. Monica",
+          "color": "#8b3a5c",
+          "emoji": "\ud83c\udf38",
+          "role": "Health & Development"
+        },
+        {
+          "key": "lucy",
+          "label": "Lucy",
+          "color": "#5b3a8a",
+          "emoji": "\u2728",
+          "role": "Family Companion"
+        }
+      ]
+    }
+  },
+  {
+    "id": "f1c0905cdbcc",
+    "created_at": "2026-04-27T21:06:05Z",
+    "viewer": "lauren",
+    "source": "live",
+    "plan_text": "Father Gregory:** The plan wisely suggests JP could help with construction, but I'd make that concrete now rather than leaving it as a vague \"consider\" item. This is a perfect applied science opportunity\u2014soil chemistry, plant biology, even geometry for the bed dimensions. I'd also suggest having Joseph document the project with a simple garden journal; tracking growth over the summer makes excellent nature study. **Lorenzo:** From a kitchen perspective, I'd want to know *which varieties* you're planting\u2014a Roma tomato serves very differently than a Cherokee Purple, and pickling cucumbers versus slicers changes how I'd plan summer meals. Also, consider adding one basil plant near the tomatoes; they're companion plants and you'll want fresh basil when those tomatoes come in. Don't skip the fish emulsion step\u2014it really does make a difference for transplant survival. **Coach:** The physical work today is real\u2014hauling compost bags, laying and wetting cardboard. With James at 13 months and Michael at 5, Lauren needs a plan for *when* she'll do this. I'd suggest late afternoon when John's home, or build it into outdoor time where the boys can dig in nearby dirt while she works. Don't underestimate the bending and lifting; pace yourself and hydrate. **Dr. Monica:** Keep Michael involved but set clear boundaries around the blood meal and bone meal\u2014those amendments aren't toxic in small amounts but shouldn't be handled or tasted. James will want to be in the dirt, which is actually wonderful for his immune development, but he'll need a contained play area away from the work zone. A pack-n-play outside or John on baby duty makes this manageable. **Lucy's Synthesis:** Lauren, your plan is solid\u2014you're not missing structural steps. What you're missing is the *who and when* for today's task. Before you head to the store, decide: Is this a late-afternoon project when John's home with the littles, or are you bringing all four boys and building in extra patience time? I'd assign JP to help carry bags and lay cardboard, give Joseph the garden journal idea Father Gregory mentioned, and add basil to your transplant list for May 4th. The only thing you might genuinely regret skipping is noting your specific tomato and cucumber varieties\u2014write them down so Lorenzo can plan meals and you can repeat what works next year.",
+    "analysis": {
+      "events": [],
+      "tasks": [
+        {
+          "id": "t1",
+          "person": "Lauren",
+          "text": "Build raised garden bed with cardboard method",
+          "due_date": "2026-04-27",
+          "subtasks": [
+            "Buy compost bags and cardboard",
+            "Lay cardboard and wet thoroughly",
+            "Add compost layers",
+            "Apply fish emulsion",
+            "Add blood meal and bone meal amendments"
+          ],
+          "notes": "Schedule for late afternoon when John is home with James and Michael, or plan for outdoor time with contained play area for James. Pace yourself with the heavy lifting and stay hydrated.",
+          "confidence": "high"
+        },
+        {
+          "id": "t2",
+          "person": "JP",
+          "text": "Help with garden bed construction",
+          "due_date": "2026-04-27",
+          "subtasks": [
+            "Help carry compost bags",
+            "Help lay cardboard",
+            "Learn about soil chemistry and plant biology",
+            "Measure bed dimensions for geometry practice"
+          ],
+          "notes": "This is an applied science opportunity covering soil chemistry, plant biology, and geometry",
+          "confidence": "high"
+        },
+        {
+          "id": "t3",
+          "person": "Joseph",
+          "text": "Start garden journal for documenting the project",
+          "due_date": "2026-04-27",
+          "subtasks": [
+            "Set up journal format",
+            "Record today's bed preparation steps",
+            "Plan to track plant growth over summer",
+            "Make initial sketches or measurements"
+          ],
+          "notes": "Tracking growth over the summer makes excellent nature study",
+          "confidence": "high"
+        },
+        {
+          "id": "t4",
+          "person": "Lauren",
+          "text": "Research and record specific tomato and cucumber varieties to plant",
+          "due_date": "2026-04-27",
+          "subtasks": [
+            "Decide between Roma vs Cherokee Purple tomatoes",
+            "Choose between pickling vs slicing cucumbers",
+            "Write down varieties for meal planning",
+            "Note varieties for next year's reference"
+          ],
+          "notes": "Different varieties serve different kitchen purposes and affect meal planning",
+          "confidence": "medium"
+        },
+        {
+          "id": "t5",
+          "person": "Lauren",
+          "text": "Add basil plant to transplant shopping list",
+          "due_date": "2026-05-04",
+          "subtasks": [],
+          "notes": "Basil is a companion plant to tomatoes and will be useful when tomatoes come in",
+          "confidence": "high"
+        }
+      ],
+      "questions": [],
+      "warnings": [
+        {
+          "text": "Blood meal and bone meal should be kept away from Michael (age 5) - not toxic in small amounts but shouldn't be handled or tasted",
+          "severity": "medium",
+          "related_to": "t1"
+        },
+        {
+          "text": "James (13 months) will need contained play area away from work zone or John should handle baby duty during construction",
+          "severity": "medium",
+          "related_to": "t1"
+        }
+      ],
+      "suggestions": [
+        {
+          "text": "Schedule garden bed construction for late afternoon when John is home to help with James and Michael, or set up a pack-n-play outside for James during work time",
+          "related_to": "t1"
+        },
+        {
+          "text": "Consider letting James play in nearby dirt during construction - it's good for immune development, just keep him away from the actual work zone",
+          "related_to": "t1"
+        },
+        {
+          "text": "Joseph's garden journal could become an ongoing nature study project throughout the growing season",
+          "related_to": "t3"
+        }
+      ],
+      "placements": [],
+      "_companions": [
+        {
+          "key": "gregory",
+          "label": "Fr. Gregory",
+          "color": "#1e3566",
+          "emoji": "\ud83d\udcda",
+          "role": "Headmaster \u00b7 School"
+        },
+        {
+          "key": "lorenzo",
+          "label": "Lorenzo",
+          "color": "#8b3a1a",
+          "emoji": "\ud83c\udf7d\ufe0f",
+          "role": "Personal Chef"
+        },
+        {
+          "key": "coach",
+          "label": "Coach",
+          "color": "#1a6e3e",
+          "emoji": "\ud83d\udcaa",
+          "role": "Fitness"
+        },
+        {
+          "key": "monica",
+          "label": "Dr. Monica",
+          "color": "#8b3a5c",
+          "emoji": "\ud83c\udf38",
+          "role": "Health & Development"
+        },
+        {
+          "key": "lucy",
+          "label": "Lucy",
+          "color": "#5b3a8a",
+          "emoji": "\u2728",
+          "role": "Family Companion"
+        }
+      ]
+    }
   }
 ]
