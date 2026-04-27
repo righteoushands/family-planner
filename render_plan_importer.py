@@ -704,6 +704,15 @@ textarea.placement-value:focus{{outline:none;border-color:var(--navy);}}
 .council-synthesis .council-voice-name{{color:#5b3a8a;}}
 .council-thinking{{font-size:0.8em;color:var(--ink-faint);font-style:italic;padding:6px 0;}}
 .council-error{{font-size:0.8em;color:#c0392b;padding:6px 0;}}
+/* Companion suggestions strip (extracted actionable items below a chat reply) */
+.companion-suggestions{{margin:6px 0 14px 14px;padding:8px 10px 10px;
+                        border-left:3px solid #5b3a8a;background:#fafaff;
+                        border-radius:0 8px 8px 0;}}
+.companion-suggestions-header{{font-size:0.74em;font-weight:700;color:var(--ink);
+                                margin-bottom:6px;letter-spacing:.02em;
+                                display:flex;align-items:center;gap:6px;}}
+.companion-suggestions .item-row{{margin:5px 0;}}
+.companion-suggestions .item-title{{font-size:0.86em;}}
 .companion-btn{{display:flex;align-items:center;gap:6px;padding:7px 13px;
                 border:none;border-radius:20px;font-family:inherit;font-size:0.78em;
                 font-weight:700;cursor:pointer;color:#fff;transition:opacity .15s;
@@ -1783,6 +1792,43 @@ function collectApproved() {{
     }};
   }});
 
+  // Pick up checked companion-suggestion cards (merge into the main events
+  // and tasks arrays — no new payload key, the apply route is unchanged).
+  document.querySelectorAll('.companion-suggestions .item-row').forEach(row => {{
+    const id = (row.id || '').replace(/^item-/, '');
+    if (!id.startsWith('cs-')) return;
+    const cb = document.getElementById('cb-' + id);
+    if (!cb || !cb.checked) return;
+    const stash = companionSuggestions[id];
+    if (!stash) return;
+    if (stash.kind === 'event') {{
+      const ev = stash.data;
+      events.push({{
+        ...ev,
+        title:    (document.getElementById('ef-title-' + id)   || {{}}).value || ev.title,
+        date:     (document.getElementById('ef-date-' + id)    || {{}}).value || ev.date || '',
+        time:     (document.getElementById('ef-time-' + id)    || {{}}).value || ev.time || '',
+        end_time: (document.getElementById('ef-endtime-' + id) || {{}}).value || ev.end_time || '',
+        who:      ((document.getElementById('ef-who-' + id)    || {{}}).value || '').split(',').map(s=>s.trim()).filter(Boolean),
+        notes:    (document.getElementById('ef-notes-' + id)   || {{}}).value || ev.notes || '',
+      }});
+    }} else if (stash.kind === 'task') {{
+      const t = stash.data;
+      const stList = document.getElementById('stl-' + id);
+      const subtasks = stList
+        ? Array.from(stList.querySelectorAll('input')).map(i => i.value.trim()).filter(Boolean)
+        : (t.subtasks || []);
+      tasks.push({{
+        ...t,
+        text:     (document.getElementById('tf-text-' + id)   || {{}}).value || t.text,
+        person:   (document.getElementById('tf-person-' + id) || {{}}).value || t.person,
+        due_date: (document.getElementById('tf-date-' + id)   || {{}}).value || t.due_date || '',
+        notes:    (document.getElementById('tf-notes-' + id)  || {{}}).value || t.notes || '',
+        subtasks,
+      }});
+    }}
+  }});
+
   return {{events, tasks, placements, project_label: projectLabel}};
 }}
 
@@ -1926,6 +1972,64 @@ const COMPANION_VOICE_COLORS = {{
   'Lucy':           '#5b3a8a',
 }};
 
+// Map of companion key → (display name, accent color) for the suggestions strip
+const COMPANION_KEY_DISPLAY = {{
+  lucy: 'Lucy', lorenzo: 'Lorenzo', gregory: 'Father Gregory',
+  coach: 'Coach', monica: 'Dr. Monica',
+}};
+const COMPANION_KEY_ACCENT = {{
+  lucy: '#5b3a8a', lorenzo: '#8b3a1a', gregory: '#1e3566',
+  coach: '#1a6e3e', monica: '#8b3a5c',
+}};
+
+// Stash of suggestion items keyed by their cs-* id, so collectApproved() can
+// look them back up when the user clicks Apply.
+const companionSuggestions = {{}};
+
+async function extractCompanionSuggestions(companionName, responseText) {{
+  if (!responseText || responseText.trim().length < 10) {{
+    return {{tasks:[], events:[]}};
+  }}
+  try {{
+    const body = new URLSearchParams({{
+      companion: companionName || 'Companion',
+      text:      responseText,
+    }});
+    const resp = await fetch('/api/extract-suggestions', {{method:'POST', body}});
+    if (!resp.ok) return {{tasks:[], events:[]}};
+    const data = await resp.json();
+    return {{
+      tasks:  Array.isArray(data.tasks)  ? data.tasks  : [],
+      events: Array.isArray(data.events) ? data.events : [],
+    }};
+  }} catch(_) {{
+    return {{tasks:[], events:[]}};
+  }}
+}}
+
+function renderCompanionSuggestions(headerLabel, accentColor, items, mountAfterEl) {{
+  if (!items) return null;
+  const evs = items.events || [];
+  const ts  = items.tasks  || [];
+  if (!evs.length && !ts.length) return null;
+  if (!mountAfterEl || !mountAfterEl.parentNode) return null;
+  const wrap = document.createElement('div');
+  wrap.className = 'companion-suggestions';
+  if (accentColor) wrap.style.borderLeftColor = accentColor;
+  let html = `<div class="companion-suggestions-header">${{esc(headerLabel)}}</div>`;
+  for (const ev of evs) {{
+    companionSuggestions[ev.id] = {{kind:'event', data: ev}};
+    html += renderEventItem(ev);
+  }}
+  for (const t of ts) {{
+    companionSuggestions[t.id] = {{kind:'task', data: t}};
+    html += renderTaskItem(t);
+  }}
+  wrap.innerHTML = html;
+  mountAfterEl.parentNode.insertBefore(wrap, mountAfterEl.nextSibling);
+  return wrap;
+}}
+
 function selectPreset(btn, text) {{
   document.querySelectorAll('.council-preset').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
@@ -1945,6 +2049,17 @@ async function conveneCouncil() {{
   btn.textContent = '\u2026';
   resp.style.display = 'block';
   thread.innerHTML = '<div class="council-thinking">The companions are conferring\u2026</div>';
+
+  // Clear any prior council suggestion strips from previous runs — they're
+  // mounted as siblings of #council-thread, so resetting thread.innerHTML
+  // alone leaves them stranded in the DOM where collectApproved would still
+  // pick them up.
+  let _staleSugg = thread.nextElementSibling;
+  while (_staleSugg && _staleSugg.classList && _staleSugg.classList.contains('companion-suggestions')) {{
+    const _next = _staleSugg.nextElementSibling;
+    _staleSugg.remove();
+    _staleSugg = _next;
+  }}
 
   // Collect currently displayed companion keys
   const compKeys = Array.from(document.querySelectorAll('.companion-btn'))
@@ -1980,6 +2095,13 @@ async function conveneCouncil() {{
 
     // Parse and render formatted voices
     thread.innerHTML = parseCouncilResponse(fullText);
+
+    // Run extraction on the full council text (best-effort, never blocks UI)
+    try {{
+      const sugg = await extractCompanionSuggestions('Council', fullText);
+      renderCompanionSuggestions('💡 Council Suggestions', '#5b3a8a', sugg, thread);
+      thread.scrollIntoView({{block:'nearest'}});
+    }} catch(_) {{}}
   }} catch(err) {{
     thread.innerHTML = `<div class="council-error">Council failed: ${{esc(err.message)}}</div>`;
   }} finally {{
@@ -2164,6 +2286,17 @@ async function runConsultMessage(key, message, isAuto) {{
       // Auto message: just show the response (don't save user turn to history)
       consultHistories[key].push({{role:'assistant', content: text}});
     }}
+
+    // Run extraction on the assistant reply (best-effort, never blocks UI)
+    try {{
+      const display = COMPANION_KEY_DISPLAY[key] || key;
+      const accent  = COMPANION_KEY_ACCENT[key]  || '#5b3a8a';
+      const sugg    = await extractCompanionSuggestions(display, text);
+      renderCompanionSuggestions(
+        '💡 Suggested by ' + display, accent, sugg, aiEl
+      );
+      box.scrollTop = box.scrollHeight;
+    }} catch(_) {{}}
   }} catch(err) {{
     thinkEl.remove();
     const errEl = document.createElement('div');

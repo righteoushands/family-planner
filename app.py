@@ -7789,6 +7789,132 @@ class Handler(BaseHTTPRequestHandler):
                     pass
                 return
 
+            # ── Plan Import — Extract actionable suggestions from a companion reply ──
+            elif path == "/api/extract-suggestions":
+                import json as _esj, urllib.request as _esreq, uuid as _esuuid
+                _es_v = self._get_viewer()
+                if not (_es_v and _auth.is_admin(_es_v)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Forbidden")
+                    except BrokenPipeError: pass
+                    return
+                _es_text      = clean_text(data.get("text",[""])[0])
+                _es_companion = clean_text(data.get("companion",[""])[0]) or "Companion"
+                _es_empty = b'{"tasks":[],"events":[]}'
+                if not _es_text or len(_es_text.strip()) < 10:
+                    self.send_response(200)
+                    self.send_header("Content-Type","application/json; charset=utf-8")
+                    self.send_header("Content-Length", str(len(_es_empty)))
+                    self.send_header("Cache-Control","no-store")
+                    self.end_headers()
+                    try: self.wfile.write(_es_empty)
+                    except BrokenPipeError: pass
+                    return
+                _es_settings = load_app_settings()
+                _es_key = (_es_settings.get("family_constraints",{}).get("anthropic_api_key","")
+                           or _es_settings.get("anthropic_api_key","")).strip()
+                if not _es_key:
+                    self.send_response(200)
+                    self.send_header("Content-Type","application/json; charset=utf-8")
+                    self.send_header("Content-Length", str(len(_es_empty)))
+                    self.send_header("Cache-Control","no-store")
+                    self.end_headers()
+                    try: self.wfile.write(_es_empty)
+                    except BrokenPipeError: pass
+                    return
+                _es_today = date.today().isoformat()
+                _es_sys = (
+                    "You are extracting actionable items from a planning assistant's advice "
+                    "to a busy mother named Lauren. Return ONLY valid JSON (no prose, no "
+                    "markdown code fences) with two top-level keys: tasks and events.\n\n"
+                    "tasks: array of objects with keys text (string), person (string, default "
+                    "\"Lauren\"), due_date (YYYY-MM-DD or empty string), notes (string), "
+                    "subtasks (array of strings).\n"
+                    "events: array of objects with keys title (string), date (YYYY-MM-DD or "
+                    "empty string), time (string like \"10:00 AM\" or empty), end_time "
+                    "(string or empty), who (array of strings), notes (string).\n\n"
+                    f"Today is {_es_today}. Resolve relative dates (\"tomorrow\", \"next "
+                    "Friday\") to absolute YYYY-MM-DD when you can.\n\n"
+                    "Only extract concrete suggestions the assistant proposed (e.g. \"add a "
+                    "prep task for Tuesday\", \"schedule a check-in Friday morning\"). Do NOT "
+                    "extract observations, encouragements, restatements of what is already in "
+                    "the plan, or generic advice. If the response contains no concrete new "
+                    "items, return {\"tasks\":[],\"events\":[]}."
+                )
+                _es_user = f"Companion: {_es_companion}\n\nResponse text to extract from:\n\n{_es_text}"
+                _es_payload = _esj.dumps({
+                    "model":      "claude-haiku-4-5-20251001",
+                    "max_tokens": 1000,
+                    "system":     _es_sys,
+                    "messages":   [{"role": "user", "content": _es_user}],
+                }).encode("utf-8")
+                _es_req = _esreq.Request(
+                    "https://api.anthropic.com/v1/messages",
+                    data=_es_payload,
+                    headers={"x-api-key": _es_key, "anthropic-version": "2023-06-01",
+                             "content-type": "application/json"},
+                )
+                _es_out = {"tasks": [], "events": []}
+                try:
+                    _es_resp = _esreq.urlopen(_es_req, timeout=30)
+                    _es_body = _esj.loads(_es_resp.read().decode("utf-8"))
+                    _es_text_out = ""
+                    for _b in _es_body.get("content", []) or []:
+                        if isinstance(_b, dict) and _b.get("type") == "text":
+                            _es_text_out += _b.get("text", "")
+                    _es_text_out = _es_text_out.strip()
+                    if _es_text_out.startswith("```"):
+                        _es_text_out = _es_text_out.strip("`").strip()
+                        if _es_text_out.lower().startswith("json"):
+                            _es_text_out = _es_text_out[4:].strip()
+                    try:
+                        _es_parsed  = _esj.loads(_es_text_out)
+                        _raw_tasks  = _es_parsed.get("tasks", [])  or []
+                        _raw_events = _es_parsed.get("events", []) or []
+                        for _t in _raw_tasks:
+                            if not isinstance(_t, dict): continue
+                            _ttext = str(_t.get("text","") or "").strip()
+                            if not _ttext: continue
+                            _es_out["tasks"].append({
+                                "id":         "cs-t-" + _esuuid.uuid4().hex[:8],
+                                "text":       _ttext,
+                                "person":     (str(_t.get("person","") or "").strip() or "Lauren"),
+                                "due_date":   str(_t.get("due_date","") or "").strip(),
+                                "notes":      str(_t.get("notes","") or "").strip(),
+                                "subtasks":   [str(s).strip() for s in (_t.get("subtasks") or []) if str(s).strip()],
+                                "confidence": "medium",
+                            })
+                        for _e in _raw_events:
+                            if not isinstance(_e, dict): continue
+                            _etitle = str(_e.get("title","") or "").strip()
+                            if not _etitle: continue
+                            _who = _e.get("who", []) or []
+                            if isinstance(_who, str):
+                                _who = [w.strip() for w in _who.split(",") if w.strip()]
+                            _es_out["events"].append({
+                                "id":         "cs-e-" + _esuuid.uuid4().hex[:8],
+                                "title":      _etitle,
+                                "date":       str(_e.get("date","") or "").strip(),
+                                "time":       str(_e.get("time","") or "").strip(),
+                                "end_time":   str(_e.get("end_time","") or "").strip(),
+                                "who":        [str(w).strip() for w in _who if str(w).strip()],
+                                "notes":      str(_e.get("notes","") or "").strip(),
+                                "confidence": "medium",
+                            })
+                    except Exception:
+                        pass
+                except Exception:
+                    pass
+                _es_resp_bytes = _esj.dumps(_es_out).encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type","application/json; charset=utf-8")
+                self.send_header("Content-Length", str(len(_es_resp_bytes)))
+                self.send_header("Cache-Control","no-store")
+                self.end_headers()
+                try: self.wfile.write(_es_resp_bytes)
+                except BrokenPipeError: pass
+                return
+
             elif path in ("/calendar-config-save","/calendar-save-config"):
                 apple_id=clean_text(data.get("apple_id",[""])[0]); app_password=clean_text(data.get("app_password",[""])[0])
                 cfg=load_calendar_config()
