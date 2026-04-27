@@ -1222,5 +1222,163 @@
         }
       ]
     }
+  },
+  {
+    "id": "fb20a1dd6366",
+    "created_at": "2026-04-27T23:24:29Z",
+    "viewer": "lauren",
+    "source": "live",
+    "plan_text": "Week 1 (now \u2014 this week)\nDay 1: Buy supplies: cardboard (free), 5 bags compost/topsoil mix, 1 lb blood meal, 3 lbs bone meal. Lay cardboard directly on your chosen 4x8 area, overlapping edges 6 inches so weeds can\u2019t push through. Wet it thoroughly.\nDay 2-3: Mix blood meal and bone meal into your compost/topsoil. Layer 4-6 inches of that mixture on top of the wet cardboard. Water it all thoroughly. Then leave it alone for 5-7 days minimum. Blood meal needs to mellow or it\u2019ll burn roots.\nWeek 2: Buy transplants, not seeds \u2014 you\u2019ve lost the window for direct seeding tomatoes and peppers. Look for transplants that are stocky and short, not tall and leggy. Leggy means stressed already. Set up your trellis or cucumber support structure before planting \u2014 doing it after damages roots. Check soil temp with a cheap thermometer. Don\u2019t plant until it reads 65\u00b0F consistently.\nPlanting day (ideally day 10-14 from now): Cucumbers on the north end with trellis. 2 tomatoes center, caged. 2-3 peppers south end (they like heat, benefit from tomato shade later in summer). Tomatoes: bury them deep, up to the first set of leaves \u2014 they root along the buried stem. Peppers: plant at same depth as their pot, no deeper. Cucumbers: plant at same depth, handle roots gently, they hate disturbance. Water in with diluted fish emulsion immediately after planting.\nWeeks 3-4: Water consistently \u2014 these crops hate wet/dry cycles. 1 inch per week minimum, more in heat. Mulch around plants with straw or wood chips once they\u2019re established (3-5 days after planting). Don\u2019t fertilize again yet. Let them establish.\nWeek 6 (when flowers appear): Side-dress with blood meal lightly around each plant. Switch to a low-nitrogen, higher phosphorus liquid fertilizer (look for something like 5-10-5) to support fruit set rather than leaf growth. This is where most home gardeners go wrong \u2014 they keep feeding nitrogen and get huge plants with little fruit.\nOngoing through summer: Tomatoes: pinch suckers weekly, keep to 1-2 main stems. Cucumbers: harvest aggressively \u2014 leaving overripe cucumbers on the vine signals the plant to stop producing. Peppers: largely leave alone, they\u2019re slow and don\u2019t like fussing.\nYear one on unknown ground with a lasagna bed is somewhat experimental. You may hit drainage issues, compaction below the cardboard, or weed pressure from edges. The bed will be significantly better in year two once the cardboard breaks down and your amendments have cycled through fully",
+    "analysis": {
+      "events": [],
+      "tasks": [
+        {
+          "id": "t1",
+          "person": "Lauren",
+          "text": "Buy garden bed supplies and lay cardboard",
+          "due_date": "2026-04-28",
+          "subtasks": [
+            "Buy cardboard (free), 5 bags compost/topsoil mix, 1 lb blood meal, 3 lbs bone meal",
+            "Lay cardboard on 4x8 area, overlapping edges 6 inches",
+            "Wet cardboard thoroughly"
+          ],
+          "notes": "Week 1, Day 1 of garden bed preparation",
+          "confidence": "high"
+        },
+        {
+          "id": "t2",
+          "person": "Lauren",
+          "text": "Mix soil amendments and layer on cardboard",
+          "due_date": "2026-04-30",
+          "subtasks": [
+            "Mix blood meal and bone meal into compost/topsoil",
+            "Layer 4-6 inches of mixture on wet cardboard",
+            "Water thoroughly",
+            "Leave alone for 5-7 days minimum"
+          ],
+          "notes": "Week 1, Days 2-3. Blood meal needs to mellow to avoid burning roots.",
+          "confidence": "high"
+        },
+        {
+          "id": "t3",
+          "person": "Lauren",
+          "text": "Buy transplants and set up garden support structures",
+          "due_date": "2026-05-04",
+          "subtasks": [
+            "Buy transplants (not seeds) - look for stocky, short plants not leggy ones",
+            "Set up trellis for cucumbers",
+            "Set up cucumber support structure",
+            "Get cheap soil thermometer to check temperature"
+          ],
+          "notes": "Week 2. Set up supports before planting to avoid root damage.",
+          "confidence": "high"
+        },
+        {
+          "id": "t4",
+          "person": "Lauren",
+          "text": "Plant garden bed when soil reaches 65\u00b0F",
+          "due_date": "2026-05-11",
+          "subtasks": [
+            "Check soil temp is consistently 65\u00b0F",
+            "Plant cucumbers on north end with trellis",
+            "Plant 2 tomatoes in center with cages, bury deep to first leaves",
+            "Plant 2-3 peppers on south end at pot depth",
+            "Water with diluted fish emulsion immediately after planting"
+          ],
+          "notes": "Ideally days 10-14 from start (May 7-11). Tomatoes root along buried stem, peppers hate being planted too deep.",
+          "confidence": "medium"
+        },
+        {
+          "id": "t5",
+          "person": "Lauren",
+          "text": "Establish watering routine and mulch plants",
+          "due_date": "2026-05-25",
+          "subtasks": [
+            "Water consistently 1 inch per week minimum",
+            "Mulch around plants with straw or wood chips",
+            "Wait 3-5 days after planting before mulching",
+            "Avoid wet/dry cycles"
+          ],
+          "notes": "Weeks 3-4. Don't fertilize again yet during establishment period.",
+          "confidence": "high"
+        },
+        {
+          "id": "t6",
+          "person": "Lauren",
+          "text": "Switch to flowering fertilizer when flowers appear",
+          "due_date": "2026-06-08",
+          "subtasks": [
+            "Side-dress lightly with blood meal around each plant",
+            "Switch to low-nitrogen, higher phosphorus liquid fertilizer (5-10-5 ratio)",
+            "Focus on fruit set rather than leaf growth"
+          ],
+          "notes": "Week 6. Most gardeners make mistake of continuing nitrogen feeding.",
+          "confidence": "medium"
+        },
+        {
+          "id": "t7",
+          "person": "Lauren",
+          "text": "Begin ongoing summer garden maintenance",
+          "due_date": "2026-06-15",
+          "subtasks": [
+            "Pinch tomato suckers weekly, keep to 1-2 main stems",
+            "Harvest cucumbers aggressively to keep production going",
+            "Leave peppers alone - they don't like fussing",
+            "Monitor for drainage issues and weed pressure from edges"
+          ],
+          "notes": "Ongoing through summer. Year one is experimental - bed will be better in year two.",
+          "confidence": "high"
+        }
+      ],
+      "questions": [],
+      "warnings": [
+        {
+          "text": "This is a multi-week gardening project that requires consistent attention through summer - ensure Lauren has capacity for ongoing maintenance",
+          "severity": "medium",
+          "related_to": "t7"
+        }
+      ],
+      "suggestions": [
+        {
+          "text": "Consider involving JP or Joseph in some of the garden tasks as educational opportunities, especially the ongoing maintenance tasks",
+          "related_to": "t7"
+        },
+        {
+          "text": "The soil temperature check task might need to be repeated daily until conditions are right - consider setting up a recurring reminder",
+          "related_to": "t4"
+        }
+      ],
+      "placements": [],
+      "_companions": [
+        {
+          "key": "lorenzo",
+          "label": "Lorenzo",
+          "color": "#8b3a1a",
+          "emoji": "\ud83c\udf7d\ufe0f",
+          "role": "Personal Chef"
+        },
+        {
+          "key": "coach",
+          "label": "Coach",
+          "color": "#1a6e3e",
+          "emoji": "\ud83d\udcaa",
+          "role": "Fitness"
+        },
+        {
+          "key": "monica",
+          "label": "Dr. Monica",
+          "color": "#8b3a5c",
+          "emoji": "\ud83c\udf38",
+          "role": "Health & Development"
+        },
+        {
+          "key": "lucy",
+          "label": "Lucy",
+          "color": "#5b3a8a",
+          "emoji": "\u2728",
+          "role": "Family Companion"
+        }
+      ]
+    }
   }
 ]

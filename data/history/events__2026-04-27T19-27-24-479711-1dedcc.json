@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-04-27",
+  "updated_at": "2026-04-12",
   "data": [
     {
       "id": "evt_james_pt",
@@ -30,7 +30,7 @@
       "prep": {
         "lead_days": 0
       },
-      "notes": "Bring small hip helpers if can’t return",
+      "notes": "Bring small hip helpers if can\u2019t return",
       "subtasks": [
         {
           "id": "sub_001",
@@ -170,58 +170,6 @@
         "lead_days": 0
       },
       "notes": "Recurring every Sunday indefinitely",
-      "subtasks": [],
-      "archived": false
-    },
-    {
-      "id": "evt_773eeb80",
-      "title": "Flag: James coverage needed for garden prep work",
-      "assigned_to": [
-        "Lauren"
-      ],
-      "start_date": "2026-04-28",
-      "end_date": "2026-04-28",
-      "start_time": "",
-      "end_time": "",
-      "recurrence": {
-        "type": "none"
-      },
-      "notifications": {
-        "show_on_dashboard": true,
-        "show_on_daily_page": true,
-        "show_in_looking_ahead": true,
-        "lead_days": 1
-      },
-      "prep": {
-        "lead_days": 0
-      },
-      "notes": "Active digging, cardboard laying, soil amendment work - James needs containment or alternate caregiver",
-      "subtasks": [],
-      "archived": false
-    },
-    {
-      "id": "evt_7c1d3965",
-      "title": "Flag: James coverage needed for garden prep work",
-      "assigned_to": [
-        "Lauren"
-      ],
-      "start_date": "2026-04-30",
-      "end_date": "2026-04-30",
-      "start_time": "",
-      "end_time": "",
-      "recurrence": {
-        "type": "none"
-      },
-      "notifications": {
-        "show_on_dashboard": true,
-        "show_on_daily_page": true,
-        "show_in_looking_ahead": true,
-        "lead_days": 1
-      },
-      "prep": {
-        "lead_days": 0
-      },
-      "notes": "Active digging, cardboard laying, soil amendment work - James needs containment or alternate caregiver",
       "subtasks": [],
       "archived": false
     }
