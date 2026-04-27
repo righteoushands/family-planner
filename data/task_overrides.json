@@ -62,6 +62,12 @@
         "action": "dismiss",
         "label": "HSPE"
       }
+    },
+    "2026-04-27": {
+      "ROUTINE::JP::2026-04-27::Lead brining prep for roast chicken — Joseph assists with potatoes — Michael washes vegetables": {
+        "action": "dismiss",
+        "label": "Lead brining prep for roast chicken — Joseph assists with potatoes — Michael washes vegetables"
+      }
     }
   },
   "Joseph": {

@@ -1,0 +1,14 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Lauren wants to replace the Dad_lunch row in the meal plan with a Prep Notes row that shows start times for each meal (e.g., \"7:06 AM — Brined Roast Chicken\", \"4:00 PM — Beef Pot Roast\"). Can you update the meal plan card template to swap that row out and rebuild it with the new structure?",
+      "ts": "2026-04-25T07:21:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Symptom: Lauren wants to replace the \"Dad_lunch\" row in the meal plan card with a \"Prep Notes\" row showing start times for each meal.\n\nLikely cause: The meal plan card template in render_meals.py contains hardcoded HTML structure that builds rows for each meal component including Dad_lunch, and needs the row replacement plus logic to generate prep time strings from meal data.\n\nRisk areas: Changes to the meal plan card structure could affect the meal data loading/saving functions in data_helpers.py, the meal plan editing interface, or any JavaScript that depends on the current HTML structure of meal plan cards.\n\nReplit prompt:\nIn render_meals.py, locate the meal plan card template generation (likely in a function that builds HTML for displaying weekly meal plans). Replace the Dad_lunch row in the card template with a new \"Prep Notes\" row. The new row should display start times and meal names in the format \"7:06 AM — Brined Roast Chicken\" for each day of the week. You'll need to add logic to calculate or extract prep start times from the meal data structure and format them as \"H:MM AM/PM — [Meal Name]\". Follow Python 3.11 constraints: no backslashes inside f-strings and keep all imports at the top of the file. Do not change any file other than render_meals.py unless absolutely necessary. Preserve all existing elif routing structure in do_POST and do_GET — do not convert any elif chain into separate if blocks and do not reorder existing elif branches. After making changes, confirm nothing in do_POST or do_GET was restructured.",
+      "ts": "2026-04-25T07:21:11"
+    }
+  ]
+}

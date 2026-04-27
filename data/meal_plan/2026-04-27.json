@@ -6,14 +6,8 @@
     "Monday": {
       "breakfast": "Muesli with Greek yogurt and strawberries",
       "lunch": "Leftover chicken fried rice",
-      "dinner": {
-        "display": "Beef pot roast with baby potatoes, carrots, and onion",
-        "recipe_id": "r016"
-      },
-      "dessert": {
-        "display": "Apple cider and cinnamon cake",
-        "recipe_id": "r020"
-      },
+      "dinner": "Beef pot roast with baby potatoes, carrots, and onion",
+      "dessert": "Apple cider and cinnamon cake",
       "snacks": "Cheese and crackers",
       "dad_lunch": "Chicken fried rice (leftover)",
       "helpers": "JP leads pot roast assembly — Joseph peels potatoes — Michael rinses vegetables — Prep finger sandwiches for Tuesday shower",
@@ -27,10 +21,7 @@
     "Tuesday": {
       "breakfast": "Quick oats with honey",
       "lunch": "Baby shower (finger sandwiches made Monday)",
-      "dinner": {
-        "display": "Leftover beef pot roast with baby potatoes and vegetables",
-        "recipe_id": "r016"
-      },
+      "dinner": "Leftover beef pot roast with baby potatoes and vegetables",
       "dessert": "Popcorn",
       "snacks": "Fruit and yogurt",
       "dad_lunch": "N/A — at baby shower",
@@ -43,13 +34,10 @@
     },
     "Wednesday": {
       "breakfast": "Scrambled eggs with toast",
-      "lunch": {
-        "display": "Sardine salad with fresh greens",
-        "recipe_id": "r009"
-      },
+      "lunch": "Sardine salad with fresh greens",
       "dinner": {
         "display": "Baked flounder with rice and roasted vegetables",
-        "recipe_id": "r017"
+        "recipe_id": "r003"
       },
       "dessert": "Yogurt with cinnamon",
       "snacks": "Popcorn",
@@ -63,10 +51,7 @@
     },
     "Thursday": {
       "breakfast": "Muesli with yogurt",
-      "lunch": {
-        "display": "Sardine salad with fresh greens",
-        "recipe_id": "r009"
-      },
+      "lunch": "Sardine salad with fresh greens",
       "dinner": "Leftover baked flounder with rice and roasted vegetables",
       "dessert": "Canned peaches with whipped cream",
       "snacks": "Cheese and fruit",
@@ -80,18 +65,9 @@
     },
     "Friday": {
       "breakfast": "Boiled eggs, muesli, and fruit for John's Drill travel pack",
-      "lunch": {
-        "display": "Mac & cheese with frozen mixed vegetables",
-        "recipe_id": "r018"
-      },
-      "dinner": {
-        "display": "Pizza (using ingredients already in fridge) with simple salad",
-        "recipe_id": "r018"
-      },
-      "dessert": {
-        "display": "Brownies",
-        "recipe_id": "r021"
-      },
+      "lunch": "Mac & cheese with frozen mixed vegetables",
+      "dinner": "Pizza (using ingredients already in fridge) with simple salad",
+      "dessert": "Brownies",
       "snacks": "Cheese and crackers",
       "dad_lunch": "",
       "helpers": "JP leads pizza assembly — Joseph preps salad — Michael pours drinks",
@@ -99,14 +75,8 @@
       "serve_time": "17:00"
     },
     "Saturday": {
-      "breakfast": {
-        "display": "Grilled cheese sandwiches with tomato soup",
-        "recipe_id": "r011"
-      },
-      "lunch": {
-        "display": "Grilled cheese sandwiches with tomato soup",
-        "recipe_id": "r011"
-      },
+      "breakfast": "Grilled cheese sandwiches with tomato soup",
+      "lunch": "Grilled cheese sandwiches with tomato soup",
       "dinner": {
         "display": "Brined roast chicken with roasted broccoli, carrots, and snap peas",
         "recipe_id": "90f98712"
@@ -123,18 +93,9 @@
     },
     "Sunday": {
       "breakfast": "Oatmeal with cinnamon and fresh fruit",
-      "lunch": {
-        "display": "Chicken fried rice with aging fresh vegetables",
-        "recipe_id": "r019"
-      },
-      "dinner": {
-        "display": "Chicken fried rice with aging fresh vegetables",
-        "recipe_id": "r019"
-      },
-      "dessert": {
-        "display": "Brownies",
-        "recipe_id": "r021"
-      },
+      "lunch": "Chicken fried rice with aging fresh vegetables",
+      "dinner": "Chicken fried rice with aging fresh vegetables",
+      "dessert": "Brownies",
       "snacks": "Yogurt with cinnamon",
       "dad_lunch": "N/A — weekend",
       "helpers": "JP leads fried rice assembly and stovetop work — Joseph preps vegetables and assists — Michael pours drinks",

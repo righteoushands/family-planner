@@ -256,7 +256,7 @@
   {
     "text": "Friday Penance: give up meat or make another sacrifice.",
     "assigned_to": "JP",
-    "due_date": "2026-05-01",
+    "due_date": "2026-05-08",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": true,
@@ -727,6 +727,30 @@
     "text": "Sign Michael up for swim lessons",
     "assigned_to": "Mom",
     "due_date": "2026-04-29",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Mind little boys during Mom’s meeting from 1:30 to 2:45 (approximate times)",
+    "assigned_to": "JP",
+    "due_date": "2026-04-27",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Mind the little boys during Mom’s meeting from approximately 1:45 to 2:30 PM.",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-27",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Giant: white bread and fresh mint",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-27",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false
