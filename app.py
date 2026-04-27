@@ -1242,7 +1242,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
             self.send_header("Pragma","no-cache")
             self.end_headers()
-            try: self.wfile.write(html.encode())
+            try: self.wfile.write(html.encode('utf-8', errors='replace'))
             except BrokenPipeError: pass
             return
         elif path == "/dev":
