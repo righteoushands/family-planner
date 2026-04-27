@@ -1,0 +1,19 @@
+Task #23 — Auto-Council on Results + Context-Aware 1-on-1 Chats
+What and why
+Two related friction points: Lauren has to manually click Convene after results appear even though a quick review is almost always the right first move. And after the council speaks, opening a 1-on-1 chat with a companion starts cold — they have no memory of what the council just said, forcing Lauren to re-explain. This task auto-triggers the council the moment results are rendered, and seeds each companion’s history with the council exchange so 1-on-1 conversations pick up where the council left off.
+Done looks like
+When renderResults() finishes populating the cards and the companion panel is shown, the “Quick review” council prompt fires automatically — no button click required. The council input is pre-filled with the quick review text, the Convene button shows a subtle “running…” state, and the council response streams in below. The Convene button remains available so Lauren can run a different prompt afterward.
+After the council finishes streaming, every companion’s consultHistories[key] is seeded with two entries: a user turn containing the quick review question and the plan summary, and an assistant turn containing that companion’s section of the council response (or the full council text if their individual voice can’t be isolated). When Lauren opens a 1-on-1 chat with any companion, they already know what was discussed and can continue without re-explanation.
+The council suggestion strip still appears as before. Nothing else changes.
+Out of scope
+Changing server routes, system prompts, or history persistence files. Changing the preset buttons or their text. Any change outside render_plan_importer.py.
+Steps
+	1.	Auto-trigger in renderResults(). At the end of renderResults(), after renderCompanionPanel(data._companions) is called and the panel is visible, call a new function autoConveneCouncil(). This function selects the “Quick review” preset (calls selectPreset() with the quick review string to highlight the button visually), then calls conveneCouncil(). Guard with: only run if #consult-panel is visible and #council-thread is empty (so re-analyses don’t re-trigger if the user has already run a council).
+	2.	Seed companion histories after council finishes. In conveneCouncil(), after parseCouncilResponse(fullText) runs and before the extraction call, call a new function seedCompanionHistoriesFromCouncil(question, fullText, compKeys). This function:
+	•	Builds a user-turn string: the question plus a one-line plan summary (event count + task count)
+	•	For each key in compKeys, attempts to extract that companion’s section from fullText using the existing **Name:** marker pattern that parseCouncilResponse() already splits on. If found, uses that section as the assistant turn. If not found, uses the full fullText.
+	•	Pushes {role:'user', content: userTurn} and {role:'assistant', content: companionSection} into consultHistories[key] — but only if consultHistories[key] is currently empty, so a companion the user has already chatted with isn’t overwritten.
+	3.	Update openCompanionChat(). Currently the auto-opener sends isAuto: true which sets histToSend = []. Change this so that if consultHistories[key] is already seeded (length > 0), isAuto still controls whether to send an opening message, but histToSend always uses the existing history. This means the companion receives the council context on their very first user message.
+	4.	No CSS changes needed. The auto-run uses existing visual states.
+Constraints
+Edit only render_plan_importer.py. No other file. If the file would exceed 2,400 lines, flag before proceeding.

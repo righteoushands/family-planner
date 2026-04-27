@@ -1420,6 +1420,10 @@ function renderResults(data) {{
   document.getElementById('consult-panel').style.display = 'none';
   if (data._companions && data._companions.length && hasAnything) {{
     renderCompanionPanel(data._companions);
+    // Quick review almost always wants to run first — fire it automatically
+    // so Lauren doesn't have to click. The function self-guards on an empty
+    // council thread, so re-analyses won't double-run it.
+    try {{ autoConveneCouncil(); }} catch(_) {{}}
   }}
 }}
 
@@ -2036,6 +2040,26 @@ function selectPreset(btn, text) {{
   document.getElementById('council-input').value = text;
 }}
 
+// Auto-fire the "Quick review" council the moment results render. Guarded so
+// it never runs over a council the user has already seen or convened.
+function autoConveneCouncil() {{
+  const panel = document.getElementById('consult-panel');
+  if (!panel || panel.style.display === 'none') return;
+  const thread = document.getElementById('council-thread');
+  if (!thread || thread.innerHTML.trim() !== '') return;
+
+  let quickBtn = null;
+  document.querySelectorAll('.council-preset').forEach(b => {{
+    if (!quickBtn && b.textContent && b.textContent.indexOf('Quick review') !== -1) {{
+      quickBtn = b;
+    }}
+  }});
+  if (!quickBtn) return;
+
+  selectPreset(quickBtn, 'Quick check \u2014 anything missing or that we might regret skipping?');
+  conveneCouncil();
+}}
+
 async function conveneCouncil() {{
   const inp = document.getElementById('council-input');
   const question = inp.value.trim();
@@ -2096,6 +2120,10 @@ async function conveneCouncil() {{
     // Parse and render formatted voices
     thread.innerHTML = parseCouncilResponse(fullText);
 
+    // Seed each companion's chat history with the council exchange so 1-on-1
+    // chats pick up where the council left off. Silent — best-effort.
+    try {{ seedCompanionHistoriesFromCouncil(question, fullText, compKeys); }} catch(_) {{}}
+
     // Run extraction on the full council text (best-effort, never blocks UI)
     try {{
       const sugg = await extractCompanionSuggestions('Council', fullText);
@@ -2133,6 +2161,40 @@ function parseCouncilResponse(text) {{
     </div>`;
   }}
   return html || `<div class="council-voice-text" style="padding:6px;">${{esc(text)}}</div>`;
+}}
+
+// Pre-load each companion's chat history with the council exchange so 1-on-1
+// chats start in continuity instead of cold. Silent: nothing renders until
+// Lauren actually opens that companion's chat. Never overwrites a companion
+// the user has already chatted with.
+function seedCompanionHistoriesFromCouncil(question, fullText, compKeys) {{
+  if (!fullText || !compKeys || !compKeys.length) return;
+
+  const ev = (analysisData && analysisData.events) ? analysisData.events.length : 0;
+  const tk = (analysisData && analysisData.tasks)  ? analysisData.tasks.length  : 0;
+  const planSummary = '(' + ev + ' event' + (ev === 1 ? '' : 's')
+                    + ', ' + tk + ' task' + (tk === 1 ? '' : 's') + ' in plan)';
+  const userTurn = question + '\n\n' + planSummary;
+
+  // Map display-name → that companion's section, using the same **Name:**
+  // marker pattern parseCouncilResponse already splits on.
+  const sectionByName = {{}};
+  const parts = fullText.split(/\*\*([^*]+)\*\*:/);
+  for (let i = 1; i < parts.length; i += 2) {{
+    const nm = (parts[i] || '').trim();
+    const ct = (parts[i+1] || '').trim();
+    if (nm) sectionByName[nm] = ct;
+  }}
+
+  for (const key of compKeys) {{
+    if (consultHistories[key] && consultHistories[key].length > 0) continue;
+    const display = COMPANION_KEY_DISPLAY[key] || key;
+    const section = sectionByName[display] || fullText;
+    consultHistories[key] = [
+      {{ role: 'user',      content: userTurn }},
+      {{ role: 'assistant', content: section  }}
+    ];
+  }}
 }}
 
 // ── Companion Consultation ─────────────────────────────────────────────────
@@ -2185,7 +2247,11 @@ function openCompanionChat(key, label, color, emoji, role) {{
   // Render existing history
   renderConsultHistory();
 
-  // If no history, send an opening "review" message automatically
+  // If no history, send an opening "review" message automatically.
+  // IMPORTANT: a companion seeded by seedCompanionHistoriesFromCouncil() has
+  // length === 2, so this gate naturally skips the auto-opener — Lauren's
+  // first typed message is the one that lands at the server, carrying the
+  // seeded council context as history. Do NOT remove this gate.
   if (consultHistories[key].length === 0) {{
     autoOpenConsult(key);
   }}
@@ -2247,13 +2313,18 @@ async function runConsultMessage(key, message, isAuto) {{
   const inp     = document.getElementById('consult-input');
   sendBtn.disabled = true; inp.disabled = true;
 
-  // Build history to send (include this user turn)
-  const histToSend = isAuto ? [] : [...consultHistories[key]];
+  // Build history to send. Always honor existing history (including any
+  // seeded council context); only drop the just-pushed user turn for non-auto
+  // sends. The original isAuto-zeroes-history behavior is preserved for
+  // first-time-empty-history opens (slice([0,-1]) of [] is still []), and
+  // seeded companions never reach this path with isAuto=true anyway.
+  let histToSend = [...consultHistories[key]];
+  if (!isAuto) histToSend = histToSend.slice(0, -1);
 
   const body = new URLSearchParams({{
     companion: key,
     message:   message,
-    history:   JSON.stringify(histToSend.slice(0,-1)),  // exclude last (just added)
+    history:   JSON.stringify(histToSend),
     plan_json: JSON.stringify(analysisData || {{}})
   }});
 
