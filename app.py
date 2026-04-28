@@ -729,6 +729,26 @@ class Handler(BaseHTTPRequestHandler):
                 self.end_headers()
             return
 
+        # ── Static JS files (/static/js/*.js) ────────────────────────────────
+        if path.startswith("/static/js/") and path.endswith(".js"):
+            import os
+            filename = os.path.basename(path)  # strips directory, keeps just the filename
+            static_path = os.path.join("static", "js", filename)
+            try:
+                with open(static_path, "rb") as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/javascript; charset=utf-8")
+                self.send_header("Cache-Control", "no-cache")
+                self.send_header("Content-Length", str(len(content)))
+                self.end_headers()
+                try: self.wfile.write(content)
+                except BrokenPipeError: pass
+            except FileNotFoundError:
+                self.send_response(404)
+                self.end_headers()
+            return
+
         # ── Static files (/static/*) ─────────────────────────────────────────
         if path.startswith("/static/"):
             import os, mimetypes

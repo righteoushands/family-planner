@@ -55,7 +55,7 @@ Michael (5, kindergarten), James (13 months, toddler — cannot be assigned task
 - Never delete or modify existing behavior unless the task specifically requires it
 - If a task requires editing a file not in the stated scope, stop and flag it
 - Keep modules under 800 lines where possible
-- render_plan_importer.py is 1840 lines — do not add to it without flagging
+- render_plan_importer.py is 1,114 lines (JS lives in static/js/plan_importer_core.js and static/js/plan_importer_consult.js — edit those, not the Python file, for JS changes)
 
 ## Current major features
 - /plan-import — paste text → AI extracts events, tasks, placements → approve → apply

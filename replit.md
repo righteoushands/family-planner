@@ -96,7 +96,7 @@ Lives in `family_quest/` directory, served at `/quest/*` by the main app via `fq
 | `render_gregory.py` | Father Gregory AI chat — homeschool headmaster, academic planning |
 | `render_coach.py` | Coach AI chat — family fitness, movement plans |
 | `render_monica.py` | Dr. Monica AI chat — child development, pediatric health |
-| `render_plan_importer.py` | Plan Import Tool — paste external AI plan, parse to events+tasks, approve+apply |
+| `render_plan_importer.py` | Plan Import Tool — paste external AI plan, parse to events+tasks, approve+apply (1,114 lines; JS extracted to `static/js/plan_importer_{core,consult}.js`) |
 | `render_dev.py` | Felix (Dev companion) — admin-only AI programmer; reads source files, proposes [FIX:] blocks, applies patches, restarts server |
 | `render_settings.py` | All settings including PIN management section |
 | `render_schedule_support.py` | `get_current_slot()`, `get_eastern_now()` helpers |
