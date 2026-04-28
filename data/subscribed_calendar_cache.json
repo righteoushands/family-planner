@@ -1,39 +1,6 @@
 {
   "events": [
     {
-      "title": "John's class",
-      "start": "2026-04-27T08:00",
-      "end": "2026-04-27T17:00",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Mama haircut",
-      "start": "2026-04-27T10:00",
-      "end": "2026-04-27T10:30",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Memorial Mass Meeting - Red Bird Ministries - May 20",
-      "start": "2026-04-27T13:30",
-      "end": "2026-04-27T14:15",
-      "all_day": false,
-      "location": "Microsoft Teams Meeting",
-      "notes": "Meeting to finalize plans for the May 2026 Red B",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
       "title": "Eliana taken off isolation precautions!",
       "start": "2026-04-28",
       "end": "2026-04-28",
@@ -75,6 +42,17 @@
       "notes": "//thelittleroseshop.com/search?q=louis+de+monfort&options%5Bprefix%5D=last",
       "calendar": "Liturgical Calendar (Little Rose Shop)",
       "color": "#e91e8c",
+      "source": "subscribed"
+    },
+    {
+      "title": "John's class",
+      "start": "2026-04-28T08:00",
+      "end": "2026-04-28T17:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
       "source": "subscribed"
     },
     {
@@ -1671,7 +1649,18 @@
       "calendar": "Apple Calendar",
       "color": "#9b59b6",
       "source": "subscribed"
+    },
+    {
+      "title": "USNSCC Pentagon Division - June Drill (#2)",
+      "start": "2026-06-27T07:30",
+      "end": "2026-06-27T15:30",
+      "all_day": false,
+      "location": "Chapel Annex, Dahlgren",
+      "notes": "30 AM (Eastern Time (US & Cana",
+      "calendar": "USNSCC Pentagon Division (JP & Joe)",
+      "color": "#e74c3c",
+      "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-04-27T20:42:11.340024"
+  "fetched_at": "2026-04-28T05:39:11.000259"
 }
