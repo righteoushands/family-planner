@@ -2,6 +2,16 @@
   "messages": [
     {
       "role": "user",
+      "content": "No time yet",
+      "ts": "2026-04-12T15:05:46"
+    },
+    {
+      "role": "assistant",
+      "content": "**Got it — JP's 1.5-mile goal is just to complete it strong, no specific time cap yet.**\n\nWe'll build it progressively and see where he lands by August.\n\n---\n\n**Here's my plan:**\n\nI'll integrate **progressive push-ups and sit-ups** into the **Wednesday JUSTICE block** (strength work). Both boys will have **scaled versions** that push them toward their August targets.\n\n**Running** stays locked into **Monday FORTITUDE** (the family run) — JP and Joseph already doing 1.5-2 mi and 1-1.5 mi respectively, so we're good there.\n\n**I'll have a detailed 12-week progression plan ready for your Saturday 9:30 AM check-in** (April 19th). That way Dad can review it, give feedback, and we launch the week after.\n\nSound good?",
+      "ts": "2026-04-12T15:05:50"
+    },
+    {
+      "role": "user",
       "content": "Let me get down the things I think he wants to see: the boys should hydrate starting one hour before exercising and stretching then showering after.",
       "ts": "2026-04-12T15:09:41"
     },
@@ -289,16 +299,6 @@
       "role": "assistant",
       "content": "**Your exercise plans are saved in two places:**\n\n1. **Your Programs page** — linked from your POD. Any multi-week or structured program I've written for you (postpartum rebuild, seasonal blocks, etc.) lives there with full details.\n\n2. **Your POD** — Under your daily exercise time slot. Today (Tuesday) shows your 1:00 PM \"Walk track vs exercise bike\" slot, which pulls from the FROL.\n\n---\n\n**Right now, for tonight (7:54 PM):**\n\nYou're in your **late luteal phase** (Day 23) — pre-menstrual. Energy is declining, emotions running higher. This is a **wind-down evening**, not a workout night.\n\n**What I'd suggest:** A gentle **10-15 minute walk** if you want to move (stress relief, fresh air), or simply **stretching + breathing** at home. Nothing intense.\n\n**Question:** Do you have a structured postpartum program saved that you'd like me to review or adjust for this phase of your cycle?",
       "ts": "2026-04-28T19:55:02"
-    },
-    {
-      "role": "user",
-      "content": "There’s no link. It’s mentioned but there’s no link on my PoD",
-      "ts": "2026-04-28T19:56:33"
-    },
-    {
-      "role": "assistant",
-      "content": "**You're absolutely right — that's a gap.**\n\nThe Programs page should be linked directly from your POD, but it's not showing up. That's a build issue on Replit's end.\n\n[IZZY]Lauren's POD doesn't have a visible link to her Programs page, even though programs are being saved. Can you add a \"View Your Programs\" link in the sidebar or near the top of each person's POD so they can actually access saved workouts?[/IZZY]\n\n**In the meantime:** Any structured program I write for you, I'll mention it by name in our conversation so you know where to look for it. \n\n**For tonight:** You don't need a program — just 10-15 minutes of gentle movement if you feel like it. You're in the pre-menstrual window. Rest counts as recovery too.",
-      "ts": "2026-04-28T19:56:36"
     }
   ]
 }

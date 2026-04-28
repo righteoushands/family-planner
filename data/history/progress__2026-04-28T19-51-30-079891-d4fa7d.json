@@ -1527,22 +1527,5 @@
   "ROUTINE::Joseph::2026-04-27::CAP prep": true,
   "CARRY::Joseph::2026-04-27::Bring back recycling": true,
   "CARRY::Joseph::2026-04-27::Collect trash": true,
-  "CARRY::Joseph::2026-04-27::Tidy garage (10 min)": true,
-  "CHORE::Lauren::2026-04-28::laundry::LAUNDRY — James's laundry & kitchen towels": true,
-  "CHORE::Lauren::2026-04-28::laundry::Start loads before leaving (after morning jobs)": true,
-  "ROUTINE::Lauren::2026-04-28::Prepare to leave: pack food, stroller, bike and helmet, water, book/workbook": true,
-  "ROUTINE::Lauren::2026-04-28::Walk track vs exercise bike": true,
-  "ROUTINE::Lauren::2026-04-28::Travel": true,
-  "CHORE::Lauren::2026-04-28::laundry::Fold James's things & put away kitchen towels": true,
-  "CHORE::Lauren::2026-04-28::laundry::Bring loads upstairs": true,
-  "ROUTINE::Lauren::2026-04-28::Prep for downtown errands: library, farm.": true,
-  "ROUTINE::Lauren::2026-04-28::downtown errands vs. farm": true,
-  "ROUTINE::Lauren::2026-04-28::Travel / Buffer": true,
-  "CARRY::Lauren::2026-04-28::[MEDIUM] Ensure guest of honor attends baby shower": true,
-  "CARRY::Lauren::2026-04-28::[MEDIUM] Look up vibe coding": true,
-  "CARRY::Lauren::2026-04-28::[MEDIUM] Pack baby shower supplies": true,
-  "CARRY::Lauren::2026-04-28::[MEDIUM] Prayer": true,
-  "CARRY::Lauren::2026-04-28::Point out any extra trash & recycling to the boys": true,
-  "CARRY::Lauren::2026-04-28::Vacuum the stairs": true,
-  "MANUAL::Lauren::2026-04-28::Tea party: pot, cups and saucers, sugar bowl, creamer and serving tray": true
+  "CARRY::Joseph::2026-04-27::Tidy garage (10 min)": true
 }
