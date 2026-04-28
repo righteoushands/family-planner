@@ -440,21 +440,21 @@ function renderTaskItem(t) {
 }
 
 const PLACEMENT_DEST_LABELS = {
-  'events.json':              '?? Event note',
-  'profiles/jp.json':         '?? JP’s Profile',
-  'profiles/joseph.json':     '?? Joseph’s Profile',
-  'profiles/michael.json':    '?? Michael’s Profile',
-  'profiles/james.json':      '?? James’ Profile',
-  'profiles/mom.json':        '?? Mom’s Profile',
-  'profiles/john.json':       '?? John’s Profile',
-  'friends.json':             '?? Friend Family',
-  'meal_inventory.json':      '?? Pantry / Inventory',
-  'prayer/intentions.json':   '?? Prayer Intention',
-  'thankyou_reminders.json':  '?? Thank-You Reminder',
+  'events.json':              '&#128197; Event note',
+  'profiles/jp.json':         '&#128100; JP’s Profile',
+  'profiles/joseph.json':     '&#128100; Joseph’s Profile',
+  'profiles/michael.json':    '&#128100; Michael’s Profile',
+  'profiles/james.json':      '&#128100; James’ Profile',
+  'profiles/mom.json':        '&#128105; Mom’s Profile',
+  'profiles/john.json':       '&#128100; John’s Profile',
+  'friends.json':             '&#128101; Friend Family',
+  'meal_inventory.json':      '&#127859; Pantry / Inventory',
+  'prayer/intentions.json':   '&#128591; Prayer Intention',
+  'thankyou_reminders.json':  '&#128140; Thank-You Reminder',
 };
 
 function placementDestLabel(dest) {
-  return PLACEMENT_DEST_LABELS[dest] || ('?? ' + (dest || 'unknown'));
+  return PLACEMENT_DEST_LABELS[dest] || ('&#128193; ' + (dest || 'unknown'));
 }
 
 function renderPlacementItem(p) {
