@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-04-28",
+  "updated_at": "2026-04-27",
   "data": [
     {
       "id": "evt_james_pt",
@@ -222,58 +222,6 @@
         "lead_days": 0
       },
       "notes": "Active digging, cardboard laying, soil amendment work - James needs containment or alternate caregiver",
-      "subtasks": [],
-      "archived": false
-    },
-    {
-      "id": "evt_92056d1b",
-      "title": "Consider trip to Snead's Farm",
-      "assigned_to": [
-        "Lauren"
-      ],
-      "start_date": "2026-05-15",
-      "end_date": "2026-05-15",
-      "start_time": "",
-      "end_time": "",
-      "recurrence": {
-        "type": "monthly"
-      },
-      "notifications": {
-        "show_on_dashboard": true,
-        "show_on_daily_page": true,
-        "show_in_looking_ahead": true,
-        "lead_days": 1
-      },
-      "prep": {
-        "lead_days": 0
-      },
-      "notes": "Check weather and plan family outing to Snead's Asparagus Farm - great playground, JP remembers from 7 years ago",
-      "subtasks": [],
-      "archived": false
-    },
-    {
-      "id": "evt_d096371f",
-      "title": "Consider trip to Snead's Farm",
-      "assigned_to": [
-        "Lauren"
-      ],
-      "start_date": "2026-09-15",
-      "end_date": "2026-09-15",
-      "start_time": "",
-      "end_time": "",
-      "recurrence": {
-        "type": "monthly"
-      },
-      "notifications": {
-        "show_on_dashboard": true,
-        "show_on_daily_page": true,
-        "show_in_looking_ahead": true,
-        "lead_days": 1
-      },
-      "prep": {
-        "lead_days": 0
-      },
-      "notes": "Check weather and plan family outing to Snead's Asparagus Farm - great playground, JP remembers from 7 years ago",
       "subtasks": [],
       "archived": false
     }

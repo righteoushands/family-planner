@@ -1380,5 +1380,205 @@
         }
       ]
     }
+  },
+  {
+    "id": "3d559aef6b65",
+    "created_at": "2026-04-28T19:28:02Z",
+    "viewer": "lauren",
+    "source": "live",
+    "plan_text": "https://familyadventuresva.com/2022/10/14/sneads-asparagus-farm/\n\nThis is a link to a family farm with a great playground that the boys and I went to a long time ago. My oldest still remembers how fun it was seven years ago! I want to remember to take them here when the weather is good. Can you help me plan recurring events to help me remember and make appropriate suggestions for us to have a great time S a family",
+    "analysis": {
+      "events": [
+        {
+          "id": "e1",
+          "title": "Consider trip to Snead's Asparagus Farm",
+          "date": "2026-05-15",
+          "end_date": "",
+          "time": "",
+          "end_time": "",
+          "who": [
+            "Lauren"
+          ],
+          "notes": "Check weather and plan family outing to farm with playground. Boys loved it 7 years ago! Link: https://familyadventuresva.com/2022/10/14/sneads-asparagus-farm/",
+          "recurrence": "monthly",
+          "confidence": "medium"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "t1",
+          "person": "Lauren",
+          "text": "Research current hours and activities at Snead's Asparagus Farm",
+          "due_date": "2026-05-01",
+          "subtasks": [
+            "Check farm website for current hours",
+            "Verify playground is still available",
+            "Look up seasonal activities",
+            "Check admission fees",
+            "Note best times to visit"
+          ],
+          "notes": "Prepare for potential family visits during good weather",
+          "confidence": "high"
+        }
+      ],
+      "questions": [
+        {
+          "id": "q1",
+          "text": "What specific months would work best for visiting the farm (spring, summer, fall)?",
+          "related_to": "e1",
+          "field": "date"
+        },
+        {
+          "id": "q2",
+          "text": "Would you prefer weekend visits or are weekdays also an option?",
+          "related_to": "e1",
+          "field": "time"
+        }
+      ],
+      "warnings": [],
+      "suggestions": [
+        {
+          "text": "Consider scheduling the first visit in mid-May when spring weather is typically pleasant and asparagus season is active.",
+          "related_to": "e1"
+        },
+        {
+          "text": "Set up a weather-dependent reminder system - maybe check the forecast each month and plan the visit for the following weekend if conditions look good.",
+          "related_to": "e1"
+        },
+        {
+          "text": "Since JP fondly remembers the visit from 7 years ago, consider involving him in planning the return trip to build excitement.",
+          "related_to": "t1"
+        },
+        {
+          "text": "Pack a picnic lunch and bring outdoor games to maximize the family fun time at the farm.",
+          "related_to": null
+        },
+        {
+          "text": "Consider making this an annual spring tradition rather than monthly - farms often have peak seasons that would make some months better than others.",
+          "related_to": "e1"
+        }
+      ],
+      "placements": [],
+      "_companions": [
+        {
+          "key": "lorenzo",
+          "label": "Lorenzo",
+          "color": "#8b3a1a",
+          "emoji": "\ud83c\udf7d\ufe0f",
+          "role": "Personal Chef"
+        },
+        {
+          "key": "lucy",
+          "label": "Lucy",
+          "color": "#5b3a8a",
+          "emoji": "\u2728",
+          "role": "Family Companion"
+        }
+      ]
+    }
+  },
+  {
+    "id": "d59281d483e6",
+    "created_at": "2026-04-28T19:28:54Z",
+    "viewer": "lauren",
+    "source": "live",
+    "plan_text": "https://familyadventuresva.com/2022/10/14/sneads-asparagus-farm/\n\nThis is a link to a family farm with a great playground that the boys and I went to a long time ago. My oldest still remembers how fun it was seven years ago! I want to remember to take them here when the weather is good. Can you help me plan recurring events to help me remember and make appropriate suggestions for us to have a great time S a family",
+    "analysis": {
+      "events": [
+        {
+          "id": "e1",
+          "title": "Consider trip to Snead's Farm",
+          "date": "2026-05-15",
+          "end_date": "",
+          "time": "",
+          "end_time": "",
+          "who": [
+            "Lauren"
+          ],
+          "notes": "Check weather and plan family outing to Snead's Asparagus Farm - great playground, JP remembers from 7 years ago",
+          "recurrence": "monthly",
+          "confidence": "high"
+        },
+        {
+          "id": "e2",
+          "title": "Consider trip to Snead's Farm",
+          "date": "2026-09-15",
+          "end_date": "",
+          "time": "",
+          "end_time": "",
+          "who": [
+            "Lauren"
+          ],
+          "notes": "Check weather and plan family outing to Snead's Asparagus Farm - great playground, JP remembers from 7 years ago",
+          "recurrence": "monthly",
+          "confidence": "high"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "t1",
+          "person": "Lauren",
+          "text": "Research current hours and activities at Snead's Farm",
+          "due_date": "2026-05-10",
+          "subtasks": [
+            "Check website for current hours",
+            "Verify playground is still available",
+            "Look for seasonal activities",
+            "Check admission prices",
+            "Note any special events"
+          ],
+          "notes": "Prepare for potential family visits in spring/fall",
+          "confidence": "high"
+        }
+      ],
+      "questions": [],
+      "warnings": [],
+      "suggestions": [
+        {
+          "text": "Consider planning Snead's Farm visits for weekends when John can join the family, or weekdays when crowds might be smaller.",
+          "related_to": "e1"
+        },
+        {
+          "text": "Pack a picnic lunch since it's a farm setting - perfect for outdoor family dining.",
+          "related_to": null
+        },
+        {
+          "text": "Bring outdoor games or a soccer ball to complement the playground activities.",
+          "related_to": null
+        },
+        {
+          "text": "Check if they have seasonal activities like pumpkin picking in fall or spring planting activities.",
+          "related_to": "t1"
+        },
+        {
+          "text": "Consider making this a learning opportunity - bring a nature journal for the boys to document what they see.",
+          "related_to": null
+        }
+      ],
+      "placements": [],
+      "_companions": [
+        {
+          "key": "lorenzo",
+          "label": "Lorenzo",
+          "color": "#8b3a1a",
+          "emoji": "\ud83c\udf7d\ufe0f",
+          "role": "Personal Chef"
+        },
+        {
+          "key": "coach",
+          "label": "Coach",
+          "color": "#1a6e3e",
+          "emoji": "\ud83d\udcaa",
+          "role": "Fitness"
+        },
+        {
+          "key": "lucy",
+          "label": "Lucy",
+          "color": "#5b3a8a",
+          "emoji": "\u2728",
+          "role": "Family Companion"
+        }
+      ]
+    }
   }
 ]

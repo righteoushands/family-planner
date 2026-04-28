@@ -1018,44 +1018,5 @@
     "recurring": false,
     "notes": "Functional movement activity that teaches useful skills - can supervise Michael's participation as well",
     "subtasks": []
-  },
-  {
-    "text": "Research current hours and activities at Snead's Farm",
-    "assigned_to": "Lauren",
-    "due_date": "2026-05-10",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "plan_importer",
-    "recurring": false,
-    "notes": "Prepare for potential family visits in spring/fall",
-    "subtasks": [
-      "Check website for current hours",
-      "Verify playground is still available",
-      "Look for seasonal activities",
-      "Check admission prices",
-      "Note any special events"
-    ]
-  },
-  {
-    "text": "Check for U-pick or farm stand options at the asparagus farm",
-    "assigned_to": "Lauren",
-    "due_date": "2026-04-28",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "plan_importer",
-    "recurring": false,
-    "notes": "Asparagus may be in season mid-May; consider bringing a cooler for fresh produce",
-    "subtasks": []
-  },
-  {
-    "text": "Verify picnic area availability and outside food policy",
-    "assigned_to": "Lauren",
-    "due_date": "2026-04-28",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "plan_importer",
-    "recurring": false,
-    "notes": "Important for planning lunch with four kids including a toddler; ensure options for James's dietary needs",
-    "subtasks": []
   }
 ]
