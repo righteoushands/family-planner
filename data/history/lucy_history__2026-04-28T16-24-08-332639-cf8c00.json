@@ -2,6 +2,16 @@
   "messages": [
     {
       "role": "user",
+      "content": "Baby shower was moved to April 28. Can you reschedule it and associated tasks?",
+      "ts": "2026-04-12T10:19:02"
+    },
+    {
+      "role": "assistant",
+      "content": "I want to make sure I have the right event. Looking at your calendar, I see \"Baby shower during Bible study?\" listed for Tuesday, April 21.\n\nAre you saying the baby shower is now on **Tuesday, April 28** instead? And should it still be \"during Bible study\" at 10:00 AM, or at a different time?\n\nOnce you confirm, I'll move the event and any associated tasks.",
+      "ts": "2026-04-12T10:19:04"
+    },
+    {
+      "role": "user",
       "content": "Yes",
       "ts": "2026-04-12T10:23:19"
     },
@@ -289,16 +299,6 @@
       "role": "assistant",
       "content": "Got it — you need haircuts scheduled for all four boys before Monday, May 4th, with about an hour total.\n\nA few quick questions to help me find the right slot:\n\n**When this week works best for you?** Wednesday, Thursday, or Friday afternoon — or would early next week (before your haircut Monday) be easier?",
       "ts": "2026-04-28T16:23:23"
-    },
-    {
-      "role": "user",
-      "content": "Look at pods and you tell me",
-      "ts": "2026-04-28T16:24:08"
-    },
-    {
-      "role": "assistant",
-      "content": "Looking at your week ahead, here's what I see:\n\n- **Today (Tuesday)**: Bible Study 10:00 AM, Homeschool PE 1:00 PM, Religious Education 4:45 PM — packed\n- **Wednesday**: Piano Lessons 9:30 AM, Date Night 5:30 PM — manageable but piano consumes morning\n- **Thursday**: Homeschool PE 10:00 AM — opens up after lunch\n- **Friday**: James's PT 10:30 AM — morning is available, afternoon opens after that\n- **Saturday**: USNSCC at 8:00 AM — morning is spoken for, but afternoon is clear\n\n**My recommendation:** **Thursday afternoon, 2:00–3:00 PM** — right after lunch, before the boys' homework block. Everyone's fed, you're home, and it's a natural transition point.\n\nOr **Friday afternoon, 2:00–3:00 PM** if you'd rather keep Thursday lighter given the packed morning with Homeschool PE.\n\nWhich day feels right to you?",
-      "ts": "2026-04-28T16:24:12"
     }
   ]
 }
