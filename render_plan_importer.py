@@ -1111,6 +1111,7 @@ const FAMILY = {json.dumps(FAMILY_MEMBERS)};
 // ── State ──────────────────────────────────────────────────────────────────
 let analysisData = null;   // Full analysis JSON from server
 let currentAnswers = {{}};  // question id -> answer text
+let _freshAnalysis = false; // True only when results came from a just-run analysis (gates autoConveneCouncil)
 
 const _STORAGE_KEY = 'planImporter_session_v1';
 
@@ -1152,6 +1153,7 @@ async function saveSessionToServer() {{
 }}
 
 function _restoreSession() {{
+  _freshAnalysis = false;
   try {{
     const raw = localStorage.getItem(_STORAGE_KEY);
     if (!raw) return;
@@ -1282,6 +1284,7 @@ async function analyzePlan(extraAnswers) {{
     if (!resp.ok) throw new Error(await resp.text());
     const data = await resp.json();
     analysisData = data;
+    _freshAnalysis = true;
     renderResults(data);
     showPhase('phase-results');
     _saveSession();
@@ -2043,6 +2046,7 @@ function selectPreset(btn, text) {{
 // Auto-fire the "Quick review" council the moment results render. Guarded so
 // it never runs over a council the user has already seen or convened.
 function autoConveneCouncil() {{
+  if (!_freshAnalysis) return;
   const panel = document.getElementById('consult-panel');
   if (!panel || panel.style.display === 'none') return;
   const thread = document.getElementById('council-thread');
