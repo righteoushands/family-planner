@@ -376,13 +376,35 @@ function renderEventItem(ev) {
   </div>`;
 }
 
+// Builds the inner HTML for the task's action area. When the task is
+// uncertain (low/medium confidence) we show a three-way decision strip;
+// otherwise we show the standard Remove button. Used both at initial
+// render time and when confirmTask/deferTask swap the strip for Remove.
+function _taskActionsHtml(id, conf) {
+  if (conf === 'low' || conf === 'medium') {
+    return `<div class="task-decide-row">
+      <button class="pi-btn pi-btn-sm pi-btn-add"   onclick="confirmTask('${id}')">&#10003; Add it</button>
+      <button class="pi-btn pi-btn-sm pi-btn-skip"  onclick="removeItem('${id}')">&#10005; Not now</button>
+      <button class="pi-btn pi-btn-sm pi-btn-defer" onclick="deferTask('${id}')">&#9200; Remind me tomorrow</button>
+    </div>`;
+  }
+  return `<div style="display:flex;justify-content:flex-end;">
+    <button class="pi-btn pi-btn-sm pi-btn-remove" onclick="removeItem('${id}')">
+      &#128465; Remove
+    </button>
+  </div>`;
+}
+
 function renderTaskItem(t) {
   const conf = t.confidence || 'high';
   const subtasks = t.subtasks || [];
   const meta = [t.person, t.due_date ? 'due ' + t.due_date : ''].filter(Boolean).join(' &middot; ');
+  // Low/medium-confidence tasks render unchecked so they aren't applied
+  // unless Lauren actively chooses Add it or Remind me tomorrow.
+  const checkedAttr = (conf === 'low' || conf === 'medium') ? '' : 'checked';
   return `<div class="item-row" id="item-${t.id}">
     <div class="item-main" onclick="toggleEdit('${t.id}')">
-      <input type="checkbox" class="item-cb" id="cb-${t.id}" checked
+      <input type="checkbox" class="item-cb" id="cb-${t.id}" ${checkedAttr}
              onclick="event.stopPropagation();updateApplySummary()">
       <div class="item-info">
         <div class="item-title">&#9989; ${esc(t.text)}</div>
@@ -430,13 +452,56 @@ function renderTaskItem(t) {
         <div class="subtask-list" id="stl-${t.id}"></div>
         <button class="pi-btn pi-btn-sm pi-btn-edit" onclick="addSubtask('${t.id}')">+ Add subtask</button>
       </div>`}
-      <div style="margin-top:10px;display:flex;justify-content:flex-end;">
-        <button class="pi-btn pi-btn-sm pi-btn-remove" onclick="removeItem('${t.id}')">
-          &#128465; Remove
-        </button>
+      <div id="actions-${t.id}" style="margin-top:10px;">
+        ${_taskActionsHtml(t.id, conf)}
       </div>
     </div>
   </div>`;
+}
+
+// Confirms an uncertain task: checks the box and swaps the three-button
+// strip for the standard Remove button. Does NOT mutate task data.
+function confirmTask(id) {
+  const cb = document.getElementById('cb-' + id);
+  if (cb) cb.checked = true;
+  const actions = document.getElementById('actions-' + id);
+  if (actions) actions.innerHTML = _taskActionsHtml(id, 'high');
+  updateApplySummary();
+}
+
+// Defers an uncertain task to tomorrow as a high-confidence task. Updates
+// both the in-memory task object AND the visible date/notes inputs so the
+// apply payload (which reads from the inputs) picks up the new values.
+function deferTask(id) {
+  const task = ((analysisData && analysisData.tasks) || []).find(x => x.id === id);
+  if (!task) return;
+
+  // tomorrow = TODAY_ISO + 1 day, formatted as YYYY-MM-DD
+  const tomorrow = new Date(new Date(TODAY_ISO).getTime() + 86400000)
+    .toISOString().slice(0, 10);
+
+  const deferMarker = 'Deferred from plan import';
+  const existingNotes = (task.notes || '').trim();
+  const newNotes = existingNotes ? (existingNotes + '; ' + deferMarker) : deferMarker;
+
+  task.due_date   = tomorrow;
+  task.confidence = 'high';
+  task.notes      = newNotes;
+
+  // Sync the visible inputs — collectApproved reads from these on apply.
+  const dateEl  = document.getElementById('tf-date-'  + id);
+  const notesEl = document.getElementById('tf-notes-' + id);
+  if (dateEl)  dateEl.value  = tomorrow;
+  if (notesEl) notesEl.value = newNotes;
+
+  // Check the box and swap action area to the standard Remove button.
+  const cb = document.getElementById('cb-' + id);
+  if (cb) cb.checked = true;
+  const actions = document.getElementById('actions-' + id);
+  if (actions) actions.innerHTML = _taskActionsHtml(id, 'high');
+
+  updateApplySummary();
+  if (typeof _saveSession === 'function') _saveSession();
 }
 
 const PLACEMENT_DEST_LABELS = {

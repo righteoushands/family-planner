@@ -1,0 +1,20 @@
+Task #26 — Yes / Not Now / Later for Low-Confidence Tasks
+What and why
+Low and medium confidence tasks currently render identically to high confidence ones — same checkbox, same default-checked state, same single Remove button. Lauren’s only option for a task she’s unsure about is to leave it checked (adds it) or remove it entirely. This task adds a three-way control for low and medium confidence tasks: Add it, Not now (dismiss), and Remind me tomorrow (defers to tomorrow as a low-priority task). High confidence tasks are unchanged.
+Done looks like
+Tasks with confidence === 'low' or confidence === 'medium' render with their checkbox unchecked by default (so they don’t get applied unless Lauren actively chooses them), and show three buttons below the title instead of just the existing Remove button: ✓ Add it, ✕ Not now, and ⏰ Remind me tomorrow.
+Clicking Add it checks the checkbox, hides the three buttons, and shows the normal Remove button — the task is now treated identically to a high-confidence task.
+Clicking Not now calls the existing removeItem(id) — same as Remove today.
+Clicking Remind me tomorrow calls a new function deferTask(id) that: sets the task’s due_date to tomorrow’s date (using the existing TODAY_ISO constant), sets confidence to 'high', adds a note “Deferred from plan import” to the notes field, checks the checkbox, and hides the three buttons showing Remove instead. The task is now included in the apply payload with tomorrow’s date.
+The updateApplySummary() call runs after any of the three actions so the count stays accurate.
+Tasks accepted from the suggestions panel (confidence: 'low', notes 'From counsel suggestion') get the same treatment automatically since they’re already low confidence.
+High confidence tasks (confidence === 'high' or missing) are completely unchanged — no visual difference, no behavior difference.
+Out of scope
+Any change to the analyzer prompt or the confidence values the AI returns. Any change to events or placements. Any server-side changes. Any change to render_plan_importer.py or app.py.
+Steps
+	1.	In static/js/plan_importer_core.js, modify renderTaskItem(): when conf === 'low' or conf === 'medium', render the checkbox without the checked attribute, and replace the Remove button block with the three-button strip. When conf === 'high' (or missing), render exactly as today — no change.
+	2.	Add deferTask(id) function in static/js/plan_importer_core.js. It finds the task in analysisData.tasks by id, updates due_date to tomorrow (compute as: new Date(new Date(TODAY_ISO).getTime() + 86400000).toISOString().slice(0,10)), sets confidence to 'high', appends 'Deferred from plan import' to notes. Then checks #cb-${id}, swaps the three-button strip for the Remove button, and calls updateApplySummary().
+	3.	Add confirmTask(id) function in static/js/plan_importer_core.js. It checks #cb-${id}, swaps the three-button strip for the Remove button, and calls updateApplySummary(). Does not change the task data.
+	4.	Add CSS for the three-button strip in the inline CSS block in render_plan_importer.py — three small buttons in a row, styled consistently with existing .pi-btn-sm but with distinct colors: green for Add it, gray for Not now, amber for Remind me tomorrow.
+Constraints
+Edit only static/js/plan_importer_core.js and the inline CSS in render_plan_importer.py. No changes to app.py, static/js/plan_importer_consult.js, or any data files. No changes to event or placement rendering.

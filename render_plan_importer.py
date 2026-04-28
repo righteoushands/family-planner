@@ -541,6 +541,10 @@ textarea.pi-paste:focus{{outline:none;border-color:var(--navy);}}
 .pi-btn-sm{{padding:5px 12px;font-size:0.75em;border-radius:14px;font-weight:600;}}
 .pi-btn-remove{{background:rgba(185,28,28,.08);color:var(--red);border:1px solid rgba(185,28,28,.18);}}
 .pi-btn-edit{{background:rgba(30,53,102,.08);color:var(--navy);border:1px solid rgba(30,53,102,.15);}}
+.task-decide-row{{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}}
+.pi-btn-add{{background:rgba(22,163,74,.10);color:var(--green);border:1px solid rgba(22,163,74,.25);}}
+.pi-btn-skip{{background:rgba(82,82,91,.10);color:var(--ink-faint);border:1px solid rgba(82,82,91,.20);}}
+.pi-btn-defer{{background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.30);}}
 .section-header{{display:flex;align-items:center;gap:8px;margin-bottom:12px;}}
 .section-icon{{font-size:1.2em;}}
 .section-title{{font-size:0.9em;font-weight:700;color:var(--ink);}}
