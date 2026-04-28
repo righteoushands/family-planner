@@ -28,6 +28,7 @@ Michael (5, kindergarten), James (13 months, toddler — cannot be assigned task
 4. Never put import statements inside if blocks or functions
 5. All file writes use safe_save_json (tmp file + os.replace) — never open(f, 'w') directly
 6. No walrus operator (:=)
+7. Never use '\n' inside a JS string within a Python string literal — use '\\n' so the browser receives the escape sequence, not a raw newline
 
 ## Data file patterns
 - Most data lives in data/*.json as flat dicts or lists

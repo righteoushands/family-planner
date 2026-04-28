@@ -2174,7 +2174,7 @@ function seedCompanionHistoriesFromCouncil(question, fullText, compKeys) {{
   const tk = (analysisData && analysisData.tasks)  ? analysisData.tasks.length  : 0;
   const planSummary = '(' + ev + ' event' + (ev === 1 ? '' : 's')
                     + ', ' + tk + ' task' + (tk === 1 ? '' : 's') + ' in plan)';
-  const userTurn = question + '\n\n' + planSummary;
+  const userTurn = question + '\\n\\n' + planSummary;
 
   // Map display-name → that companion's section, using the same **Name:**
   // marker pattern parseCouncilResponse already splits on.
