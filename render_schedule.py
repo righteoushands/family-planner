@@ -218,6 +218,10 @@ def _render_exercise_block_screen(child: str, weekday: str, c_bg: str, c_light: 
             f'&#128221; {title_html}</div>'
             f'<div style="font-size:0.85em;color:#333;line-height:1.55;'
             f'white-space:normal;word-break:break-word;">{body_html}</div>'
+            f'<div style="margin-top:6px;text-align:right;">'
+            f'<a href="/programs" style="font-size:0.72em;color:{c_bg};'
+            f'text-decoration:none;font-weight:600;">View all programs &rarr;</a>'
+            f'</div>'
             f'</div>'
         )
     log_form_html = _render_post_workout_log_form(child, iso, c_bg) if iso else ""
@@ -257,6 +261,10 @@ def _render_exercise_block_print(child: str, weekday: str) -> str:
             f'<div style="font-size:8.5pt;font-weight:700;color:#444;margin-bottom:2pt;">'
             f'{_e(prog_title) if prog_title else "Coach&rsquo;s program"}</div>'
             f'<div style="font-size:9pt;line-height:1.5;color:#222;">{body_html}</div>'
+            f'<div style="margin-top:3pt;text-align:right;font-size:8pt;color:#666;">'
+            f'<a href="/programs" style="color:#666;text-decoration:none;">'
+            f'View all programs &rarr;</a>'
+            f'</div>'
             f'</div>'
         )
     time_disp = _e(slot_time) if slot_time else "Exercise"
