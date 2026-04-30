@@ -3286,7 +3286,7 @@ class Handler(BaseHTTPRequestHandler):
                     tasks=load_manual_tasks()
                     targets = assigned_to_list if assigned_to_list else [""]
                     for _who in targets:
-                        t={"text":text,"assigned_to":_who,"due_date":due_date,"priority":priority,"status":"active","recurring":is_recurring}
+                        t={"id":uuid.uuid4().hex[:8],"text":text,"assigned_to":_who,"due_date":due_date,"priority":priority,"status":"active","recurring":is_recurring}
                         if is_recurring:
                             t["interval_value"]=iv; t["interval_unit"]=iu
                             if iu=="specific_weekdays" and _wdmask: t["weekdays_mask"]=_wdmask
@@ -3491,6 +3491,7 @@ class Handler(BaseHTTPRequestHandler):
                                     break
                                 if not _r_found:
                                     _rml.append({
+                                        "id": uuid.uuid4().hex[:8],
                                         "text": _r_task_text,
                                         "assigned_to": _to_child,
                                         "due_date": _to_iso,
@@ -4447,6 +4448,7 @@ class Handler(BaseHTTPRequestHandler):
                                 if _task_text in _chore_guard:
                                     continue
                                 _all.append({
+                                    "id": uuid.uuid4().hex[:8],
                                     "text": _task_text,
                                     "assigned_to": _child,
                                     "due_date": _date,
