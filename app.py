@@ -2880,7 +2880,7 @@ class Handler(BaseHTTPRequestHandler):
                         if photo_bytes:
                             # Vision: read recipe from photo
                             img_b64 = _b64.b64encode(photo_bytes).decode()
-                            media_type = "image/jpeg"
+                            media_type = (photo_mime or "").strip() or "image/jpeg"
                             _vision_payload = _rj.dumps({
                                 "model": "claude-opus-4-5",
                                 "max_tokens": 4000,
@@ -6618,6 +6618,7 @@ class Handler(BaseHTTPRequestHandler):
                     _pi_err_body = ""
                     try: _pi_err_body = _pie_http.read().decode("utf-8")
                     except Exception: pass
+                    print(f"[plan-import] Anthropic HTTP error: {_pie_http} \u2014 body: {_pi_err_body[:500]}", flush=True)
                     try: _pi_err_msg = _pij.loads(_pi_err_body).get("error",{}).get("message", _pi_err_body[:300])
                     except Exception: _pi_err_msg = _pi_err_body[:300] or str(_pie_http)
                     self.send_response(500)
@@ -6626,10 +6627,15 @@ class Handler(BaseHTTPRequestHandler):
                     try: self.wfile.write(_pij.dumps({"error": f"API error {_pie_http.code}: {_pi_err_msg}"}).encode())
                     except BrokenPipeError: pass
                 except Exception as _pie:
+                    _pi_err_body2 = ""
+                    try: _pi_err_body2 = getattr(_pie, "read", lambda: b"")().decode("utf-8", "ignore")[:500]
+                    except Exception: pass
+                    print(f"[plan-import] Anthropic error: {_pie} \u2014 body: {_pi_err_body2}", flush=True)
                     self.send_response(500)
                     self.send_header("Content-Type","application/json; charset=utf-8")
                     self.end_headers()
-                    try: self.wfile.write(_pij.dumps({"error": str(_pie)}).encode())
+                    _pi_detail = f"{_pie}" + (f" | body: {_pi_err_body2}" if _pi_err_body2 else "")
+                    try: self.wfile.write(_pij.dumps({"error": _pi_detail}).encode())
                     except BrokenPipeError: pass
                 return
 

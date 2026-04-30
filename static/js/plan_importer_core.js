@@ -163,17 +163,21 @@ async function analyzePlan(extraAnswers) {
   showPhase('phase-thinking');
 
   let resp;
+  // Client-side timeout: abort if the analyze call takes longer than 95s
+  // (server timeout is 90s; this gives the server room to respond first).
+  const _abortCtrl = new AbortController();
+  const _abortTimer = setTimeout(() => _abortCtrl.abort(), 95000);
   try {
     if (_planImageFile) {
       const fd = new FormData();
       fd.append('plan_text', text);
       fd.append('plan_image', _planImageFile, _planImageFile.name || 'pasted.png');
       if (extraAnswers) fd.append('answers', JSON.stringify(extraAnswers));
-      resp = await fetch('/plan-import-analyze', {method:'POST', body: fd});
+      resp = await fetch('/plan-import-analyze', {method:'POST', body: fd, signal: _abortCtrl.signal});
     } else {
       const body = new URLSearchParams({plan_text: text});
       if (extraAnswers) body.append('answers', JSON.stringify(extraAnswers));
-      resp = await fetch('/plan-import-analyze', {method:'POST', body});
+      resp = await fetch('/plan-import-analyze', {method:'POST', body, signal: _abortCtrl.signal});
     }
     if (!resp.ok) throw new Error(await resp.text());
     const data = await resp.json();
@@ -186,8 +190,14 @@ async function analyzePlan(extraAnswers) {
     document.getElementById('analyze-btn').disabled = false;
     showPhase('phase-paste');
     const e = document.getElementById('paste-error');
-    e.textContent = 'Analysis failed: ' + err.message;
+    if (err && err.name === 'AbortError') {
+      e.textContent = 'Analysis timed out \u2014 please try again, or use a smaller image if uploading a photo.';
+    } else {
+      e.textContent = 'Analysis failed: ' + err.message;
+    }
     e.style.display = 'block';
+  } finally {
+    clearTimeout(_abortTimer);
   }
 }
 
