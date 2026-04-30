@@ -1861,35 +1861,135 @@ def render_mom_page(status_message: str = "", target_date_str: str = "") -> str:
         </div>
     </div>"""
 
-    # Tasks sidebar for plan editor
-    all_tasks    = load_manual_tasks()
+    # Tasks sidebar for plan editor — Overdue / Active / Someday sections
+    all_tasks      = load_manual_tasks()
     priority_order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
-    active_tasks = [
+    _active_pool   = [
         (i, t) for i, t in enumerate(all_tasks)
         if isinstance(t, dict) and t.get("status", "active") == "active"
     ]
-    active_tasks.sort(key=lambda it: (it[1].get("due_date","") or "9999",
-                                       priority_order.get(it[1].get("priority","MEDIUM"),1)))
 
-    tasks_items = ""
-    for idx, task in active_tasks[:5]:
-        tid   = escape(task.get("id", str(idx)))
-        ttext = escape(task.get("text", ""))
-        tpri  = task.get("priority","MEDIUM")
+    _today_iso = iso
+    _tomorrow  = target_date + timedelta(days=1)
+    _week_out  = target_date + timedelta(days=7)
+
+    def _due_label(due_str: str) -> str:
+        if not due_str:
+            return "no date"
+        try:
+            d = date.fromisoformat(due_str)
+        except Exception:
+            return ""
+        if d == target_date:
+            return "today"
+        if d == _tomorrow:
+            return "tomorrow"
+        if target_date < d <= _week_out:
+            return d.strftime("%a")
+        return f"{d.strftime('%b')} {d.day}"
+
+    # Bucket: Overdue / Someday / Active
+    # Someday = undated AND priority is LOW or unset/missing.
+    # HIGH/MEDIUM tasks without a due date stay in Active with a "no date" label.
+    _overdue_list: list = []
+    _someday_list: list = []
+    _active_list:  list = []
+    for _idx, _t in _active_pool:
+        _due  = (_t.get("due_date") or "").strip()
+        _pri  = _t.get("priority")
+        _pri_norm = (_pri or "").upper() if isinstance(_pri, str) else ""
+        if _due and _due < _today_iso:
+            _overdue_list.append((_idx, _t))
+        elif (not _due) and _pri_norm in ("", "LOW"):
+            _someday_list.append((_idx, _t))
+        else:
+            _active_list.append((_idx, _t))
+
+    _overdue_list.sort(key=lambda it: (it[1].get("due_date","") or "9999",
+                                        priority_order.get(it[1].get("priority","MEDIUM"),1)))
+    _active_list.sort(key=lambda it: (it[1].get("due_date","") or "9999",
+                                       priority_order.get(it[1].get("priority","MEDIUM"),1)))
+    _someday_list.sort(key=lambda it: (it[1].get("text","") or "").lower())
+
+    def _row(idx, task, badge_html=""):
+        ttext_raw = task.get("text", "")
+        ttext     = escape(ttext_raw)
+        tpri      = task.get("priority") or "MEDIUM"
         pri_color = {"HIGH":"#e74c3c","MEDIUM":"#e67e22","LOW":"#27ae60"}.get(tpri,"#888")
-        add_btn = render_add_to_plan_btn(ttext, "task", "#8b5a3c")
-        tasks_items += (
+        add_btn   = render_add_to_plan_btn(ttext_raw, "task", "#8b5a3c")
+        label     = _due_label((task.get("due_date") or "").strip())
+        label_html = (
+            f'<span style="font-size:0.72em;color:var(--ink-faint);'
+            f'margin-right:6px;white-space:nowrap;flex-shrink:0;">{escape(label)}</span>'
+            if label else ""
+        )
+        return (
             f'<div style="display:flex;align-items:center;justify-content:space-between;'
             f'gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light);">'
-            f'<span style="font-size:0.85em;flex:1;">'
+            f'<span style="font-size:0.85em;flex:1;display:flex;align-items:center;min-width:0;">'
             f'<span style="width:6px;height:6px;border-radius:50%;background:{pri_color};'
-            f'display:inline-block;margin-right:5px;"></span>{ttext}</span>'
+            f'display:inline-block;margin-right:6px;flex-shrink:0;"></span>'
+            f'{label_html}'
+            f'<span style="flex:1;min-width:0;">{ttext}</span>'
+            f'{badge_html}'
+            f'</span>'
             f'{add_btn}</div>'
         )
+
+    # ── Section 1: Overdue (no cap, always visible when non-empty) ──────
+    overdue_html = ""
+    if _overdue_list:
+        _overdue_badge = (
+            '<span style="font-size:0.62em;font-weight:700;color:#fff;background:#e74c3c;'
+            'padding:2px 6px;border-radius:4px;margin-left:6px;text-transform:uppercase;'
+            'letter-spacing:0.04em;flex-shrink:0;">Overdue</span>'
+        )
+        _overdue_rows = "".join(_row(i, t, _overdue_badge) for i, t in _overdue_list)
+        overdue_html = (
+            '<div style="font-size:0.78em;font-weight:700;color:#e74c3c;'
+            'margin:4px 0 2px;letter-spacing:.02em;">⚠️ Overdue</div>'
+            + _overdue_rows
+        )
+
+    # ── Section 2: Active (cap of 10) ───────────────────────────────────
+    _active_rows = "".join(_row(i, t) for i, t in _active_list[:10])
+    _active_margin = "margin:10px 0 2px;" if overdue_html else "margin:4px 0 2px;"
+    active_section_html = (
+        f'<div style="font-size:0.78em;font-weight:700;color:var(--ink);'
+        f'{_active_margin}letter-spacing:.02em;">Active tasks</div>'
+        + (_active_rows or
+           '<p class="muted" style="font-size:0.82em;margin:4px 0;">None right now.</p>')
+    )
+
+    # ── Section 3: Someday / no date (collapsible, hidden by default) ───
+    someday_html = ""
+    if _someday_list:
+        _someday_count = len(_someday_list)
+        _someday_rows  = "".join(_row(i, t) for i, t in _someday_list)
+        # Inline toggle — flips display + swaps marker char. No literal
+        # braces in the JS string, so no f-string escaping concerns.
+        _toggle_js = (
+            "var d=document.getElementById('mom-someday-list');"
+            "var m=document.getElementById('mom-someday-marker');"
+            "var hidden=(d.style.display==''||d.style.display=='none');"
+            "d.style.display=hidden?'block':'none';"
+            "m.textContent=hidden?'\u25bc':'\u25b6';"
+        )
+        someday_html = (
+            f'<div onclick="{_toggle_js}" '
+            f'style="font-size:0.78em;font-weight:700;color:var(--ink-muted);'
+            f'margin:10px 0 2px;cursor:pointer;user-select:none;letter-spacing:.02em;">'
+            f'<span id="mom-someday-marker">\u25b6</span> Someday / no date '
+            f'({_someday_count})'
+            f'</div>'
+            f'<div id="mom-someday-list" style="display:none;">{_someday_rows}</div>'
+        )
+
     tasks_sidebar = f"""
     <div class="card card-tight">
-        <h4 style="margin-bottom:8px;">Active tasks</h4>
-        {tasks_items or '<p class="muted" style="font-size:0.82em;">No active tasks.</p>'}
+        {overdue_html}
+        {active_section_html}
+        {someday_html}
         <div style="margin-top:8px;"><a class="link-button" href="/tasks" style="font-size:0.78em;">All tasks</a></div>
     </div>"""
 

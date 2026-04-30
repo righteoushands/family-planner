@@ -1,0 +1,18 @@
+Make changes only to the task sidebar block in render_mom_page() in render_misc.py. The sidebar is built at lines 1864–1894. No other changes anywhere.
+What to build:
+Replace the existing sidebar task rendering block with three sections:
+Section 1 — Overdue (always shown, exempt from cap)
+Tasks where due_date is non-empty and due_date < iso (today’s ISO date, already in scope at line 1751). Show all overdue tasks regardless of count. Each row gets a red “Overdue” badge. Header: “⚠️ Overdue” in red.
+Section 2 — Active tasks (cap of 10)
+Tasks where due_date >= iso (due today or future), sorted as today: due date ascending, then priority. Show up to 10. Each row shows a small due-date label next to the task text using plain English: “today”, “tomorrow”, “Mon”, “Tue” etc for dates within 7 days, “Mar 15” for further out, “no date” for empty due_date. Undated tasks still appear here but labeled “no date” and sorted to the bottom of this section. Header: “Active tasks”.
+Section 3 — Someday (collapsible, hidden by default)
+Tasks where due_date is empty or null AND priority is LOW or unset. Collapsed by default with a toggle link “▶ Someday / no date (N)”. Clicking expands it. No cap on this section. Header toggles between “▶ Someday / no date (N)” and “▼ Someday / no date (N)”.
+Row layout stays the same — priority dot, task text, Add to plan button. Just add the due-date label between the priority dot and the task text in small muted text.
+Constraints:
+The render_add_to_plan_btn call must remain on every row in all three sections — do not remove or move it.
+The “All tasks” link at the bottom stays.
+The target_date variable (line 1751) is already date.fromisoformat(iso) — use it for date comparisons. Compute tomorrow as target_date + timedelta(days=1) and the 7-day window as target_date + timedelta(days=7).
+This block is inside a Python f-string in render_misc.py. Any CSS or inline JS added here must use {{ and }} instead of { and } for literal braces. Follow the existing pattern in the file.
+The collapsible Someday section toggle can use a simple inline onclick that toggles a div’s display style — no new JS functions needed.
+Edit only render_misc.py. Do not touch app.py, render_schedule.py, daily_schedule_engine.py, or any data file.
+After making changes, verify render_misc.py compiles cleanly with py_compile before finishing.
