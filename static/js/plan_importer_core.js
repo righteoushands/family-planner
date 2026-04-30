@@ -211,16 +211,29 @@ async function reanalyzeWithAnswers() {
 
   const text = document.getElementById('plan-text').value.trim();
   const body = new URLSearchParams({plan_text: text, answers: JSON.stringify(answers)});
+  // Client-side timeout: abort if the analyze call takes longer than 95s
+  // (server timeout is 90s; this gives the server room to respond first).
+  const _abortCtrl = new AbortController();
+  const _abortTimer = setTimeout(() => _abortCtrl.abort(), 95000);
   try {
-    const resp = await fetch('/plan-import-analyze', {method:'POST', body});
+    const resp = await fetch('/plan-import-analyze', {method:'POST', body, signal: _abortCtrl.signal});
     if (!resp.ok) throw new Error(await resp.text());
     analysisData = await resp.json();
     renderResults(analysisData);
     showPhase('phase-results');
     _saveSession();
   } catch(err) {
-    showPhase('phase-results');
-    alert('Re-analysis failed: ' + err.message);
+    if (err && err.name === 'AbortError') {
+      showPhase('phase-paste');
+      const e = document.getElementById('paste-error');
+      e.textContent = 'Analysis timed out \u2014 please try again, or use a smaller image if uploading a photo.';
+      e.style.display = 'block';
+    } else {
+      showPhase('phase-results');
+      alert('Re-analysis failed: ' + err.message);
+    }
+  } finally {
+    clearTimeout(_abortTimer);
   }
 }
 
