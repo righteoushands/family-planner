@@ -213,7 +213,7 @@ from config import HOST, PORT, ROADMAP_STATUSES, WEEKDAYS
 from data_helpers import (
     safe_int, clean_text, clean_child, clean_weekday, clean_priority,
     lines_to_list, sort_school_days, is_math_subject, is_math_test_text,
-    load_manual_tasks, save_manual_tasks, active_manual_tasks,
+    load_manual_tasks, save_manual_tasks, active_manual_tasks, ensure_manual_task_ids,
     load_chores_data, save_chores_data,
     load_roadmap, save_roadmap,
     load_mom_notes, save_mom_notes,
@@ -3239,7 +3239,7 @@ class Handler(BaseHTTPRequestHandler):
                 notes=load_notes(); tasks=load_manual_tasks()
                 for note in notes:
                     if note.get("id")==note_id:
-                        tasks.append({"text":clean_text(note.get("text","")),"assigned_to":assigned_to,"due_date":due_date,"priority":priority,"status":"active"})
+                        tasks.append({"id":uuid.uuid4().hex[:8],"text":clean_text(note.get("text","")),"assigned_to":assigned_to,"due_date":due_date,"priority":priority,"status":"active"})
                         note["status"]="archived"; break
                 save_manual_tasks(tasks); save_notes(notes); redirect="/notes"
 
@@ -3629,7 +3629,8 @@ class Handler(BaseHTTPRequestHandler):
                     _tasks = load_manual_tasks()
                     _targets = _assignees if _assignees else [""]
                     for _who in _targets:
-                        _tasks.append({"text": _task_text, "assigned_to": _who,
+                        _tasks.append({"id": uuid.uuid4().hex[:8],
+                                       "text": _task_text, "assigned_to": _who,
                                        "due_date": "", "priority": "HIGH",
                                        "status": "active", "recurring": False})
                     save_manual_tasks(_tasks)
@@ -3832,17 +3833,18 @@ class Handler(BaseHTTPRequestHandler):
                             _tid = _it.get("task_id", "")
                             break
                     if _tid:
-                        _tasks = load_manual_tasks()
-                        for _t in _tasks:
-                            if isinstance(_t, dict) and _t.get("id") == _tid:
-                                if done:
-                                    _t["status"] = "done"
-                                else:
-                                    _t["status"] = "active"
-                                    if "scheduled_for" in _t:
-                                        del _t["scheduled_for"]
-                                save_manual_tasks(_tasks)
-                                break
+                        with _MANUAL_TASKS_LOCK:
+                            _tasks = load_manual_tasks()
+                            for _t in _tasks:
+                                if isinstance(_t, dict) and _t.get("id") == _tid:
+                                    if done:
+                                        _t["status"] = "done"
+                                    else:
+                                        _t["status"] = "active"
+                                        if "scheduled_for" in _t:
+                                            del _t["scheduled_for"]
+                                    save_manual_tasks(_tasks)
+                                    break
                 except Exception:
                     pass
                 self.send_response(200)
@@ -6722,6 +6724,7 @@ class Handler(BaseHTTPRequestHandler):
                             if not text:
                                 continue
                             _all_tasks.append({
+                                "id": uuid.uuid4().hex[:8],
                                 "text": text,
                                 "assigned_to": person,
                                 "due_date": due,
@@ -7975,7 +7978,7 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/planner-add-task":
                 text=clean_text(data.get("text",[""])[0])
                 if text:
-                    tasks=load_manual_tasks(); tasks.append({"text":text,"assigned_to":"Mom","due_date":"","priority":"MEDIUM","status":"active","recurring":False}); save_manual_tasks(tasks)
+                    tasks=load_manual_tasks(); tasks.append({"id":uuid.uuid4().hex[:8],"text":text,"assigned_to":"Mom","due_date":"","priority":"MEDIUM","status":"active","recurring":False}); save_manual_tasks(tasks)
                 redirect="/planner#top"
 
             elif path == "/subscribed-cal-add":
@@ -8461,12 +8464,13 @@ class Handler(BaseHTTPRequestHandler):
                     add_item_to_plan(iso_q, text_q, source=src_q, task_id=task_id)
                     if task_id:
                         try:
-                            _tasks = load_manual_tasks()
-                            for _t in _tasks:
-                                if isinstance(_t, dict) and _t.get("id") == task_id:
-                                    _t["scheduled_for"] = iso_q
-                                    save_manual_tasks(_tasks)
-                                    break
+                            with _MANUAL_TASKS_LOCK:
+                                _tasks = load_manual_tasks()
+                                for _t in _tasks:
+                                    if isinstance(_t, dict) and _t.get("id") == task_id:
+                                        _t["scheduled_for"] = iso_q
+                                        save_manual_tasks(_tasks)
+                                        break
                         except Exception:
                             pass
                 self.send_response(200)
@@ -9916,6 +9920,16 @@ if __name__ == "__main__":
         _pf.write(str(_os.getpid()))
 
     initialize_data_files()
+    # One-time/idempotent backfill: ensure every manual task has a stable id.
+    # Runs before the HTTP server starts accepting requests so no handler can
+    # race against the migration.
+    try:
+        with _MANUAL_TASKS_LOCK:
+            _assigned = ensure_manual_task_ids()
+        if _assigned:
+            print(f"[startup] Backfilled {_assigned} manual task id(s)")
+    except Exception as _e:
+        print(f"[startup] manual-task id backfill skipped: {_e}")
     # Pre-fetch saint data for the week in the background
     try:
         import threading

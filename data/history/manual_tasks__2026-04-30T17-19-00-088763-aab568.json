@@ -34,22 +34,6 @@
     "recurring": false
   },
   {
-    "text": "Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
-    "assigned_to": "JP",
-    "due_date": "2026-04-11",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-11",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
     "text": "Call MD re: meds for hair loss",
     "assigned_to": "Mom",
     "due_date": "2026-04-15",
@@ -724,30 +708,6 @@
     "recurring": false
   },
   {
-    "text": "Mind little boys during Mom’s meeting from 1:30 to 2:45 (approximate times)",
-    "assigned_to": "JP",
-    "due_date": "2026-04-27",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Mind the little boys during Mom’s meeting from approximately 1:45 to 2:30 PM.",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-27",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Giant: white bread and fresh mint",
-    "assigned_to": "Mom",
-    "due_date": "2026-04-27",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
     "text": "Buy garden bed supplies and lay cardboard",
     "assigned_to": "Lauren",
     "due_date": "2026-04-27",
@@ -1048,6 +1008,238 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "Important for planning lunch with four kids including a toddler; ensure options for James's dietary needs",
+    "subtasks": []
+  },
+  {
+    "text": "Set up postpartum workout tracking log",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-29",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "For 6-week core & resilience block starting next week",
+    "subtasks": [
+      "Create log for time started",
+      "Track run/walk ratios",
+      "Monitor ankle/knee/core feeling",
+      "Note energy levels after workouts"
+    ]
+  },
+  {
+    "text": "Set up tracking log",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-28",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Complete today before the workout so you can use it on Wednesday. Do this rather than tomorrow morning when you'll be pulled in multiple directions.",
+    "subtasks": []
+  },
+  {
+    "text": "Take a 10-minute walk",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-28",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Walk today or tonight to keep momentum going before Wednesday.",
+    "subtasks": []
+  },
+  {
+    "text": "Recite memorized Friendly Defender cards",
+    "assigned_to": "Joseph",
+    "due_date": "2026-05-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Trim James's nails",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": []
+  },
+  {
+    "text": "Clean the very top of the kitchen shelves",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": []
+  },
+  {
+    "text": "Get the boys haircuts",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Likely refers to JP and Joseph",
+    "subtasks": [
+      "Schedule appointments",
+      "Coordinate with boys' schedules"
+    ]
+  },
+  {
+    "text": "Put all the Amazon packages in the back of the van and return them",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-01",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "Gather all packages",
+      "Load into van",
+      "Drive to return location"
+    ]
+  },
+  {
+    "text": "Follow up with John on lodging for the convention and add the boys to my registration and add classes",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-02",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "Discuss lodging options with John",
+      "Add boys to registration",
+      "Select and add classes"
+    ]
+  },
+  {
+    "text": "Add receipts to YNAB, including the giant receipts from the other day and all of the things in my blue book",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Budget tracking catch-up",
+    "subtasks": [
+      "Process giant receipts from recent shopping",
+      "Enter all receipts from blue book",
+      "Categorize transactions in YNAB"
+    ]
+  },
+  {
+    "text": "RSVP to drill on Saturday",
+    "assigned_to": "JP",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Sea Cadets drill",
+    "subtasks": []
+  },
+  {
+    "text": "RSVP to drill on Saturday",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Sea Cadets drill",
+    "subtasks": []
+  },
+  {
+    "text": "Put the spiritual bouquet promises into my to-do list",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-01",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "Review spiritual bouquet commitments",
+      "Add each promise as actionable tasks",
+      "Set appropriate deadlines"
+    ]
+  },
+  {
+    "text": "The year-end planning task (t7) could help organize and delegate some of these other tasks to appropriate family members.",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "From counsel suggestion",
+    "subtasks": [
+      "List of assessments due for JP and Joe"
+    ]
+  },
+  {
+    "text": "Confirm which specific classes JP and Joseph need or want for convention registration",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-01",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Must be completed before finalizing convention registration (deadline May 2nd). Have this conversation at lunch with older boys.",
+    "subtasks": []
+  },
+  {
+    "text": "Haircuts today?",
+    "assigned_to": "JP",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Purchase Mother’s Day gifts: Mom, GMA Joan, Shelbi",
+    "assigned_to": "Mom",
+    "due_date": "2026-05-01",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": true,
+    "interval_value": 1,
+    "interval_unit": "years"
+  },
+  {
+    "text": "Get drinks and snacks for JP to share at religious ed pizza party",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-05",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Based on previous answers - JP gets to pick both items to share",
+    "subtasks": [
+      "Let JP pick both drinks and snacks",
+      "Purchase items",
+      "Pack for JP to bring"
+    ]
+  },
+  {
+    "text": "Schedule outdoor activity for JP on May 3rd before Youth Group",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-02",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Front-load active time earlier in day so JP isn't sedentary before 6:15 PM Youth Group",
     "subtasks": []
   }
 ]

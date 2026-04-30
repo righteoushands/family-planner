@@ -122,6 +122,37 @@ def active_manual_tasks():
         if isinstance(t, dict) and t.get("status", "active") == "active"
     ]
 
+def ensure_manual_task_ids():
+    """One-time/idempotent backfill: assign uuid4().hex[:8] to any manual task
+    missing or with empty 'id'. Saves only when something changed. Caller is
+    responsible for serializing concurrent access (e.g. _MANUAL_TASKS_LOCK).
+    Returns the number of ids assigned this call (0 if everything was already
+    backfilled)."""
+    import uuid as _uuid
+    tasks = load_manual_tasks()
+    seen = set()
+    for t in tasks:
+        if isinstance(t, dict):
+            tid = t.get("id")
+            if isinstance(tid, str) and tid:
+                seen.add(tid)
+    assigned = 0
+    for t in tasks:
+        if not isinstance(t, dict):
+            continue
+        tid = t.get("id")
+        if isinstance(tid, str) and tid:
+            continue
+        new_id = _uuid.uuid4().hex[:8]
+        while new_id in seen:
+            new_id = _uuid.uuid4().hex[:8]
+        seen.add(new_id)
+        t["id"] = new_id
+        assigned += 1
+    if assigned:
+        save_manual_tasks(tasks)
+    return assigned
+
 _LEGACY_PATTERN_TO_NTH_WD = {
     "monthly_last_sat":  (-1, 5),
     "monthly_last_sun":  (-1, 6),
