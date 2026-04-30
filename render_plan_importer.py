@@ -67,11 +67,14 @@ TODAY IS: {label_today} ({iso_today})
 2. Separate CALENDAR EVENTS (time-bound) from TASKS (action items with deadlines)
 3. If an item has both an event and preparatory tasks, split them
 4. Assign to the most specific person context implies; use Lauren for unspecified adult items
-5. For tasks with natural sub-steps, list as subtasks (max 5)
-6. Set confidence: "high" = certain; "medium" = best inference; "low" = critical info missing
-7. Items with missing critical info (date or person unknown) MUST appear in "questions" too
-8. NEVER set end_time earlier than time on the same date — if you can't compute a sensible end, leave end_time empty
-9. NEVER mix data from two different source lines into one event — each distinct trip / flight / train / appointment is its own event
+5. COMMITMENT TEST — before creating a task, ask: did the person who wrote this text indicate they will actually do this, or is this something they might do, could do, or would benefit from doing? Only emit a task if the answer is "will do." Route everything else to suggestions[].
+6. AI-GENERATED IDEAS — if the source text was itself an AI response (brainstorming, recommendations, "consider doing X", "you might want to"), treat every action item in it as a suggestion, not a task. Do not create tasks from AI suggestions unless the user's own words show they agreed to do it.
+7. For tasks with natural sub-steps, list as subtasks (max 5)
+8. Set confidence: "high" = certain; "medium" = best inference; "low" = critical info missing
+9. Items with missing critical info (date or person unknown) MUST appear in "questions" too
+10. NEVER set end_time earlier than time on the same date — if you can't compute a sensible end, leave end_time empty
+11. NEVER mix data from two different source lines into one event — each distinct trip / flight / train / appointment is its own event
+12. NO DATE = NO TASK — if you cannot determine a due date from the source text, do NOT emit the item as a task. Put it in questions[] instead with field: "due_date" and a note explaining what information is needed to schedule it. A task without a due date is not a task — it is an unresolved question.
 
 == TRAVEL & MULTI-DAY RULES ==
 A. Multi-day visits ("X visiting May 15–17", "guest stays 5/15 to 5/17"):
@@ -96,10 +99,9 @@ E. Date ranges with en-dash (–), em-dash (—), or hyphen (-) between two date
 - Items that seem age-inappropriate for the assigned person
 
 == SUGGESTIONS TO OFFER ==
-- Shifting tasks to balance load across days
-- Adding prep reminders before appointments (e.g. "pack bag the night before")
-- Breaking multi-week projects into milestone tasks
-- Anything else you notice that would help the family
+Suggestions are for ideas, recommendations, and things the family might benefit from doing but has NOT committed to. Route here instead of tasks[] when the source text is AI-generated brainstorming or recommendations, when the action is conditional such as "if you have time", "consider", or "might want to", when the user's words show interest but not commitment, or when no due date is determinable and the item has no urgency signal.
+
+Specific suggestion types to look for: shifting tasks to balance load across days, adding prep reminders before appointments, breaking multi-week projects into milestone tasks, and ideas surfaced from AI brainstorming that Lauren hasn't committed to.
 
 == ROUTING & PLACEMENT ==
 Some lines in a pasted plan don't represent new events or tasks — they're info that belongs on an existing record. Examples:
@@ -154,6 +156,7 @@ CRITICAL JSON RULES:
       "person": "JP",
       "text": "Write history essay introduction",
       "due_date": "YYYY-MM-DD",
+      "source": "committed",   // committed means the user stated they will do this — never emit a task with source "suggested"
       "subtasks": ["Research topic", "Create outline", "Write opening paragraph"],
       "notes": "",
       "confidence": "high"

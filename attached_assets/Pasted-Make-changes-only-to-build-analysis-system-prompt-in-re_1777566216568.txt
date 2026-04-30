@@ -1,0 +1,16 @@
+Make changes only to build_analysis_system_prompt() in render_plan_importer.py. No other changes anywhere.
+Change 1 — Add a commitment rule to == PARSING RULES ==
+Add these two rules after rule 4:
+Rule 5: COMMITMENT TEST — before creating a task, ask: did the person who wrote this text indicate they will actually do this, or is this something they might do, could do, or would benefit from doing? Only emit a task if the answer is “will do.” Route everything else to suggestions[].
+Rule 6: AI-GENERATED IDEAS — if the source text was itself an AI response (brainstorming, recommendations, “consider doing X”, “you might want to”), treat every action item in it as a suggestion, not a task. Do not create tasks from AI suggestions unless the user’s own words show they agreed to do it.
+Renumber the existing rules 5 through 9 to become rules 7 through 11 accordingly.
+Change 2 — Add a due date rule to == PARSING RULES ==
+Add this as rule 12 after the renumbered rules:
+Rule 12: NO DATE = NO TASK — if you cannot determine a due date from the source text, do NOT emit the item as a task. Put it in questions[] instead with field: “due_date” and a note explaining what information is needed to schedule it. A task without a due date is not a task — it is an unresolved question.
+Change 3 — Add a source field to the task schema in == OUTPUT FORMAT ==
+Add “source”: “committed” to the task example. Add a comment next to it in the schema: committed means the user stated they will do this — never emit a task with source “suggested”.
+Change 4 — Tighten == SUGGESTIONS TO OFFER ==
+Replace the current block with this:
+Suggestions are for ideas, recommendations, and things the family might benefit from doing but has NOT committed to. Route here instead of tasks[] when the source text is AI-generated brainstorming or recommendations, when the action is conditional such as “if you have time”, “consider”, or “might want to”, when the user’s words show interest but not commitment, or when no due date is determinable and the item has no urgency signal.
+Specific suggestion types to look for: shifting tasks to balance load across days, adding prep reminders before appointments, breaking multi-week projects into milestone tasks, and ideas surfaced from AI brainstorming that Lauren hasn’t committed to.
+Verify after making the changes by rendering the prompt in-process and confirming the four new rules appear correctly, the task schema example includes the source field, and the file still parses cleanly with no f-string interpolation errors. Do not restart the app or test against live data.​​​​​​​​​​​​​​​​
