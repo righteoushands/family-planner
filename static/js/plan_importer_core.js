@@ -87,25 +87,68 @@ function resetToPaste() {
 let _planImageFile = null;
 function _setPlanImageFile(file) {
   if (!file || !file.type || !file.type.startsWith('image/')) return;
-  // Cap at ~8 MB to keep request size reasonable for Claude vision
+  // Reject truly enormous files before attempting the resize.
+  // Cap at ~8 MB to keep request size reasonable for Claude vision.
   if (file.size > 8 * 1024 * 1024) {
     const e = document.getElementById('paste-error');
     e.textContent = 'Image is too large (max 8 MB). Please use a smaller screenshot.';
     e.style.display = 'block';
     return;
   }
-  _planImageFile = file;
-  const wrap = document.getElementById('img-preview-wrap');
-  const img  = document.getElementById('img-preview');
-  document.getElementById('img-preview-name').textContent = file.name || 'pasted image';
-  document.getElementById('img-preview-size').textContent =
-    Math.round(file.size / 1024) + ' KB · ' + file.type;
+  // Canvas-based downscale: max 1200px on the longest side, JPEG quality 0.85.
+  // _planImageFile is assigned asynchronously inside the FileReader onload.
+  // analyzePlan() reads _planImageFile at button-click time, so the async gap is safe.
   const reader = new FileReader();
-  reader.onload = ev => { img.src = ev.target.result; };
+  reader.onload = ev => {
+    const dataUrl = ev.target.result;
+    const tmpImg = new Image();
+    tmpImg.onload = () => {
+      const MAX = 1200;
+      const w0 = tmpImg.naturalWidth || tmpImg.width;
+      const h0 = tmpImg.naturalHeight || tmpImg.height;
+      const longest = Math.max(w0, h0);
+      const scale = longest > MAX ? (MAX / longest) : 1;
+      const w = Math.round(w0 * scale);
+      const h = Math.round(h0 * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(tmpImg, 0, 0, w, h);
+      canvas.toBlob(blob => {
+        if (!blob) {
+          const e = document.getElementById('paste-error');
+          e.textContent = 'Could not process the image. Please try a different file.';
+          e.style.display = 'block';
+          return;
+        }
+        const baseName = (file.name || 'pasted-image').replace(/\.[^.]+$/, '') + '.jpg';
+        const resized = new File([blob], baseName, {type: 'image/jpeg'});
+        _planImageFile = resized;
+        const wrap = document.getElementById('img-preview-wrap');
+        const img  = document.getElementById('img-preview');
+        document.getElementById('img-preview-name').textContent = resized.name;
+        document.getElementById('img-preview-size').textContent =
+          Math.round(resized.size / 1024) + ' KB \u00b7 ' + resized.type;
+        img.src = URL.createObjectURL(resized);
+        wrap.style.display = 'block';
+        document.getElementById('img-drop').style.display = 'none';
+        document.getElementById('paste-error').style.display = 'none';
+      }, 'image/jpeg', 0.85);
+    };
+    tmpImg.onerror = () => {
+      const e = document.getElementById('paste-error');
+      e.textContent = 'Could not read the image. Please try a different file.';
+      e.style.display = 'block';
+    };
+    tmpImg.src = dataUrl;
+  };
+  reader.onerror = () => {
+    const e = document.getElementById('paste-error');
+    e.textContent = 'Could not read the image. Please try a different file.';
+    e.style.display = 'block';
+  };
   reader.readAsDataURL(file);
-  wrap.style.display = 'block';
-  document.getElementById('img-drop').style.display = 'none';
-  document.getElementById('paste-error').style.display = 'none';
 }
 function clearPlanImage() {
   _planImageFile = null;
