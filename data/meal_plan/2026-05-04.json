@@ -1,0 +1,63 @@
+{
+  "start": "2026-05-04",
+  "week": "2026-05-04",
+  "generated": false,
+  "days": {
+    "Monday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Tuesday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Wednesday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Thursday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Friday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Saturday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Sunday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": ""
+    }
+  }
+}

@@ -129,6 +129,12 @@
         "time": "14:43",
         "label": "Finish laundry"
       }
+    },
+    "2026-04-30": {
+      "ROUTINE::Joseph::2026-04-30::Prep vegetables for sheet pan": {
+        "action": "dismiss",
+        "label": "Prep vegetables for sheet pan"
+      }
     }
   },
   "Lauren": {
@@ -226,6 +232,52 @@
       "ROUTINE::Lauren::2026-04-23::Travel": {
         "action": "dismiss",
         "label": "Travel"
+      }
+    },
+    "2026-04-30": {
+      "ROUTINE::Lauren::2026-04-30::Break": {
+        "action": "dismiss",
+        "label": "Break"
+      },
+      "MANUAL::Lauren::2026-04-30::Get the boys haircuts": {
+        "action": "postpone",
+        "postpone_to": "2026-04-30",
+        "label": "Get the boys haircuts"
+      },
+      "MANUAL::Lauren::2026-04-30::Add receipts to YNAB, including the giant receipts from the other day and all of the things in my blue book": {
+        "action": "postpone",
+        "postpone_to": "2026-05-01",
+        "label": "Add receipts to YNAB, including the giant receipts from the other day and all of the things in my blue book"
+      },
+      "MANUAL::Lauren::2026-04-30::Follow up with John on lodging for the convention and add the boys to my registration and add classes": {
+        "action": "postpone",
+        "postpone_to": "2026-04-30",
+        "label": "Follow up with John on lodging for the convention and add the boys to my registration and add classes"
+      },
+      "MANUAL::Lauren::2026-04-30::Put all the Amazon packages in the back of the van and return them": {
+        "action": "postpone",
+        "postpone_to": "2026-04-30",
+        "label": "Put all the Amazon packages in the back of the van and return them"
+      },
+      "MANUAL::Lauren::2026-04-30::Confirm which specific classes JP and Joseph need or want for convention registration": {
+        "action": "postpone",
+        "postpone_to": "2026-04-30",
+        "label": "Confirm which specific classes JP and Joseph need or want for convention registration"
+      },
+      "MANUAL::Lauren::2026-04-30::Trim James's nails": {
+        "action": "postpone",
+        "postpone_to": "2026-05-01",
+        "label": "Trim James's nails"
+      },
+      "MANUAL::Lauren::2026-04-30::Ensure James continues wearing hip shorts": {
+        "action": "postpone",
+        "postpone_to": "2026-05-01",
+        "label": "Ensure James continues wearing hip shorts"
+      },
+      "MANUAL::Lauren::2026-04-30::Put all Amazon returns in the back of the van.": {
+        "action": "postpone",
+        "postpone_to": "2026-04-30",
+        "label": "Put all Amazon returns in the back of the van."
       }
     }
   }

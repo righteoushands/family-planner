@@ -1,134 +1,13 @@
 {
   "events": [
     {
-      "title": "Eliana taken off isolation precautions!",
-      "start": "2026-04-28",
-      "end": "2026-04-28",
-      "all_day": true,
-      "location": "2015",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Baby shower during Bible study?",
-      "start": "2026-04-28",
-      "end": "2026-04-28",
-      "all_day": true,
-      "location": "",
-      "notes": "",
-      "calendar": "Apple Calendar",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "St. Gianna Molla",
-      "start": "2026-04-28",
-      "end": "2026-04-28",
-      "all_day": true,
-      "location": "",
-      "notes": "//thelittleroseshop.com/blogs/the-little-rose-shop-everyday-faith/what-i-love-about-and-can-learn-from-st-gianna​​​  ",
-      "calendar": "Liturgical Calendar (Little Rose Shop)",
-      "color": "#e91e8c",
-      "source": "subscribed"
-    },
-    {
-      "title": "St. Louis de Monfort",
-      "start": "2026-04-28",
-      "end": "2026-04-28",
-      "all_day": true,
-      "location": "",
-      "notes": "//thelittleroseshop.com/search?q=louis+de+monfort&options%5Bprefix%5D=last",
-      "calendar": "Liturgical Calendar (Little Rose Shop)",
-      "color": "#e91e8c",
-      "source": "subscribed"
-    },
-    {
       "title": "John's class",
-      "start": "2026-04-28T08:00",
-      "end": "2026-04-28T17:00",
+      "start": "2026-04-30T08:00",
+      "end": "2026-04-30T17:00",
       "all_day": false,
       "location": "",
       "notes": "",
       "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Bible Study",
-      "start": "2026-04-28T10:00",
-      "end": "2026-04-28T12:00",
-      "all_day": false,
-      "location": "Aletha house, 6712 Lakeland Way, Fredericksburg, VA 22407",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Homeschool PE",
-      "start": "2026-04-28T13:00",
-      "end": "2026-04-28T14:30",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Religious Education",
-      "start": "2026-04-28T16:45",
-      "end": "2026-04-28T18:00",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "St. Catherine of Siena",
-      "start": "2026-04-29",
-      "end": "2026-04-29",
-      "all_day": true,
-      "location": "",
-      "notes": "//thelittleroseshop.com/pages/coloringpages",
-      "calendar": "Liturgical Calendar (Little Rose Shop)",
-      "color": "#e91e8c",
-      "source": "subscribed"
-    },
-    {
-      "title": "Piano Lessons with David",
-      "start": "2026-04-29T09:30",
-      "end": "2026-04-29T11:00",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Date Night",
-      "start": "2026-04-29T17:30",
-      "end": "2026-04-29T18:30",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Kids Movie Night!",
-      "start": "2026-04-29T17:30",
-      "end": "2026-04-29T19:30",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Apple Calendar",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -174,6 +53,17 @@
       "notes": "Sealston Sports Complex  We will have a recruiting t",
       "calendar": "USNSCC Pentagon Division (JP & Joe)",
       "color": "#e74c3c",
+      "source": "subscribed"
+    },
+    {
+      "title": "Big boys being picked up by Suzy to go see The Secret Garden the",
+      "start": "2026-05-02T11:00",
+      "end": "2026-05-02T14:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Apple Calendar",
+      "color": "#9b59b6",
       "source": "subscribed"
     },
     {
@@ -856,6 +746,17 @@
       "notes": "//thelittleroseshop.com/blogs/the-little-rose-shop-everyday-faith/pentecost-what-it-is-and-how-to-celebrate?_pos=16&_sid=8cbc7e9de&_ss=r",
       "calendar": "Liturgical Calendar (Little Rose Shop)",
       "color": "#e91e8c",
+      "source": "subscribed"
+    },
+    {
+      "title": "USNSCC Pentagon Division - Community Service - Run to Honor 5K Assi",
+      "start": "2026-05-25T07:00",
+      "end": "2026-05-25T07:00",
+      "all_day": false,
+      "location": "18910 Richmond Hwy, Triangle, VA  22172, United States",
+      "notes": "National Museum of the Marine Corps - USMC Museum, T",
+      "calendar": "USNSCC Pentagon Division (JP & Joe)",
+      "color": "#e74c3c",
       "source": "subscribed"
     },
     {
@@ -1660,7 +1561,73 @@
       "calendar": "USNSCC Pentagon Division (JP & Joe)",
       "color": "#e74c3c",
       "source": "subscribed"
+    },
+    {
+      "title": "Savann's Birthday",
+      "start": "2026-06-28",
+      "end": "2026-06-28",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Thirteenth Sunday",
+      "start": "2026-06-28",
+      "end": "2026-06-28",
+      "all_day": true,
+      "location": "",
+      "notes": "//bible.usccb.org/bible/readings/062826.cfm​​​",
+      "calendar": "Liturgical Calendar (Little Rose Shop)",
+      "color": "#e91e8c",
+      "source": "subscribed"
+    },
+    {
+      "title": "Alisha and Rocky Chouinard's wedding anniversary",
+      "start": "2026-06-29",
+      "end": "2026-06-29",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Sts. Peter and Paul",
+      "start": "2026-06-29",
+      "end": "2026-06-29",
+      "all_day": true,
+      "location": "",
+      "notes": "//thelittleroseshop.com/pages/coloringpages",
+      "calendar": "Liturgical Calendar (Little Rose Shop)",
+      "color": "#e91e8c",
+      "source": "subscribed"
+    },
+    {
+      "title": "Sts Peter and Paul",
+      "start": "2026-06-29",
+      "end": "2026-06-29",
+      "all_day": true,
+      "location": "",
+      "notes": "go fishing, pray for the Pope",
+      "calendar": "Liturgical Calendar (Little Rose Shop)",
+      "color": "#e91e8c",
+      "source": "subscribed"
+    },
+    {
+      "title": "Mama haircut",
+      "start": "2026-06-29T10:00",
+      "end": "2026-06-29T10:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-04-28T19:50:35.403747"
+  "fetched_at": "2026-04-30T09:01:26.371158"
 }

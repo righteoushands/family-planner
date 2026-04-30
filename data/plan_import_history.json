@@ -1580,5 +1580,454 @@
         }
       ]
     }
+  },
+  {
+    "id": "df62dad2e93a",
+    "created_at": "2026-04-29T01:09:27Z",
+    "viewer": "lauren",
+    "source": "live",
+    "plan_text": "**WEDNESDAY, APRIL 29, 2026 \u2014 Your Exercise Day**\n\n---\n\n**9:00 AM \u2014 JUSTICE (Family Strength + Skill Block)**\n**Duration:** 20-30 minutes  \n**Location:** Home (living room, stairs, or yard)\n\n**YOUR WORKOUT (scaled for late luteal phase \u2014 Day 24):**\n\n*Warm-up (3 min):*\n- 30sec arm circles\n- 30sec leg swings\n- 1min easy movement (walk, sway, light stretching)\n\n*Main Circuit (2 sets x 12-15 reps \u2014 lighter load, focus on form):*\n\n**Core work:**\n- Bird dogs: 12 reps per side (alternate legs, hold 1sec)\n- Dead bugs: 12 reps (slow, controlled)\n- Side planks: 20-30sec hold each side\n\n**Lower body:**\n- Squats: 12-15 reps (bodyweight, chest up)\n- Lunges: 12 reps per leg (alternating)\n- Step-ups: 12 reps per leg (using stairs)\n\n**Upper body:**\n- Push-ups: 12-15 reps (incline on counter/couch or wall, whatever feels right)\n- Rows: 12-15 reps (resistance band or towel, slow lower)\n\n**Pelvic floor activation:**\n- Bridges: 12 reps (2sec hold at top, 1sec lower)\n- Glute squeezes: 10 reps (2sec hold, 2sec release)\n\n*Cool-down (2-3 min):*\n- Child's pose: 30sec\n- Spinal twist: 30sec each side\n- Hip opener (figure-4 stretch): 30sec each side\n\n---\n\n**WHY THIS MATTERS TODAY:**\n\nYou're at **Day 24 of your cycle** (late luteal phase). Your energy is naturally declining. This is **not** a \"push hard\" day \u2014 it's a **form-focused, strength-maintenance day**. Lighter loads, more reps, intentional movement.\n\n**The boys do this WITH you** (scaled for their ages). JP leads some reps. Joseph participates. Michael does his own version. You're moving together.\n\n---\n\n**POST-WORKOUT LOG (fill in after):**\n- Duration: ___\n- Reps/Notes: ___\n- How I Felt: ___\n\n---\n\n**Hydration reminder:** Drink water + electrolytes at 8:00 AM (one hour before).",
+    "analysis": {
+      "events": [
+        {
+          "id": "e1",
+          "title": "JUSTICE Family Workout",
+          "date": "2026-04-29",
+          "end_date": "",
+          "time": "9:00 AM",
+          "end_time": "9:30 AM",
+          "who": [
+            "Lauren",
+            "JP",
+            "Joseph",
+            "Michael"
+          ],
+          "notes": "Late luteal phase workout (Day 24) \u2014 lighter loads, focus on form. Circuit includes core work, lower body, upper body, and pelvic floor activation. Cool-down with stretching.",
+          "recurrence": "none",
+          "confidence": "high"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "t1",
+          "person": "Lauren",
+          "text": "Drink water + electrolytes before workout",
+          "due_date": "2026-04-29",
+          "subtasks": [],
+          "notes": "One hour before 9:00 AM workout",
+          "confidence": "high"
+        },
+        {
+          "id": "t2",
+          "person": "Lauren",
+          "text": "Complete post-workout log",
+          "due_date": "2026-04-29",
+          "subtasks": [
+            "Record duration",
+            "Note reps/modifications",
+            "Document how I felt"
+          ],
+          "notes": "Fill in after JUSTICE workout session",
+          "confidence": "high"
+        }
+      ],
+      "questions": [],
+      "warnings": [],
+      "suggestions": [
+        {
+          "text": "Consider setting a reminder at 8:00 AM for hydration to ensure proper timing before the workout.",
+          "related_to": "t1"
+        }
+      ],
+      "placements": [],
+      "_companions": [
+        {
+          "key": "coach",
+          "label": "Coach",
+          "color": "#1a6e3e",
+          "emoji": "\ud83d\udcaa",
+          "role": "Fitness"
+        },
+        {
+          "key": "lucy",
+          "label": "Lucy",
+          "color": "#5b3a8a",
+          "emoji": "\u2728",
+          "role": "Family Companion"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bf458c84ce34",
+    "created_at": "2026-04-29T01:13:09Z",
+    "viewer": "lauren",
+    "source": "live",
+    "plan_text": "**YOUR 6-WEEK POSTPARTUM CORE & RESILIENCE BLOCK**\n**Organized by Day of the Week**\n\n---\n\n## **MONDAY \u2014 FORTITUDE (Family Run)**\n\n**Time:** 11:00 AM  \n**Duration:** 28 minutes total  \n**Location:** Outdoor (track, neighborhood, or park)  \n**Participants:** You + JP (runs 1.5-2mi) + Joseph (runs 1-1.5mi) + Michael (bikes/scoots) + James (stroller)\n\n**Structure:**\n- **Warm-up (5 min):** Easy pace, conversation-level intensity\n- **Main Work (18 min):** Run/walk intervals\n  - Alternate: 2 min running, 1 min walking (repeat 6x)\n  - Focus: Ankle loading (rebuilds stability post-pregnancy) + core engagement (maintain posture while running)\n- **Cool-down (5 min):** Walk together, breathe deeply, reconnect as a family\n\n**How to Adjust by Cycle Phase:**\n\n*Follicular Phase (Days 1-14):*\n- Push the intervals. Run longer, walk shorter.\n- Aim for 2:30 min run / 0:45 min walk if you feel strong.\n\n*Luteal Phase (Days 15-28):*\n- Extend the warm-up to 7 min. Reduce intensity.\n- Aim for 1:45 min run / 1:15 min walk.\n- Days 23-28 (late luteal): Consider a brisk walk with light jog intervals instead.\n\n**Post-Workout Log:**\n- Time started: ___\n- Run/walk ratio today: ___\n- Ankle/knee/core how it felt: ___\n- Energy level after: ___\n\n---\n\n## **WEDNESDAY \u2014 JUSTICE (Family Strength + Skill Block)**\n\n**Time:** 9:00 AM  \n**Duration:** 20-30 minutes  \n**Location:** Home (living room, stairs, or yard)  \n**Participants:** You + JP + Joseph + Michael (all scaled to age/ability)\n\n**Warm-up (3 min):**\n- 30sec arm circles (both directions)\n- 30sec leg swings (forward/back, side-to-side)\n- 1 min easy movement (walk, sway, light stretching)\n\n**Main Circuit \u2014 2 Sets**\n\n*Follicular & Ovulatory (Days 1-14): 3 sets x 10-12 reps, heavier load*  \n*Luteal (Days 15-28): 2 sets x 12-15 reps, lighter load, focus on form*\n\n**Core Work:**\n1. **Bird Dogs**\n   - 12-15 reps per side (alternate legs, hold 1sec at top)\n   - Form: Hands under shoulders, knees under hips. Extend opposite arm + leg, squeeze core.\n\n2. **Dead Bugs**\n   - 12-15 reps (slow, controlled 3-second lower)\n   - Form: Lie on back, arms to ceiling, knees bent at 90\u00b0. Lower opposite arm + leg without arching back.\n\n3. **Side Planks**\n   - 20-30sec hold each side\n   - Form: Elbow under shoulder, body in straight line. Squeeze obliques.\n\n**Lower Body:**\n1. **Squats**\n   - 12-15 reps (bodyweight, chest up, knees tracking over toes)\n   - Form: Hips back, weight in heels, full range of motion.\n\n2. **Lunges**\n   - 12-15 reps per leg (alternating forward lunges)\n   - Form: Step forward, lower back knee toward ground, push through front heel to stand.\n\n3. **Step-ups**\n   - 12-15 reps per leg (using stairs or low bench)\n   - Form: Step up, drive through front heel, squeeze glute at top.\n\n**Upper Body:**\n1. **Push-ups**\n   - 12-15 reps (incline on counter/couch, or wall push-ups \u2014 modify as needed)\n   - Form: Hands shoulder-width, body in straight line, lower chest to surface, press back up.\n\n2. **Rows**\n   - 12-15 reps (resistance band or towel in doorframe, slow 2-second lower)\n   - Form: Pull elbows back, squeeze shoulder blades, control the return.\n\n**Pelvic Floor Activation (CRITICAL \u2014 13 months postpartum):**\n1. **Bridges**\n   - 12 reps (2sec hold at top, 1sec lower)\n   - Form: Lie on back, knees bent, feet flat. Drive through heels, squeeze glutes, lift hips. Pause. Lower.\n\n2. **Glute Squeezes**\n   - 10 reps (2sec hold, 2sec release)\n   - Form: Standing or sitting. Squeeze glutes hard",
+    "analysis": {
+      "events": [],
+      "tasks": [],
+      "questions": [
+        {
+          "id": "q1",
+          "text": "When should the Monday Family Run workout start? The plan shows 11:00 AM \u2014 should this be scheduled for every Monday?",
+          "related_to": null,
+          "field": "recurring_schedule"
+        },
+        {
+          "id": "q2",
+          "text": "When should the Wednesday Family Strength workout start? The plan shows 9:00 AM \u2014 should this be scheduled for every Wednesday?",
+          "related_to": null,
+          "field": "recurring_schedule"
+        },
+        {
+          "id": "q3",
+          "text": "This appears to be a 6-week program \u2014 what is the start date? Should it begin this week (April 28) or a specific future date?",
+          "related_to": null,
+          "field": "program_dates"
+        },
+        {
+          "id": "q4",
+          "text": "Should the cycle phase adjustments (follicular vs luteal) be tracked automatically or managed manually by Lauren?",
+          "related_to": null,
+          "field": "cycle_tracking"
+        }
+      ],
+      "warnings": [
+        {
+          "text": "This appears to be a detailed workout program rather than specific calendar events. The plan describes recurring Monday and Wednesday workouts but doesn't specify start dates or duration.",
+          "severity": "medium",
+          "related_to": null
+        }
+      ],
+      "suggestions": [
+        {
+          "text": "Consider creating recurring workout blocks on Mondays at 11:00 AM and Wednesdays at 9:00 AM, then add the detailed workout instructions as notes on each event.",
+          "related_to": null
+        },
+        {
+          "text": "The post-workout logging sections could be turned into simple daily tasks to track progress and adjust intensity based on how Lauren feels.",
+          "related_to": null
+        },
+        {
+          "text": "Since this involves all family members, consider checking for conflicts with existing homeschool schedule and other commitments on Mondays and Wednesdays.",
+          "related_to": null
+        }
+      ],
+      "placements": [],
+      "_companions": [
+        {
+          "key": "lucy",
+          "label": "Lucy",
+          "color": "#5b3a8a",
+          "emoji": "\u2728",
+          "role": "Family Companion"
+        }
+      ]
+    }
+  },
+  {
+    "id": "367d9acfc2c1",
+    "created_at": "2026-04-29T01:16:01Z",
+    "viewer": "lauren",
+    "source": "live",
+    "plan_text": "**YOUR 6-WEEK POSTPARTUM CORE & RESILIENCE BLOCK**\n**Organized by Day of the Week**\n\n---\n\n## **MONDAY \u2014 FORTITUDE (Family Run)**\n\n**Time:** 11:00 AM  \n**Duration:** 28 minutes total  \n**Location:** Outdoor (track, neighborhood, or park)  \n**Participants:** You + JP (runs 1.5-2mi) + Joseph (runs 1-1.5mi) + Michael (bikes/scoots) + James (stroller)\n\n**Structure:**\n- **Warm-up (5 min):** Easy pace, conversation-level intensity\n- **Main Work (18 min):** Run/walk intervals\n  - Alternate: 2 min running, 1 min walking (repeat 6x)\n  - Focus: Ankle loading (rebuilds stability post-pregnancy) + core engagement (maintain posture while running)\n- **Cool-down (5 min):** Walk together, breathe deeply, reconnect as a family\n\n**How to Adjust by Cycle Phase:**\n\n*Follicular Phase (Days 1-14):*\n- Push the intervals. Run longer, walk shorter.\n- Aim for 2:30 min run / 0:45 min walk if you feel strong.\n\n*Luteal Phase (Days 15-28):*\n- Extend the warm-up to 7 min. Reduce intensity.\n- Aim for 1:45 min run / 1:15 min walk.\n- Days 23-28 (late luteal): Consider a brisk walk with light jog intervals instead.\n\n**Post-Workout Log:**\n- Time started: ___\n- Run/walk ratio today: ___\n- Ankle/knee/core how it felt: ___\n- Energy level after: ___\n\n---\n\n## **WEDNESDAY \u2014 JUSTICE (Family Strength + Skill Block)**\n\n**Time:** 9:00 AM  \n**Duration:** 20-30 minutes  \n**Location:** Home (living room, stairs, or yard)  \n**Participants:** You + JP + Joseph + Michael (all scaled to age/ability)\n\n**Warm-up (3 min):**\n- 30sec arm circles (both directions)\n- 30sec leg swings (forward/back, side-to-side)\n- 1 min easy movement (walk, sway, light stretching)\n\n**Main Circuit \u2014 2 Sets**\n\n*Follicular & Ovulatory (Days 1-14): 3 sets x 10-12 reps, heavier load*  \n*Luteal (Days 15-28): 2 sets x 12-15 reps, lighter load, focus on form*\n\n**Core Work:**\n1. **Bird Dogs**\n   - 12-15 reps per side (alternate legs, hold 1sec at top)\n   - Form: Hands under shoulders, knees under hips. Extend opposite arm + leg, squeeze core.\n\n2. **Dead Bugs**\n   - 12-15 reps (slow, controlled 3-second lower)\n   - Form: Lie on back, arms to ceiling, knees bent at 90\u00b0. Lower opposite arm + leg without arching back.\n\n3. **Side Planks**\n   - 20-30sec hold each side\n   - Form: Elbow under shoulder, body in straight line. Squeeze obliques.\n\n**Lower Body:**\n1. **Squats**\n   - 12-15 reps (bodyweight, chest up, knees tracking over toes)\n   - Form: Hips back, weight in heels, full range of motion.\n\n2. **Lunges**\n   - 12-15 reps per leg (alternating forward lunges)\n   - Form: Step forward, lower back knee toward ground, push through front heel to stand.\n\n3. **Step-ups**\n   - 12-15 reps per leg (using stairs or low bench)\n   - Form: Step up, drive through front heel, squeeze glute at top.\n\n**Upper Body:**\n1. **Push-ups**\n   - 12-15 reps (incline on counter/couch, or wall push-ups \u2014 modify as needed)\n   - Form: Hands shoulder-width, body in straight line, lower chest to surface, press back up.\n\n2. **Rows**\n   - 12-15 reps (resistance band or towel in doorframe, slow 2-second lower)\n   - Form: Pull elbows back, squeeze shoulder blades, control the return.\n\n**Pelvic Floor Activation (CRITICAL \u2014 13 months postpartum):**\n1. **Bridges**\n   - 12 reps (2sec hold at top, 1sec lower)\n   - Form: Lie on back, knees bent, feet flat. Drive through heels, squeeze glutes, lift hips. Pause. Lower.\n\n2. **Glute Squeezes**\n   - 10 reps (2sec hold, 2sec release)\n   - Form: Standing or sitting. Squeeze glutes hard",
+    "analysis": {
+      "events": [
+        {
+          "id": "e1",
+          "title": "Family Run (Fortitude) \u2014 Core & Resilience Block",
+          "date": "2026-05-05",
+          "end_date": "",
+          "time": "11:00 AM",
+          "end_time": "11:28 AM",
+          "who": [
+            "Lauren",
+            "JP",
+            "Joseph",
+            "Michael",
+            "James"
+          ],
+          "notes": "Outdoor track/neighborhood/park. 5min warmup, 18min run/walk intervals (2min run, 1min walk x6), 5min cooldown. JP runs 1.5-2mi, Joseph 1-1.5mi, Michael bikes/scooters, James in stroller. Adjust intensity based on cycle phase.",
+          "recurrence": "weekly",
+          "confidence": "high"
+        },
+        {
+          "id": "e2",
+          "title": "Family Strength + Skill Block (Justice) \u2014 Core & Resilience Block",
+          "date": "2026-04-30",
+          "end_date": "",
+          "time": "9:00 AM",
+          "end_time": "9:30 AM",
+          "who": [
+            "Lauren",
+            "JP",
+            "Joseph",
+            "Michael"
+          ],
+          "notes": "Home workout (living room/stairs/yard). 3min warmup, 2-3 sets circuit work: Core (bird dogs, dead bugs, side planks), Lower body (squats, lunges, step-ups), Upper body (push-ups, rows), Pelvic floor (bridges, glute squeezes). Scale to age/ability. Adjust sets/reps based on cycle phase.",
+          "recurrence": "weekly",
+          "confidence": "high"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "t1",
+          "person": "Lauren",
+          "text": "Set up postpartum workout tracking log",
+          "due_date": "2026-04-29",
+          "subtasks": [
+            "Create log for time started",
+            "Track run/walk ratios",
+            "Monitor ankle/knee/core feeling",
+            "Note energy levels after workouts"
+          ],
+          "notes": "For 6-week core & resilience block starting next week",
+          "confidence": "high"
+        }
+      ],
+      "questions": [],
+      "warnings": [
+        {
+          "text": "Wednesday workout scheduled for April 30th (tomorrow) \u2014 verify family availability at 9:00 AM",
+          "severity": "medium",
+          "related_to": "e2"
+        }
+      ],
+      "suggestions": [
+        {
+          "text": "Consider creating reminder tasks for cycle phase adjustments (follicular vs luteal phases) to optimize workout intensity",
+          "related_to": "e1"
+        },
+        {
+          "text": "May want to add prep tasks for outdoor workout equipment (resistance bands, stroller check, water bottles) before each session",
+          "related_to": "e1"
+        }
+      ],
+      "placements": [],
+      "_companions": [
+        {
+          "key": "coach",
+          "label": "Coach",
+          "color": "#1a6e3e",
+          "emoji": "\ud83d\udcaa",
+          "role": "Fitness"
+        },
+        {
+          "key": "monica",
+          "label": "Dr. Monica",
+          "color": "#8b3a5c",
+          "emoji": "\ud83c\udf38",
+          "role": "Health & Development"
+        },
+        {
+          "key": "lucy",
+          "label": "Lucy",
+          "color": "#5b3a8a",
+          "emoji": "\u2728",
+          "role": "Family Companion"
+        }
+      ]
+    }
+  },
+  {
+    "id": "609a3a6adb4c",
+    "created_at": "2026-04-30T11:42:11Z",
+    "viewer": "lauren",
+    "source": "live",
+    "plan_text": "I\u2019m gonna brain dump all the things that are on my mind that need to get done today or soon today I need to trim Jimmy\u2019s nails. I need to clean the very top of the kitchen shelves. I need to get the boys haircuts. I need to put all the Amazon packages in the back of the van and return them. I need to follow up with John on lodging for the convention and add the boys to my registration and add classes. I need to look over what is necessary to upload, and what grades are necessary to put in before closing out the year. I need to make a list of what needs to get done before the end of the year and pass it out over the next few weeks. I need to add receipts to YNAB, including the giant receipts from the other day and all of the things in my blue book. The big boys need to RSVP to drill on Saturday. I need to put the spiritual bouquet promises into my to-do list.",
+    "analysis": {
+      "events": [],
+      "tasks": [
+        {
+          "id": "t1",
+          "person": "Lauren",
+          "text": "Trim James's nails",
+          "due_date": "2026-04-30",
+          "subtasks": [],
+          "notes": "",
+          "confidence": "high"
+        },
+        {
+          "id": "t2",
+          "person": "Lauren",
+          "text": "Clean the very top of the kitchen shelves",
+          "due_date": "2026-04-30",
+          "subtasks": [],
+          "notes": "",
+          "confidence": "high"
+        },
+        {
+          "id": "t3",
+          "person": "Lauren",
+          "text": "Get the boys haircuts",
+          "due_date": "2026-05-07",
+          "subtasks": [
+            "Schedule appointments",
+            "Coordinate with boys' schedules"
+          ],
+          "notes": "Likely refers to JP and Joseph",
+          "confidence": "medium"
+        },
+        {
+          "id": "t4",
+          "person": "Lauren",
+          "text": "Put all the Amazon packages in the back of the van and return them",
+          "due_date": "2026-05-01",
+          "subtasks": [
+            "Gather all packages",
+            "Load into van",
+            "Drive to return location"
+          ],
+          "notes": "",
+          "confidence": "high"
+        },
+        {
+          "id": "t5",
+          "person": "Lauren",
+          "text": "Follow up with John on lodging for the convention and add the boys to my registration and add classes",
+          "due_date": "2026-05-02",
+          "subtasks": [
+            "Discuss lodging options with John",
+            "Add boys to registration",
+            "Select and add classes"
+          ],
+          "notes": "",
+          "confidence": "high"
+        },
+        {
+          "id": "t6",
+          "person": "Lauren",
+          "text": "Look over what is necessary to upload, and what grades are necessary to put in before closing out the year",
+          "due_date": "2026-05-07",
+          "subtasks": [
+            "Review upload requirements",
+            "Check grade requirements",
+            "Identify missing items"
+          ],
+          "notes": "Homeschool year-end requirements",
+          "confidence": "high"
+        },
+        {
+          "id": "t7",
+          "person": "Lauren",
+          "text": "Make a list of what needs to get done before the end of the year and pass it out over the next few weeks",
+          "due_date": "2026-05-07",
+          "subtasks": [
+            "Create comprehensive end-of-year task list",
+            "Distribute tasks across coming weeks",
+            "Assign tasks to appropriate family members"
+          ],
+          "notes": "Year-end planning and delegation",
+          "confidence": "high"
+        },
+        {
+          "id": "t8",
+          "person": "Lauren",
+          "text": "Add receipts to YNAB, including the giant receipts from the other day and all of the things in my blue book",
+          "due_date": "2026-05-03",
+          "subtasks": [
+            "Process giant receipts from recent shopping",
+            "Enter all receipts from blue book",
+            "Categorize transactions in YNAB"
+          ],
+          "notes": "Budget tracking catch-up",
+          "confidence": "high"
+        },
+        {
+          "id": "t9",
+          "person": "JP",
+          "text": "RSVP to drill on Saturday",
+          "due_date": "2026-05-01",
+          "subtasks": [],
+          "notes": "Sea Cadets drill",
+          "confidence": "medium"
+        },
+        {
+          "id": "t10",
+          "person": "Joseph",
+          "text": "RSVP to drill on Saturday",
+          "due_date": "2026-05-01",
+          "subtasks": [],
+          "notes": "Sea Cadets drill",
+          "confidence": "medium"
+        },
+        {
+          "id": "t11",
+          "person": "Lauren",
+          "text": "Put the spiritual bouquet promises into my to-do list",
+          "due_date": "2026-05-01",
+          "subtasks": [
+            "Review spiritual bouquet commitments",
+            "Add each promise as actionable tasks",
+            "Set appropriate deadlines"
+          ],
+          "notes": "",
+          "confidence": "high"
+        }
+      ],
+      "questions": [
+        {
+          "id": "q1",
+          "text": "Which convention are you referring to for lodging and registration?",
+          "related_to": "t5",
+          "field": "notes"
+        },
+        {
+          "id": "q2",
+          "text": "What date is the drill on Saturday that needs RSVP?",
+          "related_to": "t9",
+          "field": "due_date"
+        }
+      ],
+      "warnings": [
+        {
+          "text": "Today (April 30) has multiple tasks assigned to Lauren plus existing garden prep work \u2014 may be overloaded.",
+          "severity": "medium",
+          "related_to": "t1"
+        }
+      ],
+      "suggestions": [
+        {
+          "text": "Consider spreading some of today's tasks (like cleaning kitchen shelves) across the next few days to balance the workload.",
+          "related_to": "t2"
+        },
+        {
+          "text": "The year-end planning task (t7) could help organize and delegate some of these other tasks to appropriate family members.",
+          "related_to": "t7"
+        }
+      ],
+      "placements": [],
+      "_companions": [
+        {
+          "key": "gregory",
+          "label": "Fr. Gregory",
+          "color": "#1e3566",
+          "emoji": "\ud83d\udcda",
+          "role": "Headmaster \u00b7 School"
+        },
+        {
+          "key": "lorenzo",
+          "label": "Lorenzo",
+          "color": "#8b3a1a",
+          "emoji": "\ud83c\udf7d\ufe0f",
+          "role": "Personal Chef"
+        },
+        {
+          "key": "monica",
+          "label": "Dr. Monica",
+          "color": "#8b3a5c",
+          "emoji": "\ud83c\udf38",
+          "role": "Health & Development"
+        },
+        {
+          "key": "lucy",
+          "label": "Lucy",
+          "color": "#5b3a8a",
+          "emoji": "\u2728",
+          "role": "Family Companion"
+        }
+      ]
+    }
   }
 ]

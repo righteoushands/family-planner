@@ -276,6 +276,92 @@
       "notes": "Check weather and plan family outing to Snead's Asparagus Farm - great playground, JP remembers from 7 years ago",
       "subtasks": [],
       "archived": false
+    },
+    {
+      "id": "evt_b6b35951",
+      "title": "Family Run (Fortitude) — Core & Resilience Block",
+      "assigned_to": [
+        "Lauren",
+        "JP",
+        "Joseph",
+        "Michael",
+        "James"
+      ],
+      "start_date": "2026-05-05",
+      "end_date": "2026-05-05",
+      "start_time": "11:00 AM",
+      "end_time": "11:28 AM",
+      "recurrence": {
+        "type": "weekly"
+      },
+      "notifications": {
+        "show_on_dashboard": true,
+        "show_on_daily_page": true,
+        "show_in_looking_ahead": true,
+        "lead_days": 1
+      },
+      "prep": {
+        "lead_days": 0
+      },
+      "notes": "Outdoor track/neighborhood/park. 5min warmup, 18min run/walk intervals (2min run, 1min walk x6), 5min cooldown. JP runs 1.5-2mi, Joseph 1-1.5mi, Michael bikes/scooters, James in stroller. Adjust intensity based on cycle phase.",
+      "subtasks": [],
+      "archived": false
+    },
+    {
+      "id": "evt_87f666ae",
+      "title": "Family Strength + Skill Block (Justice) — Core & Resilience Block",
+      "assigned_to": [
+        "Lauren",
+        "JP",
+        "Joseph",
+        "Michael"
+      ],
+      "start_date": "2026-04-30",
+      "end_date": "2026-04-30",
+      "start_time": "9:00 AM",
+      "end_time": "9:30 AM",
+      "recurrence": {
+        "type": "weekly"
+      },
+      "notifications": {
+        "show_on_dashboard": true,
+        "show_on_daily_page": true,
+        "show_in_looking_ahead": true,
+        "lead_days": 1
+      },
+      "prep": {
+        "lead_days": 0
+      },
+      "notes": "Home workout (living room/stairs/yard). 3min warmup, 2-3 sets circuit work: Core (bird dogs, dead bugs, side planks), Lower body (squats, lunges, step-ups), Upper body (push-ups, rows), Pelvic floor (bridges, glute squeezes). Scale to age/ability. Adjust sets/reps based on cycle phase.",
+      "subtasks": [],
+      "archived": false
+    },
+    {
+      "id": "evt_e63ee5bd",
+      "title": "Strength and skill block",
+      "assigned_to": [
+        "Lauren",
+        "Michael"
+      ],
+      "start_date": "2026-04-29",
+      "end_date": "2026-04-29",
+      "start_time": "9:00 AM",
+      "end_time": "9:30",
+      "recurrence": {
+        "type": "none"
+      },
+      "notifications": {
+        "show_on_dashboard": true,
+        "show_on_daily_page": true,
+        "show_in_looking_ahead": true,
+        "lead_days": 1
+      },
+      "prep": {
+        "lead_days": 0
+      },
+      "notes": "Make expectations playful rather than structured for Michael (age 5) — focus on animal movements and games rather than sets and reps. Ensure hydration for the children if participating. Confirm James's attendance and nap timing.",
+      "subtasks": [],
+      "archived": false
     }
   ]
 }
