@@ -85,6 +85,7 @@ function resetToPaste() {
 
 // ── Image upload (file / drag-drop / paste) ────────────────────────────────
 let _planImageFile = null;
+let _planImageReady = null;
 function _setPlanImageFile(file) {
   if (!file || !file.type || !file.type.startsWith('image/')) return;
   // Reject truly enormous files before attempting the resize.
@@ -97,7 +98,13 @@ function _setPlanImageFile(file) {
   }
   // Canvas-based downscale: max 1200px on the longest side, JPEG quality 0.85.
   // _planImageFile is assigned asynchronously inside the FileReader onload.
-  // analyzePlan() reads _planImageFile at button-click time, so the async gap is safe.
+  // _planImageReady is a Promise that resolves when this resize finishes (or
+  // any error path fires), so analyzePlan() can await it before reading
+  // _planImageFile. Each call to _setPlanImageFile creates a fresh promise
+  // (replacing any prior pending one) and captures its own resolver so a
+  // late-firing toBlob from a previous call cannot resolve the new promise.
+  let _resolveReady;
+  _planImageReady = new Promise(r => { _resolveReady = r; });
   const reader = new FileReader();
   reader.onload = ev => {
     const dataUrl = ev.target.result;
@@ -120,6 +127,7 @@ function _setPlanImageFile(file) {
           const e = document.getElementById('paste-error');
           e.textContent = 'Could not process the image. Please try a different file.';
           e.style.display = 'block';
+          _resolveReady();
           return;
         }
         const baseName = (file.name || 'pasted-image').replace(/\.[^.]+$/, '') + '.jpg';
@@ -134,12 +142,14 @@ function _setPlanImageFile(file) {
         wrap.style.display = 'block';
         document.getElementById('img-drop').style.display = 'none';
         document.getElementById('paste-error').style.display = 'none';
+        _resolveReady();
       }, 'image/jpeg', 0.85);
     };
     tmpImg.onerror = () => {
       const e = document.getElementById('paste-error');
       e.textContent = 'Could not read the image. Please try a different file.';
       e.style.display = 'block';
+      _resolveReady();
     };
     tmpImg.src = dataUrl;
   };
@@ -147,6 +157,7 @@ function _setPlanImageFile(file) {
     const e = document.getElementById('paste-error');
     e.textContent = 'Could not read the image. Please try a different file.';
     e.style.display = 'block';
+    _resolveReady();
   };
   reader.readAsDataURL(file);
 }
@@ -211,6 +222,7 @@ async function analyzePlan(extraAnswers) {
   const _abortCtrl = new AbortController();
   const _abortTimer = setTimeout(() => _abortCtrl.abort(), 95000);
   try {
+    if (_planImageReady) await _planImageReady;
     if (_planImageFile) {
       const fd = new FormData();
       fd.append('plan_text', text);
