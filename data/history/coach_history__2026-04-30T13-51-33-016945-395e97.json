@@ -2,6 +2,16 @@
   "messages": [
     {
       "role": "user",
+      "content": "Are those details part of the FROL and POD now?",
+      "ts": "2026-04-12T16:12:34"
+    },
+    {
+      "role": "assistant",
+      "content": "**Good question — let me clarify:**\n\n**FROL (Family Rule of Life):** No, not yet. The FROL shows *when* movement happens (Mon 11 AM = Family Run, Wed 11 AM = JUSTICE block, etc.). It doesn't include the *specific workout details* (reps, sets, progression).\n\n**POD (Plan of Day):** Not yet either — that's typically what appears on the dashboard for *today's* activities.\n\n---\n\n**What I'm building separately:**\n- A **12-week progression schedule** with JP and Joseph's specific reps, sets, and timelines\n- **Post-workout logging template** for the boys to track results\n- **Weekly check-in framework** for Saturdays\n\nThese will live in a **Coach-specific document or tracker** that you and I reference during Saturday check-ins. John can review it anytime.\n\n---\n\n**Would you like me to:**\n1. Add the **12-week program details** to a visible location (like a shared doc or dashboard)?\n2. Keep it in my working notes and just report progress on Saturdays?\n3. Create a simple **logging sheet** the boys can fill out post-workout?\n\nWhat works best for your family?",
+      "ts": "2026-04-12T16:12:40"
+    },
+    {
+      "role": "user",
       "content": "1 and 3",
       "ts": "2026-04-12T16:14:00"
     },
@@ -289,16 +299,6 @@
       "role": "assistant",
       "content": "**Coach:** Looking at tomorrow's 9:00 AM strength and skill block, I notice James isn't listed as attending — make sure you've got childcare sorted or decide if he'll be with you. Also, your tracking log setup is due tomorrow, so consider getting that done today before the workout so you can actually use it on Wednesday. One small gap: I don't see any planned movement between now and Wednesday morning, so even a 10-minute walk today or tonight would keep momentum going.\n\n**Dr. Monica:** With James at 13 months, I want to flag that morning workouts at 9:00 AM often collide with his first nap window — verify whether he'll nap before, during, or after, and plan accordingly so you're not working out with a fussy baby or cutting his sleep short. For Michael at 5, the strength block sounds appropriate, but make sure expectations are playful rather than structured — he'll do better with \"animal movements\" and games than sets and reps. Nothing urgent health-wise, but don't skip hydration for the little ones if they're participating.\n\n**Lucy's Synthesis:** You're in good shape here, Lauren — the bones of this plan are solid and the intention is clear. The two things you might genuinely regret skipping: first, set up that tracking log *today* rather than tomorrow morning when you'll be pulled in twelve directions. Second, take five minutes tonight to map out James's nap timing against that 9:00 AM Wednesday slot so you're not improvising with a tired baby mid-workout. Everything else can flex, but those two small acts of preparation will make Wednesday feel like a gift instead of a scramble. You've got this — now go knock out that log.",
       "ts": "2026-04-28T21:16:13"
-    },
-    {
-      "role": "user",
-      "content": "[Plan Importer · Roundtable] Quick check — anything missing or that we might regret skipping?",
-      "ts": "2026-04-30T13:51:32"
-    },
-    {
-      "role": "assistant",
-      "content": "**Father Gregory:** Looking at the week ahead, I notice we have the Confirmation rehearsal and final Religious Ed class on May 6th, but I don't see any mention of regular homeschool lessons for that week. With JP's Confirmation events approaching, we should ensure Joseph and Michael's schoolwork is mapped out so Lauren isn't scrambling while also supporting JP's preparation. I'd also suggest a brief Confirmation review session earlier in the week — perhaps Monday or Tuesday — so JP feels spiritually prepared, not just logistically present.\n\n**Lorenzo:** The pizza party on May 6th handles JP's dinner that evening, but I'm wondering about the rest of the family — Lauren and the younger boys will need to eat, likely on a different timeline since JP leaves at 4:45. I'd recommend prepping something simple that can be served early or late depending on the chaos. Also, if JP attends Youth Group on Sunday the 3rd, we should plan for him to eat before 6:15 or pack something substantial — teenage boys and two-plus hours of activity require fuel.\n\n**Coach:** Sunday's Youth Group invitation is wonderful for JP socially and spiritually, but I want to flag that it runs 6:15-8:30 PM, which could cut into wind-down time before the school week. If he goes, maybe we front-load some outdoor activity earlier that day so he's not sedentary all afternoon before sitting again at youth group. For the younger boys, I don't see any movement plans — Michael especially needs daily active play built into this week.\n\n**Lucy's Synthesis:** Lauren, this plan covers the big anchors well, but there are a few soft spots worth shoring up now rather than regretting later. First, decide on JP's Sunday dinner plan — either feed him before Youth Group or send him with something hearty. Second, pencil in a brief Confirmation prep moment earlier in the week so May 6th feels like a celebration, not a cram session. Third, jot down a simple meal plan for the rest of the family on the 6th when JP's at his pizza party. Finally, make sure Michael gets intentional outdoor time each day — even 20 minutes matters. These small additions will keep the week from feeling reactive. You've got this!",
-      "ts": "2026-04-30T13:51:32"
     }
   ]
 }

@@ -126,55 +126,6 @@
         "_gradebook_pct": "",
         "_gradebook_letter": "B+"
       }
-    },
-    {
-      "source_kind": "image",
-      "source_filename": "image000000.jpeg",
-      "source_mime": "image/jpeg",
-      "upload_path": "data/assignment_uploads/up-6e597c202f.jpeg",
-      "upload_paths": [
-        {
-          "path": "data/assignment_uploads/up-6e597c202f.jpeg",
-          "kind": "image",
-          "mime": "image/jpeg",
-          "filename": "image000000.jpeg"
-        }
-      ],
-      "raw_text": "",
-      "child_hint": "JP",
-      "subject_hint": "Religion",
-      "description": "Write a short summary of various kind of law which constitute the external guide of the moral law.",
-      "parsed": {
-        "title": "Summary of Moral Laws as External Guides",
-        "subject": "Religion",
-        "child_guess": "JP",
-        "assignment_type": "essay",
-        "estimated_minutes": 30,
-        "due_date_hint": "",
-        "instructions_summary": "Write a short summary explaining the various kinds of law that constitute the external guide of the moral law.",
-        "sub_items": [],
-        "materials_needed": [],
-        "notes_for_mom": "This is a solid introduction to classical natural law theory. JP demonstrates familiarity with the four-fold division of law (natural, revealed, civil, ecclesiastical). A follow-up discussion on how these laws relate to one another hierarchically could deepen his understanding—perhaps referencing Aquinas's treatment in the Summa.",
-        "work_present": true,
-        "gregory_feedback": "JP, this is a commendable effort at distilling a complex topic into accessible prose. You have clearly grasped the fundamental distinction between physical and moral law, and your four-fold classification—natural law, revealed law, civil law, and ecclesiastical law—is theologically sound and well-organized. Your concrete example regarding confession anchors the abstract nicely. I would encourage you, however, to consider paragraph structure more deliberately: where might you break this continuous text to help your reader breathe? Additionally, when you write that natural law is 'written in the hearts of men,' you are echoing St. Paul in Romans 2:15—could you strengthen your argument by citing that source explicitly?",
-        "strengths": [
-          "Correctly distinguishes physical laws from moral laws in the opening",
-          "Accurately identifies all four categories of moral law (natural, revealed, civil, ecclesiastical)",
-          "Provides a concrete example (annual confession) to illustrate ecclesiastical law",
-          "Demonstrates understanding that natural law is inscribed in human nature by God"
-        ],
-        "growth_edges": [
-          "What if you broke this into distinct paragraphs—one for each type of law—so the structure mirrors the content?",
-          "Could you find a place to cite Scripture or a theologian (such as St. Thomas or St. Paul) to give your claims greater authority?",
-          "In a few places the handwriting crowds together—might slowing down and leaving space between sentences make your argument easier to follow?"
-        ],
-        "suggested_grade": "B+",
-        "grade_rationale": "JP demonstrates solid comprehension of the material and covers all four types of law with reasonable accuracy. The grade reflects strong content but acknowledges that the presentation—lack of paragraph breaks, absence of citations, and occasionally cramped handwriting—prevents the work from reaching its full scholarly potential. With structural revision and a source or two, this could easily become an A-level piece."
-      },
-      "id": "a-20260430-141113-729358",
-      "ts": "2026-04-30T14:11:13",
-      "status": "pending_curriculum_placement",
-      "user_edits": {}
     }
   ]
 }

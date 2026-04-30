@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-04-30",
+  "updated_at": "2026-04-28",
   "data": [
     {
       "id": "evt_james_pt",
@@ -360,110 +360,6 @@
         "lead_days": 0
       },
       "notes": "Make expectations playful rather than structured for Michael (age 5) — focus on animal movements and games rather than sets and reps. Ensure hydration for the children if participating. Confirm James's attendance and nap timing.",
-      "subtasks": [],
-      "archived": false
-    },
-    {
-      "id": "evt_a812f382",
-      "title": "High School Youth Group — JP",
-      "assigned_to": [
-        "JP"
-      ],
-      "start_date": "2026-05-03",
-      "end_date": "2026-05-03",
-      "start_time": "6:15 PM",
-      "end_time": "8:30 PM",
-      "recurrence": {
-        "type": "none"
-      },
-      "notifications": {
-        "show_on_dashboard": true,
-        "show_on_daily_page": true,
-        "show_in_looking_ahead": true,
-        "lead_days": 1
-      },
-      "prep": {
-        "lead_days": 0
-      },
-      "notes": "PLC location (same as religious ed class). Last youth group of the year. Includes dinner, games, and faith formation. Sam will introduce JP to leaders and other boys.",
-      "subtasks": [],
-      "archived": false
-    },
-    {
-      "id": "evt_695a50ca",
-      "title": "Religious Education Final Class — JP (with pizza party)",
-      "assigned_to": [
-        "JP"
-      ],
-      "start_date": "2026-05-05",
-      "end_date": "2026-05-05",
-      "start_time": "4:45 PM",
-      "end_time": "",
-      "recurrence": {
-        "type": "none"
-      },
-      "notifications": {
-        "show_on_dashboard": true,
-        "show_on_daily_page": true,
-        "show_in_looking_ahead": true,
-        "lead_days": 1
-      },
-      "prep": {
-        "lead_days": 0
-      },
-      "notes": "Final class of the year with pizza party. JP will bring drinks and snacks to share.",
-      "subtasks": [],
-      "archived": false
-    },
-    {
-      "id": "evt_4c324dac",
-      "title": "Confirmation Rehearsal — JP",
-      "assigned_to": [
-        "JP"
-      ],
-      "start_date": "2026-05-05",
-      "end_date": "2026-05-05",
-      "start_time": "6:00 PM",
-      "end_time": "7:00 PM",
-      "recurrence": {
-        "type": "none"
-      },
-      "notifications": {
-        "show_on_dashboard": true,
-        "show_on_daily_page": true,
-        "show_in_looking_ahead": true,
-        "lead_days": 1
-      },
-      "prep": {
-        "lead_days": 0
-      },
-      "notes": "Main church. Immediately following religious education class.",
-      "subtasks": [],
-      "archived": false
-    },
-    {
-      "id": "evt_f2342a32",
-      "title": "JP Youth Group",
-      "assigned_to": [
-        "JP"
-      ],
-      "start_date": "2026-05-03",
-      "end_date": "2026-05-03",
-      "start_time": "6:15 PM",
-      "end_time": "8:30 PM",
-      "recurrence": {
-        "type": "none"
-      },
-      "notifications": {
-        "show_on_dashboard": true,
-        "show_on_daily_page": true,
-        "show_in_looking_ahead": true,
-        "lead_days": 1
-      },
-      "prep": {
-        "lead_days": 0
-      },
-      "notes": "Ensure JP eats before this event or has substantial snack packed",
       "subtasks": [],
       "archived": false
     }

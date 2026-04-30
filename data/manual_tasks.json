@@ -1215,5 +1215,31 @@
     "recurring": true,
     "interval_value": 1,
     "interval_unit": "years"
+  },
+  {
+    "text": "Get drinks and snacks for JP to share at religious ed pizza party",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-05",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Based on previous answers - JP gets to pick both items to share",
+    "subtasks": [
+      "Let JP pick both drinks and snacks",
+      "Purchase items",
+      "Pack for JP to bring"
+    ]
+  },
+  {
+    "text": "Schedule outdoor activity for JP on May 3rd before Youth Group",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-02",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Front-load active time earlier in day so JP isn't sedentary before 6:15 PM Youth Group",
+    "subtasks": []
   }
 ]

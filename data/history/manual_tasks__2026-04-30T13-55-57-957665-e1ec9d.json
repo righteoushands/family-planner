@@ -16,34 +16,6 @@
     "recurring": false
   },
   {
-    "text": "Pack baby shower supplies",
-    "assigned_to": "Lauren",
-    "due_date": "2026-04-21",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "plan_importer",
-    "recurring": false,
-    "notes": "Pack morning of shower",
-    "subtasks": [
-      "Large picnic blanket for kids",
-      "Completed cake",
-      "Teddy Graham game bottle",
-      "Small prize",
-      "Written diaper messages"
-    ]
-  },
-  {
-    "text": "Ensure guest of honor attends baby shower",
-    "assigned_to": "Lauren",
-    "due_date": "2026-04-21",
-    "priority": "MEDIUM",
-    "status": "active",
-    "source": "plan_importer",
-    "recurring": false,
-    "notes": "Make sure guest of honor shows up / cajole if needed",
-    "subtasks": []
-  },
-  {
     "text": "CAPTask: Wash the most used uniform of the month.",
     "assigned_to": "JP",
     "due_date": "2026-04-25",
@@ -56,22 +28,6 @@
   {
     "text": "Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
     "assigned_to": "Mom",
-    "due_date": "2026-04-11",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
-    "assigned_to": "JP",
-    "due_date": "2026-04-11",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
-    "assigned_to": "Joseph",
     "due_date": "2026-04-11",
     "priority": "MEDIUM",
     "status": "active",
@@ -236,14 +192,6 @@
     "subtasks": []
   },
   {
-    "text": "Look up vibe coding",
-    "assigned_to": "Mom",
-    "due_date": "2026-04-15",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
     "text": "Buy caterpillars",
     "assigned_to": "Mom",
     "due_date": "2026-04-16",
@@ -256,14 +204,6 @@
   {
     "text": "Choose Convention Class. https://heav.org/convention/children-and-teens/",
     "assigned_to": "Mom",
-    "due_date": "2026-04-18",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Choose Convention Class. https://heav.org/convention/children-and-teens/",
-    "assigned_to": "JP",
     "due_date": "2026-04-18",
     "priority": "MEDIUM",
     "status": "active",
@@ -290,7 +230,7 @@
   {
     "text": "Friday Penance: give up meat or make another sacrifice.",
     "assigned_to": "Mom",
-    "due_date": "2026-05-01",
+    "due_date": "2026-05-08",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": true,
@@ -300,7 +240,7 @@
   {
     "text": "Friday Penance: give up meat or make another sacrifice.",
     "assigned_to": "JP",
-    "due_date": "2026-05-01",
+    "due_date": "2026-05-08",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": true,
@@ -327,14 +267,6 @@
     "recurring": false
   },
   {
-    "text": "Use old bananas",
-    "assigned_to": "Mom",
-    "due_date": "2026-04-18",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
     "text": "Wegmans run",
     "assigned_to": "Michael",
     "due_date": "2026-04-18",
@@ -346,22 +278,6 @@
     "text": "Wegmans run",
     "assigned_to": "James",
     "due_date": "2026-04-18",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Finish laundry",
-    "assigned_to": "Joseph",
-    "due_date": "",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Tea party: pot, cups and saucers, sugar bowl, creamer and serving tray",
-    "assigned_to": "Mom",
-    "due_date": "2026-04-21",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false
@@ -782,5 +698,522 @@
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false
+  },
+  {
+    "text": "Sign Michael up for swim lessons",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-29",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Buy garden bed supplies and lay cardboard",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-27",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Day 1 of garden bed project in backyard near walkout",
+    "subtasks": [
+      "Get cardboard (free)",
+      "Buy 5 bags compost/topsoil mix",
+      "Buy 1 lb blood meal",
+      "Buy 3 lbs bone meal",
+      "Lay cardboard on 4x8 area with 6-inch overlaps",
+      "Wet cardboard thoroughly"
+    ]
+  },
+  {
+    "text": "Mix amendments and layer on garden bed",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-29",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Days 2-3 of garden bed project. Blood meal needs to mellow to avoid burning roots",
+    "subtasks": [
+      "Mix blood meal and bone meal into compost/topsoil",
+      "Layer 4-6 inches of mixture on wet cardboard",
+      "Water thoroughly",
+      "Leave undisturbed for 5-7 days minimum"
+    ]
+  },
+  {
+    "text": "Buy transplants and set up garden supports",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-04",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Week 2 of garden project. Look for stocky, short transplants not tall leggy ones",
+    "subtasks": [
+      "Buy stocky tomato transplants (avoid leggy ones)",
+      "Buy cucumber transplants",
+      "Buy pepper transplants",
+      "Set up trellis for cucumbers",
+      "Set up tomato cages",
+      "Get soil thermometer to check temperature"
+    ]
+  },
+  {
+    "text": "Check soil temperature for planting readiness",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-11",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Don't plant until soil consistently reads 65°F. This is days 10-14 of project",
+    "subtasks": [
+      "Use thermometer to check soil temp",
+      "Wait for consistent 65°F reading",
+      "Verify soil has been undisturbed for 5-7 days minimum"
+    ]
+  },
+  {
+    "text": "Plant garden bed crops",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-11",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Planting day (day 10-14). Tomatoes root along buried stem. Handle cucumber roots gently. Peppers like heat and benefit from tomato shade later",
+    "subtasks": [
+      "Plant cucumbers on north end with trellis",
+      "Plant 2 tomatoes in center with cages (bury deep to first leaves)",
+      "Plant 2-3 peppers on south end (same depth as pot)",
+      "Water in with diluted fish emulsion immediately"
+    ]
+  },
+  {
+    "text": "Establish watering routine and mulch plants",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-18",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Weeks 3-4. These crops hate wet/dry cycles. Let plants establish before fertilizing",
+    "subtasks": [
+      "Water consistently 1 inch per week minimum",
+      "Monitor for wet/dry cycles",
+      "Mulch with straw or wood chips 3-5 days after planting",
+      "Avoid fertilizing during establishment"
+    ]
+  },
+  {
+    "text": "Side-dress plants when flowering begins",
+    "assigned_to": "Lauren",
+    "due_date": "2026-06-01",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Week 6 when flowers appear. Avoid high nitrogen which creates huge plants with little fruit",
+    "subtasks": [
+      "Apply blood meal lightly around each plant",
+      "Switch to low-nitrogen, higher phosphorus fertilizer (like 5-10-5)",
+      "Focus on fruit set rather than leaf growth"
+    ]
+  },
+  {
+    "text": "Ongoing summer garden maintenance",
+    "assigned_to": "Lauren",
+    "due_date": "2026-06-08",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Ongoing through summer. Don't leave overripe cucumbers on vine as it stops production",
+    "subtasks": [
+      "Pinch tomato suckers weekly, keep 1-2 main stems",
+      "Harvest cucumbers aggressively to keep plants producing",
+      "Leave peppers largely alone (they don't like fussing)"
+    ]
+  },
+  {
+    "text": "Consider having JP help with the physical aspects of garden bed construction as an educational project",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-27",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "From counsel suggestion",
+    "subtasks": []
+  },
+  {
+    "text": "Establish watering routine and mulch plants",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-25",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Weeks 3-4. Don't fertilize again yet during establishment period.",
+    "subtasks": [
+      "Water consistently 1 inch per week minimum",
+      "Mulch around plants with straw or wood chips",
+      "Wait 3-5 days after planting before mulching",
+      "Avoid wet/dry cycles"
+    ]
+  },
+  {
+    "text": "Switch to flowering fertilizer when flowers appear",
+    "assigned_to": "Lauren",
+    "due_date": "2026-06-08",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Week 6. Most gardeners make mistake of continuing nitrogen feeding.",
+    "subtasks": [
+      "Side-dress lightly with blood meal around each plant",
+      "Switch to low-nitrogen, higher phosphorus liquid fertilizer (5-10-5 ratio)",
+      "Focus on fruit set rather than leaf growth"
+    ]
+  },
+  {
+    "text": "Begin ongoing summer garden maintenance",
+    "assigned_to": "Lauren",
+    "due_date": "2026-06-15",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Ongoing through summer. Year one is experimental - bed will be better in year two.",
+    "subtasks": [
+      "Pinch tomato suckers weekly, keep to 1-2 main stems",
+      "Harvest cucumbers aggressively to keep production going",
+      "Leave peppers alone - they don't like fussing",
+      "Monitor for drainage issues and weed pressure from edges"
+    ]
+  },
+  {
+    "text": "The soil temperature check task might need to be repeated daily until conditions are right - consider setting up a recurring reminder",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-27",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "From counsel suggestion",
+    "subtasks": []
+  },
+  {
+    "text": "Consider involving JP or Joseph in some of the garden tasks as educational opportunities, especially the ongoing maintenance tasks",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-27",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "From counsel suggestion",
+    "subtasks": []
+  },
+  {
+    "text": "Create safe storage plan for fish emulsion and fertilizers away from Michael",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-27",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Michael is at age where anything in a bottle looks interesting - needs secure storage location",
+    "subtasks": []
+  },
+  {
+    "text": "Discuss produce preservation preferences with Lorenzo",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-27",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Clarify how to handle expected tomato yield (10-20 lbs per plant) and cucumber preservation methods before mid-July harvest",
+    "subtasks": []
+  },
+  {
+    "text": "Plan sun protection and hydration for garden work days",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-27",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Late April through summer means real heat exposure during soil prep and planting - ensure supplies for anyone doing outdoor work",
+    "subtasks": []
+  },
+  {
+    "text": "Arrange childcare coverage for James during heavy garden work",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-27",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "James (13 months) cannot be underfoot during digging, cardboard laying, and soil amendment handling - needs containment or another caregiver for April 28th and 30th prep work",
+    "subtasks": []
+  },
+  {
+    "text": "Arrange JP or Joseph to help with compost hauling and trellis setup",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-28",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Functional movement activity that teaches useful skills - can supervise Michael's participation as well",
+    "subtasks": []
+  },
+  {
+    "text": "Research current hours and activities at Snead's Farm",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-10",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Prepare for potential family visits in spring/fall",
+    "subtasks": [
+      "Check website for current hours",
+      "Verify playground is still available",
+      "Look for seasonal activities",
+      "Check admission prices",
+      "Note any special events"
+    ]
+  },
+  {
+    "text": "Check for U-pick or farm stand options at the asparagus farm",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-28",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Asparagus may be in season mid-May; consider bringing a cooler for fresh produce",
+    "subtasks": []
+  },
+  {
+    "text": "Verify picnic area availability and outside food policy",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-28",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Important for planning lunch with four kids including a toddler; ensure options for James's dietary needs",
+    "subtasks": []
+  },
+  {
+    "text": "Set up postpartum workout tracking log",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-29",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "For 6-week core & resilience block starting next week",
+    "subtasks": [
+      "Create log for time started",
+      "Track run/walk ratios",
+      "Monitor ankle/knee/core feeling",
+      "Note energy levels after workouts"
+    ]
+  },
+  {
+    "text": "Set up tracking log",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-28",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Complete today before the workout so you can use it on Wednesday. Do this rather than tomorrow morning when you'll be pulled in multiple directions.",
+    "subtasks": []
+  },
+  {
+    "text": "Take a 10-minute walk",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-28",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Walk today or tonight to keep momentum going before Wednesday.",
+    "subtasks": []
+  },
+  {
+    "text": "Recite memorized Friendly Defender cards",
+    "assigned_to": "Joseph",
+    "due_date": "2026-05-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Trim James's nails",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": []
+  },
+  {
+    "text": "Clean the very top of the kitchen shelves",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": []
+  },
+  {
+    "text": "Get the boys haircuts",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Likely refers to JP and Joseph",
+    "subtasks": [
+      "Schedule appointments",
+      "Coordinate with boys' schedules"
+    ]
+  },
+  {
+    "text": "Put all the Amazon packages in the back of the van and return them",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-01",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "Gather all packages",
+      "Load into van",
+      "Drive to return location"
+    ]
+  },
+  {
+    "text": "Follow up with John on lodging for the convention and add the boys to my registration and add classes",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-02",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "Discuss lodging options with John",
+      "Add boys to registration",
+      "Select and add classes"
+    ]
+  },
+  {
+    "text": "Add receipts to YNAB, including the giant receipts from the other day and all of the things in my blue book",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-03",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Budget tracking catch-up",
+    "subtasks": [
+      "Process giant receipts from recent shopping",
+      "Enter all receipts from blue book",
+      "Categorize transactions in YNAB"
+    ]
+  },
+  {
+    "text": "RSVP to drill on Saturday",
+    "assigned_to": "JP",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Sea Cadets drill",
+    "subtasks": []
+  },
+  {
+    "text": "RSVP to drill on Saturday",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Sea Cadets drill",
+    "subtasks": []
+  },
+  {
+    "text": "Put the spiritual bouquet promises into my to-do list",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-01",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "Review spiritual bouquet commitments",
+      "Add each promise as actionable tasks",
+      "Set appropriate deadlines"
+    ]
+  },
+  {
+    "text": "The year-end planning task (t7) could help organize and delegate some of these other tasks to appropriate family members.",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "From counsel suggestion",
+    "subtasks": [
+      "List of assessments due for JP and Joe"
+    ]
+  },
+  {
+    "text": "Confirm which specific classes JP and Joseph need or want for convention registration",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-01",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Must be completed before finalizing convention registration (deadline May 2nd). Have this conversation at lunch with older boys.",
+    "subtasks": []
+  },
+  {
+    "text": "Haircuts today?",
+    "assigned_to": "JP",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "text": "Purchase Mother’s Day gifts: Mom, GMA Joan, Shelbi",
+    "assigned_to": "Mom",
+    "due_date": "2026-05-01",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": true,
+    "interval_value": 1,
+    "interval_unit": "years"
   }
 ]
