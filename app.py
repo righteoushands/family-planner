@@ -3823,6 +3823,28 @@ class Handler(BaseHTTPRequestHandler):
                 iso     = clean_text(data.get("iso",[""])[0]) or date.today().isoformat()
                 item_id = clean_text(data.get("id",[""])[0])
                 done    = toggle_plan_item(iso, item_id)
+                try:
+                    from render_daily_plan import load_daily_plan as _ldp
+                    _plan = _ldp(iso)
+                    _tid  = ""
+                    for _it in _plan.get("items", []):
+                        if _it.get("id") == item_id:
+                            _tid = _it.get("task_id", "")
+                            break
+                    if _tid:
+                        _tasks = load_manual_tasks()
+                        for _t in _tasks:
+                            if isinstance(_t, dict) and _t.get("id") == _tid:
+                                if done:
+                                    _t["status"] = "done"
+                                else:
+                                    _t["status"] = "active"
+                                    if "scheduled_for" in _t:
+                                        del _t["scheduled_for"]
+                                save_manual_tasks(_tasks)
+                                break
+                except Exception:
+                    pass
                 self.send_response(200)
                 self.send_header("Content-Type","application/json")
                 self.end_headers()
@@ -8431,11 +8453,22 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/add-to-plan-quick":
                 from datetime import date as _date
                 from render_daily_plan import add_item_to_plan
-                iso_q  = clean_text(data.get("iso",[""])[0]) or _date.today().isoformat()
-                text_q = clean_text(data.get("text",[""])[0])
-                src_q  = clean_text(data.get("source",["manual"])[0])
+                iso_q   = clean_text(data.get("iso",[""])[0]) or _date.today().isoformat()
+                text_q  = clean_text(data.get("text",[""])[0])
+                src_q   = clean_text(data.get("source",["manual"])[0])
+                task_id = clean_text(data.get("task_id",[""])[0])
                 if text_q:
-                    add_item_to_plan(iso_q, text_q, source=src_q)
+                    add_item_to_plan(iso_q, text_q, source=src_q, task_id=task_id)
+                    if task_id:
+                        try:
+                            _tasks = load_manual_tasks()
+                            for _t in _tasks:
+                                if isinstance(_t, dict) and _t.get("id") == task_id:
+                                    _t["scheduled_for"] = iso_q
+                                    save_manual_tasks(_tasks)
+                                    break
+                        except Exception:
+                            pass
                 self.send_response(200)
                 self.send_header("Content-Type","application/json")
                 self.end_headers()

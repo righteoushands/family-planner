@@ -3640,7 +3640,8 @@ def _render_tasks_step(iso: str) -> str:
 
     tasks   = load_manual_tasks()
     active  = [t for t in tasks
-               if isinstance(t,dict) and t.get("status","active")=="active"]
+               if isinstance(t,dict) and t.get("status","active")=="active"
+               and t.get("scheduled_for","") != iso]
 
     if not active:
         return (

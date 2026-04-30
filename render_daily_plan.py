@@ -73,11 +73,12 @@ def get_or_seed_plan(iso):
 # ---------------------------------------------------------------------------
 # Plan item manipulation
 # ---------------------------------------------------------------------------
-def add_item_to_plan(iso, text, source="manual", color="#888", time=""):
+def add_item_to_plan(iso, text, source="manual", color="#888", time="", task_id=""):
     plan = get_or_seed_plan(iso)
     plan["items"].append({"id": str(uuid.uuid4())[:8], "time": time,
                           "text": text.strip(), "source": source,
-                          "color": color, "done": False})
+                          "color": color, "done": False,
+                          "task_id": task_id})
     save_daily_plan(plan)
     return plan
 

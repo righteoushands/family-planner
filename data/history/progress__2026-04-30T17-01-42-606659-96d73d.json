@@ -1756,7 +1756,5 @@
   "CHORE::JP::2026-04-30::laundry::LAUNDRY — JP's own laundry": true,
   "CHORE::JP::2026-04-30::laundry::Switch load before lunch": true,
   "ROUTINE::JP::2026-04-30::Break": true,
-  "CHORE::JP::2026-04-30::weekly::Tidy garage (10 min)": true,
-  "SCHOOL::JP::2026-04-30::Reading 8::Read for about 1 hour.": true,
-  "CHORE::JP::2026-04-30::laundry::Bring upstairs after lunch": true
+  "CHORE::JP::2026-04-30::weekly::Tidy garage (10 min)": true
 }
