@@ -6478,8 +6478,26 @@ class Handler(BaseHTTPRequestHandler):
                 # Build events summary for conflict context
                 _upcoming = _load_upcoming_events(30)
                 _ev_summary = _format_events_summary(_upcoming)
-                # Build system prompt
-                _pi_sys = build_analysis_system_prompt(_iso_pi, _lbl_pi, _ev_summary)
+                # Build system prompt. For image-only submissions (no
+                # meaningful pasted text), use a lightweight prompt to keep
+                # the vision call fast. Text-bearing submissions still get
+                # the full analysis prompt.
+                _pi_text_len = len((plan_text or "").strip())
+                if _pi_img_b64 and _pi_text_len < 50:
+                    _pi_sys = (
+                        f"You are a planning assistant for the McAdams Catholic homeschooling family. "
+                        f"TODAY IS: {_iso_pi} ({_lbl_pi}). "
+                        f"Family members: Lauren (Mom), John (Dad), JP (14), Joseph (12), Michael (5), James (toddler). "
+                        f"Extract events and tasks from this image. "
+                        f"Resolve relative dates using today's date. "
+                        f"Return valid JSON with events and tasks arrays using the same schema as always. "
+                        f"Events have id, title, date, end_date, time, end_time, who, notes, recurrence, confidence. "
+                        f"Tasks have id, person, text, due_date, subtasks, notes, confidence. "
+                        f"Also include questions, warnings, suggestions arrays. "
+                        f"Return empty arrays for placements."
+                    )
+                else:
+                    _pi_sys = build_analysis_system_prompt(_iso_pi, _lbl_pi, _ev_summary)
                 # Build user message (plan + any answers)
                 # Replace any double-quote chars in plan text so Claude can't
                 # accidentally embed them unescaped in JSON string values.
