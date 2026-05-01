@@ -228,7 +228,7 @@ from data_helpers import (
 from ui_helpers import parse_urlencoded_body, parse_multipart_form
 from render_schedule import render_child_schedule, render_today_all, render_week, render_print_day, render_print_week, render_print_child_day_list
 from render_week_view import render_week_view
-from render_schedule_support import generate_half_hour_times
+from render_schedule_support import generate_half_hour_times, render_family_schedule_page
 from render_calendar import render_calendar_page, refresh_calendar
 from render_liturgical import render_liturgical_page, render_liturgical_edit_page
 from render_readings import render_readings_page
@@ -1008,10 +1008,7 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/signup":           body = render_signup_page()
         elif path == "/waitlist":         body = render_waitlist_admin(False)
         elif path == "/family-schedule":
-            self.send_response(302)
-            self.send_header("Location", "/settings#s-systems")
-            self.end_headers()
-            return
+            body = render_family_schedule_page(status_message=query.get("msg",[""])[0])
         elif path == "/calendar":        body = render_calendar_page()
         elif path == "/planner":         body = render_planner_page()
         elif path == "/readings":         body = render_readings_page(date_str=query.get("date",[""])[0])
