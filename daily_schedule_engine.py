@@ -333,6 +333,7 @@ def get_manual_tasks_for_child_and_date(child: str, iso: str):
         priority = normalize_priority(task.get("priority", "MEDIUM"))
 
         results.append({
+            "id":         str(task.get("id", "")),
             "text":       text,
             "priority":   priority,
             "due_date":   task_date,
