@@ -1896,6 +1896,8 @@
       "CHORE::Tidy-up school shelves",
       "MANUAL::MEDIUM::CAPTask: Wash the most used uniform of the month.",
       "MANUAL::MEDIUM::Friday Penance: give up meat or make another sacrifice.",
+      "MANUAL::MEDIUM::Haircuts today?",
+      "MANUAL::MEDIUM::RSVP to drill on Saturday",
       "SCHOOL::Algebra 1/2::Lesson 90 — Assignment completed",
       "SCHOOL::Algebra 1/2::Lesson 90 — Checked brother's math (Math 87 Lesson 77)",
       "SCHOOL::Algebra 1/2::Lesson 90 — Fixed missed problems",
@@ -1922,7 +1924,7 @@
       "CHORE::  → Take out trash + recycling",
       "CHORE::  → Unload dishwasher",
       "CHORE::After school: pickup your school things and tidy your school shelf.",
-      "CHORE::Bring back recycling",
+      "CHORE::Bring back recycling can",
       "CHORE::Check Sea Cadet email",
       "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
       "CHORE::KITCHEN (After Breakfast — Role B):",
@@ -1932,6 +1934,8 @@
       "CHORE::Tidy basement zone — 10 minutes",
       "CHORE::Tidy-up the deck + spray and wipe the tables.",
       "MANUAL::MEDIUM::Choose Convention Class. https://heav.org/convention/children-and-teens/",
+      "MANUAL::MEDIUM::RSVP to drill on Saturday",
+      "MANUAL::MEDIUM::Recite memorized Friendly Defender cards",
       "SCHOOL::Art 7::Optional: Do Art Pad #18, Night Sky Project, Part 2: Extreme View Perspective.",
       "SCHOOL::Beginning Latin III::Lesson 22. Take Quiz 22.",
       "SCHOOL::Editing 7::Lesson 7, Selection 37: find the errors and mark them in your book.",
@@ -1962,6 +1966,61 @@
     ],
     "James": [
       "MANUAL::MEDIUM::Wegmans run"
+    ],
+    "Lauren": [
+      "CHORE::Menu plan",
+      "CHORE::Wrap up the school week",
+      "MANUAL::MEDIUM::Add receipts to YNAB, including the giant receipts from the other day and all of the things in my blue book",
+      "MANUAL::MEDIUM::Arrange JP or Joseph to help with compost hauling and trellis setup",
+      "MANUAL::MEDIUM::Arrange childcare coverage for James during heavy garden work",
+      "MANUAL::MEDIUM::Begin shopping for JP's special gift from parents",
+      "MANUAL::MEDIUM::Breakfast, planning",
+      "MANUAL::MEDIUM::Buy caterpillars",
+      "MANUAL::MEDIUM::Buy garden bed supplies and lay cardboard",
+      "MANUAL::MEDIUM::Buy transplants and set up garden supports",
+      "MANUAL::MEDIUM::Call MD re: meds for hair loss",
+      "MANUAL::MEDIUM::Change air filters",
+      "MANUAL::MEDIUM::Check for U-pick or farm stand options at the asparagus farm",
+      "MANUAL::MEDIUM::Choose Convention Class. https://heav.org/convention/children-and-teens/",
+      "MANUAL::MEDIUM::Clean the very top of the kitchen shelves",
+      "MANUAL::MEDIUM::Collect RSVPs and follow up with non-responders",
+      "MANUAL::MEDIUM::Complete JP's Confirmation outfit",
+      "MANUAL::MEDIUM::Confirm which specific classes JP and Joseph need or want for convention registration",
+      "MANUAL::MEDIUM::Consider bringing donations for Mary's Shelter (diapers, formula, wipes) to support the Baby Bottle Campaign.",
+      "MANUAL::MEDIUM::Consider having JP help with the physical aspects of garden bed construction as an educational project",
+      "MANUAL::MEDIUM::Consider involving JP or Joseph in some of the garden tasks as educational opportunities, especially the ongoing maintenance tasks",
+      "MANUAL::MEDIUM::Create safe storage plan for fish emulsion and fertilizers away from Michael",
+      "MANUAL::MEDIUM::Discuss produce preservation preferences with Lorenzo",
+      "MANUAL::MEDIUM::Ensure James continues wearing hip shorts",
+      "MANUAL::MEDIUM::Fertilize lawn with balanced 20-5-10 fertilizer",
+      "MANUAL::MEDIUM::Finalize and order/purchase JP's special gift",
+      "MANUAL::MEDIUM::Follow up with John on lodging for the convention and add the boys to my registration and add classes",
+      "MANUAL::MEDIUM::Friday Penance: give up meat or make another sacrifice.",
+      "MANUAL::MEDIUM::Get drinks and snacks for JP to share at religious ed pizza party",
+      "MANUAL::MEDIUM::Get the boys haircuts",
+      "MANUAL::MEDIUM::Keep a lawn care log to track what products were used and when, making next year's planning easier.",
+      "MANUAL::MEDIUM::Mix amendments and layer on garden bed",
+      "MANUAL::MEDIUM::Order JP's Confirmation cake",
+      "MANUAL::MEDIUM::Plan sun protection and hydration for garden work days",
+      "MANUAL::MEDIUM::Plan the gift reveal moment during cake time with prepared words of blessing from John and Lauren about hopes for JP's life in the Spirit.",
+      "MANUAL::MEDIUM::Purchase Mother’s Day gifts: Mom, GMA Joan, Shelbi",
+      "MANUAL::MEDIUM::Put all Amazon returns in the back of the van.",
+      "MANUAL::MEDIUM::Put all the Amazon packages in the back of the van and return them",
+      "MANUAL::MEDIUM::Put the spiritual bouquet promises into my to-do list",
+      "MANUAL::MEDIUM::Schedule outdoor activity for JP on May 3rd before Youth Group",
+      "MANUAL::MEDIUM::Send Easter thank you card",
+      "MANUAL::MEDIUM::Set up a simple rain gauge to track weekly rainfall amounts during summer to optimize watering schedule.",
+      "MANUAL::MEDIUM::Set up postpartum workout tracking log",
+      "MANUAL::MEDIUM::Set up tracking log",
+      "MANUAL::MEDIUM::Sharpen knives",
+      "MANUAL::MEDIUM::Sign Michael up for swim lessons",
+      "MANUAL::MEDIUM::Take JP to shop for Confirmation suit",
+      "MANUAL::MEDIUM::Take a 10-minute walk",
+      "MANUAL::MEDIUM::Test soil pH and add lime if needed",
+      "MANUAL::MEDIUM::The soil temperature check task might need to be repeated daily until conditions are right - consider setting up a recurring reminder",
+      "MANUAL::MEDIUM::The year-end planning task (t7) could help organize and delegate some of these other tasks to appropriate family members.",
+      "MANUAL::MEDIUM::Trim James's nails",
+      "MANUAL::MEDIUM::Verify picnic area availability and outside food policy"
     ]
   },
   "2026-05-02": {
@@ -2016,7 +2075,8 @@
     ],
     "James": [
       "MANUAL::MEDIUM::Wegmans run"
-    ]
+    ],
+    "Lauren": []
   },
   "2026-05-03": {
     "JP": [
@@ -2065,7 +2125,8 @@
     ],
     "James": [
       "MANUAL::MEDIUM::Wegmans run"
-    ]
+    ],
+    "Lauren": []
   },
   "2026-05-04": {
     "JP": [
@@ -2158,7 +2219,8 @@
     ],
     "James": [
       "MANUAL::MEDIUM::Wegmans run"
-    ]
+    ],
+    "Lauren": []
   },
   "2026-05-05": {
     "JP": [
@@ -2237,7 +2299,8 @@
     ],
     "James": [
       "MANUAL::MEDIUM::Wegmans run"
-    ]
+    ],
+    "Lauren": []
   },
   "2026-05-06": {
     "JP": [
@@ -2323,7 +2386,8 @@
     ],
     "James": [
       "MANUAL::MEDIUM::Wegmans run"
-    ]
+    ],
+    "Lauren": []
   },
   "2026-05-07": {
     "JP": [
@@ -2407,6 +2471,7 @@
     ],
     "James": [
       "MANUAL::MEDIUM::Wegmans run"
-    ]
+    ],
+    "Lauren": []
   }
 }

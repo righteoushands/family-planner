@@ -29,24 +29,6 @@
     "id": "f25fd9e9"
   },
   {
-    "text": "Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
-    "assigned_to": "Mom",
-    "due_date": "2026-04-11",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false,
-    "id": "57c5f9d1"
-  },
-  {
-    "text": "Call MD re: meds for hair loss",
-    "assigned_to": "Mom",
-    "due_date": "2026-04-15",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false,
-    "id": "e3f6820d"
-  },
-  {
     "text": "Fertilize lawn with balanced 20-5-10 fertilizer",
     "assigned_to": "Lauren",
     "due_date": "2026-04-20",
@@ -238,7 +220,7 @@
   {
     "text": "Put all Amazon returns in the back of the van.",
     "assigned_to": "Mom",
-    "due_date": "2026-04-15",
+    "due_date": "2026-04-22",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": true,

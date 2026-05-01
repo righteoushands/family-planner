@@ -1,28 +1,6 @@
 {
   "events": [
     {
-      "title": "John's class",
-      "start": "2026-04-30T08:00",
-      "end": "2026-04-30T17:00",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Homeschool PE",
-      "start": "2026-04-30T10:00",
-      "end": "2026-04-30T11:30",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
       "title": "St. Joseph the Worker",
       "start": "2026-05-01",
       "end": "2026-05-01",
@@ -31,6 +9,17 @@
       "notes": "//thelittleroseshop.com/search?q=st+joseph&options%5Bprefix%5D=last",
       "calendar": "Liturgical Calendar (Little Rose Shop)",
       "color": "#e91e8c",
+      "source": "subscribed"
+    },
+    {
+      "title": "John's class",
+      "start": "2026-05-01T08:00",
+      "end": "2026-05-01T17:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
       "source": "subscribed"
     },
     {
@@ -1638,7 +1627,29 @@
       "calendar": "Lauren's Proton Mail",
       "color": "#9b59b6",
       "source": "subscribed"
+    },
+    {
+      "title": "Tic's birthday (1983)",
+      "start": "2026-06-30",
+      "end": "2026-06-30",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Bible Study",
+      "start": "2026-06-30T10:00",
+      "end": "2026-06-30T12:00",
+      "all_day": false,
+      "location": "Aletha house, 6712 Lakeland Way, Fredericksburg, VA 22407",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-04-30T20:58:33.340343"
+  "fetched_at": "2026-05-01T07:08:20.139340"
 }
