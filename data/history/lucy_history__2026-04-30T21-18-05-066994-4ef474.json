@@ -2,6 +2,16 @@
   "messages": [
     {
       "role": "user",
+      "content": "My needs to my husband",
+      "ts": "2026-04-17T14:02:47"
+    },
+    {
+      "role": "assistant",
+      "content": "That makes sense. DEAR MAN is perfect for this — it's designed to help you express your needs clearly and compassionately without demanding or withdrawing.\n\nThe steps are:\n\n**D** — Describe the situation objectively (just the facts, no blame)\n**E** — Express how you feel about it (use \"I\" statements)\n**A** — Assert what you need (be specific and reasonable)\n**R** — Reinforce why it matters (connect it to your values or the relationship)\n**M** — Stay Mindful (keep returning to your request if he gets defensive or distracted)\n**A** — Appear confident (even if you're nervous inside)\n**N** — Negotiate (be willing to meet halfway)\n\nWhat's one specific need you're wanting to bring to him? Start with describing the situation as you see it.",
+      "ts": "2026-04-17T14:02:51"
+    },
+    {
+      "role": "user",
       "content": "I feel like we don’t communicate well. It’s hard to describe",
       "ts": "2026-04-17T14:04:38"
     },
@@ -289,16 +299,6 @@
       "role": "assistant",
       "content": "**Lucy:** Lauren, I love that you're pausing to ask this question — it shows real intentionality. Looking at what we have on the calendar, I see the Sacred Heart Mass on June 12th, which is wonderful and right on the feast day. But I'm noticing we're jumping from now, the end of April, all the way to mid-June with nothing marked in between. That's six weeks including the end of the Easter season, Pentecost, the start of summer break rhythms, and the lead-up to the Sacred Heart feast itself. Are we missing some stepping stones that would help the family — especially the older boys — actually arrive at that June 12th Mass with hearts prepared rather than it feeling like it came out of nowhere?\n\n**Lucy's Synthesis:** Lauren, here's my gentle recommendation: consider adding just two or three anchor points between now and June 12th. Pentecost (May 31st this year) deserves at least a simple family acknowledgment — red clothes, prayer to the Holy Spirit at dinner, maybe birthday cake for the Church. Then in early June, you might do one evening where you read about the Sacred Heart with JP and Joseph so the feast has context and meaning for them. You don't need to over-schedule, but a little scaffolding will help this beautiful feast day land in prepared hearts rather than busy ones. Would you like me to suggest specific dates for these two moments?",
       "ts": "2026-04-30T19:27:03"
-    },
-    {
-      "role": "user",
-      "content": "[Plan Importer · Roundtable] Quick check — anything missing or that we might regret skipping?",
-      "ts": "2026-04-30T21:18:05"
-    },
-    {
-      "role": "assistant",
-      "content": "**Lorenzo:** Looking at the Mother's Day breakfast, I want to make sure we're not leaving Lauren to cook her own celebration meal. Has John confirmed he's handling the mimosas and breakfast prep, or do we need to plan something simple he can execute — like a make-ahead French toast bake that just needs to go in the oven? I'd also suggest prepping any ingredients the night before so the morning stays relaxed and focused on Lauren.\n\n**Coach:** With four kids including a toddler, Mother's Day mornings can get chaotic fast. I'd recommend building in some outdoor time after breakfast — even just 20 minutes in the backyard or a short family walk — so the boys burn energy and Lauren gets to enjoy the fresh air rather than being cooped up managing post-meal restlessness. It also gives her a chance to move gently if she wants, or simply sit outside while the kids play.\n\n**Lucy's Synthesis:** What a lovely intention for Mother's Day — but the missing piece is clarity on *who does what* so Lauren actually rests. I'd suggest John and the older boys have a brief planning conversation this week: John owns breakfast and mimosas, JP and Joseph handle table setting and cleanup, and Michael has a simple job like placing napkins. Build in that outdoor time Coach mentioned right after eating, which naturally transitions the energy. Most importantly, carve out 30 quiet minutes mid-morning where Lauren can pray, journal, or simply sit alone — the boys can handle James with Dad's supervision. Make it concrete now so May 10th feels like a gift, not another day Lauren orchestrates from behind the scenes.",
-      "ts": "2026-04-30T21:18:05"
     }
   ]
 }

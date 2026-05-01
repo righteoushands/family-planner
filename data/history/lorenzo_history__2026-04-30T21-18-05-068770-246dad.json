@@ -2,6 +2,16 @@
   "messages": [
     {
       "role": "user",
+      "content": "Save it",
+      "ts": "2026-04-25T07:32:37"
+    },
+    {
+      "role": "assistant",
+      "content": "Done. Saving all recipes and meal plan updates now.\n\n[RECIPE_CARD:add]{\"name\":\"Chicken Fried Rice\",\"servings\":\"6\",\"prep_time\":\"15 minutes\",\"cook_time\":\"10-15 minutes\",\"ingredients\":[\"3 cups cooked shredded roast chicken (from roasted chicken)\",\"3 cups cooked rice (day-old, cooled)\",\"2 eggs, beaten\",\"2 cups mixed vegetables (snap peas, carrots, broccoli, green beans — fresh or leftover roasted)\",\"3 cloves garlic, minced\",\"1 tbsp soy sauce\",\"1 tsp sesame oil\",\"2 tbsp vegetable oil\",\"Salt and pepper to taste\",\"Green onions (optional garnish)\"],\"instructions\":[\"Heat vegetable oil in large skillet or wok over medium-high heat.\",\"Add minced garlic. Stir-fry 30 seconds until fragrant.\",\"Push garlic to side. Pour beaten eggs into pan. Scramble lightly, breaking into small pieces. Once nearly set, mix with garlic.\",\"Add cooked rice, breaking up clumps. Stir-fry 3-4 minutes.\",\"Add chicken and vegetables. Stir-fry 3-4 minutes until heated through.\",\"Drizzle soy sauce and sesame oil. Toss well.\",\"Taste and adjust salt and pepper. Garnish with green onions if",
+      "ts": "2026-04-25T07:32:50"
+    },
+    {
+      "role": "user",
       "content": "Please give me the comprehensive shopping list again",
       "ts": "2026-04-25T11:33:51"
     },
@@ -289,16 +299,6 @@
       "role": "assistant",
       "content": "**Father Gregory:** Looking at the week ahead, I notice we have the Confirmation rehearsal and final Religious Ed class on May 6th, but I don't see any mention of regular homeschool lessons for that week. With JP's Confirmation events approaching, we should ensure Joseph and Michael's schoolwork is mapped out so Lauren isn't scrambling while also supporting JP's preparation. I'd also suggest a brief Confirmation review session earlier in the week — perhaps Monday or Tuesday — so JP feels spiritually prepared, not just logistically present.\n\n**Lorenzo:** The pizza party on May 6th handles JP's dinner that evening, but I'm wondering about the rest of the family — Lauren and the younger boys will need to eat, likely on a different timeline since JP leaves at 4:45. I'd recommend prepping something simple that can be served early or late depending on the chaos. Also, if JP attends Youth Group on Sunday the 3rd, we should plan for him to eat before 6:15 or pack something substantial — teenage boys and two-plus hours of activity require fuel.\n\n**Coach:** Sunday's Youth Group invitation is wonderful for JP socially and spiritually, but I want to flag that it runs 6:15-8:30 PM, which could cut into wind-down time before the school week. If he goes, maybe we front-load some outdoor activity earlier that day so he's not sedentary all afternoon before sitting again at youth group. For the younger boys, I don't see any movement plans — Michael especially needs daily active play built into this week.\n\n**Lucy's Synthesis:** Lauren, this plan covers the big anchors well, but there are a few soft spots worth shoring up now rather than regretting later. First, decide on JP's Sunday dinner plan — either feed him before Youth Group or send him with something hearty. Second, pencil in a brief Confirmation prep moment earlier in the week so May 6th feels like a celebration, not a cram session. Third, jot down a simple meal plan for the rest of the family on the 6th when JP's at his pizza party. Finally, make sure Michael gets intentional outdoor time each day — even 20 minutes matters. These small additions will keep the week from feeling reactive. You've got this!",
       "ts": "2026-04-30T13:51:32"
-    },
-    {
-      "role": "user",
-      "content": "[Plan Importer · Roundtable] Quick check — anything missing or that we might regret skipping?",
-      "ts": "2026-04-30T21:18:05"
-    },
-    {
-      "role": "assistant",
-      "content": "**Lorenzo:** Looking at the Mother's Day breakfast, I want to make sure we're not leaving Lauren to cook her own celebration meal. Has John confirmed he's handling the mimosas and breakfast prep, or do we need to plan something simple he can execute — like a make-ahead French toast bake that just needs to go in the oven? I'd also suggest prepping any ingredients the night before so the morning stays relaxed and focused on Lauren.\n\n**Coach:** With four kids including a toddler, Mother's Day mornings can get chaotic fast. I'd recommend building in some outdoor time after breakfast — even just 20 minutes in the backyard or a short family walk — so the boys burn energy and Lauren gets to enjoy the fresh air rather than being cooped up managing post-meal restlessness. It also gives her a chance to move gently if she wants, or simply sit outside while the kids play.\n\n**Lucy's Synthesis:** What a lovely intention for Mother's Day — but the missing piece is clarity on *who does what* so Lauren actually rests. I'd suggest John and the older boys have a brief planning conversation this week: John owns breakfast and mimosas, JP and Joseph handle table setting and cleanup, and Michael has a simple job like placing napkins. Build in that outdoor time Coach mentioned right after eating, which naturally transitions the energy. Most importantly, carve out 30 quiet minutes mid-morning where Lauren can pray, journal, or simply sit alone — the boys can handle James with Dad's supervision. Make it concrete now so May 10th feels like a gift, not another day Lauren orchestrates from behind the scenes.",
-      "ts": "2026-04-30T21:18:05"
     }
   ]
 }

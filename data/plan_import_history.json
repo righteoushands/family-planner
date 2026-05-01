@@ -2306,5 +2306,137 @@
         }
       ]
     }
+  },
+  {
+    "id": "0b25a8a03c91",
+    "created_at": "2026-05-01T01:17:54Z",
+    "viewer": "lauren",
+    "source": "live",
+    "plan_text": "Mother's Day Breakfast & Mimosas\nSUNDAY, MAY 10 8AM- 12PM\nPARISH LIFE CENTER\nThe Knights of Columbus Council 4034 will be hosting a Mother's Day Breakfast and Mimosa's with Mom in the Parish Life Center.\nWe will also be holding a Baby Bottle Campaign and will collect items for Mary's Shelter. Please bring any donations (diapers, formula, wipes, etc.) to the PLC during the breakfast.\nThe breakfast is open to the public.\nDonations appreciated.\nPlease join us and treat your Mom this Mother's Day!",
+    "analysis": {
+      "events": [
+        {
+          "id": "e1",
+          "title": "Mother's Day Breakfast & Mimosas",
+          "date": "2026-05-10",
+          "end_date": "",
+          "time": "8:00 AM",
+          "end_time": "12:00 PM",
+          "who": [
+            "Lauren"
+          ],
+          "notes": "Knights of Columbus Council 4034 at Parish Life Center. Baby Bottle Campaign - bring donations for Mary's Shelter (diapers, formula, wipes, etc.). Open to public, donations appreciated.",
+          "recurrence": "none",
+          "confidence": "high"
+        }
+      ],
+      "tasks": [],
+      "questions": [
+        {
+          "id": "q1",
+          "text": "Will the family attend the Mother's Day Breakfast? If so, who will go with Lauren?",
+          "related_to": "e1",
+          "field": "who"
+        }
+      ],
+      "warnings": [],
+      "suggestions": [
+        {
+          "text": "Consider bringing donations for Mary's Shelter (diapers, formula, wipes) to support the Baby Bottle Campaign.",
+          "related_to": "e1"
+        },
+        {
+          "text": "Consider having John and the boys attend to treat Lauren for Mother's Day.",
+          "related_to": "e1"
+        }
+      ],
+      "placements": [],
+      "_companions": [
+        {
+          "key": "lorenzo",
+          "label": "Lorenzo",
+          "color": "#8b3a1a",
+          "emoji": "\ud83c\udf7d\ufe0f",
+          "role": "Personal Chef"
+        },
+        {
+          "key": "coach",
+          "label": "Coach",
+          "color": "#1a6e3e",
+          "emoji": "\ud83d\udcaa",
+          "role": "Fitness"
+        },
+        {
+          "key": "lucy",
+          "label": "Lucy",
+          "color": "#5b3a8a",
+          "emoji": "\u2728",
+          "role": "Family Companion"
+        }
+      ]
+    }
+  },
+  {
+    "id": "38b3033c5bc0",
+    "created_at": "2026-05-01T01:18:23Z",
+    "viewer": "lauren",
+    "source": "live",
+    "plan_text": "Mother's Day Breakfast & Mimosas\nSUNDAY, MAY 10 8AM- 12PM\nPARISH LIFE CENTER\nThe Knights of Columbus Council 4034 will be hosting a Mother's Day Breakfast and Mimosa's with Mom in the Parish Life Center.\nWe will also be holding a Baby Bottle Campaign and will collect items for Mary's Shelter. Please bring any donations (diapers, formula, wipes, etc.) to the PLC during the breakfast.\nThe breakfast is open to the public.\nDonations appreciated.\nPlease join us and treat your Mom this Mother's Day!",
+    "analysis": {
+      "events": [
+        {
+          "id": "e1",
+          "title": "Mother's Day Breakfast & Mimosas \u2014 Knights of Columbus",
+          "date": "2026-05-10",
+          "end_date": "",
+          "time": "8:00 AM",
+          "end_time": "12:00 PM",
+          "who": [
+            "Lauren",
+            "John",
+            "JP",
+            "Joseph",
+            "Michael",
+            "James"
+          ],
+          "notes": "Parish Life Center. Knights of Columbus Council 4034 hosting. Baby Bottle Campaign collecting items for Mary's Shelter (diapers, formula, wipes). Open to public, donations appreciated.",
+          "recurrence": "none",
+          "confidence": "high"
+        }
+      ],
+      "tasks": [],
+      "questions": [],
+      "warnings": [],
+      "suggestions": [
+        {
+          "text": "Consider bringing donations for Mary's Shelter (diapers, formula, wipes) to support the Baby Bottle Campaign.",
+          "related_to": "e1"
+        }
+      ],
+      "placements": [],
+      "_companions": [
+        {
+          "key": "lorenzo",
+          "label": "Lorenzo",
+          "color": "#8b3a1a",
+          "emoji": "\ud83c\udf7d\ufe0f",
+          "role": "Personal Chef"
+        },
+        {
+          "key": "coach",
+          "label": "Coach",
+          "color": "#1a6e3e",
+          "emoji": "\ud83d\udcaa",
+          "role": "Fitness"
+        },
+        {
+          "key": "lucy",
+          "label": "Lucy",
+          "color": "#5b3a8a",
+          "emoji": "\u2728",
+          "role": "Family Companion"
+        }
+      ]
+    }
   }
 ]

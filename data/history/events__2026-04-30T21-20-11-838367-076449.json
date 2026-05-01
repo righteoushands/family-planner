@@ -519,37 +519,6 @@
       "notes": "Red clothes, prayer to the Holy Spirit at dinner, consider birthday cake for the Church",
       "subtasks": [],
       "archived": false
-    },
-    {
-      "id": "evt_00379f12",
-      "title": "Mother's Day Breakfast & Mimosas — Knights of Columbus",
-      "assigned_to": [
-        "Lauren",
-        "John",
-        "JP",
-        "Joseph",
-        "Michael",
-        "James"
-      ],
-      "start_date": "2026-05-10",
-      "end_date": "2026-05-10",
-      "start_time": "8:00 AM",
-      "end_time": "12:00 PM",
-      "recurrence": {
-        "type": "none"
-      },
-      "notifications": {
-        "show_on_dashboard": true,
-        "show_on_daily_page": true,
-        "show_in_looking_ahead": true,
-        "lead_days": 1
-      },
-      "prep": {
-        "lead_days": 0
-      },
-      "notes": "Parish Life Center. Knights of Columbus Council 4034 hosting. Baby Bottle Campaign collecting items for Mary's Shelter (diapers, formula, wipes). Open to public, donations appreciated.",
-      "subtasks": [],
-      "archived": false
     }
   ]
 }

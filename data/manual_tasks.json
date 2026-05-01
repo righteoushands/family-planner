@@ -1361,5 +1361,17 @@
     "recurring": false,
     "notes": "Early June evening to provide context and meaning for the June 12th feast",
     "subtasks": []
+  },
+  {
+    "id": "e3e9b73f",
+    "text": "Consider bringing donations for Mary's Shelter (diapers, formula, wipes) to support the Baby Bottle Campaign.",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "From counsel suggestion. Formula",
+    "subtasks": []
   }
 ]
