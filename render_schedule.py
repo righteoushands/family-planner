@@ -1781,11 +1781,14 @@ def render_child_dash_card(child: str, target_date_str: str = "", max_pending: i
     combined.sort(key=lambda x: x["sort_time"])
 
     # ── Secondary sort: due-date-aware for manual tasks (Task #32) ──────────
-    # Tuple key (is_manual, due_date_or_9999, priority_order). Non-manuals all
-    # share key (False, "", 0); stable sort preserves their existing relative
-    # order from the sort_time pass above. Manuals cluster after (True=1) and
-    # sort among themselves by due_date asc (overdue → today → future →
-    # undated "9999"), then HIGH < MEDIUM < LOW.
+    # Tuple key (not is_manual, due_date_or_9999, priority_order). Manuals get
+    # `not True == False == 0` and cluster FIRST, sorted among themselves by
+    # due_date asc (overdue → today → future → undated "9999") then HIGH <
+    # MEDIUM < LOW. Non-manuals all share key (True=1, "", 0); stable sort
+    # preserves their existing relative order from the sort_time pass above
+    # and they appear after the manual cluster. Putting manuals first ensures
+    # the most-urgent ones win the `pending_shown < max_pending` visibility
+    # slots before school steps consume the budget.
     _PRIO_ORDER = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
     def _due_sort_key(entry):
         item = entry.get("data") or {}
@@ -1798,7 +1801,7 @@ def render_child_dash_card(child: str, target_date_str: str = "", max_pending: i
                      and _tid.startswith("MANUAL::"))
         due = item.get("due_date") or "9999"
         pri = _PRIO_ORDER.get(item.get("priority", "MEDIUM"), 1)
-        return (is_manual, due, pri)
+        return (not is_manual, due, pri)
     combined.sort(key=_due_sort_key)
 
     # ── Render combined (2-at-a-time reveal for tasks; chores always shown) ──
