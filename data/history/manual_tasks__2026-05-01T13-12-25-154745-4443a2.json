@@ -269,7 +269,7 @@
   {
     "text": "Order JP's Confirmation cake",
     "assigned_to": "Lauren",
-    "due_date": "2026-05-09",
+    "due_date": "2026-04-30",
     "priority": "MEDIUM",
     "status": "active",
     "source": "plan_importer",
@@ -992,8 +992,7 @@
       "Monitor ankle/knee/core feeling",
       "Note energy levels after workouts"
     ],
-    "id": "e97e33b7",
-    "scheduled_for": "2026-05-01"
+    "id": "e97e33b7"
   },
   {
     "text": "Recite memorized Friendly Defender cards",
@@ -1044,6 +1043,22 @@
     "id": "5ca57884"
   },
   {
+    "text": "Put all the Amazon packages in the back of the van and return them",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-01",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "Gather all packages",
+      "Load into van",
+      "Drive to return location"
+    ],
+    "id": "e8b8fa07"
+  },
+  {
     "text": "Follow up with John on lodging for the convention and add the boys to my registration and add classes",
     "assigned_to": "Lauren",
     "due_date": "2026-05-02",
@@ -1074,6 +1089,18 @@
       "Categorize transactions in YNAB"
     ],
     "id": "e7cc7b10"
+  },
+  {
+    "text": "RSVP to drill on Saturday",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Sea Cadets drill",
+    "subtasks": [],
+    "id": "b8763f40"
   },
   {
     "text": "Put the spiritual bouquet promises into my to-do list",
@@ -1135,8 +1162,7 @@
     "recurring": true,
     "interval_value": 1,
     "interval_unit": "years",
-    "id": "f9a2aa2c",
-    "scheduled_for": "2026-05-01"
+    "id": "f9a2aa2c"
   },
   {
     "text": "Get drinks and snacks for JP to share at religious ed pizza party",

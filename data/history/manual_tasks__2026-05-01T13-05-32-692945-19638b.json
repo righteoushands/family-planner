@@ -167,7 +167,7 @@
   {
     "text": "Set up a simple rain gauge to track weekly rainfall amounts during summer to optimize watering schedule.",
     "assigned_to": "Lauren",
-    "due_date": "2026-05-04",
+    "due_date": "2026-04-12",
     "priority": "MEDIUM",
     "status": "active",
     "source": "plan_importer",
@@ -179,7 +179,7 @@
   {
     "text": "Keep a lawn care log to track what products were used and when, making next year's planning easier.",
     "assigned_to": "Lauren",
-    "due_date": "2026-05-11",
+    "due_date": "2026-04-12",
     "priority": "MEDIUM",
     "status": "active",
     "source": "plan_importer",
@@ -197,8 +197,7 @@
     "recurring": true,
     "interval_value": 11,
     "interval_unit": "months",
-    "id": "f6dc9a54",
-    "scheduled_for": "2026-05-01"
+    "id": "f6dc9a54"
   },
   {
     "text": "Choose Convention Class. https://heav.org/convention/children-and-teens/",
@@ -207,8 +206,7 @@
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false,
-    "id": "fcad1919",
-    "scheduled_for": "2026-05-01"
+    "id": "fcad1919"
   },
   {
     "text": "Put all Amazon returns in the back of the van.",
@@ -224,7 +222,7 @@
   {
     "text": "Friday Penance: give up meat or make another sacrifice.",
     "assigned_to": "Mom",
-    "due_date": "2026-05-15",
+    "due_date": "2026-05-08",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": true,
@@ -246,7 +244,7 @@
   {
     "text": "Ensure James continues wearing hip shorts",
     "assigned_to": "Lauren",
-    "due_date": "2026-05-04",
+    "due_date": "2026-04-18",
     "priority": "MEDIUM",
     "status": "active",
     "source": "plan_importer",
@@ -263,13 +261,12 @@
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false,
-    "id": "e353b922",
-    "scheduled_for": "2026-05-01"
+    "id": "e353b922"
   },
   {
     "text": "Order JP's Confirmation cake",
     "assigned_to": "Lauren",
-    "due_date": "2026-05-09",
+    "due_date": "2026-04-30",
     "priority": "MEDIUM",
     "status": "active",
     "source": "plan_importer",
@@ -704,6 +701,15 @@
     "id": "1e43ac3b"
   },
   {
+    "text": "Breakfast, planning",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-24",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false,
+    "id": "597e8051"
+  },
+  {
     "text": "Sign Michael up for swim lessons",
     "assigned_to": "Mom",
     "due_date": "2026-04-29",
@@ -948,6 +954,42 @@
     "id": "f87e513e"
   },
   {
+    "text": "Discuss produce preservation preferences with Lorenzo",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-27",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Clarify how to handle expected tomato yield (10-20 lbs per plant) and cucumber preservation methods before mid-July harvest",
+    "subtasks": [],
+    "id": "b071427f"
+  },
+  {
+    "text": "Plan sun protection and hydration for garden work days",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-27",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Late April through summer means real heat exposure during soil prep and planting - ensure supplies for anyone doing outdoor work",
+    "subtasks": [],
+    "id": "96da7f32"
+  },
+  {
+    "text": "Arrange childcare coverage for James during heavy garden work",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-27",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "James (13 months) cannot be underfoot during digging, cardboard laying, and soil amendment handling - needs containment or another caregiver for April 28th and 30th prep work",
+    "subtasks": [],
+    "id": "59f074e4"
+  },
+  {
     "text": "Arrange JP or Joseph to help with compost hauling and trellis setup",
     "assigned_to": "Lauren",
     "due_date": "2026-04-28",
@@ -978,6 +1020,30 @@
     "id": "20c42abe"
   },
   {
+    "text": "Check for U-pick or farm stand options at the asparagus farm",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-28",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Asparagus may be in season mid-May; consider bringing a cooler for fresh produce",
+    "subtasks": [],
+    "id": "258d8942"
+  },
+  {
+    "text": "Verify picnic area availability and outside food policy",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-28",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Important for planning lunch with four kids including a toddler; ensure options for James's dietary needs",
+    "subtasks": [],
+    "id": "c6b02ff1"
+  },
+  {
     "text": "Set up postpartum workout tracking log",
     "assigned_to": "Lauren",
     "due_date": "2026-04-29",
@@ -992,8 +1058,31 @@
       "Monitor ankle/knee/core feeling",
       "Note energy levels after workouts"
     ],
-    "id": "e97e33b7",
-    "scheduled_for": "2026-05-01"
+    "id": "e97e33b7"
+  },
+  {
+    "text": "Set up tracking log",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-28",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Complete today before the workout so you can use it on Wednesday. Do this rather than tomorrow morning when you'll be pulled in multiple directions.",
+    "subtasks": [],
+    "id": "b1ff993a"
+  },
+  {
+    "text": "Take a 10-minute walk",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-28",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Walk today or tonight to keep momentum going before Wednesday.",
+    "subtasks": [],
+    "id": "0766547c"
   },
   {
     "text": "Recite memorized Friendly Defender cards",
@@ -1044,6 +1133,22 @@
     "id": "5ca57884"
   },
   {
+    "text": "Put all the Amazon packages in the back of the van and return them",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-01",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "Gather all packages",
+      "Load into van",
+      "Drive to return location"
+    ],
+    "id": "e8b8fa07"
+  },
+  {
     "text": "Follow up with John on lodging for the convention and add the boys to my registration and add classes",
     "assigned_to": "Lauren",
     "due_date": "2026-05-02",
@@ -1074,6 +1179,18 @@
       "Categorize transactions in YNAB"
     ],
     "id": "e7cc7b10"
+  },
+  {
+    "text": "RSVP to drill on Saturday",
+    "assigned_to": "Joseph",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Sea Cadets drill",
+    "subtasks": [],
+    "id": "b8763f40"
   },
   {
     "text": "Put the spiritual bouquet promises into my to-do list",
@@ -1135,8 +1252,7 @@
     "recurring": true,
     "interval_value": 1,
     "interval_unit": "years",
-    "id": "f9a2aa2c",
-    "scheduled_for": "2026-05-01"
+    "id": "f9a2aa2c"
   },
   {
     "text": "Get drinks and snacks for JP to share at religious ed pizza party",

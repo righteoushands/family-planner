@@ -1044,6 +1044,22 @@
     "id": "5ca57884"
   },
   {
+    "text": "Put all the Amazon packages in the back of the van and return them",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-01",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "Gather all packages",
+      "Load into van",
+      "Drive to return location"
+    ],
+    "id": "e8b8fa07"
+  },
+  {
     "text": "Follow up with John on lodging for the convention and add the boys to my registration and add classes",
     "assigned_to": "Lauren",
     "due_date": "2026-05-02",
@@ -1135,8 +1151,7 @@
     "recurring": true,
     "interval_value": 1,
     "interval_unit": "years",
-    "id": "f9a2aa2c",
-    "scheduled_for": "2026-05-01"
+    "id": "f9a2aa2c"
   },
   {
     "text": "Get drinks and snacks for JP to share at religious ed pizza party",

@@ -285,11 +285,6 @@
         "action": "postpone",
         "postpone_to": "2026-05-15",
         "label": "Plan the gift reveal moment during cake time with prepared words of blessing from John and Lauren about hopes for JP's life in the Spirit."
-      },
-      "MANUAL::Lauren::2026-05-01::Mix amendments and layer on garden bed": {
-        "action": "postpone",
-        "postpone_to": "2026-05-02",
-        "label": "Mix amendments and layer on garden bed"
       }
     }
   }

@@ -172,33 +172,6 @@
       "color": "#888",
       "done": false,
       "task_id": "fcad1919"
-    },
-    {
-      "id": "2b2568a3",
-      "time": "",
-      "text": "Send Easter thank you card",
-      "source": "task",
-      "color": "#888",
-      "done": false,
-      "task_id": "e353b922"
-    },
-    {
-      "id": "3c285c91",
-      "time": "",
-      "text": "Set up postpartum workout tracking log",
-      "source": "task",
-      "color": "#888",
-      "done": false,
-      "task_id": "e97e33b7"
-    },
-    {
-      "id": "c3a52a1e",
-      "time": "",
-      "text": "Purchase Mother’s Day gifts: Mom, GMA Joan, Shelbi",
-      "source": "task",
-      "color": "#888",
-      "done": false,
-      "task_id": "f9a2aa2c"
     }
   ]
 }

@@ -2107,7 +2107,7 @@ def render_mom_page(status_message: str = "", target_date_str: str = "") -> str:
             '<div class="card" style="text-align:center;padding:32px;color:var(--ink-muted);">Loading step...</div>';
 
         // Fetch from server
-        fetch('/mom-step?step=' + encodeURIComponent(stepId) + '&iso=' + encodeURIComponent(_iso))
+        fetch('/mom-step?step=' + encodeURIComponent(stepId) + '&iso=' + encodeURIComponent(_iso) + '&_=' + Date.now())
             .then(function(r) {{ return r.text(); }})
             .then(function(html) {{
                 _loaded[stepId] = html;
