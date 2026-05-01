@@ -996,6 +996,10 @@ document.addEventListener('click', function(e) {{
     <span class="mobile-nav-icon">&#9989;</span>
     <span class="mobile-nav-label">Tasks</span>
   </a>
+  <a href="/today" class="mobile-nav-item">
+    <span class="mobile-nav-icon">&#128197;</span>
+    <span class="mobile-nav-label">Today</span>
+  </a>
   <a href="/prayer" class="mobile-nav-item">
     <span class="mobile-nav-icon">&#10011;</span>
     <span class="mobile-nav-label">Prayer</span>

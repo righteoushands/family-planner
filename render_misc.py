@@ -1362,7 +1362,7 @@ def render_dashboard() -> str:
 
     {_render_mom_messages_inbox()}
 
-    <a class="link-button no-print" href="/more"
+    <a class="link-button no-print" href="/today"
        style="font-size:0.82em;margin-bottom:8px;display:inline-block;">More &rarr;</a>
     <script>
     window.addEventListener('pageshow', function(e) {{
