@@ -269,6 +269,42 @@ def render_lauren_schedule_card(target_date_str: str = "") -> str:
     except Exception:
         meal_html = ""
 
+    # ── Merge items from data/daily_plans/<iso>.json ─────────────────────
+    # Anything Lauren added via "+ Add to day" (mom Step 5, dash card "+ Add",
+    # meal prep buttons) lands in the daily plan JSON. Surface those items on
+    # her schedule card so timed picks slot into place chronologically and
+    # unscheduled picks ride the bottom of the day. Skip "grid" items because
+    # those are seeded from the FROL and would duplicate build_day_list.
+    try:
+        from render_daily_plan import load_daily_plan
+        _plan = load_daily_plan(iso)
+        for _it in (_plan.get("items") or []):
+            if not isinstance(_it, dict):
+                continue
+            if _it.get("done"):
+                continue
+            if _it.get("source") == "grid":
+                continue
+            _t       = (_it.get("time") or "").strip()
+            _text    = (_it.get("text") or "").strip()
+            if not _text:
+                continue
+            _tid     = _it.get("task_id") or ("plan__" + str(_it.get("id", "")))
+            day_list.append({
+                "time":      fmt_time_12h(_t) if _t else "Unscheduled",
+                "time_sort": _t if _t else "23:59",
+                "label":     _text,
+                "kind":      "plan",
+                "checkable": True,
+                "task_id":   _tid,
+                "done":      bool(_it.get("done", False)),
+                "sub_items": [],
+                "is_event":  False,
+            })
+        day_list.sort(key=lambda x: x.get("time_sort", "00:00"))
+    except Exception:
+        pass
+
     c_bg    = parent_color("Lauren", "bg")
     c_light = parent_color("Lauren", "light")
 
