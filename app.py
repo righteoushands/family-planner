@@ -6510,7 +6510,7 @@ class Handler(BaseHTTPRequestHandler):
                 else:
                     _msg_content = _pi_user
                 _pi_payload = _pij.dumps({
-                    "model": "claude-opus-4-5",
+                    "model": "claude-sonnet-4-20250514",
                     "max_tokens": 1500,
                     "system": _pi_sys,
                     "messages": [{"role": "user", "content": _msg_content}],
