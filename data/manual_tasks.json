@@ -1337,5 +1337,29 @@
     "notes": "Front-load active time earlier in day so JP isn't sedentary before 6:15 PM Youth Group",
     "subtasks": [],
     "id": "06b542f7"
+  },
+  {
+    "id": "7d7a6c07",
+    "text": "Plan Pentecost family acknowledgment",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-24",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Consider red clothes, prayer to the Holy Spirit at dinner, maybe birthday cake for the Church",
+    "subtasks": []
+  },
+  {
+    "id": "52ebf299",
+    "text": "Read about the Sacred Heart with JP and Joseph",
+    "assigned_to": "Lauren",
+    "due_date": "2026-06-05",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Early June evening to provide context and meaning for the June 12th feast",
+    "subtasks": []
   }
 ]

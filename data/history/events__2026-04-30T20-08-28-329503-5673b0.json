@@ -466,59 +466,6 @@
       "notes": "Ensure JP eats before this event or has substantial snack packed",
       "subtasks": [],
       "archived": false
-    },
-    {
-      "id": "evt_288c00d8",
-      "title": "Sacred Heart of Jesus Mass",
-      "assigned_to": [
-        "Lauren"
-      ],
-      "start_date": "2026-06-12",
-      "end_date": "2026-06-12",
-      "start_time": "7:30 PM",
-      "end_time": "",
-      "recurrence": {
-        "type": "none"
-      },
-      "notifications": {
-        "show_on_dashboard": true,
-        "show_on_daily_page": true,
-        "show_in_looking_ahead": true,
-        "lead_days": 1
-      },
-      "prep": {
-        "lead_days": 0
-      },
-      "notes": "St. Mary of the Immaculate Conception, Fredericksburg VA. Exposition, Evening Prayer, Adoration with Music, Benediction",
-      "subtasks": [],
-      "archived": false
-    },
-    {
-      "id": "evt_ae88438c",
-      "title": "Pentecost family acknowledgment",
-      "assigned_to": [
-        "Lauren",
-        "family"
-      ],
-      "start_date": "2026-05-31",
-      "end_date": "2026-05-31",
-      "start_time": "",
-      "end_time": "",
-      "recurrence": {
-        "type": "none"
-      },
-      "notifications": {
-        "show_on_dashboard": true,
-        "show_on_daily_page": true,
-        "show_in_looking_ahead": true,
-        "lead_days": 1
-      },
-      "prep": {
-        "lead_days": 0
-      },
-      "notes": "Red clothes, prayer to the Holy Spirit at dinner, consider birthday cake for the Church",
-      "subtasks": [],
-      "archived": false
     }
   ]
 }

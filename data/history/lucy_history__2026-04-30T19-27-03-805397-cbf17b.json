@@ -2,6 +2,16 @@
   "messages": [
     {
       "role": "user",
+      "content": "I need to learn how to do this.",
+      "ts": "2026-04-17T14:02:23"
+    },
+    {
+      "role": "assistant",
+      "content": "This is the DEAR MAN skill from DBT — a beautiful tool for asking for what you need with clarity and respect. I can see why it speaks to you right now.\n\nLet me ask you directly: what do you need to ask for or communicate clearly about in your life right now?",
+      "ts": "2026-04-17T14:02:25"
+    },
+    {
+      "role": "user",
       "content": "My needs to my husband",
       "ts": "2026-04-17T14:02:47"
     },
@@ -289,16 +299,6 @@
       "role": "assistant",
       "content": "**Father Gregory:** Looking at the week ahead, I notice we have the Confirmation rehearsal and final Religious Ed class on May 6th, but I don't see any mention of regular homeschool lessons for that week. With JP's Confirmation events approaching, we should ensure Joseph and Michael's schoolwork is mapped out so Lauren isn't scrambling while also supporting JP's preparation. I'd also suggest a brief Confirmation review session earlier in the week — perhaps Monday or Tuesday — so JP feels spiritually prepared, not just logistically present.\n\n**Lorenzo:** The pizza party on May 6th handles JP's dinner that evening, but I'm wondering about the rest of the family — Lauren and the younger boys will need to eat, likely on a different timeline since JP leaves at 4:45. I'd recommend prepping something simple that can be served early or late depending on the chaos. Also, if JP attends Youth Group on Sunday the 3rd, we should plan for him to eat before 6:15 or pack something substantial — teenage boys and two-plus hours of activity require fuel.\n\n**Coach:** Sunday's Youth Group invitation is wonderful for JP socially and spiritually, but I want to flag that it runs 6:15-8:30 PM, which could cut into wind-down time before the school week. If he goes, maybe we front-load some outdoor activity earlier that day so he's not sedentary all afternoon before sitting again at youth group. For the younger boys, I don't see any movement plans — Michael especially needs daily active play built into this week.\n\n**Lucy's Synthesis:** Lauren, this plan covers the big anchors well, but there are a few soft spots worth shoring up now rather than regretting later. First, decide on JP's Sunday dinner plan — either feed him before Youth Group or send him with something hearty. Second, pencil in a brief Confirmation prep moment earlier in the week so May 6th feels like a celebration, not a cram session. Third, jot down a simple meal plan for the rest of the family on the 6th when JP's at his pizza party. Finally, make sure Michael gets intentional outdoor time each day — even 20 minutes matters. These small additions will keep the week from feeling reactive. You've got this!",
       "ts": "2026-04-30T13:51:32"
-    },
-    {
-      "role": "user",
-      "content": "[Plan Importer · Roundtable] Quick check — anything missing or that we might regret skipping?",
-      "ts": "2026-04-30T19:27:03"
-    },
-    {
-      "role": "assistant",
-      "content": "**Lucy:** Lauren, I love that you're pausing to ask this question — it shows real intentionality. Looking at what we have on the calendar, I see the Sacred Heart Mass on June 12th, which is wonderful and right on the feast day. But I'm noticing we're jumping from now, the end of April, all the way to mid-June with nothing marked in between. That's six weeks including the end of the Easter season, Pentecost, the start of summer break rhythms, and the lead-up to the Sacred Heart feast itself. Are we missing some stepping stones that would help the family — especially the older boys — actually arrive at that June 12th Mass with hearts prepared rather than it feeling like it came out of nowhere?\n\n**Lucy's Synthesis:** Lauren, here's my gentle recommendation: consider adding just two or three anchor points between now and June 12th. Pentecost (May 31st this year) deserves at least a simple family acknowledgment — red clothes, prayer to the Holy Spirit at dinner, maybe birthday cake for the Church. Then in early June, you might do one evening where you read about the Sacred Heart with JP and Joseph so the feast has context and meaning for them. You don't need to over-schedule, but a little scaffolding will help this beautiful feast day land in prepared hearts rather than busy ones. Would you like me to suggest specific dates for these two moments?",
-      "ts": "2026-04-30T19:27:03"
     }
   ]
 }

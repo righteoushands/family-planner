@@ -110,7 +110,7 @@ function _setPlanImageFile(file) {
     const dataUrl = ev.target.result;
     const tmpImg = new Image();
     tmpImg.onload = () => {
-      const MAX = 1200;
+      const MAX = 800;
       const w0 = tmpImg.naturalWidth || tmpImg.width;
       const h0 = tmpImg.naturalHeight || tmpImg.height;
       const longest = Math.max(w0, h0);
@@ -143,7 +143,7 @@ function _setPlanImageFile(file) {
         document.getElementById('img-drop').style.display = 'none';
         document.getElementById('paste-error').style.display = 'none';
         _resolveReady();
-      }, 'image/jpeg', 0.85);
+      }, 'image/jpeg', 0.7);
     };
     tmpImg.onerror = () => {
       const e = document.getElementById('paste-error');
