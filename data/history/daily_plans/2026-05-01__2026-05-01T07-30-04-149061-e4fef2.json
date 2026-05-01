@@ -145,15 +145,6 @@
       "source": "grid",
       "color": "#6b7280",
       "done": false
-    },
-    {
-      "id": "ec710f05",
-      "time": "",
-      "text": "Ensure James continues wearing hip shorts",
-      "source": "task",
-      "color": "#888",
-      "done": false,
-      "task_id": "635774ef"
     }
   ]
 }

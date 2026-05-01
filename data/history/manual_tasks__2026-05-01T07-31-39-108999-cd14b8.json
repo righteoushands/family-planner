@@ -5,7 +5,8 @@
     "due_date": "",
     "priority": "MEDIUM",
     "status": "active",
-    "recurring": false
+    "recurring": false,
+    "id": "03dc97b4"
   },
   {
     "text": "Sharpen knives",
@@ -13,7 +14,8 @@
     "due_date": "",
     "priority": "MEDIUM",
     "status": "active",
-    "recurring": false
+    "recurring": false,
+    "id": "22d19503"
   },
   {
     "text": "CAPTask: Wash the most used uniform of the month.",
@@ -23,23 +25,8 @@
     "status": "active",
     "recurring": true,
     "interval_value": 1,
-    "interval_unit": "months"
-  },
-  {
-    "text": "Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
-    "assigned_to": "Mom",
-    "due_date": "2026-04-11",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Call MD re: meds for hair loss",
-    "assigned_to": "Mom",
-    "due_date": "2026-04-15",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
+    "interval_unit": "months",
+    "id": "f25fd9e9"
   },
   {
     "text": "Fertilize lawn with balanced 20-5-10 fertilizer",
@@ -55,7 +42,8 @@
       "Check weather forecast",
       "Apply fertilizer to entire lawn",
       "Water lightly after application"
-    ]
+    ],
+    "id": "fabbc09b"
   },
   {
     "text": "Test soil pH and add lime if needed",
@@ -72,7 +60,8 @@
       "Review results",
       "Purchase lime if pH is low",
       "Apply lime if needed"
-    ]
+    ],
+    "id": "740eb19d"
   },
   {
     "text": "Overseed thin and bare patches in lawn",
@@ -89,7 +78,8 @@
       "Prepare soil in bare spots",
       "Apply seed",
       "Keep seeded areas moist"
-    ]
+    ],
+    "id": "97421e88"
   },
   {
     "text": "Maintain proper mowing height at 3-3.5 inches",
@@ -104,7 +94,8 @@
       "Check mower blade height setting",
       "Mow regularly throughout growing season",
       "Never cut more than 1/3 of grass height"
-    ]
+    ],
+    "id": "a0510e23"
   },
   {
     "text": "Begin deep watering schedule (1 inch/week)",
@@ -120,7 +111,8 @@
       "Water 1-2 times per week deeply",
       "Water early morning (6-10 AM)",
       "Monitor rainfall amounts"
-    ]
+    ],
+    "id": "959a0498"
   },
   {
     "text": "Overseed entire lawn (fall priority #1)",
@@ -137,7 +129,8 @@
       "Broadcast seed over entire lawn",
       "Apply starter fertilizer",
       "Keep soil moist for germination"
-    ]
+    ],
+    "id": "816ace62"
   },
   {
     "text": "Apply fall fertilizer (September application)",
@@ -152,7 +145,8 @@
       "Purchase fall fertilizer",
       "Apply to entire lawn",
       "Water in lightly"
-    ]
+    ],
+    "id": "889a5775"
   },
   {
     "text": "Apply late fall fertilizer (October/November application)",
@@ -167,7 +161,8 @@
       "Purchase winterizing fertilizer",
       "Apply before ground freezes",
       "Final fertilization of the year"
-    ]
+    ],
+    "id": "869be722"
   },
   {
     "text": "Set up a simple rain gauge to track weekly rainfall amounts during summer to optimize watering schedule.",
@@ -178,7 +173,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "From counsel suggestion",
-    "subtasks": []
+    "subtasks": [],
+    "id": "de423998"
   },
   {
     "text": "Keep a lawn care log to track what products were used and when, making next year's planning easier.",
@@ -189,7 +185,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "From counsel suggestion",
-    "subtasks": []
+    "subtasks": [],
+    "id": "a8859202"
   },
   {
     "text": "Buy caterpillars",
@@ -199,7 +196,8 @@
     "status": "active",
     "recurring": true,
     "interval_value": 11,
-    "interval_unit": "months"
+    "interval_unit": "months",
+    "id": "f6dc9a54"
   },
   {
     "text": "Choose Convention Class. https://heav.org/convention/children-and-teens/",
@@ -207,25 +205,19 @@
     "due_date": "2026-04-18",
     "priority": "MEDIUM",
     "status": "active",
-    "recurring": false
-  },
-  {
-    "text": "Choose Convention Class. https://heav.org/convention/children-and-teens/",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-18",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
+    "recurring": false,
+    "id": "fcad1919"
   },
   {
     "text": "Put all Amazon returns in the back of the van.",
     "assigned_to": "Mom",
-    "due_date": "2026-04-15",
+    "due_date": "2026-04-29",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": true,
     "interval_value": 1,
-    "interval_unit": "weeks"
+    "interval_unit": "weeks",
+    "id": "40fac4f6"
   },
   {
     "text": "Friday Penance: give up meat or make another sacrifice.",
@@ -235,7 +227,8 @@
     "status": "active",
     "recurring": true,
     "interval_value": 1,
-    "interval_unit": "weeks"
+    "interval_unit": "weeks",
+    "id": "ed44c6c3"
   },
   {
     "text": "Friday Penance: give up meat or make another sacrifice.",
@@ -245,7 +238,8 @@
     "status": "active",
     "recurring": true,
     "interval_value": 1,
-    "interval_unit": "weeks"
+    "interval_unit": "weeks",
+    "id": "352a971e"
   },
   {
     "text": "Ensure James continues wearing hip shorts",
@@ -256,7 +250,9 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "Ongoing requirement from PT",
-    "subtasks": []
+    "subtasks": [],
+    "id": "635774ef",
+    "scheduled_for": "2026-05-01"
   },
   {
     "text": "Send Easter thank you card",
@@ -264,7 +260,8 @@
     "due_date": "2026-04-18",
     "priority": "MEDIUM",
     "status": "active",
-    "recurring": false
+    "recurring": false,
+    "id": "e353b922"
   },
   {
     "text": "Wegmans run",
@@ -272,7 +269,8 @@
     "due_date": "2026-04-18",
     "priority": "MEDIUM",
     "status": "active",
-    "recurring": false
+    "recurring": false,
+    "id": "b3984d67"
   },
   {
     "text": "Wegmans run",
@@ -280,7 +278,8 @@
     "due_date": "2026-04-18",
     "priority": "MEDIUM",
     "status": "active",
-    "recurring": false
+    "recurring": false,
+    "id": "81abac85"
   },
   {
     "text": "Order JP's Confirmation cake",
@@ -296,7 +295,8 @@
       "Holy Spirit or cross design",
       "Confirm pickup for May 15 or morning May 16",
       "Get deposit receipt"
-    ]
+    ],
+    "id": "5c083773"
   },
   {
     "text": "Begin shopping for JP's special gift from parents",
@@ -311,7 +311,8 @@
       "Ideas: quality rosary, patron saint medal, leather-bound Bible",
       "Cross necklace or meaningful keepsake",
       "If ordering online, allow 2 weeks for shipping"
-    ]
+    ],
+    "id": "240baef1"
   },
   {
     "text": "Take JP to shop for Confirmation suit",
@@ -326,7 +327,8 @@
       "Navy, charcoal, or black suit",
       "Fit shoulders first — hardest to alter",
       "Try JCPenney, Men's Wearhouse, or Target"
-    ]
+    ],
+    "id": "0456e13a"
   },
   {
     "text": "Complete JP's Confirmation outfit",
@@ -343,7 +345,8 @@
       "Black/brown leather dress shoes and matching belt",
       "Dark dress socks",
       "Full dress rehearsal at home"
-    ]
+    ],
+    "id": "19ac4f5b"
   },
   {
     "text": "Finalize and order/purchase JP's special gift",
@@ -358,7 +361,8 @@
       "If online, order by May 5",
       "Wrap and store safely",
       "Plan reveal moment during cake"
-    ]
+    ],
+    "id": "08a54a30"
   },
   {
     "text": "Collect RSVPs and follow up with non-responders",
@@ -373,7 +377,8 @@
       "RSVP deadline: May 6",
       "Follow up with non-responders May 7",
       "Finalize headcount for food planning"
-    ]
+    ],
+    "id": "353c8eca"
   },
   {
     "text": "Shampoo the sofas",
@@ -389,7 +394,8 @@
       "Allow 3-4 full days to dry",
       "Fan on cushions for airflow",
       "Sniff-check the day before"
-    ]
+    ],
+    "id": "7f7d7e93"
   },
   {
     "text": "Inflate and test bounce house",
@@ -404,7 +410,8 @@
       "Check for slow leaks",
       "Confirm blower motor and extension cord work",
       "Measure basement space for indoor option"
-    ]
+    ],
+    "id": "245d7eb8"
   },
   {
     "text": "Deep-clean entertaining spaces",
@@ -419,7 +426,8 @@
       "Living room, dining area, kitchen",
       "Guest bathroom",
       "Wash and press table linens"
-    ]
+    ],
+    "id": "1bed68e8"
   },
   {
     "text": "Plan food layout and table setup",
@@ -434,7 +442,8 @@
       "Decide placement: apps table, jambalaya station, dessert table",
       "Pull out serving dishes, platters, tongs, utensils",
       "Confirm you have everything needed"
-    ]
+    ],
+    "id": "03bad0ae"
   },
   {
     "text": "Plan pollen-control strategy",
@@ -450,7 +459,8 @@
       "Set HVAC to recirculate/indoor air mode",
       "Consider portable HEPA purifier in main room",
       "Text friend with plan"
-    ]
+    ],
+    "id": "8ce812c9"
   },
   {
     "text": "Main grocery run for reception",
@@ -465,7 +475,8 @@
       "Jambalaya ingredients (andouille, shrimp/chicken, trinity veg, rice)",
       "Cheese plate items (2-3 cheeses, crackers, grapes, honey, nuts)",
       "Fruit and veggie plate produce, rolls, drinks, ice, napkins"
-    ]
+    ],
+    "id": "fe39094a"
   },
   {
     "text": "Pick up JP's Confirmation cake",
@@ -480,7 +491,8 @@
       "Confirm bakery pickup time",
       "Clear refrigerator shelf",
       "Transport level"
-    ]
+    ],
+    "id": "52f813b7"
   },
   {
     "text": "Partial food prep the night before",
@@ -496,7 +508,8 @@
       "Pre-arrange cheese boards (covered, no crackers yet)",
       "Prep fruits that won't brown",
       "Set serving boards on counter"
-    ]
+    ],
+    "id": "b8334950"
   },
   {
     "text": "Make jambalaya the night before",
@@ -511,7 +524,8 @@
       "Cook jambalaya fully",
       "Refrigerate overnight",
       "Plan to reheat May 16 with splash of broth"
-    ]
+    ],
+    "id": "f5150c7d"
   },
   {
     "text": "Final house tidy and setup",
@@ -527,7 +541,8 @@
       "Set out serving dishes in position",
       "Set up drinks station with cups/ice/labels",
       "Stock guest bathroom (soap, towels, TP)"
-    ]
+    ],
+    "id": "03985c29"
   },
   {
     "text": "Check pollen forecast and decide bounce house location",
@@ -542,7 +557,8 @@
       "Check pollen forecast for May 16",
       "Decide: bounce house outside or basement",
       "Text friend the update"
-    ]
+    ],
+    "id": "821b5f58"
   },
   {
     "text": "Close windows and set HVAC for pollen control",
@@ -556,7 +572,8 @@
     "subtasks": [
       "Close all windows and doors",
       "Set HVAC to recirculate/indoor air only"
-    ]
+    ],
+    "id": "ed1c8206"
   },
   {
     "text": "Set up bounce house in chosen location",
@@ -571,7 +588,8 @@
       "Inflate bounce house",
       "Confirm blower running steadily",
       "Clear safety perimeter"
-    ]
+    ],
+    "id": "c71ca9c5"
   },
   {
     "text": "Final food preparation morning of reception",
@@ -586,7 +604,8 @@
       "Reheat jambalaya on low with splash of broth",
       "Finish assembling all plates (add crackers now)",
       "Warm rolls in foil at 200°F"
-    ]
+    ],
+    "id": "3fd92b0a"
   },
   {
     "text": "Get family dressed for Confirmation",
@@ -601,7 +620,8 @@
       "JP in full suit",
       "Take photos at home before leaving",
       "Allow 45 minutes for everyone"
-    ]
+    ],
+    "id": "901d0e37"
   },
   {
     "text": "Place JP's wrapped gift for reveal moment",
@@ -615,7 +635,8 @@
     "subtasks": [
       "Place gift somewhere special",
       "Plan reveal during cake time"
-    ]
+    ],
+    "id": "0d27a532"
   },
   {
     "text": "Prepare Michael for Confirmation Mass",
@@ -630,7 +651,8 @@
       "Explain Confirmation in simple terms",
       "Read picture book about Holy Spirit",
       "Practice sitting quietly"
-    ]
+    ],
+    "id": "ba7d9b31"
   },
   {
     "text": "Plan James's nap schedule for Confirmation day",
@@ -645,7 +667,8 @@
       "Schedule earlier morning nap",
       "Prepare quiet exit strategy",
       "Pack baby bag"
-    ]
+    ],
+    "id": "4b444aef"
   },
   {
     "text": "Family prayer night before Confirmation",
@@ -656,7 +679,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "Pray together while finishing jambalaya prep, ask Holy Spirit to prepare JP's heart",
-    "subtasks": []
+    "subtasks": [],
+    "id": "ef2c7cd3"
   },
   {
     "text": "Morning family prayer for JP on Confirmation day",
@@ -667,7 +691,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "Before getting dressed, gather family to pray over JP",
-    "subtasks": []
+    "subtasks": [],
+    "id": "83611495"
   },
   {
     "text": "Plan the gift reveal moment during cake time with prepared words of blessing from John and Lauren about hopes for JP's life in the Spirit.",
@@ -678,7 +703,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "From counsel suggestion",
-    "subtasks": []
+    "subtasks": [],
+    "id": "d27f80a4"
   },
   {
     "text": "family walk on May 16 morning as a specific time block to ensure it happens before getting dressed for Mass.",
@@ -689,7 +715,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "From counsel suggestion",
-    "subtasks": []
+    "subtasks": [],
+    "id": "1e43ac3b"
   },
   {
     "text": "Breakfast, planning",
@@ -697,7 +724,8 @@
     "due_date": "2026-04-24",
     "priority": "MEDIUM",
     "status": "active",
-    "recurring": false
+    "recurring": false,
+    "id": "597e8051"
   },
   {
     "text": "Sign Michael up for swim lessons",
@@ -705,7 +733,8 @@
     "due_date": "2026-04-29",
     "priority": "MEDIUM",
     "status": "active",
-    "recurring": false
+    "recurring": false,
+    "id": "dad7c157"
   },
   {
     "text": "Buy garden bed supplies and lay cardboard",
@@ -723,7 +752,8 @@
       "Buy 3 lbs bone meal",
       "Lay cardboard on 4x8 area with 6-inch overlaps",
       "Wet cardboard thoroughly"
-    ]
+    ],
+    "id": "7a0a3a85"
   },
   {
     "text": "Mix amendments and layer on garden bed",
@@ -739,7 +769,8 @@
       "Layer 4-6 inches of mixture on wet cardboard",
       "Water thoroughly",
       "Leave undisturbed for 5-7 days minimum"
-    ]
+    ],
+    "id": "dc87d5d5"
   },
   {
     "text": "Buy transplants and set up garden supports",
@@ -757,7 +788,8 @@
       "Set up trellis for cucumbers",
       "Set up tomato cages",
       "Get soil thermometer to check temperature"
-    ]
+    ],
+    "id": "beced50f"
   },
   {
     "text": "Check soil temperature for planting readiness",
@@ -772,7 +804,8 @@
       "Use thermometer to check soil temp",
       "Wait for consistent 65°F reading",
       "Verify soil has been undisturbed for 5-7 days minimum"
-    ]
+    ],
+    "id": "11eb5a98"
   },
   {
     "text": "Plant garden bed crops",
@@ -788,7 +821,8 @@
       "Plant 2 tomatoes in center with cages (bury deep to first leaves)",
       "Plant 2-3 peppers on south end (same depth as pot)",
       "Water in with diluted fish emulsion immediately"
-    ]
+    ],
+    "id": "ff53051f"
   },
   {
     "text": "Establish watering routine and mulch plants",
@@ -804,7 +838,8 @@
       "Monitor for wet/dry cycles",
       "Mulch with straw or wood chips 3-5 days after planting",
       "Avoid fertilizing during establishment"
-    ]
+    ],
+    "id": "28390040"
   },
   {
     "text": "Side-dress plants when flowering begins",
@@ -819,7 +854,8 @@
       "Apply blood meal lightly around each plant",
       "Switch to low-nitrogen, higher phosphorus fertilizer (like 5-10-5)",
       "Focus on fruit set rather than leaf growth"
-    ]
+    ],
+    "id": "1e6a9e19"
   },
   {
     "text": "Ongoing summer garden maintenance",
@@ -834,7 +870,8 @@
       "Pinch tomato suckers weekly, keep 1-2 main stems",
       "Harvest cucumbers aggressively to keep plants producing",
       "Leave peppers largely alone (they don't like fussing)"
-    ]
+    ],
+    "id": "739f264a"
   },
   {
     "text": "Consider having JP help with the physical aspects of garden bed construction as an educational project",
@@ -845,7 +882,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "From counsel suggestion",
-    "subtasks": []
+    "subtasks": [],
+    "id": "606625b7"
   },
   {
     "text": "Establish watering routine and mulch plants",
@@ -861,7 +899,8 @@
       "Mulch around plants with straw or wood chips",
       "Wait 3-5 days after planting before mulching",
       "Avoid wet/dry cycles"
-    ]
+    ],
+    "id": "3da0030d"
   },
   {
     "text": "Switch to flowering fertilizer when flowers appear",
@@ -876,7 +915,8 @@
       "Side-dress lightly with blood meal around each plant",
       "Switch to low-nitrogen, higher phosphorus liquid fertilizer (5-10-5 ratio)",
       "Focus on fruit set rather than leaf growth"
-    ]
+    ],
+    "id": "12136c3b"
   },
   {
     "text": "Begin ongoing summer garden maintenance",
@@ -892,7 +932,8 @@
       "Harvest cucumbers aggressively to keep production going",
       "Leave peppers alone - they don't like fussing",
       "Monitor for drainage issues and weed pressure from edges"
-    ]
+    ],
+    "id": "a0e4a094"
   },
   {
     "text": "The soil temperature check task might need to be repeated daily until conditions are right - consider setting up a recurring reminder",
@@ -903,7 +944,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "From counsel suggestion",
-    "subtasks": []
+    "subtasks": [],
+    "id": "46552e11"
   },
   {
     "text": "Consider involving JP or Joseph in some of the garden tasks as educational opportunities, especially the ongoing maintenance tasks",
@@ -914,7 +956,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "From counsel suggestion",
-    "subtasks": []
+    "subtasks": [],
+    "id": "9642a42e"
   },
   {
     "text": "Create safe storage plan for fish emulsion and fertilizers away from Michael",
@@ -925,7 +968,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "Michael is at age where anything in a bottle looks interesting - needs secure storage location",
-    "subtasks": []
+    "subtasks": [],
+    "id": "f87e513e"
   },
   {
     "text": "Discuss produce preservation preferences with Lorenzo",
@@ -936,7 +980,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "Clarify how to handle expected tomato yield (10-20 lbs per plant) and cucumber preservation methods before mid-July harvest",
-    "subtasks": []
+    "subtasks": [],
+    "id": "b071427f"
   },
   {
     "text": "Plan sun protection and hydration for garden work days",
@@ -947,7 +992,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "Late April through summer means real heat exposure during soil prep and planting - ensure supplies for anyone doing outdoor work",
-    "subtasks": []
+    "subtasks": [],
+    "id": "96da7f32"
   },
   {
     "text": "Arrange childcare coverage for James during heavy garden work",
@@ -958,7 +1004,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "James (13 months) cannot be underfoot during digging, cardboard laying, and soil amendment handling - needs containment or another caregiver for April 28th and 30th prep work",
-    "subtasks": []
+    "subtasks": [],
+    "id": "59f074e4"
   },
   {
     "text": "Arrange JP or Joseph to help with compost hauling and trellis setup",
@@ -969,7 +1016,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "Functional movement activity that teaches useful skills - can supervise Michael's participation as well",
-    "subtasks": []
+    "subtasks": [],
+    "id": "46955f1e"
   },
   {
     "text": "Research current hours and activities at Snead's Farm",
@@ -986,7 +1034,8 @@
       "Look for seasonal activities",
       "Check admission prices",
       "Note any special events"
-    ]
+    ],
+    "id": "20c42abe"
   },
   {
     "text": "Check for U-pick or farm stand options at the asparagus farm",
@@ -997,7 +1046,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "Asparagus may be in season mid-May; consider bringing a cooler for fresh produce",
-    "subtasks": []
+    "subtasks": [],
+    "id": "258d8942"
   },
   {
     "text": "Verify picnic area availability and outside food policy",
@@ -1008,7 +1058,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "Important for planning lunch with four kids including a toddler; ensure options for James's dietary needs",
-    "subtasks": []
+    "subtasks": [],
+    "id": "c6b02ff1"
   },
   {
     "text": "Set up postpartum workout tracking log",
@@ -1024,7 +1075,8 @@
       "Track run/walk ratios",
       "Monitor ankle/knee/core feeling",
       "Note energy levels after workouts"
-    ]
+    ],
+    "id": "e97e33b7"
   },
   {
     "text": "Set up tracking log",
@@ -1035,7 +1087,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "Complete today before the workout so you can use it on Wednesday. Do this rather than tomorrow morning when you'll be pulled in multiple directions.",
-    "subtasks": []
+    "subtasks": [],
+    "id": "b1ff993a"
   },
   {
     "text": "Take a 10-minute walk",
@@ -1046,7 +1099,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "Walk today or tonight to keep momentum going before Wednesday.",
-    "subtasks": []
+    "subtasks": [],
+    "id": "0766547c"
   },
   {
     "text": "Recite memorized Friendly Defender cards",
@@ -1054,7 +1108,8 @@
     "due_date": "2026-05-06",
     "priority": "MEDIUM",
     "status": "active",
-    "recurring": false
+    "recurring": false,
+    "id": "4d908b29"
   },
   {
     "text": "Trim James's nails",
@@ -1065,7 +1120,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "",
-    "subtasks": []
+    "subtasks": [],
+    "id": "6c69549f"
   },
   {
     "text": "Clean the very top of the kitchen shelves",
@@ -1076,7 +1132,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "",
-    "subtasks": []
+    "subtasks": [],
+    "id": "37a90e3b"
   },
   {
     "text": "Get the boys haircuts",
@@ -1090,7 +1147,8 @@
     "subtasks": [
       "Schedule appointments",
       "Coordinate with boys' schedules"
-    ]
+    ],
+    "id": "5ca57884"
   },
   {
     "text": "Put all the Amazon packages in the back of the van and return them",
@@ -1105,7 +1163,8 @@
       "Gather all packages",
       "Load into van",
       "Drive to return location"
-    ]
+    ],
+    "id": "e8b8fa07"
   },
   {
     "text": "Follow up with John on lodging for the convention and add the boys to my registration and add classes",
@@ -1120,7 +1179,8 @@
       "Discuss lodging options with John",
       "Add boys to registration",
       "Select and add classes"
-    ]
+    ],
+    "id": "0386670d"
   },
   {
     "text": "Add receipts to YNAB, including the giant receipts from the other day and all of the things in my blue book",
@@ -1135,7 +1195,8 @@
       "Process giant receipts from recent shopping",
       "Enter all receipts from blue book",
       "Categorize transactions in YNAB"
-    ]
+    ],
+    "id": "e7cc7b10"
   },
   {
     "text": "RSVP to drill on Saturday",
@@ -1146,7 +1207,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "Sea Cadets drill",
-    "subtasks": []
+    "subtasks": [],
+    "id": "ff7cf8aa"
   },
   {
     "text": "RSVP to drill on Saturday",
@@ -1157,7 +1219,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "Sea Cadets drill",
-    "subtasks": []
+    "subtasks": [],
+    "id": "b8763f40"
   },
   {
     "text": "Put the spiritual bouquet promises into my to-do list",
@@ -1172,7 +1235,8 @@
       "Review spiritual bouquet commitments",
       "Add each promise as actionable tasks",
       "Set appropriate deadlines"
-    ]
+    ],
+    "id": "3b54ea40"
   },
   {
     "text": "The year-end planning task (t7) could help organize and delegate some of these other tasks to appropriate family members.",
@@ -1185,7 +1249,8 @@
     "notes": "From counsel suggestion",
     "subtasks": [
       "List of assessments due for JP and Joe"
-    ]
+    ],
+    "id": "d3b602ef"
   },
   {
     "text": "Confirm which specific classes JP and Joseph need or want for convention registration",
@@ -1196,7 +1261,8 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "Must be completed before finalizing convention registration (deadline May 2nd). Have this conversation at lunch with older boys.",
-    "subtasks": []
+    "subtasks": [],
+    "id": "e5eee823"
   },
   {
     "text": "Haircuts today?",
@@ -1204,7 +1270,8 @@
     "due_date": "2026-04-30",
     "priority": "MEDIUM",
     "status": "active",
-    "recurring": false
+    "recurring": false,
+    "id": "1aa10966"
   },
   {
     "text": "Purchase Mother’s Day gifts: Mom, GMA Joan, Shelbi",
@@ -1214,7 +1281,8 @@
     "status": "active",
     "recurring": true,
     "interval_value": 1,
-    "interval_unit": "years"
+    "interval_unit": "years",
+    "id": "f9a2aa2c"
   },
   {
     "text": "Get drinks and snacks for JP to share at religious ed pizza party",
@@ -1229,7 +1297,8 @@
       "Let JP pick both drinks and snacks",
       "Purchase items",
       "Pack for JP to bring"
-    ]
+    ],
+    "id": "2e0aad95"
   },
   {
     "text": "Schedule outdoor activity for JP on May 3rd before Youth Group",
@@ -1240,6 +1309,43 @@
     "source": "plan_importer",
     "recurring": false,
     "notes": "Front-load active time earlier in day so JP isn't sedentary before 6:15 PM Youth Group",
+    "subtasks": [],
+    "id": "06b542f7"
+  },
+  {
+    "id": "7d7a6c07",
+    "text": "Plan Pentecost family acknowledgment",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-24",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Consider red clothes, prayer to the Holy Spirit at dinner, maybe birthday cake for the Church",
+    "subtasks": []
+  },
+  {
+    "id": "52ebf299",
+    "text": "Read about the Sacred Heart with JP and Joseph",
+    "assigned_to": "Lauren",
+    "due_date": "2026-06-05",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Early June evening to provide context and meaning for the June 12th feast",
+    "subtasks": []
+  },
+  {
+    "id": "e3e9b73f",
+    "text": "Consider bringing donations for Mary's Shelter (diapers, formula, wipes) to support the Baby Bottle Campaign.",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "From counsel suggestion. Formula",
     "subtasks": []
   }
 ]

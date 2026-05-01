@@ -1974,12 +1974,10 @@
       "MANUAL::MEDIUM::Arrange JP or Joseph to help with compost hauling and trellis setup",
       "MANUAL::MEDIUM::Arrange childcare coverage for James during heavy garden work",
       "MANUAL::MEDIUM::Begin shopping for JP's special gift from parents",
-      "MANUAL::MEDIUM::Birthday Party plans: what will we do to celebrate JP, Joseph, James and John. Big party?",
       "MANUAL::MEDIUM::Breakfast, planning",
       "MANUAL::MEDIUM::Buy caterpillars",
       "MANUAL::MEDIUM::Buy garden bed supplies and lay cardboard",
       "MANUAL::MEDIUM::Buy transplants and set up garden supports",
-      "MANUAL::MEDIUM::Call MD re: meds for hair loss",
       "MANUAL::MEDIUM::Change air filters",
       "MANUAL::MEDIUM::Check for U-pick or farm stand options at the asparagus farm",
       "MANUAL::MEDIUM::Choose Convention Class. https://heav.org/convention/children-and-teens/",
@@ -2076,7 +2074,8 @@
     ],
     "James": [
       "MANUAL::MEDIUM::Wegmans run"
-    ]
+    ],
+    "Lauren": []
   },
   "2026-05-03": {
     "JP": [
@@ -2125,7 +2124,8 @@
     ],
     "James": [
       "MANUAL::MEDIUM::Wegmans run"
-    ]
+    ],
+    "Lauren": []
   },
   "2026-05-04": {
     "JP": [
@@ -2218,7 +2218,8 @@
     ],
     "James": [
       "MANUAL::MEDIUM::Wegmans run"
-    ]
+    ],
+    "Lauren": []
   },
   "2026-05-05": {
     "JP": [
@@ -2297,7 +2298,8 @@
     ],
     "James": [
       "MANUAL::MEDIUM::Wegmans run"
-    ]
+    ],
+    "Lauren": []
   },
   "2026-05-06": {
     "JP": [
@@ -2383,7 +2385,8 @@
     ],
     "James": [
       "MANUAL::MEDIUM::Wegmans run"
-    ]
+    ],
+    "Lauren": []
   },
   "2026-05-07": {
     "JP": [
@@ -2467,6 +2470,7 @@
     ],
     "James": [
       "MANUAL::MEDIUM::Wegmans run"
-    ]
+    ],
+    "Lauren": []
   }
 }

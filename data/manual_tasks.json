@@ -209,18 +209,9 @@
     "id": "fcad1919"
   },
   {
-    "text": "Choose Convention Class. https://heav.org/convention/children-and-teens/",
-    "assigned_to": "Joseph",
-    "due_date": "2026-04-18",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false,
-    "id": "d86bbf04"
-  },
-  {
     "text": "Put all Amazon returns in the back of the van.",
     "assigned_to": "Mom",
-    "due_date": "2026-04-22",
+    "due_date": "2026-05-13",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": true,
@@ -260,7 +251,8 @@
     "recurring": false,
     "notes": "Ongoing requirement from PT",
     "subtasks": [],
-    "id": "635774ef"
+    "id": "635774ef",
+    "scheduled_for": "2026-05-01"
   },
   {
     "text": "Send Easter thank you card",
@@ -270,24 +262,6 @@
     "status": "active",
     "recurring": false,
     "id": "e353b922"
-  },
-  {
-    "text": "Wegmans run",
-    "assigned_to": "Michael",
-    "due_date": "2026-04-18",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false,
-    "id": "b3984d67"
-  },
-  {
-    "text": "Wegmans run",
-    "assigned_to": "James",
-    "due_date": "2026-04-18",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false,
-    "id": "81abac85"
   },
   {
     "text": "Order JP's Confirmation cake",
