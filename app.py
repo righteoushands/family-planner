@@ -6441,6 +6441,12 @@ class Handler(BaseHTTPRequestHandler):
                             _pi_img_mime = (_img_field.type or "image/png").strip()
                             # Cap at 8 MB server-side too
                             if len(_img_bytes) <= 8 * 1024 * 1024 and _img_bytes:
+                                # Defensive server-side shrink: guarantee
+                                # under the Anthropic 5 MB base64 cap (~3 MB
+                                # raw) regardless of what the browser sent.
+                                # _shrink_image_for_anthropic falls back to
+                                # the original bytes if Pillow is unavailable.
+                                _img_bytes, _pi_img_mime = _shrink_image_for_anthropic(_img_bytes, _pi_img_mime or "image/png")
                                 _pi_img_b64 = _pib64.b64encode(_img_bytes).decode("ascii")
                     except Exception as _mpe:
                         self.send_response(400); self.send_header("Content-Type","application/json"); self.end_headers()
@@ -6504,7 +6510,7 @@ class Handler(BaseHTTPRequestHandler):
                 else:
                     _msg_content = _pi_user
                 _pi_payload = _pij.dumps({
-                    "model": "claude-sonnet-4-20250514",
+                    "model": "claude-opus-4-5",
                     "max_tokens": 4000,
                     "system": _pi_sys,
                     "messages": [{"role": "user", "content": _msg_content}],
