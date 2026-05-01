@@ -905,7 +905,7 @@
   {
     "text": "The soil temperature check task might need to be repeated daily until conditions are right - consider setting up a recurring reminder",
     "assigned_to": "Lauren",
-    "due_date": "2026-05-18",
+    "due_date": "2026-04-27",
     "priority": "MEDIUM",
     "status": "active",
     "source": "plan_importer",
@@ -985,6 +985,15 @@
     ],
     "id": "e97e33b7",
     "scheduled_for": "2026-05-01"
+  },
+  {
+    "text": "Recite memorized Friendly Defender cards",
+    "assigned_to": "Joseph",
+    "due_date": "2026-05-06",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false,
+    "id": "4d908b29"
   },
   {
     "text": "Trim James's nails",

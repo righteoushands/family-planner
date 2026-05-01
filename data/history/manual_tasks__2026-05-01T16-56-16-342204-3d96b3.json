@@ -905,7 +905,7 @@
   {
     "text": "The soil temperature check task might need to be repeated daily until conditions are right - consider setting up a recurring reminder",
     "assigned_to": "Lauren",
-    "due_date": "2026-05-18",
+    "due_date": "2026-04-27",
     "priority": "MEDIUM",
     "status": "active",
     "source": "plan_importer",
