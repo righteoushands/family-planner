@@ -3990,6 +3990,50 @@ class Handler(BaseHTTPRequestHandler):
                 except BrokenPipeError: pass
                 return
 
+            elif path == "/plan-item-update":
+                # Inline-rename a plan item by id. Form-urlencoded; returns JSON.
+                # If the item carries a task_id (originated from a manual task),
+                # fan out the rename to manual_tasks.json under _MANUAL_TASKS_LOCK.
+                import json as _piuj
+                from render_daily_plan import load_daily_plan, save_daily_plan
+                _piu_iso  = clean_text(data.get("iso",[""])[0]) or date.today().isoformat()
+                _piu_id   = clean_text(data.get("id",[""])[0])
+                _piu_text = clean_text(data.get("text",[""])[0])
+                self.send_response(200)
+                self.send_header("Content-Type","application/json")
+                self.send_header("Cache-Control","no-store")
+                self.end_headers()
+                if not _piu_id:
+                    try: self.wfile.write(_piuj.dumps({"ok":False,"error":"missing_id"}).encode())
+                    except BrokenPipeError: pass
+                    return
+                if not _piu_text:
+                    try: self.wfile.write(_piuj.dumps({"ok":False,"error":"missing_text"}).encode())
+                    except BrokenPipeError: pass
+                    return
+                _piu_plan = load_daily_plan(_piu_iso)
+                _piu_match = next((it for it in _piu_plan.get("items",[])
+                                   if isinstance(it,dict) and it.get("id")==_piu_id), None)
+                if _piu_match is None:
+                    try: self.wfile.write(_piuj.dumps({"ok":False,"error":"not_found"}).encode())
+                    except BrokenPipeError: pass
+                    return
+                _piu_match["text"] = _piu_text
+                save_daily_plan(_piu_plan)
+                # Fan-out to manual_tasks.json if this plan item came from a manual task.
+                _piu_tid = _piu_match.get("task_id","")
+                if _piu_tid:
+                    with _MANUAL_TASKS_LOCK:
+                        _piu_tasks = load_manual_tasks()
+                        _piu_tidx = next((i for i,t in enumerate(_piu_tasks)
+                                          if isinstance(t,dict) and t.get("id")==_piu_tid), -1)
+                        if _piu_tidx >= 0:
+                            _piu_tasks[_piu_tidx]["text"] = _piu_text
+                            save_manual_tasks(_piu_tasks)
+                try: self.wfile.write(_piuj.dumps({"ok":True}).encode())
+                except BrokenPipeError: pass
+                return
+
             elif path == "/plan-reorder":
                 iso  = clean_text(data.get("iso",[""])[0]) or date.today().isoformat()
                 ids  = clean_text(data.get("ids",[""])[0]).split(",")

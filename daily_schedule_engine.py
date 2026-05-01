@@ -1774,6 +1774,7 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
             _t_due    = t.get("due_date", "")
             _due_soon = t.get("is_due_soon", False)
             manual_items.append({"text": txt, "task_id": tid,
+                                 "manual_id": t.get("id", ""),
                                  "done": _dl_done(progress, tid),
                                  "checkable": True, "is_header": False,
                                  "due_date": _t_due,

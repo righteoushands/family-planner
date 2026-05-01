@@ -303,7 +303,10 @@ def _dp_row_html(iid, text, itime, color, done, src, times):
         '<span style="color:#ccc;font-size:0.9em;flex-shrink:0;cursor:grab;">&#9783;</span>'
         '<span style="width:6px;height:6px;border-radius:50%;' + dot + ';flex-shrink:0;"></span>'
         '<div style="flex:1;min-width:0;overflow:hidden;">'
-        '<div style="font-size:0.85em;font-weight:600;' + ds +
+        '<div contenteditable="true" spellcheck="false" data-orig-text="' + text + '"'
+        ' onfocus="planEditFocus(this)" onblur="planEditCommit(this)"'
+        ' onkeydown="planEditKey(event,this)"'
+        ' style="font-size:0.85em;font-weight:600;cursor:text;outline:none;' + ds +
         ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + text + "</div>"
         '<select onchange="dpSetTime(this.closest(\'[data-id]\').dataset.id,this.value)"'
         ' style="font-size:0.72em;padding:1px 4px;border:1px solid #e0d8d0;'
@@ -565,6 +568,35 @@ def render_plan_editor(iso, weekday="", date_label="", sidebar_html=""):
         "+'&text='+encodeURIComponent(text)+'&time='+encodeURIComponent(time)"
         "+'&source='+encodeURIComponent(source)+'&color='+encodeURIComponent(color)})"
         ".then(r=>r.json());};"
+        # Inline rename for plan-item rows (contenteditable label).
+        "window.planEditFocus=function(el){"
+        "var w=el.closest('[data-id]');if(w)w.draggable=false;"
+        "};"
+        "window.planEditKey=function(ev,el){"
+        "if(ev.key==='Enter'&&!ev.shiftKey){ev.preventDefault();el.blur();}"
+        "else if(ev.key==='Escape'){ev.preventDefault();"
+        "el.textContent=el.dataset.origText||'';el.blur();}"
+        "};"
+        "window.planEditCommit=function(el){"
+        "var w=el.closest('[data-id]');if(w)w.draggable=true;"
+        "var newText=(el.textContent||'').trim();"
+        "var orig=el.dataset.origText||'';"
+        "if(!newText){el.textContent=orig;return;}"
+        "if(newText===orig)return;"
+        "var iid=w?w.dataset.id:'';"
+        "if(!iid){el.textContent=orig;return;}"
+        "fetch('/plan-item-update',{method:'POST',"
+        "headers:{'Content-Type':'application/x-www-form-urlencoded'},"
+        "body:'iso='+encodeURIComponent(dpIso)"
+        "+'&id='+encodeURIComponent(iid)"
+        "+'&text='+encodeURIComponent(newText)})"
+        ".then(function(r){return r.json();})"
+        ".then(function(j){"
+        "if(j&&j.ok){el.dataset.origText=newText;}"
+        "else{alert((j&&j.error)||'Save failed');el.textContent=orig;}"
+        "})"
+        ".catch(function(){alert('Save failed');el.textContent=orig;});"
+        "};"
         "</script>"
     )
     return (

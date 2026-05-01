@@ -1643,9 +1643,31 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
             if sec else ""
         )
         chore_attr = ' data-chore="1"' if is_chore else ""
-        lbl_text = item.get("text") or item.get("label") or ""
+        lbl_text   = item.get("text") or item.get("label") or ""
+        # Pencil edit affordance — manual tasks only (not chores/school/events/carryover/done).
+        # Uses pure HTML attribute escaping + a delegated click listener
+        # (registered once in _DASH_JS) so that user text — which may contain
+        # apostrophes, quotes, backslashes, or `<script>` payloads — is never
+        # interpolated into a JS source context. Browser HTML-attribute parsing
+        # handles all escaping; the listener reads raw values from dataset.
+        manual_id_raw = item.get("manual_id", "")
+        manual_id_e   = escape(manual_id_raw)
+        lbl_e         = escape(lbl_text)
+        due_e         = escape(item.get("due_date", ""))
+        edit_btn = ""
+        if manual_id_raw and not is_chore and not is_done:
+            edit_btn = (
+                f'<button type="button" aria-label="Edit task" data-dash-edit="1"'
+                f' data-edit-tid="{tid}" data-edit-mid="{manual_id_e}"'
+                f' data-edit-text="{lbl_e}" data-edit-due="{due_e}"'
+                f' style="background:transparent;border:1px solid rgba(0,0,0,0.15);'
+                f'color:#666;font-size:12px;line-height:1;padding:3px 6px;'
+                f'border-radius:5px;cursor:pointer;font-family:inherit;flex-shrink:0;'
+                f'margin-top:1px;">\u270f\ufe0f</button>'
+            )
         return (
             f'<div class="dash-task" data-dash-child="{c_id}" data-done="{done_d}"{chore_attr}'
+            f' data-manual-id="{manual_id_e}"'
             f' id="task-{tid}" style="display:flex;align-items:flex-start;gap:8px;'
             f'padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05);{extra_style}">'
             f'<div style="flex:1;min-width:0;">'
@@ -1653,6 +1675,7 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
             f'<label for="lbl-{tid}" style="font-size:.88em;line-height:1.3;'
             f'cursor:pointer;{done_st}">{escape(lbl_text)}</label>'
             f'</div>'
+            f'{edit_btn}'
             f'<input type="checkbox" id="lbl-{tid}" {checked}'
             f' style="margin-top:3px;width:16px;height:16px;flex-shrink:0;accent-color:{c_bg};"'
             f' onchange="toggleDashTask(this,\'{tid_js}\',\'{c_id}\',\'{escape(iso)}\')">'
@@ -2068,6 +2091,118 @@ function _schedSetRecurring() {
            +'&action=recurring&frequency='+encodeURIComponent(freq.value)+'&json=1',
            function() { _schedClose(); location.reload(); });
 }
+/* ── Dash card inline edit (manual tasks only) ───────────────────────
+   All DOM is built with createElement + addEventListener (NEVER innerHTML
+   with string-concatenated event attrs) because `tid` is the composite
+   `MANUAL::{child}::{iso}::{text}` and may contain apostrophes / quotes
+   that would break inline handlers and open an XSS sink. */
+function _dashEditClose(tid) {
+    var p = document.getElementById('dash-edit-' + tid);
+    if (p && p.parentNode) p.parentNode.removeChild(p);
+}
+function _dashEditMkBtn(label, bg, color, border, onClick) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = label;
+    b.style.cssText = 'padding:5px 10px;font-size:.8em;background:' + bg
+        + ';color:' + color + ';border:1px solid ' + border
+        + ';border-radius:6px;cursor:pointer;font-family:inherit;font-weight:600;';
+    b.addEventListener('click', onClick);
+    return b;
+}
+function _dashEditOpen(tid, manualId, text, dueDate) {
+    var row = document.getElementById('task-' + tid);
+    if (!row) return;
+    _dashEditClose(tid);
+    var p = document.createElement('div');
+    p.id = 'dash-edit-' + tid;
+    p.dataset.tid = tid;
+    p.dataset.manualId = manualId;
+    p.style.cssText = 'background:#fff;border:1px solid #d7cec5;border-radius:8px;'
+        + 'padding:8px;margin:2px 0 8px;display:flex;flex-direction:column;gap:6px;'
+        + 'box-shadow:0 1px 4px rgba(0,0,0,.06);';
+    var ti = document.createElement('input');
+    ti.type = 'text';
+    ti.className = 'de-text';
+    ti.value = text || '';
+    ti.style.cssText = 'width:100%;padding:6px 8px;border:1px solid #d7cec5;'
+        + 'border-radius:6px;font-family:inherit;font-size:.92em;box-sizing:border-box;';
+    var dr = document.createElement('div');
+    dr.style.cssText = 'display:flex;align-items:center;gap:6px;flex-wrap:wrap;';
+    var dlbl = document.createElement('label');
+    dlbl.textContent = 'Due:';
+    dlbl.style.cssText = 'font-size:.75em;color:#7c4a2d;font-weight:600;';
+    var di = document.createElement('input');
+    di.type = 'date';
+    di.className = 'de-date';
+    di.value = dueDate || '';
+    di.style.cssText = 'padding:4px 6px;border:1px solid #d7cec5;border-radius:6px;'
+        + 'font-family:inherit;font-size:.85em;';
+    dr.appendChild(dlbl); dr.appendChild(di);
+    var br = document.createElement('div');
+    br.style.cssText = 'display:flex;gap:6px;justify-content:flex-end;';
+    br.appendChild(_dashEditMkBtn('Cancel', '#f5f5f5', '#666', '#e0d8d0',
+        function() { _dashEditClose(tid); }));
+    br.appendChild(_dashEditMkBtn('Done', '#dcfce7', '#166534', '#86efac',
+        function() { _dashEditDone(p); }));
+    br.appendChild(_dashEditMkBtn('Save', '#7c4a2d', '#fff', '#7c4a2d',
+        function() { _dashEditSave(p); }));
+    p.appendChild(ti); p.appendChild(dr); p.appendChild(br);
+    row.parentNode.insertBefore(p, row.nextSibling);
+    ti.focus(); ti.select();
+}
+function _dashEditSave(p) {
+    if (!p) return;
+    var mid = p.dataset.manualId || '';
+    if (!mid) { alert('Missing task id'); return; }
+    var ti = p.querySelector('.de-text');
+    var di = p.querySelector('.de-date');
+    var newText = ti ? ti.value.trim() : '';
+    var newDate = di ? di.value : '';
+    if (!newText) { alert('Text cannot be blank'); return; }
+    fetch('/task-update', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'id=' + encodeURIComponent(mid)
+            + '&text=' + encodeURIComponent(newText)
+            + '&due_date=' + encodeURIComponent(newDate)
+    }).then(function(r) { return r.json(); })
+      .then(function(j) {
+        if (j && j.ok) { location.reload(); }
+        else { alert((j && j.error) || 'Save failed'); }
+      })
+      .catch(function() { alert('Save failed'); });
+}
+/* Done: programmatically tick the existing checkbox so we reuse the
+   proven /toggle-task + undo-snack flow. /task-done returns a 303
+   redirect, not JSON, so we cannot fetch it from JS reliably. */
+function _dashEditDone(p) {
+    if (!p) return;
+    var tid = p.dataset.tid || '';
+    var row = tid ? document.getElementById('task-' + tid) : null;
+    var cb  = row ? row.querySelector('input[type="checkbox"]') : null;
+    _dashEditClose(tid);
+    if (cb && !cb.checked) {
+        cb.checked = true;
+        cb.dispatchEvent(new Event('change'));
+    }
+}
+/* Delegated listener: pencil buttons render with data-* attrs only
+   (no inline onclick), so user-controlled text never enters a JS
+   source context. The browser's HTML-attribute parser handles all
+   escaping. We bind once on document for full event delegation. */
+(function() {
+    if (document._dashEditDelegated) return;
+    document._dashEditDelegated = true;
+    document.addEventListener('click', function(ev) {
+        var b = ev.target.closest && ev.target.closest('[data-dash-edit]');
+        if (!b) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        _dashEditOpen(b.dataset.editTid || '', b.dataset.editMid || '',
+                      b.dataset.editText || '', b.dataset.editDue || '');
+    });
+})();
 // Inject Schedule modal once into DOM
 (function(){
   if (document.getElementById('sched-modal')) return;
