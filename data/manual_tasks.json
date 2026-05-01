@@ -9,24 +9,15 @@
     "id": "03dc97b4"
   },
   {
-    "text": "Sharpen knives",
-    "assigned_to": "Mom",
-    "due_date": "",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false,
-    "id": "22d19503"
-  },
-  {
     "text": "CAPTask: Wash the most used uniform of the month.",
     "assigned_to": "JP",
     "due_date": "2026-04-25",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": true,
+    "id": "f25fd9e9",
     "interval_value": 1,
-    "interval_unit": "months",
-    "id": "f25fd9e9"
+    "interval_unit": "months"
   },
   {
     "text": "Fertilize lawn with balanced 20-5-10 fertilizer",
@@ -244,7 +235,7 @@
     "id": "352a971e"
   },
   {
-    "text": "Ensure James continues wearing hip shorts",
+    "text": "Ensure that James continues wearing hip shorts",
     "assigned_to": "Lauren",
     "due_date": "2026-05-04",
     "priority": "MEDIUM",

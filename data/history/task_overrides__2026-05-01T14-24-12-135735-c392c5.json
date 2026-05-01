@@ -290,11 +290,6 @@
         "action": "postpone",
         "postpone_to": "2026-05-02",
         "label": "Mix amendments and layer on garden bed"
-      },
-      "MANUAL::Lauren::2026-05-01::Purchase Mother’s Day gifts: Mom, GMA Joan, Shelbi": {
-        "action": "timed",
-        "time": "14:24",
-        "label": "Purchase Mother’s Day gifts: Mom, GMA Joan, Shelbi"
       }
     }
   }
