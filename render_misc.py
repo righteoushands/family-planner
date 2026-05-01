@@ -3392,12 +3392,15 @@ var _mealsAddedIdxs = {{}};
 
 function addPrepToDay(idx, text, btn) {{
   if (_mealsAddedIdxs[idx]) return;
-  _mealsAddedIdxs[idx] = true;
-  btn.textContent = '✓ Added';
-  btn.style.color = '#27ae60';
-  btn.style.borderColor = '#27ae60';
-  btn.disabled = true;
-  _addTaskToDay(text);
+  _apqOpenPicker(btn, function(time) {{
+    if (_mealsAddedIdxs[idx]) return;
+    _mealsAddedIdxs[idx] = true;
+    btn.textContent = '\u2713 Added';
+    btn.style.color = '#27ae60';
+    btn.style.borderColor = '#27ae60';
+    btn.disabled = true;
+    _addTaskToDay(text, time);
+  }});
 }}
 
 function addAllPrep() {{
@@ -3405,19 +3408,86 @@ function addAllPrep() {{
     if (!_mealsAddedIdxs[i]) {{
       _mealsAddedIdxs[i] = true;
       var btn = document.querySelector('#prep-item-' + i + ' button');
-      if (btn) {{ btn.textContent='✓ Added'; btn.style.color='#27ae60'; btn.disabled=true; }}
-      _addTaskToDay(item);
+      if (btn) {{ btn.textContent='\u2713 Added'; btn.style.color='#27ae60'; btn.disabled=true; }}
+      _addTaskToDay(item, '');
     }}
   }});
   var st = document.getElementById('meals-add-status');
-  if (st) st.textContent = 'All prep steps added to your plan ✓';
+  if (st) st.textContent = 'All prep steps added to your plan \u2713';
 }}
 
-function _addTaskToDay(text) {{
+function _addTaskToDay(text, time) {{
+  var body = 'iso=' + encodeURIComponent(_mealsIso)
+           + '&text=' + encodeURIComponent(text)
+           + '&source=meal_prep';
+  if (time) body += '&time=' + encodeURIComponent(time);
   fetch('/add-to-plan-quick', {{
     method: 'POST',
     headers: {{'Content-Type': 'application/x-www-form-urlencoded'}},
-    body: 'iso=' + encodeURIComponent(_mealsIso) + '&text=' + encodeURIComponent(text) + '&source=meal_prep'
+    body: body
+  }});
+}}
+
+/* Shared inline time-picker popover (idempotent — safe to redeclare) */
+function _apqOpenPicker(btn, onPick) {{
+  if (window._apqCurrent) {{
+    try {{ window._apqCurrent.remove(); }} catch (e) {{}}
+    window._apqCurrent = null;
+  }}
+  var now = new Date();
+  var mins = now.getMinutes();
+  var rounded = Math.round(mins / 30) * 30;
+  if (rounded === 60) {{ now.setHours(now.getHours() + 1); rounded = 0; }}
+  var hh = String(now.getHours()).padStart(2, '0');
+  var mm = String(rounded).padStart(2, '0');
+  var defaultTime = hh + ':' + mm;
+
+  var pop = document.createElement('div');
+  pop.style.cssText = 'position:absolute;background:#fff;border:1px solid #ccc;'
+    + 'border-radius:8px;padding:8px;z-index:9998;'
+    + 'box-shadow:0 4px 12px rgba(0,0,0,.15);display:flex;align-items:center;'
+    + 'gap:6px;font-family:inherit;';
+
+  var input = document.createElement('input');
+  input.type = 'time';
+  input.value = defaultTime;
+  input.style.cssText = 'font-size:0.85em;padding:3px 5px;border:1px solid #ccc;'
+    + 'border-radius:4px;font-family:inherit;';
+
+  var confirmBtn = document.createElement('button');
+  confirmBtn.type = 'button';
+  confirmBtn.textContent = 'Confirm';
+  confirmBtn.style.cssText = 'font-size:0.78em;padding:4px 10px;border-radius:5px;'
+    + 'background:#27ae60;color:#fff;border:none;cursor:pointer;font-family:inherit;';
+
+  var skipBtn = document.createElement('button');
+  skipBtn.type = 'button';
+  skipBtn.textContent = 'Skip';
+  skipBtn.style.cssText = 'font-size:0.78em;padding:4px 10px;border-radius:5px;'
+    + 'background:#eee;color:#333;border:1px solid #ccc;cursor:pointer;font-family:inherit;';
+
+  pop.appendChild(input);
+  pop.appendChild(confirmBtn);
+  pop.appendChild(skipBtn);
+
+  var rect = btn.getBoundingClientRect();
+  pop.style.left = (rect.left + window.scrollX) + 'px';
+  pop.style.top  = (rect.bottom + window.scrollY + 4) + 'px';
+  document.body.appendChild(pop);
+  window._apqCurrent = pop;
+
+  function _close() {{
+    try {{ pop.remove(); }} catch (e) {{}}
+    if (window._apqCurrent === pop) window._apqCurrent = null;
+  }}
+  confirmBtn.addEventListener('click', function() {{
+    var t = (input.value || '').trim();
+    _close();
+    onPick(t);
+  }});
+  skipBtn.addEventListener('click', function() {{
+    _close();
+    onPick('');
   }});
 }}
 </script>
@@ -3922,14 +3992,84 @@ def _render_tasks_step(iso: str) -> str:
 <script>
 var _tasksIso = '{_e(iso)}';
 function addTaskToDay(tid, text, btn) {{
-  btn.textContent = '✓ Added';
-  btn.style.color = '#27ae60';
-  btn.style.borderColor = '#27ae60';
-  btn.disabled = true;
-  fetch('/add-to-plan-quick', {{
-    method: 'POST',
-    headers: {{'Content-Type': 'application/x-www-form-urlencoded'}},
-    body: 'iso=' + encodeURIComponent(_tasksIso) + '&text=' + encodeURIComponent(text) + '&source=task&task_id=' + encodeURIComponent(tid)
+  _apqOpenPicker(btn, function(time) {{
+    btn.textContent = '\u2713 Added';
+    btn.style.color = '#27ae60';
+    btn.style.borderColor = '#27ae60';
+    btn.disabled = true;
+    var body = 'iso=' + encodeURIComponent(_tasksIso)
+             + '&text=' + encodeURIComponent(text)
+             + '&source=task'
+             + '&task_id=' + encodeURIComponent(tid);
+    if (time) body += '&time=' + encodeURIComponent(time);
+    fetch('/add-to-plan-quick', {{
+      method: 'POST',
+      headers: {{'Content-Type': 'application/x-www-form-urlencoded'}},
+      body: body
+    }});
+  }});
+}}
+
+/* Shared inline time-picker popover (idempotent — safe to redeclare) */
+function _apqOpenPicker(btn, onPick) {{
+  if (window._apqCurrent) {{
+    try {{ window._apqCurrent.remove(); }} catch (e) {{}}
+    window._apqCurrent = null;
+  }}
+  var now = new Date();
+  var mins = now.getMinutes();
+  var rounded = Math.round(mins / 30) * 30;
+  if (rounded === 60) {{ now.setHours(now.getHours() + 1); rounded = 0; }}
+  var hh = String(now.getHours()).padStart(2, '0');
+  var mm = String(rounded).padStart(2, '0');
+  var defaultTime = hh + ':' + mm;
+
+  var pop = document.createElement('div');
+  pop.style.cssText = 'position:absolute;background:#fff;border:1px solid #ccc;'
+    + 'border-radius:8px;padding:8px;z-index:9998;'
+    + 'box-shadow:0 4px 12px rgba(0,0,0,.15);display:flex;align-items:center;'
+    + 'gap:6px;font-family:inherit;';
+
+  var input = document.createElement('input');
+  input.type = 'time';
+  input.value = defaultTime;
+  input.style.cssText = 'font-size:0.85em;padding:3px 5px;border:1px solid #ccc;'
+    + 'border-radius:4px;font-family:inherit;';
+
+  var confirmBtn = document.createElement('button');
+  confirmBtn.type = 'button';
+  confirmBtn.textContent = 'Confirm';
+  confirmBtn.style.cssText = 'font-size:0.78em;padding:4px 10px;border-radius:5px;'
+    + 'background:#27ae60;color:#fff;border:none;cursor:pointer;font-family:inherit;';
+
+  var skipBtn = document.createElement('button');
+  skipBtn.type = 'button';
+  skipBtn.textContent = 'Skip';
+  skipBtn.style.cssText = 'font-size:0.78em;padding:4px 10px;border-radius:5px;'
+    + 'background:#eee;color:#333;border:1px solid #ccc;cursor:pointer;font-family:inherit;';
+
+  pop.appendChild(input);
+  pop.appendChild(confirmBtn);
+  pop.appendChild(skipBtn);
+
+  var rect = btn.getBoundingClientRect();
+  pop.style.left = (rect.left + window.scrollX) + 'px';
+  pop.style.top  = (rect.bottom + window.scrollY + 4) + 'px';
+  document.body.appendChild(pop);
+  window._apqCurrent = pop;
+
+  function _close() {{
+    try {{ pop.remove(); }} catch (e) {{}}
+    if (window._apqCurrent === pop) window._apqCurrent = null;
+  }}
+  confirmBtn.addEventListener('click', function() {{
+    var t = (input.value || '').trim();
+    _close();
+    onPick(t);
+  }});
+  skipBtn.addEventListener('click', function() {{
+    _close();
+    onPick('');
   }});
 }}
 function taskEditOpenStep(tid) {{

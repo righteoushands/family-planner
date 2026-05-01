@@ -1710,6 +1710,17 @@ def render_child_dash_card(child: str, target_date_str: str = "", max_pending: i
                 f'border-radius:5px;cursor:pointer;font-family:inherit;flex-shrink:0;'
                 f'margin-top:1px;">\u270f\ufe0f</button>'
             )
+        add_btn = ""
+        if not is_chore and not is_done:
+            add_btn = (
+                f'<button type="button" aria-label="Add to day" data-dash-add="1"'
+                f' data-add-text="{lbl_e}" data-add-mid="{manual_id_e}"'
+                f' data-add-iso="{escape(iso)}"'
+                f' style="background:transparent;border:1px solid rgba(0,0,0,0.15);'
+                f'color:#666;font-size:11px;line-height:1;padding:3px 6px;'
+                f'border-radius:5px;cursor:pointer;font-family:inherit;flex-shrink:0;'
+                f'margin-top:1px;white-space:nowrap;">+ Add</button>'
+            )
         return (
             f'<div class="dash-task" data-dash-child="{c_id}" data-done="{done_d}"{chore_attr}'
             f' data-manual-id="{manual_id_e}"'
@@ -1721,6 +1732,7 @@ def render_child_dash_card(child: str, target_date_str: str = "", max_pending: i
             f'cursor:pointer;{done_st}">{escape(lbl_text)}</label>'
             f'</div>'
             f'{edit_btn}'
+            f'{add_btn}'
             f'<input type="checkbox" id="lbl-{tid}" {checked}'
             f' style="margin-top:3px;width:16px;height:16px;flex-shrink:0;accent-color:{c_bg};"'
             f' onchange="toggleDashTask(this,\'{tid_js}\',\'{c_id}\',\'{escape(iso)}\')">'
@@ -2306,6 +2318,102 @@ function _dashEditDone(p) {
   m.addEventListener('click', function(e){ if(e.target===m) _schedClose(); });
   document.body.appendChild(m);
 })();
+
+/* ── Dash row + Add to day (delegated click → time-picker → POST) ──── */
+document.addEventListener('click', function(e) {
+    var t = e.target;
+    if (t && t.matches && t.matches('[data-dash-add="1"]')) {
+        e.preventDefault();
+        _dashAddToDay(
+            t.getAttribute('data-add-text') || '',
+            t.getAttribute('data-add-mid')  || '',
+            t.getAttribute('data-add-iso')  || '',
+            t
+        );
+    }
+});
+
+function _dashAddToDay(text, manualId, iso, btn) {
+    _apqOpenPicker(btn, function(time) {
+        btn.textContent = '\u2713 Added';
+        btn.style.color = '#27ae60';
+        btn.style.borderColor = '#27ae60';
+        btn.disabled = true;
+        var body = 'iso=' + encodeURIComponent(iso)
+                 + '&text=' + encodeURIComponent(text)
+                 + '&source=task'
+                 + '&task_id=' + encodeURIComponent(manualId || '');
+        if (time) body += '&time=' + encodeURIComponent(time);
+        fetch('/add-to-plan-quick', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: body
+        });
+    });
+}
+
+/* Shared inline time-picker popover (idempotent — safe to redeclare) */
+function _apqOpenPicker(btn, onPick) {
+    if (window._apqCurrent) {
+        try { window._apqCurrent.remove(); } catch (e) {}
+        window._apqCurrent = null;
+    }
+    var now = new Date();
+    var mins = now.getMinutes();
+    var rounded = Math.round(mins / 30) * 30;
+    if (rounded === 60) { now.setHours(now.getHours() + 1); rounded = 0; }
+    var hh = String(now.getHours()).padStart(2, '0');
+    var mm = String(rounded).padStart(2, '0');
+    var defaultTime = hh + ':' + mm;
+
+    var pop = document.createElement('div');
+    pop.style.cssText = 'position:absolute;background:#fff;border:1px solid #ccc;'
+        + 'border-radius:8px;padding:8px;z-index:9998;'
+        + 'box-shadow:0 4px 12px rgba(0,0,0,.15);display:flex;align-items:center;'
+        + 'gap:6px;font-family:inherit;';
+
+    var input = document.createElement('input');
+    input.type = 'time';
+    input.value = defaultTime;
+    input.style.cssText = 'font-size:0.85em;padding:3px 5px;border:1px solid #ccc;'
+        + 'border-radius:4px;font-family:inherit;';
+
+    var confirmBtn = document.createElement('button');
+    confirmBtn.type = 'button';
+    confirmBtn.textContent = 'Confirm';
+    confirmBtn.style.cssText = 'font-size:0.78em;padding:4px 10px;border-radius:5px;'
+        + 'background:#27ae60;color:#fff;border:none;cursor:pointer;font-family:inherit;';
+
+    var skipBtn = document.createElement('button');
+    skipBtn.type = 'button';
+    skipBtn.textContent = 'Skip';
+    skipBtn.style.cssText = 'font-size:0.78em;padding:4px 10px;border-radius:5px;'
+        + 'background:#eee;color:#333;border:1px solid #ccc;cursor:pointer;font-family:inherit;';
+
+    pop.appendChild(input);
+    pop.appendChild(confirmBtn);
+    pop.appendChild(skipBtn);
+
+    var rect = btn.getBoundingClientRect();
+    pop.style.left = (rect.left + window.scrollX) + 'px';
+    pop.style.top  = (rect.bottom + window.scrollY + 4) + 'px';
+    document.body.appendChild(pop);
+    window._apqCurrent = pop;
+
+    function _close() {
+        try { pop.remove(); } catch (e) {}
+        if (window._apqCurrent === pop) window._apqCurrent = null;
+    }
+    confirmBtn.addEventListener('click', function() {
+        var t = (input.value || '').trim();
+        _close();
+        onPick(t);
+    });
+    skipBtn.addEventListener('click', function() {
+        _close();
+        onPick('');
+    });
+}
 </script>"""
 
 

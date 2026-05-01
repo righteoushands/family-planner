@@ -8655,9 +8655,10 @@ class Handler(BaseHTTPRequestHandler):
                 iso_q   = clean_text(data.get("iso",[""])[0]) or _date.today().isoformat()
                 text_q  = clean_text(data.get("text",[""])[0])
                 src_q   = clean_text(data.get("source",["manual"])[0])
+                time_q  = clean_text(data.get("time",[""])[0])
                 task_id = clean_text(data.get("task_id",[""])[0])
                 if text_q:
-                    add_item_to_plan(iso_q, text_q, source=src_q, task_id=task_id)
+                    add_item_to_plan(iso_q, text_q, source=src_q, task_id=task_id, time=time_q)
                     if task_id:
                         try:
                             with _MANUAL_TASKS_LOCK:

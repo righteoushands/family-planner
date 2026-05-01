@@ -42,6 +42,32 @@
         "postpone_to": "2026-04-20",
         "label": "FORTITUDE — Family Run (continued) & Cool-down"
       }
+    },
+    "2026-04-21": {
+      "ROUTINE::JP::2026-04-21::Prepare to leave for Bible Study. Pack everything you need for school and Homeschool PE. Confirm who has the Y card.": {
+        "action": "dismiss",
+        "label": "Prepare to leave for Bible Study. Pack everything you need for school and Homeschool PE. Confirm who has the Y card."
+      }
+    },
+    "2026-04-23": {
+      "ROUTINE::JP::2026-04-23::Prep for HSPE": {
+        "action": "dismiss",
+        "label": "Prep for HSPE"
+      },
+      "ROUTINE::JP::2026-04-23::Travel": {
+        "action": "dismiss",
+        "label": "Travel"
+      },
+      "ROUTINE::JP::2026-04-23::HSPE": {
+        "action": "dismiss",
+        "label": "HSPE"
+      }
+    },
+    "2026-04-27": {
+      "ROUTINE::JP::2026-04-27::Lead brining prep for roast chicken — Joseph assists with potatoes — Michael washes vegetables": {
+        "action": "dismiss",
+        "label": "Lead brining prep for roast chicken — Joseph assists with potatoes — Michael washes vegetables"
+      }
     }
   },
   "Joseph": {
@@ -69,6 +95,45 @@
       "ROUTINE::Joseph::2026-04-20::FORTITUDE — Family Run (JP & Joseph run 1.5-2mi & 1-1.5mi for CAP training; Lauren run/walk intervals 0.75-1mi for ankle loading & core engagement; Michael bikes/scoots alongside; James in stroller). Warm-up 5min easy pace, main work 18min, cool-down 5min walk & breathe together.": {
         "action": "dismiss",
         "label": "FORTITUDE — Family Run (JP & Joseph run 1.5-2mi & 1-1.5mi for CAP training; Lauren run/walk intervals 0.75-1mi for ankle loading & core engagement; Michael bikes/scoots alongside; James in stroller). Warm-up 5min easy pace, main work 18min, cool-down 5min walk & breathe together."
+      },
+      "ROUTINE::Joseph::2026-04-20::FORTITUDE — Family Run (continued) & Cool-down": {
+        "action": "dismiss",
+        "label": "FORTITUDE — Family Run (continued) & Cool-down"
+      },
+      "CARRY::Joseph::2026-04-20::Music 7 — Finish listening to the \"Christmas Oratorio\" by Bach.": {
+        "action": "dismiss",
+        "label": "Music 7 — Finish listening to the \"Christmas Oratorio\" by Bach. (from Thu 16 Apr)"
+      },
+      "ROUTINE::Joseph::2026-04-20::Assist JP with potatoes & sides prep": {
+        "action": "dismiss",
+        "label": "Assist JP with potatoes & sides prep"
+      },
+      "MANUAL::Joseph::2026-04-20::Text new friend Corey": {
+        "action": "dismiss",
+        "label": "Text new friend Corey"
+      },
+      "MANUAL::Joseph::2026-04-20::Wegmans run": {
+        "action": "dismiss",
+        "label": "Wegmans run"
+      },
+      "CARRY::Joseph::2026-04-20::[MEDIUM] Text new friend Corey": {
+        "action": "dismiss",
+        "label": "[MEDIUM] Text new friend Corey (from Thu 16 Apr)"
+      },
+      "CARRY::Joseph::2026-04-20::[MEDIUM] Wegmans run": {
+        "action": "dismiss",
+        "label": "[MEDIUM] Wegmans run (from Thu 16 Apr)"
+      },
+      "MANUAL::Joseph::2026-04-20::Finish laundry": {
+        "action": "timed",
+        "time": "14:43",
+        "label": "Finish laundry"
+      }
+    },
+    "2026-04-30": {
+      "ROUTINE::Joseph::2026-04-30::Prep vegetables for sheet pan": {
+        "action": "dismiss",
+        "label": "Prep vegetables for sheet pan"
       }
     }
   },
@@ -150,6 +215,86 @@
         "action": "postpone",
         "postpone_to": "2026-04-21",
         "label": "Schedule meeting with Fr for JP’s confirmation interview."
+      }
+    },
+    "2026-04-20": {
+      "CHORE::Lauren::2026-04-20::weekly::Bathe the Littles (Michael & James)": {
+        "action": "timed",
+        "time": "18:22",
+        "label": "Bathe the Littles (Michael & James)"
+      }
+    },
+    "2026-04-23": {
+      "ROUTINE::Lauren::2026-04-23::HSPE / errands": {
+        "action": "dismiss",
+        "label": "HSPE / errands"
+      },
+      "ROUTINE::Lauren::2026-04-23::Travel": {
+        "action": "dismiss",
+        "label": "Travel"
+      }
+    },
+    "2026-04-30": {
+      "ROUTINE::Lauren::2026-04-30::Break": {
+        "action": "dismiss",
+        "label": "Break"
+      },
+      "MANUAL::Lauren::2026-04-30::Get the boys haircuts": {
+        "action": "postpone",
+        "postpone_to": "2026-04-30",
+        "label": "Get the boys haircuts"
+      },
+      "MANUAL::Lauren::2026-04-30::Add receipts to YNAB, including the giant receipts from the other day and all of the things in my blue book": {
+        "action": "postpone",
+        "postpone_to": "2026-05-01",
+        "label": "Add receipts to YNAB, including the giant receipts from the other day and all of the things in my blue book"
+      },
+      "MANUAL::Lauren::2026-04-30::Follow up with John on lodging for the convention and add the boys to my registration and add classes": {
+        "action": "postpone",
+        "postpone_to": "2026-04-30",
+        "label": "Follow up with John on lodging for the convention and add the boys to my registration and add classes"
+      },
+      "MANUAL::Lauren::2026-04-30::Put all the Amazon packages in the back of the van and return them": {
+        "action": "postpone",
+        "postpone_to": "2026-04-30",
+        "label": "Put all the Amazon packages in the back of the van and return them"
+      },
+      "MANUAL::Lauren::2026-04-30::Confirm which specific classes JP and Joseph need or want for convention registration": {
+        "action": "postpone",
+        "postpone_to": "2026-04-30",
+        "label": "Confirm which specific classes JP and Joseph need or want for convention registration"
+      },
+      "MANUAL::Lauren::2026-04-30::Trim James's nails": {
+        "action": "postpone",
+        "postpone_to": "2026-05-01",
+        "label": "Trim James's nails"
+      },
+      "MANUAL::Lauren::2026-04-30::Ensure James continues wearing hip shorts": {
+        "action": "postpone",
+        "postpone_to": "2026-05-01",
+        "label": "Ensure James continues wearing hip shorts"
+      },
+      "MANUAL::Lauren::2026-04-30::Put all Amazon returns in the back of the van.": {
+        "action": "postpone",
+        "postpone_to": "2026-04-30",
+        "label": "Put all Amazon returns in the back of the van."
+      }
+    },
+    "2026-05-01": {
+      "MANUAL::Lauren::2026-05-01::Plan the gift reveal moment during cake time with prepared words of blessing from John and Lauren about hopes for JP's life in the Spirit.": {
+        "action": "postpone",
+        "postpone_to": "2026-05-15",
+        "label": "Plan the gift reveal moment during cake time with prepared words of blessing from John and Lauren about hopes for JP's life in the Spirit."
+      },
+      "MANUAL::Lauren::2026-05-01::Mix amendments and layer on garden bed": {
+        "action": "postpone",
+        "postpone_to": "2026-05-02",
+        "label": "Mix amendments and layer on garden bed"
+      },
+      "MANUAL::Lauren::2026-05-01::Purchase Mother’s Day gifts: Mom, GMA Joan, Shelbi": {
+        "action": "timed",
+        "time": "14:24",
+        "label": "Purchase Mother’s Day gifts: Mom, GMA Joan, Shelbi"
       }
     }
   }

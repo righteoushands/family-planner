@@ -1811,5 +1811,10 @@
   "ROUTINE::Lauren::2026-05-01::Morning Prayer (with family or on your own)": true,
   "ROUTINE::Lauren::2026-05-01::James down for a nap": true,
   "ROUTINE::Lauren::2026-05-01::James’ PT appointment": true,
-  "CHORE::Lauren::2026-05-01::noon_kitchen": true
+  "CHORE::Lauren::2026-05-01::noon_kitchen": true,
+  "CHORE::JP::2026-05-01::morning::Put food away": true,
+  "CHORE::JP::2026-05-01::morning::Clear table + counters": true,
+  "CHORE::JP::2026-05-01::morning::Spray + wipe table and counters": true,
+  "CHORE::JP::2026-05-01::morning::Take out trash + recycling": true,
+  "CHORE::JP::2026-05-01::morning::Sweep kitchen / dining room / foyer": true
 }
