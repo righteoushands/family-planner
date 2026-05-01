@@ -3305,22 +3305,145 @@ class Handler(BaseHTTPRequestHandler):
                 else:
                     redirect = "/tasks#top"
 
+            elif path == "/task-update":
+                # Inline-edit a manual task by id. Form-urlencoded; returns JSON.
+                # Only fields whose form key is present are updated (sentinel = key presence).
+                import json as _tuj
+                _tu_id = clean_text(data.get("id",[""])[0])
+                if not _tu_id:
+                    self.send_response(200)
+                    self.send_header("Content-Type","application/json")
+                    self.send_header("Cache-Control","no-store")
+                    self.end_headers()
+                    try: self.wfile.write(_tuj.dumps({"ok":False,"error":"missing_id"}).encode())
+                    except BrokenPipeError: pass
+                    return
+                with _MANUAL_TASKS_LOCK:
+                    _tu_tasks = load_manual_tasks()
+                    _tu_idx = next((i for i,t in enumerate(_tu_tasks)
+                                    if isinstance(t,dict) and t.get("id")==_tu_id), -1)
+                    if _tu_idx < 0:
+                        self.send_response(200)
+                        self.send_header("Content-Type","application/json")
+                        self.send_header("Cache-Control","no-store")
+                        self.end_headers()
+                        try: self.wfile.write(_tuj.dumps({"ok":False,"error":"not_found"}).encode())
+                        except BrokenPipeError: pass
+                        return
+                    _tu_task = _tu_tasks[_tu_idx]
+                    # Scalar fields — sentinel by key presence
+                    if "text" in data:
+                        _tu_text = clean_text(data.get("text",[""])[0])
+                        if _tu_text:  # guard: never blank a task's text
+                            _tu_task["text"] = _tu_text
+                    if "assigned_to" in data:
+                        _tu_task["assigned_to"] = clean_text(data.get("assigned_to",[""])[0])
+                    if "due_date" in data:
+                        _tu_task["due_date"] = clean_text(data.get("due_date",[""])[0])
+                    if "priority" in data:
+                        _tu_task["priority"] = clean_priority(data.get("priority",["MEDIUM"])[0])
+                    # Recurrence — only touch if the toggle was submitted
+                    if "recurring" in data:
+                        _tu_recurring = data.get("recurring",[""])[0] == "true"
+                        _tu_task["recurring"] = _tu_recurring
+                        # Strip all recurrence sub-fields whether enabling or disabling;
+                        # we'll re-add the relevant ones if recurring.
+                        for _k in ("interval_value","interval_unit","weekdays_mask",
+                                   "month_day","month_nth","month_weekday",
+                                   "end_date","occurrences_remaining"):
+                            _tu_task.pop(_k, None)
+                        if _tu_recurring:
+                            _tu_iv = safe_int(data.get("interval_value",["1"])[0],1)
+                            _tu_iu = clean_text(data.get("interval_unit",["weeks"])[0])
+                            _tu_legacy = {"monthly_last_sat","monthly_last_sun",
+                                          "monthly_first_sat","monthly_first_sun",
+                                          "monthly_last_fri","monthly_first_fri"}
+                            _tu_allowed = {"days","weeks","months","years","weekdays",
+                                           "specific_weekdays","monthly_day",
+                                           "monthly_nth_weekday"} | _tu_legacy
+                            if _tu_iu not in _tu_allowed: _tu_iu = "weeks"
+                            if _tu_iv < 1: _tu_iv = 1
+                            if _tu_iv > 366: _tu_iv = 366
+                            _tu_wdmask = []
+                            if _tu_iu == "specific_weekdays":
+                                for v in data.get("weekdays_mask",[]):
+                                    n = safe_int(v,-1)
+                                    if 0<=n<=6 and n not in _tu_wdmask: _tu_wdmask.append(n)
+                                if not _tu_wdmask: _tu_iu = "weeks"
+                            _tu_mday = safe_int(data.get("month_day",["1"])[0],1)
+                            if _tu_mday != -1: _tu_mday = max(1, min(31, _tu_mday))
+                            _tu_mnth = safe_int(data.get("month_nth",["1"])[0],1)
+                            if _tu_mnth not in (1,2,3,4,5,-1): _tu_mnth = 1
+                            _tu_mwd = safe_int(data.get("month_weekday",["0"])[0],0)
+                            if not (0<=_tu_mwd<=6): _tu_mwd = 0
+                            _tu_end = clean_text(data.get("end_date",[""])[0])
+                            if _tu_end:
+                                try:
+                                    from datetime import date as _vdate
+                                    _vdate.fromisoformat(_tu_end)
+                                except Exception:
+                                    _tu_end = ""
+                            _tu_max_raw = clean_text(data.get("max_occurrences",[""])[0])
+                            _tu_max = safe_int(_tu_max_raw,0) if _tu_max_raw else 0
+                            if _tu_max < 0: _tu_max = 0
+                            if _tu_max > 9999: _tu_max = 9999
+                            _tu_task["interval_value"] = _tu_iv
+                            _tu_task["interval_unit"]  = _tu_iu
+                            if _tu_iu == "specific_weekdays" and _tu_wdmask:
+                                _tu_task["weekdays_mask"] = _tu_wdmask
+                            if _tu_iu == "monthly_day":
+                                _tu_task["month_day"] = _tu_mday
+                            if _tu_iu == "monthly_nth_weekday":
+                                _tu_task["month_nth"] = _tu_mnth
+                                _tu_task["month_weekday"] = _tu_mwd
+                            if _tu_end:
+                                _tu_task["end_date"] = _tu_end
+                            if _tu_max > 0:
+                                _tu_task["occurrences_remaining"] = _tu_max
+                    save_manual_tasks(_tu_tasks)
+                self.send_response(200)
+                self.send_header("Content-Type","application/json")
+                self.send_header("Cache-Control","no-store")
+                self.end_headers()
+                try: self.wfile.write(_tuj.dumps({"ok":True,"id":_tu_id}).encode())
+                except BrokenPipeError: pass
+                return
+
             elif path == "/task-done":
-                # Permanently delete one-time tasks; advance recurring ones to next due date
-                idx=safe_int(data.get("index",["0"])[0],0); tasks=load_manual_tasks()
-                if 0<=idx<len(tasks) and isinstance(tasks[idx],dict):
-                    t=tasks[idx]
-                    if t.get("recurring"):
-                        tasks[idx]=advance_recurring_task(t)
-                    else:
-                        tasks.pop(idx)
-                    save_manual_tasks(tasks)
+                # Permanently delete one-time tasks; advance recurring ones to next due date.
+                # Id-first lookup; falls back to index for backward compatibility.
+                _td_id = clean_text(data.get("id",[""])[0])
+                with _MANUAL_TASKS_LOCK:
+                    tasks = load_manual_tasks()
+                    idx = -1
+                    if _td_id:
+                        idx = next((i for i,t in enumerate(tasks)
+                                    if isinstance(t,dict) and t.get("id")==_td_id), -1)
+                    if idx < 0:
+                        idx = safe_int(data.get("index",["-1"])[0],-1)
+                    if 0<=idx<len(tasks) and isinstance(tasks[idx],dict):
+                        t=tasks[idx]
+                        if t.get("recurring"):
+                            tasks[idx]=advance_recurring_task(t)
+                        else:
+                            tasks.pop(idx)
+                        save_manual_tasks(tasks)
                 redirect=data.get("return_url",["/tasks"])[0] + "#top"
 
             elif path == "/task-delete":
-                idx=safe_int(data.get("index",["0"])[0],0); tasks=load_manual_tasks()
-                if 0<=idx<len(tasks) and isinstance(tasks[idx],dict):
-                    tasks[idx]["status"]="inactive"; save_manual_tasks(tasks)
+                # Soft-archive a task (status=inactive). Id-first; index fallback.
+                _xd_id = clean_text(data.get("id",[""])[0])
+                with _MANUAL_TASKS_LOCK:
+                    tasks = load_manual_tasks()
+                    idx = -1
+                    if _xd_id:
+                        idx = next((i for i,t in enumerate(tasks)
+                                    if isinstance(t,dict) and t.get("id")==_xd_id), -1)
+                    if idx < 0:
+                        idx = safe_int(data.get("index",["-1"])[0],-1)
+                    if 0<=idx<len(tasks) and isinstance(tasks[idx],dict):
+                        tasks[idx]["status"]="inactive"
+                        save_manual_tasks(tasks)
                 redirect="/tasks#top"
 
             elif path == "/task-hard-delete":

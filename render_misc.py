@@ -2058,6 +2058,11 @@ def render_mom_page(status_message: str = "", target_date_str: str = "") -> str:
     var _current = 0;
     var _loaded  = {{}};  // cache fetched step HTML
 
+    // Expose cache-invalidation + reload to fragment scripts (e.g. Step 5
+    // task-edit panels need to refresh their step after a save/done).
+    window._momStepInvalidate = function(sid) {{ delete _loaded[sid]; }};
+    window._momStepReload     = function(sid) {{ delete _loaded[sid]; goToStep(sid); }};
+
     // Read step from URL hash
     (function() {{
         var hash = window.location.hash.replace('#','');
@@ -3707,8 +3712,42 @@ def _render_tasks_step(iso: str) -> str:
 
     pri_colors = {"HIGH":"#c0392b","MEDIUM":"#e67e22","LOW":"#27ae60"}
 
+    # Per-task assignee/priority option builders for the inline edit panel.
+    def _assn_opts(cur):
+        cur = cur or ""
+        out = '<option value=""' + (' selected' if not cur else '') + '>Anyone</option>'
+        seen = set()
+        for p in ASSIGNABLE_TO:
+            ep = _e(p); seen.add(p)
+            out += f'<option value="{ep}"' + (' selected' if cur==p else '') + f'>{ep}</option>'
+        if cur and cur not in seen:
+            out += f'<option value="{_e(cur)}" selected>{_e(cur)}</option>'
+        return out
+
+    def _prio_opts(cur):
+        cur = (cur or "MEDIUM").upper()
+        return "".join(
+            f'<option value="{p}"' + (' selected' if p==cur else '') + f'>{p}</option>'
+            for p in ("HIGH","MEDIUM","LOW")
+        )
+
+    def _recur_summary(t):
+        if not t.get("recurring"): return "Does not repeat"
+        try:
+            from data_helpers import format_recurrence_label as _frl
+            lbl = _frl(t) or "Repeats"
+        except Exception:
+            lbl = "Repeats"
+        extra = ""
+        if t.get("end_date"):
+            extra = f" until {_e(t['end_date'])}"
+        elif t.get("occurrences_remaining"):
+            extra = f" ({t['occurrences_remaining']} left)"
+        return f"\u21bb {_e(lbl)}{extra}"
+
     def _row(i, t, badge_html=""):
-        tid   = _e(t.get("id","") or str(i))
+        tid_raw = t.get("id","") or str(i)
+        tid   = _e(tid_raw)
         text  = _e(t.get("text",""))
         pri   = _norm_pri(t.get("priority")) or "MEDIUM"
         due   = t.get("due_date","") or ""
@@ -3719,22 +3758,86 @@ def _render_tasks_step(iso: str) -> str:
             f'margin-right:6px;white-space:nowrap;flex-shrink:0;">{_e(label)}</span>'
             if label else ""
         )
-        return (
-            f'<div style="display:flex;align-items:center;gap:10px;padding:9px 0;' +
-            f'border-bottom:1px solid var(--border-light);">' +
-            f'<span style="width:8px;height:8px;border-radius:50%;background:{pc};' +
-            f'flex-shrink:0;display:inline-block;"></span>' +
-            f'<div style="flex:1;min-width:0;display:flex;align-items:center;">' +
-            f'{label_html}' +
-            f'<div style="font-size:0.88em;color:var(--ink);flex:1;min-width:0;">{text}</div>' +
-            f'{badge_html}' +
-            f'</div>' +
-            f'<button onclick="addTaskToDay(\'{tid}\',\'{text.replace(chr(39),"")}\',this)" ' +
-            f'style="font-size:0.75em;padding:4px 10px;border-radius:6px;' +
-            f'background:var(--parchment);color:var(--ink);border:1.5px solid var(--border);' +
-            f'cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">+ Add to day</button>' +
+        is_rec = bool(t.get("recurring"))
+        # Hidden inline edit panel below the row. Mirrors the pi-card visual
+        # (white bg, subtle border, rounded). Recurrence area is collapsed
+        # behind an "Edit recurrence" reveal to keep the panel small.
+        edit_panel_html = (
+            f'<div id="step-task-edit-{tid}" data-task-edit="{tid}" '
+            f'style="display:none;margin:6px 0 10px;padding:12px;background:#fff;'
+            f'border:1px solid var(--border);border-radius:10px;">'
+            f'<input type="hidden" name="id" value="{tid}">'
+            f'<label style="font-size:0.78em;font-weight:700;color:var(--ink-muted);'
+            f'margin:0 0 4px;display:block;">Task</label>'
+            f'<input type="text" name="text" value="{text}" style="margin:0 0 8px;width:100%;">'
+            f'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">'
+            f'<div style="flex:1;min-width:120px;">'
+            f'<label style="font-size:0.78em;font-weight:700;color:var(--ink-muted);'
+            f'margin:0 0 4px;display:block;">Assigned to</label>'
+            f'<select name="assigned_to" style="margin:0;width:100%;">{_assn_opts(t.get("assigned_to",""))}</select>'
+            f'</div><div style="flex:1;min-width:120px;">'
+            f'<label style="font-size:0.78em;font-weight:700;color:var(--ink-muted);'
+            f'margin:0 0 4px;display:block;">Due date</label>'
+            f'<input type="date" name="due_date" value="{_e(due)}" style="margin:0;width:100%;">'
+            f'</div><div style="flex:1;min-width:100px;">'
+            f'<label style="font-size:0.78em;font-weight:700;color:var(--ink-muted);'
+            f'margin:0 0 4px;display:block;">Priority</label>'
+            f'<select name="priority" style="margin:0;width:100%;">{_prio_opts(t.get("priority",""))}</select>'
+            f'</div></div>'
+            # Recurrence summary + reveal
+            f'<div style="display:flex;align-items:center;gap:10px;padding:6px 0;'
+            f'font-size:0.82em;color:var(--ink-muted);">'
+            f'<span style="flex:1;min-width:0;">{_recur_summary(t)}</span>'
+            f'<a href="#" onclick="taskEditRecurToggle(\'{tid}\');return false;" '
+            f'style="font-size:0.78em;color:var(--brown);font-weight:700;text-decoration:none;'
+            f'flex-shrink:0;">Edit recurrence</a>'
+            f'</div>'
+            f'<div id="step-task-recur-wrap-{tid}" style="display:none;margin-top:6px;">'
+            f'<label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:4px;font-size:0.85em;">'
+            f'<input type="checkbox" id="recur-toggle-{tid}" name="recurring" value="true"'
+            f'{(" checked" if is_rec else "")}'
+            f' onchange="(function(cb){{document.getElementById(\'recur-fields-{tid}\').style.display=cb.checked?\'\':\'none\';}})(this)"'
+            f' style="width:auto;margin:0;">'
+            f'<span>Repeat</span></label>'
+            f'{_recur_editor_html(tid_raw, t)}'
+            f'</div>'
+            f'<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">'
+            f'<button type="button" onclick="taskEditSaveStep(\'{tid}\',this)" '
+            f'style="background:var(--navy,#1e3566);color:#fff;border:none;'
+            f'border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;font-family:inherit;">'
+            f'Save</button>'
+            f'<button type="button" onclick="taskEditDoneStep(\'{tid}\',this)" '
+            f'style="background:transparent;color:var(--green,#16a34a);'
+            f'border:1.5px solid var(--green,#16a34a);'
+            f'border-radius:8px;padding:7px 14px;font-weight:700;cursor:pointer;font-family:inherit;">'
+            f'\u2713 Mark done</button>'
+            f'<button type="button" onclick="taskEditOpenStep(\'{tid}\')" '
+            f'style="background:transparent;color:var(--ink-muted);border:1.5px solid var(--border);'
+            f'border-radius:8px;padding:7px 14px;font-weight:600;cursor:pointer;font-family:inherit;">'
+            f'Cancel</button>'
+            f'</div></div>'
+        )
+        visible_row = (
+            f'<div style="display:flex;align-items:center;gap:10px;padding:9px 0;'
+            f'border-bottom:1px solid var(--border-light);">'
+            f'<span style="width:8px;height:8px;border-radius:50%;background:{pc};'
+            f'flex-shrink:0;display:inline-block;"></span>'
+            f'<div style="flex:1;min-width:0;display:flex;align-items:center;">'
+            f'{label_html}'
+            f'<div style="font-size:0.88em;color:var(--ink);flex:1;min-width:0;">{text}</div>'
+            f'{badge_html}'
+            f'</div>'
+            f'<button onclick="taskEditOpenStep(\'{tid}\')" '
+            f'style="font-size:0.72em;padding:4px 8px;border-radius:6px;'
+            f'background:transparent;color:var(--ink-muted);border:1.5px solid var(--border);'
+            f'cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">\u270e Edit</button>'
+            f'<button onclick="addTaskToDay(\'{tid}\',\'{text.replace(chr(39),"")}\',this)" '
+            f'style="font-size:0.75em;padding:4px 10px;border-radius:6px;'
+            f'background:var(--parchment);color:var(--ink);border:1.5px solid var(--border);'
+            f'cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">+ Add to day</button>'
             f'</div>'
         )
+        return f'<div data-task-row="{tid}">{visible_row}{edit_panel_html}</div>'
 
     # ── Section 1: Overdue (no cap, red, always visible when non-empty) ─
     overdue_html = ""
@@ -3829,7 +3932,68 @@ function addTaskToDay(tid, text, btn) {{
     body: 'iso=' + encodeURIComponent(_tasksIso) + '&text=' + encodeURIComponent(text) + '&source=task&task_id=' + encodeURIComponent(tid)
   }});
 }}
+function taskEditOpenStep(tid) {{
+  var p = document.getElementById('step-task-edit-' + tid);
+  if (!p) return;
+  p.style.display = (p.style.display === 'none' || p.style.display === '') ? 'block' : 'none';
+}}
+function taskEditRecurToggle(tid) {{
+  var w = document.getElementById('step-task-recur-wrap-' + tid);
+  if (!w) return;
+  w.style.display = (w.style.display === 'none' || w.style.display === '') ? 'block' : 'none';
+}}
+function _stepRefreshTasks() {{
+  if (window._momStepReload) {{ window._momStepReload('tasks'); }}
+  else {{ window.location.reload(); }}
+}}
+function _stepCollectFields(tid) {{
+  var p = document.getElementById('step-task-edit-' + tid);
+  if (!p) return null;
+  var fd = new URLSearchParams();
+  fd.append('id', tid);
+  var els = p.querySelectorAll('input[name], select[name]');
+  els.forEach(function(el){{
+    var nm = el.name;
+    if (!nm || nm === 'id') return;
+    if (el.type === 'checkbox') {{
+      if (nm === 'recurring') {{
+        fd.append('recurring', el.checked ? 'true' : 'false');
+      }} else if (nm === 'weekdays_mask') {{
+        if (el.checked) fd.append('weekdays_mask', el.value);
+      }}
+      return;
+    }}
+    fd.append(nm, el.value);
+  }});
+  return fd;
+}}
+function taskEditSaveStep(tid, btn) {{
+  var fd = _stepCollectFields(tid);
+  if (!fd) return;
+  btn.disabled = true;
+  fetch('/task-update', {{
+    method: 'POST',
+    headers: {{'Content-Type':'application/x-www-form-urlencoded'}},
+    body: fd.toString()
+  }}).then(function(r){{ return r.json(); }})
+    .then(function(j){{
+      if (j && j.ok) {{ _stepRefreshTasks(); }}
+      else {{ btn.disabled = false; alert('Save failed: ' + (j && j.error || 'unknown')); }}
+    }})
+    .catch(function(){{ btn.disabled = false; _stepRefreshTasks(); }});
+}}
+function taskEditDoneStep(tid, btn) {{
+  btn.disabled = true;
+  fetch('/task-done', {{
+    method: 'POST',
+    headers: {{'Content-Type':'application/x-www-form-urlencoded'}},
+    body: 'id=' + encodeURIComponent(tid),
+    redirect: 'manual'
+  }}).then(function(){{ _stepRefreshTasks(); }})
+    .catch(function(){{ _stepRefreshTasks(); }});
+}}
 </script>
+{_recur_editor_js()}
 """
 
 
@@ -4445,6 +4609,239 @@ def render_notes() -> str:
     return html_page("Notes", body)
 
 
+# ── Tasks: shared recurrence-editor helpers ───────────────────────────────────
+# These helpers render the same recurrence sub-panel in two places — the
+# Add-Task form on /tasks and every per-task inline edit panel on /tasks and
+# /mom Step 5. All DOM ids are suffixed `-{tid}` so multiple instances coexist
+# on one page; the JS helpers take a `tid` arg and operate on the matching
+# subtree. Add-Task uses tid="add"; each editable row uses tid={task.id}.
+def _recur_editor_html(tid: str, task=None) -> str:
+    """
+    Recurrence sub-panel markup. Renders only the *fields* panel (the part that
+    appears once 'Repeat' is checked). The Repeat checkbox itself is rendered
+    by the caller. When `task` is provided, fields are pre-filled.
+    """
+    is_rec = bool(task and task.get("recurring"))
+    unit   = ((task or {}).get("interval_unit") or "weeks")
+    iv     = (task or {}).get("interval_value") or 1
+    wdmask = set((task or {}).get("weekdays_mask") or [])
+    mday   = (task or {}).get("month_day") or 1
+    mnth   = (task or {}).get("month_nth") or 1
+    mwd    = (task or {}).get("month_weekday") or 0
+    end    = (task or {}).get("end_date") or ""
+    maxocc = (task or {}).get("occurrences_remaining") or 0
+    end_mode = "on_date" if end else ("after_n" if maxocc else "never")
+
+    _wd_names = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+    _wd_boxes = "".join(
+        f'<label style="display:flex;align-items:center;gap:4px;font-size:0.82em;'
+        f'font-weight:400;cursor:pointer;margin:0;">'
+        f'<input type="checkbox" name="weekdays_mask" value="{i}"'
+        f' style="width:auto;margin:0;accent-color:#8b5a3c;"'
+        f'{" checked" if i in wdmask else ""}> {_wd_names[i]}</label>'
+        for i in range(7)
+    )
+
+    def _sel(val, target):
+        return ' selected' if val == target else ''
+
+    _mday_opts = "".join(
+        f'<option value="{d}"{_sel(d,mday)}>Day {d}</option>'
+        for d in range(1, 32)
+    ) + f'<option value="-1"{_sel(-1,mday)}>Last day of month</option>'
+
+    unit_opts = (
+        f'<option value="days"{_sel("days",unit)}>Every N days</option>'
+        f'<option value="weekdays"{_sel("weekdays",unit)}>Every weekday (Mon\u2013Fri)</option>'
+        f'<option value="specific_weekdays"{_sel("specific_weekdays",unit)}>On specific days of the week\u2026</option>'
+        f'<option value="weeks"{_sel("weeks",unit)}>Every N weeks</option>'
+        f'<option value="monthly_day"{_sel("monthly_day",unit)}>Monthly on day\u2026</option>'
+        f'<option value="monthly_nth_weekday"{_sel("monthly_nth_weekday",unit)}>Monthly on Nth weekday\u2026</option>'
+        f'<option value="months"{_sel("months",unit)}>Every N months (same date)</option>'
+        f'<option value="years"{_sel("years",unit)}>Yearly</option>'
+    )
+    nth_opts = "".join(
+        f'<option value="{n}"{_sel(n,mnth)}>{name}</option>'
+        for n, name in [(1,"1st"),(2,"2nd"),(3,"3rd"),(4,"4th"),(5,"5th"),(-1,"Last")]
+    )
+    wd_opts = "".join(
+        f'<option value="{i}"{_sel(i,mwd)}>{name}</option>'
+        for i, name in enumerate(["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"])
+    )
+    end_opts = "".join(
+        f'<option value="{v}"{_sel(v,end_mode)}>{label}</option>'
+        for v, label in [("never","Never"),("on_date","On date\u2026"),("after_n","After N times\u2026")]
+    )
+
+    show_n   = unit in ("days","weeks","months","years","specific_weekdays","monthly_day","monthly_nth_weekday")
+    show_wd  = unit == "specific_weekdays"
+    show_md  = unit == "monthly_day"
+    show_nw  = unit == "monthly_nth_weekday"
+    show_end_date = end_mode == "on_date"
+    show_end_n    = end_mode == "after_n"
+
+    # Suffix label appropriate to current unit (used on initial render)
+    if   unit == "days":   suf_init = "day(s)"
+    elif unit == "months" or unit in ("monthly_day","monthly_nth_weekday"): suf_init = "month(s)"
+    elif unit == "years":  suf_init = "year(s)"
+    else:                  suf_init = "week(s)"
+
+    panel_display = "" if is_rec else "none"
+    n_disp        = "flex"  if show_n        else "none"
+    wd_disp       = "block" if show_wd       else "none"
+    md_disp       = "block" if show_md       else "none"
+    nw_disp       = "block" if show_nw       else "none"
+    end_d_disp    = "block" if show_end_date else "none"
+    end_n_disp    = "block" if show_end_n    else "none"
+    max_val       = str(maxocc) if maxocc > 0 else ""
+
+    return (
+        f'<div id="recur-fields-{tid}" data-recur-tid="{tid}" '
+        f'style="display:{panel_display};padding:10px 0 4px 0;border-left:3px solid #e9d8c8;'
+        f'padding-left:14px;margin-bottom:6px;">'
+        f'<label style="font-size:0.85em;font-weight:600;margin:0 0 4px;">Frequency</label>'
+        f'<select id="recur-unit-{tid}" name="interval_unit" style="margin-bottom:10px;" '
+        f'onchange="_recurUpdateUI(\'{tid}\')">{unit_opts}</select>'
+        f'<div id="recur-row-n-{tid}" style="display:{n_disp};gap:8px;align-items:center;margin-bottom:10px;">'
+        f'<span id="recur-every-label-{tid}" style="white-space:nowrap;font-size:0.88em;">Every</span>'
+        f'<input id="recur-n-{tid}" type="number" name="interval_value" value="{iv}" min="1" '
+        f'style="width:70px;max-width:70px;margin:0;">'
+        f'<span id="recur-n-suffix-{tid}" style="white-space:nowrap;font-size:0.88em;color:#6b7280;">{suf_init}</span>'
+        f'</div>'
+        f'<div id="recur-row-weekdays-{tid}" style="display:{wd_disp};margin-bottom:10px;">'
+        f'<div style="font-size:0.85em;font-weight:600;margin-bottom:4px;">Repeat on</div>'
+        f'<div style="display:flex;flex-wrap:wrap;gap:6px;">{_wd_boxes}</div>'
+        f'</div>'
+        f'<div id="recur-row-monthday-{tid}" style="display:{md_disp};margin-bottom:10px;">'
+        f'<label style="font-size:0.85em;font-weight:600;margin:0 0 4px;">Day of month</label>'
+        f'<select name="month_day" style="margin:0;">{_mday_opts}</select>'
+        f'</div>'
+        f'<div id="recur-row-nthwd-{tid}" style="display:{nw_disp};margin-bottom:10px;gap:8px;">'
+        f'<label style="font-size:0.85em;font-weight:600;margin:0 0 4px;">On the</label>'
+        f'<div style="display:flex;gap:8px;">'
+        f'<select name="month_nth" style="margin:0;flex:1;">{nth_opts}</select>'
+        f'<select name="month_weekday" style="margin:0;flex:1;">{wd_opts}</select>'
+        f'</div></div>'
+        f'<div style="border-top:1px dashed #e9d8c8;padding-top:8px;margin-top:4px;">'
+        f'<label style="font-size:0.85em;font-weight:600;margin:0 0 4px;">Ends</label>'
+        f'<select id="recur-end-mode-{tid}" style="margin:0 0 6px;" '
+        f'onchange="_recurUpdateEndUI(\'{tid}\')">{end_opts}</select>'
+        f'<input id="recur-end-date-{tid}" type="date" name="end_date" value="{end}" '
+        f'style="display:{end_d_disp};margin:0 0 6px;width:100%;">'
+        f'<input id="recur-max-occ-{tid}" type="number" name="max_occurrences" min="1" placeholder="e.g. 12" '
+        f'value="{max_val}" '
+        f'style="display:{end_n_disp};margin:0;width:100%;">'
+        f'</div>'
+        f'<div id="recur-preview-{tid}" '
+        f'style="margin-top:10px;padding:8px 10px;background:#fdf6f0;'
+        f'border-radius:6px;font-size:0.82em;color:#5b4636;">'
+        f'\u21bb <span id="recur-preview-text-{tid}">every week</span>'
+        f'</div>'
+        f'</div>'
+    )
+
+
+def _recur_editor_js() -> str:
+    """
+    Shared <script> block defining `_recurUpdateUI(tid)`, `_recurUpdateEndUI(tid)`,
+    `_recurPreview(tid)`, plus delegated change/input listeners that walk up to
+    the nearest [data-recur-tid] panel and call the right helper. Idempotent —
+    re-injecting the script (e.g. after AJAX-refreshing a fragment) does not
+    install duplicate listeners.
+    """
+    return (
+        "<script>"
+        "if (!window._recurHelpersInstalled) {"
+        "  window._recurHelpersInstalled = true;"
+        "  window._recurUpdateUI = function(tid) {"
+        "    var u = document.getElementById('recur-unit-' + tid);"
+        "    if (!u) return;"
+        "    var v = u.value;"
+        "    var rN  = document.getElementById('recur-row-n-' + tid);"
+        "    var rWD = document.getElementById('recur-row-weekdays-' + tid);"
+        "    var rMD = document.getElementById('recur-row-monthday-' + tid);"
+        "    var rNW = document.getElementById('recur-row-nthwd-' + tid);"
+        "    var lbl = document.getElementById('recur-every-label-' + tid);"
+        "    var suf = document.getElementById('recur-n-suffix-' + tid);"
+        "    if (rN)  rN.style.display='none';"
+        "    if (rWD) rWD.style.display='none';"
+        "    if (rMD) rMD.style.display='none';"
+        "    if (rNW) rNW.style.display='none';"
+        "    if (v==='days')      { rN.style.display='flex'; lbl.textContent='Every'; suf.textContent='day(s)'; }"
+        "    else if (v==='weeks'){ rN.style.display='flex'; lbl.textContent='Every'; suf.textContent='week(s)'; }"
+        "    else if (v==='months'){ rN.style.display='flex'; lbl.textContent='Every'; suf.textContent='month(s)'; }"
+        "    else if (v==='years'){ rN.style.display='flex'; lbl.textContent='Every'; suf.textContent='year(s)'; }"
+        "    else if (v==='specific_weekdays'){ rWD.style.display='block';"
+        "        rN.style.display='flex'; lbl.textContent='Every'; suf.textContent='week(s)'; }"
+        "    else if (v==='monthly_day'){ rMD.style.display='block';"
+        "        rN.style.display='flex'; lbl.textContent='Every'; suf.textContent='month(s)'; }"
+        "    else if (v==='monthly_nth_weekday'){ rNW.style.display='block';"
+        "        rN.style.display='flex'; lbl.textContent='Every'; suf.textContent='month(s)'; }"
+        "    window._recurPreview(tid);"
+        "  };"
+        "  window._recurUpdateEndUI = function(tid) {"
+        "    var m = document.getElementById('recur-end-mode-' + tid).value;"
+        "    var d = document.getElementById('recur-end-date-' + tid);"
+        "    var n = document.getElementById('recur-max-occ-' + tid);"
+        "    d.style.display = (m==='on_date')?'block':'none';"
+        "    n.style.display = (m==='after_n')?'block':'none';"
+        "    if (m!=='on_date') d.value='';"
+        "    if (m!=='after_n') n.value='';"
+        "  };"
+        "  window._recurPreview = function(tid) {"
+        "    var panel = document.getElementById('recur-fields-' + tid);"
+        "    if (!panel) return;"
+        "    var u = document.getElementById('recur-unit-' + tid).value;"
+        "    var n = parseInt(document.getElementById('recur-n-' + tid).value)||1;"
+        "    var WD=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];"
+        "    var NW={'1':'1st','2':'2nd','3':'3rd','4':'4th','-1':'last'};"
+        "    var s='every week';"
+        "    if (u==='days')      s = (n===1?'every day':'every '+n+' days');"
+        "    else if (u==='weeks'){ s = (n===1?'every week':'every '+n+' weeks'); }"
+        "    else if (u==='months'){ s = (n===1?'every month':'every '+n+' months'); }"
+        "    else if (u==='years'){ s = (n===1?'every year':'every '+n+' years'); }"
+        "    else if (u==='weekdays'){ s='every weekday (Mon\u2013Fri)'; }"
+        "    else if (u==='specific_weekdays'){"
+        "        var picked=[];"
+        "        panel.querySelectorAll('input[name=\"weekdays_mask\"]:checked').forEach(function(cb){picked.push(parseInt(cb.value));});"
+        "        picked.sort(); var names=picked.map(function(i){return WD[i];}).join(', ');"
+        "        s = names || 'pick at least one day';"
+        "        if (n>1) s += ' every '+n+' weeks';"
+        "    } else if (u==='monthly_day'){"
+        "        var md=panel.querySelector('select[name=\"month_day\"]').value;"
+        "        var d=(md==='-1')?'last day':'day '+md;"
+        "        s = d + (n>1?(' of every '+n+' months'):' of each month');"
+        "    } else if (u==='monthly_nth_weekday'){"
+        "        var nth=panel.querySelector('select[name=\"month_nth\"]').value;"
+        "        var wd=parseInt(panel.querySelector('select[name=\"month_weekday\"]').value);"
+        "        s = NW[nth]+' '+WD[wd]+(n>1?(' of every '+n+' months'):' of each month');"
+        "    }"
+        "    document.getElementById('recur-preview-text-' + tid).textContent = s;"
+        "  };"
+        "  window._recurPanelTid = function(el) {"
+        "    var p = el && el.closest && el.closest('[data-recur-tid]');"
+        "    return p ? p.getAttribute('data-recur-tid') : null;"
+        "  };"
+        "  document.addEventListener('change', function(e){"
+        "    var t = e.target; if (!t) return;"
+        "    var nm = t.name || ''; var id = t.id || '';"
+        "    if (nm==='weekdays_mask' || nm==='month_day' || nm==='month_nth' || nm==='month_weekday'"
+        "        || id.indexOf('recur-n-')===0 || id.indexOf('recur-unit-')===0) {"
+        "      var tid = window._recurPanelTid(t);"
+        "      if (tid) window._recurPreview(tid);"
+        "    }"
+        "  });"
+        "  document.addEventListener('input', function(e){"
+        "    var t = e.target; if (!t) return;"
+        "    if ((t.id || '').indexOf('recur-n-')===0) {"
+        "      var tid = window._recurPanelTid(t); if (tid) window._recurPreview(tid);"
+        "    }"
+        "  });"
+        "}"
+        "</script>"
+    )
+
+
 # ── Tasks ─────────────────────────────────────────────────────────────────────
 def render_tasks() -> str:
     tasks         = load_manual_tasks()
@@ -4474,12 +4871,60 @@ def render_tasks() -> str:
                     _end_extra = f" ({task['occurrences_remaining']} left)"
                 recur_badge = f" <span class='badge'>↻ {escape(_label)}{_end_extra}</span>"
         if status == "active":
+            tid_raw  = task.get("id","") or ""
+            tid_e    = escape(tid_raw)
+            cur_due  = escape(task.get("due_date","") or "")
+            cur_prio = (task.get("priority","MEDIUM") or "MEDIUM").upper()
+            cur_assn = task.get("assigned_to","") or ""
+            # Per-task assignee <select>: ASSIGNABLE_TO + "" (anyone) + any unknown
+            # legacy value so it survives a round-trip without silently mutating.
+            _assn_opts_html = '<option value=""' + (' selected' if not cur_assn else '') + '>Anyone</option>'
+            _seen = set()
+            for _p in ASSIGNABLE_TO:
+                _ep = escape(_p); _seen.add(_p)
+                _assn_opts_html += f'<option value="{_ep}"' + (' selected' if cur_assn==_p else '') + f'>{_ep}</option>'
+            if cur_assn and cur_assn not in _seen:
+                _assn_opts_html += f'<option value="{escape(cur_assn)}" selected>{escape(cur_assn)}</option>'
+            _prio_opts_html = "".join(
+                f'<option value="{p}"' + (' selected' if p==cur_prio else '') + f'>{p}</option>'
+                for p in ("HIGH","MEDIUM","LOW")
+            )
+            _is_rec = bool(task.get("recurring"))
             card_html = f"""
         <div class="card" id="task-card-{index}">
             <h3>{text}{recur_badge}</h3>
             <p class="small">Assigned: {assigned_to} | Due: {due_date} | Priority: {priority}</p>
-            <button type="button" onclick="_taskAction(this,'/task-done',{index})">&#10003; Done</button>
-            <button type="button" class="ghost" onclick="_taskAction(this,'/task-delete',{index})">Archive</button>
+            <button type="button" onclick="_taskEditToggle('{tid_e}')">&#9998; Edit</button>
+            <button type="button" onclick="_taskAction(this,'/task-done','{tid_e}')">&#10003; Done</button>
+            <button type="button" class="ghost" onclick="_taskAction(this,'/task-delete','{tid_e}')">Archive</button>
+            <div id="task-edit-panel-{tid_e}" style="display:none;margin-top:14px;padding:14px;
+                 background:#fff;border:1px solid var(--border);border-radius:10px;">
+                <input type="hidden" name="id" value="{tid_e}">
+                <label style="font-size:0.85em;font-weight:600;margin:0 0 4px;">Task</label>
+                <input type="text" name="text" value="{escape(task.get("text",""))}" style="margin:0 0 10px;">
+                <label style="font-size:0.85em;font-weight:600;margin:0 0 4px;">Assigned to</label>
+                <select name="assigned_to" style="margin:0 0 10px;">{_assn_opts_html}</select>
+                <label style="font-size:0.85em;font-weight:600;margin:0 0 4px;">Due date</label>
+                <input type="date" name="due_date" value="{cur_due}" style="margin:0 0 10px;">
+                <label style="font-size:0.85em;font-weight:600;margin:0 0 4px;">Priority</label>
+                <select name="priority" style="margin:0 0 10px;">{_prio_opts_html}</select>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:4px;">
+                    <input type="checkbox" id="recur-toggle-{tid_e}" name="recurring" value="true"
+                           {("checked" if _is_rec else "")}
+                           onchange="(function(cb){{document.getElementById('recur-fields-{tid_e}').style.display=cb.checked?'':'none';}})(this)"
+                           style="width:auto;margin:0;">
+                    <span>Repeat</span>
+                </label>
+                {_recur_editor_html(tid_raw, task)}
+                <div style="display:flex;gap:8px;margin-top:10px;">
+                    <button type="button" onclick="_taskEditSave('{tid_e}',this)"
+                            style="background:var(--navy,#1e3566);color:#fff;border:none;
+                                   border-radius:8px;padding:9px 18px;font-weight:700;cursor:pointer;">
+                        Save changes
+                    </button>
+                    <button type="button" class="ghost" onclick="_taskEditToggle('{tid_e}')">Cancel</button>
+                </div>
+            </div>
         </div>"""
             active_cards += card_html
         elif status == "inactive":
@@ -4589,20 +5034,6 @@ def render_tasks() -> str:
     else:
         _ty_widget = ""
 
-    # Build weekday checkbox boxes for the "specific weekdays" recurrence option
-    _wd_names = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
-    _weekday_boxes_html = "".join(
-        f'<label style="display:inline-flex;align-items:center;gap:4px;'
-        f'padding:5px 9px;border:1px solid #d4c9bc;border-radius:14px;'
-        f'cursor:pointer;font-size:0.82em;background:#fff;margin:0;">'
-        f'<input type="checkbox" name="weekdays_mask" value="{i}"'
-        f' style="width:auto;margin:0;accent-color:#8b5a3c;"> {nm}</label>'
-        for i, nm in enumerate(_wd_names)
-    )
-    _month_day_opts_html = "".join(
-        f'<option value="{d}">Day {d}</option>' for d in range(1, 32)
-    )
-
     body = f"""
     {page_header("Tasks")}
     {_ty_widget}
@@ -4616,173 +5047,28 @@ def render_tasks() -> str:
             <label>Priority</label>
             <select name="priority"><option value="HIGH">HIGH</option><option value="MEDIUM" selected>MEDIUM</option><option value="LOW">LOW</option></select>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:4px;">
-                <input type="checkbox" id="recur-toggle" name="recurring" value="true"
-                       onchange="(function(cb){{document.getElementById('recur-fields').style.display=cb.checked?'':'none';}})(this)"
+                <input type="checkbox" id="recur-toggle-add" name="recurring" value="true"
+                       onchange="(function(cb){{document.getElementById('recur-fields-add').style.display=cb.checked?'':'none';}})(this)"
                        style="width:auto;margin:0;">
                 <span>Repeat</span>
             </label>
-            <div id="recur-fields" style="display:none;padding:10px 0 4px 0;border-left:3px solid #e9d8c8;padding-left:14px;margin-bottom:6px;">
-                <label style="font-size:0.85em;font-weight:600;margin:0 0 4px;">Frequency</label>
-                <select id="recur-unit" name="interval_unit" style="margin-bottom:10px;"
-                        onchange="_recurUpdateUI()">
-                    <option value="days">Every N days</option>
-                    <option value="weekdays">Every weekday (Mon–Fri)</option>
-                    <option value="specific_weekdays">On specific days of the week…</option>
-                    <option value="weeks" selected>Every N weeks</option>
-                    <option value="monthly_day">Monthly on day…</option>
-                    <option value="monthly_nth_weekday">Monthly on Nth weekday…</option>
-                    <option value="months">Every N months (same date)</option>
-                    <option value="years">Yearly</option>
-                </select>
-
-                <div id="recur-row-n" style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
-                    <span id="recur-every-label" style="white-space:nowrap;font-size:0.88em;">Every</span>
-                    <input id="recur-n" type="number" name="interval_value" value="1" min="1"
-                           style="width:70px;max-width:70px;margin:0;">
-                    <span id="recur-n-suffix" style="white-space:nowrap;font-size:0.88em;color:#6b7280;">week(s)</span>
-                </div>
-
-                <div id="recur-row-weekdays" style="display:none;margin-bottom:10px;">
-                    <div style="font-size:0.85em;font-weight:600;margin-bottom:4px;">Repeat on</div>
-                    <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                        {_weekday_boxes_html}
-                    </div>
-                </div>
-
-                <div id="recur-row-monthday" style="display:none;margin-bottom:10px;">
-                    <label style="font-size:0.85em;font-weight:600;margin:0 0 4px;">Day of month</label>
-                    <select name="month_day" style="margin:0;">
-                        {_month_day_opts_html}
-                        <option value="-1">Last day of month</option>
-                    </select>
-                </div>
-
-                <div id="recur-row-nthwd" style="display:none;margin-bottom:10px;gap:8px;">
-                    <label style="font-size:0.85em;font-weight:600;margin:0 0 4px;">On the</label>
-                    <div style="display:flex;gap:8px;">
-                        <select name="month_nth" style="margin:0;flex:1;">
-                            <option value="1">1st</option>
-                            <option value="2">2nd</option>
-                            <option value="3">3rd</option>
-                            <option value="4">4th</option>
-                            <option value="5">5th</option>
-                            <option value="-1">Last</option>
-                        </select>
-                        <select name="month_weekday" style="margin:0;flex:1;">
-                            <option value="0">Monday</option>
-                            <option value="1">Tuesday</option>
-                            <option value="2">Wednesday</option>
-                            <option value="3">Thursday</option>
-                            <option value="4">Friday</option>
-                            <option value="5">Saturday</option>
-                            <option value="6">Sunday</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div style="border-top:1px dashed #e9d8c8;padding-top:8px;margin-top:4px;">
-                    <label style="font-size:0.85em;font-weight:600;margin:0 0 4px;">Ends</label>
-                    <select id="recur-end-mode" style="margin:0 0 6px;" onchange="_recurUpdateEndUI()">
-                        <option value="never" selected>Never</option>
-                        <option value="on_date">On date…</option>
-                        <option value="after_n">After N times…</option>
-                    </select>
-                    <input id="recur-end-date" type="date" name="end_date"
-                           style="display:none;margin:0 0 6px;width:100%;">
-                    <input id="recur-max-occ" type="number" name="max_occurrences" min="1" placeholder="e.g. 12"
-                           style="display:none;margin:0;width:100%;">
-                </div>
-
-                <div id="recur-preview"
-                     style="margin-top:10px;padding:8px 10px;background:#fdf6f0;
-                            border-radius:6px;font-size:0.82em;color:#5b4636;">
-                    ↻ <span id="recur-preview-text">every week</span>
-                </div>
-            </div>
-            <script>
-            function _recurUpdateUI() {{
-                var u = document.getElementById('recur-unit').value;
-                var rowN = document.getElementById('recur-row-n');
-                var rowWD = document.getElementById('recur-row-weekdays');
-                var rowMD = document.getElementById('recur-row-monthday');
-                var rowNW = document.getElementById('recur-row-nthwd');
-                var lbl = document.getElementById('recur-every-label');
-                var suf = document.getElementById('recur-n-suffix');
-                rowN.style.display='none'; rowWD.style.display='none';
-                rowMD.style.display='none'; rowNW.style.display='none';
-                if (u==='days')      {{ rowN.style.display='flex'; lbl.textContent='Every'; suf.textContent='day(s)'; }}
-                else if (u==='weeks'){{ rowN.style.display='flex'; lbl.textContent='Every'; suf.textContent='week(s)'; }}
-                else if (u==='months'){{ rowN.style.display='flex'; lbl.textContent='Every'; suf.textContent='month(s)'; }}
-                else if (u==='years'){{ rowN.style.display='flex'; lbl.textContent='Every'; suf.textContent='year(s)'; }}
-                else if (u==='specific_weekdays'){{ rowWD.style.display='block';
-                    rowN.style.display='flex'; lbl.textContent='Every'; suf.textContent='week(s)'; }}
-                else if (u==='monthly_day'){{ rowMD.style.display='block';
-                    rowN.style.display='flex'; lbl.textContent='Every'; suf.textContent='month(s)'; }}
-                else if (u==='monthly_nth_weekday'){{ rowNW.style.display='block';
-                    rowN.style.display='flex'; lbl.textContent='Every'; suf.textContent='month(s)'; }}
-                _recurPreview();
-            }}
-            function _recurUpdateEndUI() {{
-                var m = document.getElementById('recur-end-mode').value;
-                var d = document.getElementById('recur-end-date');
-                var n = document.getElementById('recur-max-occ');
-                d.style.display = (m==='on_date')?'block':'none';
-                n.style.display = (m==='after_n')?'block':'none';
-                if (m!=='on_date') d.value='';
-                if (m!=='after_n') n.value='';
-            }}
-            function _recurPreview() {{
-                var u = document.getElementById('recur-unit').value;
-                var n = parseInt(document.getElementById('recur-n').value)||1;
-                var WD=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-                var NW={{'1':'1st','2':'2nd','3':'3rd','4':'4th','-1':'last'}};
-                var s='every week';
-                if (u==='days')      s = (n===1?'every day':'every '+n+' days');
-                else if (u==='weeks'){{ s = (n===1?'every week':'every '+n+' weeks'); }}
-                else if (u==='months'){{ s = (n===1?'every month':'every '+n+' months'); }}
-                else if (u==='years'){{ s = (n===1?'every year':'every '+n+' years'); }}
-                else if (u==='weekdays'){{ s='every weekday (Mon–Fri)'; }}
-                else if (u==='specific_weekdays'){{
-                    var picked=[];
-                    document.querySelectorAll('input[name=\"weekdays_mask\"]:checked').forEach(function(cb){{picked.push(parseInt(cb.value));}});
-                    picked.sort(); var names=picked.map(function(i){{return WD[i];}}).join(', ');
-                    s = names || 'pick at least one day';
-                    if (n>1) s += ' every '+n+' weeks';
-                }} else if (u==='monthly_day'){{
-                    var md=document.querySelector('select[name=\"month_day\"]').value;
-                    var d=(md==='-1')?'last day':'day '+md;
-                    s = d + (n>1?(' of every '+n+' months'):' of each month');
-                }} else if (u==='monthly_nth_weekday'){{
-                    var nth=document.querySelector('select[name=\"month_nth\"]').value;
-                    var wd=parseInt(document.querySelector('select[name=\"month_weekday\"]').value);
-                    s = NW[nth]+' '+WD[wd]+(n>1?(' of every '+n+' months'):' of each month');
-                }}
-                document.getElementById('recur-preview-text').textContent = s;
-            }}
-            // Wire up live preview
-            document.addEventListener('change', function(e){{
-                if (e.target && (e.target.name==='weekdays_mask' || e.target.name==='month_day'
-                    || e.target.name==='month_nth' || e.target.name==='month_weekday'
-                    || e.target.id==='recur-n' || e.target.id==='recur-unit')) _recurPreview();
-            }});
-            document.addEventListener('input', function(e){{
-                if (e.target && e.target.id==='recur-n') _recurPreview();
-            }});
-            </script>
+            {_recur_editor_html("add")}
+            {_recur_editor_js()}
             <button type="submit">Add Task</button>
         </form>
     </div>
     <h2>Active Tasks</h2>{active_cards or "<div class='card'><p class='muted'>No active tasks.</p></div>"}
     {inactive_section}
     <script>
-    function _taskAction(btn, url, idx) {{
-      var card = document.getElementById('task-card-' + idx);
+    function _taskAction(btn, url, taskId) {{
+      var panel = document.getElementById('task-edit-panel-' + taskId);
+      var card = panel ? panel.parentElement : null;
       btn.disabled = true;
       if (card) {{ card.style.transition='opacity .3s'; card.style.opacity='0'; }}
       fetch(url, {{
         method: 'POST',
         headers: {{'Content-Type':'application/x-www-form-urlencoded'}},
-        body: 'index=' + encodeURIComponent(idx),
+        body: 'id=' + encodeURIComponent(taskId),
         redirect: 'manual'
       }}).then(function() {{
         setTimeout(function() {{ window.location.reload(); }}, 200);
@@ -4791,6 +5077,50 @@ def render_tasks() -> str:
         btn.disabled = false;
         window.location.reload();
       }});
+    }}
+    function _taskEditToggle(taskId) {{
+      var panel = document.getElementById('task-edit-panel-' + taskId);
+      if (!panel) return;
+      panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'block' : 'none';
+    }}
+    function _taskEditSave(taskId, btn) {{
+      var panel = document.getElementById('task-edit-panel-' + taskId);
+      if (!panel) return;
+      btn.disabled = true;
+      var fd = new URLSearchParams();
+      fd.append('id', taskId);
+      // Scalar inputs (text, due_date) and selects (assigned_to, priority)
+      var inputs = panel.querySelectorAll('input[name], select[name]');
+      var hasRecurringField = false;
+      inputs.forEach(function(el){{
+        var nm = el.name;
+        if (!nm) return;
+        if (el.type === 'checkbox') {{
+          if (nm === 'recurring') {{
+            fd.append('recurring', el.checked ? 'true' : 'false');
+            hasRecurringField = true;
+          }} else if (nm === 'weekdays_mask') {{
+            if (el.checked) fd.append('weekdays_mask', el.value);
+          }}
+          return;
+        }}
+        if (nm === 'id') return;          // already added
+        fd.append(nm, el.value);
+      }});
+      if (!hasRecurringField) {{
+        // Defensive: if the recurring checkbox isn't found in the panel,
+        // omit the field entirely so the server doesn't strip recurrence.
+      }}
+      fetch('/task-update', {{
+        method: 'POST',
+        headers: {{'Content-Type':'application/x-www-form-urlencoded'}},
+        body: fd.toString()
+      }}).then(function(r){{ return r.json(); }})
+        .then(function(j){{
+          if (j && j.ok) {{ window.location.reload(); }}
+          else {{ btn.disabled = false; alert('Save failed: ' + (j && j.error || 'unknown')); }}
+        }})
+        .catch(function(){{ btn.disabled = false; window.location.reload(); }});
     }}
     </script>"""
     return html_page("Tasks", body)
