@@ -1182,6 +1182,18 @@
   },
   {
     "text": "RSVP to drill on Saturday",
+    "assigned_to": "JP",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Sea Cadets drill",
+    "subtasks": [],
+    "id": "ff7cf8aa"
+  },
+  {
+    "text": "RSVP to drill on Saturday",
     "assigned_to": "Joseph",
     "due_date": "2026-04-30",
     "priority": "MEDIUM",
