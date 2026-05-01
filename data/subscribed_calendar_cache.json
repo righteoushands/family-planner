@@ -243,6 +243,17 @@
       "source": "subscribed"
     },
     {
+      "title": "Consultation - Michaela Berquist",
+      "start": "2026-05-08T17:00",
+      "end": "2026-05-08T19:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "MODG",
+      "color": "#1abc9c",
+      "source": "subscribed"
+    },
+    {
       "title": "Joseph Aaron Calimger birthday! (2020)",
       "start": "2026-05-09",
       "end": "2026-05-09",
@@ -1629,5 +1640,5 @@
       "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-04-30T19:02:33.347819"
+  "fetched_at": "2026-04-30T20:15:23.990776"
 }
