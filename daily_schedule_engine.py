@@ -1778,7 +1778,8 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
                                  "done": _dl_done(progress, tid),
                                  "checkable": True, "is_header": False,
                                  "due_date": _t_due,
-                                 "is_due_soon": _due_soon})
+                                 "is_due_soon": _due_soon,
+                                 "priority": t.get("priority", "MEDIUM")})
         _seen_carry_texts: set = _seen_manual_texts.copy()
         # Use raw carryover so we can route school items to their subject block.
         for raw, txt, _prev_iso in get_carryover_tasks_raw(child, normalize_target_date(iso)):

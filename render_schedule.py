@@ -1516,11 +1516,16 @@ def render_child_schedule(child: str, target_date_str: str = "") -> str:
     return html_page(child, body)
 
 
-def render_child_dash_card(child: str, target_date_str: str = "") -> str:
+def render_child_dash_card(child: str, target_date_str: str = "", max_pending: int = 4) -> str:
     """
     Compact dashboard card — uses build_day_list (same source as the full Day
     List page) so task IDs are identical and check-offs synchronise instantly.
-    Shows: carryover ↩, then school/manual tasks (2-at-a-time), then chores.
+    Shows: carryover ↩, then school/manual tasks (up to max_pending at a time),
+    then chores.
+
+    For Lauren (parent), the card shows only her manual tasks — no chores,
+    school steps, calendar events, or carryover — and bypasses the FROL
+    day_list path entirely (Task #32).
     """
     normalized_date = normalize_date_query(target_date_str)
     packet     = generate_day_packet(normalized_date)
@@ -1528,36 +1533,49 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
     weekday    = packet["weekday"]
     date_label = packet["date_label"]
 
-    day_list = build_day_list(child, weekday, iso)
+    _is_lauren = (child == "Lauren")
 
-    # Merge calendar events into the day list (same approach as schedule page)
-    try:
-        from daily_schedule_engine import get_calendar_events_for_boys as _gcal, fmt_time_12h as _fmt12
-        for _ev in _gcal(iso):
-            _ev_time   = _ev.get("time")
-            _time_sort = _ev_time or "00:00"
-            _disp_time = _fmt12(_ev_time) if _ev_time else "All day"
-            _loc       = _ev.get("location", "")
-            _lbl       = _ev["title"] + (f" \u2022 {_loc}" if _loc else "")
-            day_list.append({
-                "time":      _disp_time,
-                "time_sort": _time_sort,
-                "end_time":  _fmt12(_ev.get("end_time")) if _ev.get("end_time") else _disp_time,
-                "label":     _lbl,
-                "kind":      "event",
-                "checkable": False,
-                "task_id":   None,
-                "done":      False,
-                "sub_items": [],
-                "is_event":  True,
-            })
-    except Exception:
-        pass
+    # Lauren: skip FROL day_list (would be [] on most weekdays anyway).
+    day_list = [] if _is_lauren else build_day_list(child, weekday, iso)
+
+    # Merge calendar events into the day list (boys only — _gcal is boys-only).
+    if not _is_lauren:
+        try:
+            from daily_schedule_engine import get_calendar_events_for_boys as _gcal, fmt_time_12h as _fmt12
+            for _ev in _gcal(iso):
+                _ev_time   = _ev.get("time")
+                _time_sort = _ev_time or "00:00"
+                _disp_time = _fmt12(_ev_time) if _ev_time else "All day"
+                _loc       = _ev.get("location", "")
+                _lbl       = _ev["title"] + (f" \u2022 {_loc}" if _loc else "")
+                day_list.append({
+                    "time":      _disp_time,
+                    "time_sort": _time_sort,
+                    "end_time":  _fmt12(_ev.get("end_time")) if _ev.get("end_time") else _disp_time,
+                    "label":     _lbl,
+                    "kind":      "event",
+                    "checkable": False,
+                    "task_id":   None,
+                    "done":      False,
+                    "sub_items": [],
+                    "is_event":  True,
+                })
+        except Exception:
+            pass
 
     progress = load_progress()
 
-    c_bg    = child_color(child, "bg")
-    c_light = child_color(child, "light")
+    if _is_lauren:
+        try:
+            from config import parent_color as _pcolor
+            c_bg    = _pcolor("Lauren", "bg")
+            c_light = _pcolor("Lauren", "light")
+        except Exception:
+            c_bg    = child_color(child, "bg")
+            c_light = child_color(child, "light")
+    else:
+        c_bg    = child_color(child, "bg")
+        c_light = child_color(child, "light")
     c_id    = child.lower().replace(" ", "-")
 
     # ── Extract task groups from the Day List ──────────────────────────────
@@ -1619,6 +1637,33 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
                     if txt_key:
                         _dash_seen_texts.add(txt_key)
                     chore_items.append(sub)
+
+    # ── Lauren: populate queue directly from manual tasks (bypasses FROL) ──
+    # Spec (Task #32): Lauren's card shows only her manual tasks. Wrap each
+    # manual_tasks.json entry into the same shape `_dash_row` expects.
+    if _is_lauren:
+        try:
+            from daily_schedule_engine import (
+                get_manual_tasks_for_child_and_date as _gmt_l,
+                _dl_done as _gd_l,
+            )
+            for _t in _gmt_l("Lauren", iso):
+                _txt = (_t.get("text") or "").strip()
+                if not _txt:
+                    continue
+                _tid = f"MANUAL::Lauren::{iso}::{_txt}"
+                queue.append({
+                    "text": _txt, "task_id": _tid,
+                    "manual_id": _t.get("id", ""),
+                    "done": _gd_l(progress, _tid),
+                    "checkable": True, "is_header": False,
+                    "due_date": _t.get("due_date", ""),
+                    "is_due_soon": _t.get("is_due_soon", False),
+                    "priority": _t.get("priority", "MEDIUM"),
+                    "_section": "Task",
+                })
+        except Exception:
+            pass
 
     # ── Counts ─────────────────────────────────────────────────────────────
     all_tasks  = carryover + queue + chore_items
@@ -1735,6 +1780,27 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
         combined.append({"kind": "chore", "sort_time": RULE_OF_LIFE_ANCHORS.get("chore", "07:30"), "data": item})
     combined.sort(key=lambda x: x["sort_time"])
 
+    # ── Secondary sort: due-date-aware for manual tasks (Task #32) ──────────
+    # Tuple key (is_manual, due_date_or_9999, priority_order). Non-manuals all
+    # share key (False, "", 0); stable sort preserves their existing relative
+    # order from the sort_time pass above. Manuals cluster after (True=1) and
+    # sort among themselves by due_date asc (overdue → today → future →
+    # undated "9999"), then HIGH < MEDIUM < LOW.
+    _PRIO_ORDER = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
+    def _due_sort_key(entry):
+        item = entry.get("data") or {}
+        # Detect manual tasks by task_id prefix (robust even when manual_id
+        # is empty — e.g. older manual_tasks.json entries that pre-date the
+        # `id` field). School/chore/carryover/event use SCHOOL::/CHORE::/
+        # CARRY:: prefixes or are non-task kinds.
+        _tid = str(item.get("task_id") or "")
+        is_manual = (entry.get("kind") == "task"
+                     and _tid.startswith("MANUAL::"))
+        due = item.get("due_date") or "9999"
+        pri = _PRIO_ORDER.get(item.get("priority", "MEDIUM"), 1)
+        return (is_manual, due, pri)
+    combined.sort(key=_due_sort_key)
+
     # ── Render combined (2-at-a-time reveal for tasks; chores always shown) ──
     combined_html = ""
     pending_shown = 0
@@ -1751,7 +1817,7 @@ def render_child_dash_card(child: str, target_date_str: str = "") -> str:
             is_done = _item_done(item, progress)
             if is_done:
                 vis = "display:none;"
-            elif pending_shown < 2:
+            elif pending_shown < max_pending:
                 vis = ""; pending_shown += 1
             else:
                 vis = "display:none;"
@@ -2252,6 +2318,8 @@ def render_today_all(target_date_str: str = "") -> str:
     cards_html = "".join(
         render_child_dash_card(child, normalized_date) for child in CHILDREN
     )
+    # Task #32: Lauren's dash card (manual-tasks-only, 10-item limit).
+    cards_html += render_child_dash_card("Lauren", normalized_date, max_pending=10)
 
     # "What's happening now" quick strip
     try:
