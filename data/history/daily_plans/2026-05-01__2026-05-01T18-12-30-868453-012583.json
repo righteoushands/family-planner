@@ -208,15 +208,6 @@
       "color": "#888",
       "done": false,
       "task_id": "fcad1919"
-    },
-    {
-      "id": "7226f43d",
-      "time": "18:00",
-      "text": "Buy caterpillars",
-      "source": "task",
-      "color": "#888",
-      "done": false,
-      "task_id": "f6dc9a54"
     }
   ]
 }
