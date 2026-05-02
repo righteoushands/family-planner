@@ -368,7 +368,8 @@
         "5": "Complete English 8: Semesterly Assessment 1 online.\nAssessments\nEnglish 8: Semesterly Assessment 2"
       },
       "_minutes": 30,
-      "_current_day": 3
+      "_current_day": 1,
+      "_current_week": 21
     },
     "History & Geog 8 (Old World & America) Syllabus": {
       "1": {
@@ -1137,7 +1138,9 @@
         "5": "Review Lesson C. Take Test 3.\n\nAssessments\nTest III"
       },
       "28": "Attend Class.",
-      "_minutes": 45
+      "_minutes": 45,
+      "_current_week": 999,
+      "_current_day": 1
     },
     "Editing 7 (Editor in Chief, Level 2) Syllabus": {
       "1": {
