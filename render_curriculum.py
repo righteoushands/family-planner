@@ -412,7 +412,7 @@ def render_curriculum_page() -> str:
                   <td class="cur-mins-cell">
                     <input class="cur-mins-input" type="number" min="5" max="240" step="5"
                            value="{stored_mins}"
-                           onchange="saveMinutes('{child_js}','{subj_js}',this.value)">
+                           oninput="saveMinutes('{child_js}','{subj_js}',this.value)">
                     <span class="cur-mins-label">min</span>
                   </td>
                   <td class="cur-wk-cell">

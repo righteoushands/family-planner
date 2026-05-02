@@ -6465,14 +6465,14 @@ class Handler(BaseHTTPRequestHandler):
                     _cm_child   = str(_cm_body.get("child", "")).strip()
                     _cm_subject = str(_cm_body.get("subject", "")).strip()
                     _cm_mins    = int(_cm_body.get("minutes", 30))
-                    if _cm_child and _cm_subject and _cm_mins >= 5:
+                    if _cm_child and _cm_subject and _cm_mins >= 1:
                         from data_helpers import load_curriculum, save_curriculum
                         _cm_cur = load_curriculum()
                         if _cm_child in _cm_cur and _cm_subject in _cm_cur[_cm_child]:
                             _cm_cur[_cm_child][_cm_subject]["_minutes"] = _cm_mins
                             save_curriculum(_cm_cur)
-                except Exception:
-                    pass
+                except Exception as _cm_err:
+                    print(f"[curriculum-minutes] error: {_cm_err}")
                 self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
                 try: self.wfile.write(b'{"ok":true}')
                 except BrokenPipeError: pass
