@@ -1357,20 +1357,39 @@ def get_curriculum_week_assignments(child: str, week: int) -> dict:
     return result
 
 
-def subject_meeting_days(child: str, subject: str) -> list:
+def subject_meeting_days(child: str, subject: str, subject_node=None) -> list:
     """Return the list of weekday names (e.g. ['Monday','Wednesday','Friday'])
-    on which a subject meets for the given child, derived by inverting the
-    parsed_days structure in data/school_weeks.json. Returns [] if not found
-    or on any error.
+    on which a subject meets for the given child.
 
-    Matching is two-pass:
-      1. Exact (case-sensitive, stripped) — preferred.
+    Matching is three-pass (in order of preference):
+      0. **Subject-node `_weekdays` fast path** — if `subject_node` is a dict
+         and contains a non-empty list under the `_weekdays` key, that list
+         is returned directly without consulting school_weeks.json. This
+         makes curriculum self-contained when `_weekdays` is populated and
+         decouples scheduling from PDF imports.
+      1. Exact (case-sensitive, stripped) match against
+         school_weeks.json's parsed_days — preferred when `_weekdays` is
+         absent or empty.
       2. Fuzzy fallback (case-insensitive) — succeeds when the curriculum
          subject name starts with the school_weeks subject name, or when
          the school_weeks subject name is contained within the curriculum
          subject name. Bridges long syllabus names in curriculum.json
          (e.g. "Music 8 (Top 100 Classical Music ...) Syllabus") to the
-         short names used in school_weeks.json (e.g. "Music 8")."""
+         short names used in school_weeks.json (e.g. "Music 8").
+
+    Returns [] if not found or on any error."""
+    # Pass 0 — subject-node `_weekdays` fast path.
+    # Only short-circuits when the list contains at least one valid (non-empty
+    # string) weekday entry.  Malformed inputs (None, non-list, list of
+    # non-strings, list of empty strings, etc.) fall through to the
+    # school_weeks lookup below, so we never silently return [] when
+    # school_weeks could still answer.
+    if isinstance(subject_node, dict):
+        wd = subject_node.get("_weekdays")
+        if isinstance(wd, list):
+            valid = [d for d in wd if isinstance(d, str) and d]
+            if valid:
+                return valid
     try:
         from school_pdf_engine import load_school_weeks
         weeks = load_school_weeks() or {}

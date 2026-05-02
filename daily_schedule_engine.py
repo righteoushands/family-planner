@@ -387,8 +387,86 @@ def extract_school_tasks_for_child(child: str, weekday: str):
     tasks = []
     seen_subjects = set()
 
+    # ── Curriculum merge (PRIMARY source) ────────────────────────────────────
+    # Curriculum is the source-of-truth for which subjects meet today and
+    # what their lesson text is.  The PDF loop (below) acts as a fallback
+    # for subjects not covered by the curriculum (e.g. Reading 7, which is
+    # parsed from PDF but is not in Joseph's curriculum).
+    # Frequency-aware via the subject's `_weekdays` list (preferred) or
+    # subject_meeting_days's school_weeks fallback.  Day-aware: picks the
+    # lesson text for today's position within the subject's meeting days.
+    try:
+        from data_helpers import (
+            load_curriculum, get_curriculum_week, resolve_week_text,
+            week_day_segments, subject_meeting_days, subject_day_index,
+        )
+        _cur_data = load_curriculum() or {}
+        _cur_week_global = get_curriculum_week()
+        _child_subjects = _cur_data.get(child, {}) or {}
+        for _subject, _subj_node in _child_subjects.items():
+            if not isinstance(_subj_node, dict):
+                continue
+            try:    _subj_week = int(_subj_node.get("_current_week", _cur_week_global))
+            except (TypeError, ValueError): _subj_week = _cur_week_global
+            # Sentinel — subject completed.
+            if _subj_week >= 999:
+                continue
+            # Pass the subject node so subject_meeting_days's pass-0 fast
+            # path can use `_weekdays` directly without consulting
+            # school_weeks.json.  Falls through to school_weeks lookup only
+            # when `_weekdays` is absent or empty.
+            _meeting = subject_meeting_days(child, _subject, _subj_node)
+            _day_idx = subject_day_index(_meeting, weekday)
+            if _day_idx is None:
+                # Subject does not meet today.
+                continue
+            _text = resolve_week_text(_subj_node, _subj_week, day_pref=_day_idx)
+            if not _text:
+                continue
+            _is_math = ("algebra" in _subject.lower()) or ("math" in _subject.lower())
+            if _is_math:
+                _pfx = f"{_text} — " if _text else ""
+                _bro_label = _get_brother_math_label(child, weekday)
+                _bro_sfx   = f" ({_bro_label})" if _bro_label else ""
+                _checklist = [
+                    f"{_pfx}Assignment completed",
+                    f"{_pfx}Given to checker",
+                    f"{_pfx}Fixed missed problems",
+                    f"{_pfx}Received brother's math{_bro_sfx}",
+                    f"{_pfx}Checked brother's math{_bro_sfx}",
+                ]
+            else:
+                _checklist = [_text]
+            tasks.append({
+                "subject": _subject,
+                "assignment_text": _text,
+                "is_math": _is_math,
+                "is_math_test": False,
+                "checklist": _checklist,
+                "from_curriculum": True,
+            })
+            # Curriculum claims this subject — PDF loop below will skip any
+            # PDF block whose lowercase short subject name is a substring of
+            # (or starts with) this curriculum subject name.
+            seen_subjects.add(_subject.lower())
+    except Exception:
+        pass
+
+    # ── PDF fallback ─────────────────────────────────────────────────────────
+    # Emits PDF-parsed tasks for any subject NOT already claimed by curriculum.
+    # Bidirectional fuzzy de-dup: skip when this PDF subject's lowercase name
+    # is a substring of a curriculum subject already in seen_subjects (the
+    # common case — short PDF "Religion 8" collapsing onto long curriculum
+    # "Religion 8 (Our Life in the Church) Syllabus") OR when a curriculum
+    # subject is a substring of this PDF name (defensive — covers a future
+    # case where curriculum uses a short label and PDF uses a longer one).
+    # Mirrors subject_meeting_days's case-insensitive containment logic.
     for block in day.get("blocks", []):
         subject = block.get("subject", "").strip()
+        if subject:
+            _sl = subject.lower()
+            if any(_sl in s or s in _sl for s in seen_subjects):
+                continue
         text = block.get("assignment_text", "").strip()
         is_math = bool(block.get("is_math", False))
         is_math_test = bool(block.get("is_math_test", False))
@@ -425,73 +503,6 @@ def extract_school_tasks_for_child(child: str, weekday: str):
         })
         if subject:
             seen_subjects.add(subject.lower())
-
-    # ── Curriculum merge ─────────────────────────────────────────────────────
-    # Layer the child's curriculum on top of the PDF-parsed school tasks.
-    # Frequency-aware: only surfaces a subject on weekdays where it actually
-    # meets (derived from school_weeks.json). Day-aware: picks the lesson
-    # text for today's position within the subject's meeting days.
-    try:
-        from data_helpers import (
-            load_curriculum, get_curriculum_week, resolve_week_text,
-            week_day_segments, subject_meeting_days, subject_day_index,
-        )
-        _cur_data = load_curriculum() or {}
-        _cur_week_global = get_curriculum_week()
-        _child_subjects = _cur_data.get(child, {}) or {}
-        for _subject, _subj_node in _child_subjects.items():
-            if not isinstance(_subj_node, dict):
-                continue
-            try:    _subj_week = int(_subj_node.get("_current_week", _cur_week_global))
-            except (TypeError, ValueError): _subj_week = _cur_week_global
-            # Sentinel — subject completed.
-            if _subj_week >= 999:
-                continue
-            # Fuzzy de-dup: also suppress when an entry in seen_subjects is a
-            # prefix of (or contained within) the curriculum subject name.
-            # Mirrors subject_meeting_days's case-insensitive prefix /
-            # containment fallback so long syllabus titles in curriculum.json
-            # (e.g. "Religion 8 (Our Life in the Church) Syllabus") collapse
-            # onto the short names already emitted from the PDF path
-            # (e.g. "Religion 8").  startswith covers the exact-match case
-            # (since "x".startswith("x") is True), so the prior literal check
-            # is preserved as a special case.
-            _sl = _subject.lower()
-            if any(_sl.startswith(s) or s in _sl for s in seen_subjects):
-                continue
-            _meeting = subject_meeting_days(child, _subject)
-            _day_idx = subject_day_index(_meeting, weekday)
-            if _day_idx is None:
-                # Subject does not meet today.
-                continue
-            _text = resolve_week_text(_subj_node, _subj_week, day_pref=_day_idx)
-            if not _text:
-                continue
-            _is_math = ("algebra" in _subject.lower()) or ("math" in _subject.lower())
-            if _is_math:
-                _pfx = f"{_text} — " if _text else ""
-                _bro_label = _get_brother_math_label(child, weekday)
-                _bro_sfx   = f" ({_bro_label})" if _bro_label else ""
-                _checklist = [
-                    f"{_pfx}Assignment completed",
-                    f"{_pfx}Given to checker",
-                    f"{_pfx}Fixed missed problems",
-                    f"{_pfx}Received brother's math{_bro_sfx}",
-                    f"{_pfx}Checked brother's math{_bro_sfx}",
-                ]
-            else:
-                _checklist = [_text]
-            tasks.append({
-                "subject": _subject,
-                "assignment_text": _text,
-                "is_math": _is_math,
-                "is_math_test": False,
-                "checklist": _checklist,
-                "from_curriculum": True,
-            })
-            seen_subjects.add(_subject.lower())
-    except Exception:
-        pass
 
     return tasks
 
