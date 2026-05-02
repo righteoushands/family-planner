@@ -262,7 +262,248 @@ def get_theme_css() -> str:
     return "\n".join(lines)
 
 
+def _build_mobile_more_sheet_inner(viewer, is_child: bool) -> str:
+    """Inner HTML for the mobile slide-up More sheet.
+
+    Role-aware:
+      * Child viewers get a curated short list of links they're allowed to
+        access (their own schedule, Chores, Meals, Recipes, Prayer,
+        Message Mom, Change PIN, Sign out).
+      * Admins/parents get the full multi-section grid.
+    """
+    if is_child and viewer:
+        v = escape(viewer)
+        return f"""
+      <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+                  color:#9ca3af;margin:10px 0 8px;">My Day</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+        <a href="/schedule/{v}" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-weight:600;font-size:0.9em;">
+          <span style="font-size:1.2em;">&#128197;</span> My Schedule
+        </a>
+        <a href="/chores" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-weight:600;font-size:0.9em;">
+          <span style="font-size:1.2em;">&#129529;</span> Chores
+        </a>
+        <a href="/meals" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-weight:600;font-size:0.9em;">
+          <span style="font-size:1.2em;">&#127829;</span> Menu
+        </a>
+        <a href="/recipes" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-weight:600;font-size:0.9em;">
+          <span style="font-size:1.2em;">&#128218;</span> Recipes
+        </a>
+        <a href="/prayer" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-weight:600;font-size:0.9em;">
+          <span style="font-size:1.2em;">&#10011;</span> Prayer
+        </a>
+        <button onclick="closeMobileMore();var m=document.getElementById('msg-mom-modal');if(m)m.style.display='flex';"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f3f0f9;
+                  border-radius:12px;text-decoration:none;color:#5b3a8a;font-weight:600;font-size:0.9em;
+                  border:none;cursor:pointer;font-family:inherit;text-align:left;">
+          <span style="font-size:1.2em;">&#128140;</span> Message Mom
+        </button>
+      </div>
+
+      <div style="margin-top:18px;padding-top:14px;border-top:1px solid #f3f4f6;
+                  display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <a href="/change-pin" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;
+                  background:#fafafa;border-radius:12px;text-decoration:none;color:#6b7280;
+                  font-weight:600;font-size:0.88em;">
+          &#128274; Change PIN
+        </a>
+        <a href="/logout"
+           style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;
+                  background:#fee2e2;border-radius:12px;text-decoration:none;color:#b91c1c;
+                  font-weight:700;font-size:0.88em;">
+          &#x1F6AA; Sign out
+        </a>
+      </div>
+"""
+
+    return f"""
+      <!-- AI Companions section -->
+      <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+                  color:#9ca3af;margin:10px 0 8px;">Your Companions</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+        <a href="/lucy" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:#f3f0f9;border-radius:12px;text-decoration:none;
+                  color:#5b3a8a;font-weight:700;font-size:0.88em;">
+          <span>&#10024;</span> Lucy
+        </a>
+        <a href="/headmaster" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:#eef1f8;border-radius:12px;text-decoration:none;
+                  color:#1e3566;font-weight:700;font-size:0.88em;">
+          <span>&#128218;</span> Fr. Gregory
+        </a>
+        <a href="/lorenzo" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:#faf0ec;border-radius:12px;text-decoration:none;
+                  color:#8b3a1a;font-weight:700;font-size:0.88em;">
+          <span>&#127869;&#65039;</span> Lorenzo
+        </a>
+        <a href="/coach" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:#eef7f1;border-radius:12px;text-decoration:none;
+                  color:#1a6e3e;font-weight:700;font-size:0.88em;">
+          <span>&#128170;</span> Coach
+        </a>
+        <a href="/dr-monica" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:#faf0f5;border-radius:12px;text-decoration:none;
+                  color:#8b3a5c;font-weight:700;font-size:0.88em;">
+          <span>&#127800;</span> Dr. Monica
+        </a>
+        <a href="/dev" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:#eef3fc;border-radius:12px;text-decoration:none;
+                  color:#1e3a8a;font-weight:700;font-size:0.88em;">
+          <span>&#128187;</span> Izzy
+        </a>
+      </div>
+
+      <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+                  color:#9ca3af;margin:10px 0 8px;">People</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+        <a href="/mom-profile" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:{parent_color('Lauren','light')};
+                  border-radius:12px;text-decoration:none;color:{parent_color('Lauren','bg')};font-weight:600;font-size:0.9em;">
+          <span style="font-size:1.2em;">&#9825;</span> Lauren
+        </a>
+        <a href="/john" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:{parent_color('John','light')};
+                  border-radius:12px;text-decoration:none;color:{parent_color('John','bg')};font-weight:600;font-size:0.9em;">
+          <span style="font-size:1.2em;">&#9788;</span> John
+        </a>
+        {''.join(
+          '<a href="/schedule/' + escape(c) + '" onclick="closeMobileMore()"'
+          ' style="display:flex;align-items:center;gap:8px;padding:12px 14px;background:#fafafa;'
+          'border-radius:12px;text-decoration:none;color:#374151;font-weight:600;font-size:0.9em;">'
+          '<span style="width:9px;height:9px;border-radius:50%;background:' + child_color(c,'bg') + ';flex-shrink:0;display:inline-block;"></span>'
+          + escape(c) + '</a>'
+          for c in CHILDREN
+        )}
+        <a href="/friends" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f0faf4;
+                  border-radius:12px;text-decoration:none;color:#2d6a4f;font-weight:600;font-size:0.9em;">
+          <span style="font-size:1.2em;">&#128106;</span> Friends
+        </a>
+      </div>
+
+      <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+                  color:#9ca3af;margin:14px 0 8px;">Plan</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+        <a href="/mom" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:{parent_color('Lauren','light')};
+                  border-radius:12px;text-decoration:none;color:{parent_color('Lauren','bg')};font-weight:600;font-size:0.9em;">
+          &#128203; Plan my day
+        </a>
+        <a href="/calendar" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#128198; Calendar
+        </a>
+        <a href="/notes" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#128221; Notes
+        </a>
+        <a href="/thankyou-reminders" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#9993; Thank-You Cards
+        </a>
+        <a href="/planner" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#128197; Monthly Planner
+        </a>
+        <a href="/mom#grid" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#128203;&#10003; Family Rule of Life
+        </a>
+        <a href="/family-schedule" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#128197; Today's Timeline
+        </a>
+        <a href="/settings" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#9881; Settings
+        </a>
+      </div>
+
+      <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+                  color:#9ca3af;margin:14px 0 8px;">Kids</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+        <a href="/school" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#128218; School
+        </a>
+        <a href="/week-school" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#eef1f8;
+                  border-radius:12px;text-decoration:none;color:#1e3566;font-size:0.9em;font-weight:700;">
+          &#128200; Week Progress
+        </a>
+        <a href="/chores" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#129529; Chores
+        </a>
+      </div>
+
+      <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+                  color:#9ca3af;margin:14px 0 8px;">Meals</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+        <a href="/meals" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#127829; Menu Planner
+        </a>
+        <a href="/recipes" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#128218; Recipes
+        </a>
+      </div>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid #f3f4f6;">
+        <a href="/logout"
+           style="display:flex;align-items:center;justify-content:center;gap:10px;
+                  padding:14px;background:#fee2e2;border-radius:12px;text-decoration:none;
+                  color:#b91c1c;font-weight:700;font-size:0.95em;width:100%;box-sizing:border-box;">
+          &#x1F6AA; Log Out
+        </a>
+      </div>
+"""
+
+
 def html_page(title: str, body: str) -> str:
+    # Role-aware mobile nav: child viewers get their own schedule link in
+    # place of /tasks (which is admin-only) and a curated More sheet.
+    try:
+        import auth as _auth_mod
+        _viewer = _auth_mod.get_viewer()
+        _is_child = bool(_viewer) and not _auth_mod.is_admin(_viewer)
+    except Exception:
+        _viewer = None
+        _is_child = False
+    _tasks_href = f"/schedule/{_viewer}" if (_is_child and _viewer) else "/tasks"
+    _more_sheet_inner = _build_mobile_more_sheet_inner(_viewer, _is_child)
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -992,7 +1233,7 @@ document.addEventListener('click', function(e) {{
     <span class="mobile-nav-icon">&#127968;</span>
     <span class="mobile-nav-label">Home</span>
   </a>
-  <a href="/tasks" class="mobile-nav-item">
+  <a href="{_tasks_href}" class="mobile-nav-item">
     <span class="mobile-nav-icon">&#9989;</span>
     <span class="mobile-nav-label">Tasks</span>
   </a>
@@ -1024,171 +1265,9 @@ document.addEventListener('click', function(e) {{
     <div style="display:flex;justify-content:center;padding:12px 0 4px;">
       <div style="width:40px;height:4px;border-radius:4px;background:#e5e7eb;"></div>
     </div>
-    <!-- Sections -->
+    <!-- Sections (role-aware: child viewers get a curated short list) -->
     <div style="padding:4px 16px 20px;">
-
-      <!-- AI Companions section -->
-      <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
-                  color:#9ca3af;margin:10px 0 8px;">Your Companions</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
-        <a href="/lucy" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
-                  background:#f3f0f9;border-radius:12px;text-decoration:none;
-                  color:#5b3a8a;font-weight:700;font-size:0.88em;">
-          <span>&#10024;</span> Lucy
-        </a>
-        <a href="/headmaster" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
-                  background:#eef1f8;border-radius:12px;text-decoration:none;
-                  color:#1e3566;font-weight:700;font-size:0.88em;">
-          <span>&#128218;</span> Fr. Gregory
-        </a>
-        <a href="/lorenzo" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
-                  background:#faf0ec;border-radius:12px;text-decoration:none;
-                  color:#8b3a1a;font-weight:700;font-size:0.88em;">
-          <span>&#127869;&#65039;</span> Lorenzo
-        </a>
-        <a href="/coach" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
-                  background:#eef7f1;border-radius:12px;text-decoration:none;
-                  color:#1a6e3e;font-weight:700;font-size:0.88em;">
-          <span>&#128170;</span> Coach
-        </a>
-        <a href="/dr-monica" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
-                  background:#faf0f5;border-radius:12px;text-decoration:none;
-                  color:#8b3a5c;font-weight:700;font-size:0.88em;">
-          <span>&#127800;</span> Dr. Monica
-        </a>
-        <a href="/dev" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
-                  background:#eef3fc;border-radius:12px;text-decoration:none;
-                  color:#1e3a8a;font-weight:700;font-size:0.88em;">
-          <span>&#128187;</span> Izzy
-        </a>
-      </div>
-
-      <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
-                  color:#9ca3af;margin:10px 0 8px;">People</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
-        <a href="/mom-profile" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
-                  background:{parent_color('Lauren','light')};
-                  border-radius:12px;text-decoration:none;color:{parent_color('Lauren','bg')};font-weight:600;font-size:0.9em;">
-          <span style="font-size:1.2em;">&#9825;</span> Lauren
-        </a>
-        <a href="/john" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
-                  background:{parent_color('John','light')};
-                  border-radius:12px;text-decoration:none;color:{parent_color('John','bg')};font-weight:600;font-size:0.9em;">
-          <span style="font-size:1.2em;">&#9788;</span> John
-        </a>
-        {''.join(
-          '<a href="/schedule/' + escape(c) + '" onclick="closeMobileMore()"'
-          ' style="display:flex;align-items:center;gap:8px;padding:12px 14px;background:#fafafa;'
-          'border-radius:12px;text-decoration:none;color:#374151;font-weight:600;font-size:0.9em;">'
-          '<span style="width:9px;height:9px;border-radius:50%;background:' + child_color(c,'bg') + ';flex-shrink:0;display:inline-block;"></span>'
-          + escape(c) + '</a>'
-          for c in CHILDREN
-        )}
-        <a href="/friends" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f0faf4;
-                  border-radius:12px;text-decoration:none;color:#2d6a4f;font-weight:600;font-size:0.9em;">
-          <span style="font-size:1.2em;">&#128106;</span> Friends
-        </a>
-      </div>
-
-      <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
-                  color:#9ca3af;margin:14px 0 8px;">Plan</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
-        <a href="/mom" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
-                  background:{parent_color('Lauren','light')};
-                  border-radius:12px;text-decoration:none;color:{parent_color('Lauren','bg')};font-weight:600;font-size:0.9em;">
-          &#128203; Plan my day
-        </a>
-        <a href="/calendar" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
-                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
-          &#128198; Calendar
-        </a>
-        <a href="/notes" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
-                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
-          &#128221; Notes
-        </a>
-        <a href="/thankyou-reminders" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
-                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
-          &#9993; Thank-You Cards
-        </a>
-        <a href="/planner" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
-                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
-          &#128197; Monthly Planner
-        </a>
-        <a href="/mom#grid" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
-                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
-          &#128203;&#10003; Family Rule of Life
-        </a>
-        <a href="/family-schedule" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
-                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
-          &#128197; Today's Timeline
-        </a>
-        <a href="/settings" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
-                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
-          &#9881; Settings
-        </a>
-      </div>
-
-      <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
-                  color:#9ca3af;margin:14px 0 8px;">Kids</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
-        <a href="/school" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
-                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
-          &#128218; School
-        </a>
-        <a href="/week-school" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#eef1f8;
-                  border-radius:12px;text-decoration:none;color:#1e3566;font-size:0.9em;font-weight:700;">
-          &#128200; Week Progress
-        </a>
-        <a href="/chores" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
-                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
-          &#129529; Chores
-        </a>
-      </div>
-
-      <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
-                  color:#9ca3af;margin:14px 0 8px;">Meals</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
-        <a href="/meals" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
-                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
-          &#127829; Menu Planner
-        </a>
-        <a href="/recipes" onclick="closeMobileMore()"
-           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
-                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
-          &#128218; Recipes
-        </a>
-      </div>
-
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid #f3f4f6;">
-        <a href="/logout"
-           style="display:flex;align-items:center;justify-content:center;gap:10px;
-                  padding:14px;background:#fee2e2;border-radius:12px;text-decoration:none;
-                  color:#b91c1c;font-weight:700;font-size:0.95em;width:100%;box-sizing:border-box;">
-          &#x1F6AA; Log Out
-        </a>
-      </div>
-
+{_more_sheet_inner}
     </div>
   </div>
 </div>
