@@ -1677,6 +1677,16 @@ class Handler(BaseHTTPRequestHandler):
             if not matched:
                 self.send_response(404); self.end_headers(); return
             body = render_child_schedule(matched, query.get("date",[""])[0])
+        elif path.startswith("/student/"):
+            # Student Portal (Phase 1) — JP and Joseph only.
+            child_slug = path[len("/student/"):].split("?")[0].lower()
+            if child_slug not in ("jp", "joseph"):
+                self.send_response(404); self.end_headers(); return
+            matched = next((c for c in CHILDREN if c.lower() == child_slug), None)
+            if not matched:
+                self.send_response(404); self.end_headers(); return
+            from render_student import render_student_page
+            body = render_student_page(matched, query.get("date",[""])[0])
         elif path == "/calendar/refresh":
             refresh_calendar(force=True)
             self.send_response(303); self.send_header("Location","/calendar"); self.end_headers(); return

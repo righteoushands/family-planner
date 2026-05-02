@@ -1528,6 +1528,13 @@ def top_nav() -> str:
         color = u.get("color", "#1f2937")
         name  = u.get("name", viewer.title())
         sched_link = f"/schedule/{viewer}"
+        # Student Portal (Phase 1) — only JP and Joseph have a /student/<slug>
+        # route; gating here prevents a dead link for Michael/James whose
+        # auth would block the path anyway.
+        student_link = (
+            f'<a href="/student/{viewer}">📚 School</a>'
+            if viewer in ("jp", "joseph") else ""
+        )
         return f"""
     <nav class="nav-shell no-print">
       <div class="nav-primary">
@@ -1535,6 +1542,7 @@ def top_nav() -> str:
         <div class="nav-divider"></div>
         <a href="/today">Today</a>
         <a href="/week">Week</a>
+        {student_link}
         <div class="nav-divider"></div>
         <a href="/meals">🍽 Menu Planner</a>
         <a href="/chores">🧹 Chores</a>

@@ -31,8 +31,8 @@ _SHARED = frozenset(["/", "/today", "/week", "/meals", "/recipes",
 _UPLOADS = frozenset(["/uploads/grades", "/uploads/grade_docs"])
 
 CHILD_ALLOWED_GET: dict[str, frozenset] = {
-    "jp":      _SHARED | _UPLOADS | frozenset(["/schedule/jp"]),
-    "joseph":  _SHARED | _UPLOADS | frozenset(["/schedule/joseph"]),
+    "jp":      _SHARED | _UPLOADS | frozenset(["/schedule/jp",     "/student/jp"]),
+    "joseph":  _SHARED | _UPLOADS | frozenset(["/schedule/joseph", "/student/joseph"]),
     "michael": _SHARED | _UPLOADS | frozenset(["/schedule/michael"]),
     "james":   frozenset(["/"]),
 }

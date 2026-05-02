@@ -1,0 +1,222 @@
+"""
+render_student.py — Student Portal (Phase 1).
+
+A focused, mobile-first school interface for child users (JP, Joseph) that
+shows today's school assignments from the curriculum, lets them check off
+each item via the existing /toggle-task endpoint, and provides a
+Message Mom button.
+
+Task IDs match the format used by build_schedule_payload (in
+daily_schedule_engine.py) so check-offs synchronise instantly with the
+schedule page and the dashboard:
+
+    make_task_id(child, iso, f"SCHOOL::{subject}::{checklist_item}")
+
+Math subjects emit a 5-item checklist; non-math subjects emit a single
+checklist item (the assignment text itself).  The engine
+extract_school_tasks_for_child already builds this checklist for us.
+"""
+from html import escape
+
+from daily_schedule_engine import (
+    extract_school_tasks_for_child, generate_day_packet, load_progress,
+    make_task_id, get_task_done,
+)
+from data_helpers import normalize_date_query
+from config import child_color
+from ui_helpers import html_page
+
+
+_STUDENT_TOGGLE_JS = """
+<script>
+(function() {
+  function handleToggle(cb) {
+    var tid = cb.getAttribute('data-tid');
+    var iso = cb.getAttribute('data-iso') || '';
+    if (!tid) return;
+    var done = cb.checked;
+    var li = cb.closest('.st-item');
+    if (li) {
+      li.style.opacity = done ? '0.45' : '1';
+      var lbl = li.querySelector('.st-label');
+      if (lbl) lbl.style.textDecoration = done ? 'line-through' : 'none';
+    }
+    fetch('/toggle-task', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: 'task_id=' + encodeURIComponent(tid) +
+            '&new_value=' + encodeURIComponent(done ? 'true' : 'false') +
+            '&return_url=' + encodeURIComponent(window.location.pathname +
+                                                (iso ? ('?date=' + iso) : ''))
+    }).then(function(r) {
+      if (!r.ok) {
+        cb.checked = !done;
+        if (li) {
+          li.style.opacity = '1';
+          var lbl2 = li.querySelector('.st-label');
+          if (lbl2) lbl2.style.textDecoration = 'none';
+        }
+        alert('Could not save \\u2014 please try again.');
+      }
+    }).catch(function() {
+      cb.checked = !done;
+      if (li) {
+        li.style.opacity = '1';
+        var lbl2 = li.querySelector('.st-label');
+        if (lbl2) lbl2.style.textDecoration = 'none';
+      }
+    });
+  }
+
+  function bind() {
+    var boxes = document.querySelectorAll('input.st-checkbox[data-tid]');
+    for (var i = 0; i < boxes.length; i++) {
+      boxes[i].addEventListener('change', function(ev) { handleToggle(ev.target); });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bind);
+  } else {
+    bind();
+  }
+})();
+</script>
+"""
+
+
+def render_student_page(child: str, target_date_str: str = "") -> str:
+    """Render the Student Portal page for a child.
+
+    `child` must be the proper-case CHILDREN name ("JP" or "Joseph") — the
+    route handler in app.py is responsible for mapping URL slug ->
+    CHILDREN entry.
+
+    `target_date_str` is optional; defaults to today (matches the
+    /schedule/ route's ?date= contract).
+    """
+    packet = generate_day_packet(normalize_date_query(target_date_str))
+    iso        = packet["iso"]
+    weekday    = packet["weekday"]
+    date_label = packet["date_label"]
+
+    blocks = extract_school_tasks_for_child(child, weekday) or []
+    progress = load_progress()
+    color = child_color(child, "bg") or "#1f2937"
+    name_safe = escape(child)
+    iso_safe  = escape(iso)
+
+    # ── Subject sections ─────────────────────────────────────────────────────
+    if blocks:
+        sections = []
+        for block in blocks:
+            subject = block.get("subject", "")
+            assignment_text = block.get("assignment_text", "")
+            checklist = block.get("checklist") or []
+            is_math = bool(block.get("is_math", False))
+
+            items_html = []
+            for item in checklist:
+                task_text = f"SCHOOL::{subject}::{item}"
+                tid = make_task_id(child, iso, task_text)
+                done = get_task_done(progress, tid)
+                # Use data-* attributes (HTML-escaped, quote=True) instead of
+                # interpolating into a JS string literal — safer for task IDs
+                # containing apostrophes (e.g. "Alfred's Essentials") and
+                # eliminates an injection sink for curriculum-derived text.
+                tid_attr = escape(tid, quote=True)
+                lbl_style = (
+                    "text-decoration:line-through;" if done else ""
+                )
+                row_op = "0.45" if done else "1"
+                items_html.append(
+                    f'<label class="st-item" style="display:flex;align-items:flex-start;'
+                    f'gap:14px;padding:14px 12px;border-bottom:1px solid var(--border-light);'
+                    f'cursor:pointer;opacity:{row_op};">'
+                    f'<input type="checkbox" class="st-checkbox" '
+                    f'data-tid="{tid_attr}" data-iso="{iso_safe}"'
+                    f'{" checked" if done else ""}'
+                    f' style="width:24px;height:24px;margin-top:2px;flex-shrink:0;'
+                    f'accent-color:{color};cursor:pointer;">'
+                    f'<span class="st-label" style="flex:1;font-size:1.02em;line-height:1.4;'
+                    f'color:var(--ink);{lbl_style}">{escape(item)}</span>'
+                    f'</label>'
+                )
+
+            # For non-math subjects, the single checklist item IS the
+            # assignment text — no need to repeat it as a separate header.
+            # For math, show the lesson text once as a sub-heading above
+            # the 5 checklist items (which all reference the same lesson).
+            assignment_block = ""
+            if is_math and assignment_text:
+                assignment_block = (
+                    f'<div style="padding:8px 12px 14px;color:var(--ink-muted);'
+                    f'font-size:0.95em;font-style:italic;">{escape(assignment_text)}</div>'
+                )
+
+            sections.append(
+                f'<section style="margin-bottom:24px;background:var(--warm-white);'
+                f'border:1px solid var(--border);border-radius:var(--radius-md);'
+                f'overflow:hidden;box-shadow:var(--shadow-sm);">'
+                f'<h2 style="margin:0;padding:14px 16px;background:var(--gold-light);'
+                f'border-bottom:1px solid var(--border);font-family:\'Cormorant Garamond\',Georgia,serif;'
+                f'font-size:1.35rem;color:var(--crimson);">{escape(subject)}</h2>'
+                f'{assignment_block}'
+                f'<div>{"".join(items_html)}</div>'
+                f'</section>'
+            )
+        sections_html = "".join(sections)
+    else:
+        sections_html = (
+            '<div style="padding:48px 20px;text-align:center;color:var(--ink-muted);'
+            'font-style:italic;background:var(--warm-white);border:1px solid var(--border);'
+            'border-radius:var(--radius-md);">'
+            '<div style="font-size:2.5em;margin-bottom:12px;">📭</div>'
+            'No school assignments today.'
+            '</div>'
+        )
+
+    # ── Page body ────────────────────────────────────────────────────────────
+    body = f"""
+<div style="max-width:680px;margin:0 auto;padding:8px 4px 24px;">
+
+  <!-- Header bar: back arrow + child + date -->
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;
+              padding:8px 4px;">
+    <a href="/schedule/{escape(child)}"
+       aria-label="Back to schedule"
+       style="display:inline-flex;align-items:center;justify-content:center;
+              width:44px;height:44px;border-radius:50%;background:var(--warm-white);
+              border:1px solid var(--border);text-decoration:none;color:var(--ink);
+              font-size:1.4em;flex-shrink:0;">
+      ←
+    </a>
+    <div style="flex:1;min-width:0;">
+      <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:1.8rem;
+                  font-weight:700;color:{color};line-height:1.1;">
+        {name_safe}'s School
+      </div>
+      <div style="font-size:0.92em;color:var(--ink-muted);margin-top:2px;">
+        {escape(date_label)}
+      </div>
+    </div>
+  </div>
+
+  <!-- Subject sections -->
+  {sections_html}
+
+  <!-- Message Mom button (uses existing #msg-mom-modal injected by top_nav) -->
+  <div style="margin-top:28px;text-align:center;">
+    <button type="button"
+      onclick="var m=document.getElementById('msg-mom-modal');if(m)m.style.display='flex';"
+      style="background:#7c3aed;color:white;border:none;border-radius:24px;
+             padding:14px 28px;font-size:1em;font-weight:700;cursor:pointer;
+             font-family:inherit;box-shadow:var(--shadow-sm);">
+      💌 Message Mom
+    </button>
+  </div>
+
+</div>
+{_STUDENT_TOGGLE_JS}
+"""
+    return html_page(f"School — {child}", body)
