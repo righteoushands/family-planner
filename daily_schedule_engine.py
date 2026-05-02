@@ -420,7 +420,15 @@ def extract_school_tasks_for_child(child: str, weekday: str):
             if _day_idx is None:
                 # Subject does not meet today.
                 continue
-            _text = resolve_week_text(_subj_node, _subj_week, day_pref=_day_idx)
+            # day_pref is driven by the subject's stored `_current_day` cursor,
+            # not the weekday-relative position.  `_current_day` already tracks
+            # which lesson within the week should be shown today; using it
+            # directly lets manual cursor advances (e.g. "skip ahead to Day 5")
+            # take effect.  `_day_idx` is still used above purely for the
+            # frequency gate (does the subject meet today at all).
+            try:    _subj_day = int(_subj_node.get("_current_day", 1))
+            except (TypeError, ValueError): _subj_day = 1
+            _text = resolve_week_text(_subj_node, _subj_week, day_pref=_subj_day)
             if not _text:
                 continue
             _is_math = ("algebra" in _subject.lower()) or ("math" in _subject.lower())
