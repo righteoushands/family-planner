@@ -744,9 +744,15 @@ function _renderAssignment(rid, val, dayPref) {{
 
 function setSubjectWeek(child, subject, delta) {{
   const rid     = _rowId(child, subject);
+  document.getElementById('cur-debug').textContent = 'rid=' + rid;
   const wkEl    = document.getElementById('wknum-'  + rid);
+  document.getElementById('cur-debug').textContent = 'wkEl=' + (wkEl ? wkEl.textContent : 'NULL');
   const dayEl   = document.getElementById('daynum-' + rid);
-  if (!wkEl) return;
+  if (!wkEl) {{
+    document.getElementById('cur-debug').textContent = 'ABORT: wkEl not found for rid=' + rid;
+    return;
+  }}
+  document.getElementById('cur-debug').textContent = 'current=' + wkEl.textContent + ' proceeding…';
   const current = parseInt(wkEl.textContent) || 1;
   const next    = Math.max(1, Math.min(99, current + delta));
   if (next === current) return;
