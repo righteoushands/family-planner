@@ -871,6 +871,24 @@ async function parseCurriculum() {{
   }}
 }}
 
+/* Convert a parsed week value (string OR per-day dict) to a readable preview
+   string. Mirrors the dict path of slot_display_text: joins day entries as
+   "Day 1: text | Day 2: text" sorted by numeric day key. Plain strings pass
+   through unchanged. Anything else stringifies safely. */
+function _previewText(val) {{
+  if (val === null || val === undefined) return '';
+  if (typeof val === 'string') return val;
+  if (typeof val === 'object') {{
+    const parts = Object.keys(val)
+      .filter(k => /^\d+$/.test(k))
+      .sort((a,b) => parseInt(a)-parseInt(b))
+      .map(k => 'Day ' + k + ': ' + String(val[k] || '').trim())
+      .filter(s => s.length > 7);
+    return parts.length ? parts.join(' | ') : '';
+  }}
+  try {{ return String(val); }} catch (e) {{ return ''; }}
+}}
+
 function showPreview(child, subject, weeks) {{
   const section = document.getElementById('previewSection');
   const body    = document.getElementById('previewBody');
@@ -878,7 +896,7 @@ function showPreview(child, subject, weeks) {{
   const keys    = Object.keys(weeks).sort((a,b) => parseInt(a)-parseInt(b));
   title.textContent = child + ' — ' + subject + ' (' + keys.length + ' weeks parsed)';
   body.innerHTML = keys.map(k =>
-    '<tr><td>' + k + '</td><td>' + escHtml(weeks[k]) + '</td></tr>'
+    '<tr><td>' + k + '</td><td>' + escHtml(_previewText(weeks[k])) + '</td></tr>'
   ).join('');
   section.classList.add('visible');
   section.scrollIntoView({{behavior:'smooth', block:'nearest'}});
