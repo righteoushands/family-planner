@@ -772,6 +772,30 @@ function setSubjectWeek(child, subject, delta) {{
   }}
   // Also persist day=1 if the new week has days
   const days = (val !== undefined && val !== null) ? _dayKeysOf(val) : [];
+  const doWeekSave = () => {{
+    fetch('/curriculum-subject-week', {{
+      method: 'POST',
+      headers: {{'Content-Type':'application/x-www-form-urlencoded'}},
+      body: 'child=' + encodeURIComponent(child)
+          + '&subject=' + encodeURIComponent(subject)
+          + '&week='    + next
+    }}).then(r => {{
+      if (r.ok) {{
+        wkEl.textContent = next;
+        wkEl.style.color = '#16a34a';
+        wkEl.style.fontWeight = '700';
+        document.getElementById('cur-debug').textContent = 'Saved week ' + next + ' (status ' + r.status + ')';
+        setTimeout(() => {{ location.reload(); }}, 1500);
+      }} else {{
+        document.getElementById('cur-debug').textContent = 'FAILED status ' + r.status;
+        wkEl.style.color = '#dc2626';
+      }}
+    }}).catch(e => {{
+      document.getElementById('cur-debug').textContent = 'ERROR: ' + e.message;
+      wkEl.style.color = '#dc2626';
+    }});
+  }};
+
   if (days.length) {{
     fetch('/curriculum-subject-day', {{
       method: 'POST',
@@ -779,30 +803,10 @@ function setSubjectWeek(child, subject, delta) {{
       body: 'child=' + encodeURIComponent(child)
           + '&subject=' + encodeURIComponent(subject)
           + '&day=' + days[0]
-    }});
+    }}).then(doWeekSave).catch(doWeekSave);
+  }} else {{
+    doWeekSave();
   }}
-
-  fetch('/curriculum-subject-week', {{
-    method: 'POST',
-    headers: {{'Content-Type':'application/x-www-form-urlencoded'}},
-    body: 'child=' + encodeURIComponent(child)
-        + '&subject=' + encodeURIComponent(subject)
-        + '&week='    + next
-  }}).then(r => {{
-    if (r.ok) {{
-      wkEl.textContent = next;
-      wkEl.style.color = '#16a34a';
-      wkEl.style.fontWeight = '700';
-      document.getElementById('cur-debug').textContent = 'Saved week ' + next + ' (status ' + r.status + ')';
-      setTimeout(() => {{ location.reload(); }}, 1500);
-    }} else {{
-      document.getElementById('cur-debug').textContent = 'FAILED status ' + r.status;
-      wkEl.style.color = '#dc2626';
-    }}
-  }}).catch(e => {{
-    document.getElementById('cur-debug').textContent = 'ERROR: ' + e.message;
-    wkEl.style.color = '#dc2626';
-  }});
 }}
 
 function setSubjectDay(child, subject, delta) {{

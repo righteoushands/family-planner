@@ -281,6 +281,7 @@ from render_daily_plan import (
 # The server is ThreadingMixIn so concurrent toggle-task requests would otherwise
 # race and overwrite each other's deletions.
 _MANUAL_TASKS_LOCK = threading.Lock()
+_CURRICULUM_LOCK = threading.Lock()
 
 
 def _apply_coach_program_saves(text: str) -> int:
@@ -6565,10 +6566,11 @@ class Handler(BaseHTTPRequestHandler):
                     _csw_week    = max(1, min(99, _csw_week))
                     if _csw_child and _csw_subject:
                         from data_helpers import load_curriculum, save_curriculum
-                        _csw_cur = load_curriculum()
-                        if _csw_child in _csw_cur and _csw_subject in _csw_cur[_csw_child]:
-                            _csw_cur[_csw_child][_csw_subject]["_current_week"] = _csw_week
-                            save_curriculum(_csw_cur)
+                        with _CURRICULUM_LOCK:
+                            _csw_cur = load_curriculum()
+                            if _csw_child in _csw_cur and _csw_subject in _csw_cur[_csw_child]:
+                                _csw_cur[_csw_child][_csw_subject]["_current_week"] = _csw_week
+                                save_curriculum(_csw_cur)
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()
@@ -6589,10 +6591,11 @@ class Handler(BaseHTTPRequestHandler):
                     _csd_day     = max(1, min(7, _csd_day))
                     if _csd_child and _csd_subject:
                         from data_helpers import load_curriculum, save_curriculum
-                        _csd_cur = load_curriculum()
-                        if _csd_child in _csd_cur and _csd_subject in _csd_cur[_csd_child]:
-                            _csd_cur[_csd_child][_csd_subject]["_current_day"] = _csd_day
-                            save_curriculum(_csd_cur)
+                        with _CURRICULUM_LOCK:
+                            _csd_cur = load_curriculum()
+                            if _csd_child in _csd_cur and _csd_subject in _csd_cur[_csd_child]:
+                                _csd_cur[_csd_child][_csd_subject]["_current_day"] = _csd_day
+                                save_curriculum(_csd_cur)
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()
