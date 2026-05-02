@@ -565,6 +565,7 @@ def render_curriculum_page() -> str:
 <div class="cur-header">
   <a href="/settings">← Settings</a>
   <h1>📚 Curriculum Importer</h1>
+  <a href="#" onclick="event.preventDefault();location.reload();">↺ Refresh</a>
   <span style="font-size:0.8em;opacity:0.8;">MODG full-year plans</span>
 </div>
 
@@ -744,7 +745,7 @@ function setSubjectWeek(child, subject, delta) {{
   const dayEl   = document.getElementById('daynum-' + rid);
   if (!wkEl) return;
   const current = parseInt(wkEl.textContent) || 1;
-  const next    = Math.max(1, Math.min(40, current + delta));
+  const next    = Math.max(1, Math.min(99, current + delta));
   if (next === current) return;
 
   wkEl.textContent = next;
@@ -772,6 +773,13 @@ function setSubjectWeek(child, subject, delta) {{
     body: 'child=' + encodeURIComponent(child)
         + '&subject=' + encodeURIComponent(subject)
         + '&week='    + next
+  }}).then(r => {{
+    if (!r.ok) {{
+      console.warn('week-save failed', r.status);
+    }} else {{
+      wkEl.style.fontWeight = '700';
+      setTimeout(() => {{ wkEl.style.fontWeight = ''; }}, 1000);
+    }}
   }});
 }}
 

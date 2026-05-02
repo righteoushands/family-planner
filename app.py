@@ -6562,7 +6562,7 @@ class Handler(BaseHTTPRequestHandler):
                     _csw_child   = clean_text(data.get("child",   [""])[0])
                     _csw_subject = clean_text(data.get("subject", [""])[0])
                     _csw_week    = int(data.get("week", [1])[0])
-                    _csw_week    = max(1, min(40, _csw_week))
+                    _csw_week    = max(1, min(99, _csw_week))
                     if _csw_child and _csw_subject:
                         from data_helpers import load_curriculum, save_curriculum
                         _csw_cur = load_curriculum()
