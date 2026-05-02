@@ -501,8 +501,8 @@
         "5": "Finish Adam of the Road."
       },
       "21": {
-        "1": "Write the best part of the story you just finished reading. If possible write this in the first person as if you were one of the characters in the story. Just tell that part of the story as if you were telling it to a friend, but do it in writing. If this is too difficult, then you can write the best part of the story in the third person as a narration.\n\nAssessments",
-        "2": "Today re-write the story you told yesterday, but do it from the point of view of someone else in the story. If you had written about David and Goliath yesterday from David’s point of view, then today you would tell it from Goliath’s. If you told your story from the third person, that is, as an observer rather than one of the characters, today tell it from the point of view of one of the characters.\n\nAssessments",
+        "1": "Write the best part of the story you just finished reading. If possible write this in the first person as if you were one of the characters in the story. Just tell that part of the story as if you were telling it to a friend, but do it in writing. If this is too difficult, then you can write the best part of the story in the third person as a narration.",
+        "2": "Today re-write the story you told yesterday, but do it from the point of view of someone else in the story. If you had written about David and Goliath yesterday from David’s point of view, then today you would tell it from Goliath’s. If you told your story from the third person, that is, as an observer rather than one of the characters, today tell it from the point of view of one of the characters.",
         "3": "Read pp. 198-214 in The Old World and America. Do the Objective Tests for both chapters.",
         "4": "Geography: Complete Chapter 5, Section 2 (Brazil) and Section 3 (Keyhole Maps of South America) in Eighth Grade Geography.\n\nOR If you have The Ultimate Geography and Timeline Guide: Read pp.171-172. Then, using a photocopy of the map on p. 233, identify the items listed under ‘Map-It’ on p.172."
       },
@@ -2127,7 +2127,9 @@
         "Wednesday",
         "Thursday",
         "Friday"
-      ]
+      ],
+      "_current_week": 1,
+      "_current_day": 1
     },
     "English 8 (Easy Grammar Plus/7-8) Syllabus": {
       "1": {
