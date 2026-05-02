@@ -1356,6 +1356,147 @@ def get_curriculum_week_assignments(child: str, week: int) -> dict:
             result[subject] = text
     return result
 
+
+def subject_meeting_days(child: str, subject: str) -> list:
+    """Return the list of weekday names (e.g. ['Monday','Wednesday','Friday'])
+    on which a subject meets for the given child, derived by inverting the
+    parsed_days structure in data/school_weeks.json. Returns [] if not found
+    or on any error."""
+    try:
+        from school_pdf_engine import load_school_weeks
+        weeks = load_school_weeks() or {}
+        approved = weeks.get("approved", {}) or {}
+        child_node = approved.get(child) or {}
+        days = child_node.get("parsed_days", []) or []
+        out = []
+        for day in days:
+            if not isinstance(day, dict):
+                continue
+            wd = day.get("weekday", "")
+            for blk in (day.get("blocks") or []):
+                if isinstance(blk, dict) and blk.get("subject", "").strip() == subject.strip():
+                    if wd and wd not in out:
+                        out.append(wd)
+                    break
+        return out
+    except Exception:
+        return []
+
+
+def subject_day_index(meeting_days: list, today_name: str):
+    """Return the 1-based position of today_name within meeting_days after
+    sorting by WEEKDAY_ORDER. Returns None when today_name is not in the list."""
+    try:
+        if not meeting_days or not today_name:
+            return None
+        ordered = sorted(meeting_days, key=lambda d: WEEKDAY_ORDER.get(d, 99))
+        if today_name not in ordered:
+            return None
+        return ordered.index(today_name) + 1
+    except Exception:
+        return None
+
+
+def advance_curriculum_cursor(child: str, subject: str) -> None:
+    """Advance _current_day for a subject; roll over weeks when the day cursor
+    passes the last segment; when the week cursor passes the last week mark the
+    subject complete (sentinel _current_week=999) and append a note to
+    data/notes.json with suggested_destination=/curriculum."""
+    try:
+        cur = load_curriculum()
+        if not isinstance(cur, dict):
+            return
+        child_node = cur.get(child)
+        if not isinstance(child_node, dict):
+            return
+        subj_node = child_node.get(subject)
+        if not isinstance(subj_node, dict):
+            return
+
+        try:    cur_week = int(subj_node.get("_current_week", 1))
+        except (TypeError, ValueError): cur_week = 1
+        try:    cur_day  = int(subj_node.get("_current_day", 1))
+        except (TypeError, ValueError): cur_day = 1
+
+        # Already complete — nothing to do.
+        if cur_week >= 999:
+            return
+
+        # Determine current week's segment day-numbers.
+        this_week_val = subj_node.get(str(cur_week), "")
+        segs = week_day_segments(this_week_val)
+        day_nums = [d for d, _ in segs]
+
+        # Pick next day_num after cur_day.
+        next_day = None
+        if day_nums:
+            for d in day_nums:
+                if d > cur_day:
+                    next_day = d
+                    break
+
+        if next_day is not None:
+            # Stay in same week, advance day cursor.
+            subj_node["_current_day"] = next_day
+            save_curriculum(cur)
+            return
+
+        # Day cursor exhausted for this week — roll to next week.
+        next_week = cur_week + 1
+
+        # Find max numeric week key on this subject node.
+        try:
+            max_week = max(int(k) for k in subj_node.keys()
+                           if not str(k).startswith("_") and str(k).isdigit())
+        except ValueError:
+            max_week = 0
+
+        if next_week > max_week:
+            # Subject fully complete — set sentinel and append a note.
+            subj_node["_current_week"] = 999
+            subj_node["_current_day"] = 1
+            save_curriculum(cur)
+            try:
+                import json as _cnj, uuid as _cnu
+                from datetime import datetime as _cndt
+                notes_path = "data/notes.json"
+                today_iso = _cndt.now().date().isoformat()
+                try:
+                    with open(notes_path) as _nf:
+                        notes_data = _cnj.load(_nf)
+                except Exception:
+                    notes_data = {"version": 1, "updated_at": today_iso, "data": []}
+                if not isinstance(notes_data, dict):
+                    notes_data = {"version": 1, "updated_at": today_iso, "data": []}
+                notes_data.setdefault("data", [])
+                notes_data["data"].append({
+                    "id": "note_" + _cnu.uuid4().hex[:8],
+                    "text": f"{child} has completed {subject} — all weeks are done.",
+                    "created_at": _cndt.now().isoformat(timespec="seconds"),
+                    "status": "open",
+                    "tags": [],
+                    "suggested_destination": "/curriculum",
+                    "archived_at": None,
+                })
+                notes_data["updated_at"] = today_iso
+                safe_save_json(notes_path, notes_data)
+            except Exception:
+                pass
+            return
+
+        # Roll forward into next_week — pick first segment-day of that week.
+        next_week_val = subj_node.get(str(next_week), "")
+        next_segs = week_day_segments(next_week_val)
+        if next_segs:
+            subj_node["_current_day"] = next_segs[0][0]
+        else:
+            subj_node["_current_day"] = 1
+        subj_node["_current_week"] = next_week
+        save_curriculum(cur)
+    except Exception:
+        return
+
+
 # ── Local events (data/events.json) ─────────────────────────────────────────
 EVENTS_FILE = "data/events.json"
 

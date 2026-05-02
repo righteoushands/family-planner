@@ -3008,7 +3008,41 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/toggle-task":
                 _tid  = data.get("task_id",[""])[0]
                 _done = data.get("new_value",["false"])[0] == "true"
+                # Capture the previous done state BEFORE flipping it, so the
+                # curriculum auto-advance below can fire exactly once per
+                # transition from undone → done (no double-advance on
+                # off→on→off→on toggling).
+                _prev_done = False
+                if _tid:
+                    try:
+                        from daily_schedule_engine import load_progress, get_task_done
+                        _prev_done = get_task_done(load_progress(), _tid)
+                    except Exception:
+                        _prev_done = False
                 set_task_done(_tid, _done)
+                # ── Curriculum auto-advance ─────────────────────────────────
+                # When a SCHOOL task's "Assignment completed" step is checked,
+                # advance the subject's _current_day cursor in curriculum.json.
+                # Math tasks have 5 checklist items prefixed with the lesson;
+                # only the "Assignment completed" item triggers the advance so
+                # the cursor moves exactly once per lesson. Two SCHOOL ID
+                # formats coexist — both 5 segments with subject at index 3
+                # and the checklist item at index 4:
+                #   Path A: {iso}::{child}::SCHOOL::{subject}::{item}
+                #   Path B: SCHOOL::{child}::{iso}::{subject}::{item}
+                if _done and not _prev_done and _tid:
+                    try:
+                        _is_school = ("::SCHOOL::" in _tid) or _tid.startswith("SCHOOL::")
+                        if _is_school:
+                            _adv_parts   = _tid.split("::")
+                            _adv_child   = _adv_parts[1] if len(_adv_parts) > 1 else ""
+                            _adv_subject = _adv_parts[3] if len(_adv_parts) > 3 else ""
+                            _adv_item    = _adv_parts[4] if len(_adv_parts) > 4 else ""
+                            if _adv_child and _adv_subject and "Assignment completed" in _adv_item:
+                                from data_helpers import advance_curriculum_cursor
+                                advance_curriculum_cursor(_adv_child, _adv_subject)
+                    except Exception:
+                        pass
                 # When a MANUAL one-time task is checked off on a plan page,
                 # permanently delete it (or advance if recurring) in manual_tasks.json
                 # so it never reappears.

@@ -426,32 +426,62 @@ def extract_school_tasks_for_child(child: str, weekday: str):
         if subject:
             seen_subjects.add(subject.lower())
 
-    # Curriculum merge disabled — curriculum.json is still being set up.
-    # Re-enable this block once the curriculum data is complete.
-    # try:
-    #     from data_helpers import get_curriculum_week_assignments, get_curriculum_week
-    #     cur_week = get_curriculum_week()
-    #     cur_assignments = get_curriculum_week_assignments(child, cur_week)
-    #     for subject, text in cur_assignments.items():
-    #         if subject.lower() not in seen_subjects:
-    #             is_math = "math" in subject.lower()
-    #             checklist = [
-    #                 "Assignment completed",
-    #                 "Given to checker",
-    #                 "Fixed missed problems",
-    #                 "Received brother's math",
-    #                 "Checked brother's math",
-    #             ] if is_math else ["Done"]
-    #             tasks.append({
-    #                 "subject": subject,
-    #                 "assignment_text": text,
-    #                 "is_math": is_math,
-    #                 "is_math_test": False,
-    #                 "checklist": checklist,
-    #                 "from_curriculum": True,
-    #             })
-    # except Exception:
-    #     pass
+    # ── Curriculum merge ─────────────────────────────────────────────────────
+    # Layer the child's curriculum on top of the PDF-parsed school tasks.
+    # Frequency-aware: only surfaces a subject on weekdays where it actually
+    # meets (derived from school_weeks.json). Day-aware: picks the lesson
+    # text for today's position within the subject's meeting days.
+    try:
+        from data_helpers import (
+            load_curriculum, get_curriculum_week, resolve_week_text,
+            week_day_segments, subject_meeting_days, subject_day_index,
+        )
+        _cur_data = load_curriculum() or {}
+        _cur_week_global = get_curriculum_week()
+        _child_subjects = _cur_data.get(child, {}) or {}
+        for _subject, _subj_node in _child_subjects.items():
+            if not isinstance(_subj_node, dict):
+                continue
+            try:    _subj_week = int(_subj_node.get("_current_week", _cur_week_global))
+            except (TypeError, ValueError): _subj_week = _cur_week_global
+            # Sentinel — subject completed.
+            if _subj_week >= 999:
+                continue
+            if _subject.lower() in seen_subjects:
+                continue
+            _meeting = subject_meeting_days(child, _subject)
+            _day_idx = subject_day_index(_meeting, weekday)
+            if _day_idx is None:
+                # Subject does not meet today.
+                continue
+            _text = resolve_week_text(_subj_node, _subj_week, day_pref=_day_idx)
+            if not _text:
+                continue
+            _is_math = ("algebra" in _subject.lower()) or ("math" in _subject.lower())
+            if _is_math:
+                _pfx = f"{_text} — " if _text else ""
+                _bro_label = _get_brother_math_label(child, weekday)
+                _bro_sfx   = f" ({_bro_label})" if _bro_label else ""
+                _checklist = [
+                    f"{_pfx}Assignment completed",
+                    f"{_pfx}Given to checker",
+                    f"{_pfx}Fixed missed problems",
+                    f"{_pfx}Received brother's math{_bro_sfx}",
+                    f"{_pfx}Checked brother's math{_bro_sfx}",
+                ]
+            else:
+                _checklist = [_text]
+            tasks.append({
+                "subject": _subject,
+                "assignment_text": _text,
+                "is_math": _is_math,
+                "is_math_test": False,
+                "checklist": _checklist,
+                "from_curriculum": True,
+            })
+            seen_subjects.add(_subject.lower())
+    except Exception:
+        pass
 
     return tasks
 
