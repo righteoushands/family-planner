@@ -757,9 +757,11 @@ function setSubjectWeek(child, subject, delta) {{
 
   // Reset to Day 1 when switching weeks (most common workflow)
   const val = _weekValue(child, subject, next);
-  _renderAssignment(rid, val, 1);
+  if (val !== undefined && val !== null) {{
+    _renderAssignment(rid, val, 1);
+  }}
   // Also persist day=1 if the new week has days
-  const days = _dayKeysOf(val);
+  const days = (val !== undefined && val !== null) ? _dayKeysOf(val) : [];
   if (days.length) {{
     fetch('/curriculum-subject-day', {{
       method: 'POST',
