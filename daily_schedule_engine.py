@@ -447,7 +447,17 @@ def extract_school_tasks_for_child(child: str, weekday: str):
             # Sentinel — subject completed.
             if _subj_week >= 999:
                 continue
-            if _subject.lower() in seen_subjects:
+            # Fuzzy de-dup: also suppress when an entry in seen_subjects is a
+            # prefix of (or contained within) the curriculum subject name.
+            # Mirrors subject_meeting_days's case-insensitive prefix /
+            # containment fallback so long syllabus titles in curriculum.json
+            # (e.g. "Religion 8 (Our Life in the Church) Syllabus") collapse
+            # onto the short names already emitted from the PDF path
+            # (e.g. "Religion 8").  startswith covers the exact-match case
+            # (since "x".startswith("x") is True), so the prior literal check
+            # is preserved as a special case.
+            _sl = _subject.lower()
+            if any(_sl.startswith(s) or s in _sl for s in seen_subjects):
                 continue
             _meeting = subject_meeting_days(child, _subject)
             _day_idx = subject_day_index(_meeting, weekday)
