@@ -2438,5 +2438,57 @@
         }
       ]
     }
+  },
+  {
+    "id": "1e29040d7f13",
+    "created_at": "2026-05-02T22:32:16Z",
+    "viewer": "lauren",
+    "source": "live",
+    "plan_text": "I wanna go and see a musical with Suzy Brown on Saturday and I need to talk to John about it because it has to be scheduled and he\u2019s gotta watch the kids",
+    "analysis": {
+      "events": [],
+      "tasks": [
+        {
+          "id": "t1",
+          "person": "Lauren",
+          "text": "Talk to John about scheduling musical with Suzy Brown",
+          "due_date": "2026-05-03",
+          "source": "committed",
+          "subtasks": [
+            "Discuss childcare arrangements",
+            "Confirm Saturday availability",
+            "Plan logistics"
+          ],
+          "notes": "Need John to watch the kids while going to see musical with Suzy Brown",
+          "confidence": "medium"
+        }
+      ],
+      "questions": [
+        {
+          "id": "q1",
+          "text": "Which Saturday is the musical - this weekend (May 3) or a future Saturday?",
+          "related_to": "t1",
+          "field": "due_date"
+        },
+        {
+          "id": "q2",
+          "text": "What time is the musical and where is it located?",
+          "related_to": "potential_event",
+          "field": "time"
+        }
+      ],
+      "warnings": [],
+      "suggestions": [],
+      "placements": [],
+      "_companions": [
+        {
+          "key": "lucy",
+          "label": "Lucy",
+          "color": "#5b3a8a",
+          "emoji": "\u2728",
+          "role": "Family Companion"
+        }
+      ]
+    }
   }
 ]

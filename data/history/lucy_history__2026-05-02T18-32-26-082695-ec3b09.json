@@ -2,6 +2,16 @@
   "messages": [
     {
       "role": "user",
+      "content": "I feel like we don’t communicate well. It’s hard to describe",
+      "ts": "2026-04-17T14:04:38"
+    },
+    {
+      "role": "assistant",
+      "content": "That's honest, and it's a big thing to name. Take your time.\n\nWhen you say communication feels hard — is it that conversations don't happen, or that when they do happen something feels off?",
+      "ts": "2026-04-17T14:04:40"
+    },
+    {
+      "role": "user",
       "content": "Both.",
       "ts": "2026-04-17T14:08:54"
     },
@@ -289,16 +299,6 @@
       "role": "assistant",
       "content": "**Lorenzo:** Looking at the Mother's Day breakfast, I want to make sure we're not leaving Lauren to cook her own celebration meal. Has John confirmed he's handling the mimosas and breakfast prep, or do we need to plan something simple he can execute — like a make-ahead French toast bake that just needs to go in the oven? I'd also suggest prepping any ingredients the night before so the morning stays relaxed and focused on Lauren.\n\n**Coach:** With four kids including a toddler, Mother's Day mornings can get chaotic fast. I'd recommend building in some outdoor time after breakfast — even just 20 minutes in the backyard or a short family walk — so the boys burn energy and Lauren gets to enjoy the fresh air rather than being cooped up managing post-meal restlessness. It also gives her a chance to move gently if she wants, or simply sit outside while the kids play.\n\n**Lucy's Synthesis:** What a lovely intention for Mother's Day — but the missing piece is clarity on *who does what* so Lauren actually rests. I'd suggest John and the older boys have a brief planning conversation this week: John owns breakfast and mimosas, JP and Joseph handle table setting and cleanup, and Michael has a simple job like placing napkins. Build in that outdoor time Coach mentioned right after eating, which naturally transitions the energy. Most importantly, carve out 30 quiet minutes mid-morning where Lauren can pray, journal, or simply sit alone — the boys can handle James with Dad's supervision. Make it concrete now so May 10th feels like a gift, not another day Lauren orchestrates from behind the scenes.",
       "ts": "2026-04-30T21:18:05"
-    },
-    {
-      "role": "user",
-      "content": "[Plan Importer · Roundtable] Quick check — anything missing or that we might regret skipping?",
-      "ts": "2026-05-02T18:32:26"
-    },
-    {
-      "role": "assistant",
-      "content": "**Lucy:** Lauren, this is a lovely, simple task — just a conversation with John about scheduling the musical outing with Suzy Brown. A few small things worth considering: Have you thought about who would watch the little ones, especially James, if you both go? And does John have a sense yet of how his Saturday energy has been lately? It might be worth approaching this as both a logistics chat *and* a chance to gauge if he's excited about a social outing or if he's feeling stretched. Also, one small thing — you might want to text Suzy before your conversation with John just to confirm she's still thinking Saturday works on her end, so you're not planning around a date that's already shifted.\n\n**Lucy's Synthesis:** This task is straightforward, but the potential regret I see is going into the conversation with John without having confirmed Suzy's availability first — nothing deflates planning momentum like discovering the other party has moved on. I'd suggest a quick text to Suzy today or tomorrow morning, then approach John with both the logistics question *and* an open ear for how he's feeling about weekend commitments right now. If childcare is the sticking point, name it directly: \"Who takes the boys, and do we need to line someone up?\" That way your Sunday conversation covers all the bases, and by the due date you'll have a real answer, not just a half-plan. A simple, focused chat — but better when you walk in with Suzy's confirmation in hand.",
-      "ts": "2026-05-02T18:32:26"
     }
   ]
 }
