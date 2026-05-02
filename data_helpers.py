@@ -1361,20 +1361,52 @@ def subject_meeting_days(child: str, subject: str) -> list:
     """Return the list of weekday names (e.g. ['Monday','Wednesday','Friday'])
     on which a subject meets for the given child, derived by inverting the
     parsed_days structure in data/school_weeks.json. Returns [] if not found
-    or on any error."""
+    or on any error.
+
+    Matching is two-pass:
+      1. Exact (case-sensitive, stripped) — preferred.
+      2. Fuzzy fallback (case-insensitive) — succeeds when the curriculum
+         subject name starts with the school_weeks subject name, or when
+         the school_weeks subject name is contained within the curriculum
+         subject name. Bridges long syllabus names in curriculum.json
+         (e.g. "Music 8 (Top 100 Classical Music ...) Syllabus") to the
+         short names used in school_weeks.json (e.g. "Music 8")."""
     try:
         from school_pdf_engine import load_school_weeks
         weeks = load_school_weeks() or {}
         approved = weeks.get("approved", {}) or {}
         child_node = approved.get(child) or {}
         days = child_node.get("parsed_days", []) or []
+
+        # Pass 1 — exact match.
         out = []
+        subj_stripped = subject.strip()
         for day in days:
             if not isinstance(day, dict):
                 continue
             wd = day.get("weekday", "")
             for blk in (day.get("blocks") or []):
-                if isinstance(blk, dict) and blk.get("subject", "").strip() == subject.strip():
+                if isinstance(blk, dict) and blk.get("subject", "").strip() == subj_stripped:
+                    if wd and wd not in out:
+                        out.append(wd)
+                    break
+        if out:
+            return out
+
+        # Pass 2 — fuzzy fallback (case-insensitive prefix / containment).
+        subj_lower = subj_stripped.lower()
+        for day in days:
+            if not isinstance(day, dict):
+                continue
+            wd = day.get("weekday", "")
+            for blk in (day.get("blocks") or []):
+                if not isinstance(blk, dict):
+                    continue
+                blk_subj = (blk.get("subject") or "").strip()
+                if not blk_subj:
+                    continue
+                blk_lower = blk_subj.lower()
+                if subj_lower.startswith(blk_lower) or blk_lower in subj_lower:
                     if wd and wd not in out:
                         out.append(wd)
                     break
