@@ -5323,6 +5323,14 @@ class Handler(BaseHTTPRequestHandler):
                     _mday  = _mm.group(1).strip()
                     _mslot = _mm.group(2).strip().lower()
                     _mrid  = (_mm.group(3) or "").strip()
+                    # Sanitize recipe_id: reject anything containing whitespace
+                    # (space/tab/newline/etc.) or brackets.  A malformed id
+                    # (e.g. "r 002", "r\n002", "r[002") falls back to a
+                    # plain-string save so we never persist a dict whose
+                    # recipe_id can't be matched against the card library.
+                    if _mrid and not _re.fullmatch(r"[^\s\[\]]+", _mrid):
+                        print(f"[lorenzo MEAL_UPDATE] rejected malformed recipe_id: {_mrid!r}")
+                        _mrid = ""
                     _mmeal = _mm.group(4).strip()
                     if _mday and _mslot:
                         _save_ok = False

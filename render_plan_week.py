@@ -345,7 +345,7 @@ def render_plan_week_page(week_key=None, status=""):
         for d in wdates[:5]:
             dn     = d.strftime("%A")
             meals  = mplan.get("days", {}).get(dn, {})
-            dinner = slot_display_text(meals.get("Dinner") or meals.get("dinner"))
+            dinner = slot_display_text(meals.get("dinner"))
             col    = "var(--ink)" if dinner else "var(--ink-faint)"
             meal_html += (
                 '<div style="display:flex;gap:8px;align-items:baseline;padding:4px 0;'
