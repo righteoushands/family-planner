@@ -6563,7 +6563,10 @@ class Handler(BaseHTTPRequestHandler):
                     _csw_child   = clean_text(data.get("child",   [""])[0])
                     _csw_subject = clean_text(data.get("subject", [""])[0])
                     _csw_week    = int(data.get("week", [1])[0])
-                    _csw_week    = max(1, min(99, _csw_week))
+                    # Allow the 999 sentinel ("subject completed manually") through
+                    # the clamp; all other values are bounded to [1, 99].
+                    if _csw_week != 999:
+                        _csw_week = max(1, min(99, _csw_week))
                     if _csw_child and _csw_subject:
                         from data_helpers import load_curriculum, save_curriculum
                         with _CURRICULUM_LOCK:
@@ -6571,6 +6574,36 @@ class Handler(BaseHTTPRequestHandler):
                             if _csw_child in _csw_cur and _csw_subject in _csw_cur[_csw_child]:
                                 _csw_cur[_csw_child][_csw_subject]["_current_week"] = _csw_week
                                 save_curriculum(_csw_cur)
+                                # If marked complete (999 sentinel), append a note
+                                # so it surfaces in the Notes inbox with a link
+                                # back to /curriculum.  Mirrors _pi_append_note.
+                                if _csw_week == 999:
+                                    try:
+                                        import json as _csw_j, uuid as _csw_u
+                                        from datetime import datetime as _csw_dt
+                                        _csw_np = "data/notes.json"
+                                        _csw_today = _csw_dt.now().date().isoformat()
+                                        try:
+                                            with open(_csw_np) as _csw_f:
+                                                _csw_nd = _csw_j.load(_csw_f)
+                                        except Exception:
+                                            _csw_nd = {"version": 1, "updated_at": _csw_today, "data": []}
+                                        if not isinstance(_csw_nd, dict):
+                                            _csw_nd = {"version": 1, "updated_at": _csw_today, "data": []}
+                                        _csw_nd.setdefault("data", [])
+                                        _csw_nd["data"].append({
+                                            "id": "note_" + _csw_u.uuid4().hex[:8],
+                                            "text": f"{_csw_child} has completed {_csw_subject} — marked complete manually",
+                                            "created_at": _csw_dt.now().isoformat(timespec="seconds"),
+                                            "status": "open",
+                                            "tags": [],
+                                            "suggested_destination": "/curriculum",
+                                            "archived_at": None,
+                                        })
+                                        _csw_nd["updated_at"] = _csw_today
+                                        safe_save_json(_csw_np, _csw_nd)
+                                    except Exception:
+                                        pass
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()
