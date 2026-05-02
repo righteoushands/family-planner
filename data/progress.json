@@ -1816,5 +1816,6 @@
   "CHORE::JP::2026-05-01::morning::Clear table + counters": true,
   "CHORE::JP::2026-05-01::morning::Spray + wipe table and counters": true,
   "CHORE::JP::2026-05-01::morning::Take out trash + recycling": true,
-  "CHORE::JP::2026-05-01::morning::Sweep kitchen / dining room / foyer": true
+  "CHORE::JP::2026-05-01::morning::Sweep kitchen / dining room / foyer": true,
+  "f6dc9a54": true
 }
