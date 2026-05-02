@@ -410,7 +410,7 @@ def render_curriculum_page() -> str:
                   <td class="cur-subj"><a href="/subject?child={_url_quote(child)}&amp;subject={_url_quote(subj)}" style="color:inherit;text-decoration:none;border-bottom:1px dotted #c9a44a;">{_html_escape(subj)}</a></td>
                   <td class="cur-weeks">{week_count} wks</td>
                   <td class="cur-mins-cell">
-                    <input class="cur-mins-input" type="number" min="5" max="240" step="5"
+                    <input class="cur-mins-input" type="number" min="1" max="240" step="1"
                            value="{stored_mins}"
                            oninput="saveMinutes('{child_js}','{subj_js}',this.value)">
                     <span class="cur-mins-label">min</span>
@@ -869,14 +869,18 @@ function suggestMinutes(subjectName) {{
   el.value = 30;
 }}
 
-async function saveMinutes(child, subject, minutes) {{
+let _saveMinutesTimer = null;
+function saveMinutes(child, subject, minutes) {{
   const mins = parseInt(minutes, 10);
-  if (!mins || mins < 5) return;
-  await fetch('/curriculum-minutes', {{
-    method: 'POST',
-    headers: {{'Content-Type':'application/json'}},
-    body: JSON.stringify({{ child, subject, minutes: mins }})
-  }});
+  if (!mins || mins < 1) return;
+  if (_saveMinutesTimer) clearTimeout(_saveMinutesTimer);
+  _saveMinutesTimer = setTimeout(() => {{
+    fetch('/curriculum-minutes', {{
+      method: 'POST',
+      headers: {{'Content-Type':'application/json'}},
+      body: JSON.stringify({{ child, subject, minutes: mins }})
+    }});
+  }}, 400);
 }}
 
 async function saveCurriculum() {{
