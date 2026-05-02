@@ -420,6 +420,8 @@ def render_curriculum_page() -> str:
                       <button class="cur-wbtn-sm" onclick="setSubjectWeek('{child_js}','{subj_js}',-1)">&#8722;</button>
                       <span class="cur-subj-wknum" id="wknum-{row_id}">{subj_week}</span>
                       <button class="cur-wbtn-sm" onclick="setSubjectWeek('{child_js}','{subj_js}',1)">&#43;</button>
+                      <input type="number" min="1" max="99" placeholder="wk" class="cur-wjump-input" style="width:3em;">
+                      <button class="cur-wbtn-sm" onclick="var t=parseInt(this.previousElementSibling.value);var c=parseInt(document.getElementById('wknum-{row_id}').textContent)||1;if(t&amp;&amp;t&gt;=1&amp;&amp;t&lt;=99)setSubjectWeek('{child_js}','{subj_js}',t-c);">Go</button>
                     </div>
                   </td>
                   <td class="cur-day-cell" id="daycell-{row_id}" style="{day_cell_style}">
@@ -585,7 +587,7 @@ def render_curriculum_page() -> str:
       <button class="cur-wbtn" onclick="changeWeek(1)">&#43;</button>
     </div>
     <div class="cur-wset-form">
-      <input type="number" id="weekJump" min="1" max="40" placeholder="Wk #">
+      <input type="number" id="weekJump" min="1" max="99" placeholder="Wk #">
       <button class="cur-wset-btn" onclick="setWeek()">Jump to</button>
     </div>
   </div>
@@ -779,6 +781,7 @@ function setSubjectWeek(child, subject, delta) {{
     }} else {{
       wkEl.style.fontWeight = '700';
       setTimeout(() => {{ wkEl.style.fontWeight = ''; }}, 1000);
+      location.reload();
     }}
   }});
 }}

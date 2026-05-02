@@ -6542,7 +6542,7 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_response(403); self.end_headers(); return
                 try:
                     _wk = int(data.get("week", [1])[0])
-                    _wk = max(1, min(40, _wk))
+                    _wk = max(1, min(99, _wk))
                     from data_helpers import load_curriculum, save_curriculum
                     _cur_data3 = load_curriculum()
                     _cur_data3["current_week"] = _wk
