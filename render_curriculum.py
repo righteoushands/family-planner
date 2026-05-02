@@ -6,14 +6,9 @@ Four interconnected modules:
 3. Student Submissions - upload interface for boys
 4. Grading Interface - review and feedback workflow
 
-EDITOR RULE 7:
-Never use a single backslash-n inside a JS string or regex within a Python
-string literal in this file — Python will expand it to a literal newline,
-which silently kills the entire <script> block. Use a double backslash
-(\\n in source) so Python emits backslash-n that JavaScript sees correctly.
-The same rule applies to \\t, \\r, \\b, \\f, \\v, \\a, \\0, \\\\, \\', and \\".
-Unrecognized escapes like \\d, \\s, \\w, \\. pass through Python unchanged
-and are safe to use bare (though doubling is harmless and clearer).
+RULE 7 (from claud.md — Python 3.11 hard rules):
+Never use '\n' inside a JS string within a Python string literal — use '\\n'
+so the browser receives the escape sequence, not a raw newline.
 """
 import os
 from html import escape as _html_escape
