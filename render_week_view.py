@@ -263,6 +263,22 @@ def render_week_view(week_key: str = None) -> str:
     tasks_by_day = _all_tasks_by_day(wdates)
     lauren_tasks = _lauren_tasks_this_week(wdates)
 
+    # ── Viewer-scoping: child viewers see only their own week tasks ──────────
+    import auth as _auth
+    from daily_schedule_engine import CHILDREN as _CHILDREN_ALL
+    _viewer = _auth.get_viewer()
+    _viewer_is_child = bool(_viewer and not _auth.is_admin(_viewer))
+    _my_name = (next((c for c in _CHILDREN_ALL if c.lower() == _viewer.lower()), None)
+                if _viewer_is_child else None)
+    if _viewer_is_child:
+        _ml = _my_name.lower() if _my_name else ""
+        tasks_by_day = {
+            wd: [t for t in tlist
+                 if str(t.get("assigned", "")).strip().lower() == _ml]
+            for wd, tlist in tasks_by_day.items()
+        }
+        lauren_tasks = []  # Lauren's manual tasks are not yours
+
     # ── 1. Week strip (horizontal scroll row) ──────────────────────────────────
     strip_cells = ""
     for d in wdates:
@@ -436,7 +452,8 @@ def render_week_view(week_key: str = None) -> str:
 
     # ── 5. Kids quick-link strip ────────────────────────────────────────────────
     kids_strip = ""
-    for child in CHILDREN_ORDER:
+    _kids_iter = ([_my_name] if (_viewer_is_child and _my_name) else CHILDREN_ORDER)
+    for child in _kids_iter:
         color = CHILD_COLORS.get(child, "#6b7280")
         kids_strip += (
             f'<a href="/schedule/{escape(child)}" '

@@ -515,6 +515,49 @@ def render_chores_page(status_message: str = "") -> str:
     chores = load_chores_data()
     boys   = chores.get("boys", {})
 
+    # ── Viewer-scoping: child viewers get a read-only, own-chores-only view ──
+    import auth as _auth
+    _viewer = _auth.get_viewer()
+    if _viewer and not _auth.is_admin(_viewer):
+        _my_name = next((c for c in CHILDREN if c.lower() == _viewer.lower()), None)
+        my_data  = boys.get(_my_name, {}) if _my_name else {}
+        my_color = child_color(_my_name, "bg") if _my_name else "#1f2937"
+        my_light = child_color(_my_name, "light") if _my_name else "#f9fafb"
+
+        def _bullets(lines):
+            lines = [l for l in (lines or []) if str(l).strip()]
+            if not lines:
+                return '<div style="color:var(--ink-muted);font-style:italic;font-size:0.9em;">— none —</div>'
+            return ('<ul style="margin:6px 0 0;padding-left:20px;line-height:1.6;">'
+                    + "".join(f"<li>{escape(str(l))}</li>" for l in lines)
+                    + "</ul>")
+
+        daily_lines  = my_data.get("daily", []) if _my_name else []
+        weekly_map   = my_data.get("weekly", {}) if _my_name else {}
+
+        weekly_html = ""
+        for weekday in WEEKDAYS:
+            wlines = weekly_map.get(weekday, [])
+            weekly_html += (
+                f'<div style="margin-bottom:14px;">'
+                f'<div style="font-weight:700;color:{my_color};font-size:0.95em;">{escape(weekday)}</div>'
+                f'{_bullets(wlines)}'
+                f'</div>'
+            )
+
+        display_name = _my_name or _viewer.title()
+        body = f"""
+        {page_header("Chores")}
+        {render_status_message(status_message)}
+        <div class="card" style="border-left:5px solid {my_color};background:{my_light};margin-bottom:16px;">
+            <h2 style="color:{my_color};margin-top:0;">{escape(display_name)}'s Chores</h2>
+            <h3 style="margin-bottom:4px;">Daily</h3>
+            {_bullets(daily_lines)}
+            <h3 style="margin:18px 0 4px;">Weekly</h3>
+            {weekly_html}
+        </div>"""
+        return html_page("Chores", body)
+
     # ── Lauren's chores section ───────────────────────────────────────────────
     lauren_data    = chores.get("lauren", {})
     lauren_daily   = "\n".join(lauren_data.get("daily", []))

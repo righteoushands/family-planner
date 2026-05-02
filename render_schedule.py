@@ -2426,11 +2426,19 @@ def render_today_all(target_date_str: str = "") -> str:
 
     bar       = render_daily_bar(target_iso)
     day_nav   = render_day_nav("/today", normalized_date)
-    cards_html = "".join(
-        render_child_dash_card(child, normalized_date) for child in CHILDREN
-    )
-    # Task #32: Lauren's dash card (manual-tasks-only, 10-item limit).
-    cards_html += render_child_dash_card("Lauren", normalized_date, max_pending=10)
+
+    # ── Viewer-scoping: child viewers see only their own dash card ───────────
+    import auth as _auth
+    _viewer = _auth.get_viewer()
+    if _viewer and not _auth.is_admin(_viewer):
+        _my_name = next((c for c in CHILDREN if c.lower() == _viewer.lower()), None)
+        cards_html = render_child_dash_card(_my_name, normalized_date) if _my_name else ""
+    else:
+        cards_html = "".join(
+            render_child_dash_card(child, normalized_date) for child in CHILDREN
+        )
+        # Task #32: Lauren's dash card (manual-tasks-only, 10-item limit).
+        cards_html += render_child_dash_card("Lauren", normalized_date, max_pending=10)
 
     # "What's happening now" quick strip
     try:

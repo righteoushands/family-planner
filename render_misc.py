@@ -948,6 +948,25 @@ def _render_mom_messages_inbox() -> str:
 
 
 def render_dashboard() -> str:
+    # ── Viewer-scoping: child viewers redirect to their own schedule page ────
+    # The route at app.py serves render_dashboard() with HTTP 200, so a true
+    # 302 isn't possible from inside the renderer; meta-refresh + JS replace
+    # is the surgical equivalent. Viewer slug is JSON-encoded into the JS
+    # string to avoid the same injection class fixed in the Student Portal.
+    import auth as _auth
+    import json as _json
+    _viewer = _auth.get_viewer()
+    if _viewer and not _auth.is_admin(_viewer):
+        _target = f"/schedule/{_viewer}"
+        return (
+            f'<!doctype html><html><head>'
+            f'<meta http-equiv="refresh" content="0;url={escape(_target)}">'
+            f'<title>Redirecting…</title></head>'
+            f'<body><script>location.replace({_json.dumps(_target)});</script>'
+            f'<p>Redirecting to <a href="{escape(_target)}">your schedule</a>…</p>'
+            f'</body></html>'
+        )
+
     from render_morning_anchor import (
         SEASON_QUOTES, _get_quote_for_day, fetch_this_day_in_history
     )
