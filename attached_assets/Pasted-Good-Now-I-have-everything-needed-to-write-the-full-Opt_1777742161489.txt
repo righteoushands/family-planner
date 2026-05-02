@@ -1,0 +1,13 @@
+Good. Now I have everything needed to write the full Option A spec. Tell Replit:
+
+Build Option A — make curriculum self-contained with _weekdays fields. Plan before building. Edit only data_helpers.py, daily_schedule_engine.py, and data/curriculum.json. No other files.
+
+Change 1 — migrate meeting days into curriculum.json. For each subject under JP and Joseph, write the meeting days from the diagnosis above as a _weekdays list on the subject node. Use the exact day name strings Monday through Friday. For the 4 subjects with empty meeting days use these defaults: JP Science 7 and Science 8 default to [“Monday”, “Tuesday”, “Wednesday”, “Thursday”, “Friday”] since science typically meets daily. JP Beginning Latin III already has _current_week=999 so set _weekdays=[] which correctly prevents it from surfacing. Joseph Science 6 default to [“Monday”, “Tuesday”, “Wednesday”, “Thursday”, “Friday”]. Use save_curriculum to write the file. Verify it parses cleanly after saving.
+
+Change 2 — update subject_meeting_days in data_helpers.py. Add a fast path at the top of the function: if the subject node has a non-empty _weekdays list, return that list directly without reading school_weeks.json at all. Only fall through to the existing school_weeks lookup if _weekdays is absent or empty. This makes curriculum self-contained when _weekdays is populated.
+
+Change 3 — update the curriculum merge block in daily_schedule_engine.py. Pass the subject node to a modified subject_meeting_days call — the function signature needs to optionally accept the subject node so it can check _weekdays first. Alternatively, read _weekdays directly from the subject node in the merge block before calling subject_meeting_days as a fallback. Either approach is fine — pick the cleaner one.
+
+Change 4 — update the seen_subjects fuzzy de-dup check. Now that curriculum is the primary source, reverse the de-dup logic: curriculum subjects should take precedence over PDF subjects, not the other way around. When a curriculum subject is being processed, add it to seen_subjects so the PDF path skips it, rather than the PDF path suppressing curriculum subjects.
+
+Verify: call extract_school_tasks_for_child(“Joseph”, “Monday”) in-process and confirm from_curriculum=True tasks appear for Math and Music. Run py_compile on both Python files. Plan before building.
