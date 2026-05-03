@@ -1910,6 +1910,27 @@ class Handler(BaseHTTPRequestHandler):
                 except BrokenPipeError: pass
             return
 
+        # ── Student marks one Mom→Kid message as read (Phase 3) ─────────────
+        if path == "/student-message-read":
+            user = self._get_viewer()
+            _auth.set_viewer(user)
+            if not user:
+                self._redirect("/login"); return
+            cl  = int(self.headers.get("Content-Length", 0))
+            raw = self.rfile.read(cl).decode("utf-8", errors="ignore")
+            from urllib.parse import parse_qs as _pqs_smr, unquote_plus as _uqp_smr
+            _prm = _pqs_smr(raw)
+            _mid = _uqp_smr(_prm.get("msg_id", [""])[0]).strip()
+            _kid = _uqp_smr(_prm.get("kid",    [""])[0]).strip().lower()
+            # Auth gate (D7): admin OR viewer == kid
+            if not (_auth.is_admin(user) or user.lower() == _kid):
+                self.send_response(403); self.end_headers(); return
+            if _mid and _kid:
+                try: _auth.mark_kid_message_read(_mid, _kid)
+                except Exception: pass
+            self._redirect(f"/student/{_kid}" if _kid else f"/schedule/{user}")
+            return
+
         # ── Message Mom (children allowed) ───────────────────────────────────
         if path == "/message-mom":
             user = self._get_viewer()
@@ -2508,6 +2529,35 @@ class Handler(BaseHTTPRequestHandler):
                 except BrokenPipeError: pass
                 return
 
+            elif path == "/assignment-reply":
+                # Phase 3: Mom replies to a student submission. Admin-only
+                # (we are inside the admin-gated elif chain). Plain
+                # urlencoded form post; redirects 303 back to the analyzer
+                # with a #card-<id> anchor so Lauren returns near her place.
+                from data_helpers import load_assignment_analyses
+                _aid = clean_text(form.getfirst("analysis_id","")).strip()
+                _txt = (form.getfirst("reply_text","") or "").strip()[:2000]
+                if _aid and _txt:
+                    _src = next(
+                        (r for r in load_assignment_analyses()
+                         if r.get("id") == _aid),
+                        None,
+                    )
+                    if _src and _src.get("source_kind") == "student_upload":
+                        _kid = (_src.get("child_hint") or "").strip()
+                        if _kid:
+                            try:
+                                _auth.save_kid_message(
+                                    to_user=_kid.lower(),
+                                    from_user="lauren",
+                                    text=_txt,
+                                    ref_id=_aid,
+                                )
+                            except Exception: pass
+                self._redirect(f"/assignment-analyzer#card-{_aid}" if _aid
+                               else "/assignment-analyzer")
+                return
+
             elif path == "/gradebook-add":
                 import json as _aj
                 from data_helpers import (
@@ -2547,12 +2597,53 @@ class Handler(BaseHTTPRequestHandler):
                     return
                 _saved = add_gradebook_entry(_entry)
                 # Mark the source analysis as recorded so the card can show it
+                _writeback_status = "skipped_no_source"
                 if _entry["source_analysis_id"]:
                     update_assignment_analysis(_entry["source_analysis_id"], {
                         "_gradebook_id": _saved["id"],
                         "_gradebook_pct": _entry.get("percentage", ""),
                         "_gradebook_letter": _entry.get("letter", ""),
                     })
+                    # Phase 3: when the source was a student upload, mirror
+                    # Mom's grade back into grades.json AND auto-message the
+                    # kid. Wrapped — never let this fail the gradebook write.
+                    try:
+                        from data_helpers import load_assignment_analyses
+                        _src = next(
+                            (r for r in load_assignment_analyses()
+                             if r.get("id") == _entry["source_analysis_id"]),
+                            None,
+                        )
+                        if _src and _src.get("source_kind") == "student_upload":
+                            from render_subject import apply_mom_grade
+                            _kid  = (_src.get("child_hint","") or _entry["child"])
+                            _subj = (_src.get("subject_hint","") or _entry["subject"])
+                            _patch = apply_mom_grade(
+                                child=_kid, subject=_subj,
+                                analysis_id=_entry["source_analysis_id"],
+                                upload_path=_src.get("upload_path",""),
+                                pct=_entry.get("percentage", ""),
+                                letter=_entry.get("letter", ""),
+                                note=_entry.get("note", ""),
+                            )
+                            _writeback_status = "ok" if _patch.get("ok") else \
+                                                _patch.get("error", "no_match")
+                            # Auto-message the kid (D5 wording)
+                            _letter = _entry.get("letter","") or "—"
+                            try: _pct_f = float(_entry.get("percentage",""))
+                            except Exception: _pct_f = None
+                            _pct_bit  = f" ({_pct_f:.0f}%)" if _pct_f is not None else ""
+                            _note     = (_entry.get("note") or "").strip()
+                            _note_bit = f" {_note}" if _note else ""
+                            _auth.save_kid_message(
+                                to_user=(_kid or "").lower(),
+                                from_user="lauren",
+                                text=f"Mom graded your {_subj} work: "
+                                     f"{_letter}{_pct_bit}.{_note_bit}",
+                                ref_id=_entry["source_analysis_id"],
+                            )
+                    except Exception as _wb_err:
+                        _writeback_status = f"error: {str(_wb_err)[:120]}"
                 self.send_response(200)
                 self.send_header("Content-Type","application/json"); self.end_headers()
                 try: self.wfile.write(_aj.dumps({"ok": True, "id": _saved["id"], "entry": _saved}).encode())

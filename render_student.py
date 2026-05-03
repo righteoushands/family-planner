@@ -25,6 +25,57 @@ from daily_schedule_engine import (
 from data_helpers import normalize_date_query
 from config import child_color
 from ui_helpers import html_page
+import auth as _auth
+
+
+def _render_messages_from_mom(child: str) -> str:
+    """Phase 3: green-bordered 'Messages from Mom' section. Hidden
+    entirely (returns '') when there are zero unread messages — D9."""
+    try:
+        msgs = _auth.load_kid_messages(child.lower())
+    except Exception:
+        return ""
+    unread = [m for m in (msgs or []) if not m.get("read", False)]
+    if not unread:
+        return ""
+    unread.sort(key=lambda m: m.get("timestamp", ""), reverse=True)
+    rows = []
+    for m in unread:
+        from_name = (m.get("from_name") or m.get("from") or "Mom").strip()
+        text      = (m.get("text") or "").strip()
+        ts        = (m.get("timestamp") or "")[:16].replace("T", " ")
+        mid       = (m.get("id") or "").strip()
+        rows.append(
+            f'<div style="background:white;border:1px solid rgba(46,125,50,0.30);'
+            f'border-radius:8px;padding:10px 12px;margin-top:8px;">'
+            f'<div style="display:flex;justify-content:space-between;'
+            f'align-items:baseline;gap:8px;flex-wrap:wrap;">'
+            f'<strong style="color:#246b3a;">{escape(from_name)}</strong>'
+            f'<span style="font-size:.78rem;color:var(--ink-muted);">{escape(ts)}</span>'
+            f'</div>'
+            f'<div style="margin-top:4px;white-space:pre-wrap;line-height:1.45;'
+            f'color:var(--ink);">{escape(text)}</div>'
+            f'<form method="post" action="/student-message-read" '
+            f'style="margin-top:8px;text-align:right;">'
+            f'<input type="hidden" name="msg_id" value="{escape(mid, quote=True)}"/>'
+            f'<input type="hidden" name="kid" value="{escape(child.lower(), quote=True)}"/>'
+            f'<button type="submit" style="background:rgba(46,125,50,0.10);'
+            f'color:#246b3a;border:1px solid rgba(46,125,50,0.30);'
+            f'border-radius:999px;padding:4px 12px;font-size:.78rem;'
+            f'font-weight:600;cursor:pointer;">✓ Mark read</button>'
+            f'</form></div>'
+        )
+    return (
+        f'<section style="margin-bottom:24px;padding:14px 16px;'
+        f'background:rgba(46,125,50,0.06);border:1px solid rgba(46,125,50,0.30);'
+        f'border-radius:var(--radius-md);">'
+        f'<h2 style="margin:0;font-family:\'Cormorant Garamond\',Georgia,serif;'
+        f'font-size:1.3rem;color:#246b3a;">'
+        f'💌 Messages from Mom <span style="font-size:.85rem;font-weight:600;'
+        f'background:#246b3a;color:white;border-radius:999px;padding:2px 10px;'
+        f'margin-left:6px;vertical-align:middle;">{len(unread)}</span></h2>'
+        + "".join(rows) + '</section>'
+    )
 
 
 def _recent_school_work(child: str, limit: int = 10) -> list:
@@ -97,6 +148,12 @@ def _render_school_work_section(child: str) -> str:
         growth = r.get("growth_edges") or []
         rationale = (r.get("grade_rationale") or "").strip()
         badge = "AI" if r.get("ai_assessed") else "manual"
+        # Phase 3 (Change 7): when Mom has graded, replace the gold AI
+        # chip with a prominent green Mom-graded block. AI grade is
+        # demoted to a small subnote so the kid still sees both.
+        mom_letter = (r.get("mom_grade_letter") or "").strip()
+        mom_pct    = r.get("mom_grade_pct")
+        mom_note   = (r.get("mom_grade_note") or "").strip()
 
         fb_html = ""
         if feedback:
@@ -128,6 +185,40 @@ def _render_school_work_section(child: str) -> str:
 
         from urllib.parse import urlencode as _ue
         subj_url = "/subject?" + _ue({"child": child, "subject": subj})
+        if mom_letter:
+            _mom_pct_str = (f"{mom_pct:g}%" if isinstance(mom_pct, (int, float))
+                            else "")
+            _ai_sub_text = ""
+            if gtxt != "—" or letter != "—":
+                _ai_sub_text = (
+                    f'<div style="font-size:.74rem;color:var(--ink-faint);'
+                    f'margin-top:3px;">AI suggested: {escape(letter)}'
+                    f'{" · " + escape(gtxt) + "%" if gtxt != "—" else ""}</div>'
+                )
+            _mom_note_html = (
+                f'<div style="margin-top:4px;font-size:.88rem;color:var(--ink);">'
+                f'{escape(mom_note)}</div>'
+            ) if mom_note else ""
+            grade_block_html = (
+                f'<div style="background:rgba(46,125,50,0.08);'
+                f'border:1px solid rgba(46,125,50,0.30);border-radius:8px;'
+                f'padding:8px 12px;margin-top:8px;">'
+                f'<div style="font-size:.74rem;font-weight:700;color:#246b3a;'
+                f'text-transform:uppercase;letter-spacing:.05em;">'
+                f'📓 Mom graded this</div>'
+                f'<div style="font-size:1.1rem;font-weight:700;color:#246b3a;'
+                f'margin-top:2px;">{escape(mom_letter)}'
+                f'{" · " + _mom_pct_str if _mom_pct_str else ""}</div>'
+                f'{_mom_note_html}{_ai_sub_text}</div>'
+            )
+            grade_chip_html = ""
+        else:
+            grade_block_html = ""
+            grade_chip_html = (
+                f'<div style="font-weight:700;color:var(--gold);white-space:nowrap;">'
+                f'{escape(gtxt)} <span style="font-size:.85rem;color:var(--ink-muted);">'
+                f'({escape(letter)})</span></div>'
+            )
         cards.append(
             f'<div style="background:var(--warm-white);border:1px solid var(--border);'
             f'border-radius:var(--radius-md);padding:12px 14px;margin-bottom:10px;'
@@ -140,12 +231,11 @@ def _render_school_work_section(child: str) -> str:
             f'{escape(subj)}</a> · '
             f'<span style="color:var(--ink-muted);font-size:.92rem;">{escape(title)}</span>'
             f'</div>'
-            f'<div style="font-weight:700;color:var(--gold);white-space:nowrap;">'
-            f'{escape(gtxt)} <span style="font-size:.85rem;color:var(--ink-muted);">'
-            f'({escape(letter)})</span></div>'
+            f'{grade_chip_html}'
             f'</div>'
             f'<div style="font-size:.78rem;color:var(--ink-muted);margin-top:2px;">'
             f'{escape(when)} · {escape(badge)}</div>'
+            f'{grade_block_html}'
             f'{fb_html}{chips}'
             f'</div>'
         )
@@ -333,6 +423,9 @@ def render_student_page(child: str, target_date_str: str = "") -> str:
       </div>
     </div>
   </div>
+
+  <!-- Messages from Mom (Phase 3): hidden entirely when zero unread -->
+  {_render_messages_from_mom(child)}
 
   <!-- Subject sections -->
   {sections_html}

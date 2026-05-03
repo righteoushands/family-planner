@@ -228,8 +228,27 @@ def _render_one_card(rec: dict) -> str:
         for s in [""] + SUBJECTS
     )
 
+    # Phase 3: visual signal that this card came from a student upload.
+    student_badge_html = ""
+    reply_form_html = ""
+    if src_kind == "student_upload":
+        _badge_child = _esc(str(child_guess) or "?")
+        student_badge_html = (
+            f'<div class="aa-student-badge">📥 Student Submission — {_badge_child}</div>'
+        )
+        reply_form_html = (
+            f'<form class="aa-reply-form" method="post" action="/assignment-reply">'
+            f'<input type="hidden" name="analysis_id" value="{_esc(rid)}"/>'
+            f'<div class="aa-reply-form-label">📩 Reply to {_badge_child}</div>'
+            f'<textarea name="reply_text" required maxlength="2000" rows="2" '
+            f'placeholder="Write a note back to {_badge_child}…"></textarea>'
+            f'<div class="aa-reply-form-row">'
+            f'<button type="submit">Send Reply</button>'
+            f'</div></form>'
+        )
+
     return f"""
-    <article class="aa-card" data-id="{_esc(rid)}">
+    <article id="card-{_esc(rid)}" class="aa-card" data-id="{_esc(rid)}">
       <header class="aa-card-head">
         <div class="aa-card-thumbwrap">{thumb_html}</div>
         <div class="aa-card-titlebox">
@@ -238,6 +257,7 @@ def _render_one_card(rec: dict) -> str:
         </div>
         <button class="aa-delete" data-id="{_esc(rid)}" title="Delete">✕</button>
       </header>
+      {student_badge_html}
       {err_html}
       <div class="aa-grid">
         <label>Subject
@@ -265,6 +285,7 @@ def _render_one_card(rec: dict) -> str:
         {_record_grade_block(rid, child_guess, subject, title, suggested_grade, recorded_id, recorded_pct, recorded_letter)}
         <span class="aa-saved" data-id="{_esc(rid)}"></span>
       </div>
+      {reply_form_html}
     </article>
     """
 
@@ -412,6 +433,13 @@ def render_assignment_analyzer_page() -> str:
       .aa-rec-note {{ flex: 1; min-width: 140px; }}
       .aa-rec-save {{ background: var(--gold-mid); color: white; border: 0; padding: 6px 12px; border-radius: 5px; font-size: 13px; font-weight: 500; cursor: pointer; }}
       .aa-rec-cancel {{ background: transparent; border: 1px solid var(--border); padding: 6px 10px; border-radius: 5px; font-size: 13px; cursor: pointer; color: var(--ink-muted); }}
+      .aa-student-badge {{ display: inline-block; background: rgba(124,58,237,0.10); color: #6b21a8; border: 1px solid rgba(124,58,237,0.30); padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-bottom: 10px; letter-spacing: 0.02em; }}
+      .aa-reply-form {{ display: flex; flex-direction: column; gap: 8px; margin-top: 14px; padding: 10px 12px; background: rgba(124,58,237,0.05); border: 1px solid rgba(124,58,237,0.20); border-radius: 8px; }}
+      .aa-reply-form-label {{ font-size: 12px; font-weight: 700; color: #6b21a8; text-transform: uppercase; letter-spacing: 0.06em; }}
+      .aa-reply-form textarea {{ width: 100%; box-sizing: border-box; min-height: 56px; resize: vertical; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; font-family: inherit; background: white; color: var(--ink); }}
+      .aa-reply-form-row {{ display: flex; justify-content: flex-end; }}
+      .aa-reply-form button {{ background: #7c3aed; color: white; border: 0; border-radius: 6px; padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }}
+      .aa-reply-form button:hover {{ background: #6b21a8; }}
 
       @media (max-width: 600px) {{
         .aa-grid {{ grid-template-columns: 1fr 1fr; }}

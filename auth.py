@@ -42,6 +42,7 @@ CHILD_POST_ALLOWED = frozenset([
     "/toggle-task", "/message-mom", "/change-pin", "/task-override",
     "/subject-upload-image", "/subject-link-add", "/subject-doc-upload",
     "/subject-send-to-mom",
+    "/student-message-read",
 ])
 
 # ── PIN storage ───────────────────────────────────────────────────────────────
@@ -200,3 +201,84 @@ def mark_messages_read() -> None:
 
 def unread_count() -> int:
     return sum(1 for m in load_messages() if not m.get("read", False))
+
+
+# ── Mom → Kid messaging (Phase 3) ─────────────────────────────────────────────
+KID_MSG_PATH = "data/kid_messages.json"
+
+
+def _load_kid_messages_all() -> list:
+    try:
+        with open(KID_MSG_PATH) as f:
+            data = json.load(f)
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+
+def save_kid_message(to_user: str, from_user: str, text: str,
+                     ref_id: str = "") -> dict:
+    """Append one Mom→Kid (or system→Kid) message. Mirrors save_message
+    shape but adds a 'to' field so we can route per-child."""
+    import uuid
+    from datetime import datetime
+    to_u   = (to_user or "").lower().strip()
+    from_u = (from_user or "").strip()
+    rec = {
+        "id":        str(uuid.uuid4())[:8],
+        "to":        to_u,
+        "from":      from_u,
+        "from_name": USERS.get(from_u, {}).get("name", from_u.title()),
+        "text":      (text or "").strip()[:4000],
+        "ref_id":    (ref_id or "").strip(),
+        "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M"),
+        "read":      False,
+    }
+    msgs = _load_kid_messages_all()
+    msgs.append(rec)
+    os.makedirs("data", exist_ok=True)
+    with open(KID_MSG_PATH, "w") as f:
+        json.dump(msgs, f, indent=2)
+    return rec
+
+
+def load_kid_messages(username: str = "") -> list:
+    """Return all kid_messages routed to `username` (case-insensitive).
+    Pass '' to get every message."""
+    msgs = _load_kid_messages_all()
+    if not username:
+        return msgs
+    u = username.lower().strip()
+    return [m for m in msgs if (m.get("to") or "").lower() == u]
+
+
+def unread_kid_count(username: str) -> int:
+    """Count unread messages routed to `username`."""
+    if not username:
+        return 0
+    u = username.lower().strip()
+    return sum(1 for m in _load_kid_messages_all()
+               if (m.get("to") or "").lower() == u and not m.get("read", False))
+
+
+def mark_kid_message_read(msg_id: str, username: str) -> bool:
+    """Mark one message read IFF it is routed to `username`. Returns True
+    on success, False if not found or not addressed to that user
+    (prevents kid A from clearing kid B's badge)."""
+    if not msg_id or not username:
+        return False
+    u = username.lower().strip()
+    msgs = _load_kid_messages_all()
+    found = False
+    for m in msgs:
+        if m.get("id") == msg_id and (m.get("to") or "").lower() == u:
+            if not m.get("read", False):
+                m["read"] = True
+            found = True
+            break
+    if not found:
+        return False
+    os.makedirs("data", exist_ok=True)
+    with open(KID_MSG_PATH, "w") as f:
+        json.dump(msgs, f, indent=2)
+    return True

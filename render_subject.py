@@ -556,6 +556,34 @@ def _entry_card(e: dict, viewer_is_admin: bool) -> str:
     grade = e.get("grade")
     grade_str = f"{grade:g}" if isinstance(grade, (int, float)) else "—"
     letter = letter_grade(grade if isinstance(grade, (int, float)) else None)
+    # Phase 3 (D3): when Mom has graded this entry, her grade takes
+    # display priority and the AI grade is demoted to a small subnote.
+    mom_letter = (e.get("mom_grade_letter") or "").strip()
+    mom_pct    = e.get("mom_grade_pct")
+    mom_note   = (e.get("mom_grade_note") or "").strip()
+    mom_block_html = ""
+    if mom_letter:
+        _mom_pct_str = (f"{mom_pct:g}%" if isinstance(mom_pct, (int, float))
+                        else "")
+        _ai_sub = (f"<div style='font-size:.74rem;color:var(--ink-faint);"
+                   f"margin-top:3px;'>AI suggested: {_e(letter)}"
+                   f"{(' · ' + grade_str + '%') if grade_str != '—' else ''}"
+                   f"</div>") if grade_str != "—" or letter != "—" else ""
+        _mom_note_html = (f"<div style='margin-top:4px;font-size:.85rem;"
+                          f"color:var(--ink);'>{_e(mom_note)}</div>"
+                          if mom_note else "")
+        mom_block_html = (
+            f"<div style='background:rgba(46,125,50,0.08);"
+            f"border:1px solid rgba(46,125,50,0.30);border-radius:8px;"
+            f"padding:8px 12px;margin-top:8px;'>"
+            f"<div style='font-size:.78rem;font-weight:700;color:#246b3a;"
+            f"text-transform:uppercase;letter-spacing:.05em;'>"
+            f"📓 Mom graded this</div>"
+            f"<div style='font-size:1.15rem;font-weight:700;color:#246b3a;"
+            f"margin-top:2px;'>{_e(mom_letter)}"
+            f"{(' · ' + _mom_pct_str) if _mom_pct_str else ''}</div>"
+            f"{_mom_note_html}{_ai_sub}</div>"
+        )
     img_html = ""
     if e.get("image_path"):
         img_html = (f'<a href="/{_e(e["image_path"])}" target="_blank">'
@@ -632,6 +660,13 @@ def _entry_card(e: dict, viewer_is_admin: bool) -> str:
             f'<button type="submit" style="background:none;border:0;color:#b91c1c;'
             f'cursor:pointer;font-size:.8rem;">delete</button></form>'
         )
+    # If Mom has graded, hide the AI grade chip (its info appears inside
+    # mom_block_html as the subnote) so the card has one prominent grade.
+    grade_chip_html = "" if mom_letter else (
+        f'<span style="font-size:1.05rem;font-weight:700;color:var(--gold);">'
+        f'{grade_str} <span style="font-size:.8rem;color:var(--ink-muted);">'
+        f'({letter})</span></span>'
+    )
     return f"""
 <div style="display:flex;gap:10px;padding:10px;background:#fcfaf6;
             border:1px solid var(--border-light);border-radius:8px;">
@@ -639,13 +674,12 @@ def _entry_card(e: dict, viewer_is_admin: bool) -> str:
   <div style="flex:1;min-width:0;">
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
       <strong>{_e(title)}</strong>
-      <span style="font-size:1.05rem;font-weight:700;color:var(--gold);">
-        {grade_str} <span style="font-size:.8rem;color:var(--ink-muted);">({letter})</span>
-      </span>
+      {grade_chip_html}
     </div>
     <div style="font-size:.78rem;color:var(--ink-muted);">
       {_e(e.get("kind","").title())} · {_e(when)} · {badge} {delete_btn}
     </div>
+    {mom_block_html}
     {fb_html}
     {fg_html}
     <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
@@ -858,6 +892,35 @@ def mark_entry_sent_to_mom(child: str, subject: str, entry_id: str) -> dict:
     return {"ok": True, "already_sent": False,
             "sent_at": target["sent_to_mom_at"],
             "msg_error": msg_err}
+
+
+def apply_mom_grade(child: str, subject: str, analysis_id: str,
+                    upload_path: str, pct, letter: str, note: str) -> dict:
+    """Phase 3: stamp Mom's recorded grade onto the matching grades.json
+    entry without overwriting the AI grade. Match by analysis_id (primary,
+    Phase 2 entries) then by image_path == upload_path (fallback).
+    Returns {ok, matched_id} or {ok=False, error='no_match'}."""
+    g = load_grades()
+    n = _node(g, child or "", subject or "")
+    target = None
+    if analysis_id:
+        for e in n.get("entries", []) or []:
+            if e.get("analysis_id") == analysis_id:
+                target = e; break
+    if target is None and upload_path:
+        for e in n.get("entries", []) or []:
+            if e.get("image_path") == upload_path:
+                target = e; break
+    if target is None:
+        return {"ok": False, "error": "no_match"}
+    try:    pct_val = float(pct) if pct not in ("", None) else None
+    except Exception: pct_val = None
+    target["mom_grade_pct"]    = pct_val
+    target["mom_grade_letter"] = (letter or "").strip()
+    target["mom_grade_note"]   = (note or "").strip()
+    target["mom_graded_at"]    = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+    save_grades(g)
+    return {"ok": True, "matched_id": target.get("id", "")}
 
 
 def add_manual_entry(child: str, subject: str, week, kind: str,
