@@ -1,7 +1,13 @@
 {
   "companion": "lorenzo",
-  "ts": "2026-04-26T15:25:42",
+  "ts": "2026-05-03T15:20:20",
   "paths": [
-    "data/meal_plan/2026-04-27.json"
+    "data/day_templates/Monday.json",
+    "data/day_templates/Saturday.json",
+    "data/day_templates/Sunday.json",
+    "data/day_templates/Thursday.json",
+    "data/day_templates/Tuesday.json",
+    "data/day_templates/Wednesday.json",
+    "data/meal_plan/2026-05-04.json"
   ]
 }

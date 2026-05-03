@@ -1,0 +1,45 @@
+{
+  "weekday": "Saturday",
+  "grid": {
+    "Lauren": {
+      "11:00 AM": "PRUDENCE — Family Adventure Block. Default: Structured walk (like Monday/Wednesday/Friday). When weather permits: Hike, park exploration, or yard project with all four boys. Michael bikes/scoots or explores. James in stroller. 20-30min total.",
+      "11:30 AM": "PRUDENCE — Family Adventure Block (cool-down & regroup)",
+      "9:30 AM": "Weekly Fitness Check-in with Coach. Review: blocks completed this week, daily walks, how you felt, any barriers, wins (big or small). Adjust next week if needed.",
+      "8:30 PM": "Hinge Health PT — Ankle (10min rotating video)",
+      "8:00 AM": "Update YNAB (15 min)"
+    },
+    "JP": {
+      "11:00 AM": "PRUDENCE — Family Adventure Block. Default: Structured walk. When weather permits: Hike, park exploration, or yard project with family. Lauren leads. Joseph & Michael participate. James in stroller. 20-30min total.",
+      "11:30 AM": "PRUDENCE — Family Adventure Block (cool-down & regroup)",
+      "7:00 AM": "Start a load of laundry",
+      "4:00 PM": "Brown and season ground beef for tacos",
+      "5:00 PM": "Dinner"
+    },
+    "Joseph": {
+      "11:00 AM": "PRUDENCE — Family Adventure Block. Default: Structured walk. When weather permits: Hike, park exploration, or yard project with family. Lauren leads. JP & Michael participate. James in stroller. 20-30min total.",
+      "11:30 AM": "PRUDENCE — Family Adventure Block (cool-down & regroup)",
+      "5:00 PM": "Reheat leftovers",
+      "5:30 PM": "(part of weekend rhythm)"
+    },
+    "Michael": {
+      "11:00 AM": "PRUDENCE — Family Adventure Block. Default: Structured walk. When weather permits: Hike, park exploration, or yard project with family. Bike, scooter, or explore alongside your brothers. James in stroller. 20-30min total.",
+      "11:30 AM": "PRUDENCE — Family Adventure Block (cool-down & regroup)",
+      "5:00 PM": "Set the table",
+      "5:30 PM": "(part of weekend rhythm)"
+    },
+    "James": {
+      "11:00 AM": "PRUDENCE — Family Adventure Block. Default: Stroller walk. When weather permits: Stroller during hike, park exploration, or yard project. Watch your big brothers. You're part of the team.",
+      "11:30 AM": "PRUDENCE — Family Adventure Block (cool-down & regroup)"
+    },
+    "Mom": {
+      "9:00 AM": "Morning Prayer (with family or on your own)",
+      "9:30 AM": "Breakfast",
+      "10:00 AM": "Morning Jobs",
+      "11:00 AM": "Exercise / Clean Room",
+      "12:00 PM": "Lunch & Clean Kitchen",
+      "1:00 PM": "Family free time",
+      "2:00 PM": "Family free time",
+      "5:00 PM": "Dinner"
+    }
+  }
+}

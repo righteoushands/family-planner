@@ -1,0 +1,70 @@
+{
+  "start": "2026-05-04",
+  "week": "2026-05-04",
+  "generated": false,
+  "days": {
+    "Monday": {
+      "breakfast": "Batch oatmeal",
+      "lunch": "Sardine salad",
+      "dinner": "Spaghetti with meat sauce",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": "Sardine salad + steamable green beans + blueberries",
+      "helpers": "JP leads brining prep for roast chicken; Joseph assists; Michael washes vegetables"
+    },
+    "Tuesday": {
+      "breakfast": "Batch oatmeal",
+      "lunch": "Sardine salad",
+      "dinner": "Leftovers (spaghetti + meat sauce)",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": "Leftover spaghetti + meat sauce + steamed green beans + strawberries",
+      "helpers": "Joseph reheats; Michael sets table"
+    },
+    "Wednesday": {
+      "breakfast": "Batch oatmeal",
+      "lunch": "Sardine salad",
+      "dinner": "Roasted split breast + steamed brussels sprouts + tomato soup",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": "Sardine salad + steamed green beans + blueberries",
+      "helpers": "JP leads roasting; Joseph preps vegetables; Michael assists"
+    },
+    "Thursday": {
+      "breakfast": "Batch oatmeal",
+      "lunch": "Sardine salad",
+      "dinner": "Leftovers + lentil soup",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": "Lentil soup (thermos) + bread + strawberries",
+      "helpers": "Joseph reheats soup; Michael pours soup into bowls"
+    },
+    "Friday": {
+      "breakfast": "Batch oatmeal",
+      "lunch": "Sardine salad + steamed green beans + blueberries",
+      "dinner": "Flounder (fried) OR pizza — decide later",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": "Sardine salad + steamed green beans + blueberries",
+      "helpers": "JP leads prep; Joseph assists; Michael helps with simple tasks"
+    },
+    "Saturday": {
+      "breakfast": "Batch oatmeal",
+      "lunch": "Leftovers / soup",
+      "dinner": "Ground beef prep (tacos, rice bowls, or similar)",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": "",
+      "helpers": "JP leads ground beef cooking; Joseph preps toppings; Michael assembles"
+    },
+    "Sunday": {
+      "breakfast": "Batch oatmeal",
+      "lunch": "Leftovers assembled",
+      "dinner": "Ziplock Buffet (roasted chicken, soups, ground beef options)",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": "",
+      "helpers": "JP leads buffet assembly; Joseph organizes containers"
+    }
+  }
+}
