@@ -2160,6 +2160,7 @@ class Handler(BaseHTTPRequestHandler):
         if path in ("/school-upload", "/prayer-intention-add", "/recipe-import",
                     "/recipe-save",
                     "/assignment-analyze", "/assignment-update", "/assignment-delete",
+                    "/assignment-reply",
                     "/gradebook-add", "/gradebook-update", "/gradebook-delete"):
             form = parse_multipart_form(self)
 
