@@ -1,6 +1,28 @@
 {
   "events": [
     {
+      "title": "EJs birthday",
+      "start": "2026-05-03",
+      "end": "2026-05-03",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Joseph's Baptism day!",
+      "start": "2026-05-03",
+      "end": "2026-05-03",
+      "all_day": true,
+      "location": "5/3/2014",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "St. Philip and James",
       "start": "2026-05-03",
       "end": "2026-05-03",
@@ -9,6 +31,94 @@
       "notes": "Read the letter of St. James  ",
       "calendar": "Liturgical Calendar (Little Rose Shop)",
       "color": "#e91e8c",
+      "source": "subscribed"
+    },
+    {
+      "title": "John's class",
+      "start": "2026-05-03T08:00",
+      "end": "2026-05-03T17:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Mama haircut",
+      "start": "2026-05-04T10:00",
+      "end": "2026-05-04T10:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Last frost date in Fredericksburg. 50/50 chance of frost in the nex",
+      "start": "2026-05-05",
+      "end": "2026-05-05",
+      "all_day": true,
+      "location": "Fredericksburg",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Bible Study",
+      "start": "2026-05-05T10:00",
+      "end": "2026-05-05T12:00",
+      "all_day": false,
+      "location": "Aletha house, 6712 Lakeland Way, Fredericksburg, VA 22407",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Homeschool PE",
+      "start": "2026-05-05T13:00",
+      "end": "2026-05-05T14:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Last day of Religious Education",
+      "start": "2026-05-05T16:45",
+      "end": "2026-05-05T18:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "30PM Confirmation Mass in the Church",
+      "start": "2026-05-05T18:00",
+      "end": "2026-05-05T19:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Lucas Miller's birthday",
+      "start": "2026-05-06",
+      "end": "2026-05-06",
+      "all_day": true,
+      "location": "",
+      "notes": "58am, 6 lb 9 oz",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
       "source": "subscribed"
     },
     {
@@ -23,6 +133,28 @@
       "source": "subscribed"
     },
     {
+      "title": "Piano Lessons with David",
+      "start": "2026-05-06T09:30",
+      "end": "2026-05-06T11:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Date Night",
+      "start": "2026-05-06T17:30",
+      "end": "2026-05-06T18:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "Kids Movie Night!",
       "start": "2026-05-06T17:30",
       "end": "2026-05-06T19:30",
@@ -30,6 +162,17 @@
       "location": "",
       "notes": "",
       "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Homeschool PE",
+      "start": "2026-05-07T10:00",
+      "end": "2026-05-07T11:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -56,6 +199,17 @@
       "source": "subscribed"
     },
     {
+      "title": "Joseph Aaron Calimger birthday! (2020)",
+      "start": "2026-05-09",
+      "end": "2026-05-09",
+      "all_day": true,
+      "location": "",
+      "notes": "29pm eastern weighing 5lb 6oz, 19 inches long!",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "USNSCC Pentagon Division - May Drill (#1)",
       "start": "2026-05-09T07:30",
       "end": "2026-05-09T15:30",
@@ -64,6 +218,61 @@
       "notes": "30 AM (Eastern Time (US & Cana",
       "calendar": "USNSCC Pentagon Division (JP & Joe)",
       "color": "#e74c3c",
+      "source": "subscribed"
+    },
+    {
+      "title": "Pops death 5/10/2012",
+      "start": "2026-05-10T09:30",
+      "end": "2026-05-10T10:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "RBM Memorial Mass",
+      "start": "2026-05-11",
+      "end": "2026-05-11",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Mama haircut",
+      "start": "2026-05-11T10:00",
+      "end": "2026-05-11T10:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Bible Study",
+      "start": "2026-05-12T10:00",
+      "end": "2026-05-12T12:00",
+      "all_day": false,
+      "location": "Aletha house, 6712 Lakeland Way, Fredericksburg, VA 22407",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Homeschool PE",
+      "start": "2026-05-12T13:00",
+      "end": "2026-05-12T14:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
       "source": "subscribed"
     },
     {
@@ -78,6 +287,28 @@
       "source": "subscribed"
     },
     {
+      "title": "Piano Lessons with David",
+      "start": "2026-05-13T09:30",
+      "end": "2026-05-13T11:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Date Night",
+      "start": "2026-05-13T17:30",
+      "end": "2026-05-13T18:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "Kids Movie Night!",
       "start": "2026-05-13T17:30",
       "end": "2026-05-13T19:30",
@@ -85,6 +316,17 @@
       "location": "",
       "notes": "",
       "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Russell's birthday!",
+      "start": "2026-05-14",
+      "end": "2026-05-14",
+      "all_day": true,
+      "location": "5/14/2012",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -97,6 +339,39 @@
       "notes": "Invite someone to join you for Mass or Adoration  ",
       "calendar": "Liturgical Calendar (Little Rose Shop)",
       "color": "#e91e8c",
+      "source": "subscribed"
+    },
+    {
+      "title": "Homeschool PE",
+      "start": "2026-05-14T10:00",
+      "end": "2026-05-14T11:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Mundo Harbaugh birthday",
+      "start": "2026-05-15",
+      "end": "2026-05-15",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Audrey Tidjou Kengne's birthday",
+      "start": "2026-05-15",
+      "end": "2026-05-15",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
       "source": "subscribed"
     },
     {
@@ -166,6 +441,72 @@
       "source": "subscribed"
     },
     {
+      "title": "JP’s Sacrament of Confirmation (2026)",
+      "start": "2026-05-16",
+      "end": "2026-05-16",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "JP arrives at Confirmation Mass",
+      "start": "2026-05-16T12:30",
+      "end": "2026-05-16T13:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Suzy arrives at the Confirmation Masses",
+      "start": "2026-05-16T13:00",
+      "end": "2026-05-16T14:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Confirmation Mass",
+      "start": "2026-05-16T13:30",
+      "end": "2026-05-16T15:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Confirmation party!!!!!",
+      "start": "2026-05-16T15:30",
+      "end": "2026-05-16T19:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Mary Claire Immaculata birthday (2018)",
+      "start": "2026-05-17",
+      "end": "2026-05-17",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "The Ascension of Our Lord",
       "start": "2026-05-17",
       "end": "2026-05-17",
@@ -177,6 +518,94 @@
       "source": "subscribed"
     },
     {
+      "title": "Clemencia Miller's death",
+      "start": "2026-05-18",
+      "end": "2026-05-18",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Nathanael Kengni's birthday",
+      "start": "2026-05-18",
+      "end": "2026-05-18",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Mama haircut",
+      "start": "2026-05-18T10:00",
+      "end": "2026-05-18T10:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Well Read Mom's meeting",
+      "start": "2026-05-18T19:30",
+      "end": "2026-05-18T20:30",
+      "all_day": false,
+      "location": "21 Lord Fairfax Dr. Falmouth",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Bible Study",
+      "start": "2026-05-19T10:00",
+      "end": "2026-05-19T12:00",
+      "all_day": false,
+      "location": "Aletha house, 6712 Lakeland Way, Fredericksburg, VA 22407",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Homeschool PE",
+      "start": "2026-05-19T13:00",
+      "end": "2026-05-19T14:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Mercy Early Infant Loss Burial Service",
+      "start": "2026-05-19T16:30",
+      "end": "2026-05-19T17:00",
+      "all_day": false,
+      "location": "",
+      "notes": "￼   Mercy Pastoral Service  2023 Early Infant Loss Buria",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Piano Lessons with David",
+      "start": "2026-05-20T09:30",
+      "end": "2026-05-20T11:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "JP ortho adjustments",
       "start": "2026-05-20T14:45",
       "end": "2026-05-20T15:00",
@@ -184,6 +613,17 @@
       "location": "",
       "notes": "",
       "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Date Night",
+      "start": "2026-05-20T17:30",
+      "end": "2026-05-20T18:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -199,6 +639,28 @@
       "source": "subscribed"
     },
     {
+      "title": "Last day of Homeschool PE (Field Day?)",
+      "start": "2026-05-21T10:00",
+      "end": "2026-05-21T11:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Evan & Haleigh's wedding anniversary 2021",
+      "start": "2026-05-22",
+      "end": "2026-05-22",
+      "all_day": true,
+      "location": "Kindred North",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "Elena Sutphin",
       "start": "2026-05-22T10:30",
       "end": "2026-05-22T11:30",
@@ -206,6 +668,28 @@
       "location": "1955 Emancipation Hwy Ste 100 Fredericksburg VA-22401-6226",
       "notes": "Appointment with Elena Sutphin at 1955 Emancipation Hwy Ste 1",
       "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "R/s Bday Party for JP & James?",
+      "start": "2026-05-23",
+      "end": "2026-05-23",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "UJ and AJ wedding anniversary (1975)",
+      "start": "2026-05-24",
+      "end": "2026-05-24",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -232,6 +716,17 @@
       "source": "subscribed"
     },
     {
+      "title": "Mama haircut",
+      "start": "2026-05-25T10:00",
+      "end": "2026-05-25T10:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "St. Philip Neri",
       "start": "2026-05-26",
       "end": "2026-05-26",
@@ -240,6 +735,28 @@
       "notes": "//thelittleroseshop.com/search?q=philip+neri&options%5Bprefix%5D=last​​​",
       "calendar": "Liturgical Calendar (Little Rose Shop)",
       "color": "#e91e8c",
+      "source": "subscribed"
+    },
+    {
+      "title": "Bible Study",
+      "start": "2026-05-26T10:00",
+      "end": "2026-05-26T12:00",
+      "all_day": false,
+      "location": "Aletha house, 6712 Lakeland Way, Fredericksburg, VA 22407",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Piano Lessons with David",
+      "start": "2026-05-27T09:30",
+      "end": "2026-05-27T11:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
       "source": "subscribed"
     },
     {
@@ -254,6 +771,17 @@
       "source": "subscribed"
     },
     {
+      "title": "Date Night",
+      "start": "2026-05-27T17:30",
+      "end": "2026-05-27T18:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "Kids Movie Night!",
       "start": "2026-05-27T17:30",
       "end": "2026-05-27T19:30",
@@ -261,6 +789,17 @@
       "location": "",
       "notes": "",
       "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Courtney and Derik wedding day! (2022)",
+      "start": "2026-05-28",
+      "end": "2026-05-28",
+      "all_day": true,
+      "location": "Hidden Falls Venue 20147 AR-72 Gravette, AR 72736",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -298,6 +837,17 @@
       "source": "subscribed"
     },
     {
+      "title": "Josephine Marie Ketchum’s birthday (2025)",
+      "start": "2026-05-31",
+      "end": "2026-05-31",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "Last Day to Submit New Work",
       "start": "2026-05-31",
       "end": "2026-05-31",
@@ -320,6 +870,50 @@
       "source": "subscribed"
     },
     {
+      "title": "Mama haircut",
+      "start": "2026-06-01T10:00",
+      "end": "2026-06-01T10:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Bible Study",
+      "start": "2026-06-02T10:00",
+      "end": "2026-06-02T12:00",
+      "all_day": false,
+      "location": "Aletha house, 6712 Lakeland Way, Fredericksburg, VA 22407",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Piano Lessons with David",
+      "start": "2026-06-03T09:30",
+      "end": "2026-06-03T11:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Date Night",
+      "start": "2026-06-03T17:30",
+      "end": "2026-06-03T18:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "Kids Movie Night!",
       "start": "2026-06-03T17:30",
       "end": "2026-06-03T19:30",
@@ -327,6 +921,39 @@
       "location": "",
       "notes": "",
       "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Grandma Elizabeth McAdams birthday",
+      "start": "2026-06-04",
+      "end": "2026-06-04",
+      "all_day": true,
+      "location": "1923",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Lost Carol Jude McAdams",
+      "start": "2026-06-04",
+      "end": "2026-06-04",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Pop Pop and GMA Joan",
+      "start": "2026-06-04",
+      "end": "2026-06-04",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -342,6 +969,17 @@
       "source": "subscribed"
     },
     {
+      "title": "Patty Carter's birthday",
+      "start": "2026-06-05",
+      "end": "2026-06-05",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "Elena Sutphin",
       "start": "2026-06-05T10:30",
       "end": "2026-06-05T11:30",
@@ -349,6 +987,50 @@
       "location": "1955 Emancipation Hwy Ste 100 Fredericksburg VA-22401-6226",
       "notes": "Appointment with Elena Sutphin at 1955 Emancipation Hwy Ste 1",
       "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Mamon, Elizabeth Latour Hart passed away (2024)",
+      "start": "2026-06-06",
+      "end": "2026-06-06",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Wedding anniversary for John and Virginia Miller (1981)",
+      "start": "2026-06-06",
+      "end": "2026-06-06",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Justus Larsen's birthday (2020)",
+      "start": "2026-06-07",
+      "end": "2026-06-07",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Suzy Brown’s birthday",
+      "start": "2026-06-07",
+      "end": "2026-06-07",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -375,6 +1057,72 @@
       "source": "subscribed"
     },
     {
+      "title": "Mama haircut",
+      "start": "2026-06-08T10:00",
+      "end": "2026-06-08T10:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Bible Study",
+      "start": "2026-06-09T10:00",
+      "end": "2026-06-09T12:00",
+      "all_day": false,
+      "location": "Aletha house, 6712 Lakeland Way, Fredericksburg, VA 22407",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Luke Joseph Appeldorn's birthday",
+      "start": "2026-06-10",
+      "end": "2026-06-10",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Baby 11",
+      "start": "2026-06-10",
+      "end": "2026-06-10",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Piano Lessons with David",
+      "start": "2026-06-10T09:30",
+      "end": "2026-06-10T11:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Date Night",
+      "start": "2026-06-10T17:30",
+      "end": "2026-06-10T18:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "Kids Movie Night!",
       "start": "2026-06-10T17:30",
       "end": "2026-06-10T19:30",
@@ -382,6 +1130,17 @@
       "location": "",
       "notes": "",
       "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Elizabeth and Greg Anniversary",
+      "start": "2026-06-12",
+      "end": "2026-06-12",
+      "all_day": true,
+      "location": "6/12/10",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -441,6 +1200,17 @@
       "source": "subscribed"
     },
     {
+      "title": "James Leo’s Baptism (2025)",
+      "start": "2026-06-14",
+      "end": "2026-06-14",
+      "all_day": true,
+      "location": "",
+      "notes": "pizza, salad, appetizers,",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "Eleventh Sunday",
       "start": "2026-06-14",
       "end": "2026-06-14",
@@ -449,6 +1219,17 @@
       "notes": "//bible.usccb.org/bible/readings/061426.cfm​​​",
       "calendar": "Liturgical Calendar (Little Rose Shop)",
       "color": "#e91e8c",
+      "source": "subscribed"
+    },
+    {
+      "title": "Melody Han birthday (2021)",
+      "start": "2026-06-15",
+      "end": "2026-06-15",
+      "all_day": true,
+      "location": "",
+      "notes": "40pm",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
       "source": "subscribed"
     },
     {
@@ -474,6 +1255,72 @@
       "source": "subscribed"
     },
     {
+      "title": "Mama haircut",
+      "start": "2026-06-15T10:00",
+      "end": "2026-06-15T10:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Bible Study",
+      "start": "2026-06-16T10:00",
+      "end": "2026-06-16T12:00",
+      "all_day": false,
+      "location": "Aletha house, 6712 Lakeland Way, Fredericksburg, VA 22407",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Kimberly Calinger's birthday (1984)",
+      "start": "2026-06-17",
+      "end": "2026-06-17",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "John Paul's first communion anniversary",
+      "start": "2026-06-17",
+      "end": "2026-06-17",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Piano Lessons with David",
+      "start": "2026-06-17T09:30",
+      "end": "2026-06-17T11:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Date Night",
+      "start": "2026-06-17T17:30",
+      "end": "2026-06-17T18:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "Kids Movie Night!",
       "start": "2026-06-17T17:30",
       "end": "2026-06-17T19:30",
@@ -481,6 +1328,17 @@
       "location": "",
       "notes": "",
       "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "John Miller's birthday",
+      "start": "2026-06-18",
+      "end": "2026-06-18",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -518,6 +1376,17 @@
       "source": "subscribed"
     },
     {
+      "title": "Kaitlin's birthday",
+      "start": "2026-06-22",
+      "end": "2026-06-22",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "St. Thomas More",
       "start": "2026-06-22",
       "end": "2026-06-22",
@@ -526,6 +1395,39 @@
       "notes": "Pray for those in public office, ​make St. Thomas S'Mores, ​go for English fish and chips for dinner.   ",
       "calendar": "Liturgical Calendar (Little Rose Shop)",
       "color": "#e91e8c",
+      "source": "subscribed"
+    },
+    {
+      "title": "Mama haircut",
+      "start": "2026-06-22T10:00",
+      "end": "2026-06-22T10:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Bible Study",
+      "start": "2026-06-23T10:00",
+      "end": "2026-06-23T12:00",
+      "all_day": false,
+      "location": "Aletha house, 6712 Lakeland Way, Fredericksburg, VA 22407",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Adam and Kim's wedding anniversary (2017)",
+      "start": "2026-06-24",
+      "end": "2026-06-24",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
       "source": "subscribed"
     },
     {
@@ -540,6 +1442,28 @@
       "source": "subscribed"
     },
     {
+      "title": "Piano Lessons with David",
+      "start": "2026-06-24T09:30",
+      "end": "2026-06-24T11:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Date Night",
+      "start": "2026-06-24T17:30",
+      "end": "2026-06-24T18:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "Kids Movie Night!",
       "start": "2026-06-24T17:30",
       "end": "2026-06-24T19:30",
@@ -547,6 +1471,28 @@
       "location": "",
       "notes": "",
       "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Change toothbrush",
+      "start": "2026-06-25",
+      "end": "2026-06-25",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Joseph Aaron's Baptism day (2020)",
+      "start": "2026-06-26",
+      "end": "2026-06-26",
+      "all_day": true,
+      "location": "",
+      "notes": "2025  - icon",
+      "calendar": "Lauren's Proton Mail",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -573,6 +1519,17 @@
       "source": "subscribed"
     },
     {
+      "title": "Savann's Birthday",
+      "start": "2026-06-28",
+      "end": "2026-06-28",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "Thirteenth Sunday",
       "start": "2026-06-28",
       "end": "2026-06-28",
@@ -581,6 +1538,17 @@
       "notes": "//bible.usccb.org/bible/readings/062826.cfm​​​",
       "calendar": "Liturgical Calendar (Little Rose Shop)",
       "color": "#e91e8c",
+      "source": "subscribed"
+    },
+    {
+      "title": "Alisha and Rocky Chouinard's wedding anniversary",
+      "start": "2026-06-29",
+      "end": "2026-06-29",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
       "source": "subscribed"
     },
     {
@@ -606,6 +1574,72 @@
       "source": "subscribed"
     },
     {
+      "title": "Mama haircut",
+      "start": "2026-06-29T10:00",
+      "end": "2026-06-29T10:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Tic's birthday (1983)",
+      "start": "2026-06-30",
+      "end": "2026-06-30",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Bible Study",
+      "start": "2026-06-30T10:00",
+      "end": "2026-06-30T12:00",
+      "all_day": false,
+      "location": "Aletha house, 6712 Lakeland Way, Fredericksburg, VA 22407",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "John McCarthy birthday",
+      "start": "2026-07-01",
+      "end": "2026-07-01",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Piano Lessons with David",
+      "start": "2026-07-01T09:30",
+      "end": "2026-07-01T11:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Date Night",
+      "start": "2026-07-01T17:30",
+      "end": "2026-07-01T18:30",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "Kids Movie Night!",
       "start": "2026-07-01T17:30",
       "end": "2026-07-01T19:30",
@@ -615,7 +1649,18 @@
       "calendar": "Apple Calendar",
       "color": "#9b59b6",
       "source": "subscribed"
+    },
+    {
+      "title": "Erin and Bill's wedding anniversary (2011)",
+      "start": "2026-07-02",
+      "end": "2026-07-02",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-05-03T15:23:37.506325"
+  "fetched_at": "2026-05-03T16:40:40.608104"
 }
