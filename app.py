@@ -2069,6 +2069,25 @@ class Handler(BaseHTTPRequestHandler):
                     f"/subject?child={_url_q(child)}&subject={_url_q(subject)}")
                 self.end_headers(); return
 
+        if path == "/subject-send-to-mom":
+            from urllib.parse import quote as _url_q
+            form = parse_urlencoded_body(self)
+            def _sf(key, default=""):
+                vals = form.get(key) or [default]
+                return vals[0] if vals else default
+            child    = _sf("child").strip()
+            subject  = _sf("subject").strip()
+            entry_id = _sf("entry_id").strip()
+            viewer = self._get_viewer() or ""
+            if not (_auth.is_admin(viewer) or viewer.lower() == child.lower()):
+                self.send_response(403); self.end_headers(); return
+            from render_subject import mark_entry_sent_to_mom
+            mark_entry_sent_to_mom(child, subject, entry_id)
+            self.send_response(303)
+            self.send_header("Location",
+                f"/subject?child={_url_q(child)}&subject={_url_q(subject)}")
+            self.end_headers(); return
+
         if path in ("/subject-grade-add", "/subject-grade-delete",
                     "/subject-link-add", "/subject-link-delete",
                     "/subject-doc-delete"):

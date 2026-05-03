@@ -27,6 +27,138 @@ from config import child_color
 from ui_helpers import html_page
 
 
+def _recent_school_work(child: str, limit: int = 10) -> list:
+    """Read data/grades.json and return the child's most recent entries
+    (across all subjects), newest first. Read-only; failures yield []."""
+    try:
+        from render_subject import load_grades
+        grades = load_grades() or {}
+    except Exception:
+        return []
+    by_child = grades.get(child) or {}
+    rows = []
+    for subject, node in by_child.items():
+        for ent in (node or {}).get("entries", []) or []:
+            r = dict(ent)
+            r.setdefault("subject", subject)
+            rows.append(r)
+    rows.sort(key=lambda e: e.get("created_at", ""), reverse=True)
+    return rows[:max(limit, 0)]
+
+
+def _letter_grade_local(pct):
+    """Lightweight letter mapping for the history chip — duplicates the
+    13-point scale from render_subject.letter_grade so we don't add a
+    cross-module import for one helper. Returns '—' for None."""
+    if not isinstance(pct, (int, float)):
+        return "—"
+    p = float(pct)
+    if p >= 97: return "A+"
+    if p >= 93: return "A"
+    if p >= 90: return "A-"
+    if p >= 87: return "B+"
+    if p >= 83: return "B"
+    if p >= 80: return "B-"
+    if p >= 77: return "C+"
+    if p >= 73: return "C"
+    if p >= 70: return "C-"
+    if p >= 60: return "D"
+    return "F"
+
+
+def _render_school_work_section(child: str) -> str:
+    """The 'School Work' history block shown below today's assignments."""
+    rows = _recent_school_work(child, limit=10)
+    if not rows:
+        empty = (
+            '<div style="padding:24px 16px;text-align:center;color:var(--ink-muted);'
+            'font-style:italic;background:var(--warm-white);border:1px solid var(--border);'
+            'border-radius:var(--radius-md);">'
+            'No graded work yet — upload your first assignment from a subject page.'
+            '</div>'
+        )
+        return (
+            '<section style="margin-top:32px;">'
+            '<h2 style="font-family:\'Cormorant Garamond\',Georgia,serif;'
+            'font-size:1.5rem;color:var(--ink);margin:0 0 12px 4px;">'
+            '📚 Recent School Work</h2>'
+            f'{empty}</section>'
+        )
+    cards = []
+    for r in rows:
+        subj  = r.get("subject", "")
+        title = r.get("lesson") or (r.get("kind") or "entry").title()
+        when  = (r.get("created_at") or "")[:10]
+        grade = r.get("grade")
+        gtxt  = f"{grade:g}" if isinstance(grade, (int, float)) else "—"
+        letter = _letter_grade_local(grade)
+        feedback = (r.get("feedback") or "").strip()
+        strengths = r.get("strengths") or []
+        growth = r.get("growth_edges") or []
+        rationale = (r.get("grade_rationale") or "").strip()
+        badge = "AI" if r.get("ai_assessed") else "manual"
+
+        fb_html = ""
+        if feedback:
+            fb_html = (
+                f'<div style="margin-top:6px;font-size:.92rem;line-height:1.45;'
+                f'color:var(--ink);white-space:pre-wrap;">{escape(feedback)}</div>'
+            )
+        chips = ""
+        if strengths:
+            chips += (
+                '<div style="margin-top:8px;font-size:.85rem;">'
+                '<span style="font-weight:600;color:#246b3a;">✦ Strengths: </span>'
+                + " · ".join(escape(str(s)) for s in strengths)
+                + '</div>'
+            )
+        if growth:
+            chips += (
+                '<div style="margin-top:4px;font-size:.85rem;">'
+                '<span style="font-weight:600;color:#1e3566;">↗ Try next: </span>'
+                + " · ".join(escape(str(g)) for g in growth)
+                + '</div>'
+            )
+        if rationale:
+            chips += (
+                '<div style="margin-top:6px;font-size:.82rem;color:var(--ink-muted);'
+                'font-style:italic;">'
+                f'Father Gregory: {escape(rationale)}</div>'
+            )
+
+        from urllib.parse import urlencode as _ue
+        subj_url = "/subject?" + _ue({"child": child, "subject": subj})
+        cards.append(
+            f'<div style="background:var(--warm-white);border:1px solid var(--border);'
+            f'border-radius:var(--radius-md);padding:12px 14px;margin-bottom:10px;'
+            f'box-shadow:var(--shadow-sm);">'
+            f'<div style="display:flex;justify-content:space-between;align-items:baseline;'
+            f'gap:10px;flex-wrap:wrap;">'
+            f'<div style="min-width:0;flex:1;">'
+            f'<a href="{escape(subj_url)}" style="font-weight:600;color:var(--ink);'
+            f'text-decoration:none;border-bottom:1px dotted var(--gold-mid);">'
+            f'{escape(subj)}</a> · '
+            f'<span style="color:var(--ink-muted);font-size:.92rem;">{escape(title)}</span>'
+            f'</div>'
+            f'<div style="font-weight:700;color:var(--gold);white-space:nowrap;">'
+            f'{escape(gtxt)} <span style="font-size:.85rem;color:var(--ink-muted);">'
+            f'({escape(letter)})</span></div>'
+            f'</div>'
+            f'<div style="font-size:.78rem;color:var(--ink-muted);margin-top:2px;">'
+            f'{escape(when)} · {escape(badge)}</div>'
+            f'{fb_html}{chips}'
+            f'</div>'
+        )
+    return (
+        '<section style="margin-top:32px;">'
+        '<h2 style="font-family:\'Cormorant Garamond\',Georgia,serif;'
+        'font-size:1.5rem;color:var(--ink);margin:0 0 12px 4px;">'
+        '📚 Recent School Work</h2>'
+        + "".join(cards)
+        + '</section>'
+    )
+
+
 _STUDENT_TOGGLE_JS = """
 <script>
 (function() {
@@ -204,6 +336,9 @@ def render_student_page(child: str, target_date_str: str = "") -> str:
 
   <!-- Subject sections -->
   {sections_html}
+
+  <!-- Recent school work (history with AI feedback) -->
+  {_render_school_work_section(child)}
 
   <!-- Message Mom button (uses existing #msg-mom-modal injected by top_nav) -->
   <div style="margin-top:28px;text-align:center;">

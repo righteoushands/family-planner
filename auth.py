@@ -41,6 +41,7 @@ CHILD_ALLOWED_GET: dict[str, frozenset] = {
 CHILD_POST_ALLOWED = frozenset([
     "/toggle-task", "/message-mom", "/change-pin", "/task-override",
     "/subject-upload-image", "/subject-link-add", "/subject-doc-upload",
+    "/subject-send-to-mom",
 ])
 
 # ── PIN storage ───────────────────────────────────────────────────────────────

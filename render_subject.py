@@ -19,6 +19,9 @@ from urllib.parse import quote, urlencode
 from datetime import datetime
 
 from ui_helpers import html_page, page_header
+import father_gregory
+from data_helpers import add_assignment_analysis
+import auth as _auth
 
 GRADES_PATH = "data/grades.json"
 UPLOAD_ROOT = "uploads"
@@ -251,6 +254,44 @@ def ai_grade_image(image_bytes: bytes, mime: str, child: str, subject: str,
     except Exception as e:
         return {"ok": False, "grade": None, "feedback": "",
                 "error": str(e)[:200]}
+
+
+def ai_grade_image_gregory(image_bytes: bytes, mime: str, child: str,
+                           subject: str, lesson: str = "",
+                           kind: str = "test") -> dict:
+    """Grade a student-uploaded image using the Father Gregory persona
+    (Anthropic claude-opus-4-5). Returns a superset of ai_grade_image's
+    contract:
+        {"ok": bool, "grade": float|None, "feedback": str,
+         "strengths": list, "growth_edges": list, "grade_rationale": str,
+         "parsed": dict (full 16-key Father Gregory output),
+         "error": str}
+    """
+    desc = f"Kind: {kind}"
+    if lesson:
+        desc += f" · Lesson: {lesson}"
+    result = father_gregory.analyze_image(
+        image_bytes, mime,
+        child_hint=child, subject_hint=subject,
+        lesson_hint=lesson, description=desc,
+    )
+    if not result.get("ok"):
+        return {"ok": False, "grade": None, "feedback": "",
+                "strengths": [], "growth_edges": [], "grade_rationale": "",
+                "parsed": {}, "error": result.get("error", "ai_failed")}
+    parsed = result.get("parsed") or {}
+    letter = (parsed.get("suggested_grade") or "").strip()
+    pct = father_gregory.letter_to_pct(letter)
+    return {
+        "ok": True,
+        "grade": pct,
+        "feedback": (parsed.get("gregory_feedback") or "").strip(),
+        "strengths": parsed.get("strengths") or [],
+        "growth_edges": parsed.get("growth_edges") or [],
+        "grade_rationale": (parsed.get("grade_rationale") or "").strip(),
+        "parsed": parsed,
+        "error": "",
+    }
 
 
 # ── HTML rendering ───────────────────────────────────────────────────────────
@@ -522,10 +563,65 @@ def _entry_card(e: dict, viewer_is_admin: bool) -> str:
                     f'style="max-width:120px;max-height:120px;border-radius:6px;'
                     f'border:1px solid var(--border);"></a>')
     feedback = (e.get("feedback") or "").strip()
-    fb_html = f'<div style="font-size:.88rem;color:var(--ink-muted);margin-top:4px;white-space:pre-wrap;">{_e(feedback)}</div>' if feedback else ""
+    fb_html = f'<div style="font-size:.88rem;color:var(--ink);margin-top:6px;white-space:pre-wrap;line-height:1.45;">{_e(feedback)}</div>' if feedback else ""
+
+    # Father Gregory extras (chips below feedback). All visible to BOTH
+    # child and admin — same gating as the existing feedback paragraph.
+    strengths = e.get("strengths") or []
+    growth = e.get("growth_edges") or []
+    rationale = (e.get("grade_rationale") or "").strip()
+    fg_html = ""
+    if strengths or growth or rationale:
+        bits = []
+        if strengths:
+            bits.append(
+                '<div style="margin-top:6px;font-size:.85rem;">'
+                '<span style="font-weight:600;color:#246b3a;">✦ Strengths: </span>'
+                + " · ".join(_e(str(s)) for s in strengths)
+                + '</div>'
+            )
+        if growth:
+            bits.append(
+                '<div style="margin-top:4px;font-size:.85rem;">'
+                '<span style="font-weight:600;color:#1e3566;">↗ Try next: </span>'
+                + " · ".join(_e(str(g)) for g in growth)
+                + '</div>'
+            )
+        if rationale:
+            bits.append(
+                '<div style="margin-top:6px;font-size:.82rem;color:var(--ink-muted);'
+                'font-style:italic;">'
+                f'Father Gregory: {_e(rationale)}</div>'
+            )
+        fg_html = "".join(bits)
+
     when = (e.get("created_at") or "")[:10]
     title = e.get("lesson") or e.get("kind", "entry").title()
     badge = "AI" if e.get("ai_assessed") else "manual"
+
+    # Send-to-Mom action: only for AI-assessed entries; toggles to a chip
+    # once sent. Cross-link to the analyzer queue is automatic on upload —
+    # this button only fires the Message-Mom notification.
+    send_html = ""
+    if e.get("ai_assessed"):
+        if e.get("sent_to_mom_at"):
+            send_html = (
+                '<span style="display:inline-block;background:rgba(46,125,50,0.10);'
+                'color:#246b3a;padding:3px 10px;border-radius:999px;font-size:.78rem;'
+                'font-weight:600;border:1px solid rgba(46,125,50,0.25);">'
+                '✓ Sent to Mom</span>'
+            )
+        else:
+            send_html = (
+                f'<form method="post" action="/subject-send-to-mom" style="display:inline;">'
+                f'<input type="hidden" name="child" value="{_e(e.get("child",""))}">'
+                f'<input type="hidden" name="subject" value="{_e(e.get("subject",""))}">'
+                f'<input type="hidden" name="entry_id" value="{_e(e.get("id",""))}">'
+                f'<button type="submit" style="background:#7c3aed;color:white;border:0;'
+                f'border-radius:999px;padding:4px 12px;font-size:.78rem;font-weight:600;'
+                f'cursor:pointer;">📥 Send to Mom for review</button></form>'
+            )
+
     delete_btn = ""
     if viewer_is_admin:
         delete_btn = (
@@ -537,7 +633,7 @@ def _entry_card(e: dict, viewer_is_admin: bool) -> str:
             f'cursor:pointer;font-size:.8rem;">delete</button></form>'
         )
     return f"""
-<div style="display:flex;gap:10px;padding:8px;background:#fcfaf6;
+<div style="display:flex;gap:10px;padding:10px;background:#fcfaf6;
             border:1px solid var(--border-light);border-radius:8px;">
   {img_html}
   <div style="flex:1;min-width:0;">
@@ -551,6 +647,10 @@ def _entry_card(e: dict, viewer_is_admin: bool) -> str:
       {_e(e.get("kind","").title())} · {_e(when)} · {badge} {delete_btn}
     </div>
     {fb_html}
+    {fg_html}
+    <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      {send_html}
+    </div>
   </div>
 </div>"""
 
@@ -657,16 +757,50 @@ def add_image_entry(child: str, subject: str, week: int | None, kind: str,
 
     grade = None
     feedback = ""
+    strengths: list = []
+    growth_edges: list = []
+    grade_rationale = ""
+    parsed_full: dict = {}
     ai_assessed = False
     err = ""
     if do_ai:
-        result = ai_grade_image(image_bytes, mime, child, subject, lesson, kind)
+        result = ai_grade_image_gregory(image_bytes, mime, child, subject,
+                                         lesson, kind)
         if result["ok"]:
             grade = result["grade"]
             feedback = result["feedback"]
+            strengths = result.get("strengths") or []
+            growth_edges = result.get("growth_edges") or []
+            grade_rationale = result.get("grade_rationale") or ""
+            parsed_full = result.get("parsed") or {}
             ai_assessed = True
         else:
             err = result["error"]
+
+    # Auto cross-link to Lauren's /assignment-analyzer queue (D2: cross-link
+    # auto, notification manual). Failures here must never break the upload.
+    analysis_id = ""
+    if ai_assessed:
+        try:
+            analysis_record = add_assignment_analysis({
+                "source_kind":     "student_upload",
+                "source_filename": original_name or "",
+                "source_mime":     mime or "",
+                "upload_path":     rel_path,
+                "upload_paths":    [{"path": rel_path, "kind": "image",
+                                      "mime": mime or "",
+                                      "filename": original_name or ""}],
+                "child_hint":      child,
+                "subject_hint":    subject,
+                "raw_text":        "",
+                "description":     f"Kind: {kind}" + (f" · Lesson: {lesson}"
+                                                       if lesson else ""),
+                "parsed":          parsed_full,
+                "status":          "pending_review",
+            })
+            analysis_id = (analysis_record or {}).get("id", "")
+        except Exception as _xlink_err:
+            err = (err + " | " if err else "") + f"cross_link_failed: {_xlink_err}"[:200]
 
     entry = {
         "id": eid,
@@ -677,14 +811,53 @@ def add_image_entry(child: str, subject: str, week: int | None, kind: str,
         "lesson": lesson or "",
         "grade": grade,
         "feedback": feedback,
+        "strengths": strengths,
+        "growth_edges": growth_edges,
+        "grade_rationale": grade_rationale,
         "image_path": rel_path,
         "created_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
         "ai_assessed": ai_assessed,
+        "analysis_id": analysis_id,
+        "sent_to_mom_at": "",
     }
     g = load_grades()
     _node(g, child, subject)["entries"].append(entry)
     save_grades(g)
-    return {"ok": True, "entry": entry, "ai_error": err}
+    return {"ok": True, "entry": entry, "ai_error": err,
+            "analysis_id": analysis_id}
+
+
+def mark_entry_sent_to_mom(child: str, subject: str, entry_id: str) -> dict:
+    """Stamp the entry as 'sent to Mom' and post a Message-Mom inbox note.
+    Idempotent: a second call returns ok with already_sent=True and does not
+    re-notify."""
+    g = load_grades()
+    n = _node(g, child, subject)
+    target = None
+    for e in n["entries"]:
+        if e.get("id") == entry_id:
+            target = e
+            break
+    if target is None:
+        return {"ok": False, "error": "not_found"}
+    if target.get("sent_to_mom_at"):
+        return {"ok": True, "already_sent": True,
+                "sent_at": target["sent_to_mom_at"]}
+    target["sent_to_mom_at"] = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+    save_grades(g)
+    msg_err = ""
+    try:
+        lesson_bit = f" ({target.get('lesson')})" if target.get("lesson") else ""
+        _auth.save_message(
+            (child or "").lower(),
+            f"📥 Submitted {subject}{lesson_bit} for Father Gregory's review — "
+            f"see /assignment-analyzer"
+        )
+    except Exception as e:
+        msg_err = str(e)[:200]
+    return {"ok": True, "already_sent": False,
+            "sent_at": target["sent_to_mom_at"],
+            "msg_error": msg_err}
 
 
 def add_manual_entry(child: str, subject: str, week, kind: str,
