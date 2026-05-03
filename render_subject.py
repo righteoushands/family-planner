@@ -73,6 +73,32 @@ def _rel_upload(*parts: str) -> str:
     return "/".join(parts)
 
 
+# ── Music URL detection (for Resources-tab grouping) ─────────────────────────
+
+_MUSIC_HOSTS = frozenset([
+    "music.apple.com", "apple.co",
+    "open.spotify.com", "spotify.com",
+    "music.youtube.com", "soundcloud.com",
+    "tidal.com", "pandora.com", "bandcamp.com",
+])
+
+
+def _is_music_url(url: str) -> bool:
+    """Return True if the URL host is a known music-platform domain.
+    Suffix-match so subdomains (e.g. 'embed.spotify.com') still classify."""
+    try:
+        from urllib.parse import urlparse as _up
+        host = (_up(url).hostname or "").lower()
+        if not host:
+            return False
+        for h in _MUSIC_HOSTS:
+            if host == h or host.endswith("." + h):
+                return True
+    except Exception:
+        return False
+    return False
+
+
 # ── Curriculum reading ───────────────────────────────────────────────────────
 
 def _load_curriculum() -> dict:
@@ -350,205 +376,7 @@ def render_subject_page(child: str, subject: str, viewer_is_admin: bool = True) 
 </div>
 """
 
-    # ── Upload (image → AI grade) ──
-    upload_form = f"""
-<section style="background:var(--warm-white);border:1px solid var(--border);
-                border-radius:var(--radius-md);padding:16px;margin-bottom:20px;">
-  <h2 style="margin-bottom:8px;">Upload a test or assignment</h2>
-  <p style="font-size:.9rem;color:var(--ink-muted);margin-bottom:10px;">
-    Snap a photo of your work. We'll save it and an AI tutor will give you a grade and feedback.
-  </p>
-  <form method="post" action="/subject-upload-image" enctype="multipart/form-data"
-        style="display:grid;gap:10px;">
-    <input type="hidden" name="child" value="{_e(child)}">
-    <input type="hidden" name="subject" value="{_e(subject)}">
-    <div style="display:flex;flex-wrap:wrap;gap:10px;">
-      <label style="flex:1;min-width:120px;">
-        Week
-        <input type="number" name="week" value="{cur_week}" min="1" max="60"
-               style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;">
-      </label>
-      <label style="flex:1;min-width:140px;">
-        Kind
-        <select name="kind" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;">
-          {''.join(f'<option value="{k}">{k.title()}</option>' for k in KIND_OPTIONS)}
-        </select>
-      </label>
-      <label style="flex:2;min-width:200px;">
-        Lesson / Title
-        <input type="text" name="lesson" placeholder="e.g. Lesson 75 chapter test"
-               style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;">
-      </label>
-    </div>
-    <input type="file" name="file" accept="image/*" capture="environment" required>
-    <label style="font-size:.9rem;">
-      <input type="checkbox" name="ai_grade" value="1" checked> Ask AI to grade and give feedback
-    </label>
-    <button type="submit" style="padding:10px 16px;background:var(--gold);color:#fff;
-            border:0;border-radius:8px;font-weight:600;cursor:pointer;">
-      Upload &amp; Grade
-    </button>
-  </form>
-</section>
-"""
-
-    # ── Manual grade entry (admins / parents) ──
-    manual_form = ""
-    if viewer_is_admin:
-        manual_form = f"""
-<section style="background:var(--warm-white);border:1px solid var(--border);
-                border-radius:var(--radius-md);padding:16px;margin-bottom:20px;">
-  <h2 style="margin-bottom:8px;">Record a grade by hand</h2>
-  <form method="post" action="/subject-grade-add"
-        style="display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
-    <input type="hidden" name="child" value="{_e(child)}">
-    <input type="hidden" name="subject" value="{_e(subject)}">
-    <label>Week<input type="number" name="week" value="{cur_week}" min="1" max="60"
-           style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;"></label>
-    <label>Kind
-      <select name="kind" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;">
-        {''.join(f'<option value="{k}">{k.title()}</option>' for k in KIND_OPTIONS)}
-      </select>
-    </label>
-    <label>Title<input type="text" name="lesson" placeholder="Lesson / title"
-           style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;"></label>
-    <label>Grade (0-100)<input type="number" name="grade" min="0" max="100" step="0.1" required
-           style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;"></label>
-    <label style="grid-column:1/-1;">Feedback / notes
-      <textarea name="feedback" rows="2"
-        style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;"></textarea>
-    </label>
-    <button type="submit" style="grid-column:1/-1;padding:8px 14px;background:var(--ink);color:#fff;
-            border:0;border-radius:8px;font-weight:600;cursor:pointer;">Save grade</button>
-  </form>
-</section>
-"""
-
-    # ── Curriculum-by-week table with attached entries ──
-    rows = []
-    weeks_with_extras = sorted(set(
-        [w for w, _ in weeks] +
-        [w for w in by_week.keys() if isinstance(w, int)]
-    ))
-    week_text = {w: txt for w, txt in weeks}
-    for w in weeks_with_extras:
-        txt = week_text.get(w, "(no curriculum text)")
-        ents = sorted(by_week.get(w, []), key=lambda e: e.get("created_at", ""))
-        ent_html = ""
-        if ents:
-            ent_html = "<div style='margin-top:6px;display:grid;gap:6px;'>"
-            for e in ents:
-                ent_html += _entry_card(e, viewer_is_admin)
-            ent_html += "</div>"
-        is_now = (w == cur_week)
-        rows.append(f"""
-<tr style="background:{'#fef9e8' if is_now else 'transparent'};">
-  <td style="padding:8px 6px;border-top:1px solid var(--border-light);
-             vertical-align:top;font-weight:700;width:64px;">Wk {w}</td>
-  <td style="padding:8px 6px;border-top:1px solid var(--border-light);">
-    <div style="white-space:pre-wrap;">{_e(txt)}</div>
-    {ent_html}
-  </td>
-</tr>""")
-
-    # Entries with no week
-    orphan = by_week.get(None, [])
-    orphan_html = ""
-    if orphan:
-        orphan_html = "<h3 style='margin:18px 0 6px;'>Other graded work</h3><div style='display:grid;gap:6px;'>"
-        for e in sorted(orphan, key=lambda e: e.get("created_at", "")):
-            orphan_html += _entry_card(e, viewer_is_admin)
-        orphan_html += "</div>"
-
-    weeks_section = f"""
-<section style="background:var(--warm-white);border:1px solid var(--border);
-                border-radius:var(--radius-md);padding:16px;margin-bottom:20px;">
-  <h2 style="margin-bottom:8px;">Curriculum &amp; graded work</h2>
-  <table style="width:100%;border-collapse:collapse;font-size:.95rem;">
-    <tbody>
-      {''.join(rows) or '<tr><td style="padding:10px;color:var(--ink-muted);">No curriculum entered yet.</td></tr>'}
-    </tbody>
-  </table>
-  {orphan_html}
-</section>
-"""
-
-    # ── Links + documents ──
-    links_html = ""
-    for i, lk in enumerate(node.get("links", [])):
-        delete_btn = ""
-        if viewer_is_admin:
-            delete_btn = (
-                f'<form method="post" action="/subject-link-delete" style="display:inline;">'
-                f'<input type="hidden" name="child" value="{_e(child)}">'
-                f'<input type="hidden" name="subject" value="{_e(subject)}">'
-                f'<input type="hidden" name="idx" value="{i}">'
-                f'<button type="submit" style="background:none;border:0;color:#b91c1c;'
-                f'cursor:pointer;font-size:.85rem;">remove</button></form>'
-            )
-        links_html += (
-            f'<li style="margin:4px 0;"><a href="{_e(lk.get("url",""))}" target="_blank" '
-            f'rel="noopener" style="color:var(--gold);">{_e(lk.get("label") or lk.get("url",""))}</a> '
-            f'{delete_btn}</li>'
-        )
-
-    docs_html = ""
-    for d in node.get("documents", []):
-        rel = d.get("path", "")
-        delete_btn = ""
-        if viewer_is_admin:
-            delete_btn = (
-                f'<form method="post" action="/subject-doc-delete" style="display:inline;">'
-                f'<input type="hidden" name="child" value="{_e(child)}">'
-                f'<input type="hidden" name="subject" value="{_e(subject)}">'
-                f'<input type="hidden" name="path" value="{_e(rel)}">'
-                f'<button type="submit" style="background:none;border:0;color:#b91c1c;'
-                f'cursor:pointer;font-size:.85rem;">remove</button></form>'
-            )
-        docs_html += (
-            f'<li style="margin:4px 0;"><a href="/{_e(rel)}" target="_blank" '
-            f'style="color:var(--gold);">{_e(d.get("label") or os.path.basename(rel))}</a> '
-            f'{delete_btn}</li>'
-        )
-
-    library = f"""
-<section style="background:var(--warm-white);border:1px solid var(--border);
-                border-radius:var(--radius-md);padding:16px;margin-bottom:20px;">
-  <h2 style="margin-bottom:8px;">Reference links &amp; documents</h2>
-  <div style="display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));">
-    <div>
-      <h3 style="font-size:1rem;margin-bottom:4px;">Links</h3>
-      <ul style="list-style:disc;padding-left:18px;">{links_html or '<li style="color:var(--ink-muted);list-style:none;padding:0;">None yet.</li>'}</ul>
-      <form method="post" action="/subject-link-add" style="margin-top:8px;display:grid;gap:6px;">
-        <input type="hidden" name="child" value="{_e(child)}">
-        <input type="hidden" name="subject" value="{_e(subject)}">
-        <input type="text" name="label" placeholder="Label (optional)"
-          style="padding:6px;border:1px solid var(--border);border-radius:6px;">
-        <input type="url" name="url" placeholder="https://..." required
-          style="padding:6px;border:1px solid var(--border);border-radius:6px;">
-        <button type="submit" style="padding:6px 10px;background:var(--ink);color:#fff;
-          border:0;border-radius:6px;cursor:pointer;">Add link</button>
-      </form>
-    </div>
-    <div>
-      <h3 style="font-size:1rem;margin-bottom:4px;">Documents</h3>
-      <ul style="list-style:disc;padding-left:18px;">{docs_html or '<li style="color:var(--ink-muted);list-style:none;padding:0;">None yet.</li>'}</ul>
-      <form method="post" action="/subject-doc-upload" enctype="multipart/form-data"
-            style="margin-top:8px;display:grid;gap:6px;">
-        <input type="hidden" name="child" value="{_e(child)}">
-        <input type="hidden" name="subject" value="{_e(subject)}">
-        <input type="text" name="label" placeholder="Label (optional)"
-          style="padding:6px;border:1px solid var(--border);border-radius:6px;">
-        <input type="file" name="file" required>
-        <button type="submit" style="padding:6px 10px;background:var(--ink);color:#fff;
-          border:0;border-radius:6px;cursor:pointer;">Upload document</button>
-      </form>
-    </div>
-  </div>
-</section>
-"""
-
-    body = head + upload_form + manual_form + weeks_section + library
+    body = head + _render_subject_tabs_html(child, subject, node, weeks, by_week, cur_week, viewer_is_admin)
     return html_page(f"{subject} · {child}", body)
 
 
@@ -687,6 +515,351 @@ def _entry_card(e: dict, viewer_is_admin: bool) -> str:
     </div>
   </div>
 </div>"""
+
+
+# ── Subject-page tabbed sections (Phase 5 redesign) ──────────────────────────
+
+def _render_assignments_tab(child: str, subject: str,
+                            weeks: list, cur_week: int) -> str:
+    """Curriculum sequence. Each week is a <details> block; the current
+    week opens by default. Day segments shown via week_day_segments() when
+    present, else the raw curriculum text in a pre-wrap div."""
+    from data_helpers import week_day_segments
+    if not weeks:
+        return (
+            '<section style="background:var(--warm-white);border:1px solid var(--border);'
+            'border-radius:var(--radius-md);padding:16px;margin-bottom:20px;">'
+            '<p style="color:var(--ink-muted);margin:0;">No curriculum entered yet.</p>'
+            '</section>'
+        )
+    blocks = []
+    for (w, text) in weeks:
+        is_now = (w == cur_week)
+        open_attr = " open" if is_now else ""
+        suffix = " · current" if is_now else ""
+        segments = week_day_segments(text)
+        if segments:
+            li_html = "".join(
+                f'<li style="margin:4px 0;"><strong>Day {d}:</strong> {_e(seg)}</li>'
+                for (d, seg) in segments
+            )
+            body_html = (
+                f'<ul style="margin:8px 0 0;padding-left:20px;">{li_html}</ul>'
+            )
+        else:
+            body_html = (
+                f'<div style="margin-top:8px;white-space:pre-wrap;">{_e(text)}</div>'
+            )
+        bg = "#fef9e8" if is_now else "white"
+        blocks.append(
+            f'<details{open_attr} style="background:{bg};border:1px solid var(--border-light);'
+            f'border-radius:8px;padding:10px 14px;margin-bottom:8px;">'
+            f'<summary style="cursor:pointer;font-weight:700;font-size:.95rem;">'
+            f'Week {w}{suffix}</summary>{body_html}</details>'
+        )
+    return (
+        '<section style="background:var(--warm-white);border:1px solid var(--border);'
+        'border-radius:var(--radius-md);padding:16px;margin-bottom:20px;">'
+        '<h2 style="margin:0 0 12px;">Curriculum sequence</h2>'
+        + "".join(blocks) +
+        '</section>'
+    )
+
+
+def _render_resources_tab(child: str, subject: str,
+                          node: dict, viewer_is_admin: bool) -> str:
+    """Three subsections: Links, Music, Documents. Read-only for kids;
+    add forms shown only for admins. Music = links with type=='music'
+    (URL-sniffed at write time by add_link)."""
+    all_links = node.get("links", []) or []
+    music_links = [(i, lk) for i, lk in enumerate(all_links)
+                   if (lk.get("type") or "") == "music"]
+    plain_links = [(i, lk) for i, lk in enumerate(all_links)
+                   if (lk.get("type") or "") != "music"]
+
+    def _link_li(i, lk, music=False):
+        delete_btn = ""
+        if viewer_is_admin:
+            delete_btn = (
+                f'<form method="post" action="/subject-link-delete" style="display:inline;">'
+                f'<input type="hidden" name="child" value="{_e(child)}">'
+                f'<input type="hidden" name="subject" value="{_e(subject)}">'
+                f'<input type="hidden" name="idx" value="{i}">'
+                f'<button type="submit" style="background:none;border:0;color:#b91c1c;'
+                f'cursor:pointer;font-size:.85rem;">remove</button></form>'
+            )
+        icon = "&#127925; " if music else ""
+        return (
+            f'<li style="margin:4px 0;">{icon}<a href="{_e(lk.get("url",""))}" target="_blank" '
+            f'rel="noopener" style="color:var(--gold);">'
+            f'{_e(lk.get("label") or lk.get("url",""))}</a> {delete_btn}</li>'
+        )
+
+    plain_html = "".join(_link_li(i, lk) for (i, lk) in plain_links) or \
+        '<li style="color:var(--ink-muted);list-style:none;padding:0;">None yet.</li>'
+    music_html = "".join(_link_li(i, lk, music=True) for (i, lk) in music_links) or \
+        '<li style="color:var(--ink-muted);list-style:none;padding:0;">None yet.</li>'
+
+    docs_html = ""
+    for d in node.get("documents", []) or []:
+        rel = d.get("path", "")
+        delete_btn = ""
+        if viewer_is_admin:
+            delete_btn = (
+                f'<form method="post" action="/subject-doc-delete" style="display:inline;">'
+                f'<input type="hidden" name="child" value="{_e(child)}">'
+                f'<input type="hidden" name="subject" value="{_e(subject)}">'
+                f'<input type="hidden" name="path" value="{_e(rel)}">'
+                f'<button type="submit" style="background:none;border:0;color:#b91c1c;'
+                f'cursor:pointer;font-size:.85rem;">remove</button></form>'
+            )
+        docs_html += (
+            f'<li style="margin:4px 0;"><a href="/{_e(rel)}" target="_blank" '
+            f'style="color:var(--gold);">{_e(d.get("label") or os.path.basename(rel))}</a> '
+            f'{delete_btn}</li>'
+        )
+    if not docs_html:
+        docs_html = '<li style="color:var(--ink-muted);list-style:none;padding:0;">None yet.</li>'
+
+    add_link_form = ""
+    add_music_form = ""
+    add_doc_form = ""
+    if viewer_is_admin:
+        add_link_form = (
+            f'<form method="post" action="/subject-link-add" style="margin-top:8px;display:grid;gap:6px;">'
+            f'<input type="hidden" name="child" value="{_e(child)}">'
+            f'<input type="hidden" name="subject" value="{_e(subject)}">'
+            f'<input type="text" name="label" placeholder="Label (optional)" '
+            f'style="padding:6px;border:1px solid var(--border);border-radius:6px;">'
+            f'<input type="url" name="url" placeholder="https://..." required '
+            f'style="padding:6px;border:1px solid var(--border);border-radius:6px;">'
+            f'<button type="submit" style="padding:6px 10px;background:var(--ink);color:#fff;'
+            f'border:0;border-radius:6px;cursor:pointer;">Add link</button>'
+            f'</form>'
+        )
+        add_music_form = (
+            f'<form method="post" action="/subject-link-add" style="margin-top:8px;display:grid;gap:6px;">'
+            f'<input type="hidden" name="child" value="{_e(child)}">'
+            f'<input type="hidden" name="subject" value="{_e(subject)}">'
+            f'<input type="text" name="label" placeholder="Label (optional)" '
+            f'style="padding:6px;border:1px solid var(--border);border-radius:6px;">'
+            f'<input type="url" name="url" placeholder="Apple Music / Spotify / YouTube URL" required '
+            f'style="padding:6px;border:1px solid var(--border);border-radius:6px;">'
+            f'<button type="submit" style="padding:6px 10px;background:var(--ink);color:#fff;'
+            f'border:0;border-radius:6px;cursor:pointer;">&#127925; Add music link</button>'
+            f'</form>'
+        )
+        add_doc_form = (
+            f'<form method="post" action="/subject-doc-upload" enctype="multipart/form-data" '
+            f'style="margin-top:8px;display:grid;gap:6px;">'
+            f'<input type="hidden" name="child" value="{_e(child)}">'
+            f'<input type="hidden" name="subject" value="{_e(subject)}">'
+            f'<input type="text" name="label" placeholder="Label (optional)" '
+            f'style="padding:6px;border:1px solid var(--border);border-radius:6px;">'
+            f'<input type="file" name="file" required>'
+            f'<button type="submit" style="padding:6px 10px;background:var(--ink);color:#fff;'
+            f'border:0;border-radius:6px;cursor:pointer;">Upload document</button>'
+            f'</form>'
+        )
+
+    return (
+        '<section style="background:var(--warm-white);border:1px solid var(--border);'
+        'border-radius:var(--radius-md);padding:16px;margin-bottom:20px;">'
+        '<div style="display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));">'
+        '<div>'
+        '<h3 style="font-size:1rem;margin:0 0 6px;">Links</h3>'
+        f'<ul style="list-style:disc;padding-left:18px;margin:0;">{plain_html}</ul>'
+        f'{add_link_form}'
+        '</div>'
+        '<div>'
+        '<h3 style="font-size:1rem;margin:0 0 6px;">&#127925; Music</h3>'
+        f'<ul style="list-style:none;padding-left:0;margin:0;">{music_html}</ul>'
+        f'{add_music_form}'
+        '</div>'
+        '<div>'
+        '<h3 style="font-size:1rem;margin:0 0 6px;">Documents</h3>'
+        f'<ul style="list-style:disc;padding-left:18px;margin:0;">{docs_html}</ul>'
+        f'{add_doc_form}'
+        '</div>'
+        '</div>'
+        '</section>'
+    )
+
+
+def _render_grades_tab(child: str, subject: str, by_week: dict,
+                       cur_week: int, viewer_is_admin: bool) -> str:
+    """Upload form at top, then admin manual-grade form, then per-week
+    entry cards. No curriculum text — that's in the Assignments tab."""
+    upload_form = f"""
+<section style="background:var(--warm-white);border:1px solid var(--border);
+                border-radius:var(--radius-md);padding:16px;margin-bottom:20px;">
+  <h2 style="margin:0 0 8px;">Upload a test or assignment</h2>
+  <p style="font-size:.9rem;color:var(--ink-muted);margin:0 0 10px;">
+    Snap a photo of your work. We'll save it and an AI tutor will give you a grade and feedback.
+  </p>
+  <form method="post" action="/subject-upload-image" enctype="multipart/form-data"
+        style="display:grid;gap:10px;">
+    <input type="hidden" name="child" value="{_e(child)}">
+    <input type="hidden" name="subject" value="{_e(subject)}">
+    <div style="display:flex;flex-wrap:wrap;gap:10px;">
+      <label style="flex:1;min-width:120px;">
+        Week
+        <input type="number" name="week" value="{cur_week}" min="1" max="60"
+               style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;">
+      </label>
+      <label style="flex:1;min-width:140px;">
+        Kind
+        <select name="kind" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;">
+          {''.join(f'<option value="{k}">{k.title()}</option>' for k in KIND_OPTIONS)}
+        </select>
+      </label>
+      <label style="flex:2;min-width:200px;">
+        Lesson / Title
+        <input type="text" name="lesson" placeholder="e.g. Lesson 75 chapter test"
+               style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;">
+      </label>
+    </div>
+    <input type="file" name="file" accept="image/*" capture="environment" required>
+    <label style="font-size:.9rem;">
+      <input type="checkbox" name="ai_grade" value="1" checked> Ask AI to grade and give feedback
+    </label>
+    <button type="submit" style="padding:10px 16px;background:var(--gold);color:#fff;
+            border:0;border-radius:8px;font-weight:600;cursor:pointer;">
+      Upload &amp; Grade
+    </button>
+  </form>
+</section>
+"""
+
+    manual_form = ""
+    if viewer_is_admin:
+        kind_opts = "".join(
+            f'<option value="{k}">{k.title()}</option>' for k in KIND_OPTIONS
+        )
+        manual_form = f"""
+<section style="background:var(--warm-white);border:1px solid var(--border);
+                border-radius:var(--radius-md);padding:16px;margin-bottom:20px;">
+  <h2 style="margin:0 0 8px;">Record a grade by hand</h2>
+  <form method="post" action="/subject-grade-add"
+        style="display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
+    <input type="hidden" name="child" value="{_e(child)}">
+    <input type="hidden" name="subject" value="{_e(subject)}">
+    <label>Week<input type="number" name="week" value="{cur_week}" min="1" max="60"
+           style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;"></label>
+    <label>Kind
+      <select name="kind" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;">
+        {kind_opts}
+      </select>
+    </label>
+    <label>Title<input type="text" name="lesson" placeholder="Lesson / title"
+           style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;"></label>
+    <label>Grade (0-100)<input type="number" name="grade" min="0" max="100" step="0.1" required
+           style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;"></label>
+    <label style="grid-column:1/-1;">Feedback / notes
+      <textarea name="feedback" rows="2"
+        style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;"></textarea>
+    </label>
+    <button type="submit" style="grid-column:1/-1;padding:8px 14px;background:var(--ink);color:#fff;
+            border:0;border-radius:8px;font-weight:600;cursor:pointer;">Save grade</button>
+  </form>
+</section>
+"""
+
+    week_blocks = []
+    int_weeks = sorted([w for w in by_week.keys() if isinstance(w, int)])
+    for w in int_weeks:
+        ents = sorted(by_week.get(w, []), key=lambda e: e.get("created_at", ""))
+        if not ents:
+            continue
+        is_now = (w == cur_week)
+        bg = "#fef9e8" if is_now else "transparent"
+        suffix = " · current" if is_now else ""
+        cards_html = "".join(_entry_card(e, viewer_is_admin) for e in ents)
+        week_blocks.append(
+            f'<div style="background:{bg};border-top:1px solid var(--border-light);'
+            f'padding:10px 6px;">'
+            f'<div style="font-weight:700;margin-bottom:6px;">Week {w}{suffix}</div>'
+            f'<div style="display:grid;gap:6px;">{cards_html}</div></div>'
+        )
+
+    orphan = by_week.get(None, []) or []
+    orphan_html = ""
+    if orphan:
+        cards_html = "".join(
+            _entry_card(e, viewer_is_admin)
+            for e in sorted(orphan, key=lambda e: e.get("created_at", ""))
+        )
+        orphan_html = (
+            '<div style="border-top:1px solid var(--border-light);padding:10px 6px;">'
+            '<div style="font-weight:700;margin-bottom:6px;">Other graded work</div>'
+            f'<div style="display:grid;gap:6px;">{cards_html}</div></div>'
+        )
+
+    if not week_blocks and not orphan_html:
+        cards_section = (
+            '<section style="background:var(--warm-white);border:1px solid var(--border);'
+            'border-radius:var(--radius-md);padding:16px;color:var(--ink-muted);text-align:center;">'
+            'No graded work yet — upload your first piece above!</section>'
+        )
+    else:
+        cards_section = (
+            '<section style="background:var(--warm-white);border:1px solid var(--border);'
+            'border-radius:var(--radius-md);padding:16px;margin-bottom:20px;">'
+            '<h2 style="margin:0 0 6px;">Submissions &amp; grades</h2>'
+            + "".join(week_blocks) + orphan_html +
+            '</section>'
+        )
+
+    return upload_form + manual_form + cards_section
+
+
+def _render_subject_tabs_html(child: str, subject: str, node: dict,
+                              weeks: list, by_week: dict, cur_week: int,
+                              viewer_is_admin: bool) -> str:
+    """Wrap the three tab panes in the radio-driven CSS scaffold (D1).
+
+    LAYOUT CONTRACT (do not reorder): the three radio inputs MUST appear
+    as older siblings of `.subj-panes` for the `~` general-sibling
+    selector to match the right pane."""
+    asg_html = _render_assignments_tab(child, subject, weeks, cur_week)
+    res_html = _render_resources_tab(child, subject, node, viewer_is_admin)
+    gra_html = _render_grades_tab(child, subject, by_week, cur_week, viewer_is_admin)
+    style = (
+        '<style>'
+        '.subj-tab-radio{position:absolute;left:-9999px;}'
+        '.subj-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 16px;}'
+        '.subj-tab-label{padding:8px 16px;border:1px solid var(--border);'
+        'border-radius:999px;background:white;color:var(--ink-muted);'
+        'font-weight:600;font-size:.9rem;cursor:pointer;user-select:none;}'
+        '.subj-tab-label:hover{border-color:var(--gold);color:var(--ink);}'
+        '.subj-pane{display:none;}'
+        '#subj-tab-asg:checked ~ .subj-tabs label[for="subj-tab-asg"],'
+        '#subj-tab-res:checked ~ .subj-tabs label[for="subj-tab-res"],'
+        '#subj-tab-gra:checked ~ .subj-tabs label[for="subj-tab-gra"]'
+        '{background:#fef9e8;border-color:var(--gold);color:var(--ink);}'
+        '#subj-tab-asg:checked ~ .subj-panes .subj-pane[data-pane="asg"],'
+        '#subj-tab-res:checked ~ .subj-panes .subj-pane[data-pane="res"],'
+        '#subj-tab-gra:checked ~ .subj-panes .subj-pane[data-pane="gra"]'
+        '{display:block;}'
+        '</style>'
+    )
+    return (
+        style +
+        '<input type="radio" name="subj-tab" id="subj-tab-asg" class="subj-tab-radio" checked>'
+        '<input type="radio" name="subj-tab" id="subj-tab-res" class="subj-tab-radio">'
+        '<input type="radio" name="subj-tab" id="subj-tab-gra" class="subj-tab-radio">'
+        '<div class="subj-tabs">'
+        '<label class="subj-tab-label" for="subj-tab-asg">&#128218; Assignments</label>'
+        '<label class="subj-tab-label" for="subj-tab-res">&#128279; Resources</label>'
+        '<label class="subj-tab-label" for="subj-tab-gra">&#128211; Grades</label>'
+        '</div>'
+        '<div class="subj-panes">'
+        f'<div class="subj-pane" data-pane="asg">{asg_html}</div>'
+        f'<div class="subj-pane" data-pane="res">{res_html}</div>'
+        f'<div class="subj-pane" data-pane="gra">{gra_html}</div>'
+        '</div>'
+    )
+
 
 
 def render_grades_summary_page() -> str:
@@ -967,10 +1140,13 @@ def add_link(child: str, subject: str, label: str, url: str) -> bool:
     if subject not in list_subjects(child):
         return False
     g = load_grades()
-    _node(g, child, subject)["links"].append({
+    rec = {
         "label": label.strip(), "url": url.strip(),
         "added_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
-    })
+    }
+    if _is_music_url(url):
+        rec["type"] = "music"
+    _node(g, child, subject)["links"].append(rec)
     save_grades(g)
     return True
 
