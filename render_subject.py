@@ -1135,16 +1135,22 @@ def delete_entry(child: str, subject: str, entry_id: str) -> bool:
 
 
 def add_link(child: str, subject: str, label: str, url: str) -> bool:
-    if not url.strip():
+    url_clean = url.strip()
+    if not url_clean:
+        return False
+    # URL scheme allowlist — block javascript:, data:, file:, etc.
+    lower = url_clean.lower()
+    if not (lower.startswith("https://") or lower.startswith("http://")
+            or lower.startswith("music://")):
         return False
     if subject not in list_subjects(child):
         return False
     g = load_grades()
     rec = {
-        "label": label.strip(), "url": url.strip(),
+        "label": label.strip(), "url": url_clean,
         "added_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
     }
-    if _is_music_url(url):
+    if _is_music_url(url_clean):
         rec["type"] = "music"
     _node(g, child, subject)["links"].append(rec)
     save_grades(g)

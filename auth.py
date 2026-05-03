@@ -40,7 +40,7 @@ CHILD_ALLOWED_GET: dict[str, frozenset] = {
 # Paths children may POST to
 CHILD_POST_ALLOWED = frozenset([
     "/toggle-task", "/message-mom", "/change-pin", "/task-override",
-    "/subject-upload-image", "/subject-link-add", "/subject-doc-upload",
+    "/subject-upload-image",
     "/subject-send-to-mom",
     "/student-message-read",
 ])
