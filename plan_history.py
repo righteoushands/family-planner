@@ -9,6 +9,7 @@ from __future__ import annotations
 import os, json, uuid
 from datetime import datetime
 from html import escape as _e
+from safe_utils import safe_save_json
 
 HISTORY_PATH = "data/plan_import_history.json"
 MAX_ENTRIES = 200
@@ -24,11 +25,7 @@ def _load() -> list:
 
 
 def _save(items: list) -> None:
-    os.makedirs("data", exist_ok=True)
-    tmp = HISTORY_PATH + ".tmp"
-    with open(tmp, "w") as f:
-        json.dump(items[-MAX_ENTRIES:], f, indent=2)
-    os.replace(tmp, HISTORY_PATH)
+    safe_save_json(HISTORY_PATH, items[-MAX_ENTRIES:])
 
 
 def append_entry(plan_text: str, analysis, viewer: str = "",

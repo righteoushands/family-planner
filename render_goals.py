@@ -4,6 +4,7 @@ render_goals.py — Goal system data helpers.
 import json, os, uuid
 from datetime import date, timedelta
 from html import escape
+from safe_utils import safe_save_json
 
 GOALS_DIR = "data/goals"
 
@@ -124,9 +125,7 @@ def load_master_goals():
 
 
 def save_master_goals(goals):
-    os.makedirs(GOALS_DIR, exist_ok=True)
-    with open(f"{GOALS_DIR}/master.json", "w") as f:
-        json.dump({"goals": goals}, f, indent=2)
+    safe_save_json(f"{GOALS_DIR}/master.json", {"goals": goals})
 
 
 def get_goal_by_id(goal_id):
@@ -183,10 +182,8 @@ def load_quarter_plan(quarter_key):
 
 
 def save_quarter_plan(plan):
-    os.makedirs(GOALS_DIR, exist_ok=True)
     path = f"{GOALS_DIR}/{plan['quarter']}.json"
-    with open(path, "w") as f:
-        json.dump(plan, f, indent=2)
+    safe_save_json(path, plan)
 
 
 def get_active_goals_with_steps(quarter_key=None):

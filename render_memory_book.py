@@ -8,6 +8,7 @@ import json
 import os
 import uuid
 from datetime import datetime
+from safe_utils import safe_save_json
 try:
     from zoneinfo import ZoneInfo
     _EASTERN = ZoneInfo("America/New_York")
@@ -33,9 +34,7 @@ def load_memory_book() -> dict:
 
 
 def save_memory_book(data: dict) -> None:
-    os.makedirs("data", exist_ok=True)
-    with open(_MEMORY_FILE, "w") as f:
-        json.dump(data, f, indent=2)
+    safe_save_json(_MEMORY_FILE, data)
 
 
 def add_memory_entry(text: str, date_iso: str = "") -> dict:

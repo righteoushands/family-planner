@@ -14,6 +14,7 @@ from render_goals import (
 )
 from render_settings import load_app_settings
 from ui_helpers import html_page, top_nav, render_status_message
+from safe_utils import safe_save_json
 
 MONTH_DIR = "data/monthly_intentions"
 
@@ -68,10 +69,8 @@ def load_month_plan(month_key):
 
 
 def save_month_plan(data):
-    os.makedirs(MONTH_DIR, exist_ok=True)
     path = f"{MONTH_DIR}/{data['month']}.json"
-    with open(path, "w") as f:
-        json.dump(data, f, indent=2)
+    safe_save_json(path, data)
 
 
 def _month_dates(month_key):

@@ -22,6 +22,7 @@ from ui_helpers import html_page, page_header
 import father_gregory
 from data_helpers import add_assignment_analysis
 import auth as _auth
+from safe_utils import safe_save_json
 
 GRADES_PATH = "data/grades.json"
 UPLOAD_ROOT = "uploads"
@@ -49,10 +50,7 @@ def load_grades() -> dict:
 
 def save_grades(g: dict) -> None:
     _ensure_dirs()
-    tmp = GRADES_PATH + ".tmp"
-    with open(tmp, "w") as f:
-        json.dump(g, f, indent=2)
-    os.replace(tmp, GRADES_PATH)
+    safe_save_json(GRADES_PATH, g)
 
 
 def _node(g: dict, child: str, subject: str) -> dict:

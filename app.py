@@ -1897,6 +1897,17 @@ class Handler(BaseHTTPRequestHandler):
             nxt  = unquote_plus(form.get("next", "/")).strip() or "/"
 
             if _auth.check_pin(uid, pin):
+                # Session-fixation defense: invalidate any pre-existing
+                # session cookie before minting a fresh token.
+                try:
+                    _old_cookie = self.headers.get("Cookie", "") or ""
+                    for _kv in _old_cookie.split(";"):
+                        _k, _, _v = _kv.strip().partition("=")
+                        if _k == "session" and _v:
+                            _auth.destroy_session(_v)
+                            break
+                except Exception:
+                    pass
                 token = _auth.create_session(uid)
                 # Where to land after login
                 if _auth.is_admin(uid):

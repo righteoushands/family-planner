@@ -11,6 +11,7 @@ from datetime import date, timedelta
 import json as _json
 import os as _os
 import re
+from safe_utils import safe_save_json
 
 POETRY_PASSAGES_FILE = "data/poetry_passages.json"
 
@@ -25,11 +26,7 @@ def load_poetry_passages() -> dict:
 
 
 def save_poetry_passages(data: dict) -> None:
-    _os.makedirs("data", exist_ok=True)
-    tmp = POETRY_PASSAGES_FILE + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        _json.dump(data, f, ensure_ascii=False, indent=2)
-    _os.replace(tmp, POETRY_PASSAGES_FILE)
+    safe_save_json(POETRY_PASSAGES_FILE, data)
 
 CHILDREN_SCHOOL = ["JP", "Joseph", "Michael"]
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]

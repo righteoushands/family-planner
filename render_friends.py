@@ -13,6 +13,7 @@ Each family entry stores:
 import json, os, uuid
 from html import escape
 from ui_helpers import html_page, top_nav
+from safe_utils import safe_save_json
 
 FRIENDS_PATH = "data/friends.json"
 ACCENT = "#2d6a4f"
@@ -29,9 +30,7 @@ def load_friends() -> list:
 
 
 def save_friends(data: list) -> None:
-    os.makedirs("data", exist_ok=True)
-    with open(FRIENDS_PATH, "w") as f:
-        json.dump(data, f, indent=2)
+    safe_save_json(FRIENDS_PATH, data)
 
 
 def _member_html(fid: str, idx: int, m: dict) -> str:

@@ -19,6 +19,7 @@ from html import escape
 from config import CHILDREN, child_color
 from render_settings import load_app_settings
 from ui_helpers import html_page, top_nav, render_status_message
+from safe_utils import safe_save_json
 
 VIRTUE_DIR    = "data/virtues"
 CHILDREN_DIR  = "data/virtues/children"
@@ -88,9 +89,7 @@ def load_personal_virtue():
 
 
 def save_personal_virtue(data):
-    _ensure_dirs()
-    with open(f"{VIRTUE_DIR}/personal.json", "w") as f:
-        json.dump(data, f, indent=2)
+    safe_save_json(f"{VIRTUE_DIR}/personal.json", data)
 
 
 def load_family_virtue():
@@ -106,9 +105,7 @@ def load_family_virtue():
 
 
 def save_family_virtue(data):
-    _ensure_dirs()
-    with open(f"{VIRTUE_DIR}/family.json", "w") as f:
-        json.dump(data, f, indent=2)
+    safe_save_json(f"{VIRTUE_DIR}/family.json", data)
 
 
 def load_child_virtue(child_name):
@@ -125,10 +122,8 @@ def load_child_virtue(child_name):
 
 
 def save_child_virtue(child_name, data):
-    _ensure_dirs()
     safe = child_name.replace(" ", "_")
-    with open(f"{CHILDREN_DIR}/{safe}.json", "w") as f:
-        json.dump(data, f, indent=2)
+    safe_save_json(f"{CHILDREN_DIR}/{safe}.json", data)
 
 
 def _current_season():

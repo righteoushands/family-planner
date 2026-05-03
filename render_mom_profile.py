@@ -18,6 +18,7 @@ Stores:
 import json, os
 from html import escape
 from ui_helpers import html_page, top_nav
+from safe_utils import safe_save_json
 
 MOM_PROFILE_PATH = "data/profiles/mom.json"
 
@@ -129,11 +130,9 @@ def load_mom_profile() -> dict:
 
 
 def save_mom_profile(data: dict) -> None:
-    os.makedirs("data/profiles", exist_ok=True)
     existing = load_mom_profile()
     existing.update(data)
-    with open(MOM_PROFILE_PATH, "w") as f:
-        json.dump(existing, f, indent=2)
+    safe_save_json(MOM_PROFILE_PATH, existing)
 
 
 def _list_section_html(key: str, label: str, hint: str, items: list) -> str:

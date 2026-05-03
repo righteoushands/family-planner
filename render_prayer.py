@@ -20,6 +20,7 @@ from html import escape
 
 from render_settings import load_app_settings
 from ui_helpers import html_page, top_nav, render_status_message
+from safe_utils import safe_save_json
 
 PRAYER_DIR   = "data/prayer"
 PHOTOS_DIR   = "data/prayer/photos"
@@ -59,9 +60,7 @@ def load_intentions() -> list:
 
 
 def save_intentions(intentions: list):
-    _ensure_dirs()
-    with open(INTENTS_FILE, "w") as f:
-        json.dump(intentions, f, indent=2)
+    safe_save_json(INTENTS_FILE, intentions)
 
 
 def get_intention(intention_id: str) -> dict:

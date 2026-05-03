@@ -14,6 +14,7 @@ All fields are editable inline. Lucy can read and reference this data.
 """
 import json, os
 from html import escape
+from safe_utils import safe_save_json
 
 PROFILE_DIR = "data/profiles"
 
@@ -61,12 +62,10 @@ def load_child_profile(child: str) -> dict:
 
 
 def save_child_profile(child: str, data: dict) -> None:
-    os.makedirs(PROFILE_DIR, exist_ok=True)
     path = _profile_path(child)
     existing = load_child_profile(child)
     existing.update(data)
-    with open(path, "w") as f:
-        json.dump(existing, f, indent=2)
+    safe_save_json(path, existing)
 
 
 def profile_summary_for_lucy(child: str) -> str:

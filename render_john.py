@@ -16,6 +16,7 @@ import json, os
 from datetime import date, timedelta
 from html import escape
 from ui_helpers import html_page, top_nav
+from safe_utils import safe_save_json
 
 JOHN_PROFILE_PATH = "data/profiles/john.json"
 
@@ -152,11 +153,9 @@ def _render_john_quicklook(profile: dict) -> str:
 
 
 def save_john_profile(data: dict) -> None:
-    os.makedirs("data/profiles", exist_ok=True)
     existing = load_john_profile()
     existing.update(data)
-    with open(JOHN_PROFILE_PATH, "w") as f:
-        json.dump(existing, f, indent=2)
+    safe_save_json(JOHN_PROFILE_PATH, existing)
 
 
 def _list_section_html(key: str, label: str, hint: str, items: list) -> str:

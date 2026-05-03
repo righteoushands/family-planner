@@ -13,6 +13,7 @@ from render_goals import (
 )
 from render_settings import load_app_settings
 from ui_helpers import html_page, top_nav, render_status_message
+from safe_utils import safe_save_json
 
 INTENTIONS_DIR = "data/weekly_intentions"
 
@@ -74,10 +75,8 @@ def load_intentions(week_key):
 
 
 def save_intentions_data(data):
-    os.makedirs(INTENTIONS_DIR, exist_ok=True)
     path = f"{INTENTIONS_DIR}/{data['week']}.json"
-    with open(path, "w") as f:
-        json.dump(data, f, indent=2)
+    safe_save_json(path, data)
 
 
 def _cycle_phase(d):
