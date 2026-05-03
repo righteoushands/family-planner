@@ -6996,6 +6996,25 @@ class Handler(BaseHTTPRequestHandler):
                             _rec = ev.get("recurrence","none")
                             if _rec not in ("none","weekly","monthly","yearly"):
                                 _rec = "none"
+                            # Dedup: skip if an existing event has matching title (case-insensitive)
+                            # + matching start_date. Records a SKIPPED receipt so the apply UI
+                            # still shows the user that the item was processed.
+                            _ev_title_lc = ev["title"].strip().lower()
+                            _ev_date_str = ev["date"]
+                            _is_duplicate = any(
+                                (str(_e.get("title","")).strip().lower() == _ev_title_lc
+                                 and str(_e.get("start_date","")) == _ev_date_str)
+                                for _e in (_aievdata.get("data") or [])
+                            )
+                            if _is_duplicate:
+                                _receipt.append({
+                                    "type": "event",
+                                    "label": "Calendar",
+                                    "title": ev["title"],
+                                    "meta": " · ".join(x for x in [ev["date"], ev.get("time",""), ", ".join(_who)] if x),
+                                    "action": "SKIPPED (duplicate)",
+                                })
+                                continue
                             _new_ev = {
                                 "id": "evt_" + _aiuuid.uuid4().hex[:8],
                                 "title": ev["title"],
