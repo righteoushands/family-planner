@@ -2015,6 +2015,10 @@ def render_mom_page(status_message: str = "", target_date_str: str = "") -> str:
            style="font-size:0.8em;padding:5px 12px;background:var(--parchment);
                   color:var(--brown);border:1.5px solid var(--border);border-radius:8px;
                   font-weight:700;text-decoration:none;white-space:nowrap;">🖨 Print FROL</a>
+        <a href="/school-week-pdf"
+           style="font-size:0.8em;padding:5px 12px;background:var(--parchment);
+                  color:var(--brown);border:1.5px solid var(--border);border-radius:8px;
+                  font-weight:700;text-decoration:none;white-space:nowrap;">🖨 Print School Week</a>
     </div>
 
     <!-- Step chips — horizontal scroll -->
