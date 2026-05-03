@@ -218,6 +218,8 @@ def render_family_schedule_page(status_message: str = "") -> str:
                 <a class="link-button" href="/settings#s-systems">Edit Rule of Life →</a>
                 <a class="link-button" href="/frol-pdf"
                    style="margin-left:8px;">🖨 Print FROL (PDF)</a>
+                <a class="link-button" href="/school-week-pdf"
+                   style="margin-left:8px;">🖨 Print School Week (PDF)</a>
             </div>
         </div>
     </div>"""

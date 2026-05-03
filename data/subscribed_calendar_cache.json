@@ -67,6 +67,17 @@
       "source": "subscribed"
     },
     {
+      "title": "Busy",
+      "start": "2026-05-05",
+      "end": "2026-05-05",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail's Healthy Habits",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "Bible Study",
       "start": "2026-05-05T10:00",
       "end": "2026-05-05T12:00",
@@ -250,6 +261,17 @@
       "location": "",
       "notes": "",
       "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Busy",
+      "start": "2026-05-12",
+      "end": "2026-05-12",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail's Healthy Habits",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -558,6 +580,17 @@
       "location": "21 Lord Fairfax Dr. Falmouth",
       "notes": "",
       "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Busy",
+      "start": "2026-05-19",
+      "end": "2026-05-19",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail's Healthy Habits",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -1009,6 +1042,17 @@
       "location": "",
       "notes": "",
       "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Busy",
+      "start": "2026-06-06",
+      "end": "2026-06-06",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail's Healthy Habits",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -1662,5 +1706,5 @@
       "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-05-03T16:40:40.608104"
+  "fetched_at": "2026-05-03T17:10:04.560458"
 }

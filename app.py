@@ -236,6 +236,7 @@ from render_lucy import render_lucy_page, build_lucy_context
 from render_lorenzo import render_lorenzo_page, build_lorenzo_context
 from render_gregory import render_gregory_page, build_gregory_context
 from render_week_school import render_week_school_page
+from render_school_pdf import generate_school_pdf
 from render_coach import render_coach_page, build_coach_context
 from render_monica import render_monica_page, build_monica_context
 from render_plan_importer import (
@@ -1030,6 +1031,28 @@ class Handler(BaseHTTPRequestHandler):
                 try:
                     _msg = "FROL PDF generation failed: " + str(_frol_pdf_err)
                     self.wfile.write(_msg.encode("utf-8"))
+                except BrokenPipeError: pass
+            return
+        elif path == "/school-week-pdf":
+            try:
+                _swp_target = query.get("date",[""])[0]
+                _swp_bytes = generate_school_pdf(_swp_target)
+                self.send_response(200)
+                self.send_header("Content-Type", "application/pdf")
+                self.send_header("Content-Disposition",
+                                 'attachment; filename="McAdams_School_Week.pdf"')
+                self.send_header("Content-Length", str(len(_swp_bytes)))
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                try: self.wfile.write(_swp_bytes)
+                except BrokenPipeError: pass
+            except Exception as _swp_err:
+                self.send_response(500)
+                self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.end_headers()
+                try:
+                    _swp_msg = "School week PDF generation failed: " + str(_swp_err)
+                    self.wfile.write(_swp_msg.encode("utf-8"))
                 except BrokenPipeError: pass
             return
         elif path == "/calendar":        body = render_calendar_page()

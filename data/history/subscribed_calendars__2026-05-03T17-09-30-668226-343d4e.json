@@ -1,0 +1,65 @@
+[
+  {
+    "id": "7e272265-890d-49ab-8fd6-d34377cd964e",
+    "name": "Lauren's Proton Mail",
+    "url": "https://calendar.proton.me/api/calendar/v1/url/Ax4rj01op5UFx8BMr3KSTOSziwWlHdCIczjc7jTCPNWzgK37wCZz1OvgZdYabg7HqczAAZr0R1t2WJFxorHEDw==/calendar.ics?CacheKey=ReFWqUC4VwyAEqbepFoqyQ%3D%3D&PassphraseKey=m6lpMLqXKp6QwoPoNubH0TK1vUmfwCCHoKUTndlgQkI%3D",
+    "color": "#9b59b6",
+    "enabled": true
+  },
+  {
+    "id": "b34e3b86-904d-4144-891b-8e771c4b4181",
+    "name": "Lauren's Proton Mail's Healthy Habits",
+    "url": "https://calendar.proton.me/api/calendar/v1/url/t7S4bmMBslQUDU229D0l9B1PV6Xu9gqX1YPgQ7bA34Rjxnr3a_vDK756MxAGNoIOCq7KaMrWlcKOb2xGPy8oJA==/calendar.ics?CacheKey=rR4Zx8o5dUOjdds_ECnxuw%3D%3D",
+    "color": "#9b59b6",
+    "enabled": false
+  },
+  {
+    "id": "2ee7474d-7a05-4d9d-8349-710d0924b709",
+    "name": "Google Calendar",
+    "url": "https://calendar.google.com/calendar/ical/lauren.mcadams2%40gmail.com/private-b2dac8e3ec3d6e422e24d1ef5a686ea1/basic.ics",
+    "color": "#9b59b6",
+    "enabled": false
+  },
+  {
+    "id": "38e1f525-5dd2-49e0-ac8e-d1af6002a516",
+    "name": "USNSCC Pentagon Division (JP & Joe)",
+    "url": "http://ical-cdn.teamsnap.com/team_schedule/24703330-c474-0132-669e-3c764e059c4d.ics",
+    "color": "#e74c3c",
+    "enabled": true
+  },
+  {
+    "id": "2e3cb34f-8404-4ebd-8385-54d32882f6af",
+    "name": "Apple Calendar",
+    "url": "webcal://p112-caldav.icloud.com/published/2/MTg3ODA3OTU3MTMxODc4MIMZKXkFtK0RlgVfT7rGQ6aGgKE_zzztnuc9--EWUXH37Q2MihygfxN6RXbAuBgOG3R-AVsrMoAguPx4oTgVpUU",
+    "color": "#9b59b6",
+    "enabled": true
+  },
+  {
+    "id": "b2265e38-35cc-4cf1-92ad-03f0927712b3",
+    "name": "Lauren's Proton Calendar 3",
+    "url": "https://calendar.proton.me/api/calendar/v1/url/CZUiKNpRPtpu7xALGtomadFqUAOHJ13bRBB8HMdOiBmScGyHb5HQXkiIeGq9YZGVg-OSxba6bPFAl7D5yItaFQ==/calendar.ics?CacheKey=trbCQh1nFAaDESYVNFJN2Q%3D%3D&PassphraseKey=58mYCnZC7C4LDKU2CdqxLGHQJIouPtYeLLZf5YWKen4%3D",
+    "color": "#9b59b6",
+    "enabled": true
+  },
+  {
+    "id": "45533336-1707-4a07-ab7d-2df8dbe7fd90",
+    "name": "MODG",
+    "url": "https://families.modg.org/calendar/eddc0e41ee8a4aaebf1f64af991432efa188484b87283c48/calendar.ics",
+    "color": "#1abc9c",
+    "enabled": true
+  },
+  {
+    "id": "9d81708d-afe4-4c92-bc02-57f5fb3bd9dd",
+    "name": "Liturgical Calendar (Little Rose Shop)",
+    "url": "https://www.addevent.com/feed/ahiimhghw.ics",
+    "color": "#e91e8c",
+    "enabled": true
+  },
+  {
+    "id": "693ac8b7-4f6b-46d0-9502-bed1f21b4687",
+    "name": "Square Up",
+    "url": "https://app.squareup.com/appointments/api/buyer/classes/class_bookings/clsbk_pnvmye14p81845.ics?unit_token=LKPJ7MRXDYAEJ",
+    "color": "#34495e",
+    "enabled": true
+  }
+]
