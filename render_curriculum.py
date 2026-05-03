@@ -576,8 +576,6 @@ def render_curriculum_page() -> str:
 </div>
 
 <div class="cur-body">
-<div id="cur-debug" style="background:#fef9c3;border:1px solid #ca8a04;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:0.85em;color:#92400e;display:block;">Ready — click + or Go to test</div>
-
   {no_key_warning}
 
   <!-- Global default week (used when importing a new subject) -->
@@ -748,15 +746,9 @@ function _renderAssignment(rid, val, dayPref) {{
 
 function setSubjectWeek(child, subject, delta) {{
   const rid     = _rowId(child, subject);
-  document.getElementById('cur-debug').textContent = 'rid=' + rid;
   const wkEl    = document.getElementById('wknum-'  + rid);
-  document.getElementById('cur-debug').textContent = 'wkEl=' + (wkEl ? wkEl.textContent : 'NULL');
   const dayEl   = document.getElementById('daynum-' + rid);
-  if (!wkEl) {{
-    document.getElementById('cur-debug').textContent = 'ABORT: wkEl not found for rid=' + rid;
-    return;
-  }}
-  document.getElementById('cur-debug').textContent = 'current=' + wkEl.textContent + ' proceeding…';
+  if (!wkEl) return;
   const current = parseInt(wkEl.textContent) || 1;
   const next    = Math.max(1, Math.min(99, current + delta));
   if (next === current) return;
@@ -784,14 +776,11 @@ function setSubjectWeek(child, subject, delta) {{
         wkEl.textContent = next;
         wkEl.style.color = '#16a34a';
         wkEl.style.fontWeight = '700';
-        document.getElementById('cur-debug').textContent = 'Saved week ' + next + ' (status ' + r.status + ')';
         setTimeout(() => {{ location.reload(); }}, 1500);
       }} else {{
-        document.getElementById('cur-debug').textContent = 'FAILED status ' + r.status;
         wkEl.style.color = '#dc2626';
       }}
     }}).catch(e => {{
-      document.getElementById('cur-debug').textContent = 'ERROR: ' + e.message;
       wkEl.style.color = '#dc2626';
     }});
   }};

@@ -13,7 +13,7 @@ Storage:
   uploads/grade_docs/<child>/<subject_slug>/<file> — reference documents
 """
 from __future__ import annotations
-import os, json, re, uuid, base64, time
+import os, json, re, uuid, time
 from html import escape as _e
 from urllib.parse import quote, urlencode
 from datetime import datetime
@@ -205,89 +205,13 @@ def letter_grade(pct: float | None) -> str:
     return "F"
 
 
-# ── AI grading via OpenAI vision ─────────────────────────────────────────────
-
-def _openai_key() -> str:
-    return os.environ.get("OPENAI_API_KEY", "").strip()
-
-
-def ai_grade_image(image_bytes: bytes, mime: str, child: str, subject: str,
-                   lesson: str = "", kind: str = "test") -> dict:
-    """Ask OpenAI vision to grade a photo of student work.
-
-    Returns {"grade": float|None, "feedback": str, "ok": bool, "error": str}.
-    """
-    key = _openai_key()
-    if not key:
-        return {"ok": False, "grade": None, "feedback": "", "error": "no_api_key"}
-    if not image_bytes:
-        return {"ok": False, "grade": None, "feedback": "", "error": "no_image"}
-
-    if not mime or not mime.startswith("image/"):
-        mime = "image/jpeg"
-    b64 = base64.b64encode(image_bytes).decode("ascii")
-    data_url = f"data:{mime};base64,{b64}"
-
-    prompt = (
-        f"You are a kind, fair Catholic homeschool tutor grading {child}'s "
-        f"{kind} for the subject '{subject}'."
-        + (f" The assignment is: {lesson}." if lesson else "")
-        + " Carefully read the student's work in the photo. "
-        "Score it from 0 to 100 (where 100 is perfect). "
-        "Give specific, encouraging feedback: what the student got right, "
-        "any errors, and one concrete next step. "
-        "Reply ONLY with strict JSON of the form "
-        '{"grade": <number 0-100>, "feedback": "<2-5 sentences>"}'
-    )
-
-    body = json.dumps({
-        "model": "gpt-4o-mini",
-        "messages": [{
-            "role": "user",
-            "content": [
-                {"type": "text", "text": prompt},
-                {"type": "image_url", "image_url": {"url": data_url}},
-            ],
-        }],
-        "response_format": {"type": "json_object"},
-        "temperature": 0.2,
-    }).encode()
-
-    import urllib.request as _ur
-    req = _ur.Request(
-        "https://api.openai.com/v1/chat/completions",
-        data=body,
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {key}",
-        },
-        method="POST",
-    )
-    try:
-        with _ur.urlopen(req, timeout=60) as resp:
-            raw = resp.read().decode("utf-8", errors="replace")
-        payload = json.loads(raw)
-        msg = payload["choices"][0]["message"]["content"]
-        parsed = json.loads(msg)
-        g = parsed.get("grade")
-        try:
-            g = float(g)
-            g = max(0.0, min(100.0, g))
-        except Exception:
-            g = None
-        fb = str(parsed.get("feedback", "")).strip()
-        return {"ok": True, "grade": g, "feedback": fb, "error": ""}
-    except Exception as e:
-        return {"ok": False, "grade": None, "feedback": "",
-                "error": str(e)[:200]}
-
+# ── AI grading via Father Gregory (Anthropic) ────────────────────────────────
 
 def ai_grade_image_gregory(image_bytes: bytes, mime: str, child: str,
                            subject: str, lesson: str = "",
                            kind: str = "test") -> dict:
     """Grade a student-uploaded image using the Father Gregory persona
-    (Anthropic claude-opus-4-5). Returns a superset of ai_grade_image's
-    contract:
+    (Anthropic claude-opus-4-5). Returns:
         {"ok": bool, "grade": float|None, "feedback": str,
          "strengths": list, "growth_edges": list, "grade_rationale": str,
          "parsed": dict (full 16-key Father Gregory output),
