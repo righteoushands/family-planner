@@ -444,7 +444,13 @@ def get_all_events(iso: str = "") -> list:
         floating = get_floating_liturgical_events([year - 1, year, year + 1])
     except Exception:
         floating = []
-    all_events = refresh_calendar() + refresh_subscribed_calendars() + floating
+    # Manual events from data/events.json (also surfaces /plan-import-apply entries).
+    # expand_local_events_for_range filters archived and expands recurrence.
+    try:
+        local_events = expand_local_events_for_range(iso, iso)
+    except Exception:
+        local_events = []
+    all_events = refresh_calendar() + refresh_subscribed_calendars() + floating + local_events
     all_events.sort(key=lambda e: e["start"])
     return events_for_date(all_events, iso)
 
@@ -486,7 +492,13 @@ def render_calendar_today_strip(iso: str = "") -> str:
     # Merge cached iCloud + cached subscribed calendar events (both refresh in background)
     caldav_events = refresh_calendar()
     ics_events    = refresh_subscribed_calendars()
-    all_events    = sorted(caldav_events + ics_events, key=lambda e: e["start"])
+    # Manual events from data/events.json (also surfaces /plan-import-apply entries).
+    # expand_local_events_for_range filters archived and expands recurrence.
+    try:
+        local_events = expand_local_events_for_range(iso, iso)
+    except Exception:
+        local_events = []
+    all_events    = sorted(caldav_events + ics_events + local_events, key=lambda e: e["start"])
     today_events = events_for_date(all_events, iso)
 
     if not today_events:
