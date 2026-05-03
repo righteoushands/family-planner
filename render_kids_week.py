@@ -31,6 +31,7 @@ from html import escape
 
 from config import CHILDREN, child_color, WEEKDAYS
 from ui_helpers import html_page, page_header, render_status_message, top_nav
+from safe_utils import safe_save_json
 
 PLAN_DIR = "data/weekly_school_plan"
 
@@ -74,13 +75,8 @@ def load_week_plan(week_key: str) -> dict:
 
 
 def save_week_plan(plan: dict):
-    os.makedirs(PLAN_DIR, exist_ok=True)
     path = f"{PLAN_DIR}/{plan['week']}.json"
-    try:
-        with open(path, "w") as f:
-            json.dump(plan, f, indent=2)
-    except Exception:
-        pass
+    safe_save_json(path, plan)
 
 
 def render_kids_week_page(week_key: str = None, status: str = "") -> str:

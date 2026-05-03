@@ -7,6 +7,7 @@ Sessions: in-memory dict, cleared on server restart; session cookie
           has no max-age, so it dies when the browser is closed.
 """
 import os, json, secrets
+from safe_utils import safe_save_json
 
 # ── User definitions ──────────────────────────────────────────────────────────
 USERS = {
@@ -58,11 +59,9 @@ def load_pins() -> dict:
 
 
 def save_pins(pins: dict) -> None:
-    os.makedirs("data/auth", exist_ok=True)
     existing = load_pins()
     existing.update(pins)
-    with open(AUTH_PATH, "w") as f:
-        json.dump(existing, f, indent=2)
+    safe_save_json(AUTH_PATH, existing)
 
 
 def get_pin(username: str) -> str:
@@ -92,9 +91,7 @@ def _load_sessions() -> None:
 
 
 def _save_sessions() -> None:
-    os.makedirs("data/auth", exist_ok=True)
-    with open(_SESSIONS_PATH, "w") as f:
-        json.dump(_SESSIONS, f)
+    safe_save_json(_SESSIONS_PATH, _SESSIONS)
 
 
 # Load sessions from disk on import
@@ -186,17 +183,14 @@ def save_message(from_user: str, text: str) -> None:
         "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M"),
         "read":      False,
     })
-    os.makedirs("data", exist_ok=True)
-    with open(MSG_PATH, "w") as f:
-        json.dump(msgs, f, indent=2)
+    safe_save_json(MSG_PATH, msgs)
 
 
 def mark_messages_read() -> None:
     msgs = load_messages()
     for m in msgs:
         m["read"] = True
-    with open(MSG_PATH, "w") as f:
-        json.dump(msgs, f, indent=2)
+    safe_save_json(MSG_PATH, msgs)
 
 
 def unread_count() -> int:
@@ -236,9 +230,7 @@ def save_kid_message(to_user: str, from_user: str, text: str,
     }
     msgs = _load_kid_messages_all()
     msgs.append(rec)
-    os.makedirs("data", exist_ok=True)
-    with open(KID_MSG_PATH, "w") as f:
-        json.dump(msgs, f, indent=2)
+    safe_save_json(KID_MSG_PATH, msgs)
     return rec
 
 
@@ -278,7 +270,5 @@ def mark_kid_message_read(msg_id: str, username: str) -> bool:
             break
     if not found:
         return False
-    os.makedirs("data", exist_ok=True)
-    with open(KID_MSG_PATH, "w") as f:
-        json.dump(msgs, f, indent=2)
+    safe_save_json(KID_MSG_PATH, msgs)
     return True
