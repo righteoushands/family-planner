@@ -12,6 +12,7 @@ from data_helpers import (
     load_subscribed_calendars, save_subscribed_calendars,
     load_subscribed_calendar_cache, save_subscribed_calendar_cache,
     load_calendar_rules, save_calendar_rules,
+    expand_local_events_for_range,
 )
 from ui_helpers import html_page, page_header, render_status_message
 
@@ -538,7 +539,16 @@ def render_calendar_page(status_message: str = "") -> str:
         sub_events = refresh_subscribed_calendars()
 
     today          = date.today()
-    all_cal_events = sorted(events + sub_events, key=lambda e: e["start"])
+    # Manual events from data/events.json (also surfaces /plan-import-apply entries).
+    # expand_local_events_for_range filters archived and expands recurrence.
+    try:
+        local_events = expand_local_events_for_range(
+            today.isoformat(),
+            (today + timedelta(days=365)).isoformat(),
+        )
+    except Exception:
+        local_events = []
+    all_cal_events = sorted(events + sub_events + local_events, key=lambda e: e["start"])
 
     week_html = ""
     for i in range(7):
