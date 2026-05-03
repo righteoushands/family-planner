@@ -22,10 +22,19 @@ from daily_schedule_engine import (
     extract_school_tasks_for_child, generate_day_packet, load_progress,
     make_task_id, get_task_done,
 )
-from data_helpers import normalize_date_query
+from data_helpers import (
+    normalize_date_query, gradebook_for_child, school_year_for_date,
+    letter_to_gpa,
+)
 from config import child_color
 from ui_helpers import html_page
 import auth as _auth
+
+_GRADES_SUBJECTS_ORDER = [
+    "Math", "Latin", "Greek", "Religion", "History", "Science",
+    "Reading", "Writing", "Grammar", "Literature", "Art", "Music",
+    "Logic", "PE", "Other",
+]
 
 
 def _render_messages_from_mom(child: str) -> str:
@@ -448,3 +457,222 @@ def render_student_page(child: str, target_date_str: str = "") -> str:
 {_STUDENT_TOGGLE_JS}
 """
     return html_page(f"School — {child}", body)
+
+
+# ─── Phase 4: Read-only gradebook view (/grades/<child>) ──────────────────────
+
+def _gp4_fmt_date(iso: str) -> str:
+    if not iso:
+        return ""
+    try:
+        from datetime import date as _d
+        return _d.fromisoformat(iso[:10]).strftime("%b %-d, %Y")
+    except Exception:
+        return iso
+
+
+def _gp4_pct_to_letter(pct):
+    """Reuse the local 13-point scale already defined in this module."""
+    return _letter_grade_local(pct)
+
+
+def _gp4_norm_gb(e: dict) -> dict:
+    """Normalize a gradebook.json entry into the unified row schema."""
+    pct = e.get("percentage", "")
+    try:
+        pct_val = float(pct) if pct not in ("", None) else None
+    except Exception:
+        pct_val = None
+    return {
+        "date":    e.get("date", "") or "",
+        "subject": (e.get("subject") or "Other").strip() or "Other",
+        "title":   str(e.get("title") or "").strip() or "(untitled)",
+        "letter":  str(e.get("letter") or "").strip(),
+        "pct":     pct_val,
+        "note":    str(e.get("note") or "").strip(),
+        "source":  "mom",
+        "ts":      e.get("ts", "") or "",
+    }
+
+
+def _gp4_norm_grades(subject: str, e: dict) -> dict | None:
+    """Normalize a grades.json (AI-graded) entry. Returns None if:
+      - the entry has been Mom-graded (gradebook copy is canonical, D3), or
+      - the entry has no numeric grade yet (ungraded uploads are skipped, D3).
+    """
+    if e.get("mom_grade_letter"):
+        return None
+    g = e.get("grade")
+    if not isinstance(g, (int, float)):
+        return None
+    pct_val = float(g)
+    fb = (e.get("feedback") or "").strip()
+    if len(fb) > 220:
+        fb = fb[:217].rstrip() + "…"
+    date_iso = (e.get("created_at") or "")[:10]
+    return {
+        "date":    date_iso,
+        "subject": subject,
+        "title":   f"Submission {_gp4_fmt_date(date_iso)}".strip(),
+        "letter":  _gp4_pct_to_letter(pct_val),
+        "pct":     pct_val,
+        "note":    fb,
+        "source":  "ai",
+        "ts":      e.get("created_at", "") or "",
+    }
+
+
+def _gp4_subject_section(subject: str, rows: list, gpa_mode: bool) -> str:
+    pcts = [r["pct"] for r in rows if isinstance(r["pct"], (int, float))]
+    gpas = []
+    if gpa_mode:
+        for r in rows:
+            g = letter_to_gpa(r["letter"])
+            if g is not None:
+                gpas.append(g)
+    bits = [f"{len(rows)} graded"]
+    if pcts:
+        bits.append(f"avg {sum(pcts)/len(pcts):.1f}%")
+    if gpas:
+        bits.append(f"GPA {sum(gpas)/len(gpas):.2f}")
+    summary = " · ".join(bits)
+
+    body_rows = []
+    for r in rows:
+        pct_str = f"{r['pct']:.0f}%" if isinstance(r["pct"], (int, float)) else ""
+        if r["source"] == "mom":
+            chip = ('<span style="background:rgba(46,125,50,0.10);color:#246b3a;'
+                    'border:1px solid rgba(46,125,50,0.30);border-radius:999px;'
+                    'padding:2px 8px;font-size:.72rem;font-weight:600;">📓 Mom</span>')
+        else:
+            chip = ('<span style="background:rgba(124,58,237,0.10);color:#5b3a8a;'
+                    'border:1px solid rgba(124,58,237,0.30);border-radius:999px;'
+                    'padding:2px 8px;font-size:.72rem;font-weight:600;">🤖 AI</span>')
+        body_rows.append(
+            f'<tr style="border-top:1px solid #f1f1f1;">'
+            f'<td style="padding:8px 6px;color:var(--ink-muted);font-size:.85rem;white-space:nowrap;">{escape(_gp4_fmt_date(r["date"]))}</td>'
+            f'<td style="padding:8px 6px;font-weight:600;">{escape(r["title"])}</td>'
+            f'<td style="padding:8px 6px;color:var(--ink-muted);font-size:.85rem;white-space:nowrap;">{escape(pct_str)}</td>'
+            f'<td style="padding:8px 6px;font-weight:700;white-space:nowrap;">{escape(r["letter"] or "—")}</td>'
+            f'<td style="padding:8px 6px;font-size:.85rem;color:var(--ink-muted);">{escape(r["note"])}</td>'
+            f'<td style="padding:8px 6px;text-align:right;">{chip}</td>'
+            f'</tr>'
+        )
+
+    return (
+        f'<section style="margin-bottom:20px;background:white;border:1px solid var(--border);'
+        f'border-radius:var(--radius-md);padding:14px 16px;">'
+        f'<header style="display:flex;justify-content:space-between;align-items:baseline;'
+        f'gap:10px;flex-wrap:wrap;margin-bottom:8px;">'
+        f'<h3 style="margin:0;font-family:\'Cormorant Garamond\',Georgia,serif;'
+        f'font-size:1.15rem;color:var(--ink);">{escape(subject)}</h3>'
+        f'<span style="color:var(--ink-muted);font-size:.82rem;">{escape(summary)}</span>'
+        f'</header>'
+        f'<table style="width:100%;border-collapse:collapse;font-size:.95rem;">'
+        f'<thead><tr style="text-align:left;color:var(--ink-muted);font-size:.75rem;'
+        f'text-transform:uppercase;letter-spacing:.06em;">'
+        f'<th style="padding:6px;font-weight:600;">Date</th>'
+        f'<th style="padding:6px;font-weight:600;">Assignment</th>'
+        f'<th style="padding:6px;font-weight:600;">%</th>'
+        f'<th style="padding:6px;font-weight:600;">Grade</th>'
+        f'<th style="padding:6px;font-weight:600;">Note</th>'
+        f'<th style="padding:6px;font-weight:600;text-align:right;">By</th>'
+        f'</tr></thead>'
+        f'<tbody>{"".join(body_rows)}</tbody>'
+        f'</table></section>'
+    )
+
+
+def render_student_grades(child: str) -> str:
+    """Phase 4: read-only gradebook for a kid. Merges Lauren's recorded
+    grades (data/gradebook.json) with Father Gregory's AI grades
+    (data/grades.json), de-duped by analysis_id (D3). Current school
+    year only (D6). GPA only for JP (D2)."""
+    from datetime import date as _date
+    year = school_year_for_date(_date.today().isoformat())
+    gpa_mode = (child == "JP")
+
+    # 1. Mom-recorded entries (gradebook.json) — already year-filtered.
+    gb_entries = gradebook_for_child(child, school_year=year)
+    mom_rows = [_gp4_norm_gb(e) for e in gb_entries]
+    mom_analysis_ids = {
+        (e.get("source_analysis_id") or "").strip()
+        for e in gb_entries
+        if (e.get("source_analysis_id") or "").strip()
+    }
+
+    # 2. AI-graded entries (grades.json), filtered to current year + de-duped.
+    ai_rows = []
+    try:
+        from render_subject import load_grades
+        grades = load_grades() or {}
+    except Exception:
+        grades = {}
+    for subject, node in (grades.get(child) or {}).items():
+        for ent in (node or {}).get("entries", []) or []:
+            aid = (ent.get("analysis_id") or "").strip()
+            if aid and aid in mom_analysis_ids:
+                continue  # gradebook covers it (D3)
+            row = _gp4_norm_grades(subject, ent)
+            if row is None:
+                continue
+            # Year filter on AI rows
+            try:
+                if school_year_for_date(row["date"]) != year:
+                    continue
+            except Exception:
+                continue
+            ai_rows.append(row)
+
+    all_rows = mom_rows + ai_rows
+
+    # 3. Group by subject (SUBJECTS order, then alphabetical extras)
+    by_subj: dict[str, list] = {}
+    for r in all_rows:
+        by_subj.setdefault(r["subject"], []).append(r)
+    for s in by_subj:
+        by_subj[s].sort(key=lambda r: (r["date"], r["ts"]), reverse=True)
+    ordered = [s for s in _GRADES_SUBJECTS_ORDER if s in by_subj] + \
+              sorted([s for s in by_subj if s not in _GRADES_SUBJECTS_ORDER])
+
+    # 4. Overall summary
+    all_pcts = [r["pct"] for r in all_rows if isinstance(r["pct"], (int, float))]
+    all_gpas = []
+    if gpa_mode:
+        for r in all_rows:
+            g = letter_to_gpa(r["letter"])
+            if g is not None:
+                all_gpas.append(g)
+    overall_bits = [f"{len(all_rows)} entries"]
+    if all_pcts:
+        overall_bits.append(f"overall {sum(all_pcts)/len(all_pcts):.1f}%")
+    if all_gpas:
+        overall_bits.append(f"GPA {sum(all_gpas)/len(all_gpas):.2f}")
+    overall = " · ".join(overall_bits)
+    scale_label = "GPA scale" if gpa_mode else "encouragement marks (no GPA)"
+
+    color = child_color(child)
+    sections_html = "".join(
+        _gp4_subject_section(s, by_subj[s], gpa_mode) for s in ordered
+    )
+
+    if not all_rows:
+        sections_html = (
+            '<div style="background:white;border:1px solid var(--border);'
+            'border-radius:var(--radius-md);padding:24px;text-align:center;'
+            'color:var(--ink-muted);">No grades yet — keep up the good work!</div>'
+        )
+
+    body = f"""
+<div style="max-width:980px;margin:0 auto;padding:18px 16px 80px;">
+  <a href="/student/{escape(child.lower())}" style="color:var(--ink-muted);
+     text-decoration:none;font-size:14px;">← School</a>
+  <h1 style="font-family:'Cormorant Garamond',Georgia,serif;font-size:32px;
+             margin:8px 0 4px;color:{escape(color)};">📊 Grades — {escape(child)}</h1>
+  <p style="color:var(--ink-muted);font-size:14px;margin:0 0 16px;">{escape(year)} · {escape(scale_label)}</p>
+  <div style="color:var(--ink-muted);font-size:13px;margin:10px 0 18px;
+              padding:8px 12px;background:rgba(0,0,0,0.025);border-radius:6px;">{escape(overall)}</div>
+  {sections_html}
+</div>
+"""
+    return html_page(f"Grades — {child}", body)

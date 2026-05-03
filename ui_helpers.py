@@ -273,6 +273,14 @@ def _build_mobile_more_sheet_inner(viewer, is_child: bool) -> str:
     """
     if is_child and viewer:
         v = escape(viewer)
+        grades_link = (
+            f"""<a href="/grades/{v}" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-weight:600;font-size:0.9em;">
+          <span style="font-size:1.2em;">&#128202;</span> Grades
+        </a>"""
+            if viewer.lower() in ("jp", "joseph") else ""
+        )
         return f"""
       <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
                   color:#9ca3af;margin:10px 0 8px;">My Day</div>
@@ -282,6 +290,7 @@ def _build_mobile_more_sheet_inner(viewer, is_child: bool) -> str:
                   border-radius:12px;text-decoration:none;color:#374151;font-weight:600;font-size:0.9em;">
           <span style="font-size:1.2em;">&#128218;</span> School
         </a>
+        {grades_link}
         <a href="/schedule/{v}" onclick="closeMobileMore()"
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
                   border-radius:12px;text-decoration:none;color:#374151;font-weight:600;font-size:0.9em;">

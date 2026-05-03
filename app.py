@@ -1687,6 +1687,16 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_response(404); self.end_headers(); return
             from render_student import render_student_page
             body = render_student_page(matched, query.get("date",[""])[0])
+        elif path.startswith("/grades/"):
+            # Student Portal Phase 4 — read-only gradebook view (JP, Joseph).
+            child_slug = path[len("/grades/"):].split("?")[0].lower()
+            if child_slug not in ("jp", "joseph"):
+                self.send_response(404); self.end_headers(); return
+            matched = next((c for c in CHILDREN if c.lower() == child_slug), None)
+            if not matched:
+                self.send_response(404); self.end_headers(); return
+            from render_student import render_student_grades
+            body = render_student_grades(matched)
         elif path == "/calendar/refresh":
             refresh_calendar(force=True)
             self.send_response(303); self.send_header("Location","/calendar"); self.end_headers(); return
