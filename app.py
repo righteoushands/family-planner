@@ -4049,32 +4049,6 @@ class Handler(BaseHTTPRequestHandler):
                 body = render_waitlist_admin(ok)
                 self._send_html(body); return
 
-            elif path == "/apply-canonical-chores":
-                from render_chores import apply_canonical_chores
-                save_chores_data(apply_canonical_chores(load_chores_data()))
-                redirect = "/chores?msg=Canonical+chore+defaults+applied#top"
-
-            elif path == "/apply-kitchen-rotation":
-                from render_chores import (
-                    get_kitchen_roles,
-                    KITCHEN_ROLE_A_MORNING, KITCHEN_ROLE_A_EVENING,
-                    KITCHEN_ROLE_B_MORNING, KITCHEN_ROLE_B_EVENING,
-                )
-                chores = load_chores_data()
-                boys   = chores.get("boys", {})
-                roles  = get_kitchen_roles()
-                for child in ("JP", "Joseph"):
-                    role    = roles[child]
-                    morning = KITCHEN_ROLE_A_MORNING if role == "A" else KITCHEN_ROLE_B_MORNING
-                    evening = KITCHEN_ROLE_A_EVENING if role == "A" else KITCHEN_ROLE_B_EVENING
-                    boys.setdefault(child, {"daily": [], "weekly": {}})
-                    existing    = boys[child].get("daily", [])
-                    non_kitchen = [l for l in existing if not l.startswith("KITCHEN")]
-                    boys[child]["daily"] = non_kitchen + [""] + morning + [""] + evening
-                chores["boys"] = boys
-                save_chores_data(chores)
-                redirect = "/chores?msg=Kitchen+rotation+applied+to+daily+chores#top"
-
             elif path == "/apply-van-rotation":
                 save_chores_data(apply_van_rotation(load_chores_data())); redirect="/van-roles#top"
 
@@ -4083,12 +4057,6 @@ class Handler(BaseHTTPRequestHandler):
                 if text:
                     notes=load_mom_notes(); notes.append({"id":str(uuid.uuid4()),"text":text,"status":"active"}); save_mom_notes(notes)
                 redirect="/mom#top"
-
-            elif path == "/mom-archive-note":
-                note_id=data.get("id",[""])[0]; notes=load_mom_notes()
-                for note in notes:
-                    if str(note.get("id",""))==note_id: note["status"]="archived"; break
-                save_mom_notes(notes); redirect="/mom#top"
 
             elif path == "/history-restore":
                 key = (data.get("key",[""])[0] or data.get("filename",[""])[0]).strip()
@@ -4153,17 +4121,6 @@ class Handler(BaseHTTPRequestHandler):
                 except BrokenPipeError: pass
                 return
 
-            elif path == "/plan-delete-item":
-                iso     = clean_text(data.get("iso",[""])[0]) or date.today().isoformat()
-                item_id = clean_text(data.get("id",[""])[0])
-                delete_plan_item(iso, item_id)
-                self.send_response(200)
-                self.send_header("Content-Type","application/json")
-                self.end_headers()
-                try: self.wfile.write(b'{"ok":true}')
-                except BrokenPipeError: pass
-                return
-
             elif path == "/plan-item-update":
                 # Inline-rename a plan item by id. Form-urlencoded; returns JSON.
                 # If the item carries a task_id (originated from a manual task),
@@ -4208,50 +4165,6 @@ class Handler(BaseHTTPRequestHandler):
                 except BrokenPipeError: pass
                 return
 
-            elif path == "/plan-reorder":
-                iso  = clean_text(data.get("iso",[""])[0]) or date.today().isoformat()
-                ids  = clean_text(data.get("ids",[""])[0]).split(",")
-                ids  = [i.strip() for i in ids if i.strip()]
-                reorder_plan_items(iso, ids)
-                self.send_response(200)
-                self.send_header("Content-Type","application/json")
-                self.end_headers()
-                try: self.wfile.write(b'{"ok":true}')
-                except BrokenPipeError: pass
-                return
-
-            elif path == "/plan-set-time":
-                iso     = clean_text(data.get("iso",[""])[0]) or date.today().isoformat()
-                item_id = clean_text(data.get("id",[""])[0])
-                itime   = clean_text(data.get("time",[""])[0])
-                update_item_time(iso, item_id, itime)
-                self.send_response(200)
-                self.send_header("Content-Type","application/json")
-                self.end_headers()
-                try: self.wfile.write(b'{"ok":true}')
-                except BrokenPipeError: pass
-                return
-
-            elif path == "/plan-publish":
-                iso = clean_text(data.get("iso",[""])[0]) or date.today().isoformat()
-                publish_plan(iso)
-                self.send_response(200)
-                self.send_header("Content-Type","application/json")
-                self.end_headers()
-                try: self.wfile.write(b'{"ok":true}')
-                except BrokenPipeError: pass
-                return
-
-            elif path == "/plan-reset":
-                iso = clean_text(data.get("iso",[""])[0]) or date.today().isoformat()
-                reset_plan(iso)
-                self.send_response(200)
-                self.send_header("Content-Type","application/json")
-                self.end_headers()
-                try: self.wfile.write(b'{"ok":true}')
-                except BrokenPipeError: pass
-                return
-
             elif path == "/anchor-save":
                 import json as _json
                 iso      = clean_text(data.get("iso",[""])[0]) or date.today().isoformat()
@@ -4272,16 +4185,6 @@ class Handler(BaseHTTPRequestHandler):
                     save_daily_plan(plan)
                 except Exception as e:
                     print("[anchor-save error]", str(e))
-                self.send_response(200)
-                self.send_header("Content-Type","application/json")
-                self.end_headers()
-                try: self.wfile.write(b'{"ok":true}')
-                except BrokenPipeError: pass
-                return
-
-            elif path == "/plan-sort":
-                iso = clean_text(data.get("iso",[""])[0]) or date.today().isoformat()
-                sort_plan_chronologically(iso)
                 self.send_response(200)
                 self.send_header("Content-Type","application/json")
                 self.end_headers()
@@ -4339,28 +4242,6 @@ class Handler(BaseHTTPRequestHandler):
                     print("[grid-cell-save error]", str(e))
                 self.send_response(200)
                 self.send_header("Content-Type","application/json")
-                self.end_headers()
-                try: self.wfile.write(b'{"ok":true}')
-                except BrokenPipeError: pass
-                return
-
-            elif path == "/rol-cell-save":
-                import json as _json
-                _day = clean_text(data.get("day", [""])[0])
-                _ts  = clean_text(data.get("ts",  [""])[0])
-                _val = clean_text(data.get("value",[""])[0])
-                if _day and _ts:
-                    try:
-                        import json as _rj
-                        from pathlib import Path as _rp
-                        _tp = _rp(f"data/day_templates/{_day}.json")
-                        _td = _rj.loads(_tp.read_text("utf-8")) if _tp.exists() else {"weekday": _day, "grid": {}}
-                        _td.setdefault("grid", {}).setdefault("Mom", {})[_ts] = _val
-                        save_day_template(_day, _td)
-                    except Exception as _e:
-                        print("[rol-cell-save error]", str(_e))
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
                 self.end_headers()
                 try: self.wfile.write(b'{"ok":true}')
                 except BrokenPipeError: pass
@@ -8385,12 +8266,6 @@ class Handler(BaseHTTPRequestHandler):
                 if path=="/calendar-config-save": refresh_calendar(force=True)
                 redirect="/calendar#top"
 
-            elif path == "/calendar-approve":
-                tk=clean_text(data.get("title_key",[""])[0]).lower(); d=clean_text(data.get("decision",[""])[0])
-                if tk and d in ("show_boys","mom_only","skip"):
-                    rules=load_calendar_rules(); rules.setdefault("rules",{})[tk]=d; save_calendar_rules(rules)
-                redirect="/calendar#top"
-
             elif path == "/planner-add-task":
                 text=clean_text(data.get("text",[""])[0])
                 if text:
@@ -9643,32 +9518,6 @@ class Handler(BaseHTTPRequestHandler):
                     pass
                 self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
                 try: self.wfile.write(b'{"ok":true}')
-                except BrokenPipeError: pass
-                return
-
-            elif path == "/liturgy-hours-fetch":
-                import json as _json
-                ds_in    = clean_text(data.get("date",[""])[0])
-                force_in = "force" in data
-                try:
-                    from datetime import date as _date
-                    from render_liturgy_hours import fetch_week, _week_monday, HOURS_DIR
-                    import os as _os
-                    target_d = _date.fromisoformat(ds_in) if ds_in else _date.today()
-                    monday   = _week_monday(target_d)
-                    if force_in:
-                        # Delete stored files for this week so they get re-fetched
-                        for i in range(7):
-                            day = monday + __import__('datetime').timedelta(days=i)
-                            fp  = _os.path.join(HOURS_DIR, f"{day.isoformat()}.json")
-                            if _os.path.exists(fp):
-                                _os.remove(fp)
-                    fetch_week(monday)
-                    out = _json.dumps({"ok": True}).encode()
-                except Exception as e:
-                    out = _json.dumps({"ok": False, "error": str(e)}).encode()
-                self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
-                try: self.wfile.write(out)
                 except BrokenPipeError: pass
                 return
 

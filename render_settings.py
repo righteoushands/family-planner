@@ -85,12 +85,6 @@ def save_app_settings(settings: dict):
     safe_save_json(APP_SETTINGS_FILE, settings)
 
 
-def get_setting(key: str, default=None):
-    return load_app_settings().get(key, default if default is not None else SETTINGS_DEFAULTS.get(key))
-
-
-# ── Section renderers (each returns an HTML string, no <form> wrapper) ────────
-
 def _section_general(settings: dict) -> str:
     family_name  = settings.get("family_name", "Our Family")
     timezone     = settings.get("timezone",    "America/New_York")

@@ -74,32 +74,6 @@ def get_this_month_data() -> dict:
     }
 
 
-def render_month_summary_card() -> str:
-    data        = get_this_month_data()
-    month_name  = data["month_name"]
-    month_data  = data["month_data"]
-    every_month = data["every_month"]
-    task_count    = len(month_data.get("tasks",[])) + len(every_month.get("tasks",[]))
-    garden_count  = len(month_data.get("garden",[]))
-    penance_count = len(data["penance_chores"])
-    antiphon      = month_data.get("marian_antiphon","")
-    von_trapp     = month_data.get("von_trapp","")
-    antiphon_html  = f"<p class='small' style='margin-top:6px;'>🎵 {escape(antiphon)}</p>" if antiphon else ""
-    von_trapp_html = f"<p class='small'>📖 Von Trapp: {escape(von_trapp)}</p>" if von_trapp else ""
-    penance_html   = f"<span class='badge' style='background:#f0e8f5;'>Penance chores: {penance_count}</span>" if penance_count else ""
-    return f"""
-    <div class="card" style="border-left:4px solid #8b5a3c;">
-        <h3>🗓 {escape(month_name)}</h3>
-        <div class="summary-row">
-            <span class="badge">Tasks: {task_count}</span>
-            <span class="badge">Garden: {garden_count}</span>
-            {penance_html}
-        </div>
-        {antiphon_html}{von_trapp_html}
-        <div class="link-row"><a class="link-button" href="/planner">Open Planner</a></div>
-    </div>"""
-
-
 def render_planner_page(status_message: str = "") -> str:
     data           = get_this_month_data()
     month_name     = data["month_name"]

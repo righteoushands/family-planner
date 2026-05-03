@@ -128,13 +128,6 @@ def save_master_goals(goals):
     safe_save_json(f"{GOALS_DIR}/master.json", {"goals": goals})
 
 
-def get_goal_by_id(goal_id):
-    for g in load_master_goals():
-        if g.get("id") == goal_id:
-            return g
-    return {}
-
-
 def add_master_goal(title, category, why="", metric=""):
     goals = load_master_goals()
     if len(goals) >= 12:
@@ -150,19 +143,6 @@ def add_master_goal(title, category, why="", metric=""):
     goals.append(goal)
     save_master_goals(goals)
     return goal
-
-
-def update_master_goal(goal_id, updates):
-    goals = load_master_goals()
-    for g in goals:
-        if g.get("id") == goal_id:
-            g.update(updates)
-    save_master_goals(goals)
-
-
-def delete_master_goal(goal_id):
-    goals = [g for g in load_master_goals() if g.get("id") != goal_id]
-    save_master_goals(goals)
 
 
 def load_quarter_plan(quarter_key):

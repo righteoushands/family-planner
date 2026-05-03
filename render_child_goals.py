@@ -88,11 +88,6 @@ def update_child_goal(child: str, goal_id: str, updates: dict):
     save_child_goals(child, goals)
 
 
-def delete_child_goal(child: str, goal_id: str):
-    goals = [g for g in load_child_goals(child) if g.get("id") != goal_id]
-    save_child_goals(child, goals)
-
-
 def add_substep(child: str, goal_id: str, text: str) -> dict:
     goals = load_child_goals(child)
     step = {"id": str(uuid.uuid4())[:8], "text": text, "done": False}
@@ -114,16 +109,6 @@ def toggle_substep(child: str, goal_id: str, step_id: str) -> bool:
                     new_state = s["done"]
     save_child_goals(child, goals)
     return new_state
-
-
-def update_substep_text(child: str, goal_id: str, step_id: str, text: str):
-    goals = load_child_goals(child)
-    for g in goals:
-        if g.get("id") == goal_id:
-            for s in g.get("substeps", []):
-                if s.get("id") == step_id:
-                    s["text"] = text
-    save_child_goals(child, goals)
 
 
 def delete_substep(child: str, goal_id: str, step_id: str):

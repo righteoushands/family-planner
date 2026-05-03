@@ -552,56 +552,6 @@ def _latin_week_from_text(assignment_text: str) -> int:
     return int(m.group(1)) if m else 0
 
 
-def render_school_block(child: str, iso: str, block: dict) -> str:
-    subject = escape(block.get("subject","") or "Untitled Subject")
-    assignment_text = block.get("assignment_text","")
-    assignment_html = f"<pre>{escape(assignment_text)}</pre>" if assignment_text else ""
-    math_note = ""
-    if block.get("is_math_test"):
-        math_note = "<p><strong>TEST — bring to Mom for review</strong></p>"
-    elif block.get("is_math"):
-        math_note = "<p>Do all Lesson Practice and only the Mixed Practice from the last four lessons.</p>"
-
-    # ── Latin notes ───────────────────────────────────────────────────────────
-    latin_note = ""
-    _raw_subject = (block.get("subject") or "").lower()
-    if "latin" in _raw_subject:
-        _latin_week = _latin_week_from_text(block.get("assignment_text", ""))
-        # Joseph: show whenever Latin appears (week 0 = week unknown → still show)
-        # JP: show only while current week ≤ 25
-        _show = False
-        if child == "Joseph":
-            _show = True
-        elif child in ("JP", "John Paul"):
-            _show = (_latin_week == 0 or _latin_week <= 25)
-
-        if _show:
-            # JP note is the same curriculum reminder; tailor for who is reading it
-            if child == "Joseph":
-                _note_body = (
-                    "Continue your Latin <strong>assignments</strong> until you finish <strong>Week 25</strong>. "
-                    "Continue Latin <strong>quizzes</strong> until you earn <strong>85% or better</strong> "
-                    "(all quizzes through Week 25). Mom will let you know what comes next."
-                )
-            else:
-                _note_body = (
-                    "Continue Latin <strong>assignments and quizzes</strong> through <strong>Week 25</strong>. "
-                    "Quizzes: aim for <strong>85% or better</strong>. Mom will follow up once you reach Week 25."
-                )
-            latin_note = (
-                f'<div style="background:#fffbeb;border-left:3px solid #d97706;border-radius:6px;'
-                f'padding:8px 12px;margin:6px 0;font-size:.88em;color:#78350f;line-height:1.5;">'
-                f'📌 {_note_body}</div>'
-            )
-
-    return f"""
-    <div class="subject-card">
-        <h4>{subject}</h4>
-        {math_note}{latin_note}{assignment_html}
-        {render_task_list(child, iso, block.get("items",[]))}
-    </div>"""
-
-
 def render_confetti_celebration(child: str) -> str:
     c_bg   = child_color(child, "bg")
     c_text = child_color(child, "text")

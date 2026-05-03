@@ -63,13 +63,6 @@ def save_intentions(intentions: list):
     safe_save_json(INTENTS_FILE, intentions)
 
 
-def get_intention(intention_id: str) -> dict:
-    for i in load_intentions():
-        if i.get("id") == intention_id:
-            return i
-    return {}
-
-
 def _update_intention(intention_id: str, updates: dict):
     intentions = load_intentions()
     for i in intentions:

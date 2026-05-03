@@ -239,9 +239,6 @@ def _template_path(weekday):
     os.makedirs(TEMPLATES_DIR, exist_ok=True)
     return f"{TEMPLATES_DIR}/{weekday}.json"
 
-def load_day_template(weekday):
-    return ensure_file(_template_path(weekday), {})
-
 def save_day_template(weekday, data):
     safe_save_json(_template_path(weekday), data)
 

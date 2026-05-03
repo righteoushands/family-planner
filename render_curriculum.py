@@ -46,75 +46,6 @@ def _recommended_minutes(subject: str) -> int:
             return mins
     return 35
 
-def render_curriculum_main():
-    """Main curriculum dashboard with module navigation."""
-    
-    # Get summary stats
-    library = load_curriculum_library()
-    submissions = load_student_submissions()
-    pending_reviews = len([s for s in submissions["submissions"] if s["status"] == "pending_review"])
-    total_subjects = len(library["subjects"])
-    
-    tabs = [
-        {"id": "library", "label": "📚 Curriculum Library", "url": "/curriculum-library"},
-        {"id": "documents", "label": "📄 Reference Docs", "url": "/curriculum-docs"},
-        {"id": "submissions", "label": "📤 Student Work", "url": "/submit-work"},
-        {"id": "grading", "label": f"✅ Grading Queue ({pending_reviews})", "url": "/grading-queue"}
-    ]
-    
-    nav_html = render_nav_tabs(tabs, "curriculum")
-    
-    return f"""
-    <div class="curriculum-main">
-        {nav_html}
-        
-        <div class="dashboard-overview">
-            <div class="stat-cards">
-                <div class="stat-card">
-                    <h3>{total_subjects}</h3>
-                    <p>Active Subjects</p>
-                </div>
-                <div class="stat-card">
-                    <h3>{pending_reviews}</h3>
-                    <p>Pending Reviews</p>
-                </div>
-                <div class="stat-card">
-                    <h3>{len(submissions['submissions'])}</h3>
-                    <p>Total Submissions</p>
-                </div>
-            </div>
-            
-            <div class="quick-actions">
-                <h3>Quick Actions</h3>
-                <a href="/assignment-analyzer" class="btn btn-primary">📥 Analyze Assignment</a>
-                <a href="/curriculum-library/new-subject" class="btn btn-secondary">➕ Add New Subject</a>
-                <a href="/curriculum-docs/upload" class="btn btn-secondary">📁 Upload Document</a>
-                <a href="/grading-queue" class="btn btn-accent">🔍 Review Work</a>
-            </div>
-            
-            <div class="recent-activity">
-                <h3>Recent Submissions</h3>
-                {render_recent_submissions_widget()}
-            </div>
-        </div>
-    </div>
-    
-    <style>
-    .curriculum-main {{ margin: 20px; }}
-    .dashboard-overview {{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }}
-    .stat-cards {{ display: flex; gap: 15px; }}
-    .stat-card {{ background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; min-width: 100px; }}
-    .stat-card h3 {{ margin: 0; font-size: 24px; color: #2c3e50; }}
-    .stat-card p {{ margin: 5px 0 0 0; color: #7f8c8d; }}
-    .quick-actions, .recent-activity {{ background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd; }}
-    .quick-actions h3, .recent-activity h3 {{ margin-top: 0; }}
-    .btn {{ display: inline-block; padding: 8px 16px; margin-right: 10px; text-decoration: none; border-radius: 4px; }}
-    .btn-primary {{ background: #3498db; color: white; }}
-    .btn-secondary {{ background: #95a5a6; color: white; }}
-    .btn-accent {{ background: #e74c3c; color: white; }}
-    </style>
-    """
-
 def render_recent_submissions_widget():
     """Widget showing last 5 submissions."""
     submissions = load_student_submissions()
@@ -155,53 +86,6 @@ def render_recent_submissions_widget():
     .status.graded {{ background: #d1edff; color: #0c5460; }}
     </style>
     """
-
-def render_curriculum_library():
-    """Curriculum Library - subjects, units, assignments, pacing."""
-    library = load_curriculum_library()
-    
-    subjects_html = ""
-    for subject in library["subjects"].values():
-        units_count = len(subject.get("units", []))
-        total_assignments = sum(len(unit.get("assignments", [])) for unit in subject.get("units", []))
-        
-        subjects_html += f"""
-        <div class="subject-card">
-            <h4>{subject['name']}</h4>
-            <p><strong>Student:</strong> {subject.get('student', 'N/A')}</p>
-            <p><strong>Grade Level:</strong> {subject.get('grade_level', 'N/A')}</p>
-            <p><strong>Units:</strong> {units_count} | <strong>Assignments:</strong> {total_assignments}</p>
-            <div class="subject-actions">
-                <a href="/curriculum-library/edit/{subject['id']}" class="btn btn-small">✏️ Edit</a>
-                <a href="/curriculum-library/view/{subject['id']}" class="btn btn-small">👁️ View</a>
-            </div>
-        </div>
-        """
-    
-    if not subjects_html:
-        subjects_html = "<p>No subjects created yet. <a href='/curriculum-library/new-subject'>Add your first subject</a></p>"
-    
-    return html_page("Curriculum Library", f"""
-    {page_header("📚 Curriculum Library")}
-    
-    <div class="library-header">
-        <a href="/curriculum-library/new-subject" class="btn btn-primary">➕ Add New Subject</a>
-    </div>
-    
-    <div class="subjects-grid">
-        {subjects_html}
-    </div>
-    
-    <style>
-    .library-header {{ margin: 20px 0; }}
-    .subjects-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin: 20px 0; }}
-    .subject-card {{ background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; }}
-    .subject-card h4 {{ margin-top: 0; color: #2c3e50; }}
-    .subject-actions {{ margin-top: 15px; }}
-    .btn-small {{ padding: 6px 12px; margin-right: 8px; font-size: 14px; }}
-    </style>
-    """)
-
 
 def _parse_modg_locally(raw_text: str) -> dict:
     """Fast local regex parse of a MODG paste. Returns {week_num_str: assignment}.
