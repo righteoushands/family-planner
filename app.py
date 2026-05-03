@@ -1010,6 +1010,28 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/waitlist":         body = render_waitlist_admin(False)
         elif path == "/family-schedule":
             body = render_family_schedule_page(status_message=query.get("msg",[""])[0])
+        elif path == "/frol-pdf":
+            try:
+                from render_frol_pdf import generate_frol_pdf
+                _pdf_bytes = generate_frol_pdf()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/pdf")
+                self.send_header("Content-Disposition",
+                                 'attachment; filename="McAdams_Family_Rule_of_Life.pdf"')
+                self.send_header("Content-Length", str(len(_pdf_bytes)))
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                try: self.wfile.write(_pdf_bytes)
+                except BrokenPipeError: pass
+            except Exception as _frol_pdf_err:
+                self.send_response(500)
+                self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.end_headers()
+                try:
+                    _msg = "FROL PDF generation failed: " + str(_frol_pdf_err)
+                    self.wfile.write(_msg.encode("utf-8"))
+                except BrokenPipeError: pass
+            return
         elif path == "/calendar":        body = render_calendar_page()
         elif path == "/planner":         body = render_planner_page()
         elif path == "/readings":         body = render_readings_page(date_str=query.get("date",[""])[0])

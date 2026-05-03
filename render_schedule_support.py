@@ -216,6 +216,8 @@ def render_family_schedule_page(status_message: str = "") -> str:
                     To edit the Family Rule of Life, go to Settings.
                 </p>
                 <a class="link-button" href="/settings#s-systems">Edit Rule of Life →</a>
+                <a class="link-button" href="/frol-pdf"
+                   style="margin-left:8px;">🖨 Print FROL (PDF)</a>
             </div>
         </div>
     </div>"""
