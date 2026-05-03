@@ -237,6 +237,7 @@ from render_lorenzo import render_lorenzo_page, build_lorenzo_context
 from render_gregory import render_gregory_page, build_gregory_context
 from render_week_school import render_week_school_page
 from render_school_pdf import generate_school_pdf
+from render_frol_pdf import generate_frol_pdf
 from render_coach import render_coach_page, build_coach_context
 from render_monica import render_monica_page, build_monica_context
 from render_plan_importer import (
@@ -1013,7 +1014,6 @@ class Handler(BaseHTTPRequestHandler):
             body = render_family_schedule_page(status_message=query.get("msg",[""])[0])
         elif path == "/frol-pdf":
             try:
-                from render_frol_pdf import generate_frol_pdf
                 _pdf_bytes = generate_frol_pdf()
                 self.send_response(200)
                 self.send_header("Content-Type", "application/pdf")

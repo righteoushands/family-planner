@@ -15,12 +15,12 @@ Storage:
 from __future__ import annotations
 import os, json, re, uuid, time
 from html import escape as _e
-from urllib.parse import quote, urlencode
+from urllib.parse import quote, urlencode, urlparse
 from datetime import datetime
 
 from ui_helpers import html_page, page_header
 import father_gregory
-from data_helpers import add_assignment_analysis
+from data_helpers import add_assignment_analysis, week_day_segments
 import auth as _auth
 from safe_utils import safe_save_json
 
@@ -85,8 +85,7 @@ def _is_music_url(url: str) -> bool:
     """Return True if the URL host is a known music-platform domain.
     Suffix-match so subdomains (e.g. 'embed.spotify.com') still classify."""
     try:
-        from urllib.parse import urlparse as _up
-        host = (_up(url).hostname or "").lower()
+        host = (urlparse(url).hostname or "").lower()
         if not host:
             return False
         for h in _MUSIC_HOSTS:
@@ -446,7 +445,6 @@ def _render_assignments_tab(child: str, subject: str,
     """Curriculum sequence. Each week is a <details> block; the current
     week opens by default. Day segments shown via week_day_segments() when
     present, else the raw curriculum text in a pre-wrap div."""
-    from data_helpers import week_day_segments
     if not weeks:
         return (
             '<section style="background:var(--warm-white);border:1px solid var(--border);'

@@ -142,7 +142,7 @@ def generate_school_pdf(target_date_str: str = "") -> bytes:
     # Pre-build child header styles (one per child, color from app palette).
     child_styles = {}
     for c in CHILDREN:
-        col_hex = child_color(c, "bg") or "#1f2937"
+        col_hex = "#2980b9" if c == "JP" else (child_color(c, "bg") or "#1f2937")
         child_styles[c] = ParagraphStyle(
             f"Child_{c}", parent=styles["child_header"],
             textColor=colors.HexColor(col_hex),
