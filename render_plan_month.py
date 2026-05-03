@@ -655,7 +655,7 @@ function aiBriefMonth() {{
     if (loading) loading.style.display = 'none';
     if (result) {{
       result.style.display = 'block';
-      result.innerHTML = (d.briefing || d.text || 'No briefing returned.').replace(/\n/g,'<br>');
+      result.innerHTML = (d.briefing || d.text || 'No briefing returned.').replace(/\\n/g,'<br>');
     }}
     if (d.briefing) {{ _mPlan.ai_briefing = d.briefing; autoSave(); }}
   }}).catch(function() {{

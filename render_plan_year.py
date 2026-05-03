@@ -299,7 +299,7 @@ function aiYearReview() {{
     if (loading) loading.style.display = 'none';
     if (result) {{
       result.style.display = 'block';
-      result.innerHTML = (d.briefing || d.text || 'No review returned.').replace(/\n/g,'<br>');
+      result.innerHTML = (d.briefing || d.text || 'No review returned.').replace(/\\n/g,'<br>');
     }}
   }}).catch(function() {{
     if (loading) loading.style.display = 'none';

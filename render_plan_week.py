@@ -838,7 +838,7 @@ function aiBrief() {{
     if(result){{
       result.style.display='block';
       var html='';
-      if(d.briefing)html+='<div style="padding:10px 12px;background:#faf8f5;border-radius:8px;font-size:0.85em;line-height:1.65;color:var(--ink);margin-bottom:10px;">'+d.briefing.replace(/\n/g,'<br>')+'</div>';
+      if(d.briefing)html+='<div style="padding:10px 12px;background:#faf8f5;border-radius:8px;font-size:0.85em;line-height:1.65;color:var(--ink);margin-bottom:10px;">'+d.briefing.replace(/\\n/g,'<br>')+'</div>';
       if(d.items&&d.items.length>0){{
         html+='<div style="font-size:0.72em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:6px;">Select items to add to your plan</div>';
         d.items.forEach(function(item,i){{

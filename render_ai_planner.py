@@ -351,7 +351,7 @@ def render_ai_panel(iso: str) -> str:
 
     function aiSetReasoning(text) {{
         var el = document.getElementById('ai-reasoning');
-        if (el) el.innerHTML = '<span style="color:#888;">' + text.replace(/\n/g,'<br>') + '</span>';
+        if (el) el.innerHTML = '<span style="color:#888;">' + text.replace(/\\n/g,'<br>') + '</span>';
     }}
 
     function _aiBubble(role, text) {{
