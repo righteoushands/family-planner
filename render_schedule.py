@@ -2778,13 +2778,15 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
             if _has_any_pending and not pending_subs:
                 continue
             tot = len(pending_subs)
+            _items_word = "items" if tot != 1 else "item"
             rows_html += (
                 f'<div class="blk-header" style="--blk-color:{kcolor};">'
                 f'<span class="blk-time">{escape(t_disp)}</span>'
                 f'<span class="blk-label">{icon} {label}</span>'
-                f'<span class="blk-count">— {tot} item{"s" if tot != 1 else ""}</span>'
+                f'<span class="blk-count">— {tot} {_items_word}</span>'
                 f'</div>'
             )
+            _poetry_passage_injected = False
             for sub in subs:
                 if sub.get("is_header"):
                     rows_html += f'<div class="sub-sect">{escape(sub.get("text",""))}</div>'
@@ -2798,6 +2800,38 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
                         f'<span>{carry_mark}{escape(sub.get("text",""))}</span>'
                         f'</div>'
                     )
+                    # Poetry memorization passage injection — mirrors the live
+                    # POD logic in _dl_sub_items_html (lines 820-849).  Only
+                    # injects once per parent block.
+                    _raw_tid  = sub.get("task_id", "")
+                    _text_low = sub.get("text", "").lower()
+                    _is_poetry_memorize = (
+                        "poetry"   in _raw_tid.lower() and
+                        "memorize" in _text_low and
+                        not _poetry_passage_injected and
+                        bool(child)
+                    )
+                    if _is_poetry_memorize:
+                        _passage = _get_poetry_passage(child)
+                        if _passage.get("text"):
+                            _poetry_passage_injected = True
+                            _p_title = escape(_passage.get("title", ""))
+                            _p_text  = escape(_passage.get("text", ""))
+                            _p_text_html = _p_text.replace("&#10;", "<br>").replace("\n", "<br>")
+                            _title_html = (
+                                f'<div style="font-size:.78em;font-weight:700;'
+                                f'color:#7c3aed;margin-bottom:4px;">{_p_title}</div>'
+                                if _p_title else ""
+                            )
+                            rows_html += (
+                                f'<div style="margin:4px 0 6px 22px;padding:8px 12px;'
+                                f'background:#faf5ff;border-left:3px solid #7c3aed;'
+                                f'border-radius:0 6px 6px 0;">'
+                                f'{_title_html}'
+                                f'<div style="font-family:Georgia,serif;font-size:.85em;'
+                                f'line-height:1.5;color:#4a1a6e;">{_p_text_html}</div>'
+                                f'</div>'
+                            )
                 else:
                     rows_html += f'<div class="sub-note">• {escape(sub.get("text",""))}</div>'
         elif item.get("task_id") and item.get("checkable"):
