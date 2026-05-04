@@ -125,8 +125,9 @@ def _xml_escape(s: str) -> str:
 
 def generate_school_pdf(target_date_str: str = "") -> bytes:
     """
-    Build a 5-page PDF of the week's school assignments for JP, Joseph,
-    Michael (Mon-Fri).  Returns the PDF bytes.
+    Build a 15-page PDF of the week's school assignments — one page per
+    (child, weekday) pair, ordered JP Mon..Fri, Joseph Mon..Fri,
+    Michael Mon..Fri.  Returns the PDF bytes.
 
     target_date_str: optional 'YYYY-MM-DD'.  Any date in the desired week
     works — the function snaps back to Monday.  Default = today.
@@ -156,13 +157,15 @@ def generate_school_pdf(target_date_str: str = "") -> bytes:
 
     story = []
     week = _week_dates(target_date_str)
-    for idx, (d, wname) in enumerate(week):
-        date_label = d.strftime("%B %-d, %Y") if hasattr(d, "strftime") else str(d)
-        header = f"{wname} — {date_label}"
-        story.append(Paragraph(_xml_escape(header), styles["date_header"]))
+    total_pages = len(CHILDREN) * len(week)
+    page_idx = 0
+    for child in CHILDREN:
+        child_cur = curriculum.get(child, {}) if isinstance(curriculum, dict) else {}
+        for d, wname in week:
+            date_label = d.strftime("%B %-d, %Y") if hasattr(d, "strftime") else str(d)
+            header = f"{child} — {wname}, {date_label}"
+            story.append(Paragraph(_xml_escape(header), child_styles[child]))
 
-        for child in CHILDREN:
-            story.append(Paragraph(_xml_escape(child), child_styles[child]))
             blocks = _child_blocks_safe(child, wname)
             rows = []
             for blk in blocks:
@@ -175,7 +178,6 @@ def generate_school_pdf(target_date_str: str = "") -> bytes:
             if not rows:
                 story.append(Paragraph("No assignments scheduled.", styles["empty"]))
             else:
-                child_cur = curriculum.get(child, {}) if isinstance(curriculum, dict) else {}
                 for subj, txt in rows:
                     subj_node = child_cur.get(subj, {}) if isinstance(child_cur, dict) else {}
                     meta_html = ""
@@ -195,10 +197,9 @@ def generate_school_pdf(target_date_str: str = "") -> bytes:
                     )
                     story.append(Paragraph(line, styles["row"]))
 
-            story.append(Spacer(1, 4))
-
-        if idx != len(week) - 1:
-            story.append(PageBreak())
+            page_idx += 1
+            if page_idx < total_pages:
+                story.append(PageBreak())
 
     doc.build(story)
     return buf.getvalue()
