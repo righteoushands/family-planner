@@ -1,9 +1,11 @@
 """
 School Week printable PDF generator.
 
-Builds a 5-page portrait Letter PDF — one weekday Mon-Fri per page —
-showing JP, Joseph, and Michael's school assignments side-by-side so
-Lauren can plan and track the week at a glance.
+Builds a 15-page portrait Letter PDF — one page per (child, weekday)
+pair, ordered JP Mon..Fri, then Joseph Mon..Fri, then Michael Mon..Fri.
+Each page shows a single child's assignments for a single day with an
+empty checkbox to the left of every line, so Lauren and the kids can
+tick work off as they go.
 
 Pulls live data via daily_schedule_engine.extract_school_tasks_for_child,
 the same source the daily-schedule grids and weekly student views use,
@@ -21,8 +23,9 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, PageBreak,
+    SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle,
 )
+from reportlab.platypus.flowables import Flowable
 from reportlab.lib.enums import TA_LEFT
 
 from config import child_color
@@ -47,7 +50,12 @@ def _parse_target_date(target_date_str: str):
 
 
 def _monday_of_week(d):
-    """Return the Monday on or before d (date.weekday(): Mon=0 .. Sun=6)."""
+    """Return the Monday of d's school week.
+    Mon-Sat (weekday 0..5) snap back to that week's Monday.
+    Sunday (weekday 6) snaps FORWARD to the upcoming Monday — Sunday is
+    treated as the start of the new school week, not the tail of the old one."""
+    if d.weekday() == 6:
+        return d + timedelta(days=1)
     return d - timedelta(days=d.weekday())
 
 
@@ -102,12 +110,12 @@ def _build_styles():
         "row": ParagraphStyle(
             "Row", parent=base["BodyText"],
             fontName="Helvetica", fontSize=10, leading=13,
-            leftIndent=14, spaceAfter=2, alignment=TA_LEFT,
+            leftIndent=0, spaceAfter=0, alignment=TA_LEFT,
         ),
         "empty": ParagraphStyle(
             "Empty", parent=base["BodyText"],
             fontName="Helvetica-Oblique", fontSize=10, leading=13,
-            leftIndent=14, textColor=colors.HexColor("#888888"),
+            leftIndent=18, textColor=colors.HexColor("#888888"),
             spaceAfter=2, alignment=TA_LEFT,
         ),
     }
@@ -123,6 +131,43 @@ def _xml_escape(s: str) -> str:
              .replace(">", "&gt;"))
 
 
+class _Checkbox(Flowable):
+    """Empty 10x10pt square drawn at the flowable's origin — a printable
+    tick-box rendered to the left of each assignment row."""
+    def __init__(self, size=10):
+        super().__init__()
+        self.size = size
+        self.width = size
+        self.height = size
+
+    def draw(self):
+        c = self.canv
+        c.setLineWidth(0.7)
+        c.setStrokeColor(colors.HexColor("#333333"))
+        c.rect(0, 0, self.size, self.size, stroke=1, fill=0)
+
+
+def _checklist_row(line_html: str, row_style) -> Table:
+    """Build one assignment row: [empty checkbox] [paragraph], with 8pt
+    bottom padding and a hairline divider below for scan-friendly
+    visual separation between subjects."""
+    para = Paragraph(line_html, row_style)
+    tbl = Table(
+        [[_Checkbox(10), para]],
+        colWidths=[18, None],
+    )
+    tbl.setStyle(TableStyle([
+        ("VALIGN",        (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING",   (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING",  (0, 0), (-1, -1), 0),
+        ("TOPPADDING",    (0, 0), (0, 0), 2),
+        ("TOPPADDING",    (1, 0), (1, 0), 0),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+        ("LINEBELOW",     (0, 0), (-1, -1), 0.3, colors.HexColor("#e8e8e8")),
+    ]))
+    return tbl
+
+
 def generate_school_pdf(target_date_str: str = "") -> bytes:
     """
     Build a 15-page PDF of the week's school assignments — one page per
@@ -135,8 +180,8 @@ def generate_school_pdf(target_date_str: str = "") -> bytes:
     buf = BytesIO()
     doc = SimpleDocTemplate(
         buf, pagesize=letter,
-        leftMargin=0.6 * inch, rightMargin=0.6 * inch,
-        topMargin=0.6 * inch, bottomMargin=0.6 * inch,
+        leftMargin=0.75 * inch, rightMargin=0.75 * inch,
+        topMargin=0.75 * inch, bottomMargin=0.75 * inch,
         title="McAdams School Week",
     )
     styles = _build_styles()
@@ -192,10 +237,10 @@ def generate_school_pdf(target_date_str: str = "") -> bytes:
                             f'{_xml_escape(meta_txt)}</font>'
                         )
                     line = (
-                        f"<b>{_xml_escape(subj)}</b>{meta_html}"
-                        f"<br/>{_xml_escape(txt)}"
+                        f'<font size="12"><b>{_xml_escape(subj)}</b></font>'
+                        f"{meta_html}<br/>{_xml_escape(txt)}"
                     )
-                    story.append(Paragraph(line, styles["row"]))
+                    story.append(_checklist_row(line, styles["row"]))
 
             page_idx += 1
             if page_idx < total_pages:
