@@ -27,6 +27,7 @@ from reportlab.lib.enums import TA_LEFT
 
 from config import child_color
 from daily_schedule_engine import extract_school_tasks_for_child
+from data_helpers import load_curriculum
 
 
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
@@ -148,6 +149,11 @@ def generate_school_pdf(target_date_str: str = "") -> bytes:
             textColor=colors.HexColor(col_hex),
         )
 
+    try:
+        curriculum = load_curriculum() or {}
+    except Exception:
+        curriculum = {}
+
     story = []
     week = _week_dates(target_date_str)
     for idx, (d, wname) in enumerate(week):
@@ -169,8 +175,24 @@ def generate_school_pdf(target_date_str: str = "") -> bytes:
             if not rows:
                 story.append(Paragraph("No assignments scheduled.", styles["empty"]))
             else:
+                child_cur = curriculum.get(child, {}) if isinstance(curriculum, dict) else {}
                 for subj, txt in rows:
-                    line = f"<b>{_xml_escape(subj)}:</b> {_xml_escape(txt)}"
+                    subj_node = child_cur.get(subj, {}) if isinstance(child_cur, dict) else {}
+                    meta_html = ""
+                    if isinstance(subj_node, dict) and subj_node.get("_current_week") is not None:
+                        wk_val = subj_node.get("_current_week")
+                        dy_val = subj_node.get("_current_day")
+                        meta_txt = f"Week {wk_val}"
+                        if dy_val is not None:
+                            meta_txt = f"{meta_txt} · Day {dy_val}"
+                        meta_html = (
+                            f' <font size="8" color="#888888">'
+                            f'{_xml_escape(meta_txt)}</font>'
+                        )
+                    line = (
+                        f"<b>{_xml_escape(subj)}</b>{meta_html}"
+                        f"<br/>{_xml_escape(txt)}"
+                    )
                     story.append(Paragraph(line, styles["row"]))
 
             story.append(Spacer(1, 4))
