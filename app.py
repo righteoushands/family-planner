@@ -3226,7 +3226,22 @@ class Handler(BaseHTTPRequestHandler):
                             _adv_child   = _adv_parts[1] if len(_adv_parts) > 1 else ""
                             _adv_subject = _adv_parts[3] if len(_adv_parts) > 3 else ""
                             _adv_item    = _adv_parts[4] if len(_adv_parts) > 4 else ""
-                            if _adv_child and _adv_subject and "Assignment completed" in _adv_item:
+                            # Extract iso date from the task_id and only advance
+                            # the cursor when the checked task belongs to TODAY.
+                            # This stops a carryover task from a prior date from
+                            # bumping today's cursor (which would silently skip
+                            # a lesson the kids haven't done yet).
+                            #   Path A: {iso}::{child}::SCHOOL::{subject}::{item}
+                            #   Path B: SCHOOL::{child}::{iso}::{subject}::{item}
+                            _adv_iso = ""
+                            if _tid.startswith("SCHOOL::"):
+                                _adv_iso = _adv_parts[2] if len(_adv_parts) > 2 else ""
+                            else:
+                                _adv_iso = _adv_parts[0] if len(_adv_parts) > 0 else ""
+                            _today_iso = date.today().isoformat()
+                            if (_adv_child and _adv_subject
+                                    and "Assignment completed" in _adv_item
+                                    and _adv_iso == _today_iso):
                                 from data_helpers import advance_curriculum_cursor
                                 advance_curriculum_cursor(_adv_child, _adv_subject)
                     except Exception:

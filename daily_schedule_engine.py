@@ -632,10 +632,20 @@ def _is_prev_task_done(progress: dict, child: str, iso: str, raw: str) -> bool:
         # day-to-day (e.g. today says "Memorize.", but the user originally
         # checked off the generic "Done" button).  If ANY progress entry exists
         # for SCHOOL::child::iso::subject::*, the subject was done that day.
+        # Also matches CARRY::child::iso::* entries when the key text contains
+        # the subject name — handles the case where the kid checked off the
+        # subject while it was rendered as a carryover (CARRY:: prefix) on the
+        # same day, leaving today's freshly-rebuilt SCHOOL:: task orphaned.
         if subject:
-            subj_pfx = f"SCHOOL::{child}::{iso}::{subject}::"
+            subj_pfx  = f"SCHOOL::{child}::{iso}::{subject}::"
+            carry_pfx = f"CARRY::{child}::{iso}::"
+            subj_l    = subject.lower()
             for k, v in progress.items():
-                if v and k.startswith(subj_pfx):
+                if not v:
+                    continue
+                if k.startswith(subj_pfx):
+                    return True
+                if k.startswith(carry_pfx) and subj_l in k.lower():
                     return True
         return False
 
