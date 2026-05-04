@@ -1591,6 +1591,7 @@ def expand_local_events_for_range(start_iso: str, end_iso: str) -> list:
             "start_time": st,
             "end_time":   et,
             "notes":      ev.get("notes", ""),
+            "assigned_to": ev.get("assigned_to", []),
             "source":     "local",
         })
 
