@@ -1,42 +1,9 @@
 {
   "events": [
     {
-      "title": "EJs birthday",
-      "start": "2026-05-03",
-      "end": "2026-05-03",
-      "all_day": true,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Joseph's Baptism day!",
-      "start": "2026-05-03",
-      "end": "2026-05-03",
-      "all_day": true,
-      "location": "5/3/2014",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "St. Philip and James",
-      "start": "2026-05-03",
-      "end": "2026-05-03",
-      "all_day": true,
-      "location": "",
-      "notes": "Read the letter of St. James  ",
-      "calendar": "Liturgical Calendar (Little Rose Shop)",
-      "color": "#e91e8c",
-      "source": "subscribed"
-    },
-    {
       "title": "John's class",
-      "start": "2026-05-03T08:00",
-      "end": "2026-05-03T17:00",
+      "start": "2026-05-04T08:00",
+      "end": "2026-05-04T17:00",
       "all_day": false,
       "location": "",
       "notes": "",
@@ -713,6 +680,17 @@
       "notes": "",
       "calendar": "Lauren's Proton Mail",
       "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "USNSCC Pentagon Division - Memorial Day Flag Placements",
+      "start": "2026-05-23T09:00",
+      "end": "2026-05-23T11:00",
+      "all_day": false,
+      "location": "1902 Plank Rd, Fredericksburg, VA 22401",
+      "notes": "Oak Hill Cemetery  VFW Post 3103 has invited PNTDIV",
+      "calendar": "USNSCC Pentagon Division (JP & Joe)",
+      "color": "#e74c3c",
       "source": "subscribed"
     },
     {
@@ -1704,7 +1682,40 @@
       "calendar": "Lauren's Proton Mail",
       "color": "#9b59b6",
       "source": "subscribed"
+    },
+    {
+      "title": "St. Thomas, the Apostle",
+      "start": "2026-07-03",
+      "end": "2026-07-03",
+      "all_day": true,
+      "location": "",
+      "notes": "pray for those who do not believe in Christ, read the Resurection story out of a children's Bible  ",
+      "calendar": "Liturgical Calendar (Little Rose Shop)",
+      "color": "#e91e8c",
+      "source": "subscribed"
+    },
+    {
+      "title": "St. Thomas the Apostle",
+      "start": "2026-07-03",
+      "end": "2026-07-03",
+      "all_day": true,
+      "location": "",
+      "notes": "pray for those who do not believe in Christ, read the Resurrection story out of a children's Bible",
+      "calendar": "Liturgical Calendar (Little Rose Shop)",
+      "color": "#e91e8c",
+      "source": "subscribed"
+    },
+    {
+      "title": "Elena Sutphin",
+      "start": "2026-07-03T10:30",
+      "end": "2026-07-03T11:30",
+      "all_day": false,
+      "location": "1955 Emancipation Hwy Ste 100 Fredericksburg VA-22401-6226",
+      "notes": "Appointment with Elena Sutphin at 1955 Emancipation Hwy Ste 1",
+      "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-05-03T21:24:23.209284"
+  "fetched_at": "2026-05-04T07:46:33.034627"
 }
