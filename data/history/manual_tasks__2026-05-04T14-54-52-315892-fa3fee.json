@@ -1100,6 +1100,15 @@
     "id": "e5eee823"
   },
   {
+    "text": "Haircuts today?",
+    "assigned_to": "JP",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false,
+    "id": "1aa10966"
+  },
+  {
     "text": "Purchase Mother’s Day gifts: Mom, GMA Joan, Shelbi",
     "assigned_to": "Mom",
     "due_date": "2026-05-01",
