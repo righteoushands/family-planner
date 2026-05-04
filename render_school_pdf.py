@@ -30,7 +30,10 @@ from reportlab.lib.enums import TA_LEFT
 
 from config import child_color
 from daily_schedule_engine import extract_school_tasks_for_child
-from data_helpers import load_curriculum
+from data_helpers import (
+    load_curriculum, get_curriculum_week,
+    subject_meeting_days, subject_day_index, resolve_week_text,
+)
 
 
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
@@ -84,12 +87,97 @@ def _assignment_text(block) -> str:
 
 def _child_blocks_safe(child: str, weekday: str):
     """Wrap extract_school_tasks_for_child so a single bad child/day cannot
-    abort the whole PDF build."""
+    abort the whole PDF build.  Retained for any caller still expecting the
+    engine-driven list — the printable PDF itself now uses
+    _curriculum_blocks_for_day instead (see docstring there)."""
     try:
         out = extract_school_tasks_for_child(child, weekday) or []
         return out if isinstance(out, list) else []
     except Exception:
         return []
+
+
+def _curriculum_blocks_for_day(child: str, weekday: str, curriculum: dict):
+    """Build per-(child, weekday) assignment blocks straight from curriculum.json.
+
+    The on-screen daily-view engine (extract_school_tasks_for_child) deliberately
+    drives `day_pref` from each subject's stored `_current_day` cursor, so manual
+    cursor advances (e.g. "skip ahead to Day 5") show up immediately on today's
+    grid.  That's correct for one-day-at-a-time use, but it means a Mon-Fri
+    weekly printable shows the SAME lesson for every weekday a subject meets.
+
+    For the PDF we want each weekday to show its own position-based lesson:
+    Monday = Day 1 of this curriculum week, Tuesday = Day 2, etc., as derived
+    from the subject's `_weekdays` list via subject_day_index.
+
+    Returns a list of dicts shaped to mirror the engine's output keys
+    (subject / assignment_text / is_math / checklist / from_curriculum), so
+    downstream rendering helpers (e.g. _assignment_text) work unchanged.
+    Subjects with no `_current_week`, `_current_week >= 999` (completed
+    sentinel), no meeting on `weekday`, or empty resolved text are skipped.
+    """
+    out = []
+    if not isinstance(curriculum, dict):
+        return out
+
+    child_subjects = curriculum.get(child, {}) or {}
+    if not isinstance(child_subjects, dict):
+        return out
+
+    for subject, subj_node in child_subjects.items():
+        if not isinstance(subj_node, dict):
+            continue
+        # Per spec: skip subjects with NO _current_week, an invalid value, or
+        # the 999 "completed" sentinel.  No global-week fallback — the PDF
+        # only prints curriculum-claimed subjects with a real cursor.
+        _raw_week = subj_node.get("_current_week")
+        if _raw_week is None:
+            continue
+        try:
+            subj_week = int(_raw_week)
+        except (TypeError, ValueError):
+            continue
+        if subj_week >= 999:
+            continue
+        try:
+            meeting = subject_meeting_days(child, subject, subj_node) or []
+        except Exception:
+            meeting = []
+        try:
+            day_idx = subject_day_index(meeting, weekday)
+        except Exception:
+            day_idx = None
+        # Subject doesn't meet today — skip.
+        if day_idx is None:
+            continue
+        # POSITION-based lookup — Monday→Day 1, Tuesday→Day 2 of this week.
+        # Deliberately NOT the subject's _current_day cursor.
+        try:
+            text = resolve_week_text(subj_node, subj_week, day_pref=day_idx)
+        except Exception:
+            text = ""
+        if not text:
+            continue
+        is_math = ("algebra" in subject.lower()) or ("math" in subject.lower())
+        if is_math:
+            pfx = f"{text} — "
+            checklist = [
+                f"{pfx}Assignment completed",
+                f"{pfx}Given to checker",
+                f"{pfx}Fixed missed problems",
+                f"{pfx}Received brother's math",
+                f"{pfx}Checked brother's math",
+            ]
+        else:
+            checklist = [text]
+        out.append({
+            "subject": subject,
+            "assignment_text": text,
+            "is_math": is_math,
+            "checklist": checklist,
+            "from_curriculum": True,
+        })
+    return out
 
 
 def _build_styles():
@@ -211,7 +299,7 @@ def generate_school_pdf(target_date_str: str = "") -> bytes:
             header = f"{child} — {wname}, {date_label}"
             story.append(Paragraph(_xml_escape(header), child_styles[child]))
 
-            blocks = _child_blocks_safe(child, wname)
+            blocks = _curriculum_blocks_for_day(child, wname, curriculum)
             rows = []
             for blk in blocks:
                 subj = (blk.get("subject") or "").strip() if isinstance(blk, dict) else ""
