@@ -442,8 +442,21 @@ def extract_school_tasks_for_child(child: str, weekday: str):
             try:
                 _today_text_for_cmp = resolve_week_text(_subj_node, _subj_week, day_pref=_subj_day) or ""
                 _today_text_oneline = re.sub(r"\s+", " ", _today_text_for_cmp).strip()
-                if _today_text_oneline:
-                    _yest_iso   = (date.today() - timedelta(days=1)).isoformat()
+                # Previous school day, not literal yesterday — Mon → Fri
+                # (delta 3), Tue–Fri → previous day (delta 1), Sat/Sun
+                # → skip the rollover check entirely (no school runs on
+                # weekends, so there's no yesterday-completion to roll
+                # forward from).
+                _today_dt = date.today()
+                _today_wd = _today_dt.weekday()
+                if _today_wd == 0:
+                    _prev_school_delta = 3
+                elif _today_wd in (1, 2, 3, 4):
+                    _prev_school_delta = 1
+                else:
+                    _prev_school_delta = None
+                if _prev_school_delta is not None and _today_text_oneline:
+                    _yest_iso   = (_today_dt - timedelta(days=_prev_school_delta)).isoformat()
                     _yest_pfx_a = f"SCHOOL::{child}::{_yest_iso}::{_subject}::"
                     _yest_pfx_b = f"{_yest_iso}::{child}::SCHOOL::{_subject}::"
                     _suffix     = " — Assignment completed"
