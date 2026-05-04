@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-05-03",
+  "updated_at": "2026-04-30",
   "data": [
     {
       "id": "evt_james_pt",
@@ -548,37 +548,6 @@
         "lead_days": 0
       },
       "notes": "Parish Life Center. Knights of Columbus Council 4034 hosting. Baby Bottle Campaign collecting items for Mary's Shelter (diapers, formula, wipes). Open to public, donations appreciated.",
-      "subtasks": [],
-      "archived": false
-    },
-    {
-      "id": "evt_0951e841",
-      "title": "Crowning of Blessed Mother — May Crowning with procession",
-      "assigned_to": [
-        "Lauren",
-        "John",
-        "JP",
-        "Joseph",
-        "Michael",
-        "James"
-      ],
-      "start_date": "2026-05-09",
-      "end_date": "2026-05-10",
-      "start_time": "",
-      "end_time": "",
-      "recurrence": {
-        "type": "none"
-      },
-      "notifications": {
-        "show_on_dashboard": true,
-        "show_on_daily_page": true,
-        "show_in_looking_ahead": true,
-        "lead_days": 1
-      },
-      "prep": {
-        "lead_days": 0
-      },
-      "notes": "Procession before all Masses both days. All are welcome!",
       "subtasks": [],
       "archived": false
     }

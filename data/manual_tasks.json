@@ -1183,5 +1183,17 @@
     "recurring": false,
     "notes": "From counsel suggestion. Formula",
     "subtasks": []
+  },
+  {
+    "id": "0495af20",
+    "text": "Bring flowers from garden for May Crowning",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-09",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "For crowning of Blessed Mother ceremony",
+    "subtasks": []
   }
 ]

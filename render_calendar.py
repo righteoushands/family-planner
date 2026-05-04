@@ -460,22 +460,76 @@ def render_event_pill(event: dict) -> str:
     title    = escape(event.get("title",""))
     location = event.get("location","")
     start    = event.get("start","")
+    end      = event.get("end","")
+    start_t  = event.get("start_time","")
+    end_t    = event.get("end_time","")
     all_day  = event.get("all_day", False)
     color    = event.get("color","#4a90d9")
     cal_name = event.get("calendar","")
-    time_str = ""
-    if not all_day and "T" in start:
+
+    def _fmt_iso(s: str) -> str:
         try:
             from datetime import datetime as _dt
-            time_str = _dt.fromisoformat(start).strftime("%-I:%M %p")
-        except Exception: pass
+            return _dt.fromisoformat(s).strftime("%-I:%M %p")
+        except Exception:
+            return ""
+
+    start_str = ""
+    end_str   = ""
+    if not all_day:
+        start_str = start_t or (_fmt_iso(start) if "T" in start else "")
+        end_str   = end_t   or (_fmt_iso(end)   if "T" in end   else "")
+
+    if start_str and end_str:
+        time_str = f"{start_str} – {end_str}"
+    else:
+        time_str = start_str
+
     loc_str   = f" · {escape(location)}" if location else ""
     time_html = f"<span style='color:#888;font-size:0.8em;margin-right:4px;'>{escape(time_str)}</span>" if time_str else ""
     cal_html  = f"<span style='font-size:0.75em;color:#aaa;margin-left:4px;'>{escape(cal_name)}</span>" if cal_name else ""
+
+    # Expandable detail row — shows notes + assignees on tap.
+    notes    = event.get("notes", "") or ""
+    assigned = event.get("assigned_to", []) or []
+    detail_parts = []
+    if assigned:
+        if isinstance(assigned, list):
+            asg_str = ", ".join(str(a) for a in assigned if str(a).strip())
+        else:
+            asg_str = str(assigned)
+        if asg_str.strip():
+            detail_parts.append(
+                "<div style='font-size:0.78em;color:#7c4a2d;margin-bottom:4px;'>"
+                f"<strong>For:</strong> {escape(asg_str)}</div>"
+            )
+    if notes.strip():
+        detail_parts.append(
+            "<div style='font-size:0.82em;color:#555;white-space:pre-wrap;'>"
+            f"{escape(notes)}</div>"
+        )
+
+    on_attr    = ""
+    cursor_css = ""
+    detail_html = ""
+    if detail_parts:
+        js = ('this.nextElementSibling.style.display = '
+              'this.nextElementSibling.style.display === "none" ? "block" : "none"')
+        on_attr    = " onclick='" + js + "'"
+        cursor_css = "cursor:pointer;"
+        detail_html = (
+            "<div style='display:none;padding:6px 14px 10px 22px;"
+            "background:#faf6ef;border-bottom:1px solid #f0ebe4;'>"
+            + "".join(detail_parts) + "</div>"
+        )
+
     return f"""
-    <div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f0ebe4;">
-        <span style="width:8px;height:8px;border-radius:50%;background:{color};flex-shrink:0;"></span>
-        {time_html}<span style="font-size:0.9em;">{title}{loc_str}</span>{cal_html}
+    <div>
+        <div{on_attr} style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f0ebe4;{cursor_css}">
+            <span style="width:8px;height:8px;border-radius:50%;background:{color};flex-shrink:0;"></span>
+            {time_html}<span style="font-size:0.9em;">{title}{loc_str}</span>{cal_html}
+        </div>
+        {detail_html}
     </div>"""
 
 
