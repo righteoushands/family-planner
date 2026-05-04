@@ -3210,42 +3210,13 @@ class Handler(BaseHTTPRequestHandler):
                         _prev_done = False
                 set_task_done(_tid, _done)
                 # ── Curriculum auto-advance ─────────────────────────────────
-                # When a SCHOOL task's "Assignment completed" step is checked,
-                # advance the subject's _current_day cursor in curriculum.json.
-                # Math tasks have 5 checklist items prefixed with the lesson;
-                # only the "Assignment completed" item triggers the advance so
-                # the cursor moves exactly once per lesson. Two SCHOOL ID
-                # formats coexist — both 5 segments with subject at index 3
-                # and the checklist item at index 4:
-                #   Path A: {iso}::{child}::SCHOOL::{subject}::{item}
-                #   Path B: SCHOOL::{child}::{iso}::{subject}::{item}
-                if _done and not _prev_done and _tid:
-                    try:
-                        _is_school = ("::SCHOOL::" in _tid) or _tid.startswith("SCHOOL::")
-                        if _is_school:
-                            _adv_parts   = _tid.split("::")
-                            _adv_child   = _adv_parts[1] if len(_adv_parts) > 1 else ""
-                            _adv_subject = _adv_parts[3] if len(_adv_parts) > 3 else ""
-                            _adv_item    = _adv_parts[4] if len(_adv_parts) > 4 else ""
-                            # Extract iso date from the task_id and only advance
-                            # the cursor when the checked task belongs to TODAY.
-                            # This stops a carryover task from a prior date from
-                            # bumping today's cursor (which would silently skip
-                            # a lesson the kids haven't done yet).
-                            #   Path A: {iso}::{child}::SCHOOL::{subject}::{item}
-                            #   Path B: SCHOOL::{child}::{iso}::{subject}::{item}
-                            _adv_iso = ""
-                            if _tid.startswith("SCHOOL::"):
-                                _adv_iso = _adv_parts[2] if len(_adv_parts) > 2 else ""
-                            else:
-                                _adv_iso = _adv_parts[0] if len(_adv_parts) > 0 else ""
-                            _today_iso = date.today().isoformat()
-                            if (_adv_child and _adv_subject
-                                    and "Assignment completed" in _adv_item
-                                    and _adv_iso == _today_iso):
-                                advance_curriculum_cursor(_adv_child, _adv_subject)
-                    except Exception:
-                        pass
+                # Removed: cursor advance on toggle.  Cursor now advances at
+                # the START of each day inside extract_school_tasks_for_child
+                # by checking whether yesterday's "Assignment completed" was
+                # marked done in progress.json — see daily_schedule_engine.py
+                # for the rollover logic.  This stops mid-week checks from
+                # silently jumping the cursor and stops same-day reload from
+                # showing the next lesson as a fresh task.
                 # When a MANUAL one-time task is checked off on a plan page,
                 # permanently delete it (or advance if recurring) in manual_tasks.json
                 # so it never reappears.

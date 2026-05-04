@@ -400,6 +400,7 @@ def extract_school_tasks_for_child(child: str, weekday: str):
         from data_helpers import (
             load_curriculum, get_curriculum_week, resolve_week_text,
             week_day_segments, subject_meeting_days, subject_day_index,
+            advance_curriculum_cursor,
         )
         _cur_data = load_curriculum() or {}
         _cur_week_global = get_curriculum_week()
@@ -429,12 +430,61 @@ def extract_school_tasks_for_child(child: str, weekday: str):
             # frequency gate (does the subject meet today at all).
             try:    _subj_day = int(_subj_node.get("_current_day", 1))
             except (TypeError, ValueError): _subj_day = 1
+            # ── Yesterday-rollover cursor advance ───────────────────────────
+            # If yesterday's "Assignment completed" task was checked done for
+            # this subject AND today's cursor still points at yesterday's
+            # lesson (cursor hasn't been advanced yet), advance it now so
+            # today renders the next lesson.  Idempotent: after advancing,
+            # today's cursor lesson differs from yesterday's stored lesson,
+            # so the next page reload won't double-advance.  Replaces the
+            # toggle-time advance which fired on every check including
+            # mid-week, causing same-day reload to skip ahead.
+            try:
+                _today_text_for_cmp = resolve_week_text(_subj_node, _subj_week, day_pref=_subj_day) or ""
+                _today_text_oneline = re.sub(r"\s+", " ", _today_text_for_cmp).strip()
+                if _today_text_oneline:
+                    _yest_iso   = (date.today() - timedelta(days=1)).isoformat()
+                    _yest_pfx_a = f"SCHOOL::{child}::{_yest_iso}::{_subject}::"
+                    _yest_pfx_b = f"{_yest_iso}::{child}::SCHOOL::{_subject}::"
+                    _suffix     = " — Assignment completed"
+                    for _pk, _pv in (load_progress() or {}).items():
+                        if not _pv: continue
+                        if not _pk.endswith(_suffix): continue
+                        if not (_pk.startswith(_yest_pfx_a) or _pk.startswith(_yest_pfx_b)):
+                            continue
+                        _yest_stem   = _pk[:-len(_suffix)]
+                        _yest_lesson = _yest_stem.split("::")[-1].strip()
+                        _yest_lesson_oneline = re.sub(r"\s+", " ", _yest_lesson).strip()
+                        if _yest_lesson_oneline and _yest_lesson_oneline == _today_text_oneline:
+                            advance_curriculum_cursor(child, _subject)
+                            _refreshed = (load_curriculum() or {}).get(child, {}).get(_subject, {})
+                            if isinstance(_refreshed, dict):
+                                _subj_node = _refreshed
+                                try:    _subj_week = int(_subj_node.get("_current_week", _cur_week_global))
+                                except (TypeError, ValueError): _subj_week = _cur_week_global
+                                try:    _subj_day = int(_subj_node.get("_current_day", 1))
+                                except (TypeError, ValueError): _subj_day = 1
+                            break
+            except Exception:
+                pass
+            if _subj_week >= 999:
+                continue
             _text = resolve_week_text(_subj_node, _subj_week, day_pref=_subj_day)
             if not _text:
                 continue
+            # Normalize checklist text: collapse all whitespace (newlines,
+            # carriage returns, tabs, multi-space) to single spaces.  task_ids
+            # built from these checklist items must never contain literal
+            # newline characters — they round-trip through HTML attributes,
+            # JS fetch payloads, and urlencode/decode, any of which can
+            # silently re-shape \n vs \r\n vs spaces and produce a stored
+            # progress key that doesn't match the next render's regenerated
+            # task_id.  `assignment_text` keeps the original formatting for
+            # display.
+            _text_oneline = re.sub(r"\s+", " ", _text).strip()
             _is_math = ("algebra" in _subject.lower()) or ("math" in _subject.lower())
             if _is_math:
-                _pfx = f"{_text} — " if _text else ""
+                _pfx = f"{_text_oneline} — " if _text_oneline else ""
                 _bro_label = _get_brother_math_label(child, weekday)
                 _bro_sfx   = f" ({_bro_label})" if _bro_label else ""
                 _checklist = [
@@ -445,7 +495,7 @@ def extract_school_tasks_for_child(child: str, weekday: str):
                     f"{_pfx}Checked brother's math{_bro_sfx}",
                 ]
             else:
-                _checklist = [_text]
+                _checklist = [_text_oneline]
             tasks.append({
                 "subject": _subject,
                 "assignment_text": _text,
@@ -479,6 +529,9 @@ def extract_school_tasks_for_child(child: str, weekday: str):
         text = block.get("assignment_text", "").strip()
         is_math = bool(block.get("is_math", False))
         is_math_test = bool(block.get("is_math_test", False))
+        # Normalize for use inside checklist items / task_ids — see the
+        # analogous comment in the curriculum branch above.
+        text_oneline = re.sub(r"\s+", " ", text).strip() if text else ""
 
         checklist = []
         if is_math_test:
@@ -486,7 +539,7 @@ def extract_school_tasks_for_child(child: str, weekday: str):
         elif is_math:
             # Prefix each step with the lesson/assignment text so carryover
             # shows which specific lesson needs checking (e.g. "Lesson 76 — Fixed missed problems")
-            _pfx = f"{text} — " if text else ""
+            _pfx = f"{text_oneline} — " if text_oneline else ""
             # For the cross-checking steps, also name the brother's lesson so
             # each boy knows exactly which assignment he is checking.
             _bro_label = _get_brother_math_label(child, weekday)
@@ -501,7 +554,7 @@ def extract_school_tasks_for_child(child: str, weekday: str):
         else:
             # Use the full assignment text so carryover shows what was actually assigned,
             # not just a generic "Done". Fall back to "Done" if there's no text.
-            checklist.append(text if text else "Done")
+            checklist.append(text_oneline if text_oneline else "Done")
 
         tasks.append({
             "subject": subject,
@@ -641,14 +694,12 @@ def _is_prev_task_done(progress: dict, child: str, iso: str, raw: str) -> bool:
         if subject:
             subj_pfx  = f"SCHOOL::{child}::{iso}::{subject}::"
             carry_pfx = f"CARRY::{child}::{iso}::"
-            subj_l    = subject.lower()
-            subj_re   = re.compile(r"\b" + re.escape(subj_l) + r"\b")
             for k, v in progress.items():
                 if not v:
                     continue
                 if k.startswith(subj_pfx):
                     return True
-                if k.startswith(carry_pfx) and subj_re.search(k.lower()):
+                if k.startswith(carry_pfx):
                     return True
         return False
 
