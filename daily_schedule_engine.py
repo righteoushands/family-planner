@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -618,7 +619,8 @@ def _is_prev_task_done(progress: dict, child: str, iso: str, raw: str) -> bool:
         # Also try without child/iso prefix if the key was registered differently
         parts = raw.split("::")
         if len(parts) >= 5 and parts[1] == child and parts[2] == iso:
-            return bool(progress.get(raw))
+            if progress.get(raw):
+                return True
         # Build canonical new-format key
         subject = ""
         if len(parts) >= 3:
@@ -640,12 +642,13 @@ def _is_prev_task_done(progress: dict, child: str, iso: str, raw: str) -> bool:
             subj_pfx  = f"SCHOOL::{child}::{iso}::{subject}::"
             carry_pfx = f"CARRY::{child}::{iso}::"
             subj_l    = subject.lower()
+            subj_re   = re.compile(r"\b" + re.escape(subj_l) + r"\b")
             for k, v in progress.items():
                 if not v:
                     continue
                 if k.startswith(subj_pfx):
                     return True
-                if k.startswith(carry_pfx) and subj_l in k.lower():
+                if k.startswith(carry_pfx) and subj_re.search(k.lower()):
                     return True
         return False
 

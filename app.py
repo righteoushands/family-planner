@@ -222,6 +222,7 @@ from data_helpers import (
     load_subscribed_calendars, save_subscribed_calendars,
     load_liturgical_custom, save_liturgical_custom,
     advance_recurring_task,
+    advance_curriculum_cursor,
     load_thankyou_reminders, save_thankyou_reminders,
     list_snapshots, restore_snapshot, load_snapshot_data,
 )
@@ -3242,7 +3243,6 @@ class Handler(BaseHTTPRequestHandler):
                             if (_adv_child and _adv_subject
                                     and "Assignment completed" in _adv_item
                                     and _adv_iso == _today_iso):
-                                from data_helpers import advance_curriculum_cursor
                                 advance_curriculum_cursor(_adv_child, _adv_subject)
                     except Exception:
                         pass
