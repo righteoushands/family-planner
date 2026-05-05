@@ -37,6 +37,24 @@
     "id": "fabbc09b"
   },
   {
+    "text": "Test soil pH and add lime if needed",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "April timing - lime application can be done now or saved for winter",
+    "subtasks": [
+      "Purchase soil test kit",
+      "Test soil in multiple areas",
+      "Review results",
+      "Purchase lime if pH is low",
+      "Apply lime if needed"
+    ],
+    "id": "740eb19d"
+  },
+  {
     "text": "Overseed thin and bare patches in lawn",
     "assigned_to": "Lauren",
     "due_date": "2026-05-31",
@@ -722,6 +740,25 @@
     "id": "dc87d5d5"
   },
   {
+    "text": "Buy transplants and set up garden supports",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-04",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Week 2 of garden project. Look for stocky, short transplants not tall leggy ones",
+    "subtasks": [
+      "Buy stocky tomato transplants (avoid leggy ones)",
+      "Buy cucumber transplants",
+      "Buy pepper transplants",
+      "Set up trellis for cucumbers",
+      "Set up tomato cages",
+      "Get soil thermometer to check temperature"
+    ],
+    "id": "beced50f"
+  },
+  {
     "text": "Check soil temperature for planting readiness",
     "assigned_to": "Lauren",
     "due_date": "2026-05-11",
@@ -866,6 +903,30 @@
     "id": "46552e11"
   },
   {
+    "text": "Create safe storage plan for fish emulsion and fertilizers away from Michael",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-27",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Michael is at age where anything in a bottle looks interesting - needs secure storage location",
+    "subtasks": [],
+    "id": "f87e513e"
+  },
+  {
+    "text": "Arrange JP or Joseph to help with compost hauling and trellis setup",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-28",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Functional movement activity that teaches useful skills - can supervise Michael's participation as well",
+    "subtasks": [],
+    "id": "46955f1e"
+  },
+  {
     "text": "Research current hours and activities at Snead's Farm",
     "assigned_to": "Lauren",
     "due_date": "2026-05-10",
@@ -900,6 +961,30 @@
     ],
     "id": "e97e33b7",
     "scheduled_for": "2026-05-01"
+  },
+  {
+    "text": "Trim James's nails",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [],
+    "id": "6c69549f"
+  },
+  {
+    "text": "Clean the very top of the kitchen shelves",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [],
+    "id": "37a90e3b"
   },
   {
     "text": "Get the boys haircuts",
@@ -965,6 +1050,32 @@
     "id": "3b54ea40"
   },
   {
+    "text": "The year-end planning task (t7) could help organize and delegate some of these other tasks to appropriate family members.",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "From counsel suggestion",
+    "subtasks": [
+      "List of assessments due for JP and Joe"
+    ],
+    "id": "d3b602ef"
+  },
+  {
+    "text": "Confirm which specific classes JP and Joseph need or want for convention registration",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-01",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Must be completed before finalizing convention registration (deadline May 2nd). Have this conversation at lunch with older boys.",
+    "subtasks": [],
+    "id": "e5eee823"
+  },
+  {
     "text": "Purchase Mother’s Day gifts: Mom, GMA Joan, Shelbi",
     "assigned_to": "Mom",
     "due_date": "2026-05-01",
@@ -991,6 +1102,18 @@
       "Pack for JP to bring"
     ],
     "id": "2e0aad95"
+  },
+  {
+    "text": "Schedule outdoor activity for JP on May 3rd before Youth Group",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-02",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Front-load active time earlier in day so JP isn't sedentary before 6:15 PM Youth Group",
+    "subtasks": [],
+    "id": "06b542f7"
   },
   {
     "id": "7d7a6c07",

@@ -308,17 +308,6 @@
         "time": "14:24",
         "label": "Purchase Mother’s Day gifts: Mom, GMA Joan, Shelbi"
       }
-    },
-    "2026-05-05": {
-      "ROUTINE::Lauren::2026-05-05::Break": {
-        "action": "dismiss",
-        "label": "Break"
-      },
-      "MANUAL::Lauren::2026-05-05::Buy transplants and set up garden supports": {
-        "action": "postpone",
-        "postpone_to": "2026-05-20",
-        "label": "Buy transplants and set up garden supports"
-      }
     }
   }
 }

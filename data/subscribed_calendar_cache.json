@@ -1,28 +1,6 @@
 {
   "events": [
     {
-      "title": "John's class",
-      "start": "2026-05-04T08:00",
-      "end": "2026-05-04T17:00",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Mama haircut",
-      "start": "2026-05-04T10:00",
-      "end": "2026-05-04T10:30",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
       "title": "Last frost date in Fredericksburg. 50/50 chance of frost in the nex",
       "start": "2026-05-05",
       "end": "2026-05-05",
@@ -41,6 +19,17 @@
       "location": "",
       "notes": "",
       "calendar": "Lauren's Proton Mail's Healthy Habits",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "John's class",
+      "start": "2026-05-05T08:00",
+      "end": "2026-05-05T17:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -1715,7 +1704,29 @@
       "calendar": "Apple Calendar",
       "color": "#9b59b6",
       "source": "subscribed"
+    },
+    {
+      "title": "Bl. Pier Giorgio Frassati",
+      "start": "2026-07-04",
+      "end": "2026-07-04",
+      "all_day": true,
+      "location": "",
+      "notes": "//thelittleroseshop.com/blogs/the-little-rose-shop-everyday-faith/bl-pier-giorgio-frassati-who-he-is-and-how-we-are-celebrating?_pos=2&_sid=9826a2c88&_ss=r​​​  ",
+      "calendar": "Liturgical Calendar (Little Rose Shop)",
+      "color": "#e91e8c",
+      "source": "subscribed"
+    },
+    {
+      "title": "St. Pier Giorgio Frassati",
+      "start": "2026-07-04",
+      "end": "2026-07-04",
+      "all_day": true,
+      "location": "",
+      "notes": "//thelittleroseshop.com/blogs/the-little-rose-shop-everyday-faith/bl-pier-giorgio-frassati-who-he-is-and-how-we-are-celebrating?_pos=2&_sid=089ece69d&_ss=r",
+      "calendar": "Liturgical Calendar (Little Rose Shop)",
+      "color": "#e91e8c",
+      "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-05-04T21:02:54.785009"
+  "fetched_at": "2026-05-05T06:33:34.224895"
 }

@@ -722,6 +722,25 @@
     "id": "dc87d5d5"
   },
   {
+    "text": "Buy transplants and set up garden supports",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-04",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Week 2 of garden project. Look for stocky, short transplants not tall leggy ones",
+    "subtasks": [
+      "Buy stocky tomato transplants (avoid leggy ones)",
+      "Buy cucumber transplants",
+      "Buy pepper transplants",
+      "Set up trellis for cucumbers",
+      "Set up tomato cages",
+      "Get soil thermometer to check temperature"
+    ],
+    "id": "beced50f"
+  },
+  {
     "text": "Check soil temperature for planting readiness",
     "assigned_to": "Lauren",
     "due_date": "2026-05-11",
@@ -902,6 +921,18 @@
     "scheduled_for": "2026-05-01"
   },
   {
+    "text": "Trim James's nails",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [],
+    "id": "6c69549f"
+  },
+  {
     "text": "Get the boys haircuts",
     "assigned_to": "Lauren",
     "due_date": "2026-05-07",
@@ -965,6 +996,32 @@
     "id": "3b54ea40"
   },
   {
+    "text": "The year-end planning task (t7) could help organize and delegate some of these other tasks to appropriate family members.",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "From counsel suggestion",
+    "subtasks": [
+      "List of assessments due for JP and Joe"
+    ],
+    "id": "d3b602ef"
+  },
+  {
+    "text": "Confirm which specific classes JP and Joseph need or want for convention registration",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-01",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Must be completed before finalizing convention registration (deadline May 2nd). Have this conversation at lunch with older boys.",
+    "subtasks": [],
+    "id": "e5eee823"
+  },
+  {
     "text": "Purchase Mother’s Day gifts: Mom, GMA Joan, Shelbi",
     "assigned_to": "Mom",
     "due_date": "2026-05-01",
@@ -991,6 +1048,18 @@
       "Pack for JP to bring"
     ],
     "id": "2e0aad95"
+  },
+  {
+    "text": "Schedule outdoor activity for JP on May 3rd before Youth Group",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-02",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Front-load active time earlier in day so JP isn't sedentary before 6:15 PM Youth Group",
+    "subtasks": [],
+    "id": "06b542f7"
   },
   {
     "id": "7d7a6c07",

@@ -722,6 +722,25 @@
     "id": "dc87d5d5"
   },
   {
+    "text": "Buy transplants and set up garden supports",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-04",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Week 2 of garden project. Look for stocky, short transplants not tall leggy ones",
+    "subtasks": [
+      "Buy stocky tomato transplants (avoid leggy ones)",
+      "Buy cucumber transplants",
+      "Buy pepper transplants",
+      "Set up trellis for cucumbers",
+      "Set up tomato cages",
+      "Get soil thermometer to check temperature"
+    ],
+    "id": "beced50f"
+  },
+  {
     "text": "Check soil temperature for planting readiness",
     "assigned_to": "Lauren",
     "due_date": "2026-05-11",
