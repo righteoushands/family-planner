@@ -20,6 +20,23 @@
     "interval_unit": "months"
   },
   {
+    "text": "Fertilize lawn with balanced 20-5-10 fertilizer",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-20",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Mid-April timing for cool-season grass",
+    "subtasks": [
+      "Purchase 20-5-10 fertilizer",
+      "Check weather forecast",
+      "Apply fertilizer to entire lawn",
+      "Water lightly after application"
+    ],
+    "id": "fabbc09b"
+  },
+  {
     "text": "Overseed thin and bare patches in lawn",
     "assigned_to": "Lauren",
     "due_date": "2026-05-31",
@@ -154,6 +171,16 @@
     "interval_value": 11,
     "interval_unit": "months",
     "id": "f6dc9a54",
+    "scheduled_for": "2026-05-01"
+  },
+  {
+    "text": "Choose Convention Class. https://heav.org/convention/children-and-teens/",
+    "assigned_to": "Mom",
+    "due_date": "2026-04-18",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false,
+    "id": "fcad1919",
     "scheduled_for": "2026-05-01"
   },
   {
@@ -327,6 +354,22 @@
       "Sniff-check the day before"
     ],
     "id": "7f7d7e93"
+  },
+  {
+    "text": "Inflate and test bounce house",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-10",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "Check for slow leaks",
+      "Confirm blower motor and extension cord work",
+      "Measure basement space for indoor option"
+    ],
+    "id": "245d7eb8"
   },
   {
     "text": "Deep-clean entertaining spaces",
@@ -679,6 +722,22 @@
     "id": "dc87d5d5"
   },
   {
+    "text": "Check soil temperature for planting readiness",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-11",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Don't plant until soil consistently reads 65°F. This is days 10-14 of project",
+    "subtasks": [
+      "Use thermometer to check soil temp",
+      "Wait for consistent 65°F reading",
+      "Verify soil has been undisturbed for 5-7 days minimum"
+    ],
+    "id": "11eb5a98"
+  },
+  {
     "text": "Plant garden bed crops",
     "assigned_to": "Lauren",
     "due_date": "2026-05-11",
@@ -807,6 +866,24 @@
     "id": "46552e11"
   },
   {
+    "text": "Research current hours and activities at Snead's Farm",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-10",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Prepare for potential family visits in spring/fall",
+    "subtasks": [
+      "Check website for current hours",
+      "Verify playground is still available",
+      "Look for seasonal activities",
+      "Check admission prices",
+      "Note any special events"
+    ],
+    "id": "20c42abe"
+  },
+  {
     "text": "Set up postpartum workout tracking log",
     "assigned_to": "Lauren",
     "due_date": "2026-04-29",
@@ -823,6 +900,21 @@
     ],
     "id": "e97e33b7",
     "scheduled_for": "2026-05-01"
+  },
+  {
+    "text": "Get the boys haircuts",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-07",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Likely refers to JP and Joseph",
+    "subtasks": [
+      "Schedule appointments",
+      "Coordinate with boys' schedules"
+    ],
+    "id": "5ca57884"
   },
   {
     "text": "Follow up with John on lodging for the convention and add the boys to my registration and add classes",

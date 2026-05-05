@@ -807,6 +807,24 @@
     "id": "46552e11"
   },
   {
+    "text": "Research current hours and activities at Snead's Farm",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-10",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Prepare for potential family visits in spring/fall",
+    "subtasks": [
+      "Check website for current hours",
+      "Verify playground is still available",
+      "Look for seasonal activities",
+      "Check admission prices",
+      "Note any special events"
+    ],
+    "id": "20c42abe"
+  },
+  {
     "text": "Set up postpartum workout tracking log",
     "assigned_to": "Lauren",
     "due_date": "2026-04-29",
