@@ -1010,8 +1010,8 @@
         "4": "Finish entering the sonnets in your notebook."
       },
       "_minutes": 5,
-      "_current_day": 1,
-      "_current_week": 20,
+      "_current_day": 2,
+      "_current_week": 19,
       "_weekdays": [
         "Monday",
         "Tuesday",
@@ -1994,8 +1994,8 @@
       "31": "Day 1: Lesson 114\nDay 2: Lesson 115\nDay 3: Lesson 116\nDay 4: Lesson 117\nDay 5: Test 22",
       "32": "Day 1: Lesson 118\nDay 2: Lesson 119\nDay 3: Lesson 120\nDay 4: Investigation 12\nDay 5: Math 7: Quarterly Assessment 4 (this replaces Test 23)\n\nAssessments\nMath 7: Quarterly Assessment 4",
       "_minutes": 60,
-      "_current_day": 1,
-      "_current_week": 22,
+      "_current_day": 2,
+      "_current_week": 21,
       "_weekdays": [
         "Monday",
         "Tuesday",
@@ -2529,7 +2529,7 @@
       },
       "28": "Attend Class.",
       "_minutes": 45,
-      "_current_day": 4,
+      "_current_day": 3,
       "_current_week": 25,
       "_weekdays": [
         "Monday",
