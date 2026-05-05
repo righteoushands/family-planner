@@ -1719,14 +1719,23 @@ def _school_sub_items(school_raw: list, subjects_used: set,
             continue
         subjects_used.add(subj_low)
         assign_text = block.get("assignment_text", "").strip()
-        _pfx_check = f"{assign_text} — " if assign_text else ""
+        # Normalized variants used ONLY for the equality / startswith checks
+        # below — assign_text and ci themselves stay raw so the displayed
+        # text and task_id values keep their original whitespace.  Fix 2
+        # collapsed `\s+` → ` ` inside checklist items but left
+        # assignment_text untouched, so a curriculum text containing any
+        # double-space / tab / newline silently failed `ci == assign_text`
+        # and got rendered as the doubled `assign_text — ci` form.
+        assign_text_norm = re.sub(r"\s+", " ", assign_text).strip()
+        _pfx_check_norm  = f"{assign_text_norm} — " if assign_text_norm else ""
         for ci in block.get("checklist", ["Done"]):
             tid = f"SCHOOL::{child}::{iso}::{subj}::{ci}"
+            ci_norm = re.sub(r"\s+", " ", ci).strip()
             # Avoid duplicating text when:
             # - the checklist item IS the assignment text (non-math subjects), OR
             # - the checklist item already starts with "assign_text — " (math subjects
             #   now embed the lesson number in each checklist item)
-            if not assign_text or ci == assign_text or ci.startswith(_pfx_check):
+            if not assign_text_norm or ci_norm == assign_text_norm or ci_norm.startswith(_pfx_check_norm):
                 text = f"{ci}"
             else:
                 text = f"{assign_text} — {ci}"
