@@ -19,6 +19,14 @@ CALENDAR_RULES_FILE = "data/calendar_rules.json"
 
 CHILDREN = ["JP", "Joseph", "Michael", "James"]
 
+# ── Per-process per-day cursor-advance guard ─────────────────────────────────
+# Keys: (child, subject, today_iso).  Once an entry exists, the
+# yesterday-rollover advance for that (child, subject) on that date is
+# skipped for the rest of this process lifetime.  Prevents Reading-style
+# subjects (whose daily text is identical across days) from advancing
+# the cursor on every page render.  Resets when the workflow restarts.
+_CURSOR_ADVANCED_TODAY: dict = {}
+
 PRIORITY_ORDER = {
     "HIGH": 0,
     "MEDIUM": 1,
@@ -472,7 +480,7 @@ def extract_school_tasks_for_child(child: str, weekday: str, iso: str = None):
     # lesson text for today's position within the subject's meeting days.
     try:
         from data_helpers import (
-            load_curriculum, get_curriculum_week, resolve_week_text,
+            load_curriculum, save_curriculum, get_curriculum_week, resolve_week_text,
             week_day_segments, subject_meeting_days, subject_day_index,
             advance_curriculum_cursor,
         )
@@ -553,14 +561,49 @@ def extract_school_tasks_for_child(child: str, weekday: str, iso: str = None):
                         _yest_lesson = _yest_tail.split(" — ", 1)[0].strip()
                         _yest_lesson_oneline = re.sub(r"\s+", " ", _yest_lesson).strip()
                         if _yest_lesson_oneline and _yest_lesson_oneline == _today_text_oneline:
+                            # Guard 1: per-process per-day advance cache.  If we
+                            # already advanced this (child, subject) today in
+                            # this process, do not advance again — page reloads
+                            # must not tick the cursor more than once per day.
+                            _adv_key = (child, _subject, _today_dt.isoformat())
+                            if _adv_key in _CURSOR_ADVANCED_TODAY:
+                                _advanced_via_rollover = True
+                                break
+                            # Guard 2: repeating-text guard.  Save pre-advance
+                            # cursor, advance, peek post-advance text.  If the
+                            # post-advance text is still equal to yesterday's
+                            # lesson text, this subject has identical daily
+                            # text (e.g. Reading 8 = "Read for about 1 hour."
+                            # every day) and advancing would be idempotent but
+                            # dangerous — revert and skip entirely.
+                            _pre_week, _pre_day = _subj_week, _subj_day
                             advance_curriculum_cursor(child, _subject)
                             _refreshed = (load_curriculum() or {}).get(child, {}).get(_subject, {})
+                            _new_week, _new_day = _pre_week, _pre_day
                             if isinstance(_refreshed, dict):
+                                try:    _new_week = int(_refreshed.get("_current_week", _cur_week_global))
+                                except (TypeError, ValueError): _new_week = _cur_week_global
+                                try:    _new_day = int(_refreshed.get("_current_day", 1))
+                                except (TypeError, ValueError): _new_day = 1
+                                _post_text = resolve_week_text(_refreshed, _new_week, day_pref=_new_day) or ""
+                                _post_oneline = re.sub(r"\s+", " ", _post_text).strip()
+                                if _post_oneline == _yest_lesson_oneline:
+                                    # Repeating-text subject — undo the advance.
+                                    _full = load_curriculum() or {}
+                                    _node_full = _full.get(child, {}).get(_subject)
+                                    if isinstance(_node_full, dict):
+                                        _node_full["_current_week"] = _pre_week
+                                        _node_full["_current_day"]  = _pre_day
+                                        save_curriculum(_full)
+                                    # Cache anyway so we don't re-attempt this
+                                    # advance-then-revert dance on every render.
+                                    _CURSOR_ADVANCED_TODAY[_adv_key] = True
+                                    _advanced_via_rollover = True
+                                    break
                                 _subj_node = _refreshed
-                                try:    _subj_week = int(_subj_node.get("_current_week", _cur_week_global))
-                                except (TypeError, ValueError): _subj_week = _cur_week_global
-                                try:    _subj_day = int(_subj_node.get("_current_day", 1))
-                                except (TypeError, ValueError): _subj_day = 1
+                                _subj_week = _new_week
+                                _subj_day  = _new_day
+                            _CURSOR_ADVANCED_TODAY[_adv_key] = True
                             _advanced_via_rollover = True
                             break
                 # Second pass: CARRY:: completions can also advance the
@@ -601,14 +644,39 @@ def extract_school_tasks_for_child(child: str, weekday: str, iso: str = None):
                             if not _subj_match: continue
                             _carry_text_oneline = re.sub(r"\s+", " ", _carry_text).strip()
                             if _carry_text_oneline and _carry_text_oneline == _today_text_oneline:
+                                # Guard 1: per-process per-day advance cache
+                                # (shared with the SCHOOL:: pass above).
+                                _adv_key = (child, _subject, _today_dt.isoformat())
+                                if _adv_key in _CURSOR_ADVANCED_TODAY:
+                                    break
+                                # Guard 2: repeating-text guard.  Same pattern
+                                # as the SCHOOL:: pass — advance, peek, revert
+                                # if post-advance text is still identical.
+                                _pre_week, _pre_day = _subj_week, _subj_day
                                 advance_curriculum_cursor(child, _subject)
                                 _refreshed = (load_curriculum() or {}).get(child, {}).get(_subject, {})
+                                _new_week, _new_day = _pre_week, _pre_day
                                 if isinstance(_refreshed, dict):
+                                    try:    _new_week = int(_refreshed.get("_current_week", _cur_week_global))
+                                    except (TypeError, ValueError): _new_week = _cur_week_global
+                                    try:    _new_day = int(_refreshed.get("_current_day", 1))
+                                    except (TypeError, ValueError): _new_day = 1
+                                    _post_text = resolve_week_text(_refreshed, _new_week, day_pref=_new_day) or ""
+                                    _post_oneline = re.sub(r"\s+", " ", _post_text).strip()
+                                    if _post_oneline == _carry_text_oneline:
+                                        # Repeating-text subject — undo.
+                                        _full = load_curriculum() or {}
+                                        _node_full = _full.get(child, {}).get(_subject)
+                                        if isinstance(_node_full, dict):
+                                            _node_full["_current_week"] = _pre_week
+                                            _node_full["_current_day"]  = _pre_day
+                                            save_curriculum(_full)
+                                        _CURSOR_ADVANCED_TODAY[_adv_key] = True
+                                        break
                                     _subj_node = _refreshed
-                                    try:    _subj_week = int(_subj_node.get("_current_week", _cur_week_global))
-                                    except (TypeError, ValueError): _subj_week = _cur_week_global
-                                    try:    _subj_day = int(_subj_node.get("_current_day", 1))
-                                    except (TypeError, ValueError): _subj_day = 1
+                                    _subj_week = _new_week
+                                    _subj_day  = _new_day
+                                _CURSOR_ADVANCED_TODAY[_adv_key] = True
                                 break
                     except Exception:
                         pass
