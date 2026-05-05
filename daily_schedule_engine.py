@@ -459,14 +459,23 @@ def extract_school_tasks_for_child(child: str, weekday: str):
                     _yest_iso   = (_today_dt - timedelta(days=_prev_school_delta)).isoformat()
                     _yest_pfx_a = f"SCHOOL::{child}::{_yest_iso}::{_subject}::"
                     _yest_pfx_b = f"{_yest_iso}::{child}::SCHOOL::{_subject}::"
-                    _suffix     = " — Assignment completed"
+                    # Subject-agnostic stem comparison.  For non-math subjects
+                    # the full key tail IS the lesson text (e.g. "Read for
+                    # about 1 hour.").  For math subjects the key tail is
+                    # `<lesson> — Assignment completed` / ` — Given to
+                    # checker` / ` — Fixed missed problems` / ` — Received
+                    # brother's math (...)` / ` — Checked brother's math
+                    # (...)`.  Splitting on " — " and taking the first part
+                    # yields the lesson stem in both cases, so we no longer
+                    # need to gate on a math-only suffix (which was silently
+                    # blocking the rollover for every non-math subject and
+                    # leaving today's render stuck on yesterday's lesson).
                     for _pk, _pv in (load_progress() or {}).items():
                         if not _pv: continue
-                        if not _pk.endswith(_suffix): continue
                         if not (_pk.startswith(_yest_pfx_a) or _pk.startswith(_yest_pfx_b)):
                             continue
-                        _yest_stem   = _pk[:-len(_suffix)]
-                        _yest_lesson = _yest_stem.split("::")[-1].strip()
+                        _yest_tail   = _pk.split("::")[-1].strip()
+                        _yest_lesson = _yest_tail.split(" — ", 1)[0].strip()
                         _yest_lesson_oneline = re.sub(r"\s+", " ", _yest_lesson).strip()
                         if _yest_lesson_oneline and _yest_lesson_oneline == _today_text_oneline:
                             advance_curriculum_cursor(child, _subject)
