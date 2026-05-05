@@ -741,6 +741,27 @@ def _is_prev_task_done(progress: dict, child: str, iso: str, raw: str) -> bool:
             ):
                 if progress.get(key):
                     return True
+        # Mirror the SCHOOL subject-level scan: a MANUAL task completed on
+        # any LATER day under the same display text counts as done.  Without
+        # this, ticking a manual task on today's POD writes
+        # MANUAL::child::TODAY::text but the carryover walk-back only checks
+        # MANUAL::child::CHECK_ISO::text (the prior day the task was
+        # registered), stays False, and the task ghosts back as a CARRY::
+        # entry on the next refresh.  See _carry_completion_exists for the
+        # equivalent CARRY::-key safety net.
+        if text:
+            _suffix = f"::{text}"
+            _mpfx   = f"MANUAL::{child}::"
+            for _k, _v in progress.items():
+                if not _v or not _k.startswith(_mpfx) or not _k.endswith(_suffix):
+                    continue
+                # _k = MANUAL::child::iso::text  → extract iso (split into 4)
+                _kparts = _k.split("::", 3)
+                if len(_kparts) != 4:
+                    continue
+                _kiso = _kparts[2]
+                if _kiso > iso:
+                    return True
         # Cross-type fallback: task may have been saved as CHORE in progress
         if text:
             text_l = text.lower().strip()
