@@ -455,6 +455,7 @@ def extract_school_tasks_for_child(child: str, weekday: str):
                     _prev_school_delta = 1
                 else:
                     _prev_school_delta = None
+                _advanced_via_rollover = False
                 if _prev_school_delta is not None and _today_text_oneline:
                     _yest_iso   = (_today_dt - timedelta(days=_prev_school_delta)).isoformat()
                     _yest_pfx_a = f"SCHOOL::{child}::{_yest_iso}::{_subject}::"
@@ -486,7 +487,57 @@ def extract_school_tasks_for_child(child: str, weekday: str):
                                 except (TypeError, ValueError): _subj_week = _cur_week_global
                                 try:    _subj_day = int(_subj_node.get("_current_day", 1))
                                 except (TypeError, ValueError): _subj_day = 1
+                            _advanced_via_rollover = True
                             break
+                # Second pass: CARRY:: completions can also advance the
+                # cursor.  When a stale lesson is checked off via the
+                # carryover form (e.g. `CARRY::JP::2026-04-30::Religion 8
+                # — Work for 5 minutes...`), the SCHOOL:: scan above
+                # never sees it because CARRY keys live under a different
+                # prefix family.  Without this scan the cursor would
+                # stay frozen indefinitely on a lesson the user has
+                # already completed (just late).  Display text format
+                # is `{subject_short} — {lesson_text}`; subject_short is
+                # the truncated front of the full subject name (e.g.
+                # `Religion 8` for `Religion 8 (Our Life in the Church)
+                # Syllabus`), so we use the same fuzzy
+                # prefix/containment logic that subject_meeting_days
+                # uses to reconcile abbreviated forms against the
+                # canonical subject name.
+                if (not _advanced_via_rollover) and _today_text_oneline:
+                    try:
+                        _subject_lower = _subject.lower()
+                        _carry_pfx     = f"CARRY::{child}::"
+                        for _pk, _pv in (load_progress() or {}).items():
+                            if not _pv: continue
+                            if not _pk.startswith(_carry_pfx): continue
+                            _carry_parts = _pk.split("::", 3)
+                            if len(_carry_parts) < 4: continue
+                            _carry_disp = _carry_parts[3].strip()
+                            _disp_split = _carry_disp.split(" — ", 1)
+                            if len(_disp_split) < 2: continue
+                            _carry_subj  = _disp_split[0].strip()
+                            _carry_text  = _disp_split[1].strip()
+                            if not _carry_subj or not _carry_text: continue
+                            _carry_subj_lower = _carry_subj.lower()
+                            _subj_match = (
+                                _subject_lower.startswith(_carry_subj_lower)
+                                or (_carry_subj_lower in _subject_lower)
+                            )
+                            if not _subj_match: continue
+                            _carry_text_oneline = re.sub(r"\s+", " ", _carry_text).strip()
+                            if _carry_text_oneline and _carry_text_oneline == _today_text_oneline:
+                                advance_curriculum_cursor(child, _subject)
+                                _refreshed = (load_curriculum() or {}).get(child, {}).get(_subject, {})
+                                if isinstance(_refreshed, dict):
+                                    _subj_node = _refreshed
+                                    try:    _subj_week = int(_subj_node.get("_current_week", _cur_week_global))
+                                    except (TypeError, ValueError): _subj_week = _cur_week_global
+                                    try:    _subj_day = int(_subj_node.get("_current_day", 1))
+                                    except (TypeError, ValueError): _subj_day = 1
+                                break
+                    except Exception:
+                        pass
             except Exception:
                 pass
             if _subj_week >= 999:
