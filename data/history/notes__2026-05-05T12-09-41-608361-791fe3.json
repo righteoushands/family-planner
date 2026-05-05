@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-05-05",
+  "updated_at": "2026-05-02T17:59:30",
   "data": [
     {
       "id": "note_007",
@@ -101,24 +101,6 @@
       "id": "note_eefa9a31",
       "text": "JP Science 8 hidden from POD — re-import syllabus from MODG when ready to start",
       "created_at": "2026-05-02T17:59:30",
-      "status": "open",
-      "tags": [],
-      "suggested_destination": "/curriculum",
-      "archived_at": null
-    },
-    {
-      "id": "note_fe0f14e3",
-      "text": "JP has completed Reading 8 Syllabus — all weeks are done.",
-      "created_at": "2026-05-05T12:09:41",
-      "status": "open",
-      "tags": [],
-      "suggested_destination": "/curriculum",
-      "archived_at": null
-    },
-    {
-      "id": "note_87392480",
-      "text": "JP has completed Reading 8 Syllabus — all weeks are done.",
-      "created_at": "2026-05-05T12:14:31",
       "status": "open",
       "tags": [],
       "suggested_destination": "/curriculum",

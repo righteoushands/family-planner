@@ -331,7 +331,7 @@ def render_student_page(child: str, target_date_str: str = "") -> str:
     weekday    = packet["weekday"]
     date_label = packet["date_label"]
 
-    blocks = extract_school_tasks_for_child(child, weekday) or []
+    blocks = extract_school_tasks_for_child(child, weekday, iso) or []
     progress = load_progress()
     color = child_color(child, "bg") or "#1f2937"
     name_safe = escape(child)

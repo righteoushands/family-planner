@@ -57,13 +57,16 @@ def _days_in_week(monday: date):
     return [(monday + timedelta(days=i), WEEKDAYS[i]) for i in range(5)]
 
 
-def _school_subjects_for_day(child: str, weekday: str):
+def _school_subjects_for_day(child: str, weekday: str, iso: str = None):
     """
     Return ordered list of (subject, [checklist_items]) for a child on a weekday.
+    Optional `iso` enables historical-snapshot reads in extract_school_tasks_for_child
+    so past-date renders show what was actually planned that day, not the
+    current cursor's projection.
     """
     try:
         from daily_schedule_engine import extract_school_tasks_for_child
-        blocks = extract_school_tasks_for_child(child, weekday)
+        blocks = extract_school_tasks_for_child(child, weekday, iso)
         return [(b["subject"], b.get("checklist", [])) for b in blocks]
     except Exception:
         return []
@@ -203,7 +206,7 @@ def _build_child_week(child: str, days: list, today: date):
 
         if is_future:
             # Just mark what's expected
-            scheduled = {s: items for s, items in _school_subjects_for_day(child, weekday)}
+            scheduled = {s: items for s, items in _school_subjects_for_day(child, weekday, iso)}
             cells = {}
             for subj in subject_order:
                 cells[subj] = "future" if subj in scheduled else "skip"
@@ -220,7 +223,7 @@ def _build_child_week(child: str, days: list, today: date):
 
         if not reg and is_today:
             # Today but schedule page not yet loaded — fall back to curriculum
-            reg = {s: items for s, items in _school_subjects_for_day(child, weekday)}
+            reg = {s: items for s, items in _school_subjects_for_day(child, weekday, iso)}
 
         # Add any subjects from registry that weren't in the curriculum order
         for subj in reg:

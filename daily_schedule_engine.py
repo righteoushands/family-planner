@@ -382,7 +382,81 @@ def _get_brother_math_label(child: str, weekday: str) -> str:
     return ""
 
 
-def extract_school_tasks_for_child(child: str, weekday: str):
+def extract_school_tasks_for_child(child: str, weekday: str, iso: str = None):
+    # ── Historical-snapshot fast path ────────────────────────────────────────
+    # For PAST dates only: if task_registry.json has SCHOOL:: entries for
+    # this child+iso, reconstruct blocks from the snapshot instead of
+    # regenerating from the live cursor.  This preserves audit fidelity:
+    # historical school days show what was actually planned that day, not
+    # whatever the cursor happens to point at now (cursor advances make
+    # later renders project forward into next week's content otherwise).
+    # Falls through to the live regeneration path when the snapshot is
+    # empty for this date.  Future and today's renders always use the
+    # live cursor (and write a fresh snapshot at the bottom of this fn).
+    # Snapshot format matches the legacy registry contract used by
+    # build_task_texts_for_day (line ~1138) and read by
+    # render_week_school._registered_school_subjects: a flat
+    # `SCHOOL::{subject}::{item}` string.  Child + iso are already
+    # encoded by the registry's outer dict keys (registry[iso][child]),
+    # so embedding them in the value would break existing readers
+    # that split on `::` with maxsplit=2.
+    _today_iso = date.today().isoformat()
+    _eff_iso   = iso if iso else _today_iso
+    if _eff_iso < _today_iso:
+        try:
+            _snap = get_registered_tasks_for_day(child, _eff_iso) or []
+            _by_subj = {}
+            _order   = []
+            for _t in _snap:
+                if not isinstance(_t, str): continue
+                if not _t.startswith("SCHOOL::"): continue
+                _parts = _t.split("::", 2)
+                if len(_parts) != 3: continue
+                _subj, _item = _parts[1].strip(), _parts[2].strip()
+                if not _subj or not _item: continue
+                if _subj not in _by_subj:
+                    _by_subj[_subj] = []
+                    _order.append(_subj)
+                _by_subj[_subj].append(_item)
+            if _by_subj:
+                _snap_blocks = []
+                _math_test_marker = "Test completed — given to Mom"
+                _math_done_sfx    = " — Assignment completed"
+                for _subj in _order:
+                    _items = _by_subj[_subj]
+                    _is_math_test = (len(_items) == 1 and _items[0] == _math_test_marker)
+                    # Math checklists have exactly 5 items per the
+                    # builder above; require >= 5 plus the
+                    # Assignment-completed suffix to avoid mis-
+                    # classifying non-math snapshots that happen to
+                    # contain a hyphen-suffixed item.
+                    _is_math      = (
+                        not _is_math_test
+                        and len(_items) >= 5
+                        and any(_x.endswith(_math_done_sfx) for _x in _items)
+                    )
+                    if _is_math_test:
+                        _atxt = ""
+                    elif _is_math:
+                        _stem = ""
+                        for _x in _items:
+                            if _x.endswith(_math_done_sfx):
+                                _stem = _x[:-len(_math_done_sfx)].strip()
+                                break
+                        _atxt = _stem
+                    else:
+                        _atxt = _items[0] if _items else ""
+                    _snap_blocks.append({
+                        "subject": _subj,
+                        "assignment_text": _atxt,
+                        "is_math": _is_math,
+                        "is_math_test": _is_math_test,
+                        "checklist": list(_items),
+                    })
+                return _snap_blocks
+        except Exception:
+            pass
+
     assignments = get_school_assignments_for_weekday(weekday)
     day = assignments.get(child, {})
     tasks = []
@@ -638,6 +712,39 @@ def extract_school_tasks_for_child(child: str, weekday: str):
         })
         if subject:
             seen_subjects.add(subject.lower())
+
+    # ── Snapshot on render ───────────────────────────────────────────────────
+    # Persist today's (and future-date) school task IDs into the registry so
+    # later historical reads of the same date can reconstruct what was
+    # actually planned, even after cursor advances move the live curriculum
+    # past this content.  Skipped for past dates so we never overwrite an
+    # already-frozen snapshot with cursor-projected content.
+    # Format matches build_task_texts_for_day's legacy contract
+    # (`SCHOOL::{subject}::{item}`) so render_week_school's reader
+    # parses it correctly.  Merge-not-replace because
+    # register_tasks_for_day overwrites the bucket wholesale —
+    # without merging, this call would wipe any chores/manual that
+    # build_task_texts_for_day previously wrote (or vice versa, depending
+    # on call order across renderers).
+    if _eff_iso >= _today_iso:
+        try:
+            _ids = []
+            for _blk in tasks:
+                _bsubj = (_blk.get("subject") or "").strip()
+                if not _bsubj: continue
+                for _ci in (_blk.get("checklist") or []):
+                    if not isinstance(_ci, str): continue
+                    _ci_clean = _ci.strip()
+                    if not _ci_clean: continue
+                    _ids.append(f"SCHOOL::{_bsubj}::{_ci_clean}")
+            if _ids:
+                _existing = get_registered_tasks_for_day(child, _eff_iso) or []
+                _merged   = sorted(set(list(_existing) + _ids))
+                _existing_sorted = sorted(set(_existing))
+                if _merged != _existing_sorted:
+                    register_tasks_for_day(child, _eff_iso, _merged)
+        except Exception:
+            pass
 
     return tasks
 
@@ -1034,7 +1141,7 @@ def carryover_sort_key(task_text: str):
 # -------------------------
 
 def build_task_texts_for_day(child: str, weekday: str, iso: str):
-    school_tasks = extract_school_tasks_for_child(child, weekday)
+    school_tasks = extract_school_tasks_for_child(child, weekday, iso)
     chore_tasks = list(weekday_chores_for_child(child, weekday))
     manual_tasks = get_manual_tasks_for_child_and_date(child, iso)
 
@@ -1881,7 +1988,7 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
 
     school_raw = []
     try:
-        school_raw = extract_school_tasks_for_child(child, weekday)
+        school_raw = extract_school_tasks_for_child(child, weekday, iso)
     except Exception:
         pass
 
