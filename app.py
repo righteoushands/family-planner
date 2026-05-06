@@ -6871,7 +6871,7 @@ class Handler(BaseHTTPRequestHandler):
                     _msg_content = _pi_user
                 _pi_payload = _pij.dumps({
                     "model": "claude-sonnet-4-20250514",
-                    "max_tokens": 1500,
+                    "max_tokens": 4000,
                     "system": _pi_sys,
                     "messages": [{"role": "user", "content": _msg_content}],
                     "stream": False,
@@ -6942,17 +6942,40 @@ class Handler(BaseHTTPRequestHandler):
                         # Anthropic error object?
                         _pi_err = _pi_body.get("error", {})
                         raise ValueError(f"Empty response from Claude. API said: {_pi_err.get('message', _pi_raw[:200])}")
-                    # Extract JSON from ```json ... ``` block
+                    # Robust parse: try fenced block, then bare match, then
+                    # outermost-brace scan, then safe empty result with an
+                    # error message so a truncated/malformed response from
+                    # Claude does not crash the request.
+                    def _safe_empty_parsed(_msg):
+                        return {"events": [], "tasks": [], "placements": [],
+                                "questions": [], "warnings": [], "suggestions": [],
+                                "error": _msg}
+                    _pi_parsed = None
                     _pi_jm = _pire.search(r"```json\s*([\s\S]*?)```", _pi_text)
                     if _pi_jm:
-                        _pi_parsed = _repair_and_parse_json(_pi_jm.group(1).strip())
-                    else:
-                        # Try bare JSON object/array
+                        try: _pi_parsed = _repair_and_parse_json(_pi_jm.group(1).strip())
+                        except Exception: _pi_parsed = None
+                    if _pi_parsed is None:
                         _pi_jm2 = _pire.search(r"(\{[\s\S]*\}|\[[\s\S]*\])", _pi_text)
                         if _pi_jm2:
-                            _pi_parsed = _repair_and_parse_json(_pi_jm2.group(1))
-                        else:
-                            raise ValueError(f"Claude did not return JSON. Response was: {_pi_text[:300]}")
+                            try: _pi_parsed = _repair_and_parse_json(_pi_jm2.group(1))
+                            except Exception: _pi_parsed = None
+                    if _pi_parsed is None:
+                        # Outermost-brace scan: grab from first '{' to last '}'
+                        _pi_lb = _pi_text.find("{")
+                        _pi_rb = _pi_text.rfind("}")
+                        if _pi_lb != -1 and _pi_rb > _pi_lb:
+                            try: _pi_parsed = _repair_and_parse_json(_pi_text[_pi_lb:_pi_rb+1])
+                            except Exception: _pi_parsed = None
+                    if _pi_parsed is None:
+                        _pi_parsed = _safe_empty_parsed(
+                            "Could not parse AI response (likely truncated or malformed). "
+                            f"Raw start: {_pi_text[:200]}"
+                        )
+                    elif not isinstance(_pi_parsed, dict):
+                        _pi_parsed = _safe_empty_parsed(
+                            "AI response was not a JSON object."
+                        )
                     # Detect relevant companions
                     from render_plan_importer import detect_relevant_companions, _COMPANION_KEYWORDS
                     _rel_keys = detect_relevant_companions(_pi_parsed)
