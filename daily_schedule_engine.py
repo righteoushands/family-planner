@@ -711,6 +711,17 @@ def extract_school_tasks_for_child(child: str, weekday: str, iso: str = None):
                 ]
             else:
                 _checklist = [_text_oneline]
+            # Poetry-memorize signal: only flag the day when the lesson is
+            # actually a memorization step (assignment text leads with
+            # "memorize…").  Substring-only matching falsely fired on
+            # continuation/recitation days whose text contained
+            # parenthetical phrases like "have not already memorized".
+            # Cap at the first 60 chars so only prominent leading-verb
+            # use of "memorize" qualifies.
+            _is_poetry_memo = (
+                "poetry" in _subject.lower()
+                and "memorize" in (_text[:60].lower() if _text else "")
+            )
             tasks.append({
                 "subject": _subject,
                 "assignment_text": _text,
@@ -720,6 +731,7 @@ def extract_school_tasks_for_child(child: str, weekday: str, iso: str = None):
                 "from_curriculum": True,
                 "week": _subj_week,
                 "day":  _subj_day,
+                "is_poetry_memorize": _is_poetry_memo,
             })
             # Curriculum claims this subject — PDF loop below will skip any
             # PDF block whose lowercase short subject name is a substring of
@@ -2004,7 +2016,8 @@ def _school_sub_items(school_raw: list, subjects_used: set,
                           "checkable": True, "is_header": False,
                           "week":    block.get("week"),
                           "day":     block.get("day"),
-                          "is_math": bool(block.get("is_math") or block.get("is_math_test"))})
+                          "is_math": bool(block.get("is_math") or block.get("is_math_test")),
+                          "is_poetry_memorize": bool(block.get("is_poetry_memorize"))})
         # Inject any carryover items for this subject (grouped here, chronological)
         if carry_by_subj:
             for carry_item in carry_by_subj.get(subj_low, []):

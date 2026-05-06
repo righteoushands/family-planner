@@ -835,12 +835,15 @@ def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str,
                 f'{tray_html}'
                 f'</div>'
             )
-            # If this is a poetry memorization step, inject the saved passage once
-            task_id  = raw_tid
-            text_low = sub.get("text", "").lower()
+            # If this is a poetry memorization step, inject the saved passage
+            # once.  The is_poetry_memorize flag is stamped upstream in
+            # extract_school_tasks_for_child (and forwarded through
+            # _school_sub_items) so we can do a direct boolean read instead of
+            # substring-sniffing the task_id / text — the latter false-fired on
+            # continuation/recitation days whose lesson body contained
+            # parenthetical "have not already memorized" guidance.
             is_poetry_memorize = (
-                "poetry" in task_id.lower() and
-                "memorize" in text_low and
+                sub.get("is_poetry_memorize", False) and
                 not _poetry_passage_injected and
                 child
             )
