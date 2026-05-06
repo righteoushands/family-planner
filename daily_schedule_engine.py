@@ -388,6 +388,10 @@ def extract_school_tasks_for_child(child: str, weekday: str, iso: str = None):
     # the bottom of this function is preserved so the week-school grid and
     # other historical-view consumers continue to work.  Cursor advancement
     # now happens at toggle-time in app.py /toggle-task (not here).
+    # `_today_iso` / `_eff_iso` are still consumed by the snapshot WRITE
+    # gate below ("today and future only — don't snapshot past dates").
+    _today_iso = date.today().isoformat()
+    _eff_iso   = iso if iso else _today_iso
     assignments = get_school_assignments_for_weekday(weekday)
     day = assignments.get(child, {})
     tasks = []
