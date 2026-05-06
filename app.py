@@ -2226,12 +2226,25 @@ class Handler(BaseHTTPRequestHandler):
                 # and stash the structured result for later curriculum placement.
                 import os as _os, json as _aj, base64 as _ab64, uuid as _auuid
                 import urllib.request as _aur
+                import unicodedata as _aud
                 from data_helpers import (
                     add_assignment_analysis, ASSIGNMENT_UPLOADS_DIR
                 )
                 _os.makedirs(ASSIGNMENT_UPLOADS_DIR, exist_ok=True)
 
-                raw_text     = clean_text(form.getfirst("raw_text",""))
+                # Sanitize raw pasted text before sending to AI: math symbols,
+                # smart quotes, and other non-ASCII characters can break the
+                # downstream JSON parser when the model echoes them back.
+                def _sanitize_for_ai(_t):
+                    if not _t: return _t
+                    _t = _t.replace("\u00d7", " times ")
+                    _t = (_t.replace("\u201c", '"').replace("\u201d", '"')
+                              .replace("\u2018", "'").replace("\u2019", "'"))
+                    _t = _aud.normalize("NFKD", _t)
+                    _t = _t.encode("ascii", "ignore").decode("ascii")
+                    return _t
+
+                raw_text     = _sanitize_for_ai(clean_text(form.getfirst("raw_text","")))
                 child_hint   = clean_text(form.getfirst("child_hint",""))
                 subject_hint = clean_text(form.getfirst("subject_hint",""))
                 description  = clean_text(form.getfirst("description",""))
