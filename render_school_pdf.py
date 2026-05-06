@@ -150,10 +150,15 @@ def _curriculum_blocks_for_day(child: str, weekday: str, curriculum: dict):
         # Subject doesn't meet today — skip.
         if day_idx is None:
             continue
-        # POSITION-based lookup — Monday→Day 1, Tuesday→Day 2 of this week.
-        # Deliberately NOT the subject's _current_day cursor.
+        # CURSOR-based lookup — use the subject's stored `_current_day` cursor
+        # so the PDF shows the same lesson as the POD/today view (which also
+        # drives day_pref from `_current_day`).  `day_idx` above is still used
+        # purely as the frequency gate (does the subject meet today?), but
+        # the lesson selection itself comes from the cursor.
+        try:    subj_day = int(subj_node.get("_current_day", 1))
+        except (TypeError, ValueError): subj_day = 1
         try:
-            text = resolve_week_text(subj_node, subj_week, day_pref=day_idx)
+            text = resolve_week_text(subj_node, subj_week, day_pref=subj_day)
         except Exception:
             text = ""
         if not text:
