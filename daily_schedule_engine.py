@@ -718,6 +718,8 @@ def extract_school_tasks_for_child(child: str, weekday: str, iso: str = None):
                 "is_math_test": False,
                 "checklist": _checklist,
                 "from_curriculum": True,
+                "week": _subj_week,
+                "day":  _subj_day,
             })
             # Curriculum claims this subject — PDF loop below will skip any
             # PDF block whose lowercase short subject name is a substring of
@@ -1999,7 +2001,10 @@ def _school_sub_items(school_raw: list, subjects_used: set,
                 text = f"{subj}: {text}"
             items.append({"text": text, "task_id": tid,
                           "done": _dl_done(progress, tid),
-                          "checkable": True, "is_header": False})
+                          "checkable": True, "is_header": False,
+                          "week":    block.get("week"),
+                          "day":     block.get("day"),
+                          "is_math": bool(block.get("is_math") or block.get("is_math_test"))})
         # Inject any carryover items for this subject (grouped here, chronological)
         if carry_by_subj:
             for carry_item in carry_by_subj.get(subj_low, []):

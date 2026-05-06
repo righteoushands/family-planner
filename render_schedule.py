@@ -770,6 +770,24 @@ def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str,
                     )
                 except Exception:
                     pass
+            # Week/Day badge — show "Wk N · DM" for curriculum-derived school
+            # sub-items so kids can see exactly which lesson position is being
+            # rendered.  Skipped for math (lesson number is already in the
+            # visible text) and for carryover items (avoid clutter on the
+            # already-badged carryover row).
+            wd_badge = ""
+            _wk_v = sub.get("week")
+            _dy_v = sub.get("day")
+            if (_wk_v is not None and _dy_v is not None
+                    and not sub.get("is_math")
+                    and not sub.get("is_carryover")):
+                _wd_lbl = f"Wk {_wk_v} · D{_dy_v}"
+                wd_badge = (
+                    f'<span style="font-size:.7em;font-weight:600;'
+                    f'color:#6b7280;background:#f3f4f6;border:1px solid #e5e7eb;'
+                    f'border-radius:4px;padding:1px 5px;margin-left:6px;white-space:nowrap;">'
+                    f'{escape(_wd_lbl)}</span>'
+                )
             # Timed override badge
             _time_badge = ""
             if _ov_act == "timed" and _ov.get("time"):
@@ -792,7 +810,7 @@ def _dl_sub_items_html(sub_items: list, c_id: str, iso: str, c_bg: str,
                 f'<div class="dl-sub-row" id="task-{tid}"'
                 f' data-dash-child="{c_id}" data-done="{dnv}">'
                 f'{_time_badge}'
-                f'<span class="dl-sub-label {dst}">{carry}{escape(_lbl_raw)}{due_badge}</span>'
+                f'<span class="dl-sub-label {dst}">{carry}{escape(_lbl_raw)}{due_badge}{wd_badge}</span>'
                 f'<input type="checkbox" {chk}'
                 f' style="width:15px;height:15px;flex-shrink:0;accent-color:{c_bg};margin-left:8px;"'
                 f' onchange="toggleDashTask(this,\'{tid_j}\',\'{c_id}\',\'{escape(iso)}\')">'
