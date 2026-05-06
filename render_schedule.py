@@ -2822,13 +2822,15 @@ def render_print_child_day_list(child: str, target_date_str: str = "") -> str:
                         f'</div>'
                     )
                     # Poetry memorization passage injection — mirrors the live
-                    # POD logic in _dl_sub_items_html (lines 820-849).  Only
-                    # injects once per parent block.
-                    _raw_tid  = sub.get("task_id", "")
-                    _text_low = sub.get("text", "").lower()
+                    # POD logic in _dl_sub_items_html.  Only injects once per
+                    # parent block.  Reads the upstream-stamped flag from the
+                    # sub-item dict (set in extract_school_tasks_for_child and
+                    # forwarded through _school_sub_items) instead of
+                    # substring-sniffing task_id / text — the latter false-fired
+                    # on continuation/recitation days containing parenthetical
+                    # "have not already memorized" guidance.
                     _is_poetry_memorize = (
-                        "poetry"   in _raw_tid.lower() and
-                        "memorize" in _text_low and
+                        sub.get("is_poetry_memorize", False) and
                         not _poetry_passage_injected and
                         bool(child)
                     )
