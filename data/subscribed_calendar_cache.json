@@ -276,6 +276,17 @@
       "source": "subscribed"
     },
     {
+      "title": "Confessions for Confirmation",
+      "start": "2026-05-13T17:00",
+      "end": "2026-05-13T18:00",
+      "all_day": false,
+      "location": "",
+      "notes": "",
+      "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
       "title": "Date Night",
       "start": "2026-05-13T17:30",
       "end": "2026-05-13T18:30",
@@ -1728,5 +1739,5 @@
       "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-05-05T16:59:36.064883"
+  "fetched_at": "2026-05-05T20:31:26.236799"
 }
