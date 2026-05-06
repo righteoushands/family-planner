@@ -3209,14 +3209,47 @@ class Handler(BaseHTTPRequestHandler):
                     except Exception:
                         _prev_done = False
                 set_task_done(_tid, _done)
-                # ── Curriculum auto-advance ─────────────────────────────────
-                # Removed: cursor advance on toggle.  Cursor now advances at
-                # the START of each day inside extract_school_tasks_for_child
-                # by checking whether yesterday's "Assignment completed" was
-                # marked done in progress.json — see daily_schedule_engine.py
-                # for the rollover logic.  This stops mid-week checks from
-                # silently jumping the cursor and stops same-day reload from
-                # showing the next lesson as a fresh task.
+                # ── Curriculum auto-advance (toggle-time) ───────────────────
+                # When a SCHOOL task is checked done for TODAY's date, advance
+                # the subject's cursor (_current_day / _current_week) so the
+                # next render shows the next lesson.  Two gates so mid-step
+                # math checks don't advance prematurely:
+                #   - Math subjects (subject name contains "math" or
+                #     "algebra"): advance only when the "Assignment completed"
+                #     step is checked.  The other 4 math checklist items
+                #     (Given to checker / Fixed missed problems / Received
+                #     brother's math / Checked brother's math) do NOT tick
+                #     the cursor.  Stored math step format is
+                #     `{lesson} — Assignment completed`, so a suffix match
+                #     handles the prefixed form and a literal-equality match
+                #     handles any unprefixed historical form.
+                #   - Non-math subjects: always advance — they have exactly
+                #     one checklist item (the full assignment text) per the
+                #     curriculum-branch builder, so any check IS completion.
+                # Also gated on the undone→done transition (no double-advance
+                # on off→on→off→on toggling) and on iso == today (back-dated
+                # checks of historical days don't move the live cursor).
+                if _done and (not _prev_done) and _tid.startswith("SCHOOL::"):
+                    try:
+                        _sp = _tid.split("::", 4)
+                        if len(_sp) == 5:
+                            _sc_child = _sp[1]
+                            _sc_iso   = _sp[2]
+                            _sc_subj  = _sp[3]
+                            _sc_step  = _sp[4]
+                            from datetime import date as _sc_date
+                            if _sc_iso == _sc_date.today().isoformat():
+                                _sc_subj_low = _sc_subj.lower()
+                                _is_math = ("math" in _sc_subj_low) or ("algebra" in _sc_subj_low)
+                                _step_norm = _sc_step.strip()
+                                _is_math_done_step = (
+                                    _step_norm == "Assignment completed"
+                                    or _step_norm.endswith(" — Assignment completed")
+                                )
+                                if (_is_math and _is_math_done_step) or (not _is_math):
+                                    advance_curriculum_cursor(_sc_child, _sc_subj)
+                    except Exception:
+                        pass
                 # When a MANUAL one-time task is checked off on a plan page,
                 # permanently delete it (or advance if recurring) in manual_tasks.json
                 # so it never reappears.

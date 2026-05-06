@@ -19,14 +19,6 @@ CALENDAR_RULES_FILE = "data/calendar_rules.json"
 
 CHILDREN = ["JP", "Joseph", "Michael", "James"]
 
-# ── Per-process per-day cursor-advance guard ─────────────────────────────────
-# Keys: (child, subject, today_iso).  Once an entry exists, the
-# yesterday-rollover advance for that (child, subject) on that date is
-# skipped for the rest of this process lifetime.  Prevents Reading-style
-# subjects (whose daily text is identical across days) from advancing
-# the cursor on every page render.  Resets when the workflow restarts.
-_CURSOR_ADVANCED_TODAY: dict = {}
-
 PRIORITY_ORDER = {
     "HIGH": 0,
     "MEDIUM": 1,
@@ -391,80 +383,11 @@ def _get_brother_math_label(child: str, weekday: str) -> str:
 
 
 def extract_school_tasks_for_child(child: str, weekday: str, iso: str = None):
-    # ── Historical-snapshot fast path ────────────────────────────────────────
-    # For PAST dates only: if task_registry.json has SCHOOL:: entries for
-    # this child+iso, reconstruct blocks from the snapshot instead of
-    # regenerating from the live cursor.  This preserves audit fidelity:
-    # historical school days show what was actually planned that day, not
-    # whatever the cursor happens to point at now (cursor advances make
-    # later renders project forward into next week's content otherwise).
-    # Falls through to the live regeneration path when the snapshot is
-    # empty for this date.  Future and today's renders always use the
-    # live cursor (and write a fresh snapshot at the bottom of this fn).
-    # Snapshot format matches the legacy registry contract used by
-    # build_task_texts_for_day (line ~1138) and read by
-    # render_week_school._registered_school_subjects: a flat
-    # `SCHOOL::{subject}::{item}` string.  Child + iso are already
-    # encoded by the registry's outer dict keys (registry[iso][child]),
-    # so embedding them in the value would break existing readers
-    # that split on `::` with maxsplit=2.
-    _today_iso = date.today().isoformat()
-    _eff_iso   = iso if iso else _today_iso
-    if _eff_iso < _today_iso:
-        try:
-            _snap = get_registered_tasks_for_day(child, _eff_iso) or []
-            _by_subj = {}
-            _order   = []
-            for _t in _snap:
-                if not isinstance(_t, str): continue
-                if not _t.startswith("SCHOOL::"): continue
-                _parts = _t.split("::", 2)
-                if len(_parts) != 3: continue
-                _subj, _item = _parts[1].strip(), _parts[2].strip()
-                if not _subj or not _item: continue
-                if _subj not in _by_subj:
-                    _by_subj[_subj] = []
-                    _order.append(_subj)
-                _by_subj[_subj].append(_item)
-            if _by_subj:
-                _snap_blocks = []
-                _math_test_marker = "Test completed — given to Mom"
-                _math_done_sfx    = " — Assignment completed"
-                for _subj in _order:
-                    _items = _by_subj[_subj]
-                    _is_math_test = (len(_items) == 1 and _items[0] == _math_test_marker)
-                    # Math checklists have exactly 5 items per the
-                    # builder above; require >= 5 plus the
-                    # Assignment-completed suffix to avoid mis-
-                    # classifying non-math snapshots that happen to
-                    # contain a hyphen-suffixed item.
-                    _is_math      = (
-                        not _is_math_test
-                        and len(_items) >= 5
-                        and any(_x.endswith(_math_done_sfx) for _x in _items)
-                    )
-                    if _is_math_test:
-                        _atxt = ""
-                    elif _is_math:
-                        _stem = ""
-                        for _x in _items:
-                            if _x.endswith(_math_done_sfx):
-                                _stem = _x[:-len(_math_done_sfx)].strip()
-                                break
-                        _atxt = _stem
-                    else:
-                        _atxt = _items[0] if _items else ""
-                    _snap_blocks.append({
-                        "subject": _subj,
-                        "assignment_text": _atxt,
-                        "is_math": _is_math,
-                        "is_math_test": _is_math_test,
-                        "checklist": list(_items),
-                    })
-                return _snap_blocks
-        except Exception:
-            pass
-
+    # NOTE: snapshot read fast-path was removed — this function always
+    # regenerates from the live curriculum cursor.  The snapshot WRITE at
+    # the bottom of this function is preserved so the week-school grid and
+    # other historical-view consumers continue to work.  Cursor advancement
+    # now happens at toggle-time in app.py /toggle-task (not here).
     assignments = get_school_assignments_for_weekday(weekday)
     day = assignments.get(child, {})
     tasks = []
@@ -480,9 +403,8 @@ def extract_school_tasks_for_child(child: str, weekday: str, iso: str = None):
     # lesson text for today's position within the subject's meeting days.
     try:
         from data_helpers import (
-            load_curriculum, save_curriculum, get_curriculum_week, resolve_week_text,
+            load_curriculum, get_curriculum_week, resolve_week_text,
             week_day_segments, subject_meeting_days, subject_day_index,
-            advance_curriculum_cursor,
         )
         _cur_data = load_curriculum() or {}
         _cur_week_global = get_curriculum_week()
@@ -512,178 +434,6 @@ def extract_school_tasks_for_child(child: str, weekday: str, iso: str = None):
             # frequency gate (does the subject meet today at all).
             try:    _subj_day = int(_subj_node.get("_current_day", 1))
             except (TypeError, ValueError): _subj_day = 1
-            # ── Yesterday-rollover cursor advance ───────────────────────────
-            # If yesterday's "Assignment completed" task was checked done for
-            # this subject AND today's cursor still points at yesterday's
-            # lesson (cursor hasn't been advanced yet), advance it now so
-            # today renders the next lesson.  Idempotent: after advancing,
-            # today's cursor lesson differs from yesterday's stored lesson,
-            # so the next page reload won't double-advance.  Replaces the
-            # toggle-time advance which fired on every check including
-            # mid-week, causing same-day reload to skip ahead.
-            try:
-                _today_text_for_cmp = resolve_week_text(_subj_node, _subj_week, day_pref=_subj_day) or ""
-                _today_text_oneline = re.sub(r"\s+", " ", _today_text_for_cmp).strip()
-                # Previous school day, not literal yesterday — Mon → Fri
-                # (delta 3), Tue–Fri → previous day (delta 1), Sat/Sun
-                # → skip the rollover check entirely (no school runs on
-                # weekends, so there's no yesterday-completion to roll
-                # forward from).
-                _today_dt = date.today()
-                _today_wd = _today_dt.weekday()
-                if _today_wd == 0:
-                    _prev_school_delta = 3
-                elif _today_wd in (1, 2, 3, 4):
-                    _prev_school_delta = 1
-                else:
-                    _prev_school_delta = None
-                _advanced_via_rollover = False
-                if _prev_school_delta is not None and _today_text_oneline:
-                    _yest_iso   = (_today_dt - timedelta(days=_prev_school_delta)).isoformat()
-                    _yest_pfx_a = f"SCHOOL::{child}::{_yest_iso}::{_subject}::"
-                    _yest_pfx_b = f"{_yest_iso}::{child}::SCHOOL::{_subject}::"
-                    # Subject-agnostic stem comparison.  For non-math subjects
-                    # the full key tail IS the lesson text (e.g. "Read for
-                    # about 1 hour.").  For math subjects the key tail is
-                    # `<lesson> — Assignment completed` / ` — Given to
-                    # checker` / ` — Fixed missed problems` / ` — Received
-                    # brother's math (...)` / ` — Checked brother's math
-                    # (...)`.  Splitting on " — " and taking the first part
-                    # yields the lesson stem in both cases, so we no longer
-                    # need to gate on a math-only suffix (which was silently
-                    # blocking the rollover for every non-math subject and
-                    # leaving today's render stuck on yesterday's lesson).
-                    for _pk, _pv in (load_progress() or {}).items():
-                        if not _pv: continue
-                        if not (_pk.startswith(_yest_pfx_a) or _pk.startswith(_yest_pfx_b)):
-                            continue
-                        _yest_tail   = _pk.split("::")[-1].strip()
-                        _yest_lesson = _yest_tail.split(" — ", 1)[0].strip()
-                        _yest_lesson_oneline = re.sub(r"\s+", " ", _yest_lesson).strip()
-                        if _yest_lesson_oneline and _yest_lesson_oneline == _today_text_oneline:
-                            # Guard 1: per-process per-day advance cache.  If we
-                            # already advanced this (child, subject) today in
-                            # this process, do not advance again — page reloads
-                            # must not tick the cursor more than once per day.
-                            _adv_key = (child, _subject, _today_dt.isoformat())
-                            if _adv_key in _CURSOR_ADVANCED_TODAY:
-                                _advanced_via_rollover = True
-                                break
-                            # Guard 2: repeating-text guard.  Save pre-advance
-                            # cursor, advance, peek post-advance text.  If the
-                            # post-advance text is still equal to yesterday's
-                            # lesson text, this subject has identical daily
-                            # text (e.g. Reading 8 = "Read for about 1 hour."
-                            # every day) and advancing would be idempotent but
-                            # dangerous — revert and skip entirely.
-                            _pre_week, _pre_day = _subj_week, _subj_day
-                            advance_curriculum_cursor(child, _subject)
-                            _refreshed = (load_curriculum() or {}).get(child, {}).get(_subject, {})
-                            _new_week, _new_day = _pre_week, _pre_day
-                            if isinstance(_refreshed, dict):
-                                try:    _new_week = int(_refreshed.get("_current_week", _cur_week_global))
-                                except (TypeError, ValueError): _new_week = _cur_week_global
-                                try:    _new_day = int(_refreshed.get("_current_day", 1))
-                                except (TypeError, ValueError): _new_day = 1
-                                _post_text = resolve_week_text(_refreshed, _new_week, day_pref=_new_day) or ""
-                                _post_oneline = re.sub(r"\s+", " ", _post_text).strip()
-                                if _post_oneline == _yest_lesson_oneline:
-                                    # Repeating-text subject — undo the advance.
-                                    _full = load_curriculum() or {}
-                                    _node_full = _full.get(child, {}).get(_subject)
-                                    if isinstance(_node_full, dict):
-                                        _node_full["_current_week"] = _pre_week
-                                        _node_full["_current_day"]  = _pre_day
-                                        save_curriculum(_full)
-                                    # Cache anyway so we don't re-attempt this
-                                    # advance-then-revert dance on every render.
-                                    _CURSOR_ADVANCED_TODAY[_adv_key] = True
-                                    _advanced_via_rollover = True
-                                    break
-                                _subj_node = _refreshed
-                                _subj_week = _new_week
-                                _subj_day  = _new_day
-                            _CURSOR_ADVANCED_TODAY[_adv_key] = True
-                            _advanced_via_rollover = True
-                            break
-                # Second pass: CARRY:: completions can also advance the
-                # cursor.  When a stale lesson is checked off via the
-                # carryover form (e.g. `CARRY::JP::2026-04-30::Religion 8
-                # — Work for 5 minutes...`), the SCHOOL:: scan above
-                # never sees it because CARRY keys live under a different
-                # prefix family.  Without this scan the cursor would
-                # stay frozen indefinitely on a lesson the user has
-                # already completed (just late).  Display text format
-                # is `{subject_short} — {lesson_text}`; subject_short is
-                # the truncated front of the full subject name (e.g.
-                # `Religion 8` for `Religion 8 (Our Life in the Church)
-                # Syllabus`), so we use the same fuzzy
-                # prefix/containment logic that subject_meeting_days
-                # uses to reconcile abbreviated forms against the
-                # canonical subject name.
-                if (not _advanced_via_rollover) and _today_text_oneline:
-                    try:
-                        _subject_lower = _subject.lower()
-                        _carry_pfx     = f"CARRY::{child}::"
-                        for _pk, _pv in (load_progress() or {}).items():
-                            if not _pv: continue
-                            if not _pk.startswith(_carry_pfx): continue
-                            _carry_parts = _pk.split("::", 3)
-                            if len(_carry_parts) < 4: continue
-                            _carry_disp = _carry_parts[3].strip()
-                            _disp_split = _carry_disp.split(" — ", 1)
-                            if len(_disp_split) < 2: continue
-                            _carry_subj  = _disp_split[0].strip()
-                            _carry_text  = _disp_split[1].strip()
-                            if not _carry_subj or not _carry_text: continue
-                            _carry_subj_lower = _carry_subj.lower()
-                            _subj_match = (
-                                _subject_lower.startswith(_carry_subj_lower)
-                                or (_carry_subj_lower in _subject_lower)
-                            )
-                            if not _subj_match: continue
-                            _carry_text_oneline = re.sub(r"\s+", " ", _carry_text).strip()
-                            if _carry_text_oneline and _carry_text_oneline == _today_text_oneline:
-                                # Guard 1: per-process per-day advance cache
-                                # (shared with the SCHOOL:: pass above).
-                                _adv_key = (child, _subject, _today_dt.isoformat())
-                                if _adv_key in _CURSOR_ADVANCED_TODAY:
-                                    break
-                                # Guard 2: repeating-text guard.  Same pattern
-                                # as the SCHOOL:: pass — advance, peek, revert
-                                # if post-advance text is still identical.
-                                _pre_week, _pre_day = _subj_week, _subj_day
-                                advance_curriculum_cursor(child, _subject)
-                                _refreshed = (load_curriculum() or {}).get(child, {}).get(_subject, {})
-                                _new_week, _new_day = _pre_week, _pre_day
-                                if isinstance(_refreshed, dict):
-                                    try:    _new_week = int(_refreshed.get("_current_week", _cur_week_global))
-                                    except (TypeError, ValueError): _new_week = _cur_week_global
-                                    try:    _new_day = int(_refreshed.get("_current_day", 1))
-                                    except (TypeError, ValueError): _new_day = 1
-                                    _post_text = resolve_week_text(_refreshed, _new_week, day_pref=_new_day) or ""
-                                    _post_oneline = re.sub(r"\s+", " ", _post_text).strip()
-                                    if _post_oneline == _carry_text_oneline:
-                                        # Repeating-text subject — undo.
-                                        _full = load_curriculum() or {}
-                                        _node_full = _full.get(child, {}).get(_subject)
-                                        if isinstance(_node_full, dict):
-                                            _node_full["_current_week"] = _pre_week
-                                            _node_full["_current_day"]  = _pre_day
-                                            save_curriculum(_full)
-                                        _CURSOR_ADVANCED_TODAY[_adv_key] = True
-                                        break
-                                    _subj_node = _refreshed
-                                    _subj_week = _new_week
-                                    _subj_day  = _new_day
-                                _CURSOR_ADVANCED_TODAY[_adv_key] = True
-                                break
-                    except Exception:
-                        pass
-            except Exception:
-                pass
-            if _subj_week >= 999:
-                continue
             _text = resolve_week_text(_subj_node, _subj_week, day_pref=_subj_day)
             if not _text:
                 continue
