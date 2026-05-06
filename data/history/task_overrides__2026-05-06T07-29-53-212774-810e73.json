@@ -80,12 +80,6 @@
         "postpone_to": "2026-05-02",
         "label": "CAPTask: Wash the most used uniform of the month."
       }
-    },
-    "2026-05-06": {
-      "CHORE::JP::2026-05-06::morning::Tidy basement zone — 10 minutes": {
-        "action": "dismiss",
-        "label": "Tidy basement zone — 10 minutes"
-      }
     }
   },
   "Joseph": {

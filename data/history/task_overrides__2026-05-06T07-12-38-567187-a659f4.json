@@ -80,12 +80,6 @@
         "postpone_to": "2026-05-02",
         "label": "CAPTask: Wash the most used uniform of the month."
       }
-    },
-    "2026-05-06": {
-      "CHORE::JP::2026-05-06::morning::Tidy basement zone — 10 minutes": {
-        "action": "dismiss",
-        "label": "Tidy basement zone — 10 minutes"
-      }
     }
   },
   "Joseph": {
@@ -326,13 +320,6 @@
         "label": "Buy transplants and set up garden supports"
       },
       "CARRY::Lauren::2026-05-05::[MEDIUM] Buy transplants and set up garden supports": {
-        "action": "postpone",
-        "postpone_to": "2026-05-13",
-        "label": "[MEDIUM] Buy transplants and set up garden supports (from Fri 1 May)"
-      }
-    },
-    "2026-05-06": {
-      "CARRY::Lauren::2026-05-06::[MEDIUM] Buy transplants and set up garden supports": {
         "action": "postpone",
         "postpone_to": "2026-05-13",
         "label": "[MEDIUM] Buy transplants and set up garden supports (from Fri 1 May)"

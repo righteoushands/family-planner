@@ -230,6 +230,22 @@
     "id": "5c083773"
   },
   {
+    "text": "Begin shopping for JP's special gift from parents",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-30",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Order must be placed by April 30 for timely delivery.",
+    "subtasks": [
+      "Ideas: quality rosary, patron saint medal, leather-bound Bible",
+      "Cross necklace or meaningful keepsake",
+      "If ordering online, allow 2 weeks for shipping"
+    ],
+    "id": "240baef1"
+  },
+  {
     "text": "Take JP to shop for Confirmation suit",
     "assigned_to": "Lauren",
     "due_date": "2026-05-03",
@@ -264,6 +280,22 @@
     "id": "19ac4f5b"
   },
   {
+    "text": "Finalize and order/purchase JP's special gift",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-05",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "If online, order by May 5",
+      "Wrap and store safely",
+      "Plan reveal moment during cake"
+    ],
+    "id": "08a54a30"
+  },
+  {
     "text": "Collect RSVPs and follow up with non-responders",
     "assigned_to": "Lauren",
     "due_date": "2026-05-07",
@@ -295,6 +327,38 @@
       "Sniff-check the day before"
     ],
     "id": "7f7d7e93"
+  },
+  {
+    "text": "Deep-clean entertaining spaces",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-12",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Complete by May 10-12.",
+    "subtasks": [
+      "Living room, dining area, kitchen",
+      "Guest bathroom",
+      "Wash and press table linens"
+    ],
+    "id": "1bed68e8"
+  },
+  {
+    "text": "Plan food layout and table setup",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-12",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "",
+    "subtasks": [
+      "Decide placement: apps table, jambalaya station, dessert table",
+      "Pull out serving dishes, platters, tongs, utensils",
+      "Confirm you have everything needed"
+    ],
+    "id": "03bad0ae"
   },
   {
     "text": "Plan pollen-control strategy",
@@ -544,6 +608,18 @@
     "notes": "Before getting dressed, gather family to pray over JP",
     "subtasks": [],
     "id": "83611495"
+  },
+  {
+    "text": "Plan the gift reveal moment during cake time with prepared words of blessing from John and Lauren about hopes for JP's life in the Spirit.",
+    "assigned_to": "Lauren",
+    "due_date": "2026-04-23",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "From counsel suggestion",
+    "subtasks": [],
+    "id": "d27f80a4"
   },
   {
     "text": "family walk on May 16 morning as a specific time block to ensure it happens before getting dressed for Mass.",
@@ -799,7 +875,7 @@
   {
     "text": "Purchase Mother’s Day gifts: Mom, GMA Joan, Shelbi",
     "assigned_to": "Mom",
-    "due_date": "2027-05-01",
+    "due_date": "2026-05-01",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": true,
@@ -807,6 +883,22 @@
     "interval_unit": "years",
     "id": "f9a2aa2c",
     "scheduled_for": "2026-05-01"
+  },
+  {
+    "text": "Get drinks and snacks for JP to share at religious ed pizza party",
+    "assigned_to": "Lauren",
+    "due_date": "2026-05-05",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "Based on previous answers - JP gets to pick both items to share",
+    "subtasks": [
+      "Let JP pick both drinks and snacks",
+      "Purchase items",
+      "Pack for JP to bring"
+    ],
+    "id": "2e0aad95"
   },
   {
     "id": "7d7a6c07",
