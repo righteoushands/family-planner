@@ -1781,26 +1781,50 @@ def _school_sub_items(school_raw: list, subjects_used: set,
         # and got rendered as the doubled `assign_text — ci` form.
         assign_text_norm = re.sub(r"\s+", " ", assign_text).strip()
         _pfx_check_norm  = f"{assign_text_norm} — " if assign_text_norm else ""
-        for ci in block.get("checklist", ["Done"]):
-            tid = f"SCHOOL::{child}::{iso}::{subj}::{ci}"
-            ci_norm = re.sub(r"\s+", " ", ci).strip()
-            # Avoid duplicating text when:
-            # - the checklist item IS the assignment text (non-math subjects), OR
-            # - the checklist item already starts with "assign_text — " (math subjects
-            #   now embed the lesson number in each checklist item)
-            if not assign_text_norm or ci_norm == assign_text_norm or ci_norm.startswith(_pfx_check_norm):
-                text = f"{ci}"
-            else:
-                text = f"{assign_text} — {ci}"
-            if hint == "":
-                text = f"{subj}: {text}"
-            items.append({"text": text, "task_id": tid,
-                          "done": _dl_done(progress, tid),
-                          "checkable": True, "is_header": False,
-                          "week":    block.get("week"),
-                          "day":     block.get("day"),
-                          "is_math": bool(block.get("is_math") or block.get("is_math_test")),
-                          "is_poetry_memorize": bool(block.get("is_poetry_memorize"))})
+        # Dedup: if a carryover for this subject already carries IDENTICAL
+        # assignment text (the underlying curriculum line, sans subject
+        # prefix and "(from ...)" date label), skip today's fresh entry —
+        # the carryover represents the same work and will render under
+        # this same subject group.  When the fresh assign_text differs
+        # from every carry text, the fresh entry is added normally.
+        _skip_fresh = False
+        if carry_by_subj and assign_text_norm:
+            _subj_pfx_dash  = f"{subj} — "
+            _subj_pfx_colon = f"{subj}: "
+            for _ci in carry_by_subj.get(subj_low, []):
+                _ct = _ci.get("text", "") or ""
+                _ct = re.sub(r"\s*\(from [^)]*\)\s*$", "", _ct).strip()
+                if _ct.startswith(_subj_pfx_dash):
+                    _ct = _ct[len(_subj_pfx_dash):].strip()
+                elif _ct.startswith(_subj_pfx_colon):
+                    _ct = _ct[len(_subj_pfx_colon):].strip()
+                if re.sub(r"\s+", " ", _ct).strip() == assign_text_norm:
+                    _skip_fresh = True
+                    break
+        # When _skip_fresh is True, omit today's fresh checklist rows but
+        # still fall through to the carry_by_subj injection below so the
+        # carryover items for this subject group still render.
+        if not _skip_fresh:
+            for ci in block.get("checklist", ["Done"]):
+                tid = f"SCHOOL::{child}::{iso}::{subj}::{ci}"
+                ci_norm = re.sub(r"\s+", " ", ci).strip()
+                # Avoid duplicating text when:
+                # - the checklist item IS the assignment text (non-math subjects), OR
+                # - the checklist item already starts with "assign_text — " (math subjects
+                #   now embed the lesson number in each checklist item)
+                if not assign_text_norm or ci_norm == assign_text_norm or ci_norm.startswith(_pfx_check_norm):
+                    text = f"{ci}"
+                else:
+                    text = f"{assign_text} — {ci}"
+                if hint == "":
+                    text = f"{subj}: {text}"
+                items.append({"text": text, "task_id": tid,
+                              "done": _dl_done(progress, tid),
+                              "checkable": True, "is_header": False,
+                              "week":    block.get("week"),
+                              "day":     block.get("day"),
+                              "is_math": bool(block.get("is_math") or block.get("is_math_test")),
+                              "is_poetry_memorize": bool(block.get("is_poetry_memorize"))})
         # Inject any carryover items for this subject (grouped here, chronological)
         if carry_by_subj:
             for carry_item in carry_by_subj.get(subj_low, []):
