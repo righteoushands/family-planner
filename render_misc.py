@@ -921,6 +921,89 @@ def _render_mom_messages_inbox() -> str:
         return ""
 
 
+def _render_school_week_review_card(plan: dict) -> str:
+    """Lauren's draft-school-week review card.  Renders Mon-Fri x JP/Joseph
+    with subject + Wk/D badge + lesson snippet, plus Approve and Regenerate
+    POST forms.  Shown only when a draft (not approved) plan exists for the
+    current week."""
+    week_iso = plan.get("week_iso", "")
+    plan_data = plan.get("plan", {}) or {}
+    sections = []
+    for child in ("JP", "Joseph"):
+        days = plan_data.get(child, {}) or {}
+        if not days:
+            continue
+        day_html_parts = []
+        for wd in ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"):
+            blocks = days.get(wd, []) or []
+            if not blocks:
+                continue
+            rows = []
+            for b in blocks:
+                if not isinstance(b, dict):
+                    continue
+                subj = escape((b.get("subject") or "").strip())
+                wk = b.get("week")
+                dy = b.get("day")
+                badge = ""
+                if wk is not None and dy is not None:
+                    _wd_lbl = f"Wk {wk} \u00b7 D{dy}"
+                    badge = (
+                        f'<span style="font-size:.7em;font-weight:600;'
+                        f'color:#6b7280;background:#f3f4f6;border:1px solid #e5e7eb;'
+                        f'border-radius:4px;padding:1px 5px;margin-left:6px;">'
+                        f'{escape(_wd_lbl)}</span>'
+                    )
+                txt_full = (b.get("assignment_text") or "").strip()
+                _txt = txt_full[:200] + ("\u2026" if len(txt_full) > 200 else "")
+                _txt_esc = escape(_txt)
+                rows.append(
+                    f'<div style="font-size:.82em;padding:4px 0;border-bottom:1px solid #f3f4f6;">'
+                    f'<strong>{subj}</strong>{badge}'
+                    f'<div style="color:#4b5563;margin-top:2px;">{_txt_esc}</div>'
+                    f'</div>'
+                )
+            if rows:
+                _rows_joined = "".join(rows)
+                day_html_parts.append(
+                    f'<div style="margin-bottom:8px;">'
+                    f'<div style="font-size:.78em;font-weight:700;color:#92400e;'
+                    f'text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">'
+                    f'{escape(wd)}</div>'
+                    f'{_rows_joined}</div>'
+                )
+        if day_html_parts:
+            _days_joined = "".join(day_html_parts)
+            sections.append(
+                f'<div style="margin-bottom:14px;">'
+                f'<div style="font-size:.95em;font-weight:700;color:#111827;'
+                f'margin-bottom:6px;">{escape(child)}</div>'
+                f'{_days_joined}</div>'
+            )
+    _sections_joined = "".join(sections)
+    _empty = '<p style="color:#6b7280;font-style:italic;">Plan is empty.</p>'
+    body_html = _sections_joined if _sections_joined else _empty
+    return (
+        f'<div style="background:#fef3c7;border:2px solid #f59e0b;border-radius:12px;'
+        f'padding:14px 18px;margin:12px 0;">'
+        f'<div style="font-size:1.05em;font-weight:700;color:#92400e;margin-bottom:4px;">'
+        f'&#128203; School Week &mdash; Pending Your Approval</div>'
+        f'<div style="font-size:.82em;color:#78350f;margin-bottom:10px;">'
+        f'Week of {escape(week_iso)} &middot; Review the assignments below for JP and Joseph.</div>'
+        f'{body_html}'
+        f'<div style="display:flex;gap:10px;margin-top:12px;">'
+        f'<form method="POST" action="/approve-school-week" style="margin:0;">'
+        f'<button type="submit" style="background:#16a34a;color:#fff;border:none;'
+        f'border-radius:8px;padding:9px 16px;font-weight:700;font-size:.9em;cursor:pointer;">'
+        f'&#10003; Approve week</button></form>'
+        f'<form method="POST" action="/regenerate-school-week" style="margin:0;">'
+        f'<button type="submit" style="background:#fff;color:#92400e;border:1px solid #f59e0b;'
+        f'border-radius:8px;padding:9px 16px;font-weight:700;font-size:.9em;cursor:pointer;">'
+        f'&#8635; Regenerate</button></form>'
+        f'</div></div>'
+    )
+
+
 def render_dashboard() -> str:
     # ── Viewer-scoping: child viewers redirect to their own schedule page ────
     # The route at app.py serves render_dashboard() with HTTP 200, so a true
@@ -1064,6 +1147,19 @@ def render_dashboard() -> str:
         _grid_html = render_dashboard_grid(iso)
     except Exception:
         _grid_html = ""
+
+    # School week review card — only when a DRAFT plan exists for this
+    # week's Monday.  Approved/missing/stale plans render nothing.
+    _school_week_review_html = ""
+    try:
+        from data_helpers import load_school_week_plan as _swp_load, monday_iso_for as _swp_mif
+        _swp = _swp_load() or {}
+        _swp_wk = _swp_mif(iso)
+        if (_swp.get("week_iso") == _swp_wk
+                and _swp.get("status") == "draft"):
+            _school_week_review_html = _render_school_week_review_card(_swp)
+    except Exception:
+        pass
 
     # My plan
     try:
@@ -1342,6 +1438,9 @@ def render_dashboard() -> str:
 
     <!-- Prayer Intentions widget -->
     {_safe_widget('render_prayer', 'render_prayer_dashboard_widget')}
+
+    <!-- School week review (only when draft plan exists for this week) -->
+    {_school_week_review_html}
 
     <!-- Family grid -->
     <div class="section-cap">Family grid &middot; Today</div>

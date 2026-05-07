@@ -791,6 +791,29 @@ class Handler(BaseHTTPRequestHandler):
             except BrokenPipeError: pass
             return
 
+        # ── Monday auto-generate weekly school plan ──────────────────────
+        # Only fires when (a) today is Monday AND (b) no plan exists for
+        # this week's Monday ISO (draft or approved).  Once a draft is
+        # created, Lauren must explicitly Approve or Regenerate via her
+        # dashboard card — this prevents clobbering an in-progress review
+        # on subsequent dashboard hits.  Wrapped in try/except so any
+        # generator failure never blocks the dashboard render.
+        if path == "/":
+            try:
+                from data_helpers import (
+                    today_iso as _ti, monday_iso_for as _mif,
+                    load_school_week_plan as _lswp,
+                    generate_weekly_school_plan as _gwsp,
+                )
+                _today = date.today()
+                if _today.weekday() == 0:
+                    _wk_today = _mif(_ti())
+                    _existing = _lswp() or {}
+                    if _existing.get("week_iso") != _wk_today:
+                        _gwsp(_wk_today)
+            except Exception:
+                pass
+
         if   path == "/":                body = render_dashboard()
         elif path == "/today":           body = render_today_all(query.get("date",[""])[0])
         elif path == "/programs":
@@ -4025,6 +4048,33 @@ class Handler(BaseHTTPRequestHandler):
                 child=clean_child(data.get("child",[""])[0])
                 if child: approve_school_preview(child)
                 redirect="/school#top"
+
+            elif path == "/approve-school-week":
+                _aw_viewer = self._get_viewer() or ""
+                if not _auth.is_admin(_aw_viewer):
+                    self.send_response(403); self.end_headers(); return
+                from data_helpers import (
+                    load_school_week_plan as _aw_load,
+                    save_school_week_plan as _aw_save,
+                )
+                from datetime import datetime as _aw_dt
+                _aw_plan = _aw_load() or {}
+                if _aw_plan:
+                    _aw_plan["status"] = "approved"
+                    _aw_plan["approved_at"] = _aw_dt.utcnow().isoformat() + "Z"
+                    _aw_save(_aw_plan)
+                redirect = "/"
+
+            elif path == "/regenerate-school-week":
+                _rw_viewer = self._get_viewer() or ""
+                if not _auth.is_admin(_rw_viewer):
+                    self.send_response(403); self.end_headers(); return
+                from data_helpers import (
+                    today_iso as _rw_ti, monday_iso_for as _rw_mif,
+                    generate_weekly_school_plan as _rw_gen,
+                )
+                _rw_gen(_rw_mif(_rw_ti()))
+                redirect = "/"
 
             elif path == "/reparse-school-preview":
                 child=clean_child(data.get("child",[""])[0]); raw_text=clean_text(data.get("raw_text",[""])[0])

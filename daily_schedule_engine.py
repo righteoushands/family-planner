@@ -383,6 +383,35 @@ def _get_brother_math_label(child: str, weekday: str) -> str:
 
 
 def extract_school_tasks_for_child(child: str, weekday: str, iso: str = None):
+    """Public school-tasks reader.
+
+    Reads from the frozen weekly school plan when an approved plan exists
+    for the week containing `iso` (or today's week if iso is None).  When
+    no approved plan covers this week, falls back to the live cursor path
+    (`_extract_school_tasks_live`) and stamps `pending_approval=True` on
+    every returned block so the kid POD can render the yellow banner.
+    """
+    _eff_iso = iso if iso else date.today().isoformat()
+    try:
+        from data_helpers import monday_iso_for, get_approved_school_week_plan
+        _wk = monday_iso_for(_eff_iso)
+        _plan = get_approved_school_week_plan(_wk)
+        if _plan:
+            _frozen = (_plan.get("plan", {}) or {}).get(child, {}) or {}
+            _blocks = _frozen.get(weekday, []) or []
+            # Frozen plan is the canonical record — no pending stamp, no
+            # snapshot WRITE (the plan IS the snapshot).
+            return list(_blocks)
+    except Exception:
+        pass
+    _tasks = _extract_school_tasks_live(child, weekday, iso)
+    for _t in _tasks:
+        if isinstance(_t, dict):
+            _t["pending_approval"] = True
+    return _tasks
+
+
+def _extract_school_tasks_live(child: str, weekday: str, iso: str = None):
     # NOTE: snapshot read fast-path was removed — this function always
     # regenerates from the live curriculum cursor.  The snapshot WRITE at
     # the bottom of this function is preserved so the week-school grid and
@@ -1824,7 +1853,8 @@ def _school_sub_items(school_raw: list, subjects_used: set,
                               "week":    block.get("week"),
                               "day":     block.get("day"),
                               "is_math": bool(block.get("is_math") or block.get("is_math_test")),
-                              "is_poetry_memorize": bool(block.get("is_poetry_memorize"))})
+                              "is_poetry_memorize": bool(block.get("is_poetry_memorize")),
+                              "pending_approval": bool(block.get("pending_approval"))})
         # Inject any carryover items for this subject (grouped here, chronological)
         if carry_by_subj:
             for carry_item in carry_by_subj.get(subj_low, []):
@@ -2071,6 +2101,21 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
                             carry_item["week"] = _w
                         if _d is not None:
                             carry_item["day"] = _d
+                    # Stamp pending_approval on the school-carry item when
+                    # the current week has no approved plan (matches the
+                    # behavior of fresh blocks via extract_school_tasks_for_child).
+                    # This guarantees the yellow banner still renders even when
+                    # _skip_fresh hides every fresh block, leaving the slot with
+                    # only carry items.
+                    try:
+                        from data_helpers import (
+                            monday_iso_for as _mif_c,
+                            get_approved_school_week_plan as _gaswp_c,
+                        )
+                        if _gaswp_c(_mif_c(iso)) is None:
+                            carry_item["pending_approval"] = True
+                    except Exception:
+                        pass
                     school_carry_by_subj.setdefault(_subj_key, []).append(carry_item)
                     continue  # Don't add to flat carryover list
             # For CHORE:: and MANUAL:: carryover — skip if today already has that chore

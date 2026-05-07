@@ -17,6 +17,7 @@ from config import (
     CALENDAR_CACHE_FILE, MONTHLY_PLANNER_FILE, CALENDAR_RULES_FILE,
     SUBSCRIBED_CALS_FILE, SUBSCRIBED_CACHE_FILE, VALID_PRIORITIES, VALID_STATUSES, WEEKDAYS,
     WEEKDAY_ORDER, CURRICULUM_FILE, TASK_OVERRIDES_FILE,
+    SCHOOL_WEEK_PLAN_FILE,
 )
 
 
@@ -37,6 +38,84 @@ def today_iso() -> str:
 
 def tomorrow_iso() -> str:
     return (date.today() + timedelta(days=1)).isoformat()
+
+def monday_iso_for(iso: str) -> str:
+    """Return the ISO date of the Monday of the week containing `iso`.
+    Monday=0…Sunday=6 per `date.weekday()`. Saturday/Sunday roll back
+    to the previous Monday."""
+    d = date.fromisoformat(iso)
+    return (d - timedelta(days=d.weekday())).isoformat()
+
+
+def load_school_week_plan() -> dict:
+    """Return the current weekly school plan blob. {} when file is empty."""
+    return ensure_file(SCHOOL_WEEK_PLAN_FILE, {})
+
+
+def save_school_week_plan(data: dict) -> None:
+    safe_save_json(SCHOOL_WEEK_PLAN_FILE, data)
+
+
+_WEEKDAY_INDEX = {"Monday": 0, "Tuesday": 1, "Wednesday": 2,
+                  "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6}
+
+
+def generate_weekly_school_plan(week_iso: str) -> dict:
+    """Generate a draft weekly school plan for JP and Joseph.
+
+    For each child × each weekday Mon-Fri, calls the live-cursor extractor
+    and freezes the result.  Saves with status="draft", clears any prior
+    approval.  Returns the saved blob.
+
+    Each subject's day position is determined by its `_weekdays` list
+    via `subject_meeting_days` / `subject_day_index` inside the live
+    extractor — D1 is NOT necessarily Monday.
+    """
+    from datetime import datetime as _dt
+    from daily_schedule_engine import _extract_school_tasks_live
+    monday = date.fromisoformat(week_iso)
+    plan: dict = {}
+    for child in ("JP", "Joseph"):
+        plan[child] = {}
+        for wd in ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"):
+            iso = (monday + timedelta(days=_WEEKDAY_INDEX[wd])).isoformat()
+            try:
+                blocks = _extract_school_tasks_live(child, wd, iso) or []
+            except Exception:
+                blocks = []
+            # Strip pending_approval from any block (live extractor does
+            # not stamp it, but defensive in case future callers do).
+            cleaned = []
+            for b in blocks:
+                if not isinstance(b, dict):
+                    continue
+                bb = dict(b)
+                bb.pop("pending_approval", None)
+                cleaned.append(bb)
+            plan[child][wd] = cleaned
+    blob = {
+        "week_iso":     week_iso,
+        "status":       "draft",
+        "generated_at": _dt.utcnow().isoformat() + "Z",
+        "approved_at":  None,
+        "plan":         plan,
+    }
+    save_school_week_plan(blob)
+    return blob
+
+
+def get_approved_school_week_plan(week_iso: str) -> dict | None:
+    """Return the plan blob ONLY when it's approved AND for the given week.
+    Returns None for: missing file, draft status, mismatched week_iso."""
+    data = load_school_week_plan()
+    if not isinstance(data, dict):
+        return None
+    if data.get("week_iso") != week_iso:
+        return None
+    if data.get("status") != "approved":
+        return None
+    return data
+
 
 def normalize_date_query(value: str) -> str:
     value = str(value or "").strip().lower()

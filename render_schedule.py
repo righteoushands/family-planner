@@ -1006,6 +1006,20 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
             done_cnt = sum(1 for s in checkable_subs if s.get("done"))
             tot_cnt  = len(checkable_subs)
             prog_label = f" ({done_cnt}/{tot_cnt})" if tot_cnt else ""
+            # Pending-approval banner: yellow strip above any school slot
+            # whose sub_items carry `pending_approval=True` (set in
+            # extract_school_tasks_for_child's fallback path when no
+            # approved weekly plan covers this week).
+            _pending_banner = ""
+            if kind == "school" and any(s.get("pending_approval") for s in subs):
+                _pending_banner = (
+                    f'<div style="background:#fef3c7;border:1px solid #f59e0b;'
+                    f'border-radius:8px;padding:7px 12px;margin:6px 0 8px;'
+                    f'font-size:.82em;font-weight:600;color:#92400e;">'
+                    f'&#128203; Pending Mom&#39;s approval &mdash; assignments may change.'
+                    f'</div>'
+                )
+            _subitems_html = _dl_sub_items_html(subs, c_id, iso, c_bg, child, _day_ovs)
             rows.append(
                 f'<div class="dl-block" style="border-left:3px solid {color};">'
                 f'<div class="dl-header-row">'
@@ -1015,8 +1029,9 @@ def _render_day_list_html(day_list: list, child: str, iso: str,
                 f'{label}<span style="font-weight:400;font-size:.85em;color:#999;">'
                 f'{prog_label}</span></span>'
                 f'</div>'
+                f'{_pending_banner}'
                 f'<div class="dl-subitems">'
-                f'{_dl_sub_items_html(subs, c_id, iso, c_bg, child, _day_ovs)}'
+                f'{_subitems_html}'
                 f'</div></div>'
             )
             rows_del.append(False)  # expanded blocks: no outer sw-wrap (sub-items have their own)

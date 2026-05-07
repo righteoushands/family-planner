@@ -1,0 +1,1126 @@
+{
+  "week_iso": "2026-05-04",
+  "status": "draft",
+  "generated_at": "2026-05-07T13:26:45.633302Z",
+  "approved_at": null,
+  "plan": {
+    "JP": {
+      "Monday": [
+        {
+          "subject": "Art 7 (Ever Ancient, Ever New, Level 2) Syllabus",
+          "assignment_text": "Read Unit 5, Chapter 19, The Art of Louis XIV.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Read Unit 5, Chapter 19, The Art of Louis XIV."
+          ],
+          "from_curriculum": true,
+          "week": 19,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "English 8 (Easy Grammar Plus/7-8) Syllabus",
+          "assignment_text": "Today do the Cumulative Review for the Adjective Unit. This can be found on workbook pages 173-177. Review anything in the exercise that you have trouble with. You will have two days to complete this assignment. (T.E. pages 354-363.)",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Today do the Cumulative Review for the Adjective Unit. This can be found on workbook pages 173-177. Review anything in the exercise that you have trouble with. You will have two days to complete this assignment. (T.E. pages 354-363.)"
+          ],
+          "from_curriculum": true,
+          "week": 21,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "History & Geog 8 (Old World & America) Syllabus",
+          "assignment_text": "Today re-write the story you told yesterday, but do it from the point of view of someone else in the story. If you had written about David and Goliath yesterday from David’s point of view, then today you would tell it from Goliath’s. If you told your story from the third person, that is, as an observer rather than one of the characters, today tell it from the point of view of one of the characters.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Today re-write the story you told yesterday, but do it from the point of view of someone else in the story. If you had written about David and Goliath yesterday from David’s point of view, then today you would tell it from Goliath’s. If you told your story from the third person, that is, as an observer rather than one of the characters, today tell it from the point of view of one of the characters."
+          ],
+          "from_curriculum": true,
+          "week": 21,
+          "day": 2,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Religion 8 (Our Life in the Church) Syllabus",
+          "assignment_text": "Work for 5 minutes or less reviewing the spiritual works of mercy. Then write a short summary of the correct understanding of conscience.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Work for 5 minutes or less reviewing the spiritual works of mercy. Then write a short summary of the correct understanding of conscience."
+          ],
+          "from_curriculum": true,
+          "week": 20,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Spelling & Vocabulary 8 (Vocabulary from Classical Roots B) Syllabus",
+          "assignment_text": "Take a spelling test on the Lesson 12 Key words. If there are definitions you are unsure of, read them over again.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Take a spelling test on the Lesson 12 Key words. If there are definitions you are unsure of, read them over again."
+          ],
+          "from_curriculum": true,
+          "week": 22,
+          "day": 5,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Poetry 8 syllabus",
+          "assignment_text": "Memorize and review for five minutes.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Memorize and review for five minutes."
+          ],
+          "from_curriculum": true,
+          "week": 20,
+          "day": 2,
+          "is_poetry_memorize": true
+        },
+        {
+          "subject": "Editing 7 (Editor in Chief, Level 2) Syllabus",
+          "assignment_text": "Lesson 9, Selection 44: write the selection correctly.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Lesson 9, Selection 44: write the selection correctly."
+          ],
+          "from_curriculum": true,
+          "week": 22,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Algebra 1/2",
+          "assignment_text": "Lesson 87",
+          "is_math": true,
+          "is_math_test": false,
+          "checklist": [
+            "Lesson 87 — Assignment completed",
+            "Lesson 87 — Given to checker",
+            "Lesson 87 — Fixed missed problems",
+            "Lesson 87 — Received brother's math (Math 87 Lesson 74)",
+            "Lesson 87 — Checked brother's math (Math 87 Lesson 74)"
+          ]
+        },
+        {
+          "subject": "Reading 8",
+          "assignment_text": "Read for about 1 hour.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Read for about 1 hour."
+          ]
+        }
+      ],
+      "Tuesday": [
+        {
+          "subject": "History & Geog 8 (Old World & America) Syllabus",
+          "assignment_text": "Today re-write the story you told yesterday, but do it from the point of view of someone else in the story. If you had written about David and Goliath yesterday from David’s point of view, then today you would tell it from Goliath’s. If you told your story from the third person, that is, as an observer rather than one of the characters, today tell it from the point of view of one of the characters.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Today re-write the story you told yesterday, but do it from the point of view of someone else in the story. If you had written about David and Goliath yesterday from David’s point of view, then today you would tell it from Goliath’s. If you told your story from the third person, that is, as an observer rather than one of the characters, today tell it from the point of view of one of the characters."
+          ],
+          "from_curriculum": true,
+          "week": 21,
+          "day": 2,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Religion 8 (Our Life in the Church) Syllabus",
+          "assignment_text": "Work for 5 minutes or less reviewing the spiritual works of mercy. Then write a short summary of the correct understanding of conscience.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Work for 5 minutes or less reviewing the spiritual works of mercy. Then write a short summary of the correct understanding of conscience."
+          ],
+          "from_curriculum": true,
+          "week": 20,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Spelling & Vocabulary 8 (Vocabulary from Classical Roots B) Syllabus",
+          "assignment_text": "Take a spelling test on the Lesson 12 Key words. If there are definitions you are unsure of, read them over again.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Take a spelling test on the Lesson 12 Key words. If there are definitions you are unsure of, read them over again."
+          ],
+          "from_curriculum": true,
+          "week": 22,
+          "day": 5,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Poetry 8 syllabus",
+          "assignment_text": "Memorize and review for five minutes.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Memorize and review for five minutes."
+          ],
+          "from_curriculum": true,
+          "week": 20,
+          "day": 2,
+          "is_poetry_memorize": true
+        },
+        {
+          "subject": "Editing 7 (Editor in Chief, Level 2) Syllabus",
+          "assignment_text": "Lesson 9, Selection 44: write the selection correctly.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Lesson 9, Selection 44: write the selection correctly."
+          ],
+          "from_curriculum": true,
+          "week": 22,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Algebra 1/2",
+          "assignment_text": "Lesson 88",
+          "is_math": true,
+          "is_math_test": false,
+          "checklist": [
+            "Lesson 88 — Assignment completed",
+            "Lesson 88 — Given to checker",
+            "Lesson 88 — Fixed missed problems",
+            "Lesson 88 — Received brother's math (Math 87 Lesson 75)",
+            "Lesson 88 — Checked brother's math (Math 87 Lesson 75)"
+          ]
+        },
+        {
+          "subject": "Reading 8",
+          "assignment_text": "Read for about 1 hour.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Read for about 1 hour."
+          ]
+        }
+      ],
+      "Wednesday": [
+        {
+          "subject": "English 8 (Easy Grammar Plus/7-8) Syllabus",
+          "assignment_text": "Today do the Cumulative Review for the Adjective Unit. This can be found on workbook pages 173-177. Review anything in the exercise that you have trouble with. You will have two days to complete this assignment. (T.E. pages 354-363.)",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Today do the Cumulative Review for the Adjective Unit. This can be found on workbook pages 173-177. Review anything in the exercise that you have trouble with. You will have two days to complete this assignment. (T.E. pages 354-363.)"
+          ],
+          "from_curriculum": true,
+          "week": 21,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "History & Geog 8 (Old World & America) Syllabus",
+          "assignment_text": "Today re-write the story you told yesterday, but do it from the point of view of someone else in the story. If you had written about David and Goliath yesterday from David’s point of view, then today you would tell it from Goliath’s. If you told your story from the third person, that is, as an observer rather than one of the characters, today tell it from the point of view of one of the characters.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Today re-write the story you told yesterday, but do it from the point of view of someone else in the story. If you had written about David and Goliath yesterday from David’s point of view, then today you would tell it from Goliath’s. If you told your story from the third person, that is, as an observer rather than one of the characters, today tell it from the point of view of one of the characters."
+          ],
+          "from_curriculum": true,
+          "week": 21,
+          "day": 2,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Music 8 (Top 100 Classical Music 1685-1928 1-10) Syllabus",
+          "assignment_text": "Listen to the Eine Kleine Nacht Music by Mozart.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Listen to the Eine Kleine Nacht Music by Mozart."
+          ],
+          "from_curriculum": true,
+          "week": 22,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Religion 8 (Our Life in the Church) Syllabus",
+          "assignment_text": "Work for 5 minutes or less reviewing the spiritual works of mercy. Then write a short summary of the correct understanding of conscience.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Work for 5 minutes or less reviewing the spiritual works of mercy. Then write a short summary of the correct understanding of conscience."
+          ],
+          "from_curriculum": true,
+          "week": 20,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Spelling & Vocabulary 8 (Vocabulary from Classical Roots B) Syllabus",
+          "assignment_text": "Take a spelling test on the Lesson 12 Key words. If there are definitions you are unsure of, read them over again.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Take a spelling test on the Lesson 12 Key words. If there are definitions you are unsure of, read them over again."
+          ],
+          "from_curriculum": true,
+          "week": 22,
+          "day": 5,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Poetry 8 syllabus",
+          "assignment_text": "Memorize and review for five minutes.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Memorize and review for five minutes."
+          ],
+          "from_curriculum": true,
+          "week": 20,
+          "day": 2,
+          "is_poetry_memorize": true
+        },
+        {
+          "subject": "Editing 7 (Editor in Chief, Level 2) Syllabus",
+          "assignment_text": "Lesson 9, Selection 44: write the selection correctly.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Lesson 9, Selection 44: write the selection correctly."
+          ],
+          "from_curriculum": true,
+          "week": 22,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Algebra 1/2",
+          "assignment_text": "Test 21",
+          "is_math": true,
+          "is_math_test": true,
+          "checklist": [
+            "Test completed — given to Mom"
+          ]
+        },
+        {
+          "subject": "Reading 8",
+          "assignment_text": "Read for about 1 hour.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Read for about 1 hour."
+          ]
+        }
+      ],
+      "Thursday": [
+        {
+          "subject": "English 8 (Easy Grammar Plus/7-8) Syllabus",
+          "assignment_text": "Today do the Cumulative Review for the Adjective Unit. This can be found on workbook pages 173-177. Review anything in the exercise that you have trouble with. You will have two days to complete this assignment. (T.E. pages 354-363.)",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Today do the Cumulative Review for the Adjective Unit. This can be found on workbook pages 173-177. Review anything in the exercise that you have trouble with. You will have two days to complete this assignment. (T.E. pages 354-363.)"
+          ],
+          "from_curriculum": true,
+          "week": 21,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "History & Geog 8 (Old World & America) Syllabus",
+          "assignment_text": "Today re-write the story you told yesterday, but do it from the point of view of someone else in the story. If you had written about David and Goliath yesterday from David’s point of view, then today you would tell it from Goliath’s. If you told your story from the third person, that is, as an observer rather than one of the characters, today tell it from the point of view of one of the characters.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Today re-write the story you told yesterday, but do it from the point of view of someone else in the story. If you had written about David and Goliath yesterday from David’s point of view, then today you would tell it from Goliath’s. If you told your story from the third person, that is, as an observer rather than one of the characters, today tell it from the point of view of one of the characters."
+          ],
+          "from_curriculum": true,
+          "week": 21,
+          "day": 2,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Religion 8 (Our Life in the Church) Syllabus",
+          "assignment_text": "Work for 5 minutes or less reviewing the spiritual works of mercy. Then write a short summary of the correct understanding of conscience.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Work for 5 minutes or less reviewing the spiritual works of mercy. Then write a short summary of the correct understanding of conscience."
+          ],
+          "from_curriculum": true,
+          "week": 20,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Spelling & Vocabulary 8 (Vocabulary from Classical Roots B) Syllabus",
+          "assignment_text": "Take a spelling test on the Lesson 12 Key words. If there are definitions you are unsure of, read them over again.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Take a spelling test on the Lesson 12 Key words. If there are definitions you are unsure of, read them over again."
+          ],
+          "from_curriculum": true,
+          "week": 22,
+          "day": 5,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Poetry 8 syllabus",
+          "assignment_text": "Memorize and review for five minutes.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Memorize and review for five minutes."
+          ],
+          "from_curriculum": true,
+          "week": 20,
+          "day": 2,
+          "is_poetry_memorize": true
+        },
+        {
+          "subject": "Algebra 1/2",
+          "assignment_text": "Lesson 89",
+          "is_math": true,
+          "is_math_test": false,
+          "checklist": [
+            "Lesson 89 — Assignment completed",
+            "Lesson 89 — Given to checker",
+            "Lesson 89 — Fixed missed problems",
+            "Lesson 89 — Received brother's math",
+            "Lesson 89 — Checked brother's math"
+          ]
+        },
+        {
+          "subject": "Reading 8",
+          "assignment_text": "Read for about 1 hour.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Read for about 1 hour."
+          ]
+        }
+      ],
+      "Friday": [
+        {
+          "subject": "Art 7 (Ever Ancient, Ever New, Level 2) Syllabus",
+          "assignment_text": "Read Unit 5, Chapter 19, The Art of Louis XIV.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Read Unit 5, Chapter 19, The Art of Louis XIV."
+          ],
+          "from_curriculum": true,
+          "week": 19,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "English 8 (Easy Grammar Plus/7-8) Syllabus",
+          "assignment_text": "Today do the Cumulative Review for the Adjective Unit. This can be found on workbook pages 173-177. Review anything in the exercise that you have trouble with. You will have two days to complete this assignment. (T.E. pages 354-363.)",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Today do the Cumulative Review for the Adjective Unit. This can be found on workbook pages 173-177. Review anything in the exercise that you have trouble with. You will have two days to complete this assignment. (T.E. pages 354-363.)"
+          ],
+          "from_curriculum": true,
+          "week": 21,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "History & Geog 8 (Old World & America) Syllabus",
+          "assignment_text": "Today re-write the story you told yesterday, but do it from the point of view of someone else in the story. If you had written about David and Goliath yesterday from David’s point of view, then today you would tell it from Goliath’s. If you told your story from the third person, that is, as an observer rather than one of the characters, today tell it from the point of view of one of the characters.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Today re-write the story you told yesterday, but do it from the point of view of someone else in the story. If you had written about David and Goliath yesterday from David’s point of view, then today you would tell it from Goliath’s. If you told your story from the third person, that is, as an observer rather than one of the characters, today tell it from the point of view of one of the characters."
+          ],
+          "from_curriculum": true,
+          "week": 21,
+          "day": 2,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Spelling & Vocabulary 8 (Vocabulary from Classical Roots B) Syllabus",
+          "assignment_text": "Take a spelling test on the Lesson 12 Key words. If there are definitions you are unsure of, read them over again.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Take a spelling test on the Lesson 12 Key words. If there are definitions you are unsure of, read them over again."
+          ],
+          "from_curriculum": true,
+          "week": 22,
+          "day": 5,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Algebra 1/2",
+          "assignment_text": "Lesson 90",
+          "is_math": true,
+          "is_math_test": false,
+          "checklist": [
+            "Lesson 90 — Assignment completed",
+            "Lesson 90 — Given to checker",
+            "Lesson 90 — Fixed missed problems",
+            "Lesson 90 — Received brother's math (Math 87 Lesson 77)",
+            "Lesson 90 — Checked brother's math (Math 87 Lesson 77)"
+          ]
+        },
+        {
+          "subject": "Reading 8",
+          "assignment_text": "Read for about 1 hour.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Read for about 1 hour."
+          ]
+        }
+      ]
+    },
+    "Joseph": {
+      "Monday": [
+        {
+          "subject": "Art 7 (Ever Ancient, Ever New, Level 2) Syllabus",
+          "assignment_text": "Read Unit 5, Chapter 19, The Art of Louis XIV.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Read Unit 5, Chapter 19, The Art of Louis XIV."
+          ],
+          "from_curriculum": true,
+          "week": 19,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Editing 7 (Editor in Chief, Level 2) Syllabus",
+          "assignment_text": "Lesson 7, Selection 36: write the selection correctly.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Lesson 7, Selection 36: write the selection correctly."
+          ],
+          "from_curriculum": true,
+          "week": 18,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Poetry 8 Syllabus",
+          "assignment_text": "Start memorizing “The Merchant of Venice”, Act V, Scene I, lines 53-88 (this passage begins with \"How sweet the moonlight sleeps upon this bank...\"). Spend five minutes each day this week working on the first 4 lines, from “How sweet the moonlight sleeps…” to “...sweet harmony.”\n\nReview the poems you learned in Seventh Grade (see the Poetry List for Kindergarten to Eighth Grade found at the end of these lesson plans). Recite as many as you can from memory. If you have not already memorized these poems or cannot recite them, that is fine, just read and enjoy them.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Start memorizing “The Merchant of Venice”, Act V, Scene I, lines 53-88 (this passage begins with \"How sweet the moonlight sleeps upon this bank...\"). Spend five minutes each day this week working on the first 4 lines, from “How sweet the moonlight sleeps…” to “...sweet harmony.” Review the poems you learned in Seventh Grade (see the Poetry List for Kindergarten to Eighth Grade found at the end of these lesson plans). Recite as many as you can from memory. If you have not already memorized these poems or cannot recite them, that is fine, just read and enjoy them."
+          ],
+          "from_curriculum": true,
+          "week": 16,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Spelling & Vocabulary 8 (Vocabulary from Classical Roots B) Syllabus",
+          "assignment_text": "Take a spelling test on Lesson 11 Key words. If there are definitions you are unsure of, read them over again.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Take a spelling test on Lesson 11 Key words. If there are definitions you are unsure of, read them over again."
+          ],
+          "from_curriculum": true,
+          "week": 21,
+          "day": 5,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "History & Geog 7 (Old World & America) Syllabus",
+          "assignment_text": "Do the second five questions in Questions that Make You Think on p. 75 of Old World and America. Remember, each answer should be three or more sentences long. Give the page numbers or the reference text in which you found the information",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Do the second five questions in Questions that Make You Think on p. 75 of Old World and America. Remember, each answer should be three or more sentences long. Give the page numbers or the reference text in which you found the information"
+          ],
+          "from_curriculum": true,
+          "week": 18,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Math 87 (Saxon 3rd Edition) Syllabus",
+          "assignment_text": "Lesson 82",
+          "is_math": true,
+          "is_math_test": false,
+          "checklist": [
+            "Lesson 82 — Assignment completed",
+            "Lesson 82 — Given to checker",
+            "Lesson 82 — Fixed missed problems",
+            "Lesson 82 — Received brother's math (Algebra 1/2 Lesson 87)",
+            "Lesson 82 — Checked brother's math (Algebra 1/2 Lesson 87)"
+          ],
+          "from_curriculum": true,
+          "week": 22,
+          "day": 2,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Music 7 (Alfred's Essentials of Music) Syllabus  Back",
+          "assignment_text": "Complete Exercises 1-2 from Lesson 14  of \"Alfred's Essentials of Music\"",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Complete Exercises 1-2 from Lesson 14 of \"Alfred's Essentials of Music\""
+          ],
+          "from_curriculum": true,
+          "week": 16,
+          "day": 3,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Religion 7 (Acts of the Apostles) Syllabus",
+          "assignment_text": "Discuss the questions for Chapter 26, or write out your answers.\n\nWhat kind of Jew was Paul?\nWhat did King Agrippa think of Paul’s account?\nPractice defending your faith. Have someone ask you one or more of the questions you have been working on in your Friendly Defender cards. Answer the question and give the Bible verse that pertains to that answer.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Discuss the questions for Chapter 26, or write out your answers. What kind of Jew was Paul? What did King Agrippa think of Paul’s account? Practice defending your faith. Have someone ask you one or more of the questions you have been working on in your Friendly Defender cards. Answer the question and give the Bible verse that pertains to that answer."
+          ],
+          "from_curriculum": true,
+          "week": 18,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Science 6 (Exploring the Building Blocks of Science Book 6) Syllabus",
+          "assignment_text": "Read Physics — Chapter 10: Section 10.4. Answer the questions in your workbook.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Read Physics — Chapter 10: Section 10.4. Answer the questions in your workbook."
+          ],
+          "from_curriculum": true,
+          "week": 13,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "English 8 (Easy Grammar Plus/7-8) Syllabus",
+          "assignment_text": "Today go over workbook pages 277, 279-280 with your teacher. Also, do workbook pages 278 and 281. (T.E. pages 592-597.)",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Today go over workbook pages 277, 279-280 with your teacher. Also, do workbook pages 278 and 281. (T.E. pages 592-597.)"
+          ],
+          "from_curriculum": true,
+          "week": 14,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Beginning Latin III Syllabus (LS)",
+          "assignment_text": "Attend Class. Do the Lesson XXIII Quia Games.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Attend Class. Do the Lesson XXIII Quia Games."
+          ],
+          "from_curriculum": true,
+          "week": 26,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Reading 7",
+          "assignment_text": "Read for about 1 hour.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Read for about 1 hour."
+          ]
+        }
+      ],
+      "Tuesday": [
+        {
+          "subject": "Spelling & Vocabulary 8 (Vocabulary from Classical Roots B) Syllabus",
+          "assignment_text": "Take a spelling test on Lesson 11 Key words. If there are definitions you are unsure of, read them over again.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Take a spelling test on Lesson 11 Key words. If there are definitions you are unsure of, read them over again."
+          ],
+          "from_curriculum": true,
+          "week": 21,
+          "day": 5,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "History & Geog 7 (Old World & America) Syllabus",
+          "assignment_text": "Do the second five questions in Questions that Make You Think on p. 75 of Old World and America. Remember, each answer should be three or more sentences long. Give the page numbers or the reference text in which you found the information",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Do the second five questions in Questions that Make You Think on p. 75 of Old World and America. Remember, each answer should be three or more sentences long. Give the page numbers or the reference text in which you found the information"
+          ],
+          "from_curriculum": true,
+          "week": 18,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Math 87 (Saxon 3rd Edition) Syllabus",
+          "assignment_text": "Lesson 82",
+          "is_math": true,
+          "is_math_test": false,
+          "checklist": [
+            "Lesson 82 — Assignment completed",
+            "Lesson 82 — Given to checker",
+            "Lesson 82 — Fixed missed problems",
+            "Lesson 82 — Received brother's math (Algebra 1/2 Lesson 88)",
+            "Lesson 82 — Checked brother's math (Algebra 1/2 Lesson 88)"
+          ],
+          "from_curriculum": true,
+          "week": 22,
+          "day": 2,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Religion 7 (Acts of the Apostles) Syllabus",
+          "assignment_text": "Discuss the questions for Chapter 26, or write out your answers.\n\nWhat kind of Jew was Paul?\nWhat did King Agrippa think of Paul’s account?\nPractice defending your faith. Have someone ask you one or more of the questions you have been working on in your Friendly Defender cards. Answer the question and give the Bible verse that pertains to that answer.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Discuss the questions for Chapter 26, or write out your answers. What kind of Jew was Paul? What did King Agrippa think of Paul’s account? Practice defending your faith. Have someone ask you one or more of the questions you have been working on in your Friendly Defender cards. Answer the question and give the Bible verse that pertains to that answer."
+          ],
+          "from_curriculum": true,
+          "week": 18,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Science 6 (Exploring the Building Blocks of Science Book 6) Syllabus",
+          "assignment_text": "Read Physics — Chapter 10: Section 10.4. Answer the questions in your workbook.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Read Physics — Chapter 10: Section 10.4. Answer the questions in your workbook."
+          ],
+          "from_curriculum": true,
+          "week": 13,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "English 8 (Easy Grammar Plus/7-8) Syllabus",
+          "assignment_text": "Today go over workbook pages 277, 279-280 with your teacher. Also, do workbook pages 278 and 281. (T.E. pages 592-597.)",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Today go over workbook pages 277, 279-280 with your teacher. Also, do workbook pages 278 and 281. (T.E. pages 592-597.)"
+          ],
+          "from_curriculum": true,
+          "week": 14,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Beginning Latin III Syllabus (LS)",
+          "assignment_text": "Attend Class. Do the Lesson XXIII Quia Games.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Attend Class. Do the Lesson XXIII Quia Games."
+          ],
+          "from_curriculum": true,
+          "week": 26,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Reading 7",
+          "assignment_text": "Read for about 1 hour.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Read for about 1 hour."
+          ]
+        }
+      ],
+      "Wednesday": [
+        {
+          "subject": "Poetry 8 Syllabus",
+          "assignment_text": "Start memorizing “The Merchant of Venice”, Act V, Scene I, lines 53-88 (this passage begins with \"How sweet the moonlight sleeps upon this bank...\"). Spend five minutes each day this week working on the first 4 lines, from “How sweet the moonlight sleeps…” to “...sweet harmony.”\n\nReview the poems you learned in Seventh Grade (see the Poetry List for Kindergarten to Eighth Grade found at the end of these lesson plans). Recite as many as you can from memory. If you have not already memorized these poems or cannot recite them, that is fine, just read and enjoy them.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Start memorizing “The Merchant of Venice”, Act V, Scene I, lines 53-88 (this passage begins with \"How sweet the moonlight sleeps upon this bank...\"). Spend five minutes each day this week working on the first 4 lines, from “How sweet the moonlight sleeps…” to “...sweet harmony.” Review the poems you learned in Seventh Grade (see the Poetry List for Kindergarten to Eighth Grade found at the end of these lesson plans). Recite as many as you can from memory. If you have not already memorized these poems or cannot recite them, that is fine, just read and enjoy them."
+          ],
+          "from_curriculum": true,
+          "week": 16,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Spelling & Vocabulary 8 (Vocabulary from Classical Roots B) Syllabus",
+          "assignment_text": "Take a spelling test on Lesson 11 Key words. If there are definitions you are unsure of, read them over again.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Take a spelling test on Lesson 11 Key words. If there are definitions you are unsure of, read them over again."
+          ],
+          "from_curriculum": true,
+          "week": 21,
+          "day": 5,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "History & Geog 7 (Old World & America) Syllabus",
+          "assignment_text": "Do the second five questions in Questions that Make You Think on p. 75 of Old World and America. Remember, each answer should be three or more sentences long. Give the page numbers or the reference text in which you found the information",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Do the second five questions in Questions that Make You Think on p. 75 of Old World and America. Remember, each answer should be three or more sentences long. Give the page numbers or the reference text in which you found the information"
+          ],
+          "from_curriculum": true,
+          "week": 18,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Math 87 (Saxon 3rd Edition) Syllabus",
+          "assignment_text": "Lesson 82",
+          "is_math": true,
+          "is_math_test": false,
+          "checklist": [
+            "Lesson 82 — Assignment completed",
+            "Lesson 82 — Given to checker",
+            "Lesson 82 — Fixed missed problems",
+            "Lesson 82 — Received brother's math",
+            "Lesson 82 — Checked brother's math"
+          ],
+          "from_curriculum": true,
+          "week": 22,
+          "day": 2,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Religion 7 (Acts of the Apostles) Syllabus",
+          "assignment_text": "Discuss the questions for Chapter 26, or write out your answers.\n\nWhat kind of Jew was Paul?\nWhat did King Agrippa think of Paul’s account?\nPractice defending your faith. Have someone ask you one or more of the questions you have been working on in your Friendly Defender cards. Answer the question and give the Bible verse that pertains to that answer.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Discuss the questions for Chapter 26, or write out your answers. What kind of Jew was Paul? What did King Agrippa think of Paul’s account? Practice defending your faith. Have someone ask you one or more of the questions you have been working on in your Friendly Defender cards. Answer the question and give the Bible verse that pertains to that answer."
+          ],
+          "from_curriculum": true,
+          "week": 18,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Science 6 (Exploring the Building Blocks of Science Book 6) Syllabus",
+          "assignment_text": "Read Physics — Chapter 10: Section 10.4. Answer the questions in your workbook.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Read Physics — Chapter 10: Section 10.4. Answer the questions in your workbook."
+          ],
+          "from_curriculum": true,
+          "week": 13,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "English 8 (Easy Grammar Plus/7-8) Syllabus",
+          "assignment_text": "Today go over workbook pages 277, 279-280 with your teacher. Also, do workbook pages 278 and 281. (T.E. pages 592-597.)",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Today go over workbook pages 277, 279-280 with your teacher. Also, do workbook pages 278 and 281. (T.E. pages 592-597.)"
+          ],
+          "from_curriculum": true,
+          "week": 14,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Beginning Latin III Syllabus (LS)",
+          "assignment_text": "Attend Class. Do the Lesson XXIII Quia Games.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Attend Class. Do the Lesson XXIII Quia Games."
+          ],
+          "from_curriculum": true,
+          "week": 26,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Reading 7",
+          "assignment_text": "Read for about 1 hour.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Read for about 1 hour."
+          ]
+        }
+      ],
+      "Thursday": [
+        {
+          "subject": "Editing 7 (Editor in Chief, Level 2) Syllabus",
+          "assignment_text": "Lesson 7, Selection 36: write the selection correctly.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Lesson 7, Selection 36: write the selection correctly."
+          ],
+          "from_curriculum": true,
+          "week": 18,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Poetry 8 Syllabus",
+          "assignment_text": "Start memorizing “The Merchant of Venice”, Act V, Scene I, lines 53-88 (this passage begins with \"How sweet the moonlight sleeps upon this bank...\"). Spend five minutes each day this week working on the first 4 lines, from “How sweet the moonlight sleeps…” to “...sweet harmony.”\n\nReview the poems you learned in Seventh Grade (see the Poetry List for Kindergarten to Eighth Grade found at the end of these lesson plans). Recite as many as you can from memory. If you have not already memorized these poems or cannot recite them, that is fine, just read and enjoy them.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Start memorizing “The Merchant of Venice”, Act V, Scene I, lines 53-88 (this passage begins with \"How sweet the moonlight sleeps upon this bank...\"). Spend five minutes each day this week working on the first 4 lines, from “How sweet the moonlight sleeps…” to “...sweet harmony.” Review the poems you learned in Seventh Grade (see the Poetry List for Kindergarten to Eighth Grade found at the end of these lesson plans). Recite as many as you can from memory. If you have not already memorized these poems or cannot recite them, that is fine, just read and enjoy them."
+          ],
+          "from_curriculum": true,
+          "week": 16,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Spelling & Vocabulary 8 (Vocabulary from Classical Roots B) Syllabus",
+          "assignment_text": "Take a spelling test on Lesson 11 Key words. If there are definitions you are unsure of, read them over again.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Take a spelling test on Lesson 11 Key words. If there are definitions you are unsure of, read them over again."
+          ],
+          "from_curriculum": true,
+          "week": 21,
+          "day": 5,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "History & Geog 7 (Old World & America) Syllabus",
+          "assignment_text": "Do the second five questions in Questions that Make You Think on p. 75 of Old World and America. Remember, each answer should be three or more sentences long. Give the page numbers or the reference text in which you found the information",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Do the second five questions in Questions that Make You Think on p. 75 of Old World and America. Remember, each answer should be three or more sentences long. Give the page numbers or the reference text in which you found the information"
+          ],
+          "from_curriculum": true,
+          "week": 18,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Math 87 (Saxon 3rd Edition) Syllabus",
+          "assignment_text": "Lesson 82",
+          "is_math": true,
+          "is_math_test": false,
+          "checklist": [
+            "Lesson 82 — Assignment completed",
+            "Lesson 82 — Given to checker",
+            "Lesson 82 — Fixed missed problems",
+            "Lesson 82 — Received brother's math (Algebra 1/2 Lesson 89)",
+            "Lesson 82 — Checked brother's math (Algebra 1/2 Lesson 89)"
+          ],
+          "from_curriculum": true,
+          "week": 22,
+          "day": 2,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Music 7 (Alfred's Essentials of Music) Syllabus  Back",
+          "assignment_text": "Complete Exercises 1-2 from Lesson 14  of \"Alfred's Essentials of Music\"",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Complete Exercises 1-2 from Lesson 14 of \"Alfred's Essentials of Music\""
+          ],
+          "from_curriculum": true,
+          "week": 16,
+          "day": 3,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Religion 7 (Acts of the Apostles) Syllabus",
+          "assignment_text": "Discuss the questions for Chapter 26, or write out your answers.\n\nWhat kind of Jew was Paul?\nWhat did King Agrippa think of Paul’s account?\nPractice defending your faith. Have someone ask you one or more of the questions you have been working on in your Friendly Defender cards. Answer the question and give the Bible verse that pertains to that answer.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Discuss the questions for Chapter 26, or write out your answers. What kind of Jew was Paul? What did King Agrippa think of Paul’s account? Practice defending your faith. Have someone ask you one or more of the questions you have been working on in your Friendly Defender cards. Answer the question and give the Bible verse that pertains to that answer."
+          ],
+          "from_curriculum": true,
+          "week": 18,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Science 6 (Exploring the Building Blocks of Science Book 6) Syllabus",
+          "assignment_text": "Read Physics — Chapter 10: Section 10.4. Answer the questions in your workbook.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Read Physics — Chapter 10: Section 10.4. Answer the questions in your workbook."
+          ],
+          "from_curriculum": true,
+          "week": 13,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "English 8 (Easy Grammar Plus/7-8) Syllabus",
+          "assignment_text": "Today go over workbook pages 277, 279-280 with your teacher. Also, do workbook pages 278 and 281. (T.E. pages 592-597.)",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Today go over workbook pages 277, 279-280 with your teacher. Also, do workbook pages 278 and 281. (T.E. pages 592-597.)"
+          ],
+          "from_curriculum": true,
+          "week": 14,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Beginning Latin III Syllabus (LS)",
+          "assignment_text": "Attend Class. Do the Lesson XXIII Quia Games.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Attend Class. Do the Lesson XXIII Quia Games."
+          ],
+          "from_curriculum": true,
+          "week": 26,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Reading 7",
+          "assignment_text": "Read for about 1 hour.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Read for about 1 hour."
+          ]
+        }
+      ],
+      "Friday": [
+        {
+          "subject": "Art 7 (Ever Ancient, Ever New, Level 2) Syllabus",
+          "assignment_text": "Read Unit 5, Chapter 19, The Art of Louis XIV.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Read Unit 5, Chapter 19, The Art of Louis XIV."
+          ],
+          "from_curriculum": true,
+          "week": 19,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Editing 7 (Editor in Chief, Level 2) Syllabus",
+          "assignment_text": "Lesson 7, Selection 36: write the selection correctly.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Lesson 7, Selection 36: write the selection correctly."
+          ],
+          "from_curriculum": true,
+          "week": 18,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Poetry 8 Syllabus",
+          "assignment_text": "Start memorizing “The Merchant of Venice”, Act V, Scene I, lines 53-88 (this passage begins with \"How sweet the moonlight sleeps upon this bank...\"). Spend five minutes each day this week working on the first 4 lines, from “How sweet the moonlight sleeps…” to “...sweet harmony.”\n\nReview the poems you learned in Seventh Grade (see the Poetry List for Kindergarten to Eighth Grade found at the end of these lesson plans). Recite as many as you can from memory. If you have not already memorized these poems or cannot recite them, that is fine, just read and enjoy them.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Start memorizing “The Merchant of Venice”, Act V, Scene I, lines 53-88 (this passage begins with \"How sweet the moonlight sleeps upon this bank...\"). Spend five minutes each day this week working on the first 4 lines, from “How sweet the moonlight sleeps…” to “...sweet harmony.” Review the poems you learned in Seventh Grade (see the Poetry List for Kindergarten to Eighth Grade found at the end of these lesson plans). Recite as many as you can from memory. If you have not already memorized these poems or cannot recite them, that is fine, just read and enjoy them."
+          ],
+          "from_curriculum": true,
+          "week": 16,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Spelling & Vocabulary 8 (Vocabulary from Classical Roots B) Syllabus",
+          "assignment_text": "Take a spelling test on Lesson 11 Key words. If there are definitions you are unsure of, read them over again.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Take a spelling test on Lesson 11 Key words. If there are definitions you are unsure of, read them over again."
+          ],
+          "from_curriculum": true,
+          "week": 21,
+          "day": 5,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Math 87 (Saxon 3rd Edition) Syllabus",
+          "assignment_text": "Lesson 82",
+          "is_math": true,
+          "is_math_test": false,
+          "checklist": [
+            "Lesson 82 — Assignment completed",
+            "Lesson 82 — Given to checker",
+            "Lesson 82 — Fixed missed problems",
+            "Lesson 82 — Received brother's math (Algebra 1/2 Lesson 90)",
+            "Lesson 82 — Checked brother's math (Algebra 1/2 Lesson 90)"
+          ],
+          "from_curriculum": true,
+          "week": 22,
+          "day": 2,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Science 6 (Exploring the Building Blocks of Science Book 6) Syllabus",
+          "assignment_text": "Read Physics — Chapter 10: Section 10.4. Answer the questions in your workbook.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Read Physics — Chapter 10: Section 10.4. Answer the questions in your workbook."
+          ],
+          "from_curriculum": true,
+          "week": 13,
+          "day": 4,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Beginning Latin III Syllabus (LS)",
+          "assignment_text": "Attend Class. Do the Lesson XXIII Quia Games.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Attend Class. Do the Lesson XXIII Quia Games."
+          ],
+          "from_curriculum": true,
+          "week": 26,
+          "day": 1,
+          "is_poetry_memorize": false
+        },
+        {
+          "subject": "Reading 7",
+          "assignment_text": "Read for about 1 hour.",
+          "is_math": false,
+          "is_math_test": false,
+          "checklist": [
+            "Read for about 1 hour."
+          ]
+        }
+      ]
+    }
+  }
+}
