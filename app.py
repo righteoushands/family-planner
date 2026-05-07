@@ -4057,12 +4057,34 @@ class Handler(BaseHTTPRequestHandler):
                     load_school_week_plan as _aw_load,
                     save_school_week_plan as _aw_save,
                 )
-                from datetime import datetime as _aw_dt
+                from datetime import datetime as _aw_dt, date as _aw_date, timedelta as _aw_td
                 _aw_plan = _aw_load() or {}
                 if _aw_plan:
                     _aw_plan["status"] = "approved"
                     _aw_plan["approved_at"] = _aw_dt.utcnow().isoformat() + "Z"
                     _aw_save(_aw_plan)
+                    # Pre-register chore tasks for all 5 weekdays of this
+                    # week so carryover works even if the boys never open
+                    # their PODs.  Without this, weekly chores like
+                    # Joseph's Tuesday "Clean kids bathroom" would never
+                    # enter the registry and would silently vanish from
+                    # Wednesday's carryover list.
+                    try:
+                        from daily_schedule_engine import (
+                            weekday_chores_for_child as _aw_wcfc,
+                            register_tasks_for_day as _aw_rtfd,
+                        )
+                        _aw_wk_iso = _aw_plan.get("week_iso", "")
+                        _aw_monday = _aw_date.fromisoformat(_aw_wk_iso)
+                        _aw_weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+                        for _aw_child in ("JP", "Joseph"):
+                            for _aw_idx, _aw_wd in enumerate(_aw_weekdays):
+                                _aw_iso = (_aw_monday + _aw_td(days=_aw_idx)).isoformat()
+                                _aw_chores = _aw_wcfc(_aw_child, _aw_wd) or []
+                                _aw_task_texts = [f"CHORE::{_aw_c}" for _aw_c in _aw_chores]
+                                _aw_rtfd(_aw_child, _aw_iso, _aw_task_texts)
+                    except Exception:
+                        pass
                 redirect = "/"
 
             elif path == "/regenerate-school-week":
