@@ -883,6 +883,35 @@ def _collect_undone_history(child: str, target_day: date, progress: dict):
     for days_back in range(1, _CARRYOVER_LOOKBACK_DAYS + 1):
         check_iso = (target_day - timedelta(days=days_back)).isoformat()
         for raw in get_registered_tasks_for_day(child, check_iso) or []:
+            # SCHOOL:: tasks use a strict registry+canonical check so a
+            # previous school day with no toggle activity at all still
+            # carries its undone work forward.  _is_prev_task_done has
+            # permissive subject-level / CARRY-prefix heuristics that
+            # falsely mark school items "done" when no SCHOOL progress
+            # entry actually exists for them.  Strict rule: if the
+            # canonical progress key (SCHOOL::child::iso::subject::item)
+            # is missing or False — and no later carry-completion of
+            # this exact display text exists — it is undone.  Friday →
+            # Monday carry works automatically because the 7-day window
+            # includes Fri when target_day is Mon.
+            if raw.startswith("SCHOOL::"):
+                _canonical = raw.replace(
+                    "SCHOOL::", f"SCHOOL::{child}::{check_iso}::", 1
+                )
+                if progress.get(_canonical) or progress.get(raw):
+                    continue
+                if progress.get(f"{check_iso}::{child}::{raw}"):
+                    continue
+                # Universal carry-completion safety net: if the user
+                # already checked off a CARRY:: copy of this display on
+                # any later day, don't re-carry it.
+                try:
+                    if _carry_completion_exists(progress, child, format_task_text(raw)):
+                        continue
+                except Exception:
+                    pass
+                seen[raw] = check_iso
+                continue
             if _is_prev_task_done(progress, child, check_iso, raw):
                 continue
             # Older days are visited later in this loop, so an earlier
