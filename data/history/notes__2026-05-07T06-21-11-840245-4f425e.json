@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-05-07",
+  "updated_at": "2026-05-05",
   "data": [
     {
       "id": "note_007",
@@ -128,15 +128,6 @@
       "id": "note_88e021d5",
       "text": "JP has completed Reading 8 Syllabus — all weeks are done.",
       "created_at": "2026-05-05T08:36:37",
-      "status": "open",
-      "tags": [],
-      "suggested_destination": "/curriculum",
-      "archived_at": null
-    },
-    {
-      "id": "note_c58389a9",
-      "text": "JP has completed Algebra 1/2 — all weeks are done.",
-      "created_at": "2026-05-07T06:21:11",
       "status": "open",
       "tags": [],
       "suggested_destination": "/curriculum",
