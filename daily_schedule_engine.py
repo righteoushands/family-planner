@@ -1781,38 +1781,9 @@ def _school_sub_items(school_raw: list, subjects_used: set,
         # and got rendered as the doubled `assign_text — ci` form.
         assign_text_norm = re.sub(r"\s+", " ", assign_text).strip()
         _pfx_check_norm  = f"{assign_text_norm} — " if assign_text_norm else ""
-        # Fix 1: collect normalized texts already present as carryover for
-        # this subject so we suppress duplicate fresh entries.  We collect
-        # BOTH the full checklist-step text and (when present) the leading
-        # "assign_text" portion before any " — step" suffix, so a single
-        # carryover step (e.g. "Lesson 88 — Given to checker") suppresses
-        # all fresh checklist rows for the same assignment.
-        _carry_assign_texts: set = set()
-        if carry_by_subj:
-            _subj_pfx_dash  = f"{subj} — "
-            _subj_pfx_colon = f"{subj}: "
-            for _ci in carry_by_subj.get(subj_low, []):
-                _ct = _ci.get("text", "") or ""
-                _ct = re.sub(r"\s*\(from [^)]*\)\s*$", "", _ct).strip()
-                if _ct.startswith(_subj_pfx_dash):
-                    _ct = _ct[len(_subj_pfx_dash):].strip()
-                elif _ct.startswith(_subj_pfx_colon):
-                    _ct = _ct[len(_subj_pfx_colon):].strip()
-                _ct_norm = re.sub(r"\s+", " ", _ct).strip()
-                _carry_assign_texts.add(_ct_norm)
-                # Also store the assignment-level prefix when this carry row
-                # is a "<assign_text> — <step>" form, so other fresh checklist
-                # rows for the same assignment are suppressed too.
-                if assign_text_norm and _ct_norm.startswith(_pfx_check_norm):
-                    _carry_assign_texts.add(assign_text_norm)
         for ci in block.get("checklist", ["Done"]):
             tid = f"SCHOOL::{child}::{iso}::{subj}::{ci}"
             ci_norm = re.sub(r"\s+", " ", ci).strip()
-            if _carry_assign_texts and (
-                ci_norm in _carry_assign_texts
-                or (assign_text_norm and assign_text_norm in _carry_assign_texts)
-            ):
-                continue
             # Avoid duplicating text when:
             # - the checklist item IS the assignment text (non-math subjects), OR
             # - the checklist item already starts with "assign_text — " (math subjects
