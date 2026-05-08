@@ -2076,10 +2076,18 @@ def build_day_list(child: str, weekday: str, iso: str) -> list:
                 _from_label = f"from {_prev_iso}"
             # Build the display text: keep subject name + add date
             _disp = f"{txt} ({_from_label})"
+            # Extract subject name from the carry text ("{subject} — {assignment}")
+            # so Poetry carryovers still trigger the violet passage panel in
+            # render_schedule.  Without this stamp the renderer's
+            # `sub.get("is_poetry_memorize")` returns False on carry items and
+            # the saved passage never renders for any uncompleted Poetry day.
+            _carry_subj_name = txt.split(" \u2014 ", 1)[0] if " \u2014 " in txt else ""
+            _is_poetry_carry = "poetry" in _carry_subj_name.lower()
             carry_item = {"text": _disp, "task_id": tid,
                           "done": _dl_done(progress, tid),
                           "checkable": True, "is_header": False,
-                          "is_carryover": True}
+                          "is_carryover": True,
+                          "is_poetry_memorize": _is_poetry_carry}
             if raw.startswith("SCHOOL::"):
                 # Route to the matching subject block so it appears grouped.
                 _parts = raw.split("::", 2)
