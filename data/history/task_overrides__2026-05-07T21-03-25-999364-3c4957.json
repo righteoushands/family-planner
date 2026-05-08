@@ -337,13 +337,6 @@
         "postpone_to": "2026-05-13",
         "label": "[MEDIUM] Buy transplants and set up garden supports (from Fri 1 May)"
       }
-    },
-    "2026-05-07": {
-      "CARRY::Lauren::2026-05-07::[MEDIUM] Buy transplants and set up garden supports": {
-        "action": "postpone",
-        "postpone_to": "2026-05-20",
-        "label": "[MEDIUM] Buy transplants and set up garden supports (from Fri 1 May)"
-      }
     }
   }
 }

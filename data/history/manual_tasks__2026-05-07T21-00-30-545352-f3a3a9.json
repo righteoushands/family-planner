@@ -38,6 +38,22 @@
     "id": "97421e88"
   },
   {
+    "text": "Maintain proper mowing height at 3-3.5 inches",
+    "assigned_to": "Lauren",
+    "due_date": "2026-10-31",
+    "priority": "MEDIUM",
+    "status": "active",
+    "source": "plan_importer",
+    "recurring": false,
+    "notes": "All season maintenance - ongoing through fall",
+    "subtasks": [
+      "Check mower blade height setting",
+      "Mow regularly throughout growing season",
+      "Never cut more than 1/3 of grass height"
+    ],
+    "id": "a0510e23"
+  },
+  {
     "text": "Begin deep watering schedule (1 inch/week)",
     "assigned_to": "Lauren",
     "due_date": "2026-06-01",
@@ -143,7 +159,7 @@
   {
     "text": "Put all Amazon returns in the back of the van.",
     "assigned_to": "Mom",
-    "due_date": "2026-05-20",
+    "due_date": "2026-05-13",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": true,
