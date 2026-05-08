@@ -494,17 +494,10 @@ def _extract_school_tasks_live(child: str, weekday: str, iso: str = None):
                 ]
             else:
                 _checklist = [_text_oneline]
-            # Poetry-memorize signal: only flag the day when the lesson is
-            # actually a memorization step (assignment text leads with
-            # "memorize…").  Substring-only matching falsely fired on
-            # continuation/recitation days whose text contained
-            # parenthetical phrases like "have not already memorized".
-            # Cap at the first 60 chars so only prominent leading-verb
-            # use of "memorize" qualifies.
-            _is_poetry_memo = (
-                "poetry" in _subject.lower()
-                and "memorize" in (_text[:60].lower() if _text else "")
-            )
+            # Poetry-memorize signal: flag whenever the subject is Poetry,
+            # regardless of the assignment text.  Lauren wants every Poetry
+            # day visually marked, not only the explicit "memorize…" days.
+            _is_poetry_memo = "poetry" in _subject.lower()
             tasks.append({
                 "subject": _subject,
                 "assignment_text": _text,

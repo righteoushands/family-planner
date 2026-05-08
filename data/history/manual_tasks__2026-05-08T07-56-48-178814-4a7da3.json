@@ -839,14 +839,5 @@
     "recurring": false,
     "notes": "For crowning of Blessed Mother ceremony",
     "subtasks": []
-  },
-  {
-    "id": "dae49a08",
-    "text": "Discuss questions for Chapter 25",
-    "assigned_to": "Joseph",
-    "due_date": "2026-05-08",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
   }
 ]
