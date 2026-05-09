@@ -848,23 +848,5 @@
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false
-  },
-  {
-    "id": "fd742e08",
-    "text": "Did you clean your bathroom this week?",
-    "assigned_to": "Joseph",
-    "due_date": "2026-05-08",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
-  },
-  {
-    "id": "f4086d09",
-    "text": "Finish cleaning and vacuuming your area in the basement.",
-    "assigned_to": "Joseph",
-    "due_date": "2026-05-08",
-    "priority": "MEDIUM",
-    "status": "active",
-    "recurring": false
   }
 ]

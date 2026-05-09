@@ -1,6 +1,11 @@
 {
   "messages": [
     {
+      "role": "assistant",
+      "content": "Perfect. I'll leave Friday open for now — flounder or pizza, you'll decide when you're closer to the day.\n\nHere's the locked week:\n\n**MONDAY**\n- Breakfast: Batch oatmeal\n- Lunch: Sardine salad\n- Dinner: Spaghetti with meat sauce + salad\n\n**TUESDAY**\n- Breakfast: Batch oatmeal\n- Lunch: Sardine salad\n- Dinner: Leftovers (spaghetti + meat sauce)\n\n**WEDNESDAY**\n- Breakfast: Batch oatmeal\n- Lunch: Sardine salad\n- Dinner: Roasted split breast + steamed brussels sprouts + tomato soup (batch cook today)\n\n**THURSDAY**\n- Breakfast: Batch oatmeal\n- Lunch: Sardine salad\n- Dinner: Leftovers + lentil soup (batch cook today)\n\n**FRIDAY**\n- Breakfast: Batch oatmeal\n- Lunch: Sardine salad\n- Dinner: Flounder (fried) OR pizza — you'll decide\n\n**SATURDAY**\n- Breakfast: Batch oatmeal\n- Lunch: Leftovers / soup\n- Dinner: Ground beef prep (tacos, rice bowls, or similar)\n\n**SUNDAY (Ziplock Buffet)**\n- Breakfast: Batch oatmeal\n- Lunch: Leftovers assembled\n- Dinner: Leftover assembly — roasted chicken, soups, ground beef options\n\nNow — one question before I save this to your fridge card: **For John's dad_lunch slots, should I fill all five weekdays (Mon–Fri) with sardine salad, or do you want variety mixed in?**",
+      "ts": "2026-05-03T15:05:28"
+    },
+    {
       "role": "user",
       "content": "Variety",
       "ts": "2026-05-03T15:05:48"
@@ -294,11 +299,6 @@
       "role": "user",
       "content": "Yes",
       "ts": "2026-05-09T09:45:54"
-    },
-    {
-      "role": "assistant",
-      "content": "Excellent. Now let me lock in **Saturday lunch** — leftover pizza + simple side — and then move to **Sunday through next Saturday (May 10–16).**\n\nFor Sunday, I'm thinking we start fresh with the full week ahead. Before I draft the full menu, one question:\n\n**What's your typical energy level for Sundays — are you usually HIGH capacity (can handle batch cooking, more involved prep) or do you prefer to keep it lighter since you're prepping the Ziplock Buffet at dinner?**",
-      "ts": "2026-05-09T09:45:57"
     }
   ]
 }

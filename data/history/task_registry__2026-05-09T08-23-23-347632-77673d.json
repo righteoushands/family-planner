@@ -1042,35 +1042,6 @@
       "CHORE::Weekly room clean (~90 min): full clean, vacuum, laundry check",
       "MANUAL::MEDIUM::CAPTask: Wash the most used uniform of the month.",
       "MANUAL::MEDIUM::Friday Penance: give up meat or make another sacrifice."
-    ],
-    "Joseph": [
-      "CHORE::  → Clean sink",
-      "CHORE::  → Clear table + counters",
-      "CHORE::  → Load dishwasher",
-      "CHORE::  → Put food away",
-      "CHORE::  → Spray + wipe table and counters",
-      "CHORE::  → Sweep kitchen / dining room / foyer",
-      "CHORE::  → Take out trash + recycling",
-      "CHORE::  → Unload dishwasher",
-      "CHORE::After school: pickup your school things and tidy your school shelf.",
-      "CHORE::Check Sea Cadet email",
-      "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
-      "CHORE::KITCHEN (After Breakfast — Role B):",
-      "CHORE::KITCHEN (Evening — Role B):",
-      "CHORE::Practice piano for 15 minutes",
-      "CHORE::Prepare Mass clothes (with Mom approval)",
-      "CHORE::Tidy basement zone — 10 minutes",
-      "CHORE::Weekly room clean (~90 min): full clean, vacuum, laundry check",
-      "MANUAL::MEDIUM::Did you clean your bathroom this week?",
-      "MANUAL::MEDIUM::Discuss questions for Chapter 25",
-      "MANUAL::MEDIUM::Finish cleaning and vacuuming your area in the basement."
-    ],
-    "Michael": [
-      "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
-      "CHORE::Prepare Mass clothes",
-      "CHORE::Tidy basement zone — 10 minutes",
-      "CHORE::Weekly room clean"
-    ],
-    "James": []
+    ]
   }
 }

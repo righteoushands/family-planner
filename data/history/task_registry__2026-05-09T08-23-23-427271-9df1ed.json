@@ -1064,13 +1064,6 @@
       "MANUAL::MEDIUM::Did you clean your bathroom this week?",
       "MANUAL::MEDIUM::Discuss questions for Chapter 25",
       "MANUAL::MEDIUM::Finish cleaning and vacuuming your area in the basement."
-    ],
-    "Michael": [
-      "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
-      "CHORE::Prepare Mass clothes",
-      "CHORE::Tidy basement zone — 10 minutes",
-      "CHORE::Weekly room clean"
-    ],
-    "James": []
+    ]
   }
 }

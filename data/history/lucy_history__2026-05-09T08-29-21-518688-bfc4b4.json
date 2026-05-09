@@ -1,6 +1,11 @@
 {
   "messages": [
     {
+      "role": "assistant",
+      "content": "You're right — that doesn't make sense now that the run moved earlier. Clearing that slot.\n<frol_update weekday=\"Monday\" person=\"Family\">\n11:00 AM: \n</frol_update>\n\nDone. The 11:00 AM slot is now clear for everyone on Monday.\n[FROL_UPDATED:Mom:Monday:1 slots]",
+      "ts": "2026-04-19T20:47:59"
+    },
+    {
       "role": "user",
       "content": "Your changes didn’t save",
       "ts": "2026-04-19T20:49:40"
@@ -294,11 +299,6 @@
       "role": "user",
       "content": "Thank you for that. It’s beautiful and the truth. I will get a good breakfast and be sure the little boys get one too",
       "ts": "2026-05-09T08:29:18"
-    },
-    {
-      "role": "assistant",
-      "content": "Yes. That's it exactly.\n\nFeed yourself and feed your babies. That simple act — nourishing your family with presence and care — is you seeing with the eyes of God. It's you living out your vocation as a mother. It's holiness in the most ordinary, essential way.\n\nGo make breakfast. Be there with them. Let that be enough.\n\nAnd Lauren — you're going to have a beautiful day at the May Crowning. Mary is waiting for you.",
-      "ts": "2026-05-09T08:29:21"
     }
   ]
 }
