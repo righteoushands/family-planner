@@ -49,28 +49,31 @@ def fetch_caldav_events(apple_id: str, app_password: str, days_ahead: int = 14) 
             headers={**headers, "Content-Type":"application/xml","Depth":"0"}, method="PROPFIND")
         with urllib.request.urlopen(disc_req, timeout=5) as resp:
             principal_xml = resp.read().decode()
-        pm = re.search(r"<(?:D:)?href[^>]*>(/[^<]+)</(?:D:)?href>", principal_xml)
+        def _abs(href):
+            href = href.strip()
+            return href if href.startswith("http") else f"{base_url}{href}"
+        pm = re.search(r"current-user-principal[^<]*<(?:D:)?href[^>]*>((?:https?://|/)[^<]+)</(?:D:)?href>", principal_xml, re.DOTALL)
         if not pm: return []
-        principal_path = pm.group(1)
-        home_req = urllib.request.Request(f"{base_url}{principal_path}",
+        principal_url = _abs(pm.group(1))
+        home_req = urllib.request.Request(principal_url,
             data=b'<?xml version="1.0"?><D:propfind xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav"><D:prop><C:calendar-home-set/></D:prop></D:propfind>',
             headers={**headers,"Content-Type":"application/xml","Depth":"0"}, method="PROPFIND")
         with urllib.request.urlopen(home_req, timeout=10) as resp:
             home_xml = resp.read().decode()
-        hm = re.search(r"calendar-home-set.*?<(?:D:)?href[^>]*>(/[^<]+)</(?:D:)?href>", home_xml, re.DOTALL)
+        hm = re.search(r"calendar-home-set.*?<(?:D:)?href[^>]*>((?:https?://|/)[^<]+)</(?:D:)?href>", home_xml, re.DOTALL)
         if not hm: return []
-        home_path = hm.group(1)
-        cal_req = urllib.request.Request(f"{base_url}{home_path}",
+        home_url = _abs(hm.group(1))
+        cal_req = urllib.request.Request(home_url,
             data=b'<?xml version="1.0"?><D:propfind xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav"><D:prop><D:displayname/><C:supported-calendar-component-set/></D:prop></D:propfind>',
             headers={**headers,"Content-Type":"application/xml","Depth":"1"}, method="PROPFIND")
         with urllib.request.urlopen(cal_req, timeout=10) as resp:
             cal_xml = resp.read().decode()
-        cal_paths = re.findall(r"<(?:D:)?href[^>]*>(/[^<]*calendar[^<]*)</(?:D:)?href>", cal_xml) or \
-                    re.findall(r"<(?:D:)?href[^>]*>(/[^<]+/)</(?:D:)?href>", cal_xml)
+        cal_paths = re.findall(r"<(?:D:)?href[^>]*>((?:https?://|/)[^<]*calendar[^<]*)</(?:D:)?href>", cal_xml) or \
+                    re.findall(r"<(?:D:)?href[^>]*>((?:https?://|/)[^<]+/)</(?:D:)?href>", cal_xml)
         all_events = []
         for cal_path in set(cal_paths):
             try:
-                ev_req = urllib.request.Request(f"{base_url}{cal_path}", data=report_body, headers=headers, method="REPORT")
+                ev_req = urllib.request.Request(_abs(cal_path), data=report_body, headers=headers, method="REPORT")
                 with urllib.request.urlopen(ev_req, timeout=10) as resp:
                     ev_xml = resp.read().decode()
                 for vevent in re.findall(r"BEGIN:VEVENT(.*?)END:VEVENT", ev_xml, re.DOTALL):
