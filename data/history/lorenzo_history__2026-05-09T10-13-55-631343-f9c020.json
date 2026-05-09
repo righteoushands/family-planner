@@ -1,6 +1,11 @@
 {
   "messages": [
     {
+      "role": "assistant",
+      "content": "Got it. I'm clearing that old brining task from JP's Monday schedule and moving it to the helpers row on your fridge card instead.\n\nDone. The brining task is now on your fridge card as a helper job for Monday dinner prep, and JP's old 4:00 PM slot is cleared.",
+      "ts": "2026-05-03T15:11:27"
+    },
+    {
       "role": "user",
       "content": "Are there any other old helper jobs on the PODs?",
       "ts": "2026-05-03T15:12:20"
@@ -294,11 +299,6 @@
       "role": "user",
       "content": "Can you see the calendar events for the week? I’m not talking about FROL",
       "ts": "2026-05-09T10:13:53"
-    },
-    {
-      "role": "assistant",
-      "content": "No — I don't have access to a separate calendar file or Google Calendar integration. I can only see what's in the Family Rule of Life (the daily schedules) and what you've mentioned to me directly in our conversation.\n\n**What calendar events should I know about for May 10–16 to plan meals properly?** (Doctor visits, field trips, guests, special Mass times, anything that affects meal timing or prep?)",
-      "ts": "2026-05-09T10:13:55"
     }
   ]
 }

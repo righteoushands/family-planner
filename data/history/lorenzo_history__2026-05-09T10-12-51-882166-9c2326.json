@@ -2,6 +2,26 @@
   "messages": [
     {
       "role": "user",
+      "content": "Chicken needs to be brined on Monday",
+      "ts": "2026-05-03T15:10:14"
+    },
+    {
+      "role": "assistant",
+      "content": "Got it — chicken brining on Monday.\n\nLooking at your Rule of Life, I see **JP has a brining task already locked in at 4:00 PM Monday** (\"Lead brining prep for roast chicken — Joseph assists with potatoes — Michael washes vegetables\").\n\nIs that the timing that works, or do you need to shift when the brining happens?",
+      "ts": "2026-05-03T15:10:16"
+    },
+    {
+      "role": "user",
+      "content": "That shouldn’t be there. It is old. Please clear it. It should be under helpers jobs on the fridge card",
+      "ts": "2026-05-03T15:11:25"
+    },
+    {
+      "role": "assistant",
+      "content": "Got it. I'm clearing that old brining task from JP's Monday schedule and moving it to the helpers row on your fridge card instead.\n\nDone. The brining task is now on your fridge card as a helper job for Monday dinner prep, and JP's old 4:00 PM slot is cleared.",
+      "ts": "2026-05-03T15:11:27"
+    },
+    {
+      "role": "user",
       "content": "Are there any other old helper jobs on the PODs?",
       "ts": "2026-05-03T15:12:20"
     },
@@ -279,26 +299,6 @@
       "role": "assistant",
       "content": "Perfect. So for Sunday's batch-cooking block: shred the brined roast chicken (tonight's dinner), brown the pound of ground beef, and make tomato soup + lentil soup.\n\nThat gives you a solid protein and soup foundation for the week.\n\n**One more piece before I draft: John's lifting days are Tuesday and Thursday — those are higher-carb meal days. Should I build the menu around that rhythm, and are there any meals the family absolutely loves or any proteins/cuisines you want to feature this week?**",
       "ts": "2026-05-09T10:11:35"
-    },
-    {
-      "role": "user",
-      "content": "Yes, John needs more carbs on his lift days. Plan meals around calendar events re: busy days noted. What do you have in terms of rules for the week and calendar access?",
-      "ts": "2026-05-09T10:12:51"
-    },
-    {
-      "role": "assistant",
-      "content": "**Rules I'm working with:**\n\n- No meat on Fridays (fish or meatless OK)\n- Weekly protein rhythm: 1 red meat, 3 poultry, 2 fish, 2+ legume meals\n- Higher-carb meals align with John's lifting days (Tuesday, Thursday, Friday)\n- Lower/moderate carbs other days\n- Anchor meals: 1 brined roast chicken, 1 roast beef, 1 fish fry (Friday)\n- Batch-cooked soup available daily as backup\n- Fresh first, then expiring items, then freezer, then gaps\n- Sunday: lighter breakfast/lunch, batch-cook 2–3 hours post-Mass\n- Tuesday is locked leftovers day\n- All meals planned in advance (breakfast, lunch, dinner, snacks, dad lunches)\n- Michael gets simple/familiar options; James gets soft/easy-to-chew\n- One safe small job for Michael each dinner; helpers assigned to all dinners\n\n**Calendar access I have:**\n\n- Your Family Rule of Life (daily schedules for everyone, Mon–Sun)\n- James's PT appointment Friday 10:00–11:30 AM\n- Looking at your FROL, I can see:\n  - **Monday:** JP has CAP (evening commitment)\n  - **Tuesday:** Everyone at Bible Study, HSPE, Religious Education\n  - **Wednesday:** Piano lessons, dinner date with John\n  - **Thursday:** HSPE, Latin class\n  - **Friday:** James's PT 10:00–11:30 AM, no evening commitments\n  - **Saturday (next week):** PRUDENCE family adventure block, regular rhythm\n\n**Question: Are there any other calendar events next week I should know about — doctor visits, guests coming, school field trips, anything that affects meal timing or complexity?**",
-      "ts": "2026-05-09T10:12:58"
-    },
-    {
-      "role": "user",
-      "content": "Can you see the calendar events for the week? I’m not talking about FROL",
-      "ts": "2026-05-09T10:13:53"
-    },
-    {
-      "role": "assistant",
-      "content": "No — I don't have access to a separate calendar file or Google Calendar integration. I can only see what's in the Family Rule of Life (the daily schedules) and what you've mentioned to me directly in our conversation.\n\n**What calendar events should I know about for May 10–16 to plan meals properly?** (Doctor visits, field trips, guests, special Mass times, anything that affects meal timing or prep?)",
-      "ts": "2026-05-09T10:13:55"
     }
   ]
 }

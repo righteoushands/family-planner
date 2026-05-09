@@ -333,6 +333,62 @@ def _get_liturgical_note(iso: str) -> str:
     except Exception:
         return ""
 
+def _get_calendar_this_week(iso: str) -> str:
+    """Return a compact text listing of events for the next 7 days starting at iso.
+    Uses expand_local_events_for_range; safe-fallback string on any error."""
+    try:
+        from datetime import date as _dc, timedelta as _td
+        from data_helpers import expand_local_events_for_range
+        _today = _dc.fromisoformat(iso)
+        _end   = _today + _td(days=6)
+        _evs   = expand_local_events_for_range(_today.isoformat(), _end.isoformat())
+        if not _evs:
+            return "No events scheduled in the next 7 days."
+        by_date = {}
+        for e in _evs:
+            _start    = e.get("start", "") or ""
+            _date_str = _start[:10] if _start else ""
+            if not _date_str:
+                continue
+            by_date.setdefault(_date_str, []).append(e)
+        out_lines = []
+        for offset in range(7):
+            d  = _today + _td(days=offset)
+            ds = d.isoformat()
+            if ds not in by_date:
+                continue
+            if offset == 0:
+                _label = "Today"
+            elif offset == 1:
+                _label = "Tomorrow"
+            else:
+                _label = d.strftime("%A")
+            _date_label = d.strftime("%b %-d")
+            out_lines.append(f"{_label} ({_date_label}, {ds}):")
+            for e in by_date[ds]:
+                title = (e.get("title") or "(untitled)").strip() or "(untitled)"
+                st = (e.get("start_time") or "").strip()
+                et = (e.get("end_time") or "").strip()
+                if st and et:
+                    _time_str = f"{st}-{et} "
+                elif st:
+                    _time_str = f"{st} "
+                elif e.get("all_day"):
+                    _time_str = "(all day) "
+                else:
+                    _time_str = ""
+                _assigned = e.get("assigned_to") or []
+                if isinstance(_assigned, list) and _assigned:
+                    _who_join = ", ".join(str(x) for x in _assigned if str(x).strip())
+                    _who_str  = f" — for {_who_join}" if _who_join else ""
+                else:
+                    _who_str = ""
+                out_lines.append(f"  - {_time_str}{title}{_who_str}")
+        return "\n".join(out_lines) if out_lines else "No events scheduled in the next 7 days."
+    except Exception:
+        return "Calendar unavailable."
+
+
 def _get_easter(year: int) -> date:
     a = year % 19; b = year // 100; c = year % 100
     d = b // 4;    e = b % 4;       f = (b + 8) // 25
@@ -429,6 +485,7 @@ def build_lorenzo_context(iso: str, weekday: str, date_label: str) -> str:
     john_status = _get_john_status(iso)
     liturny     = _get_liturgical_note(iso)
     saved_recipes = _get_saved_recipes()
+    calendar_week = _get_calendar_this_week(iso)
 
     # Current Eastern time — used for situational awareness
     _now_e = _dt.now(_EASTERN)
@@ -622,6 +679,27 @@ def build_lorenzo_context(iso: str, weekday: str, date_label: str) -> str:
         "",
         "== STANDING MEAL RULES & CONSTRAINTS ==",
         constraints,
+        "",
+        "== CALENDAR THIS WEEK ==",
+        calendar_week,
+        "",
+        "USE THE CALENDAR TO SHAPE MEAL SUGGESTIONS:",
+        "Look at the events above and let them drive your meal recommendations:",
+        "  • Busy evening (event after 4 PM, kid practice, late return) → suggest slow-cooker,",
+        "    sheet-pan, or fully prep-ahead meals so dinner is hands-off when she gets home.",
+        "  • Special occasion or celebration (birthday, feast day, anniversary, guests over)",
+        "    → suggest a more festive meal — anchor protein, dessert, sides — and offer to",
+        "    add helpers and serve_time so the timeline lines up with the event.",
+        "  • Party / potluck / gathering Lauren is attending → proactively suggest what to",
+        "    bring (an appetizer, a dessert, a side that travels well) and add it to that",
+        "    day's slot if she agrees.",
+        "  • Early morning commitment (Mass, appointment, drop-off before 9 AM) → keep that",
+        "    day's breakfast and lunch simple and grab-and-go; no involved cooking before noon.",
+        "  • Day with NO events → fine to suggest a more involved cook day, batch cooking,",
+        "    or recipe testing.",
+        "Mention the relevant event by name when you make a suggestion ('Since JP has soccer",
+        "at 5 on Thursday, want to do the slow-cooker beef stew that day?') so Lauren knows",
+        "you're paying attention to her week.",
         "",
         "== DISTINGUISHING TEMPORARY ADJUSTMENTS FROM PERMANENT RULES ==",
         "This is CRITICAL. You must listen for cues about whether Lauren means something",
