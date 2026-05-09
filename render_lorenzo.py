@@ -909,6 +909,8 @@ def build_lorenzo_context(iso: str, weekday: str, date_label: str) -> str:
         "- CRITICAL: Ask only ONE question at a time. Never stack questions.",
     ]
 
+    from data_helpers import get_memory_context_block as _gmcb
+    lines += ["", _gmcb(), ""]
     lines += [""] + frol_context_block(weekday) + frol_edit_instructions()
     lines += [""] + companion_system_block("LORENZO")
 

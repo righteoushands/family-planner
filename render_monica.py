@@ -229,6 +229,8 @@ def build_monica_context(iso: str, weekday: str, date_label: str) -> str:
         "  a follow-up sign to watch for, a timing consideration, or a question to ask at the next pediatrician visit.",
     ]
 
+    from data_helpers import get_memory_context_block as _gmcb
+    lines += ["", _gmcb(), ""]
     lines += [""] + frol_context_block(weekday) + frol_edit_instructions()
     lines += [""] + companion_system_block("MONICA")
     return "\n".join(lines)

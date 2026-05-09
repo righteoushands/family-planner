@@ -299,6 +299,8 @@ def build_gregory_context(iso: str, weekday: str, date_label: str) -> str:
         "  but don't soften it to the point of uselessness.",
     ]
 
+    from data_helpers import get_memory_context_block as _gmcb
+    lines += ["", _gmcb(), ""]
     lines += [""] + frol_context_block(weekday) + frol_edit_instructions()
     lines += [""] + companion_system_block("GREGORY")
     return "\n".join(lines)

@@ -1229,6 +1229,8 @@ def build_lucy_context(iso: str, weekday: str, date_label: str, capacity: str = 
     except Exception:
         lines.append("(Memory book not available)")
 
+    from data_helpers import get_memory_context_block as _gmcb
+    lines += ["", _gmcb(), ""]
     lines += [""] + frol_context_block(weekday) + frol_edit_instructions()
     lines += [""] + companion_system_block("LUCY")
     return "\n".join(lines)

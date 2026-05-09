@@ -30,6 +30,7 @@ TASK_OVERRIDES_FILE  = "data/task_overrides.json"
 COACH_PROGRAMS_FILE  = "data/coach_programs.json"
 EXERCISE_LOGS_FILE   = "data/exercise_logs.json"
 SCHOOL_WEEK_PLAN_FILE = "data/school_week_plan.json"
+FAMILY_MEMORY_FILE   = "data/family_memory.json"
 
 # ── Validation sets ──────────────────────────────────────────────────────────
 VALID_PRIORITIES = {"HIGH", "MEDIUM", "LOW"}

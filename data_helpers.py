@@ -17,7 +17,7 @@ from config import (
     CALENDAR_CACHE_FILE, MONTHLY_PLANNER_FILE, CALENDAR_RULES_FILE,
     SUBSCRIBED_CALS_FILE, SUBSCRIBED_CACHE_FILE, VALID_PRIORITIES, VALID_STATUSES, WEEKDAYS,
     WEEKDAY_ORDER, CURRICULUM_FILE, TASK_OVERRIDES_FILE,
-    SCHOOL_WEEK_PLAN_FILE,
+    SCHOOL_WEEK_PLAN_FILE, FAMILY_MEMORY_FILE,
 )
 
 
@@ -1907,3 +1907,162 @@ def add_curriculum_document(name: str, file_path: str, doc_type: str, subject_id
     data["next_doc_id"] += 1
     save_curriculum_documents(data)
     return document
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Family Memory — shared cross-companion long-term memory store
+# ─────────────────────────────────────────────────────────────────────────────
+import re as _re_mem
+import uuid as _uuid_mem
+from datetime import datetime as _dt_mem
+
+_MEM_STOPWORDS = {
+    "a","an","the","is","are","was","were","be","been","being","am",
+    "and","or","but","of","in","on","to","for","with","that","this",
+    "it","its","i","you","he","she","they","we","my","your","their",
+    "our","at","by","from","as","do","don","dont","not","no","yes",
+    "have","has","had","will","would","could","should","can","may",
+}
+
+
+def load_family_memory() -> list:
+    """Return the family memory list. Empty list if file missing/empty."""
+    data = ensure_file(FAMILY_MEMORY_FILE, [])
+    if isinstance(data, list):
+        return data
+    return []
+
+
+def save_family_memory(memories: list) -> None:
+    """Persist the full memory list."""
+    safe_save_json(FAMILY_MEMORY_FILE, memories or [])
+
+
+def _now_ts() -> str:
+    return _dt_mem.now().strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def add_memory(text: str, category: str = "general") -> dict:
+    """Append a new memory. Returns the saved record."""
+    text = (text or "").strip()
+    if not text:
+        return {}
+    cat = (category or "general").strip() or "general"
+    now = _now_ts()
+    rec = {
+        "id":         _uuid_mem.uuid4().hex[:8],
+        "text":       text,
+        "category":   cat,
+        "created_at": now,
+        "updated_at": now,
+    }
+    mems = load_family_memory()
+    mems.append(rec)
+    save_family_memory(mems)
+    return rec
+
+
+def update_memory(memory_id: str, new_text: str) -> dict:
+    """Replace the text of an existing memory in place. Returns the updated
+    record, or {} if no memory matched."""
+    memory_id = (memory_id or "").strip()
+    new_text  = (new_text or "").strip()
+    if not memory_id or not new_text:
+        return {}
+    mems = load_family_memory()
+    for m in mems:
+        if str(m.get("id","")).strip() == memory_id:
+            m["text"]       = new_text
+            m["updated_at"] = _now_ts()
+            save_family_memory(mems)
+            return m
+    return {}
+
+
+def delete_memory(memory_id: str) -> bool:
+    """Remove a memory by id. Returns True if something was deleted."""
+    memory_id = (memory_id or "").strip()
+    if not memory_id:
+        return False
+    mems = load_family_memory()
+    new  = [m for m in mems if str(m.get("id","")).strip() != memory_id]
+    if len(new) != len(mems):
+        save_family_memory(new)
+        return True
+    return False
+
+
+def _tokenize_memory(text: str) -> set:
+    """Lowercase alphanumeric tokens >= 3 chars, stopwords removed."""
+    if not text:
+        return set()
+    toks = _re_mem.findall(r"[a-z0-9]+", text.lower())
+    return {t for t in toks if len(t) >= 3 and t not in _MEM_STOPWORDS}
+
+
+def find_memory_conflicts(new_text: str, threshold: float = 0.5) -> list:
+    """Return existing memories whose Jaccard token-overlap with new_text
+    meets or exceeds `threshold`. Used to flag potential contradictions
+    before silently saving a new memory."""
+    new_toks = _tokenize_memory(new_text)
+    if not new_toks:
+        return []
+    out = []
+    for m in load_family_memory():
+        old_toks = _tokenize_memory(m.get("text",""))
+        if not old_toks:
+            continue
+        inter = new_toks & old_toks
+        union = new_toks | old_toks
+        if union and (len(inter) / len(union)) >= threshold:
+            out.append(m)
+    return out
+
+
+def get_memory_context_block() -> str:
+    """Return the FAMILY MEMORY system-prompt section — current memories
+    grouped by category, plus the <remember> tag instructions. Designed
+    to be appended verbatim to every companion's system prompt."""
+    mems  = load_family_memory()
+    lines = ["== FAMILY MEMORY (shared across all companions) =="]
+    if mems:
+        by_cat = {}
+        for m in mems:
+            by_cat.setdefault(str(m.get("category","general")), []).append(m)
+        for cat in sorted(by_cat):
+            lines.append("")
+            lines.append(f"[{cat}]")
+            for m in by_cat[cat]:
+                _id  = str(m.get("id","?"))
+                _txt = (m.get("text","") or "").strip()
+                lines.append(f"  - ({_id}) {_txt}")
+    else:
+        lines.append("(No family memories saved yet.)")
+    lines += [
+        "",
+        "REMEMBERING NEW THINGS:",
+        "When Lauren says 'remember that...', 'note that...', 'don't forget...',",
+        "'for the record...', or otherwise asks you to commit a fact to long-term",
+        "memory, emit this tag at the end of your reply:",
+        '    <remember category="family|food|school|health|faith|schedule|general">the fact</remember>',
+        "The server saves it silently and strips the tag from what Lauren sees.",
+        "Confirm naturally in plain English ('Got it — I will remember that.').",
+        "",
+        "CONFLICT HANDLING:",
+        "If your <remember> contradicts something already in the FAMILY MEMORY",
+        "above (similar keywords, different meaning), the server will block the",
+        "silent save and prepend a yes/replace/keep-both/ignore question to your",
+        "reply. When Lauren resolves the conflict in her next message:",
+        '  - "replace" or "overwrite" --> emit  <remember replaces="OLD_ID">new text</remember>',
+        '  - "keep both"              --> emit  <remember force="true" category="CAT">new text</remember>',
+        '  - "ignore" / "never mind"  --> emit no tag.',
+        "Use the parenthesized id (e.g. (a1b2c3d4)) shown above to reference an",
+        "existing memory.",
+        "",
+        "USING MEMORIES:",
+        "Treat the memory store as durable, cross-companion truth. Reference it",
+        "naturally when relevant ('I see Joseph is gluten-intolerant, so let us",
+        "swap pasta for rice'), but do not recite the whole list unless Lauren",
+        "asks 'what do you remember about us?'.",
+    ]
+    return "\n".join(lines)

@@ -275,6 +275,8 @@ def build_coach_context(iso: str, weekday: str, date_label: str) -> str:
         "  encouraging reply, then put the tag block at the very end.",
     ]
 
+    from data_helpers import get_memory_context_block as _gmcb
+    lines += ["", _gmcb(), ""]
     lines += [""] + frol_context_block(weekday) + frol_edit_instructions()
     lines += [""] + companion_system_block("COACH")
     return "\n".join(lines)

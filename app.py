@@ -464,6 +464,80 @@ def _apply_frol_updates(text: str, weekday: str) -> str:
     return markers
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Shared <remember> tag parser — used by every companion chat handler.
+# Saves family-memory facts silently, OR strips the tag and prepends a
+# yes/replace/keep-both/ignore question when a conflicting memory exists.
+# ─────────────────────────────────────────────────────────────────────────────
+_REMEMBER_RX = __import__('re').compile(
+    r'<remember\b([^>]*)>([\s\S]*?)</remember>',
+    __import__('re').IGNORECASE
+)
+
+
+def _apply_remember_updates(text: str) -> str:
+    """Process every <remember> tag in `text`. Returns the text with all
+    tags removed. On a detected conflict the tag is stripped without
+    saving and a clarifying question is prepended to the visible reply."""
+    if not text or "<remember" not in text.lower():
+        return text
+    import re as _re_m
+    from data_helpers import (
+        add_memory, update_memory, find_memory_conflicts,
+    )
+    out = text
+    prefix_msgs = []
+    for _m in _REMEMBER_RX.finditer(text):
+        attrs   = _m.group(1) or ""
+        body    = (_m.group(2) or "").strip()
+        raw_tag = _m.group(0)
+        if not body:
+            out = out.replace(raw_tag, "", 1)
+            continue
+        # Parse attributes — accept double or single quotes.
+        cat_m = _re_m.search(
+            r'category\s*=\s*["\']([^"\']*)["\']', attrs, _re_m.IGNORECASE
+        )
+        category = (cat_m.group(1).strip() if cat_m else "") or "general"
+        rep_m = _re_m.search(
+            r'replaces\s*=\s*["\']([^"\']*)["\']', attrs, _re_m.IGNORECASE
+        )
+        replaces_id = rep_m.group(1).strip() if rep_m else ""
+        force_m = _re_m.search(
+            r'force\s*=\s*["\'](true|1|yes)["\']', attrs, _re_m.IGNORECASE
+        )
+        force = bool(force_m)
+        try:
+            if replaces_id:
+                update_memory(replaces_id, body)
+            elif force:
+                add_memory(body, category)
+            else:
+                conflicts = find_memory_conflicts(body)
+                if conflicts:
+                    c    = conflicts[0]
+                    _old = (c.get("text","") or "").strip()
+                    _oid = str(c.get("id","?"))
+                    prefix_msgs.append(
+                        "💭 Memory conflict — I want to save "
+                        f"'{body}' but I already have '{_old}' (id {_oid}). "
+                        "Reply 'replace' to overwrite, 'keep both' to save "
+                        "as a separate memory, or 'ignore' to drop the new one."
+                    )
+                    out = out.replace(raw_tag, "", 1)
+                    continue
+                add_memory(body, category)
+        except Exception as _re_err:
+            print(f"[remember] save failed: {_re_err}")
+        out = out.replace(raw_tag, "", 1)
+    if prefix_msgs:
+        out = "\n\n".join(prefix_msgs) + "\n\n" + out.lstrip()
+    # Collapse blank-line runs left behind.
+    import re as _re_c
+    out = _re_c.sub(r'\n{3,}', '\n\n', out).strip()
+    return out
+
+
 def _render_change_pin_page(viewer: str, error: str = "", ok: str = "") -> str:
     """Simple PIN-change page for children (and admins redirected to settings)."""
     from html import escape as _esc
@@ -5402,6 +5476,7 @@ class Handler(BaseHTTPRequestHandler):
                 if _frol_markers:
                     _display_text = _display_text + _frol_markers
                 # ── Save assistant response to server-side history ────────────
+                _display_text = _apply_remember_updates(_display_text)
                 _display_text = _strip_hallucinated_tool_use(_display_text)
                 _display_text = finish_companion_turn("lucy", _display_text)
                 ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
@@ -5680,6 +5755,7 @@ class Handler(BaseHTTPRequestHandler):
                 # (the server has already saved their effects; showing the raw
                 # markup just confuses Lauren and looks like "code")
                 _visible = text
+                _visible = _apply_remember_updates(_visible)
                 _visible = _re.sub(
                     r'\[MEAL_UPDATE:[^:\]]+:[^\]]+\][\s\S]*?\[\/MEAL_UPDATE\]',
                     '', _visible, flags=_re.IGNORECASE)
@@ -5898,6 +5974,7 @@ class Handler(BaseHTTPRequestHandler):
                             except Exception: pass
                     ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                     _apply_frol_updates(text, weekday)
+                    text = _apply_remember_updates(text)
                     text = _strip_hallucinated_tool_use(text)
                     text = finish_companion_turn("gregory", text)
                     append_gregory_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
@@ -5985,6 +6062,7 @@ class Handler(BaseHTTPRequestHandler):
                     ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                     _apply_frol_updates(text, weekday)
                     _apply_coach_program_saves(text)
+                    text = _apply_remember_updates(text)
                     text = _strip_hallucinated_tool_use(text)
                     text = finish_companion_turn("coach", text)
                     append_coach_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
@@ -6569,6 +6647,7 @@ class Handler(BaseHTTPRequestHandler):
                             except Exception: pass
                     ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
                     _apply_frol_updates(text, weekday)
+                    text = _apply_remember_updates(text)
                     text = _strip_hallucinated_tool_use(text)
                     text = finish_companion_turn("monica", text)
                     append_monica_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
@@ -6581,6 +6660,44 @@ class Handler(BaseHTTPRequestHandler):
                 from data_helpers import clear_monica_history
                 clear_monica_history()
                 redirect = "/dr-monica"
+
+            # ── Family Memory: conflict-resolution / direct edits ─────────────
+            elif path == "/memory-update":
+                from data_helpers import (
+                    add_memory as _add_mem,
+                    update_memory as _upd_mem,
+                    delete_memory as _del_mem,
+                )
+                _mv = self._get_viewer()
+                if not (_mv and _auth.is_admin(_mv)):
+                    self.send_response(403)
+                    self.send_header("Content-Type","text/plain")
+                    self.end_headers()
+                    try: self.wfile.write(b"Admin only.")
+                    except BrokenPipeError: pass
+                    return
+                _action   = clean_text(data.get("action",[""])[0]).lower()
+                _mid      = clean_text(data.get("id",[""])[0])
+                _mtext    = (data.get("text",[""])[0] or "").strip()
+                _mcat     = clean_text(data.get("category",["general"])[0]) or "general"
+                _mem_resp = "ok"
+                try:
+                    if _action == "replace" and _mid and _mtext:
+                        _upd_mem(_mid, _mtext)
+                    elif _action == "keep_both" and _mtext:
+                        _add_mem(_mtext, _mcat)
+                    elif _action == "delete" and _mid:
+                        _del_mem(_mid)
+                    else:
+                        _mem_resp = "noop"
+                except Exception as _me:
+                    _mem_resp = f"err: {_me}"
+                self.send_response(200)
+                self.send_header("Content-Type","text/plain; charset=utf-8")
+                self.end_headers()
+                try: self.wfile.write(_mem_resp.encode("utf-8"))
+                except BrokenPipeError: pass
+                return
 
             # ── Curriculum Importer ───────────────────────────────────────────
             elif path == "/curriculum-parse":
