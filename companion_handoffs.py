@@ -220,6 +220,26 @@ def _js_companions_dict(self_tag: str) -> str:
     return "{" + ",".join(entries) + "}"
 
 
+# Shared JS helpers used by every companion's response bubble:
+# escape HTML and convert markdown [label](url) into clickable <a> tags.
+# Built as a regular (non-f) string so the regex backslashes don't violate
+# claud rule #1 (no backslashes inside f-strings).
+_LINKIFY_JS = (
+    "\n// ── Shared markdown-link rendering (for companion response bubbles) ──\n"
+    "function _escapeHTML(s){"
+    "  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')"
+    "    .replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;');"
+    "}\n"
+    "function _linkify(s){"
+    "  var esc=_escapeHTML(s);"
+    "  return esc.replace(/\\[([^\\]]+)\\]\\(([^)\\s]+)\\)/g, function(m,label,url){"
+    "    if(!/^(\\/|https?:\\/\\/)/.test(url)) return m;"
+    "    return '<a href=\"'+url+'\" style=\"color:inherit;text-decoration:underline;font-weight:600;\">'+label+'</a>';"
+    "  });"
+    "}\n"
+)
+
+
 def handoff_js(self_tag: str) -> str:
     """
     Return the JS block to embed in a companion page for:
@@ -283,4 +303,4 @@ window.addEventListener('load', function() {{
     inp.style.height = 'auto';
     inp.style.height = Math.min(inp.scrollHeight, 120) + 'px';
 }});
-"""
+""" + _LINKIFY_JS

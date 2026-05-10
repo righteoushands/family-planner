@@ -1909,7 +1909,7 @@ function lucySend() {{
             return reader.read().then(function(res) {{
                 if (res.done) {{
                     var clean = _stripRuleTags(full);
-                    bubble.textContent = clean;
+                    bubble.innerHTML = _linkify(clean);
                     _lucyHistory.push({{role:'assistant', content: clean}});
                     // Set full text so the chained _playRest() can proceed
                     _ttsFull = clean;
@@ -2307,7 +2307,7 @@ function lucySend() {{
                     return;
                 }}
                 full += decoder.decode(res.value, {{stream: true}});
-                bubble.textContent = _stripRuleTags(full);
+                bubble.innerHTML = _linkify(_stripRuleTags(full));
                 // Early TTS: fire on first complete sentence while rest is still streaming
                 if (!_ttsFirstFired && (_voiceEnabled || _lastSendWasVoice)) {{
                     var _s2 = _stripRuleTags(full);
@@ -2353,7 +2353,7 @@ function _renderBubble(role, text) {{
     var wrap = document.createElement('div');
     var div  = document.createElement('div');
     div.className = (role === 'user') ? 'lucy-bubble-user' : 'lucy-bubble-lucy';
-    div.textContent = text;
+    if (role === 'user') {{ div.textContent = text; }} else {{ div.innerHTML = _linkify(text); }}
     div._wrap = wrap;
     wrap.appendChild(div);
 

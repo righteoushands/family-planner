@@ -1424,7 +1424,7 @@ function _lzRenderBubble(role, text) {{
     var wrap = document.createElement('div');
     var div  = document.createElement('div');
     div.className = (role === 'user') ? 'lz-bubble-user' : 'lz-bubble-lz';
-    div.textContent = (role === 'user') ? text : _lzStrip(text);
+    if (role === 'user') {{ div.textContent = text; }} else {{ div.innerHTML = _linkify(_lzStrip(text)); }}
     div._wrap = wrap;
     wrap.appendChild(div);
     if (role !== 'user') _renderHandoffBtns(text, wrap);
@@ -1810,7 +1810,7 @@ function lzSend() {{
                 if (res.done) {{
                     _lzInFlight = false;
                     var clean = _lzStrip(full);
-                    bubble.textContent = clean;
+                    bubble.innerHTML = _linkify(clean);
                     _lzHistory.push({{role:'assistant', content: clean}});
                     _lzTtsFull = clean;
                     _renderHandoffBtns(full, bubble._wrap);
@@ -2039,7 +2039,7 @@ function lzSend() {{
                     return;
                 }}
                 full += decoder.decode(res.value, {{stream:true}});
-                bubble.textContent = _lzStrip(full);
+                bubble.innerHTML = _linkify(_lzStrip(full));
                 // Early TTS on first complete sentence
                 if (!_lzTtsFirstFired && (_lzVoiceEnabled || _lzLastWasVoice)) {{
                     var s2 = _lzStrip(full);

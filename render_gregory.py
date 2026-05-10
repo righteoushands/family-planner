@@ -512,8 +512,8 @@ function _renderBubble(text) {{
     var wrap = document.getElementById('gr-chat');
     var row  = document.createElement('div');
     var bub  = document.createElement('div');
-    bub.className   = 'gr-bubble-gr';
-    bub.textContent = _stripHandoffTags(text);
+    bub.className = 'gr-bubble-gr';
+    bub.innerHTML = _linkify(_stripHandoffTags(text));
     row.appendChild(bub);
     _renderHandoffBtns(text, row);
     wrap.appendChild(row);
@@ -572,13 +572,13 @@ function grSend() {{
         function read() {{
             return reader.read().then(function(res) {{
                 if (res.done) {{
-                    bubble.textContent = _stripHandoffTags(full);
+                    bubble.innerHTML = _linkify(_stripHandoffTags(full));
                     _renderHandoffBtns(full, bubble.parentNode);
                     _grHistory.push({{role:'assistant', content: full}});
                     return;
                 }}
                 full += decoder.decode(res.value, {{stream: true}});
-                bubble.textContent = _stripHandoffTags(full);
+                bubble.innerHTML = _linkify(_stripHandoffTags(full));
                 window.scrollTo(0, document.body.scrollHeight);
                 return read();
             }});
