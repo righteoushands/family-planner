@@ -430,7 +430,7 @@ def render_programs_page(focus: str = "", flash: str = "") -> str:
         </div>
       </div>
 
-      <h1 style="font-size:1.4em;color:{ACCENT};margin-bottom:4px;">Coach's programs</h1>
+      <h1 style="font-size:1.4em;color:{ACCENT};margin-bottom:4px;">Coach's Fitness Programs</h1>
       <div style="color:#777;font-size:.86em;margin-bottom:20px;">
         Long-form fitness plans Coach has written for the family, plus the weekly
         exercise schedule. Use the badges below to spot stale or duplicate programs.
@@ -447,7 +447,7 @@ def render_programs_page(focus: str = "", flash: str = "") -> str:
       </div>
 
       <h2 style="font-size:.95em;color:#444;margin:0 0 12px;text-transform:uppercase;
-                 letter-spacing:.05em;">Saved programs</h2>
+                 letter-spacing:.05em;">Saved Fitness Programs</h2>
       {sections}
 
       {debug_html}
@@ -455,4 +455,4 @@ def render_programs_page(focus: str = "", flash: str = "") -> str:
     {scroll_js}
     """
 
-    return html_page("Programs", body)
+    return html_page("Fitness Programs", body)
