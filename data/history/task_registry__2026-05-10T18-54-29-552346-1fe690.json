@@ -1091,8 +1091,7 @@
       "CHORE::KITCHEN (Evening — Role A):",
       "CHORE::Practice Piano for 15 minutes",
       "CHORE::Tidy basement zone — 10 minutes",
-      "MANUAL::MEDIUM::CAPTask: Wash the most used uniform of the month.",
-      "MANUAL::MEDIUM::Friday Penance: give up meat or make another sacrifice."
+      "MANUAL::MEDIUM::CAPTask: Wash the most used uniform of the month."
     ],
     "Joseph": [
       "CHORE::  → Clean sink",
@@ -1118,6 +1117,48 @@
       "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
       "CHORE::Tidy basement zone — 10 minutes"
     ],
-    "James": []
+    "James": [],
+    "Lauren": [
+      "MANUAL::MEDIUM::Add receipts to YNAB, including the giant receipts from the other day and all of the things in my blue book",
+      "MANUAL::MEDIUM::Bring flowers from garden for May Crowning",
+      "MANUAL::MEDIUM::Buy Mother's Day cards",
+      "MANUAL::MEDIUM::Buy caterpillars",
+      "MANUAL::MEDIUM::Buy garden bed supplies and lay cardboard",
+      "MANUAL::MEDIUM::Change air filters",
+      "MANUAL::MEDIUM::Check pollen forecast and decide bounce house location",
+      "MANUAL::MEDIUM::Close windows and set HVAC for pollen control",
+      "MANUAL::MEDIUM::Collect RSVPs and follow up with non-responders",
+      "MANUAL::MEDIUM::Complete JP's Confirmation outfit",
+      "MANUAL::MEDIUM::Consider bringing donations for Mary's Shelter (diapers, formula, wipes) to support the Baby Bottle Campaign.",
+      "MANUAL::MEDIUM::Ensure that James continues wearing hip shorts",
+      "MANUAL::MEDIUM::Family prayer night before Confirmation",
+      "MANUAL::MEDIUM::Final food preparation morning of reception",
+      "MANUAL::MEDIUM::Final house tidy and setup",
+      "MANUAL::MEDIUM::Follow up with John on lodging for the convention and add the boys to my registration and add classes",
+      "MANUAL::MEDIUM::Friday Penance: give up meat or make another sacrifice.",
+      "MANUAL::MEDIUM::Get family dressed for Confirmation",
+      "MANUAL::MEDIUM::Keep a lawn care log to track what products were used and when, making next year's planning easier.",
+      "MANUAL::MEDIUM::Main grocery run for reception",
+      "MANUAL::MEDIUM::Make jambalaya the night before",
+      "MANUAL::MEDIUM::Mix amendments and layer on garden bed",
+      "MANUAL::MEDIUM::Morning family prayer for JP on Confirmation day",
+      "MANUAL::MEDIUM::Order JP's Confirmation cake",
+      "MANUAL::MEDIUM::Partial food prep the night before",
+      "MANUAL::MEDIUM::Pick up JP's Confirmation cake",
+      "MANUAL::MEDIUM::Place JP's wrapped gift for reveal moment",
+      "MANUAL::MEDIUM::Plan James's nap schedule for Confirmation day",
+      "MANUAL::MEDIUM::Plan pollen-control strategy",
+      "MANUAL::MEDIUM::Plant garden bed crops",
+      "MANUAL::MEDIUM::Prepare Michael for Confirmation Mass",
+      "MANUAL::MEDIUM::Put the spiritual bouquet promises into my to-do list",
+      "MANUAL::MEDIUM::Send Easter thank you card",
+      "MANUAL::MEDIUM::Set up a simple rain gauge to track weekly rainfall amounts during summer to optimize watering schedule.",
+      "MANUAL::MEDIUM::Set up bounce house in chosen location",
+      "MANUAL::MEDIUM::Set up postpartum workout tracking log",
+      "MANUAL::MEDIUM::Shampoo the sofas",
+      "MANUAL::MEDIUM::Sign Michael up for swim lessons",
+      "MANUAL::MEDIUM::Take JP to shop for Confirmation suit",
+      "MANUAL::MEDIUM::family walk on May 16 morning as a specific time block to ensure it happens before getting dressed for Mass."
+    ]
   }
 }

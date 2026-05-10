@@ -370,6 +370,12 @@ def _build_mobile_more_sheet_inner(viewer, is_child: bool) -> str:
                   color:#1a6e3e;font-weight:700;font-size:0.88em;">
           <span>&#128170;</span> Coach
         </a>
+        <a href="/programs" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:#eef7f1;border-radius:12px;text-decoration:none;
+                  color:#1a6e3e;font-weight:700;font-size:0.88em;">
+          <span>&#128170;</span> Fitness Programs
+        </a>
         <a href="/dr-monica" onclick="closeMobileMore()"
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;
                   background:#faf0f5;border-radius:12px;text-decoration:none;

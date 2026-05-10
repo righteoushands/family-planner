@@ -391,6 +391,23 @@ def render_coach_page(q: str = "", from_: str = "") -> str:
 
     _ho_js = handoff_js("COACH")
 
+    # JS helper: escape HTML then convert markdown [label](url) to <a> tags.
+    # Built as a regular (non-f) string so the regex backslashes don't violate
+    # claud rule #1 (no backslashes inside f-strings).
+    linkify_js = (
+        "function _coEscapeHTML(s){"
+        "  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')"
+        "    .replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;');"
+        "}"
+        "function _coLinkify(s){"
+        "  var esc=_coEscapeHTML(s);"
+        "  return esc.replace(/\\[([^\\]]+)\\]\\(([^)\\s]+)\\)/g, function(m,label,url){"
+        "    if(!/^(\\/|https?:\\/\\/)/.test(url)) return m;"
+        "    return '<a href=\"'+url+'\" style=\"color:#1a6e3e;text-decoration:underline;font-weight:600;\">'+label+'</a>';"
+        "  });"
+        "}"
+    )
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -486,6 +503,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 var _coHistory = {history_js};
 var _coIso     = {_ej(iso)};
 {_ho_js}
+{linkify_js}
 
 (function() {{
     for (var i = 0; i < _coHistory.length; i++) {{
@@ -500,8 +518,8 @@ function _coRenderBubble(text) {{
     var wrap = document.getElementById('co-chat');
     var row  = document.createElement('div');
     var bub  = document.createElement('div');
-    bub.className   = 'co-bubble-co';
-    bub.textContent = _stripHandoffTags(text);
+    bub.className = 'co-bubble-co';
+    bub.innerHTML = _coLinkify(_stripHandoffTags(text));
     row.appendChild(bub);
     _renderHandoffBtns(text, row);
     wrap.appendChild(row);
@@ -556,13 +574,13 @@ function coachSend() {{
         function read() {{
             return reader.read().then(function(res) {{
                 if (res.done) {{
-                    bubble.textContent = _stripHandoffTags(full);
+                    bubble.innerHTML = _coLinkify(_stripHandoffTags(full));
                     _renderHandoffBtns(full, bubble.parentNode);
                     _coHistory.push({{role:'assistant', content: full}});
                     return;
                 }}
                 full += decoder.decode(res.value, {{stream: true}});
-                bubble.textContent = _stripHandoffTags(full);
+                bubble.innerHTML = _coLinkify(_stripHandoffTags(full));
                 window.scrollTo(0, document.body.scrollHeight);
                 return read();
             }});
