@@ -1,31 +1,9 @@
 {
   "events": [
     {
-      "title": "Joseph Aaron Calimger birthday! (2020)",
-      "start": "2026-05-09",
-      "end": "2026-05-09",
-      "all_day": true,
-      "location": "",
-      "notes": "29pm eastern weighing 5lb 6oz, 19 inches long!",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "USNSCC Pentagon Division - May Drill (#1)",
-      "start": "2026-05-09T07:30",
-      "end": "2026-05-09T15:30",
-      "all_day": false,
-      "location": "Chapel Annex, Dahlgren",
-      "notes": "30 AM (Eastern Time (US & Cana",
-      "calendar": "USNSCC Pentagon Division (JP & Joe)",
-      "color": "#e74c3c",
-      "source": "subscribed"
-    },
-    {
       "title": "John's class",
-      "start": "2026-05-09T08:00",
-      "end": "2026-05-09T17:00",
+      "start": "2026-05-10T08:00",
+      "end": "2026-05-10T17:00",
       "all_day": false,
       "location": "",
       "notes": "",
@@ -283,6 +261,17 @@
       "location": "",
       "notes": "",
       "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "Pickup Wegmans Cake and Pizza. order - 61300413598",
+      "start": "2026-05-16T10:15",
+      "end": "2026-05-16T11:15",
+      "all_day": false,
+      "location": "2281 Carl D. Silver Parkway\\nFredericksburg, Virginia 22401",
+      "notes": "",
+      "calendar": "Apple Calendar",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -657,6 +646,17 @@
       "location": "Hidden Falls Venue 20147 AR-72 Gravette, AR 72736",
       "notes": "",
       "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "book burn (schedule it!)",
+      "start": "2026-05-29",
+      "end": "2026-05-29",
+      "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Apple Calendar",
       "color": "#9b59b6",
       "source": "subscribed"
     },
@@ -1684,5 +1684,5 @@
       "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-05-09T10:46:32.238626"
+  "fetched_at": "2026-05-10T18:32:24.738681"
 }

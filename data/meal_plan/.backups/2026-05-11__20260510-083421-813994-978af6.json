@@ -1,0 +1,94 @@
+{
+  "start": "2026-05-11",
+  "week": "2026-05-11",
+  "generated": false,
+  "days": {
+    "Monday": {
+      "breakfast": "Scrambled eggs + toast",
+      "lunch": "Lentil soup + crusty bread",
+      "dinner": "Beef pot roast (slow-cooker)",
+      "dessert": "",
+      "snacks": "Fruit, cheese",
+      "dad_lunch": "Lentil soup thermos + fruit",
+      "helpers": "JP starts roast in morning; Joseph preps vegetables; Michael washes potatoes",
+      "prep_time": "20 minutes",
+      "cook_time": "3 hours",
+      "serve_time": "6:00 PM"
+    },
+    "Tuesday": {
+      "breakfast": "Overnight oats",
+      "lunch": "Shredded split breasts + rice or salad",
+      "dinner": "Leftovers",
+      "dessert": "",
+      "snacks": "Fruit, popcorn",
+      "dad_lunch": "Thermos of leftovers",
+      "helpers": "JP reheats; Joseph assembles; Michael sets table",
+      "prep_time": "10 minutes",
+      "cook_time": "15 minutes",
+      "serve_time": "18:00"
+    },
+    "Wednesday": {
+      "breakfast": "Cereal + fruit",
+      "lunch": "Shredded split breasts + salad or sandwich",
+      "dinner": "Spaghetti + meat sauce + salad",
+      "dessert": "",
+      "snacks": "Cheese, crackers",
+      "dad_lunch": "Leftover split breast + rice + fruit",
+      "helpers": "JP leads meat sauce; Joseph boils pasta; Michael sets table",
+      "prep_time": "15 minutes",
+      "cook_time": "20 minutes",
+      "serve_time": "5:45 PM"
+    },
+    "Thursday": {
+      "breakfast": "Scrambled eggs + toast",
+      "lunch": "Chicken fried rice",
+      "dinner": "Beef pot roast (Instant Pot or slow-cooker)",
+      "dessert": "",
+      "snacks": "Fruit, yogurt",
+      "dad_lunch": "Fried rice leftovers + fruit",
+      "helpers": "JP preps roast in morning; Joseph assists; Michael stirs",
+      "prep_time": "15 minutes",
+      "cook_time": "180 minutes",
+      "serve_time": "18:00"
+    },
+    "Friday": {
+      "breakfast": "Oatmeal + fruit",
+      "lunch": "Sardine sandwiches + fruit + cheese",
+      "dinner": "Fried flounder + rice + steamed broccoli + pizza sticks",
+      "dessert": "",
+      "snacks": "Fruit, popcorn",
+      "dad_lunch": "Sardine sandwich + fruit + cheese",
+      "helpers": "JP leads flounder breading + frying; Joseph preps rice; Michael pours drinks",
+      "prep_time": "15 minutes (soak)",
+      "cook_time": "30 minutes",
+      "serve_time": "18:00"
+    },
+    "Saturday": {
+      "breakfast": "",
+      "lunch": "Leftover catfish",
+      "dinner": "Black-Eyed Pea Jambalaya with smoked sausage, fresh chicken breasts, bell peppers, and rice",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": "",
+      "helpers": "JP leads sausage and chicken prep — Joseph chops peppers — Michael stirs the pot",
+      "prep_time": "10 minutes",
+      "cook_time": "5 minutes"
+    },
+    "Sunday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "Reheated split breasts + leftover roasted vegetables + steamed broccoli, carrots, green beans (James soft option)",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": "",
+      "helpers": "JP reheats split breasts; Joseph steams vegetables for James; Michael sets table",
+      "prep_time": "10 minutes",
+      "cook_time": "15 minutes",
+      "serve_time": "18:00"
+    }
+  },
+  "unscheduled": [
+    "Tomato soup",
+    "Lentil soup"
+  ]
+}

@@ -2,36 +2,6 @@
   "messages": [
     {
       "role": "user",
-      "content": "Fantastic",
-      "ts": "2026-04-12T16:19:06"
-    },
-    {
-      "role": "assistant",
-      "content": "**Excellent.**\n\nYou're all set. Boys know what's coming Monday. Lauren has her plan. Everyone's on the same page.\n\nEnjoy the rest of your Sunday. See you **Saturday, April 19 at 9:30 AM** for the first check-in — we'll review the logs, see how week one went, and I'll have the full 12-week progression details ready to walk through with you.\n\n**One last thing:** Make sure the boys hydrate with electrolytes by **10:00 AM Monday** before the 11 AM run.\n\n💪",
-      "ts": "2026-04-12T16:19:08"
-    },
-    {
-      "role": "user",
-      "content": "Can you put that in their POD at 10am or one hour before workouts? In my pod too",
-      "ts": "2026-04-12T16:20:07"
-    },
-    {
-      "role": "assistant",
-      "content": "**Done.**\n\nAdding to everyone's POD:\n\n✓ **Lauren's POD:** 10:00 AM Sunday (and 1 hour before each workout)  \n✓ **JP's POD:** 10:00 AM Sunday (and 1 hour before each workout)  \n✓ **Joseph's POD:** 10:00 AM Sunday (and 1 hour before each workout)  \n✓ **Michael's POD:** 10:00 AM Sunday (and 1 hour before each workout)\n\n**Reminder text:** \"Hydrate with water + electrolytes (1 hour before workout)\"\n\nThis repeats for **Monday, Wednesday, Friday, and Saturday** workouts — always 1 hour prior.\n\nYou're locked in.",
-      "ts": "2026-04-12T16:20:08"
-    },
-    {
-      "role": "user",
-      "content": "Excellent",
-      "ts": "2026-04-12T16:20:42"
-    },
-    {
-      "role": "assistant",
-      "content": "**Perfect timing — you're in the sweet spot of your follicular phase.** Energy rising, great window for planning and tackling the week ahead. You just locked in a solid fitness framework for the whole family.\n\n**Enjoy the rest of your Sunday.** Boys are set for Monday. Lauren's plan is ready. Everyone knows the protocol.\n\nSee you Saturday, 9:30 AM. 💪",
-      "ts": "2026-04-12T16:20:44"
-    },
-    {
-      "role": "user",
       "content": "Do you have an exercise plan for Joseph? Nothing is showing up for today’s POD",
       "ts": "2026-04-17T08:07:41"
     },
@@ -299,6 +269,36 @@
       "role": "assistant",
       "content": "**Father Gregory:** The novena structure is spiritually excellent for JP's Confirmation preparation, and the 7:00 AM timing establishes a beautiful discipline. However, I notice May 9th conflicts with the Crowning of the Blessed Mother—this is a significant Marian devotion we shouldn't minimize. I'd suggest either shifting the novena prayer earlier that morning or incorporating both intentions together, as Mary's intercession beautifully complements the Holy Spirit's gifts.\n\n**Lorenzo:** A 7:00 AM prayer commitment for nine days straight means breakfast timing needs consideration—Lauren and JP will need something quick and nourishing either before or immediately after. I'd recommend prepping overnight oats or egg muffins the night before so there's no friction. Also, Mother's Day falls on Day 5—I'd hate for the novena to feel rushed when we should be celebrating Lauren.\n\n**Coach:** Nine consecutive early mornings is a real commitment, especially for a 14-year-old. I'd ensure JP isn't staying up late the nights before, or this could backfire by Day 6 or 7 with fatigue and resentment. Perhaps a short walk together after the novena could help both Lauren and JP wake up fully and transition into the school day.\n\n**Dr. Monica:** Michael and James aren't included in these events, which is appropriate—James especially needs consistent morning routines at 13 months. Just ensure whoever is supervising the little ones during the 7:00 AM prayer is clearly designated, whether that's John or a contained safe play setup. Predictability for James matters more than inclusion right now.\n\n**Lucy's Synthesis:** Lauren, this novena is a gift you're giving JP—don't second-guess that. The two conflicts need addressing though: on May 9th, weave the Crowning into your novena time or move prayer to 6:45 AM, and on Mother's Day, let John handle the breakfast prep while you and JP still honor the novena, perhaps making it a bit simpler or shorter that morning so you can transition into celebration mode. Make sure John knows he's on little-one duty at 7:00 AM each day. Consider prepping a few grab-and-go breakfasts this weekend, and have a brief conversation with JP tonight about protecting his sleep this week. You're not missing anything essential—just smooth these two rough edges and you're set.",
       "ts": "2026-05-06T17:30:40"
+    },
+    {
+      "role": "user",
+      "content": "There are two fitness programs on the calendar. I think one is a mistake",
+      "ts": "2026-05-10T18:33:32"
+    },
+    {
+      "role": "assistant",
+      "content": "You're right to flag that — **tell me which two programs you're seeing, and I'll sort it out.**\n\nAre you looking at your POD calendar, or the Programs page itself? And what are the titles of the two programs showing up?",
+      "ts": "2026-05-10T18:33:34"
+    },
+    {
+      "role": "user",
+      "content": "What program page?",
+      "ts": "2026-05-10T18:33:50"
+    },
+    {
+      "role": "assistant",
+      "content": "**Fair point.** There is no program page link on your POD yet — Izzy hasn't built that yet.\n\nSo when you say you're seeing two fitness programs on the calendar — **where exactly are you looking?** On your Sunday POD itself? In the Exercise block?\n\nIf you can point me to what you're seeing, I can tell you which one to keep and which one to remove.",
+      "ts": "2026-05-10T18:33:52"
+    },
+    {
+      "role": "user",
+      "content": "Ask Izzy for a program page and about the two blocks I’m seeing in the calendar",
+      "ts": "2026-05-10T18:34:37"
+    },
+    {
+      "role": "assistant",
+      "content": "[IZZY]Lauren is seeing two fitness programs showing up in her calendar and suspects one might be a duplicate or mistake. Can you (1) build her a dedicated Programs page so she can view and manage all saved programs in one place, and (2) help her identify which two programs are appearing on her calendar so we can remove the erroneous one?[/IZZY]\n\n**In the meantime:** Don't worry about it tonight. You're at 6:34 PM on a Sunday — wind-down time. We'll sort the duplicate first thing tomorrow and make sure your calendar is clean and accurate.",
+      "ts": "2026-05-10T18:34:39"
     }
   ]
 }

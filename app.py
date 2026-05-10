@@ -6093,6 +6093,34 @@ class Handler(BaseHTTPRequestHandler):
                 _dcp(person, pid)
                 redirect = "/programs?focus=" + _q(person) + "&msg=" + _q("Deleted.")
 
+            elif path == "/programs-edit":
+                from data_helpers import load_coach_programs, safe_save_json
+                from config import COACH_PROGRAMS_FILE as _CPF
+                from datetime import datetime as _dt
+                from urllib.parse import quote as _q
+                person  = clean_text(data.get("person",[""])[0])
+                pid     = clean_text(data.get("id",[""])[0])
+                title_t = clean_text(data.get("title",[""])[0])
+                body_t  = (data.get("body",[""])[0] or "").strip()
+                _store  = load_coach_programs() or {}
+                _bucket = _store.get(person, []) or []
+                _hit    = None
+                for _p in _bucket:
+                    if _p.get("id") == pid:
+                        if title_t:
+                            _p["title"] = title_t
+                        if body_t:
+                            _p["body"] = body_t
+                        _p["saved_at"] = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                        _hit = _p
+                        break
+                if _hit is not None:
+                    _store[person] = _bucket
+                    safe_save_json(_CPF, _store)
+                    redirect = "/programs?focus=" + _q(person) + "&msg=" + _q(f"Updated \u201c{_hit.get('title','')}\u201d.")
+                else:
+                    redirect = "/programs?focus=" + _q(person) + "&msg=" + _q("Program not found.")
+
             # ── Felix (Dev companion) ─────────────────────────────────────────
             elif path == "/dev-chat":
                 import json as _json, urllib.request as _req

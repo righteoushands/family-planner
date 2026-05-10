@@ -2847,5 +2847,36 @@
         }
       ]
     }
+  },
+  {
+    "id": "c4106cdcfe33",
+    "created_at": "2026-05-10T14:25:49Z",
+    "viewer": "lauren",
+    "source": "live",
+    "plan_text": "https://www.facebook.com/share/r/18j8Dfq6hG/?mibextid=wwXIfr",
+    "analysis": {
+      "events": [],
+      "tasks": [],
+      "questions": [
+        {
+          "id": "q1",
+          "text": "The provided content is a Facebook share link. Could you please copy and paste the actual text content of the plan that needs to be parsed?",
+          "related_to": null,
+          "field": "content"
+        }
+      ],
+      "warnings": [],
+      "suggestions": [],
+      "placements": [],
+      "_companions": [
+        {
+          "key": "lucy",
+          "label": "Lucy",
+          "color": "#5b3a8a",
+          "emoji": "✨",
+          "role": "Family Companion"
+        }
+      ]
+    }
   }
 ]
