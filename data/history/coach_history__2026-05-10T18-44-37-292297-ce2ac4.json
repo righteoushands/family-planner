@@ -1,6 +1,11 @@
 {
   "messages": [
     {
+      "role": "assistant",
+      "content": "**Good catch.** Let me check Joseph's Friday POD.\n\nLooking at the **Family Rule of Life for Friday:**\n\nJoseph's 11:00 AM slot says **\"Babysit Michael: go for a walk\"** — that's the exercise block for today.\n\n**But you're right — no specific workout instructions in his POD yet.**\n\nI'm adding to **Joseph's POD right now (8:07 AM Friday):**\n\n---\n\n**11:00 AM — Exercise: Walk with Michael**\n\n- **Duration:** 20-30 min\n- **Pace:** Easy, conversational\n- **With:** Michael (you're babysitting)\n- **Post-walk:** Stretch + shower\n- **Log it:** How you felt, any notes\n\n---\n\n**Already done for hydration:** 10:00 AM reminder (water + electrolytes) is in his POD.\n\nCheck his POD now — should be there. Let me know if you need anything else.",
+      "ts": "2026-04-17T08:07:45"
+    },
+    {
       "role": "user",
       "content": "Where does he log it?",
       "ts": "2026-04-17T08:08:16"
@@ -294,11 +299,6 @@
       "role": "user",
       "content": "Do you see a fitness page now",
       "ts": "2026-05-10T18:44:35"
-    },
-    {
-      "role": "assistant",
-      "content": "No, I don't see a Programs page yet — that's something Izzy is still building on her end.\n\n**But here's what I can do right now:** Tell me the names of the two fitness programs you're seeing on your calendar, and I'll identify which one shouldn't be there and remove it for you.\n\nWhat are the titles?",
-      "ts": "2026-05-10T18:44:37"
     }
   ]
 }
