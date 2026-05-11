@@ -2,8 +2,13 @@
 render_calendar.py — Calendar fetching, event display, calendar page.
 Imports from: config, data_helpers, ui_helpers
 """
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from html import escape
+import urllib.request
+import urllib.error
+import base64
+import re
+import uuid
 
 from safe_utils import debug_log
 from data_helpers import (
@@ -20,6 +25,12 @@ from ui_helpers import html_page, page_header, render_status_message
 # Prevents duplicate background fetches when multiple threads hit a stale cache.
 _CALDAV_REFRESHING   = False
 _SUBSCRIBED_REFRESHING = False
+
+# ── CalDAV write: format constants (extracted to avoid nested quotes in f-strings) ──
+_ICAL_DATE_FMT = "%Y%m%d"
+_ICAL_DT_FMT   = "%Y%m%dT%H%M%S"
+_ICAL_UTC_FMT  = "%Y%m%dT%H%M%SZ"
+_APP_DATE_FMT  = "%Y-%m-%d"
 
 
 # ── CalDAV ────────────────────────────────────────────────────────────────────
@@ -102,6 +113,295 @@ def fetch_caldav_events(apple_id: str, app_password: str, days_ahead: int = 14) 
     except Exception as e:
         debug_log("CalDAV fetch failed:", str(e))
         return []
+
+
+def get_or_create_family_calendar(base_url: str, auth_header: str) -> str | None:
+    """
+    Find a calendar named 'Family' on iCloud CalDAV; create one via MKCALENDAR
+    if it does not exist. Caches the URL in calendar_config.json under
+    family_calendar_url so discovery only runs once. Returns None on any failure
+    so callers can degrade gracefully.
+    """
+    try:
+        cfg = load_calendar_config()
+        cached = (cfg.get("family_calendar_url") or "").strip()
+        if cached:
+            return cached
+
+        propfind_headers = {
+            "Authorization": auth_header,
+            "Content-Type": "application/xml; charset=utf-8",
+            "Depth": "0",
+        }
+        def _abs(href):
+            href = href.strip()
+            return href if href.startswith("http") else f"{base_url}{href}"
+
+        # 1. current-user-principal
+        req = urllib.request.Request(
+            f"{base_url}/",
+            data=b'<?xml version="1.0"?><D:propfind xmlns:D="DAV:"><D:prop><D:current-user-principal/></D:prop></D:propfind>',
+            headers=propfind_headers, method="PROPFIND")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            principal_xml = resp.read().decode()
+        pm = re.search(r"current-user-principal[^<]*<(?:D:)?href[^>]*>((?:https?://|/)[^<]+)</(?:D:)?href>", principal_xml, re.DOTALL)
+        if not pm:
+            return None
+        principal_url = _abs(pm.group(1))
+
+        # 2. calendar-home-set
+        req = urllib.request.Request(
+            principal_url,
+            data=b'<?xml version="1.0"?><D:propfind xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav"><D:prop><C:calendar-home-set/></D:prop></D:propfind>',
+            headers=propfind_headers, method="PROPFIND")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            home_xml = resp.read().decode()
+        hm = re.search(r"calendar-home-set.*?<(?:D:)?href[^>]*>((?:https?://|/)[^<]+)</(?:D:)?href>", home_xml, re.DOTALL)
+        if not hm:
+            return None
+        home_url = _abs(hm.group(1))
+        if not home_url.endswith("/"):
+            home_url += "/"
+
+        # 3. List calendars at home (Depth:1), look for displayname == 'Family'
+        list_headers = {
+            "Authorization": auth_header,
+            "Content-Type": "application/xml; charset=utf-8",
+            "Depth": "1",
+        }
+        req = urllib.request.Request(
+            home_url,
+            data=b'<?xml version="1.0"?><D:propfind xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav"><D:prop><D:displayname/><C:supported-calendar-component-set/></D:prop></D:propfind>',
+            headers=list_headers, method="PROPFIND")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            list_xml = resp.read().decode()
+        for resp_block in re.findall(r"<(?:D:)?response\b[\s\S]*?</(?:D:)?response>", list_xml):
+            href_m = re.search(r"<(?:D:)?href[^>]*>((?:https?://|/)[^<]+)</(?:D:)?href>", resp_block)
+            name_m = re.search(r"<(?:D:)?displayname[^>]*>([^<]*)</(?:D:)?displayname>", resp_block)
+            if not (href_m and name_m):
+                continue
+            if name_m.group(1).strip() == "Family":
+                found = _abs(href_m.group(1))
+                if not found.endswith("/"):
+                    found += "/"
+                cfg["family_calendar_url"] = found
+                save_calendar_config(cfg)
+                debug_log("CalDAV: found existing Family calendar at", found)
+                return found
+
+        # 4. Not found — create via MKCALENDAR
+        new_path = home_url + "family-" + uuid.uuid4().hex[:8] + "/"
+        mk_body = (
+            b'<?xml version="1.0" encoding="utf-8" ?>'
+            b'<C:mkcalendar xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">'
+            b'<D:set><D:prop>'
+            b'<D:displayname>Family</D:displayname>'
+            b'<C:supported-calendar-component-set><C:comp name="VEVENT"/></C:supported-calendar-component-set>'
+            b'</D:prop></D:set></C:mkcalendar>'
+        )
+        mk_headers = {
+            "Authorization": auth_header,
+            "Content-Type": "application/xml; charset=utf-8",
+        }
+        req = urllib.request.Request(new_path, data=mk_body, headers=mk_headers, method="MKCALENDAR")
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                if resp.status not in (200, 201, 207):
+                    debug_log("CalDAV MKCALENDAR unexpected status:", resp.status)
+                    return None
+        except urllib.error.HTTPError as he:
+            if he.code not in (200, 201, 207):
+                debug_log("CalDAV MKCALENDAR HTTPError:", he.code, he.reason)
+                return None
+        cfg["family_calendar_url"] = new_path
+        save_calendar_config(cfg)
+        debug_log("CalDAV: created new Family calendar at", new_path)
+        return new_path
+    except Exception as e:
+        debug_log("get_or_create_family_calendar failed:", str(e))
+        return None
+
+
+def _ical_escape(s: str) -> str:
+    """RFC 5545 text-value escaping: backslash, semicolon, comma, newlines."""
+    return (s.replace("\\", "\\\\")
+             .replace(";", "\\;")
+             .replace(",", "\\,")
+             .replace("\r\n", "\\n")
+             .replace("\n", "\\n")
+             .replace("\r", "\\n"))
+
+
+def _parse_app_time(t: str):
+    """Parse an app time string like '10:30 AM' or '14:30' to a datetime.time, or None."""
+    t = (t or "").strip().upper().replace(".", "")
+    if not t:
+        return None
+    for fmt in ("%I:%M %p", "%I %p", "%H:%M"):
+        try:
+            return datetime.strptime(t, fmt).time()
+        except Exception:
+            continue
+    return None
+
+
+def _invalidate_family_calendar_cache() -> None:
+    """Drop cached family_calendar_url so the next call rediscovers/recreates it."""
+    try:
+        cfg = load_calendar_config()
+        if cfg.get("family_calendar_url"):
+            cfg.pop("family_calendar_url", None)
+            save_calendar_config(cfg)
+            debug_log("CalDAV: cleared stale family_calendar_url cache")
+    except Exception as e:
+        debug_log("_invalidate_family_calendar_cache failed:", str(e))
+
+
+def write_caldav_event(event_dict: dict) -> bool:
+    """
+    Mirror an app event dict (from data/events.json) to iCloud CalDAV as a VEVENT
+    in the 'Family' calendar. Returns True on 2xx PUT, False otherwise. Never
+    raises — callers should always wrap in their own try/except for safety, but
+    this function is internally guarded.
+
+    On stale-cache failure (404/410 — Family calendar deleted/renamed in iCloud
+    after the URL was cached) the cache is invalidated and the call retried once.
+    """
+    try:
+        cfg = load_calendar_config()
+        apple_id = (cfg.get("apple_id") or "").strip()
+        app_pw   = (cfg.get("app_password") or "").strip()
+        if not apple_id or not app_pw:
+            debug_log("write_caldav_event: missing apple_id or app_password")
+            return False
+        base_url = "https://caldav.icloud.com"
+        creds = base64.b64encode(f"{apple_id}:{app_pw}".encode()).decode()
+        auth_header = f"Basic {creds}"
+
+        cal_url = get_or_create_family_calendar(base_url, auth_header)
+        if not cal_url:
+            return False
+
+        uid_raw = str(event_dict.get("id") or ("evt_" + uuid.uuid4().hex[:8])).strip()
+        # iCal UID safety: keep only safe ascii chars
+        uid = re.sub(r"[^A-Za-z0-9_\-]", "", uid_raw) or ("evt_" + uuid.uuid4().hex[:8])
+        title = str(event_dict.get("title") or "Untitled").strip() or "Untitled"
+        notes = str(event_dict.get("notes") or "").strip()
+        sdate = str(event_dict.get("start_date") or "").strip()
+        edate = str(event_dict.get("end_date") or sdate).strip() or sdate
+        stime = str(event_dict.get("start_time") or "").strip()
+        etime = str(event_dict.get("end_time") or "").strip()
+        if not sdate:
+            debug_log("write_caldav_event: missing start_date")
+            return False
+
+        try:
+            d_start = datetime.strptime(sdate, _APP_DATE_FMT).date()
+        except Exception:
+            debug_log("write_caldav_event: bad start_date format:", sdate)
+            return False
+        try:
+            d_end = datetime.strptime(edate, _APP_DATE_FMT).date() if edate else d_start
+        except Exception:
+            d_end = d_start
+
+        dt_lines = []
+        if not stime:
+            # All-day: DTEND is exclusive in iCal, so add one day to the inclusive end
+            d_end_excl = d_end + timedelta(days=1)
+            ds = d_start.strftime(_ICAL_DATE_FMT)
+            de = d_end_excl.strftime(_ICAL_DATE_FMT)
+            dt_lines.append(f"DTSTART;VALUE=DATE:{ds}")
+            dt_lines.append(f"DTEND;VALUE=DATE:{de}")
+        else:
+            ts = _parse_app_time(stime)
+            if ts is None:
+                debug_log("write_caldav_event: unparseable start_time:", stime)
+                return False
+            sdt = datetime.combine(d_start, ts)
+            te = _parse_app_time(etime) if etime else None
+            if te is not None:
+                edt = datetime.combine(d_end, te)
+                if edt <= sdt:
+                    edt = sdt + timedelta(hours=1)
+            else:
+                edt = sdt + timedelta(hours=1)
+            tzid = "America/New_York"
+            sds = sdt.strftime(_ICAL_DT_FMT)
+            eds = edt.strftime(_ICAL_DT_FMT)
+            dt_lines.append(f"DTSTART;TZID={tzid}:{sds}")
+            dt_lines.append(f"DTEND;TZID={tzid}:{eds}")
+
+        dtstamp = datetime.utcnow().strftime(_ICAL_UTC_FMT)
+        ical_lines = [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//Sancta Familia//Family Quest//EN",
+            "CALSCALE:GREGORIAN",
+            "BEGIN:VEVENT",
+            f"UID:{uid}@sancta-familia",
+            f"DTSTAMP:{dtstamp}",
+            f"SUMMARY:{_ical_escape(title)}",
+        ]
+        ical_lines.extend(dt_lines)
+        if notes:
+            ical_lines.append(f"DESCRIPTION:{_ical_escape(notes)}")
+        ical_lines.append("END:VEVENT")
+        ical_lines.append("END:VCALENDAR")
+        body = ("\r\n".join(ical_lines) + "\r\n").encode("utf-8")
+
+        put_url = cal_url + uid + ".ics"
+        put_headers = {
+            "Authorization": auth_header,
+            "Content-Type": "text/calendar; charset=utf-8",
+            "If-None-Match": "*",
+        }
+        req = urllib.request.Request(put_url, data=body, headers=put_headers, method="PUT")
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                ok = 200 <= resp.status < 300
+                if ok:
+                    debug_log("CalDAV PUT ok:", put_url, resp.status)
+                else:
+                    debug_log("CalDAV PUT non-2xx:", put_url, resp.status)
+                return ok
+        except urllib.error.HTTPError as he:
+            # 412 = If-None-Match precondition failed (UID already mirrored).
+            # Semantically a no-op success, but we return True so callers don't
+            # treat it as a failure / retry storm.
+            if he.code == 412:
+                debug_log("CalDAV PUT 412 (UID already exists, no-op):", put_url)
+                return True
+            # 404 / 410 / 403 = Family calendar was deleted, renamed, or its URL
+            # rotated in iCloud after we cached it. Invalidate cache and retry
+            # ONCE through full discovery + (if needed) MKCALENDAR.
+            if he.code in (403, 404, 410):
+                debug_log("CalDAV PUT", he.code, "stale cache — rediscovering:", put_url)
+                _invalidate_family_calendar_cache()
+                fresh_cal = get_or_create_family_calendar(base_url, auth_header)
+                if not fresh_cal or fresh_cal == cal_url:
+                    debug_log("CalDAV self-heal failed: no fresh calendar URL")
+                    return False
+                retry_url = fresh_cal + uid + ".ics"
+                retry_req = urllib.request.Request(retry_url, data=body, headers=put_headers, method="PUT")
+                try:
+                    with urllib.request.urlopen(retry_req, timeout=10) as r2:
+                        ok2 = 200 <= r2.status < 300
+                        debug_log("CalDAV PUT retry status:", r2.status, retry_url)
+                        return ok2
+                except urllib.error.HTTPError as he2:
+                    if he2.code == 412:
+                        return True
+                    debug_log("CalDAV PUT retry HTTPError:", he2.code, he2.reason, retry_url)
+                    return False
+                except Exception as e2:
+                    debug_log("CalDAV PUT retry failed:", str(e2))
+                    return False
+            debug_log("CalDAV PUT HTTPError:", he.code, he.reason, put_url)
+            return False
+    except Exception as e:
+        debug_log("write_caldav_event failed:", str(e))
+        return False
 
 
 def _do_refresh_calendar():

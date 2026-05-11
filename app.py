@@ -230,7 +230,7 @@ from ui_helpers import parse_urlencoded_body, parse_multipart_form
 from render_schedule import render_child_schedule, render_today_all, render_week, render_print_day, render_print_week, render_print_child_day_list
 from render_week_view import render_week_view
 from render_schedule_support import generate_half_hour_times, render_family_schedule_page
-from render_calendar import render_calendar_page, refresh_calendar
+from render_calendar import render_calendar_page, refresh_calendar, write_caldav_event
 from render_liturgical import render_liturgical_page, render_liturgical_edit_page
 from render_readings import render_readings_page
 from render_lucy import render_lucy_page, build_lucy_context
@@ -5085,6 +5085,11 @@ class Handler(BaseHTTPRequestHandler):
                         _edata.setdefault("data", []).append(_new_ev)
                         _edata["updated_at"] = iso
                         safe_save_json(_EVENTS_FILE, _edata)
+                        # Mirror to iCloud CalDAV (Family calendar). iCloud failure must never block local save.
+                        try:
+                            write_caldav_event(_new_ev)
+                        except Exception:
+                            pass
                         _ev_markers += f"\n[EVENT_ADDED:{_evtitle}:{_evdate}]"
                     except Exception as _eve:
                         _ev_markers += f"\n(Event add error: {_eve})"
@@ -7342,6 +7347,15 @@ class Handler(BaseHTTPRequestHandler):
                             })
                         _aievdata["updated_at"] = _today_ai
                         safe_save_json("data/events.json", _aievdata)
+                        # Mirror just-added events to iCloud CalDAV (Family calendar).
+                        # events_added excludes duplicates (skip path uses `continue` before increment),
+                        # so the last N entries in data are exactly the ones we just appended.
+                        if events_added > 0:
+                            for _mev in (_aievdata.get("data") or [])[-events_added:]:
+                                try:
+                                    write_caldav_event(_mev)
+                                except Exception:
+                                    pass
                     except Exception as _aieve:
                         pass
                 # Write tasks

@@ -1,32 +1,21 @@
 {
   "events": [
     {
-      "title": "John's class",
-      "start": "2026-05-10T08:00",
-      "end": "2026-05-10T17:00",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
-      "title": "Pops death 5/10/2012",
-      "start": "2026-05-10T09:30",
-      "end": "2026-05-10T10:30",
-      "all_day": false,
-      "location": "",
-      "notes": "",
-      "calendar": "Lauren's Proton Mail",
-      "color": "#9b59b6",
-      "source": "subscribed"
-    },
-    {
       "title": "RBM Memorial Mass",
       "start": "2026-05-11",
       "end": "2026-05-11",
       "all_day": true,
+      "location": "",
+      "notes": "",
+      "calendar": "Lauren's Proton Mail",
+      "color": "#9b59b6",
+      "source": "subscribed"
+    },
+    {
+      "title": "John's class",
+      "start": "2026-05-11T08:00",
+      "end": "2026-05-11T17:00",
+      "all_day": false,
       "location": "",
       "notes": "",
       "calendar": "Lauren's Proton Mail",
@@ -1682,7 +1671,18 @@
       "calendar": "Apple Calendar",
       "color": "#9b59b6",
       "source": "subscribed"
+    },
+    {
+      "title": "Elena Sutphin",
+      "start": "2026-07-10T10:30",
+      "end": "2026-07-10T11:30",
+      "all_day": false,
+      "location": "1955 Emancipation Hwy Ste 100 Fredericksburg VA-22401-6226",
+      "notes": "Appointment with Elena Sutphin at 1955 Emancipation Hwy Ste 1",
+      "calendar": "Apple Calendar",
+      "color": "#9b59b6",
+      "source": "subscribed"
     }
   ],
-  "fetched_at": "2026-05-10T18:32:24.738681"
+  "fetched_at": "2026-05-11T08:48:03.337536"
 }
