@@ -2070,6 +2070,31 @@ def render_mom_page(status_message: str = "", target_date_str: str = "") -> str:
     mode_mode       = escape(anchor.get("mode","Home") + " mode")
     day_nav         = render_day_nav("/mom", iso)
 
+    # ── "Set Monday's Lessons" CTA — only on Fridays and Mondays ─────────────
+    # Friday = prep next week; Monday = finalize today/this week. Placed above
+    # the print row so it is immediately visible on Lauren's POD.
+    set_lessons_cta_html = ""
+    if target_date.weekday() in (0, 4):
+        _cta_label = (
+            "Set this week's lessons"
+            if target_date.weekday() == 0
+            else "Set Monday's lessons"
+        )
+        set_lessons_cta_html = (
+            '<a href="/curriculum" '
+            'style="display:flex;align-items:center;justify-content:center;gap:8px;'
+            'margin:6px 0 14px 0;padding:14px 18px;'
+            'background:linear-gradient(135deg,#fff7ed 0%,#ffe4c4 100%);'
+            'border:2px solid #c2410c;border-radius:12px;'
+            'color:#9a3412;font-weight:700;font-size:1.0em;text-decoration:none;'
+            'box-shadow:0 2px 6px rgba(154,52,18,0.15);'
+            'font-family:inherit;letter-spacing:0.01em;">'
+            '<span style="font-size:1.15em;">&#9999;&#65039;</span>'
+            '<span>' + escape(_cta_label) + '</span>'
+            '<span style="font-size:0.85em;color:#7c2d12;font-weight:500;">&rarr;</span>'
+            '</a>'
+        )
+
     body = f"""
     {top_nav()}
     {render_status_message(status_message)}
@@ -2094,6 +2119,9 @@ def render_mom_page(status_message: str = "", target_date_str: str = "") -> str:
             {day_nav}
         </div>
     </div>
+
+    <!-- Set Monday's Lessons CTA (Fridays & Mondays only) -->
+    {set_lessons_cta_html}
 
     <!-- Plan progress bar -->
     {plan_progress_html}

@@ -865,28 +865,12 @@ class Handler(BaseHTTPRequestHandler):
             except BrokenPipeError: pass
             return
 
-        # ── Monday auto-generate weekly school plan ──────────────────────
-        # Only fires when (a) today is Monday AND (b) no plan exists for
-        # this week's Monday ISO (draft or approved).  Once a draft is
-        # created, Lauren must explicitly Approve or Regenerate via her
-        # dashboard card — this prevents clobbering an in-progress review
-        # on subsequent dashboard hits.  Wrapped in try/except so any
-        # generator failure never blocks the dashboard render.
-        if path == "/":
-            try:
-                from data_helpers import (
-                    today_iso as _ti, monday_iso_for as _mif,
-                    load_school_week_plan as _lswp,
-                    generate_weekly_school_plan as _gwsp,
-                )
-                _today = date.today()
-                if _today.weekday() == 0:
-                    _wk_today = _mif(_ti())
-                    _existing = _lswp() or {}
-                    if _existing.get("week_iso") != _wk_today:
-                        _gwsp(_wk_today)
-            except Exception:
-                pass
+        # ── Monday auto-generate weekly school plan: REMOVED ─────────────
+        # The weekly-plan auto-draft on dashboard load was the wrong UX.
+        # Lauren now sets the week manually via /curriculum (a "Set
+        # Monday's Lessons" CTA appears on Lauren's POD on Fridays and
+        # Mondays). The /regenerate-school-week POST route still exists
+        # for explicit on-demand regeneration.
 
         if   path == "/":                body = render_dashboard()
         elif path == "/today":           body = render_today_all(query.get("date",[""])[0])
