@@ -17,7 +17,7 @@ from data_helpers import (
 APP_SETTINGS_FILE = "data/app_settings.json"
 
 DAILY_MASS_SOURCES = [
-    ("ascension_press",  "Ascension Press",   "https://media.ascensionpress.com/category/daily-readings/"),
+    ("ascension_press",  "Ascension Press",   "https://ascensionpress.com/pages/daily-mass"),
     ("little_rose_shop", "Little Rose Shop",  "https://thelittleroseshop.com/blogs/daily-readings"),
     ("word_on_fire",     "Word on Fire",      "https://www.wordonfire.org/daily-mass/"),
     ("ewtn",             "EWTN",              "https://www.ewtn.com/catholicism/daily-readings"),
