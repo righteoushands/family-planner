@@ -85,6 +85,19 @@ def load_app_settings() -> dict:
 
 
 def save_app_settings(settings: dict):
+    # Defense in depth: the Anthropic API key is sourced exclusively from the
+    # ANTHROPIC_API_KEY Replit secret (see load_app_settings). Strip both the
+    # top-level field and the nested family_constraints field before writing
+    # so the secret can never be persisted to disk regardless of how this
+    # function is called. Operates on a shallow copy so we do not mutate the
+    # caller's dict (it may still be used after save).
+    settings = dict(settings)
+    settings["anthropic_api_key"] = ""
+    fc = settings.get("family_constraints")
+    if isinstance(fc, dict):
+        fc = dict(fc)
+        fc["anthropic_api_key"] = ""
+        settings["family_constraints"] = fc
     safe_save_json(APP_SETTINGS_FILE, settings)
 
 

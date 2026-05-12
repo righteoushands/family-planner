@@ -1993,11 +1993,15 @@ def delete_memory(memory_id: str) -> bool:
 
 
 def _tokenize_memory(text: str) -> set:
-    """Lowercase alphanumeric tokens >= 3 chars, stopwords removed."""
+    """Lowercase alphanumeric tokens >= 2 chars, stopwords removed.
+    Min length is 2 (not 3) so short proper-noun nicknames like 'JP' are
+    retained for conflict detection — the _MEM_STOPWORDS set covers the
+    common 2-char English noise words (am, an, as, at, be, by, do, he,
+    in, it, my, no, of, on, or, to, we)."""
     if not text:
         return set()
     toks = _re_mem.findall(r"[a-z0-9]+", text.lower())
-    return {t for t in toks if len(t) >= 3 and t not in _MEM_STOPWORDS}
+    return {t for t in toks if len(t) >= 2 and t not in _MEM_STOPWORDS}
 
 
 def find_memory_conflicts(new_text: str, threshold: float = 0.5) -> list:
