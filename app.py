@@ -872,7 +872,13 @@ class Handler(BaseHTTPRequestHandler):
         # Mondays). The /regenerate-school-week POST route still exists
         # for explicit on-demand regeneration.
 
-        if   path == "/":                body = render_dashboard()
+        if   path == "/":
+            _v = self._get_viewer()
+            if _v and _v.lower() == "lauren":
+                from render_timeblock import render_timeblock_homepage
+                body = render_timeblock_homepage(_v)
+            else:
+                body = render_dashboard()
         elif path == "/today":           body = render_today_all(query.get("date",[""])[0])
         elif path == "/programs":
             from render_programs import render_programs_page
@@ -1201,6 +1207,29 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             try: self.wfile.write(html.encode())
             except BrokenPipeError: pass
+            return
+        elif path == "/sister-mary":
+            from render_sister_mary import render_sister_mary_page
+            html = render_sister_mary_page(
+                iso=query.get("date",[""])[0],
+                q=query.get("q",[""])[0],
+                from_=query.get("from",[""])[0],
+            )
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header("Pragma","no-cache")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
+        elif path == "/daily-mass":
+            from render_settings import resolve_daily_mass_url
+            _dm_url = resolve_daily_mass_url(load_app_settings()) or "https://media.ascensionpress.com/category/daily-readings/"
+            self.send_response(302)
+            self.send_header("Location", _dm_url)
+            self.send_header("Cache-Control","no-store")
+            self.end_headers()
             return
         elif path == "/plan-import-history":
             _ph_v = self._get_viewer()
@@ -6678,6 +6707,125 @@ class Handler(BaseHTTPRequestHandler):
                 clear_monica_history()
                 redirect = "/dr-monica"
 
+            elif path == "/sister-mary-chat":
+                import json as _json, urllib.request as _req
+                from data_helpers import (
+                    load_sister_mary_history, append_sister_mary_messages,
+                    SISTER_MARY_CONTEXT_MAX,
+                )
+                from render_sister_mary import build_sister_mary_context
+                from datetime import datetime as _dt
+                _now_et    = datetime.now()
+                iso        = _now_et.date().isoformat()
+                weekday    = _now_et.strftime("%A")
+                date_label = _now_et.strftime("%B %d, %Y")
+                _time_et   = _now_et.strftime("%-I:%M %p")
+                message    = clean_text(data.get("message",[""])[0])
+                settings_data = load_app_settings()
+                api_key = (settings_data.get("family_constraints",{}).get("anthropic_api_key","")
+                           or settings_data.get("anthropic_api_key","")).strip()
+                if not api_key:
+                    self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"No API key configured.")
+                    except BrokenPipeError: pass
+                    return
+                # Sister Mary's context honors the family-context toggle internally.
+                family_ctx_on = bool(settings_data.get("sister_mary_family_context", False))
+                sister_context = build_sister_mary_context(iso, weekday, date_label)
+                if family_ctx_on:
+                    sister_context = sister_context + _UNDO_BLOCK
+                begin_companion_turn("sister_mary")
+                ts_now = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                append_sister_mary_messages([{"role": "user", "content": message, "ts": ts_now}])
+                server_history = load_sister_mary_history()
+                messages = []
+                for h in server_history[-SISTER_MARY_CONTEXT_MAX:]:
+                    role = h.get("role","user"); content = h.get("content","")
+                    if role in ("user","assistant") and content:
+                        messages.append({"role": role, "content": content})
+                if not messages or messages[-1].get("role") != "user":
+                    messages.append({"role": "user", "content": message})
+                _date_stamp = f"[Today: {weekday}, {date_label}, {_time_et} ET]"
+                if messages and messages[-1].get("role") == "user" and isinstance(messages[-1]["content"], str):
+                    messages[-1]["content"] = f"{_date_stamp}\n{messages[-1]['content']}"
+                payload = _json.dumps({
+                    "model":      "claude-haiku-4-5-20251001",
+                    "max_tokens": 1500,
+                    "system":     sister_context + (_AI_GUARDRAILS if family_ctx_on else ""),
+                    "messages":   messages,
+                    "stream":     True,
+                }).encode("utf-8")
+                req = _req.Request("https://api.anthropic.com/v1/messages",
+                    data=payload,
+                    headers={"x-api-key": api_key, "anthropic-version": "2023-06-01",
+                             "content-type": "application/json"})
+                try:
+                    resp = _req.urlopen(req, timeout=60)
+                    self.send_response(200)
+                    self.send_header("Content-Type","text/plain; charset=utf-8")
+                    self.send_header("Transfer-Encoding","chunked")
+                    self.send_header("Cache-Control","no-store")
+                    self.end_headers()
+                    text = ""
+                    for raw in resp:
+                        line = raw.decode("utf-8").strip()
+                        if line.startswith("data:"):
+                            chunk = line[5:].strip()
+                            if chunk == "[DONE]": break
+                            try:
+                                obj = _json.loads(chunk)
+                                delta = obj.get("delta",{})
+                                piece = delta.get("text","") if delta.get("type") == "text_delta" else ""
+                                if piece:
+                                    text += piece
+                                    try: self.wfile.write(piece.encode("utf-8")); self.wfile.flush()
+                                    except BrokenPipeError: break
+                            except Exception: pass
+                    ts_reply = _dt.now().strftime("%Y-%m-%dT%H:%M:%S")
+                    if family_ctx_on:
+                        text = _apply_remember_updates(text)
+                    text = _strip_hallucinated_tool_use(text)
+                    text = finish_companion_turn("sister_mary", text)
+                    append_sister_mary_messages([{"role": "assistant", "content": text, "ts": ts_reply}])
+                except Exception as e:
+                    try: self.wfile.write(str(e).encode("utf-8"))
+                    except BrokenPipeError: pass
+                return
+
+            elif path == "/sister-mary-clear-history":
+                from data_helpers import clear_sister_mary_history
+                clear_sister_mary_history()
+                redirect = "/sister-mary"
+
+            elif path == "/timeblock-add-intention":
+                _tv = self._get_viewer()
+                if not (_tv and (_tv.lower() == "lauren" or _auth.is_admin(_tv))):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Not authorized.")
+                    except BrokenPipeError: pass
+                    return
+                from data_helpers import add_daily_intention
+                _itext = (data.get("text",[""])[0] or "").strip()
+                if _itext:
+                    try: add_daily_intention(_itext)
+                    except Exception: pass
+                redirect = "/"
+
+            elif path == "/timeblock-add-novena":
+                _tv = self._get_viewer()
+                if not (_tv and (_tv.lower() == "lauren" or _auth.is_admin(_tv))):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Not authorized.")
+                    except BrokenPipeError: pass
+                    return
+                from data_helpers import add_novena
+                _saint = (data.get("saint",[""])[0] or "").strip()
+                _feast = (data.get("feast_date",[""])[0] or "").strip()
+                if _saint and _feast:
+                    try: add_novena(_saint, _feast)
+                    except Exception: pass
+                redirect = "/"
+
             # ── Family Memory: conflict-resolution / direct edits ─────────────
             elif path == "/memory-update":
                 from data_helpers import (
@@ -8878,6 +9026,29 @@ class Handler(BaseHTTPRequestHandler):
                     settings["auto_fetch_hours"]           = "auto_fetch_hours" in data
                     uc2 = clean_text(data.get("universalis_country", ["United States"])[0])
                     settings["universalis_country"] = uc2
+                # Prayer & Sacraments section
+                if "prayer_section" in data:
+                    _dms_val = clean_text(data.get("daily_mass_source", ["ascension_press"])[0])
+                    _valid_dms = {"ascension_press", "little_rose_shop", "word_on_fire", "ewtn", "custom"}
+                    if _dms_val in _valid_dms:
+                        settings["daily_mass_source"] = _dms_val
+                    settings["daily_mass_custom_url"] = clean_text(data.get("daily_mass_custom_url", [""])[0])
+                    settings["sister_mary_family_context"] = "sister_mary_family_context" in data
+                    # Pope monthly intentions (pope_YYYY-MM)
+                    try:
+                        from data_helpers import load_pope_intentions, save_pope_intentions
+                        _pdata = load_pope_intentions()
+                        _changed = False
+                        for _pkey in list(data.keys()):
+                            if _pkey.startswith("pope_") and len(_pkey) == 12:
+                                _pym = _pkey[5:]
+                                _ptxt = clean_text(data.get(_pkey, [""])[0])
+                                _pdata[_pym] = _ptxt
+                                _changed = True
+                        if _changed:
+                            save_pope_intentions(_pdata)
+                    except Exception as _ppe:
+                        print(f"[SETTINGS] Pope intentions save error: {_ppe}")
                 save_app_settings(settings)
                 print(f"[SETTINGS] Saved location={repr(settings.get('location'))}, keys={list(settings.keys())}")
                 # Verify the file was written

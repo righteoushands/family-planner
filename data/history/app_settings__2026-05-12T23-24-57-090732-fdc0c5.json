@@ -6,9 +6,6 @@
   "schedule_end_hour": 22,
   "cycle_show_detail_fields": false,
   "color_theme": "liturgical",
-  "daily_mass_source": "ascension_press",
-  "daily_mass_custom_url": "",
-  "sister_mary_family_context": false,
   "child_colors": {
     "JP": {
       "bg": "#c0392b",

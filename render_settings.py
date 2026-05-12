@@ -16,6 +16,24 @@ from data_helpers import (
 
 APP_SETTINGS_FILE = "data/app_settings.json"
 
+DAILY_MASS_SOURCES = [
+    ("ascension_press",  "Ascension Press",   "https://media.ascensionpress.com/category/daily-readings/"),
+    ("little_rose_shop", "Little Rose Shop",  "https://thelittleroseshop.com/blogs/daily-readings"),
+    ("word_on_fire",     "Word on Fire",      "https://www.wordonfire.org/daily-mass/"),
+    ("ewtn",             "EWTN",              "https://www.ewtn.com/catholicism/daily-readings"),
+    ("custom",           "Custom URL",        ""),
+]
+
+DAILY_MASS_URL_MAP = {k: u for (k, _, u) in DAILY_MASS_SOURCES}
+
+
+def resolve_daily_mass_url(settings: dict) -> str:
+    src = (settings or {}).get("daily_mass_source", "ascension_press")
+    if src == "custom":
+        return ((settings or {}).get("daily_mass_custom_url") or "").strip()
+    return DAILY_MASS_URL_MAP.get(src, DAILY_MASS_URL_MAP["ascension_press"])
+
+
 SETTINGS_DEFAULTS = {
     "family_name":              "Our Family",
     "timezone":                 "America/New_York",
@@ -24,6 +42,9 @@ SETTINGS_DEFAULTS = {
     "schedule_end_hour":        22,
     "cycle_show_detail_fields": True,
     "color_theme":              "ivory",
+    "daily_mass_source":        "ascension_press",
+    "daily_mass_custom_url":    "",
+    "sister_mary_family_context": False,
     "child_colors": {
         "JP":      {"bg": "#c0392b", "text": "#fff", "light": "#fdf0ef"},
         "Joseph":  {"bg": "#27ae60", "text": "#fff", "light": "#edfaf3"},
@@ -1214,6 +1235,92 @@ function savePins(e) {{
 </script>"""
 
 
+def _section_prayer_sacraments(settings: dict) -> str:
+    cur_src = settings.get("daily_mass_source", "ascension_press")
+    cur_url = settings.get("daily_mass_custom_url", "")
+    sister_mary_ctx = bool(settings.get("sister_mary_family_context", False))
+
+    src_opts = ""
+    for key, label, _u in DAILY_MASS_SOURCES:
+        sel = " selected" if key == cur_src else ""
+        src_opts += f'<option value="{escape(key)}"{sel}>{escape(label)}</option>'
+
+    custom_display = "block" if cur_src == "custom" else "none"
+    checked_attr = "checked" if sister_mary_ctx else ""
+
+    # Pope monthly intentions editor
+    try:
+        from data_helpers import load_pope_intentions as _lpi
+        pope_data = _lpi()
+    except Exception:
+        pope_data = {}
+    months_html = ""
+    cur_year = date.today().year
+    month_names = ["January", "February", "March", "April", "May", "June",
+                   "July", "August", "September", "October", "November", "December"]
+    for m_idx, mname in enumerate(month_names, start=1):
+        ym = f"{cur_year}-{m_idx:02d}"
+        text = escape(pope_data.get(ym, ""))
+        months_html += (
+            f'<div style="margin-bottom:10px;">'
+            f'<label style="font-size:0.85em;color:var(--ink-muted);font-weight:600;">{mname} {cur_year}</label>'
+            f'<textarea name="pope_{ym}" rows="2" '
+            f'style="width:100%;font-size:0.88em;padding:6px 8px;'
+            f'border:1px solid var(--border);border-radius:6px;resize:vertical;">{text}</textarea>'
+            f'</div>'
+        )
+
+    # JS toggle for custom-URL field — keep '\\n' (claud rule 7)
+    toggle_js = (
+        "var sel=document.querySelector('select[name=daily_mass_source]');"
+        "var box=document.getElementById('dm-custom-box');"
+        "if(sel&&box){sel.addEventListener('change',function(){"
+        "box.style.display=(sel.value==='custom')?'block':'none';});}"
+    )
+
+    return f"""
+    <div class="settings-section" id="s-prayer">
+        <h2>Prayer &amp; Sacraments</h2>
+
+        <input type="hidden" name="prayer_section" value="1">
+
+        <h3 style="margin-top:8px;">Daily Mass source</h3>
+        <p class="small" style="margin:0 0 8px;">
+            Where the &ldquo;Daily Mass&rdquo; link on the homepage opens.
+        </p>
+        <select name="daily_mass_source" style="max-width:320px;">{src_opts}</select>
+        <div id="dm-custom-box" style="display:{custom_display};margin-top:10px;">
+            <label>Custom Daily Mass URL</label>
+            <input type="url" name="daily_mass_custom_url"
+                   value="{escape(cur_url)}"
+                   placeholder="https://example.com/daily-mass"
+                   style="width:100%;max-width:520px;">
+        </div>
+
+        <h3 style="margin-top:24px;">Sister Mary &mdash; family context</h3>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:normal;">
+            <input type="checkbox" name="sister_mary_family_context" value="1" {checked_attr}>
+            <span>Allow Sister Mary to reference the family memory store</span>
+        </label>
+        <p class="small" style="margin:6px 0 0;">
+            When on, Sister Mary can reference the family&rsquo;s centralized memory
+            (notes about kids, schedules, prayer intentions) in her replies, and may
+            silently remember new things you tell her. When off, she answers from
+            your conversation alone &mdash; private and contemplative.
+        </p>
+
+        <h3 style="margin-top:24px;">Pope&rsquo;s monthly intentions ({cur_year})</h3>
+        <p class="small" style="margin:0 0 12px;">
+            Edit the Holy Father&rsquo;s monthly prayer intentions here. The current
+            month&rsquo;s text appears on the homepage and in Sister Mary&rsquo;s context.
+            Source: <a href="https://popesprayerusa.net/popes-intentions/" target="_blank" rel="noopener">popesprayerusa.net</a>.
+        </p>
+        {months_html}
+
+        <script>{toggle_js}</script>
+    </div>"""
+
+
 def render_settings_page(status_message: str = "") -> str:
     from daily_schedule_engine import CHILDREN
     settings = load_app_settings()
@@ -1235,6 +1342,9 @@ def render_settings_page(status_message: str = "") -> str:
   </div>
   <div style="padding:12px 0;border-top:1px solid var(--border-light);">
     {_section_liturgy_hours(settings)}
+  </div>
+  <div style="padding:12px 0;border-top:1px solid var(--border-light);">
+    {_section_prayer_sacraments(settings)}
   </div>
   <div style="padding:12px 0;border-top:1px solid var(--border-light);">
     {_section_pins()}

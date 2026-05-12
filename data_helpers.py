@@ -18,6 +18,7 @@ from config import (
     SUBSCRIBED_CALS_FILE, SUBSCRIBED_CACHE_FILE, VALID_PRIORITIES, VALID_STATUSES, WEEKDAYS,
     WEEKDAY_ORDER, CURRICULUM_FILE, TASK_OVERRIDES_FILE,
     SCHOOL_WEEK_PLAN_FILE, FAMILY_MEMORY_FILE,
+    PRAYER_INTENTIONS_FILE, SISTER_MARY_HISTORY_FILE, POPE_INTENTIONS_FILE,
 )
 
 
@@ -2070,3 +2071,264 @@ def get_memory_context_block() -> str:
         "asks 'what do you remember about us?'.",
     ]
     return "\n".join(lines)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Prayer intentions + novenas (lightweight daily/repeating/novena ledger)
+# Companion to the richer data/prayer/intentions.json store; used by the
+# Lauren-only time-block homepage and the Sister Mary companion.
+# ─────────────────────────────────────────────────────────────────────────────
+
+_PI_DEFAULT = {"daily": [], "repeating": [], "novenas": []}
+
+
+def load_prayer_intentions() -> dict:
+    ensure_file(PRAYER_INTENTIONS_FILE, _PI_DEFAULT)
+    import json as _json
+    try:
+        with open(PRAYER_INTENTIONS_FILE, "r") as f:
+            d = _json.load(f)
+    except Exception:
+        d = dict(_PI_DEFAULT)
+    if not isinstance(d, dict):
+        d = dict(_PI_DEFAULT)
+    d.setdefault("daily", [])
+    d.setdefault("repeating", [])
+    d.setdefault("novenas", [])
+    return d
+
+
+def save_prayer_intentions(d: dict) -> None:
+    if not isinstance(d, dict):
+        return
+    d.setdefault("daily", [])
+    d.setdefault("repeating", [])
+    d.setdefault("novenas", [])
+    safe_save_json(PRAYER_INTENTIONS_FILE, d)
+
+
+def add_daily_intention(text: str) -> dict:
+    text = (text or "").strip()
+    if not text:
+        return {"ok": False, "error": "empty"}
+    d = load_prayer_intentions()
+    today_iso = date.today().isoformat()
+    d["daily"].append({"text": text, "added_iso": today_iso})
+    save_prayer_intentions(d)
+    return {"ok": True, "text": text, "added_iso": today_iso}
+
+
+def add_repeating_intention(text: str, start_date: str = "",
+                            end_date: str = "", repeat_days=None) -> dict:
+    text = (text or "").strip()
+    if not text:
+        return {"ok": False, "error": "empty"}
+    if not start_date:
+        start_date = date.today().isoformat()
+    if repeat_days is None or not isinstance(repeat_days, list):
+        repeat_days = list(WEEKDAYS)
+    d = load_prayer_intentions()
+    entry = {
+        "text": text,
+        "start_date": start_date,
+        "end_date": end_date or "",
+        "repeat_days": repeat_days,
+    }
+    d["repeating"].append(entry)
+    save_prayer_intentions(d)
+    return {"ok": True, **entry}
+
+
+def add_novena(saint: str, feast_date: str) -> dict:
+    saint = (saint or "").strip()
+    feast_date = (feast_date or "").strip()
+    if not saint or not feast_date:
+        return {"ok": False, "error": "missing saint or feast_date"}
+    try:
+        fd = date.fromisoformat(feast_date)
+    except Exception:
+        return {"ok": False, "error": "bad feast_date"}
+    start = fd - timedelta(days=9)
+    today = date.today()
+    current_day = (today - start).days + 1
+    if current_day < 1:
+        current_day = 0  # not yet started
+    elif current_day > 9:
+        current_day = 9
+    d = load_prayer_intentions()
+    # Avoid duplicate novena for same saint/feast
+    for n in d["novenas"]:
+        if n.get("saint", "").lower() == saint.lower() and n.get("feast_date") == feast_date:
+            return {"ok": False, "error": "duplicate", "novena": n}
+    entry = {
+        "saint": saint,
+        "feast_date": feast_date,
+        "start_date": start.isoformat(),
+        "current_day": current_day,
+        "total_days": 9,
+    }
+    d["novenas"].append(entry)
+    save_prayer_intentions(d)
+    return {"ok": True, **entry}
+
+
+def get_active_intentions_for_date(iso: str) -> dict:
+    try:
+        target = date.fromisoformat(iso)
+    except Exception:
+        target = date.today()
+        iso = target.isoformat()
+    target_weekday = target.strftime("%A")
+    d = load_prayer_intentions()
+
+    daily = [e for e in d.get("daily", [])
+             if isinstance(e, dict) and e.get("added_iso") == iso]
+
+    repeating = []
+    for e in d.get("repeating", []):
+        if not isinstance(e, dict):
+            continue
+        sd = e.get("start_date", "")
+        ed = e.get("end_date", "")
+        days = e.get("repeat_days") or list(WEEKDAYS)
+        try:
+            if sd and date.fromisoformat(sd) > target:
+                continue
+            if ed and date.fromisoformat(ed) < target:
+                continue
+        except Exception:
+            continue
+        if target_weekday not in days:
+            continue
+        repeating.append(e)
+
+    novenas = []
+    for n in d.get("novenas", []):
+        if not isinstance(n, dict):
+            continue
+        try:
+            sd = date.fromisoformat(n.get("start_date", ""))
+        except Exception:
+            continue
+        end = sd + timedelta(days=9)
+        if sd <= target <= end:
+            day_num = (target - sd).days + 1
+            if day_num < 1:
+                day_num = 1
+            if day_num > 9:
+                day_num = 9
+            row = dict(n)
+            row["current_day"] = day_num
+            novenas.append(row)
+
+    return {"daily": daily, "repeating": repeating, "novenas": novenas}
+
+
+def check_upcoming_novenas() -> list:
+    """Return feasts in the next 9 days that don't already have an active novena.
+
+    Each entry: {"saint": str, "feast_date": "YYYY-MM-DD", "days_away": int}.
+    """
+    try:
+        from render_liturgical import get_day_info
+    except Exception:
+        return []
+    today = date.today()
+    d = load_prayer_intentions()
+    existing_keys = set()
+    for n in d.get("novenas", []):
+        if not isinstance(n, dict):
+            continue
+        existing_keys.add((n.get("saint", "").strip().lower(), n.get("feast_date", "")))
+
+    out = []
+    for offset in range(1, 10):
+        day = today + timedelta(days=offset)
+        try:
+            info = get_day_info(day)
+        except Exception:
+            continue
+        feast = (info.get("feast_name") or "").strip()
+        if not feast:
+            continue
+        iso = day.isoformat()
+        if (feast.lower(), iso) in existing_keys:
+            continue
+        out.append({"saint": feast, "feast_date": iso, "days_away": offset})
+    return out
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Pope's monthly intentions
+# ─────────────────────────────────────────────────────────────────────────────
+
+def load_pope_intentions() -> dict:
+    ensure_file(POPE_INTENTIONS_FILE, {})
+    import json as _json
+    try:
+        with open(POPE_INTENTIONS_FILE, "r") as f:
+            d = _json.load(f)
+    except Exception:
+        d = {}
+    if not isinstance(d, dict):
+        d = {}
+    return d
+
+
+def save_pope_intentions(d: dict) -> None:
+    if not isinstance(d, dict):
+        return
+    safe_save_json(POPE_INTENTIONS_FILE, d)
+
+
+def get_pope_intention_for_month(iso: str = "") -> str:
+    if not iso:
+        iso = date.today().isoformat()
+    try:
+        ym = iso[:7]
+    except Exception:
+        ym = date.today().isoformat()[:7]
+    d = load_pope_intentions()
+    return (d.get(ym) or "").strip()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Sister Mary chat history
+# ─────────────────────────────────────────────────────────────────────────────
+
+SISTER_MARY_CONTEXT_MAX = 30
+
+
+def load_sister_mary_history() -> list:
+    ensure_file(SISTER_MARY_HISTORY_FILE, [])
+    import json as _json
+    try:
+        with open(SISTER_MARY_HISTORY_FILE, "r") as f:
+            d = _json.load(f)
+    except Exception:
+        d = []
+    if not isinstance(d, list):
+        d = []
+    return d
+
+
+def save_sister_mary_history(history: list) -> None:
+    if not isinstance(history, list):
+        return
+    safe_save_json(SISTER_MARY_HISTORY_FILE, history)
+
+
+def append_sister_mary_messages(msgs: list) -> list:
+    if not isinstance(msgs, list) or not msgs:
+        return load_sister_mary_history()
+    history = load_sister_mary_history()
+    history.extend(msgs)
+    # Cap retained history to avoid unbounded growth (keep last 200 turns)
+    if len(history) > 400:
+        history = history[-400:]
+    save_sister_mary_history(history)
+    return history
+
+
+def clear_sister_mary_history() -> bool:
+    return _safe_clear(SISTER_MARY_HISTORY_FILE)

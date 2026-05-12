@@ -63,6 +63,15 @@ COMPANIONS = {
         "bg": "#1c1917",
         "desc": "family fitness guide, age-appropriate movement, PE planning, exercise",
     },
+    "SISTERMARY": {
+        "name": "Sister Mary",
+        "route": "/sister-mary",
+        "emoji": "✠",
+        "input_id": "sm-input",
+        "chat_id": "sm-chat",
+        "bg": "#4a6fa5",
+        "desc": "contemplative Marian companion, prayer intentions, sacraments, spiritual direction in difficulty",
+    },
 }
 
 

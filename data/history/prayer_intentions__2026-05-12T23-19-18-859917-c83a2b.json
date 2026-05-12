@@ -1,0 +1,18 @@
+{
+  "daily": [
+    {
+      "text": "For peace in our home",
+      "added_iso": "2026-05-12"
+    }
+  ],
+  "repeating": [],
+  "novenas": [
+    {
+      "saint": "St. Test",
+      "feast_date": "2026-05-18",
+      "start_date": "2026-05-09",
+      "current_day": 4,
+      "total_days": 9
+    }
+  ]
+}

@@ -8,7 +8,7 @@
   "color_theme": "liturgical",
   "daily_mass_source": "ascension_press",
   "daily_mass_custom_url": "",
-  "sister_mary_family_context": false,
+  "sister_mary_family_context": true,
   "child_colors": {
     "JP": {
       "bg": "#c0392b",

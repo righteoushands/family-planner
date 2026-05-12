@@ -31,6 +31,9 @@ COACH_PROGRAMS_FILE  = "data/coach_programs.json"
 EXERCISE_LOGS_FILE   = "data/exercise_logs.json"
 SCHOOL_WEEK_PLAN_FILE = "data/school_week_plan.json"
 FAMILY_MEMORY_FILE   = "data/family_memory.json"
+PRAYER_INTENTIONS_FILE   = "data/prayer_intentions.json"
+SISTER_MARY_HISTORY_FILE = "data/sister_mary_history.json"
+POPE_INTENTIONS_FILE     = "data/pope_intentions.json"
 
 # ── Validation sets ──────────────────────────────────────────────────────────
 VALID_PRIORITIES = {"HIGH", "MEDIUM", "LOW"}
