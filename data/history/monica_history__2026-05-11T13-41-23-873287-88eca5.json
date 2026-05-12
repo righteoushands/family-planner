@@ -74,21 +74,6 @@
       "role": "user",
       "content": "I mean for me",
       "ts": "2026-05-11T13:41:20"
-    },
-    {
-      "role": "assistant",
-      "content": "Absolutely—I can help with health questions about *you* too, Lauren. Same framework applies: I'll share evidence-based information, help you think through what's happening, and be direct about when you need to see your actual doctor.\n\nGiven what I know about your life—you're managing five people, homeschooling three boys, doing PT for your ankle, running the household—health questions are real and worth taking seriously.\n\nSo yes: if your ankle is flaring, or you're exhausted and wondering if it's just the schedule or something else, or you've got a headache that won't quit, or you're noticing something physical that concerns you—bring it to me.\n\nWhat's going on?",
-      "ts": "2026-05-11T13:41:23"
-    },
-    {
-      "role": "user",
-      "content": "I’m on day 10 of my period and have some blood after going to the bathroom. Odd for me to be bleeding again",
-      "ts": "2026-05-11T13:41:49"
-    },
-    {
-      "role": "assistant",
-      "content": "I'm glad you brought this up, Lauren—this is worth taking seriously and getting checked out.\n\n**What I know:** A normal menstrual cycle is typically 3–7 days of bleeding. Day 10 bleeding after what sounds like it had resolved is *not* typical for you, which means it warrants attention. This could be several things—some benign, some not—but none of them are something to diagnose or treat at home.\n\n**What I need to know:** Is this bright red bleeding like your period was, or is it spotting? Are you having any cramping, pain, or other symptoms (fever, dizziness, unusual fatigue)? And have you had any recent changes—new medications, stress spikes, or anything else different in the past few weeks?\n\nBut here's the honest part: **you need to call your OB/GYN today or tomorrow.** Abnormal bleeding patterns deserve a real doctor's evaluation, not just reassurance from an AI. It could be nothing serious—hormonal fluctuation, a polyp, stress-related—but a clinician needs to assess you, not me.\n\nDon't wait on this one.",
-      "ts": "2026-05-11T13:41:54"
     }
   ]
 }
