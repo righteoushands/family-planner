@@ -2,6 +2,7 @@
 render_calendar.py — Calendar fetching, event display, calendar page.
 Imports from: config, data_helpers, ui_helpers
 """
+import os
 from datetime import date, datetime, timedelta
 from html import escape
 import urllib.request
@@ -269,8 +270,11 @@ def write_caldav_event(event_dict: dict) -> bool:
     """
     try:
         cfg = load_calendar_config()
-        apple_id = (cfg.get("apple_id") or "").strip()
-        app_pw   = (cfg.get("app_password") or "").strip()
+        # Env vars (Replit Secrets) win; fall back to config file only if unset.
+        apple_id = (os.environ.get("ICLOUD_APPLE_ID", "").strip()
+                    or (cfg.get("apple_id") or "").strip())
+        app_pw   = (os.environ.get("ICLOUD_APP_PASSWORD", "").strip()
+                    or (cfg.get("app_password") or "").strip())
         if not apple_id or not app_pw:
             debug_log("write_caldav_event: missing apple_id or app_password")
             return False
@@ -410,7 +414,9 @@ def _do_refresh_calendar():
     try:
         from datetime import datetime as _dt
         cfg = load_calendar_config()
-        apple_id = cfg.get("apple_id", ""); app_password = cfg.get("app_password", "")
+        # Env vars (Replit Secrets) win; fall back to config file only if unset.
+        apple_id     = os.environ.get("ICLOUD_APPLE_ID", "").strip()     or cfg.get("apple_id", "")
+        app_password = os.environ.get("ICLOUD_APP_PASSWORD", "").strip() or cfg.get("app_password", "")
         if apple_id and app_password:
             events = fetch_caldav_events(apple_id, app_password)
             save_calendar_cache({"events": events, "fetched_at": _dt.now().isoformat()})
@@ -839,7 +845,8 @@ def render_event_pill(event: dict) -> str:
 def render_calendar_today_strip(iso: str = "") -> str:
     if not iso: iso = date.today().isoformat()
     cfg      = load_calendar_config()
-    apple_id = cfg.get("apple_id", "")
+    # Env var (Replit Secret) wins; fall back to config file only if unset.
+    apple_id = os.environ.get("ICLOUD_APPLE_ID", "").strip() or cfg.get("apple_id", "")
     subs     = load_subscribed_calendars()
 
     # No credentials and no subscriptions — show setup link
@@ -868,7 +875,8 @@ def render_calendar_today_strip(iso: str = "") -> str:
 # ── Calendar page ─────────────────────────────────────────────────────────────
 def render_calendar_page(status_message: str = "") -> str:
     cfg        = load_calendar_config()
-    apple_id   = cfg.get("apple_id","")
+    # Env var (Replit Secret) wins; fall back to config file only if unset.
+    apple_id   = os.environ.get("ICLOUD_APPLE_ID", "").strip() or cfg.get("apple_id","")
     cache      = load_calendar_cache()
     fetched_at = cache.get("fetched_at","")
     events     = cache.get("events",[])
