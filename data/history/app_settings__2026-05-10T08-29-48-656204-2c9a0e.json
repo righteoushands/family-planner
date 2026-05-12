@@ -38,7 +38,7 @@
   "special_events": [],
   "plan_columns": [],
   "family_constraints": {
-    "anthropic_api_key": "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",
+    "anthropic_api_key": "",
     "james_schedule": "",
     "supervision_rules": "",
     "independence_notes": "",
@@ -69,5 +69,5 @@
       "light": "#eff6ff"
     }
   },
-  "anthropic_api_key": "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"
+  "anthropic_api_key": ""
 }

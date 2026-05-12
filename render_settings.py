@@ -2,6 +2,7 @@
 render_settings.py — Single source of truth for all configuration.
 Sections: General · Children · Systems · Integrations
 """
+import os
 from datetime import date, timedelta
 from html import escape
 
@@ -71,13 +72,15 @@ def load_app_settings() -> dict:
         merged = dict(SETTINGS_DEFAULTS["child_colors"])
         merged.update(stored["child_colors"])
         settings["child_colors"] = merged
+    # Anthropic API key MUST come from the ANTHROPIC_API_KEY environment
+    # variable (Replit Secrets). Env always wins; we never fall back to a
+    # JSON-stored value. If the env var is unset, the in-memory key is empty
+    # and the Settings UI displays a warning banner directing the user to
+    # add ANTHROPIC_API_KEY to Replit Secrets.
     _env_key = _os.environ.get("ANTHROPIC_API_KEY", "").strip()
-    if _env_key:
-        fc = settings.setdefault("family_constraints", {})
-        if not fc.get("anthropic_api_key", "").strip():
-            fc["anthropic_api_key"] = _env_key
-        if not settings.get("anthropic_api_key", "").strip():
-            settings["anthropic_api_key"] = _env_key
+    fc = settings.setdefault("family_constraints", {})
+    fc["anthropic_api_key"] = _env_key
+    settings["anthropic_api_key"] = _env_key
     return settings
 
 
@@ -896,23 +899,62 @@ def _section_constraints(settings: dict) -> str:
     api_key = c.get("anthropic_api_key", "")
     key_display = "•" * len(api_key) if api_key else ""
 
+    # The Anthropic key is now sourced exclusively from the ANTHROPIC_API_KEY
+    # Replit secret (see load_app_settings). The form input below is shown
+    # for visibility only and has no effect — render an explicit warning if
+    # the secret is missing so Lauren knows where to add it.
+    _env_present = bool(os.environ.get("ANTHROPIC_API_KEY", "").strip())
+    if _env_present:
+        env_status_html = (
+            '<div style="background:#dcfce7;border:1.5px solid #16a34a;'
+            'border-radius:8px;padding:10px 14px;margin-bottom:12px;'
+            'color:#166534;font-size:0.88em;">'
+            '<strong>&#10003; ANTHROPIC_API_KEY loaded from Replit Secrets.</strong> '
+            'AI features are active.'
+            '</div>'
+        )
+        env_status_chip = '<span style="font-size:0.82em;color:#27ae60;">&#10003; Key loaded from Replit Secrets</span>'
+    else:
+        env_status_html = (
+            '<div style="background:#fef2f2;border:2px solid #dc2626;'
+            'border-radius:8px;padding:12px 16px;margin-bottom:12px;'
+            'color:#7f1d1d;font-size:0.92em;line-height:1.5;">'
+            '<div style="font-weight:700;margin-bottom:6px;font-size:1.0em;">'
+            '&#9888;&#65039; ANTHROPIC_API_KEY is not set in Replit Secrets.'
+            '</div>'
+            '<div>'
+            'AI features (Lucy, Lorenzo, Father Gregory, Coach, Dr. Monica, '
+            'plan importer, assignment analyzer, weekly school plan) are '
+            'currently disabled. Open the Replit <strong>Secrets</strong> '
+            'panel (lock icon in the left sidebar) and add a secret named '
+            '<code>ANTHROPIC_API_KEY</code> with your Anthropic key value, '
+            'then restart the app.'
+            '</div>'
+            '</div>'
+        )
+        env_status_chip = '<span style="font-size:0.82em;color:#dc2626;font-weight:700;">&#9888;&#65039; Not set — add to Replit Secrets</span>'
+
     return f"""
     <div class="settings-section" id="s-constraints">
         <h2>Family Constraints <span class="small" style="font-weight:400;">— used by the AI scheduling assistant</span></h2>
         {_lucy_knowledge_summary(settings)}
 
         <h3>Anthropic API Key</h3>
+        {env_status_html}
         <p class="small" style="margin-bottom:8px;">
-            Required for AI suggestions. Get one free at
+            Required for AI suggestions. The key is loaded from the
+            <code>ANTHROPIC_API_KEY</code> Replit secret &mdash; the input
+            box below is shown for reference only and is not editable from
+            the UI. Get a key at
             <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>
-            → API Keys. Claude Sonnet is used; typical plan session costs a few cents.
+            &rarr; API Keys.
         </p>
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:20px;">
             <input type="password" name="fc_anthropic_api_key"
                    value="{escape(api_key)}"
-                   placeholder="sk-ant-..."
-                   style="max-width:380px;margin-bottom:0;font-family:monospace;font-size:0.85em;">
-            {'<span style="font-size:0.82em;color:#27ae60;">✓ Key saved</span>' if api_key else '<span style="font-size:0.82em;color:#aaa;">Not set</span>'}
+                   placeholder="sk-ant-..." readonly
+                   style="max-width:380px;margin-bottom:0;font-family:monospace;font-size:0.85em;background:#f3f4f6;color:#6b7280;">
+            {env_status_chip}
         </div>
 
         <h3>James care schedule</h3>
