@@ -86,6 +86,75 @@ _SEASON_GRADIENT = {
     "autumn": "linear-gradient(180deg,#7a3e1a 0%,#b8703c 50%,#e0b078 100%)",
 }
 
+# Unsplash Source API (no API key required) — seasonal nature photography.
+# Format: https://source.unsplash.com/1600x900/?{comma-separated-query}
+_UNSPLASH_QUERIES = {
+    "spring": "spring,nature,flowers,peaceful",
+    "summer": "summer,nature,golden,light",
+    "autumn": "autumn,leaves,warm,forest",
+    "winter": "winter,snow,peaceful,forest",
+}
+
+def _unsplash_url(season: str) -> str:
+    q = _UNSPLASH_QUERIES.get(season, _UNSPLASH_QUERIES["spring"])
+    return "https://source.unsplash.com/1600x900/?" + q
+
+# Curated public-domain sacred art from Wikimedia Commons.
+# Each entry: feast_slug -> (needle_substring_to_match_in_feast_name_lower, image_url).
+# All works are pre-1928 old-master paintings or PD-tagged Commons files.
+_FEAST_ART = {
+    "our-lady-of-fatima": (
+        "fatima",
+        "https://upload.wikimedia.org/wikipedia/commons/9/9b/Statue_of_Our_Lady_of_F%C3%A1tima.jpg",
+    ),
+    "immaculate-conception": (
+        "immaculate conception",
+        "https://upload.wikimedia.org/wikipedia/commons/c/c6/Bartolom%C3%A9_Esteban_Murillo_-_The_Immaculate_Conception_of_the_Venerable_Ones_-_Google_Art_Project.jpg",
+    ),
+    "assumption": (
+        "assumption",
+        "https://upload.wikimedia.org/wikipedia/commons/9/9c/Titian_-_Assumption_of_the_Virgin_-_WGA22833.jpg",
+    ),
+    "annunciation": (
+        "annunciation",
+        "https://upload.wikimedia.org/wikipedia/commons/0/0c/ANGELICO%2C_Fra_Annunciation%2C_1437-46_%282236990916%29.jpg",
+    ),
+    "nativity-of-mary": (
+        "birth of the bless",
+        "https://upload.wikimedia.org/wikipedia/commons/6/6f/Giotto_-_Scrovegni_-_-07-_-_Birth_of_the_Virgin.jpg",
+    ),
+    "our-lady-of-guadalupe": (
+        "guadalupe",
+        "https://upload.wikimedia.org/wikipedia/commons/3/35/1531_Nuestra_Se%C3%B1ora_de_Guadalupe_anagoria.jpg",
+    ),
+    "easter": (
+        "easter",
+        "https://upload.wikimedia.org/wikipedia/commons/9/95/Piero_della_Francesca_-_Resurrection_-_WGA17609.jpg",
+    ),
+    "christmas": (
+        "christmas",
+        "https://upload.wikimedia.org/wikipedia/commons/3/35/Bartolom%C3%A9_Esteban_Perez_Murillo_022.jpg",
+    ),
+    "pentecost": (
+        "pentecost",
+        "https://upload.wikimedia.org/wikipedia/commons/5/5a/Titian_-_Pentecost_-_WGA22852.jpg",
+    ),
+    "ascension": (
+        "ascension",
+        "https://upload.wikimedia.org/wikipedia/commons/5/55/Giotto_-_Scrovegni_-_-38-_-_Ascension.jpg",
+    ),
+}
+
+def _feast_art_url(feast_name: str) -> str:
+    if not feast_name:
+        return ""
+    n = feast_name.lower()
+    for _slug, pair in _FEAST_ART.items():
+        needle, url = pair
+        if needle in n:
+            return url
+    return ""
+
 
 def _slugify(name: str) -> str:
     s = (name or "").lower()
@@ -143,6 +212,10 @@ def _resolve_image(iso: str) -> dict:
         cand = f"{base}/feasts/{slug}.jpg"
         if _file_exists(cand):
             return {"url": "/" + cand, "credit": feast_name, "fallback_gradient": gradient}
+        # Curated Wikimedia public-domain sacred art for major feasts
+        art_url = _feast_art_url(feast_name)
+        if art_url:
+            return {"url": art_url, "credit": feast_name, "fallback_gradient": gradient}
         if _is_marian(feast_name):
             cand_m = f"{base}/marian/{slug}.jpg"
             if _file_exists(cand_m):
@@ -164,8 +237,12 @@ def _resolve_image(iso: str) -> dict:
         except Exception:
             pass
 
-    # Final fallback: pure gradient
-    return {"url": "", "credit": season.capitalize(), "fallback_gradient": gradient}
+    # Unsplash Source API — seasonal nature photography (no API key)
+    return {
+        "url": _unsplash_url(season),
+        "credit": season.capitalize(),
+        "fallback_gradient": gradient,
+    }
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -615,13 +692,17 @@ def render_timeblock_homepage(viewer: str = "lauren") -> str:
     greeting   = _BLOCK_GREETINGS.get(block, "Peace be with you.")
 
     img = _resolve_image(iso)
-    bg_layers = []
-    if img.get("url"):
-        bg_layers.append(f"linear-gradient(180deg, rgba(20,30,55,0.15) 0%, rgba(20,30,55,0.55) 100%)")
-        bg_layers.append(f"url('{img['url']}')")
-    else:
-        bg_layers.append(img.get("fallback_gradient", _SEASON_GRADIENT["spring"]))
-    bg_value = ", ".join(bg_layers)
+    # Hero background is always the gradient (acts as fallback when img onerror fires).
+    bg_value = img.get("fallback_gradient", _SEASON_GRADIENT["spring"])
+    _img_url = img.get("url", "")
+    hero_img_html = ""
+    if _img_url:
+        _src_attr = escape(_img_url, quote=True)
+        # onerror hides the img so the gradient shows through
+        hero_img_html = (
+            '<img class="tb-hero-img" src="' + _src_attr + '" alt="" '
+            'onerror="this.style.display=&#39;none&#39;">'
+        )
 
     saint_card     = _render_saint_card(iso)
     prayers_html   = _render_block_prayers(block, now_dt, weekday)
@@ -651,13 +732,26 @@ def render_timeblock_homepage(viewer: str = "lauren") -> str:
 body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       background:#f4f7fc;color:#1a1a1a;min-height:100vh;}}
 .tb-hero{{
+    position:relative;
     min-height:62vh;
     background:{bg_value};
     background-size:cover; background-position:center;
     display:flex;flex-direction:column;justify-content:flex-end;
     padding:28px 22px 24px;color:white;
     text-shadow:0 1px 6px rgba(0,0,0,0.5);
+    overflow:hidden;
 }}
+.tb-hero-img{{
+    position:absolute;top:0;left:0;width:100%;height:100%;
+    object-fit:cover;object-position:center;z-index:0;
+    background:transparent;
+}}
+.tb-hero-shade{{
+    position:absolute;top:0;left:0;width:100%;height:100%;
+    background:linear-gradient(180deg, rgba(20,30,55,0.15) 0%, rgba(20,30,55,0.55) 100%);
+    z-index:1;pointer-events:none;
+}}
+.tb-hero > .greet, .tb-hero > .when, .tb-hero > div:last-child{{position:relative;z-index:2;}}
 .tb-hero .greet{{font-family:Georgia,serif;font-size:1.85em;font-weight:400;letter-spacing:0.01em;}}
 .tb-hero .when{{font-size:0.92em;opacity:0.92;margin-top:6px;}}
 .tb-hero .blocklbl{{display:inline-block;background:rgba(255,255,255,0.2);
@@ -683,6 +777,8 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <div class="tb-nav"><a href="/today">Tasks &rarr;</a></div>
 <div class="tb-hero-wrap">
   <div class="tb-hero">
+    {hero_img_html}
+    <div class="tb-hero-shade"></div>
     <div class="greet">{escape(greeting)}</div>
     <div class="when">{escape(date_label)} &middot; {escape(time_label)} ET</div>
     <div><span class="blocklbl">{escape(block_lbl)}</span></div>
