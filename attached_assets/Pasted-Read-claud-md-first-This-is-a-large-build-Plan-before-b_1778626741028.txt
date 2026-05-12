@@ -1,0 +1,24 @@
+Read claud.md first. This is a large build. Plan before building. Do not start until the plan is written and presented.
+Build Sister Mary and the Time-Block Homepage.
+PART 1 — Sister Mary (render_sister_mary.py, app.py, ui_helpers.py)
+New companion Sister Mary at /sister-mary. She is modeled on Our Lady — contemplative, maternal, faithful in darkness, never anxious, always pointing toward mercy. Her voice is unhurried and warm. She quotes saints and scripture naturally. She encourages frequent reception of the sacraments — confession, Eucharist, anointing — gently and always from love not obligation. She never shames. She responds to prayer intentions with patron saint suggestions, meditation recommendations, virtue guidance, and scripture pairings. Her tone is that of a loving spiritual mother who understands human weakness and the longing for God.
+Her system prompt receives: today’s liturgical calendar, user’s prayer intentions from data/prayer_intentions.json, Pope’s monthly intentions, and optionally the family memory context (controlled by a user setting sister_mary_family_context in app_settings.json — defaults to false). She has access to the centralized family memory system via get_memory_context_block() when the setting is enabled.
+Add Sister Mary to the More sheet in ui_helpers.py alongside the other companions. Her color is soft gold or marian blue. Add GET /sister-mary and POST /sister-mary-chat routes to app.py following the existing companion pattern.
+PART 2 — Prayer Intentions System (data_helpers.py, data/prayer_intentions.json)
+New data structure data/prayer_intentions.json with shape: daily (list of free text strings for today), repeating (list of {text, start_date, end_date, repeat_days}), novenas (list of {saint, feast_date, start_date, current_day, total_days=9}). New helpers: load_prayer_intentions(), save_prayer_intentions(), get_active_intentions_for_date(iso), add_novena(saint, feast_date), check_upcoming_novenas() that returns feast days within 9 days that don’t already have a novena started.
+PART 3 — Time-Block Homepage (render_timeblock.py, app.py)
+This replaces Lauren’s current dashboard at /. When Lauren loads the homepage she sees the time-block homepage instead of the current dashboard. Other users (John, children) are unaffected — only Lauren sees this.
+Five time blocks based on server time: early morning 5-7 AM, morning 7 AM to noon, afternoon noon-5 PM, evening 5-8 PM, late evening 8-10 PM. Outside these hours show the nearest block.
+Each block renders:
+FULL SCREEN HEADER: A beautiful image filling the viewport. Image priority: today’s feast day saint icon → Marian feast image → major liturgical feast → seasonal nature image rotating from a curated collection. Images are served from static/images/timeblock/ organized by feast slug and season. Include at least 3-5 placeholder nature images for each season so the app works immediately. User can upload personal images later via settings.
+SCROLLING CONTENT below the image in this order:
+	1.	Saint name and feast in large serif typography, one quote from the saint in italics, a Learn More link that opens the Vatican or Universalis page for that saint in external browser
+	2.	Prayer for this time block: early morning shows Morning Offering and Lauds and Angelus if time is 6 AM; morning shows Angelus at noon; afternoon shows Divine Mercy Chaplet at 3 PM and midday prayer; evening shows Angelus at 6 PM and Vespers and Rosary at 7 PM with full mystery text and fruits for today’s day of week (Sunday/Wednesday Glorious, Monday/Saturday Joyful, Tuesday/Friday Sorrowful, Thursday Luminous); late evening shows Compline and examination of conscience
+	3.	Daily Mass link at early morning and noon blocks — opens external browser — source configured in settings (Ascension Press default, options: Little Rose Shop, Word on Fire, EWTN, custom URL)
+	4.	Pope’s monthly intentions at noon block
+	5.	Prayer intentions — show today’s active intentions, a small text input to add a new intention, and a button to open Sister Mary for spiritual guidance
+	6.	Novena prompt card when check_upcoming_novenas() returns a feast within 9 days — gentle card asking if user wants to add the novena with one tap
+	7.	Practical content for this time block: meals and meal prep relevant to this time of day from the current meal plan, FROL schedule snapshot showing what this time block contains for each family member, any tasks due during this block
+PART 4 — Settings additions (render_settings.py)
+Add to settings: preferred Daily Mass source (dropdown: Ascension Press, Little Rose Shop, Word on Fire, EWTN, Custom URL), Sister Mary family context toggle (on/off, default off), description explaining what each setting does.
+Follow all claud.md rules. Plan before building. Present the plan before writing any code.​​​​​​​​​​​​​​​​
