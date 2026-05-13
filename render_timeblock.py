@@ -917,6 +917,28 @@ def _hour_part(label: str, body_text: str) -> str:
     )
 
 
+def _collapsible_card(summary_text: str, body_html: str, *, scriptural: str = "") -> str:
+    safe_summary = escape(summary_text)
+    sub = ""
+    if scriptural:
+        sub = (f'<div style="font-style:italic;color:#5a6a85;font-size:0.86em;'
+               f'margin:10px 0 0;line-height:1.5;">'
+               f'&ldquo;{escape(scriptural)}&rdquo;</div>')
+    return (
+        f'<section style="background:white;border:1px solid #d4dcea;border-radius:14px;'
+        f'padding:18px 20px;margin:0 0 14px;box-shadow:0 1px 2px rgba(0,0,0,0.03);">'
+        f'<details style="margin:0;">'
+        f'<summary style="cursor:pointer;font-family:Georgia,serif;font-weight:400;'
+        f'font-size:1.15em;color:{_accent()};padding:0;list-style:none;">'
+        f'{safe_summary}'
+        f'<span style="color:{_accent()};font-size:0.7em;font-style:italic;'
+        f'margin-left:8px;opacity:0.7;">(tap to expand)</span>'
+        f'</summary>'
+        f'<div style="margin-top:12px;">{body_html}</div>'
+        f'</details>{sub}</section>'
+    )
+
+
 def _hour_details(summary_text: str, parts_html: str) -> str:
     safe_summary = escape(summary_text)
     return (
@@ -1041,9 +1063,13 @@ def _render_block_prayers(block: str, now_dt: datetime, weekday: str) -> str:
         secs_to_noon = max(0, (12 * 3600) - (now_dt.hour * 3600 + now_dt.minute * 60))
         mins = secs_to_noon // 60
         when = f"in {mins // 60}h {mins % 60}m" if mins else "now"
-        out.append(_card("The Angelus — at noon",
-                         _prose(f"Bell rings {when}.\n\n{_ANGELUS}"),
-                         scriptural="And the Word became flesh and dwelt among us. — Jn 1:14"))
+        bell_html = (f'<div style="font-size:0.88em;color:#5a6a85;'
+                     f'margin:0 0 10px;">Bell rings {escape(when)}.</div>')
+        out.append(_collapsible_card(
+            "The Angelus — at noon",
+            bell_html + _prose(_ANGELUS),
+            scriptural="And the Word became flesh and dwelt among us. — Jn 1:14",
+        ))
         out.append(_card(
             "Terce — Mid-Morning Prayer",
             _hour_details(
@@ -1078,9 +1104,11 @@ def _render_block_prayers(block: str, now_dt: datetime, weekday: str) -> str:
             ),
         ))
     elif block == "evening":
-        out.append(_card("The Angelus — at six",
-                         _prose(_ANGELUS),
-                         scriptural="And the Word became flesh. — Jn 1:14"))
+        out.append(_collapsible_card(
+            "The Angelus — at six",
+            _prose(_ANGELUS),
+            scriptural="And the Word became flesh. — Jn 1:14",
+        ))
         ros = _rosary_for(weekday)
         rows = "".join(
             f'<li style="margin:6px 0;"><strong>{escape(t)}</strong>'
@@ -1572,21 +1600,23 @@ def _render_saint_card(iso: str) -> str:
     obs = info.get("observances", []) or []
     if not feast and not season and not obs:
         return ""
+    feast_for_ai = feast or (obs[0] if obs else "")
+    summary_suffix = feast or (obs[0] if obs else "")
+    if summary_suffix:
+        summary_text = f"Today in the Church — {summary_suffix}"
+    else:
+        summary_text = "Today in the Church"
     bits = []
-    if feast:
-        bits.append(f'<div style="font-family:Georgia,serif;font-size:1.05em;'
-                    f'color:#1a1a1a;margin:0 0 6px;">{escape(feast)}</div>')
     if season:
         bits.append(f'<div style="font-size:0.86em;color:#5a6a85;">'
                     f'Liturgical season: {escape(season)}</div>')
     for o in obs:
         bits.append(f'<div style="font-size:0.86em;color:#7a3e1a;margin-top:4px;">'
                     f'&middot; {escape(o)}</div>')
-    feast_for_ai = feast or (obs[0] if obs else "")
     ai_html = _get_feast_ai_summary(iso, feast_for_ai)
     if ai_html:
         bits.append(ai_html)
-    return _card("Today in the Church", "".join(bits))
+    return _collapsible_card(summary_text, "".join(bits))
 
 
 def _render_pope_card(iso: str) -> str:
