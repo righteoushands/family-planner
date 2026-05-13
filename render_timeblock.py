@@ -1363,6 +1363,112 @@ def _week_key_for(d: date) -> str:
     return f"{iso[0]}-W{iso[1]:02d}"
 
 
+def _meal_prep_bullets(recipe: dict) -> list:
+    if not recipe:
+        return []
+    instr = recipe.get("instructions", "") or ""
+    if isinstance(instr, list):
+        lines = [str(x).strip() for x in instr]
+    else:
+        lines = [ln.strip() for ln in str(instr).splitlines()]
+    cleaned = []
+    for ln in lines:
+        if not ln:
+            continue
+        stripped = ln.lstrip("0123456789.)-•* \t")
+        if stripped:
+            cleaned.append(stripped)
+        if len(cleaned) >= 3:
+            break
+    return cleaned
+
+
+def _render_meal_row(label: str, slot_value) -> str:
+    try:
+        from render_meals import slot_display_text, slot_recipe_id
+        from data_helpers import get_recipe_by_id
+    except Exception:
+        slot_display_text = lambda v: (str(v).strip() if isinstance(v, str) else "")
+        slot_recipe_id    = lambda v: None
+        get_recipe_by_id  = lambda r: None
+
+    name = slot_display_text(slot_value)
+    if not name:
+        return (
+            f'<div style="padding:8px 0;border-bottom:1px dashed #e4eaf3;">'
+            f'<div style="font-size:0.78em;text-transform:uppercase;'
+            f'letter-spacing:0.06em;color:{_accent()};font-weight:700;">'
+            f'{escape(label)}</div>'
+            f'<div style="font-size:0.88em;color:#999;font-style:italic;'
+            f'margin-top:4px;">No meal planned &middot; '
+            f'<a href="/lorenzo" style="color:#2d4a78;text-decoration:none;'
+            f'font-style:normal;">ask Lorenzo to plan one &rarr;</a></div>'
+            f'</div>'
+        )
+
+    recipe = None
+    rid = slot_recipe_id(slot_value)
+    if rid:
+        try:
+            recipe = get_recipe_by_id(rid) or None
+        except Exception:
+            recipe = None
+
+    meta_bits = []
+    if isinstance(slot_value, dict):
+        prep_tasks = slot_value.get("prep_tasks") or slot_value.get("prep") or ""
+        if isinstance(prep_tasks, list):
+            prep_tasks = ", ".join(str(x) for x in prep_tasks if x)
+        prep_tasks = str(prep_tasks or "").strip()
+        if prep_tasks:
+            meta_bits.append(f'<span style="color:#5a6a85;">'
+                             f'&#9881;&#65039; {escape(prep_tasks)}</span>')
+        helpers = slot_value.get("helpers") or slot_value.get("assigned") or ""
+        if isinstance(helpers, list):
+            helpers = ", ".join(str(x) for x in helpers if x)
+        helpers = str(helpers or "").strip()
+        if helpers:
+            meta_bits.append(f'<span style="color:#5a6a85;">'
+                             f'&#128101; {escape(helpers)}</span>')
+        ct_raw = slot_value.get("cook_time") or slot_value.get("time") or ""
+        cook_time = ct_raw.strip() if isinstance(ct_raw, str) else ""
+    else:
+        cook_time = ""
+    if not cook_time and recipe:
+        cook_time = str(recipe.get("prep_time", "") or "").strip()
+    if cook_time:
+        meta_bits.append(f'<span style="color:#5a6a85;">'
+                         f'&#9201;&#65039; {escape(cook_time)}</span>')
+
+    meta_html = ""
+    if meta_bits:
+        meta_html = (f'<div style="font-size:0.82em;margin-top:4px;'
+                     f'display:flex;gap:12px;flex-wrap:wrap;">'
+                     + "".join(meta_bits) + '</div>')
+
+    bullets_html = ""
+    bullets = _meal_prep_bullets(recipe)
+    if bullets:
+        items = "".join(
+            f'<li style="margin:3px 0;">{escape(b)}</li>' for b in bullets
+        )
+        bullets_html = (
+            f'<ul style="font-size:0.86em;color:#1a1a1a;line-height:1.5;'
+            f'margin:6px 0 0;padding-left:20px;">{items}</ul>'
+        )
+
+    return (
+        f'<div style="padding:8px 0;border-bottom:1px dashed #e4eaf3;">'
+        f'<div style="font-size:0.78em;text-transform:uppercase;'
+        f'letter-spacing:0.06em;color:{_accent()};font-weight:700;">'
+        f'{escape(label)}</div>'
+        f'<div style="font-size:0.96em;color:#1a1a1a;margin-top:3px;'
+        f'font-weight:500;">{escape(name)}</div>'
+        f'{meta_html}{bullets_html}'
+        f'</div>'
+    )
+
+
 def _render_meals_snapshot(weekday: str, today: date, block: str) -> str:
     try:
         from render_meals import load_meal_plan
@@ -1377,21 +1483,10 @@ def _render_meals_snapshot(weekday: str, today: date, block: str) -> str:
         day_meals = {}
     rows = []
     for key, label in _meal_keys_for_block(block):
-        val = (day_meals.get(key) or "").strip()
-        if val:
-            rows.append(f'<div style="padding:6px 0;border-bottom:1px dashed #e4eaf3;">'
-                        f'<div style="font-size:0.78em;text-transform:uppercase;'
-                        f'letter-spacing:0.06em;color:{_accent()};font-weight:700;">'
-                        f'{escape(label)}</div>'
-                        f'<div style="font-size:0.92em;color:#1a1a1a;margin-top:2px;">'
-                        f'{escape(val)}</div></div>')
-        else:
-            rows.append(f'<div style="padding:6px 0;border-bottom:1px dashed #e4eaf3;'
-                        f'color:#999;font-size:0.88em;font-style:italic;">'
-                        f'{escape(label)}: &mdash;</div>')
+        rows.append(_render_meal_row(label, day_meals.get(key)))
     return _card(f"Meals — {_BLOCK_LABELS.get(block, block)}",
                  "".join(rows) +
-                 '<div style="text-align:right;margin-top:8px;">'
+                 '<div style="text-align:right;margin-top:10px;">'
                  '<a href="/lorenzo" style="color:#2d4a78;font-size:0.85em;'
                  'text-decoration:none;">Talk to Lorenzo &rarr;</a></div>')
 
