@@ -1269,17 +1269,24 @@ def _render_frol_snapshot(weekday: str, block: str) -> str:
     except Exception:
         slots = {}
     lo, hi = _BLOCK_HOUR_RANGE.get(block, (0, 24))
+    hi_ext = min(24, hi + 2)
 
-    def _hour_of(t: str) -> int:
+    def _minutes_of(t: str) -> int:
         try:
-            return int(t.split(":")[0])
+            parts = t.split(":")
+            h = int(parts[0])
+            m = int(parts[1]) if len(parts) > 1 else 0
+            return h * 60 + m
         except Exception:
             return -1
 
+    lo_min = lo * 60
+    hi_min = hi_ext * 60
+    sorted_keys = sorted(slots.keys(), key=_minutes_of)
     rows = []
-    for t in sorted(slots.keys()):
-        h = _hour_of(t)
-        if lo <= h < hi:
+    for t in sorted_keys:
+        mins = _minutes_of(t)
+        if lo_min <= mins < hi_min:
             label = (slots[t] or "").strip()
             if label:
                 rows.append(f'<div style="display:flex;gap:12px;padding:5px 0;'
