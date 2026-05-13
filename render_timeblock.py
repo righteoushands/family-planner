@@ -232,7 +232,10 @@ def _pexels_search(query: str, cache_key, day_of_year: int) -> dict:
             })
             req = _req.Request(
                 "https://api.pexels.com/v1/search?" + qs,
-                headers={"Authorization": api_key},
+                headers={
+                    "Authorization": api_key,
+                    "User-Agent":    "SanctaFamilia/1.0 (+https://replit.com)",
+                },
             )
             with _req.urlopen(req, timeout=10) as resp:
                 data = _json.loads(resp.read())
