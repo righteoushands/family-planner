@@ -364,6 +364,216 @@ _SALVE_REGINA = (
     "loving, O sweet Virgin Mary."
 )
 
+_ALMA_REDEMPTORIS = (
+    "Loving Mother of the Redeemer, gate of heaven, star of the sea, "
+    "hasten to aid thy fallen people who strive to rise once more. Thou "
+    "who didst beget thy holy Creator, while all nature marvelled, Virgin "
+    "before and after receiving the Angel's salutation, take pity on us "
+    "sinners."
+)
+
+_AVE_REGINA_CAELORUM = (
+    "Hail, O Queen of Heaven enthroned. Hail, by angels Mistress owned. "
+    "Root of Jesse, Gate of morn, whence the world's true Light was born: "
+    "Glorious Virgin, joy to thee, loveliest whom in heaven they see; "
+    "fairest thou where all are fair, plead with Christ our sins to spare."
+)
+
+_REGINA_CAELI = (
+    "Queen of Heaven, rejoice, alleluia.\n"
+    "For He whom thou didst merit to bear, alleluia,\n"
+    "Hath risen as He said, alleluia.\n"
+    "Pray for us to God, alleluia.\n\n"
+    "V. Rejoice and be glad, O Virgin Mary, alleluia.\n"
+    "R. For the Lord hath risen indeed, alleluia."
+)
+
+_COMPLINE_EXAMEN = (
+    "Pause in silence. Place yourself in God's presence.\n\n"
+    "1. Give thanks for the gifts of this day — name three.\n"
+    "2. Ask the Holy Spirit for light to see honestly.\n"
+    "3. Walk slowly through the day, hour by hour. Where did love grow? "
+    "Where did it shrink?\n"
+    "4. Ask forgiveness for what was unloving. Rest in His mercy.\n"
+    "5. Offer tomorrow into His hands."
+)
+
+_COMPLINE_CONFITEOR = (
+    "I confess to almighty God, and to you, my brothers and sisters, "
+    "that I have greatly sinned, in my thoughts and in my words, in what "
+    "I have done and in what I have failed to do, through my fault, "
+    "through my fault, through my most grievous fault; therefore I ask "
+    "blessed Mary ever-Virgin, all the Angels and Saints, and you, my "
+    "brothers and sisters, to pray for me to the Lord our God."
+)
+
+_TE_LUCIS_ANTE_TERMINUM = (
+    "To Thee before the close of day, Creator of the world, we pray\n"
+    "That, with Thy wonted favor, Thou wouldst be our guard and keeper now.\n\n"
+    "From all ill dreams defend our eyes, from nightly fears and fantasies;\n"
+    "Tread under foot our ghostly foe, that no pollution we may know.\n\n"
+    "O Father, that we ask be done, through Jesus Christ, Thine only Son,\n"
+    "Who, with the Holy Ghost and Thee, doth live and reign eternally. Amen."
+)
+
+_PSALM_91 = (
+    "He who dwells in the shelter of the Most High, who abides in the "
+    "shadow of the Almighty, will say to the Lord, 'My refuge and my "
+    "fortress, my God, in whom I trust.'\n\n"
+    "For He will deliver you from the snare of the fowler and from the "
+    "deadly pestilence; He will cover you with His pinions, and under "
+    "His wings you will find refuge; His faithfulness is a shield and "
+    "buckler.\n\n"
+    "You will not fear the terror of the night, nor the arrow that flies "
+    "by day, nor the pestilence that stalks in darkness, nor the "
+    "destruction that wastes at noonday.\n\n"
+    "Because you have made the Lord your refuge, the Most High your "
+    "habitation, no evil shall befall you, no scourge come near your "
+    "tent. For He will give His angels charge of you to guard you in "
+    "all your ways.\n\n"
+    "When he calls to me, I will answer him; I will be with him in "
+    "trouble, I will rescue him and honor him. With long life I will "
+    "satisfy him, and show him my salvation."
+)
+
+_COMPLINE_SHORT_READING = (
+    "You, O Lord, are in our midst, and we are called by Your name; "
+    "do not forsake us, O Lord our God. — Jeremiah 14:9"
+)
+
+_NUNC_DIMITTIS = (
+    "Lord, now lettest Thou Thy servant depart in peace, according to "
+    "Thy word; for mine eyes have seen Thy salvation, which Thou hast "
+    "prepared before the face of all peoples: a light to lighten the "
+    "Gentiles, and the glory of Thy people Israel.\n\n"
+    "Glory be to the Father, and to the Son, and to the Holy Spirit, "
+    "as it was in the beginning, is now, and ever shall be, world "
+    "without end. Amen."
+)
+
+_COMPLINE_CLOSING = (
+    "May the all-powerful Lord grant us a restful night and a peaceful "
+    "death. Amen."
+)
+
+
+# Inline novena prayers for the six most common novenas.
+# Keys are lowercase substring matches against the saint/devotion name.
+_NOVENA_PRAYERS = {
+    "holy spirit": (
+        "On this day of the Novena to the Holy Spirit:\n\n"
+        "Come, Holy Spirit, fill the hearts of Thy faithful and kindle "
+        "in them the fire of Thy love. Send forth Thy Spirit and they "
+        "shall be created. And Thou shalt renew the face of the earth.\n\n"
+        "O God, who by the light of the Holy Spirit didst instruct the "
+        "hearts of the faithful, grant that by the same Holy Spirit we "
+        "may be truly wise and ever rejoice in His consolation, through "
+        "Christ Our Lord. Amen.\n\n"
+        "Holy Spirit, Spirit of truth, come into our hearts; shed the "
+        "brightness of Thy light on all nations, that they may be one "
+        "in faith and pleasing to Thee.\n\n"
+        "Pray one Our Father, Hail Mary, and Glory Be."
+    ),
+    "sacred heart": (
+        "On this day of the Novena to the Sacred Heart of Jesus:\n\n"
+        "O most holy Heart of Jesus, fountain of every blessing, I "
+        "adore Thee, I love Thee, and with lively sorrow for my sins I "
+        "offer Thee this poor heart of mine. Make me humble, patient, "
+        "pure, and wholly obedient to Thy will. Grant, good Jesus, that "
+        "I may live in Thee and for Thee.\n\n"
+        "Protect me in the midst of danger; comfort me in my afflictions; "
+        "give me health of body, assistance in my temporal needs, Thy "
+        "blessing on all that I do, and the grace of a holy death.\n\n"
+        "Within Thy Heart I place my every care. In every need let me "
+        "come to Thee with humble trust saying, Heart of Jesus, help me.\n\n"
+        "(State your intention.) Pray one Our Father, Hail Mary, and Glory Be."
+    ),
+    "divine mercy": (
+        "On this day of the Divine Mercy Novena:\n\n"
+        "Most Merciful Jesus, whose very nature it is to have compassion "
+        "on us and to forgive us, do not look upon our sins, but upon "
+        "our trust which we place in Your infinite goodness. Receive us "
+        "all into the abode of Your Most Compassionate Heart, and never "
+        "let us escape from It. We beg this of You by Your love which "
+        "unites You to the Father and the Holy Spirit.\n\n"
+        "Eternal Father, turn Your merciful gaze upon (today's intention "
+        "from the Diary of St. Faustina), and through the Sorrowful "
+        "Passion of Jesus and His mercy, grant our petitions.\n\n"
+        "Then pray the Chaplet of Divine Mercy on ordinary rosary beads."
+    ),
+    "fatima": (
+        "On this day of the Novena to Our Lady of Fatima:\n\n"
+        "Most Holy Virgin, who hast deigned to come to Fatima to reveal "
+        "to the three little shepherds the treasures of graces hidden "
+        "in the recitation of the Rosary, inspire our hearts with a "
+        "sincere love of this devotion, that, by meditating on the "
+        "Mysteries of our Redemption recalled in it, we may gather the "
+        "fruits and obtain the conversion of sinners, the special favor "
+        "I now ask: (state your intention).\n\n"
+        "I ask it for the greater glory of God, for thine own honor, and "
+        "for the good of souls. Amen.\n\n"
+        "Our Lady of the Most Holy Rosary of Fatima, pray for us.\n\n"
+        "Pray one Our Father, Hail Mary, and Glory Be."
+    ),
+    "joseph": (
+        "On this day of the Novena to St. Joseph:\n\n"
+        "O Glorious Saint Joseph, faithful follower of Jesus Christ, to "
+        "thee we raise our hearts and hands, to implore thy powerful "
+        "intercession in obtaining from the benign Heart of Jesus all "
+        "the helps and graces necessary for our spiritual and temporal "
+        "welfare, particularly the grace of a happy death, and the "
+        "special favor we now implore: (state your intention).\n\n"
+        "O Guardian of the Word Incarnate, we feel animated with "
+        "confidence that thy prayers in our behalf will be graciously "
+        "heard before the throne of God.\n\n"
+        "St. Joseph, foster-father of Jesus, pray for us. St. Joseph, "
+        "most chaste spouse of Mary, pray for us.\n\n"
+        "Pray one Our Father, Hail Mary, and Glory Be."
+    ),
+    "therese": (
+        "On this day of the Novena to St. Thérèse of the Child Jesus:\n\n"
+        "O Little Thérèse of the Child Jesus, please pick for me a rose "
+        "from the heavenly gardens and send it to me as a message of "
+        "love. O Little Flower of Jesus, ask God today to grant the "
+        "favors I now place with confidence in your hands: (state your "
+        "intention).\n\n"
+        "St. Thérèse, help me to always believe, as you did, in God's "
+        "great love for me, so that I might imitate your 'Little Way' "
+        "each day. Amen.\n\n"
+        "St. Thérèse of the Child Jesus, pray for us.\n\n"
+        "Pray one Our Father, Hail Mary, and Glory Be."
+    ),
+}
+
+_NOVENAS_FALLBACK_URL = "https://www.ewtn.com/catholicism/devotions/novenas"
+
+
+def _novena_prayer_for(saint: str) -> str:
+    s = (saint or "").lower()
+    for key, text in _NOVENA_PRAYERS.items():
+        if key in s:
+            return text
+    return ""
+
+
+def _compline_marian_antiphon(d: date):
+    """Return (title, prayer_text) for the season-appropriate Marian antiphon."""
+    season = ""
+    try:
+        from render_liturgical import get_day_info
+        info = get_day_info(d)
+        season = (info or {}).get("season", "") or ""
+    except Exception:
+        season = ""
+    s = season.lower()
+    if "advent" in s or "christmas" in s:
+        return ("Alma Redemptoris Mater", _ALMA_REDEMPTORIS)
+    if "lent" in s or "holy week" in s or "passion" in s:
+        return ("Ave Regina Caelorum", _AVE_REGINA_CAELORUM)
+    if "easter" in s:
+        return ("Regina Caeli", _REGINA_CAELI)
+    return ("Salve Regina", _SALVE_REGINA)
+
 
 def _accent() -> str:
     return "#4a6fa5"
@@ -438,18 +648,31 @@ def _render_block_prayers(block: str, now_dt: datetime, weekday: str) -> str:
                          _prose("The Church lifts up the Magnificat with Mary at evening: "
                                 "'My soul magnifies the Lord.'")))
     else:  # late_evening
-        out.append(_card("Examen — five minutes",
-                         _prose("1. Give thanks for the gifts of today.\n"
-                                "2. Ask for light to see honestly.\n"
-                                "3. Walk through the day, hour by hour.\n"
-                                "4. Ask forgiveness; rest in His mercy.\n"
-                                "5. Offer tomorrow into His hands."),
-                         scriptural="Search me, O God, and know my heart. — Ps 139:23"))
         out.append(_card("Compline — Night Prayer",
                          _prose("'Into Your hands, O Lord, I commend my spirit.'\n\n"
-                                "Pray Psalm 91 or Psalm 4. End with the Salve Regina.")))
-        out.append(_card("Salve Regina",
-                         _prose(_SALVE_REGINA)))
+                                "The Church's last prayer of the day. Pray slowly, "
+                                "as one settling into the arms of the Father."),
+                         scriptural="He gives sleep to His beloved. — Ps 127:2"))
+        out.append(_card("1. Examination of Conscience",
+                         _prose(_COMPLINE_EXAMEN),
+                         scriptural="Search me, O God, and know my heart. — Ps 139:23"))
+        out.append(_card("2. Confiteor",
+                         _prose(_COMPLINE_CONFITEOR)))
+        out.append(_card("3. Hymn — Te lucis ante terminum",
+                         _prose(_TE_LUCIS_ANTE_TERMINUM)))
+        out.append(_card("4. Psalm 91 — He who dwells in the shelter of the Most High",
+                         _prose(_PSALM_91),
+                         scriptural="Glory be to the Father, and to the Son, and to the Holy Spirit."))
+        out.append(_card("5. Short Reading",
+                         _prose(_COMPLINE_SHORT_READING)))
+        out.append(_card("6. Gospel Canticle — Nunc Dimittis",
+                         _prose(_NUNC_DIMITTIS),
+                         scriptural="The Canticle of Simeon — Lk 2:29-32"))
+        _ant_title, _ant_text = _compline_marian_antiphon(now_dt.date())
+        out.append(_card(f"7. Marian Antiphon — {_ant_title}",
+                         _prose(_ant_text)))
+        out.append(_card("Closing",
+                         _prose(_COMPLINE_CLOSING)))
     return "".join(out)
 
 
@@ -477,9 +700,39 @@ def _render_intentions_widget(iso: str) -> str:
             saint = (n_int.get("saint") or "").strip()
             day_n = n_int.get("current_day", 0)
             if saint:
-                rows.append(f'<li style="margin:4px 0;">&middot; Novena to {escape(saint)}'
-                            f' <span style="color:#999;font-size:0.8em;">'
-                            f'(day {day_n} of 9)</span></li>')
+                _prayer_text = _novena_prayer_for(saint)
+                if _prayer_text:
+                    _safe_prayer = escape(_prayer_text).replace("\n", "<br>")
+                    _detail_body = (
+                        f'<div style="margin:6px 0 4px 14px;padding:10px 14px;'
+                        f'background:#f4f7fc;border-left:3px solid {_accent()};'
+                        f'border-radius:6px;font-family:Georgia,serif;font-size:0.92em;'
+                        f'line-height:1.6;color:#1a1a1a;white-space:pre-line;">'
+                        f'{_safe_prayer}</div>'
+                    )
+                else:
+                    _ewtn = escape(_NOVENAS_FALLBACK_URL, quote=True)
+                    _detail_body = (
+                        f'<div style="margin:6px 0 4px 14px;padding:8px 14px;'
+                        f'background:#f4f7fc;border-left:3px solid {_accent()};'
+                        f'border-radius:6px;font-size:0.9em;color:#2d4a78;">'
+                        f'Prayer text for this novena is not stored locally. '
+                        f'<a href="{_ewtn}" target="_blank" rel="noopener" '
+                        f'style="color:{_accent()};">Open EWTN novena library &rarr;</a>'
+                        f'</div>'
+                    )
+                rows.append(
+                    f'<li style="margin:6px 0;list-style:none;">'
+                    f'<details style="cursor:pointer;">'
+                    f'<summary style="display:list-item;list-style:disclosure-closed inside;'
+                    f'color:#2d4a78;outline:none;">'
+                    f'Novena to {escape(saint)}'
+                    f' <span style="color:#999;font-size:0.8em;">'
+                    f'(day {day_n} of 9 &middot; tap for prayer)</span>'
+                    f'</summary>'
+                    f'{_detail_body}'
+                    f'</details></li>'
+                )
         if rows:
             items_html = (f'<ul style="list-style:none;padding:0;margin:0 0 12px;'
                           f'font-size:0.92em;line-height:1.5;color:#2d4a78;">'
@@ -685,14 +938,30 @@ def _render_pope_card(iso: str) -> str:
                  _prose(text))
 
 
-def _render_daily_mass_link() -> str:
-    return (
-        '<div style="text-align:center;margin:6px 0 14px;">'
+def _render_daily_mass_link(today_d: date = None, block: str = "") -> str:
+    video_btn = (
         f'<a href="/daily-mass" target="_blank" rel="noopener" '
         f'style="display:inline-block;background:{_accent()};color:white;'
         f'text-decoration:none;padding:10px 22px;border-radius:22px;'
-        f'font-size:0.92em;font-family:inherit;">'
+        f'font-size:0.92em;font-family:inherit;margin:4px 6px;">'
         '&#10016; Today\'s Daily Mass Readings &rarr;</a>'
+    )
+    usccb_btn = ""
+    if block in ("early_morning", "afternoon") and today_d is not None:
+        _mmddyy = today_d.strftime("%m%d%y")
+        _usccb_url = escape(f"https://bible.usccb.org/bible/readings/{_mmddyy}.cfm",
+                            quote=True)
+        usccb_btn = (
+            f'<a href="{_usccb_url}" target="_blank" rel="noopener" '
+            f'style="display:inline-block;background:white;color:{_accent()};'
+            f'text-decoration:none;padding:10px 22px;border-radius:22px;'
+            f'font-size:0.92em;font-family:inherit;margin:4px 6px;'
+            f'border:1px solid {_accent()};">'
+            '&#128214; Today\'s Readings (USCCB) &rarr;</a>'
+        )
+    return (
+        '<div style="text-align:center;margin:6px 0 14px;">'
+        f'{video_btn}{usccb_btn}'
         '</div>'
     )
 
@@ -732,7 +1001,7 @@ def render_timeblock_homepage(viewer: str = "lauren") -> str:
     novena_prompt  = _render_novena_prompt()
     frol_card      = _render_frol_snapshot(weekday, block)
     meals_card     = _render_meals_snapshot(weekday, today, block)
-    daily_mass     = _render_daily_mass_link()
+    daily_mass     = _render_daily_mass_link(today, block)
 
     # Switch link to the dashboard for Lauren who wants it
     switch_link = (
