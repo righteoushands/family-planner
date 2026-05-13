@@ -126,7 +126,7 @@ def _unsplash_url(season: str, day_of_year: int = 0) -> str:
 _FEAST_ART = {
     "our-lady-of-fatima": (
         "fatima",
-        "https://upload.wikimedia.org/wikipedia/commons/9/9b/Statue_of_Our_Lady_of_F%C3%A1tima.jpg",
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Statue_of_Our_Lady_of_F%C3%A1tima.jpg/800px-Statue_of_Our_Lady_of_F%C3%A1tima.jpg",
     ),
     "immaculate-conception": (
         "immaculate conception",
@@ -1383,6 +1383,15 @@ def _render_saint_card(iso: str) -> str:
     obs = info.get("observances", []) or []
     if not feast and not season and not obs:
         return ""
+    bio_url = ""
+    try:
+        from saint_data import fetch_saint_data as _fsd
+        _sd = _fsd(datetime.fromisoformat(iso).date()) or {}
+        bio_url = (_sd.get("bio_url") or "").strip()
+    except Exception:
+        bio_url = ""
+    if not bio_url:
+        bio_url = "https://mycatholic.life/saints/saints-of-the-liturgical-year/"
     bits = []
     if feast:
         bits.append(f'<div style="font-family:Georgia,serif;font-size:1.05em;'
@@ -1393,6 +1402,12 @@ def _render_saint_card(iso: str) -> str:
     for o in obs:
         bits.append(f'<div style="font-size:0.86em;color:#7a3e1a;margin-top:4px;">'
                     f'&middot; {escape(o)}</div>')
+    bits.append(f'<div style="margin-top:10px;">'
+                f'<a href="{escape(bio_url, quote=True)}" target="_blank" '
+                f'rel="noopener noreferrer" '
+                f'style="display:inline-block;font-size:0.86em;color:{_accent()};'
+                f'text-decoration:none;font-weight:600;">'
+                f'Learn more &rarr;</a></div>')
     return _card("Today in the Church", "".join(bits))
 
 
@@ -1537,7 +1552,6 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="when">{escape(date_label)} &middot; {escape(time_label)} ET</div>
     <div><span class="blocklbl">{escape(block_lbl)}</span></div>
   </div>
-  <div class="credit">{escape(img.get("credit",""))}</div>
 </div>
 <div class="tb-body">
   {saint_card}
