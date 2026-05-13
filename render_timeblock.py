@@ -811,7 +811,15 @@ _BLOCK_HOUR_RANGE = {
     "morning":       (7, 12),
     "afternoon":     (12, 17),
     "evening":       (17, 20),
-    "late_evening":  (20, 24),
+    "late_evening":  (20, 22),
+}
+
+_BLOCK_EMPTY_FROL_MSG = {
+    "early_morning": "No scheduled rhythm before 7 AM — let the day begin in quiet prayer.",
+    "morning":       "The morning is open — offer the hours to the Lord and follow His lead.",
+    "afternoon":     "Nothing scheduled this afternoon — a gift of unhurried time.",
+    "evening":       "No fixed rhythm this evening — gather the family and rest.",
+    "late_evening":  "Nothing on the rule tonight — the day is His. Time to rest.",
 }
 
 
@@ -821,8 +829,6 @@ def _render_frol_snapshot(weekday: str, block: str) -> str:
         slots = get_frol_day_slots(weekday, person="Mom") or {}
     except Exception:
         slots = {}
-    if not slots:
-        return ""
     lo, hi = _BLOCK_HOUR_RANGE.get(block, (0, 24))
 
     def _hour_of(t: str) -> int:
@@ -843,10 +849,17 @@ def _render_frol_snapshot(weekday: str, block: str) -> str:
                             f'font-size:0.85em;width:60px;">{escape(t)}</div>'
                             f'<div style="font-size:0.92em;color:#1a1a1a;">'
                             f'{escape(label)}</div></div>')
-    if not rows:
-        return ""
+    if rows:
+        body = "".join(rows)
+    else:
+        msg = _BLOCK_EMPTY_FROL_MSG.get(
+            block,
+            "No scheduled rhythm for this hour — pause and breathe.",
+        )
+        body = (f'<div style="font-style:italic;color:#5a6a85;font-size:0.92em;'
+                f'line-height:1.6;padding:6px 0;">{escape(msg)}</div>')
     return _card(f"Rule of Life — {_BLOCK_LABELS.get(block, block)}",
-                 "".join(rows))
+                 body)
 
 
 def _meal_keys_for_block(block: str) -> list:
