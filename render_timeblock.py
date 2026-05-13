@@ -126,7 +126,7 @@ def _unsplash_url(season: str, day_of_year: int = 0) -> str:
 _FEAST_ART = {
     "our-lady-of-fatima": (
         "fatima",
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Statue_of_Our_Lady_of_F%C3%A1tima.jpg/800px-Statue_of_Our_Lady_of_F%C3%A1tima.jpg",
+        "https://upload.wikimedia.org/wikipedia/commons/9/9b/Statue_of_Our_Lady_of_F%C3%A1tima.jpg",
     ),
     "immaculate-conception": (
         "immaculate conception",
@@ -1383,15 +1383,16 @@ def _render_saint_card(iso: str) -> str:
     obs = info.get("observances", []) or []
     if not feast and not season and not obs:
         return ""
-    bio_url = ""
+    _GENERIC_BIO = "https://mycatholic.life/saints/saints-of-the-liturgical-year/"
+    curated_bio_url = ""
     try:
         from saint_data import fetch_saint_data as _fsd
         _sd = _fsd(datetime.fromisoformat(iso).date()) or {}
-        bio_url = (_sd.get("bio_url") or "").strip()
+        _b = (_sd.get("bio_url") or "").strip()
+        if _b and _b != _GENERIC_BIO:
+            curated_bio_url = _b
     except Exception:
-        bio_url = ""
-    if not bio_url:
-        bio_url = "https://mycatholic.life/saints/saints-of-the-liturgical-year/"
+        curated_bio_url = ""
     bits = []
     if feast:
         bits.append(f'<div style="font-family:Georgia,serif;font-size:1.05em;'
@@ -1402,12 +1403,36 @@ def _render_saint_card(iso: str) -> str:
     for o in obs:
         bits.append(f'<div style="font-size:0.86em;color:#7a3e1a;margin-top:4px;">'
                     f'&middot; {escape(o)}</div>')
-    bits.append(f'<div style="margin-top:10px;">'
-                f'<a href="{escape(bio_url, quote=True)}" target="_blank" '
-                f'rel="noopener noreferrer" '
-                f'style="display:inline-block;font-size:0.86em;color:{_accent()};'
-                f'text-decoration:none;font-weight:600;">'
-                f'Learn more &rarr;</a></div>')
+    if curated_bio_url:
+        bits.append(f'<div style="margin-top:10px;">'
+                    f'<a href="{escape(curated_bio_url, quote=True)}" target="_blank" '
+                    f'rel="noopener noreferrer" '
+                    f'style="display:inline-block;font-size:0.86em;color:{_accent()};'
+                    f'text-decoration:none;font-weight:600;">'
+                    f'Learn more &rarr;</a></div>')
+    else:
+        link_style = (f'display:inline-block;font-size:0.82em;color:{_accent()};'
+                      f'text-decoration:none;font-weight:600;'
+                      f'padding:4px 10px;margin:0 6px 6px 0;'
+                      f'background:#f4f7fc;border:1px solid #d4dcea;'
+                      f'border-radius:12px;')
+        bits.append(f'<div style="margin-top:10px;font-size:0.78em;'
+                    f'color:#5a6a85;letter-spacing:0.04em;'
+                    f'text-transform:uppercase;margin-bottom:6px;">'
+                    f'Learn more</div>')
+        bits.append(
+            f'<div style="margin-top:2px;">'
+            f'<a href="https://www.catholicallyear.com" target="_blank" '
+            f'rel="noopener noreferrer" style="{link_style}">'
+            f'Catholic All Year &rarr;</a>'
+            f'<a href="https://thelittleroseshop.com" target="_blank" '
+            f'rel="noopener noreferrer" style="{link_style}">'
+            f'Little Rose Shop &rarr;</a>'
+            f'<a href="https://mycatholic.life/saints/saints-of-the-liturgical-year/" '
+            f'target="_blank" rel="noopener noreferrer" style="{link_style}">'
+            f'My Catholic Life &rarr;</a>'
+            f'</div>'
+        )
     return _card("Today in the Church", "".join(bits))
 
 
