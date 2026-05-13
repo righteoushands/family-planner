@@ -202,21 +202,69 @@ def _file_exists(rel_path: str) -> bool:
         return False
 
 
+_PEXELS_CACHE = {}
+
+_PEXELS_SEASON_QUERIES = {
+    "spring": "spring flowers nature peaceful",
+    "summer": "summer golden light nature",
+    "autumn": "autumn leaves forest warm",
+    "winter": "winter snow peaceful forest",
+}
+
+
+def _pexels_search(query: str, cache_key, day_of_year: int) -> dict:
+    """Hit Pexels /v1/search and return {url, photographer, photographer_url}
+    or {} on failure. Results are cached per process by cache_key."""
+    if cache_key in _PEXELS_CACHE:
+        photos = _PEXELS_CACHE[cache_key]
+    else:
+        api_key = (os.environ.get("PEXELS_API_KEY") or "").strip()
+        if not api_key:
+            return {}
+        import json as _json
+        import urllib.request as _req
+        import urllib.parse as _parse
+        try:
+            qs = _parse.urlencode({
+                "query":       query,
+                "per_page":    15,
+                "orientation": "landscape",
+            })
+            req = _req.Request(
+                "https://api.pexels.com/v1/search?" + qs,
+                headers={"Authorization": api_key},
+            )
+            with _req.urlopen(req, timeout=10) as resp:
+                data = _json.loads(resp.read())
+            photos = data.get("photos", []) or []
+        except Exception:
+            photos = []
+        _PEXELS_CACHE[cache_key] = photos
+    if not photos:
+        return {}
+    photo = photos[day_of_year % len(photos)]
+    src = (photo.get("src") or {})
+    url = src.get("landscape") or src.get("large") or src.get("original") or ""
+    if not url:
+        return {}
+    return {
+        "url":              url,
+        "photographer":     (photo.get("photographer") or "").strip(),
+        "photographer_url": (photo.get("photographer_url") or "").strip(),
+    }
+
+
 def _resolve_image(iso: str) -> dict:
-    """
-    Returns {"url": "/static/...", "credit": "...", "fallback_gradient": "..."}.
-    Priority:
-      1. /static/images/timeblock/feasts/{slug}.jpg
-      2. /static/images/timeblock/marian/{slug}.jpg  (if Marian feast)
-      3. /static/images/timeblock/feasts/{season}.jpg  (season name as feast)
-      4. /static/images/timeblock/seasons/{season}/N.jpg  (rotating)
-    """
+    """Returns {url, photographer, photographer_url, fallback_gradient}.
+    Pulls a daily-rotating photo from Pexels by season, Marian feast, or
+    major feast; falls back to a CSS gradient on failure."""
     try:
         d = datetime.fromisoformat(iso).date()
     except Exception:
         d = _now_eastern().date()
     season = _SEASON_FOR_MONTH.get(d.month, "spring")
     gradient = _SEASON_GRADIENT.get(season, _SEASON_GRADIENT["spring"])
+    day_of_year = d.timetuple().tm_yday
 
     feast_name = ""
     try:
@@ -224,46 +272,35 @@ def _resolve_image(iso: str) -> dict:
         info = get_day_info(d)
         feast_name = (info.get("feast_name") or "").strip()
     except Exception:
-        info = {}
+        feast_name = ""
 
-    base = "static/images/timeblock"
-
+    result = {}
     if feast_name:
-        slug = _slugify(feast_name)
-        cand = f"{base}/feasts/{slug}.jpg"
-        if _file_exists(cand):
-            return {"url": "/" + cand, "credit": feast_name, "fallback_gradient": gradient}
-        # Curated Wikimedia public-domain sacred art for major feasts
-        art_url = _feast_art_url(feast_name)
-        if art_url:
-            return {"url": art_url, "credit": feast_name, "fallback_gradient": gradient}
         if _is_marian(feast_name):
-            cand_m = f"{base}/marian/{slug}.jpg"
-            if _file_exists(cand_m):
-                return {"url": "/" + cand_m, "credit": feast_name, "fallback_gradient": gradient}
+            result = _pexels_search(
+                "Our Lady Madonna painting Catholic",
+                ("marian", day_of_year),
+                day_of_year,
+            )
+        if not result:
+            result = _pexels_search(
+                f"{feast_name} painting Catholic art",
+                (f"feast::{feast_name}", day_of_year),
+                day_of_year,
+            )
+    if not result:
+        query = _PEXELS_SEASON_QUERIES.get(season, _PEXELS_SEASON_QUERIES["spring"])
+        result = _pexels_search(query, (season, day_of_year), day_of_year)
 
-    # Season fallbacks: rotating image by day-of-year
-    season_dir = f"{base}/seasons/{season}"
-    if os.path.isdir(season_dir):
-        try:
-            files = sorted([f for f in os.listdir(season_dir)
-                            if f.lower().endswith((".jpg", ".jpeg", ".png", ".webp"))])
-            if files:
-                idx = (d.timetuple().tm_yday) % len(files)
-                return {
-                    "url": "/" + season_dir + "/" + files[idx],
-                    "credit": season.capitalize(),
-                    "fallback_gradient": gradient,
-                }
-        except Exception:
-            pass
-
-    # Curated Unsplash CDN — seasonal nature photography (no API key)
-    return {
-        "url": _unsplash_url(season, d.timetuple().tm_yday),
-        "credit": season.capitalize(),
-        "fallback_gradient": gradient,
-    }
+    if not result:
+        return {
+            "url":              "",
+            "photographer":     "",
+            "photographer_url": "",
+            "fallback_gradient": gradient,
+        }
+    result["fallback_gradient"] = gradient
+    return result
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1776,6 +1813,26 @@ def render_timeblock_homepage(viewer: str = "lauren") -> str:
             '<img class="tb-hero-img" src="' + _src_attr + '" alt="" '
             'onerror="this.style.display=&#39;none&#39;">'
         )
+    photographer = (img.get("photographer") or "").strip()
+    photographer_url = (img.get("photographer_url") or "").strip()
+    hero_credit_html = ""
+    if photographer:
+        if photographer_url:
+            _phref = escape(photographer_url, quote=True)
+            inner = (
+                f'Photo: <a href="{_phref}" target="_blank" rel="noopener" '
+                f'style="color:inherit;text-decoration:underline;">'
+                f'{escape(photographer)}</a> on '
+                f'<a href="https://www.pexels.com" target="_blank" rel="noopener" '
+                f'style="color:inherit;text-decoration:underline;">Pexels</a>'
+            )
+        else:
+            inner = (
+                f'Photo: {escape(photographer)} on '
+                f'<a href="https://www.pexels.com" target="_blank" rel="noopener" '
+                f'style="color:inherit;text-decoration:underline;">Pexels</a>'
+            )
+        hero_credit_html = f'<div class="credit">{inner}</div>'
 
     saint_card     = _render_saint_card(iso)
     upcoming_card  = _render_upcoming_feast_notice(today)
@@ -1853,6 +1910,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   <div class="tb-hero">
     {hero_img_html}
     <div class="tb-hero-shade"></div>
+    {hero_credit_html}
     <div class="greet">{escape(greeting)}</div>
     <div class="when">{escape(date_label)} &middot; {escape(time_label)} ET</div>
     <div><span class="blocklbl">{escape(block_lbl)}</span></div>
