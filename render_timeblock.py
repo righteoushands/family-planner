@@ -939,13 +939,6 @@ def _render_pope_card(iso: str) -> str:
 
 
 def _render_daily_mass_link(today_d: date = None, block: str = "") -> str:
-    video_btn = (
-        f'<a href="/daily-mass" target="_blank" rel="noopener" '
-        f'style="display:inline-block;background:{_accent()};color:white;'
-        f'text-decoration:none;padding:10px 22px;border-radius:22px;'
-        f'font-size:0.92em;font-family:inherit;margin:4px 6px;">'
-        '&#10016; Today\'s Daily Mass Readings &rarr;</a>'
-    )
     usccb_btn = ""
     if block in ("early_morning", "afternoon") and today_d is not None:
         _mmddyy = today_d.strftime("%m%d%y")
@@ -953,15 +946,16 @@ def _render_daily_mass_link(today_d: date = None, block: str = "") -> str:
                             quote=True)
         usccb_btn = (
             f'<a href="{_usccb_url}" target="_blank" rel="noopener" '
-            f'style="display:inline-block;background:white;color:{_accent()};'
+            f'style="display:inline-block;background:{_accent()};color:white;'
             f'text-decoration:none;padding:10px 22px;border-radius:22px;'
-            f'font-size:0.92em;font-family:inherit;margin:4px 6px;'
-            f'border:1px solid {_accent()};">'
+            f'font-size:0.92em;font-family:inherit;margin:4px 6px;">'
             '&#128214; Today\'s Readings (USCCB) &rarr;</a>'
         )
+    if not usccb_btn:
+        return ""
     return (
         '<div style="text-align:center;margin:6px 0 14px;">'
-        f'{video_btn}{usccb_btn}'
+        f'{usccb_btn}'
         '</div>'
     )
 
