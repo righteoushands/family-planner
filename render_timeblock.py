@@ -1472,7 +1472,8 @@ def _render_meal_row(label: str, slot_value) -> str:
 def _render_meals_snapshot(weekday: str, today: date, block: str) -> str:
     try:
         from render_meals import load_meal_plan
-        wk = _week_key_for(today)
+        monday = today - timedelta(days=today.weekday())
+        wk = monday.isoformat()
         plan = load_meal_plan(wk) or {}
         if block == "late_evening":
             tomorrow = today + timedelta(days=1)
