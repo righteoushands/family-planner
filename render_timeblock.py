@@ -1372,6 +1372,195 @@ def _render_meals_snapshot(weekday: str, today: date, block: str) -> str:
 # Saint card + Pope intention card
 # ─────────────────────────────────────────────────────────────────────────────
 
+_FEAST_AI_CACHE = {}
+
+_UPCOMING_FEAST_NOTES = {
+    "Christmas":              "The Nativity of the Lord — Christ is born for us.",
+    "Easter":                 "The Resurrection of the Lord — He is risen, alleluia!",
+    "Pentecost":              "Birth of the Church — the Holy Spirit comes in fire.",
+    "Assumption":             "Mary taken body and soul into heaven.",
+    "Immaculate Conception":  "Mary conceived without sin from her first moment.",
+    "All Saints":             "The whole communion of saints, friends of God.",
+    "Corpus Christi":         "Solemnity of the Body and Blood of Christ.",
+    "Sacred Heart":           "The pierced Heart of Jesus, fountain of mercy.",
+    "Our Lady of Guadalupe":  "Mary's appearance to St. Juan Diego on Tepeyac.",
+    "St. Nicholas":           "The bishop who gave in secret — patron of children.",
+    "St. Joseph":             "Foster-father of Jesus, guardian of the Holy Family.",
+    "Annunciation":           "Gabriel greets Mary; the Word becomes flesh.",
+    "Holy Family":            "Jesus, Mary, and Joseph — model of every home.",
+    "Epiphany":               "The Magi arrive with gold, frankincense, and myrrh.",
+    "Ash Wednesday":          "Lent begins with ashes and forty days of fasting.",
+}
+
+
+def _upcoming_feast_dates(today_d):
+    out = []
+    try:
+        from render_liturgical import get_moveable_feasts as _gmv
+    except Exception:
+        _gmv = None
+    for yr in (today_d.year, today_d.year + 1):
+        out.extend([
+            ("Christmas",              date(yr, 12, 25)),
+            ("Epiphany",               date(yr,  1,  6)),
+            ("Assumption",             date(yr,  8, 15)),
+            ("Immaculate Conception",  date(yr, 12,  8)),
+            ("All Saints",             date(yr, 11,  1)),
+            ("Our Lady of Guadalupe",  date(yr, 12, 12)),
+            ("St. Nicholas",           date(yr, 12,  6)),
+            ("St. Joseph",             date(yr,  3, 19)),
+            ("Annunciation",           date(yr,  3, 25)),
+        ])
+        if _gmv:
+            try:
+                mv = _gmv(yr) or {}
+            except Exception:
+                mv = {}
+            wanted = {
+                "Easter Sunday":         "Easter",
+                "Pentecost Sunday":      "Pentecost",
+                "Corpus Christi":        "Corpus Christi",
+                "Sacred Heart of Jesus": "Sacred Heart",
+                "Ash Wednesday":         "Ash Wednesday",
+            }
+            for d_, tup in mv.items():
+                nm = tup[0] if isinstance(tup, (tuple, list)) and tup else ""
+                if nm in wanted:
+                    out.append((wanted[nm], d_))
+        christmas = date(yr, 12, 25)
+        offset = (6 - christmas.weekday()) % 7
+        if offset == 0:
+            offset = 7
+        if christmas.weekday() == 6:
+            holy_family = date(yr, 12, 30)
+        else:
+            holy_family = christmas + timedelta(days=offset)
+        out.append(("Holy Family", holy_family))
+    return out
+
+
+def _render_upcoming_feast_notice(today_d) -> str:
+    try:
+        upcoming = _upcoming_feast_dates(today_d)
+    except Exception:
+        return ""
+    target = today_d + timedelta(days=7)
+    matches = [(n, d_) for (n, d_) in upcoming if d_ == target]
+    if not matches:
+        return ""
+    name, d_ = matches[0]
+    note = _UPCOMING_FEAST_NOTES.get(name, "")
+    title_html = (
+        f'<div style="font-family:Georgia,serif;font-size:1.0em;color:#1a1a1a;">'
+        f'&#128197; <strong>{escape(name)}</strong> is in 7 days &mdash; start planning!'
+        f'</div>'
+    )
+    note_html = ""
+    if note:
+        note_html = (
+            f'<div style="font-size:0.9em;color:#5a6a85;margin-top:6px;'
+            f'line-height:1.5;">{escape(note)}</div>'
+        )
+    return _card("Coming up in the Church", title_html + note_html)
+
+
+def _get_feast_ai_summary(iso: str, feast_name: str) -> str:
+    if not feast_name:
+        return ""
+    cache_key = iso
+    if cache_key in _FEAST_AI_CACHE:
+        return _FEAST_AI_CACHE[cache_key]
+    import json as _json
+    import urllib.request as _req
+    try:
+        from render_settings import load_app_settings
+        settings = load_app_settings() or {}
+    except Exception:
+        settings = {}
+    api_key = (settings.get("family_constraints", {}).get("anthropic_api_key", "")
+               or settings.get("anthropic_api_key", "")).strip()
+    if not api_key:
+        api_key = (os.environ.get("ANTHROPIC_API_KEY") or "").strip()
+    if not api_key:
+        return ""
+    system = (
+        "You write warm, devotional Catholic feast-day notes for a Catholic mother "
+        "who loves the faith. Output two paragraphs, plain text, no markdown, no "
+        "headings beyond what is specified. "
+        "First paragraph: 3-4 sentences about today's feast. Lead with a concrete "
+        "fact, vivid story detail, or specific moment — never start with 'Today we "
+        "celebrate' or any generic opener. For a Marian apparition begin with what "
+        "actually happened in the apparition. For a martyr begin with their death "
+        "or act of courage. For a confessor begin with the most memorable thing "
+        "they did or said. End the first paragraph with one sentence about why "
+        "this feast matters for daily life. "
+        "Then a blank line, then a second paragraph that begins with the exact "
+        "line 'Ways to celebrate today:' followed by 3-4 concrete suggestions on "
+        "separate lines, each starting with a bullet character (•). Suggestions "
+        "should include traditional foods, activities for children, prayers and "
+        "devotional practices, and customs from Catholic tradition. "
+        "Keep tone warm and devotional. Never preachy."
+    )
+    user = f"Today's feast is: {feast_name}. Write the note."
+    payload = {
+        "model": "claude-haiku-4-5-20251001",
+        "max_tokens": 600,
+        "system": system,
+        "messages": [{"role": "user", "content": user}],
+    }
+    text = ""
+    try:
+        req = _req.Request(
+            "https://api.anthropic.com/v1/messages",
+            data=_json.dumps(payload).encode(),
+            headers={
+                "Content-Type":      "application/json",
+                "x-api-key":         api_key,
+                "anthropic-version": "2023-06-01",
+            },
+        )
+        with _req.urlopen(req, timeout=20) as resp:
+            result = _json.loads(resp.read())
+        text = (result.get("content", [{}])[0].get("text", "") or "").strip()
+    except Exception:
+        text = ""
+    if not text:
+        return ""
+    html_parts = []
+    paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
+    for p in paragraphs:
+        lines = [ln for ln in p.split("\n") if ln.strip()]
+        bullets = [ln for ln in lines if ln.lstrip().startswith(("•", "-", "*"))]
+        non_bullets = [ln for ln in lines if not ln.lstrip().startswith(("•", "-", "*"))]
+        if bullets:
+            if non_bullets:
+                heading_html = escape(" ".join(non_bullets).strip())
+                html_parts.append(
+                    f'<div style="font-family:Georgia,serif;font-weight:600;'
+                    f'color:{_accent()};font-size:0.95em;margin:14px 0 6px;">'
+                    f'{heading_html}</div>'
+                )
+            li_items = []
+            for b in bullets:
+                clean = b.lstrip("•-* ").strip()
+                if clean:
+                    li_items.append(f'<li style="margin:4px 0;">{escape(clean)}</li>')
+            html_parts.append(
+                f'<ul style="font-family:Georgia,serif;font-size:0.94em;'
+                f'line-height:1.6;color:#1a1a1a;padding-left:22px;margin:6px 0 0;">'
+                + "".join(li_items) + "</ul>"
+            )
+        else:
+            safe = escape(p).replace("\n", "<br>")
+            html_parts.append(
+                f'<div style="font-family:Georgia,serif;font-size:0.96em;'
+                f'line-height:1.7;color:#1a1a1a;margin:10px 0 0;">{safe}</div>'
+            )
+    html = "".join(html_parts)
+    _FEAST_AI_CACHE[cache_key] = html
+    return html
+
+
 def _render_saint_card(iso: str) -> str:
     try:
         from render_liturgical import get_day_info
@@ -1383,16 +1572,6 @@ def _render_saint_card(iso: str) -> str:
     obs = info.get("observances", []) or []
     if not feast and not season and not obs:
         return ""
-    _GENERIC_BIO = "https://mycatholic.life/saints/saints-of-the-liturgical-year/"
-    curated_bio_url = ""
-    try:
-        from saint_data import fetch_saint_data as _fsd
-        _sd = _fsd(datetime.fromisoformat(iso).date()) or {}
-        _b = (_sd.get("bio_url") or "").strip()
-        if _b and _b != _GENERIC_BIO:
-            curated_bio_url = _b
-    except Exception:
-        curated_bio_url = ""
     bits = []
     if feast:
         bits.append(f'<div style="font-family:Georgia,serif;font-size:1.05em;'
@@ -1403,36 +1582,10 @@ def _render_saint_card(iso: str) -> str:
     for o in obs:
         bits.append(f'<div style="font-size:0.86em;color:#7a3e1a;margin-top:4px;">'
                     f'&middot; {escape(o)}</div>')
-    if curated_bio_url:
-        bits.append(f'<div style="margin-top:10px;">'
-                    f'<a href="{escape(curated_bio_url, quote=True)}" target="_blank" '
-                    f'rel="noopener noreferrer" '
-                    f'style="display:inline-block;font-size:0.86em;color:{_accent()};'
-                    f'text-decoration:none;font-weight:600;">'
-                    f'Learn more &rarr;</a></div>')
-    else:
-        link_style = (f'display:inline-block;font-size:0.82em;color:{_accent()};'
-                      f'text-decoration:none;font-weight:600;'
-                      f'padding:4px 10px;margin:0 6px 6px 0;'
-                      f'background:#f4f7fc;border:1px solid #d4dcea;'
-                      f'border-radius:12px;')
-        bits.append(f'<div style="margin-top:10px;font-size:0.78em;'
-                    f'color:#5a6a85;letter-spacing:0.04em;'
-                    f'text-transform:uppercase;margin-bottom:6px;">'
-                    f'Learn more</div>')
-        bits.append(
-            f'<div style="margin-top:2px;">'
-            f'<a href="https://www.catholicallyear.com" target="_blank" '
-            f'rel="noopener noreferrer" style="{link_style}">'
-            f'Catholic All Year &rarr;</a>'
-            f'<a href="https://thelittleroseshop.com" target="_blank" '
-            f'rel="noopener noreferrer" style="{link_style}">'
-            f'Little Rose Shop &rarr;</a>'
-            f'<a href="https://mycatholic.life/saints/saints-of-the-liturgical-year/" '
-            f'target="_blank" rel="noopener noreferrer" style="{link_style}">'
-            f'My Catholic Life &rarr;</a>'
-            f'</div>'
-        )
+    feast_for_ai = feast or (obs[0] if obs else "")
+    ai_html = _get_feast_ai_summary(iso, feast_for_ai)
+    if ai_html:
+        bits.append(ai_html)
     return _card("Today in the Church", "".join(bits))
 
 
@@ -1499,6 +1652,7 @@ def render_timeblock_homepage(viewer: str = "lauren") -> str:
         )
 
     saint_card     = _render_saint_card(iso)
+    upcoming_card  = _render_upcoming_feast_notice(today)
     prayers_html   = _render_block_prayers(block, now_dt, weekday)
     pope_card      = _render_pope_card(iso) if block == "afternoon" else ""
     intentions     = _render_intentions_widget(iso)
@@ -1580,6 +1734,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 </div>
 <div class="tb-body">
   {saint_card}
+  {upcoming_card}
   {prayers_html}
   {daily_mass}
   {pope_card}
