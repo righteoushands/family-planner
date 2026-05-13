@@ -1273,9 +1273,20 @@ def _render_frol_snapshot(weekday: str, block: str) -> str:
 
     def _minutes_of(t: str) -> int:
         try:
-            parts = t.split(":")
+            s = (t or "").strip().upper()
+            suffix = ""
+            if s.endswith("AM") or s.endswith("PM"):
+                suffix = s[-2:]
+                s = s[:-2].strip()
+            parts = s.split(":")
             h = int(parts[0])
             m = int(parts[1]) if len(parts) > 1 else 0
+            if suffix == "AM":
+                if h == 12:
+                    h = 0
+            elif suffix == "PM":
+                if h != 12:
+                    h = h + 12
             return h * 60 + m
         except Exception:
             return -1
