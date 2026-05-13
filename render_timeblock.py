@@ -86,18 +86,39 @@ _SEASON_GRADIENT = {
     "autumn": "linear-gradient(180deg,#7a3e1a 0%,#b8703c 50%,#e0b078 100%)",
 }
 
-# Unsplash Source API (no API key required) — seasonal nature photography.
-# Format: https://source.unsplash.com/1600x900/?{comma-separated-query}
-_UNSPLASH_QUERIES = {
-    "spring": "spring,nature,flowers,peaceful",
-    "summer": "summer,nature,golden,light",
-    "autumn": "autumn,leaves,warm,forest",
-    "winter": "winter,snow,peaceful,forest",
+# Curated Unsplash CDN URLs — direct image URLs to specific public photos.
+# Format: https://images.unsplash.com/photo-{id}?w=1600&q=80
+# Rotated by day-of-year to keep variety; no API key required for direct CDN.
+_UNSPLASH_PHOTOS = {
+    "spring": [
+        "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=1600&q=80",
+        "https://images.unsplash.com/photo-1462275646964-a0e3386b89fa?w=1600&q=80",
+        "https://images.unsplash.com/photo-1487070183336-b863922373d4?w=1600&q=80",
+        "https://images.unsplash.com/photo-1494500764479-0c8f2919a3d8?w=1600&q=80",
+    ],
+    "summer": [
+        "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80",
+        "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1600&q=80",
+        "https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=1600&q=80",
+        "https://images.unsplash.com/photo-1473773508845-188df298d2d1?w=1600&q=80",
+    ],
+    "autumn": [
+        "https://images.unsplash.com/photo-1507783548227-544c3b8fc065?w=1600&q=80",
+        "https://images.unsplash.com/photo-1476820865390-c52aeebb9891?w=1600&q=80",
+        "https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=1600&q=80",
+        "https://images.unsplash.com/photo-1444930694458-01babe71870e?w=1600&q=80",
+    ],
+    "winter": [
+        "https://images.unsplash.com/photo-1483921020237-2ff51e8e4b22?w=1600&q=80",
+        "https://images.unsplash.com/photo-1418985991508-e47386d96a71?w=1600&q=80",
+        "https://images.unsplash.com/photo-1457269449834-928af64c684d?w=1600&q=80",
+        "https://images.unsplash.com/photo-1486825586573-7131f7991bdd?w=1600&q=80",
+    ],
 }
 
-def _unsplash_url(season: str) -> str:
-    q = _UNSPLASH_QUERIES.get(season, _UNSPLASH_QUERIES["spring"])
-    return "https://source.unsplash.com/1600x900/?" + q
+def _unsplash_url(season: str, day_of_year: int = 0) -> str:
+    photos = _UNSPLASH_PHOTOS.get(season) or _UNSPLASH_PHOTOS["spring"]
+    return photos[day_of_year % len(photos)]
 
 # Curated public-domain sacred art from Wikimedia Commons.
 # Each entry: feast_slug -> (needle_substring_to_match_in_feast_name_lower, image_url).
@@ -237,9 +258,9 @@ def _resolve_image(iso: str) -> dict:
         except Exception:
             pass
 
-    # Unsplash Source API — seasonal nature photography (no API key)
+    # Curated Unsplash CDN — seasonal nature photography (no API key)
     return {
-        "url": _unsplash_url(season),
+        "url": _unsplash_url(season, d.timetuple().tm_yday),
         "credit": season.capitalize(),
         "fallback_gradient": gradient,
     }

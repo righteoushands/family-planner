@@ -283,12 +283,14 @@ def render_sister_mary_page(iso: str = "", q: str = "", from_: str = "") -> str:
         if m.get("role") in ("user", "assistant") and m.get("content", "")
     ])
 
-    # Render quick-prompt buttons (use double-quotes inside onclick attribute)
+    # Render quick-prompt buttons. The JSON must be HTML-attribute-safe:
+    # json.dumps yields double-quoted strings, which would prematurely close a
+    # double-quoted onclick attribute, so escape the quotes for the attribute.
     quick_buttons = ""
     for label, prompt in quick_prompts:
-        prompt_js = _ej(prompt)
+        prompt_js_attr = escape(_ej(prompt), quote=True)
         quick_buttons += (
-            f'<button onclick="smQuick({prompt_js})" '
+            f'<button type="button" onclick="smQuick({prompt_js_attr})" '
             f'style="background:#eaf0fa;border:1px solid #b8c8e0;border-radius:20px;'
             f'padding:6px 14px;font-size:0.8em;cursor:pointer;color:#2d4a78;font-family:inherit;'
             f'white-space:nowrap;" '
