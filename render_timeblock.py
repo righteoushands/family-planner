@@ -456,6 +456,311 @@ _COMPLINE_CLOSING = (
     "death. Amen."
 )
 
+_COMPLINE_RESPONSORY = (
+    "V. Into your hands, Lord, I commend my spirit.\n"
+    "R. Into your hands, Lord, I commend my spirit.\n"
+    "V. You have redeemed us, Lord God of truth.\n"
+    "R. I commend my spirit.\n"
+    "V. Glory to the Father, and to the Son, and to the Holy Spirit.\n"
+    "R. Into your hands, Lord, I commend my spirit."
+)
+
+# ── Liturgy of the Hours — shared elements ──────────────────────────────────
+
+_LOH_OPENING = (
+    "V. O God, come to my assistance.\n"
+    "R. O Lord, make haste to help me.\n\n"
+    "Glory to the Father, and to the Son, and to the Holy Spirit,\n"
+    "as it was in the beginning, is now, and will be for ever. Amen."
+)
+
+_GLORY_BE = (
+    "Glory to the Father, and to the Son, and to the Holy Spirit,\n"
+    "as it was in the beginning, is now, and will be for ever. Amen."
+)
+
+_OUR_FATHER = (
+    "Our Father, who art in heaven, hallowed be Thy name; Thy kingdom come; "
+    "Thy will be done on earth as it is in heaven. Give us this day our "
+    "daily bread; and forgive us our trespasses, as we forgive those who "
+    "trespass against us; and lead us not into temptation, but deliver us "
+    "from evil. Amen."
+)
+
+# ── Lauds (Morning Prayer) ──────────────────────────────────────────────────
+
+_LAUDS_HYMN = (
+    "Now that the daylight fills the sky, we lift our hearts to God on high,\n"
+    "That He, in all we do or say, would keep us free from harm this day.\n\n"
+    "May He restrain our tongues from strife, and shield from anger's din our life,\n"
+    "And guard with watchful care our eyes from earth's absorbing vanities."
+)
+
+_LAUDS_ANTIPHON = (
+    "Antiphon: O God, you are my God, for you I long; for you my soul is "
+    "thirsting."
+)
+
+_LAUDS_PSALM_63 = (
+    "O God, you are my God, for you I long; for you my soul is thirsting.\n"
+    "My body pines for you like a dry, weary land without water.\n\n"
+    "So I gaze on you in the sanctuary to see your strength and your glory.\n"
+    "For your love is better than life, my lips will speak your praise.\n\n"
+    "So I will bless you all my life, in your name I will lift up my hands.\n"
+    "My soul shall be filled as with a banquet, my mouth shall praise you with joy.\n\n"
+    "On my bed I remember you. On you I muse through the night\n"
+    "for you have been my help; in the shadow of your wings I rejoice.\n\n"
+    "My soul clings to you; your right hand holds me fast.\n\n"
+    "(Glory to the Father…)"
+)
+
+_LAUDS_READING = (
+    "Awake, O sleeper, and arise from the dead, and Christ shall give you "
+    "light. — Ephesians 5:14"
+)
+
+_LAUDS_RESPONSORY = (
+    "V. Blessed be the Lord our God, blessed from age to age.\n"
+    "R. Blessed be the Lord our God, blessed from age to age."
+)
+
+_BENEDICTUS_ANTIPHON = (
+    "Antiphon: Blessed be the Lord our God, who has come to His people and "
+    "set them free."
+)
+
+_BENEDICTUS = (
+    "Blessed be the Lord, the God of Israel; he has come to his people and "
+    "set them free.\n\n"
+    "He has raised up for us a mighty Saviour, born of the house of his "
+    "servant David.\n\n"
+    "Through his holy prophets he promised of old that he would save us "
+    "from our enemies, from the hands of all who hate us.\n\n"
+    "He promised to show mercy to our fathers and to remember his holy "
+    "covenant.\n\n"
+    "This was the oath he swore to our father Abraham: to set us free from "
+    "the hands of our enemies, free to worship him without fear, holy and "
+    "righteous in his sight all the days of our life.\n\n"
+    "You, my child, shall be called the prophet of the Most High; for you "
+    "will go before the Lord to prepare his way, to give his people "
+    "knowledge of salvation by the forgiveness of their sins.\n\n"
+    "In the tender compassion of our God the dawn from on high shall break "
+    "upon us, to shine on those who dwell in darkness and the shadow of "
+    "death, and to guide our feet into the way of peace.\n\n"
+    "(Glory to the Father…)"
+)
+
+_LAUDS_INTERCESSIONS = (
+    "Let us give thanks to Christ, who enlightens and sanctifies us, and "
+    "say: Lord, have mercy.\n\n"
+    "— For the Church, that she may be a faithful witness to your love today.\n"
+    "— For the Holy Father and all bishops, that they may be strengthened "
+    "in their service.\n"
+    "— For our family, that the work of this day may be offered to you.\n"
+    "— For those who suffer and those who are alone, that they may know "
+    "your nearness.\n"
+    "— For the dying and the dead, that they may rest in your peace."
+)
+
+_LAUDS_CLOSING_PRAYER = (
+    "Lord, our God, almighty Father, the light of dawn breaks over the "
+    "earth at your command. Keep us today free from sin and lead us along "
+    "the path of holiness, that all we think and say and do may be pleasing "
+    "in your sight. We ask this through Christ our Lord. Amen."
+)
+
+_LAUDS_BLESSING = (
+    "May the Lord bless us, protect us from all evil, and bring us to "
+    "everlasting life. Amen."
+)
+
+# ── Terce (Mid-Morning Prayer) ──────────────────────────────────────────────
+
+_TERCE_HYMN = (
+    "Come, Holy Spirit, ever One with God the Father and the Son;\n"
+    "Come, fill our hearts with grace divine, that all our words and works "
+    "be Thine."
+)
+
+_TERCE_PSALM = (
+    "Antiphon: Blessed are those who walk in the law of the Lord.\n\n"
+    "Teach me, O Lord, the way of your statutes, and I will keep it to the end.\n"
+    "Give me understanding, that I may keep your law and observe it with "
+    "my whole heart.\n"
+    "Lead me in the path of your commandments, for I delight in it.\n"
+    "Incline my heart to your testimonies, and not to gain!\n"
+    "Turn my eyes from looking at vanities; give me life in your ways. — Ps 119\n\n"
+    "(Glory to the Father…)"
+)
+
+_TERCE_READING = (
+    "Whatever you do, in word or deed, do everything in the name of the "
+    "Lord Jesus, giving thanks to God the Father through him. — Colossians 3:17"
+)
+
+_TERCE_RESPONSORY = (
+    "V. Blessed are you, O Lord, in the firmament of heaven.\n"
+    "R. Blessed are you, O Lord, in the firmament of heaven."
+)
+
+_TERCE_PRAYER = (
+    "Lord God, Father of all light, at this hour you sent the Holy Spirit "
+    "upon the apostles. Pour out the same Spirit upon us, that we may bear "
+    "faithful witness to you before the world. Through Christ our Lord. Amen."
+)
+
+# ── Sext (Midday Prayer) ────────────────────────────────────────────────────
+
+_SEXT_HYMN = (
+    "O God of truth, O Lord of might, who orderest time and change aright,\n"
+    "Who sendest the early morning ray, and lightest the glow of noonday."
+)
+
+_SEXT_PSALM = (
+    "Antiphon: To you have I lifted up my eyes, you who dwell in the heavens.\n\n"
+    "To you have I lifted up my eyes, you who dwell in the heavens;\n"
+    "my eyes, like the eyes of slaves on the hand of their lords.\n\n"
+    "Like the eyes of a servant on the hand of her mistress,\n"
+    "so our eyes are on the Lord our God till he show us his mercy.\n\n"
+    "Have mercy on us, Lord, have mercy. We are filled with contempt.\n"
+    "Indeed, all too full is our soul with the scorn of the rich,\n"
+    "with the proud man's disdain. — Ps 123\n\n"
+    "(Glory to the Father…)"
+)
+
+_SEXT_READING = (
+    "Beloved, do not be conformed to this world but be transformed by the "
+    "renewal of your mind. — Romans 12:2"
+)
+
+_SEXT_RESPONSORY = (
+    "V. The Lord will guard you from all evil.\n"
+    "R. He will guard your soul."
+)
+
+_SEXT_PRAYER = (
+    "Almighty and merciful God, you have given us a moment's rest from our "
+    "labour at this midday hour. Look kindly on the work we have begun, "
+    "make good its defects, and bring it to that completion which will give "
+    "you glory. Through Christ our Lord. Amen."
+)
+
+# ── None (Mid-Afternoon Prayer) ─────────────────────────────────────────────
+
+_NONE_HYMN = (
+    "O God, creation's secret force, Yourself unmoved, all motion's source,\n"
+    "Who from the morn till evening's ray, through every change dost guide "
+    "the day."
+)
+
+_NONE_PSALM = (
+    "Antiphon: Those who put their trust in the Lord are like Mount Zion, "
+    "that cannot be shaken.\n\n"
+    "Those who put their trust in the Lord are like Mount Zion,\n"
+    "that cannot be shaken, that stands for ever.\n\n"
+    "Jerusalem! The mountains surround her, so the Lord surrounds his people\n"
+    "both now and for ever. — Ps 125\n\n"
+    "(Glory to the Father…)"
+)
+
+_NONE_READING = (
+    "If anyone is in Christ, he is a new creation; the old has passed away, "
+    "behold, the new has come. — 2 Corinthians 5:17"
+)
+
+_NONE_RESPONSORY = (
+    "V. The Lord redeems the souls of his servants.\n"
+    "R. None who trust in him are condemned."
+)
+
+_NONE_PRAYER = (
+    "Lord God, Father everlasting, at this hour your Son, suffering for the "
+    "salvation of the world, surrendered his spirit into your hands. Help us "
+    "in our weakness to die to sin and live for you alone. Through Christ "
+    "our Lord. Amen."
+)
+
+# ── Vespers (Evening Prayer) ────────────────────────────────────────────────
+
+_VESPERS_HYMN = (
+    "O radiant Light, O Sun divine of God the Father's deathless face,\n"
+    "O image of the light sublime that fills the heavenly dwelling place.\n\n"
+    "O Son of God, the source of life, praise is your due by night and day;\n"
+    "Our happy lips must raise the strain of your esteemed and splendid name."
+)
+
+_VESPERS_ANTIPHON = (
+    "Antiphon: From the rising of the sun to its setting, the name of the "
+    "Lord is to be praised."
+)
+
+_VESPERS_PSALM = (
+    "The Lord's revelation to my Master: 'Sit on my right;\n"
+    "your foes I will put beneath your feet.'\n\n"
+    "The Lord will wield from Zion your sceptre of power; rule in the midst "
+    "of all your foes.\n\n"
+    "A prince from the day of your birth on the holy mountains;\n"
+    "from the womb before the dawn I begot you.\n\n"
+    "The Lord has sworn an oath he will not change. 'You are a priest for ever,\n"
+    "a priest like Melchizedek of old.' — Ps 110\n\n"
+    "(Glory to the Father…)"
+)
+
+_VESPERS_READING = (
+    "Blessed be the God and Father of our Lord Jesus Christ, the Father of "
+    "mercies and God of all consolation, who consoles us in all our "
+    "afflictions. — 2 Corinthians 1:3-4"
+)
+
+_VESPERS_RESPONSORY = (
+    "V. Let my prayer rise like incense before you, O Lord.\n"
+    "R. Let my prayer rise like incense before you, O Lord."
+)
+
+_MAGNIFICAT_ANTIPHON = (
+    "Antiphon: My soul proclaims the greatness of the Lord, for he has "
+    "looked with favour on his lowly servant."
+)
+
+_MAGNIFICAT = (
+    "My soul proclaims the greatness of the Lord, my spirit rejoices in "
+    "God my Saviour;\n\n"
+    "for he has looked with favour on his lowly servant. From this day "
+    "all generations will call me blessed:\n\n"
+    "the Almighty has done great things for me, and holy is his Name.\n\n"
+    "He has mercy on those who fear him in every generation.\n\n"
+    "He has shown the strength of his arm, he has scattered the proud in "
+    "their conceit.\n\n"
+    "He has cast down the mighty from their thrones, and has lifted up the lowly.\n\n"
+    "He has filled the hungry with good things, and the rich he has sent away empty.\n\n"
+    "He has come to the help of his servant Israel for he has remembered "
+    "his promise of mercy,\n\n"
+    "the promise he made to our fathers, to Abraham and his children for ever.\n\n"
+    "(Glory to the Father…)"
+)
+
+_VESPERS_INTERCESSIONS = (
+    "Let us call upon Christ, the light who never fades, and say: Lord, "
+    "hear our prayer.\n\n"
+    "— For the Church gathered at evening, that she may shine as a lamp "
+    "before the world.\n"
+    "— For our Holy Father and all who shepherd God's people.\n"
+    "— For peace among nations and within every home.\n"
+    "— For the sick, the lonely, and all who labour through the night.\n"
+    "— For our beloved dead, that they may rest in your light."
+)
+
+_VESPERS_CLOSING_PRAYER = (
+    "Lord God, send peaceful sleep to refresh our tired bodies. May your "
+    "help always renew us and keep us strong in your service. We ask this "
+    "through Christ our Lord. Amen."
+)
+
+_VESPERS_BLESSING = (
+    "May the Lord bless us, protect us from all evil, and bring us to "
+    "everlasting life. Amen."
+)
+
 
 # Inline novena prayers for the six most common novenas.
 # Keys are lowercase substring matches against the saint/devotion name.
@@ -599,23 +904,154 @@ def _prose(text: str) -> str:
             f'color:#1a1a1a;white-space:pre-line;">{safe}</div>')
 
 
+def _hour_part(label: str, body_text: str) -> str:
+    safe_label = escape(label)
+    safe_body = escape(body_text).replace("\n", "<br>")
+    return (
+        f'<div style="margin:14px 0 0;">'
+        f'<div style="font-family:Georgia,serif;font-weight:600;color:{_accent()};'
+        f'font-size:0.95em;margin:0 0 6px;letter-spacing:0.02em;">{safe_label}</div>'
+        f'<div style="font-family:Georgia,serif;font-size:0.96em;line-height:1.7;'
+        f'color:#1a1a1a;white-space:pre-line;">{safe_body}</div>'
+        f'</div>'
+    )
+
+
+def _hour_details(summary_text: str, parts_html: str) -> str:
+    safe_summary = escape(summary_text)
+    return (
+        f'<details style="margin:0;">'
+        f'<summary style="cursor:pointer;font-family:Georgia,serif;'
+        f'font-size:0.96em;line-height:1.7;color:#1a1a1a;padding:4px 0;">'
+        f'{safe_summary} '
+        f'<span style="color:{_accent()};font-size:0.82em;font-style:italic;'
+        f'margin-left:4px;">(tap to expand the full prayer)</span>'
+        f'</summary>'
+        f'<div style="margin-top:10px;padding:14px 16px;background:#f4f7fc;'
+        f'border-left:3px solid {_accent()};border-radius:6px;">'
+        f'{parts_html}'
+        f'</div>'
+        f'</details>'
+    )
+
+
+def _lauds_full_html() -> str:
+    parts = [
+        _hour_part("Opening", _LOH_OPENING),
+        _hour_part("Hymn", _LAUDS_HYMN),
+        _hour_part("Psalmody — Psalm 63", _LAUDS_ANTIPHON + "\n\n" + _LAUDS_PSALM_63),
+        _hour_part("Short Reading", _LAUDS_READING),
+        _hour_part("Responsory", _LAUDS_RESPONSORY),
+        _hour_part("Gospel Canticle — Benedictus (Lk 1:68-79)",
+                   _BENEDICTUS_ANTIPHON + "\n\n" + _BENEDICTUS),
+        _hour_part("Intercessions", _LAUDS_INTERCESSIONS),
+        _hour_part("The Lord's Prayer", _OUR_FATHER),
+        _hour_part("Concluding Prayer", _LAUDS_CLOSING_PRAYER),
+        _hour_part("Blessing", _LAUDS_BLESSING),
+    ]
+    return "".join(parts)
+
+
+def _terce_full_html() -> str:
+    parts = [
+        _hour_part("Opening", _LOH_OPENING),
+        _hour_part("Hymn", _TERCE_HYMN),
+        _hour_part("Psalmody", _TERCE_PSALM),
+        _hour_part("Short Reading", _TERCE_READING),
+        _hour_part("Responsory", _TERCE_RESPONSORY),
+        _hour_part("Concluding Prayer", _TERCE_PRAYER),
+    ]
+    return "".join(parts)
+
+
+def _sext_full_html() -> str:
+    parts = [
+        _hour_part("Opening", _LOH_OPENING),
+        _hour_part("Hymn", _SEXT_HYMN),
+        _hour_part("Psalmody — Psalm 123", _SEXT_PSALM),
+        _hour_part("Short Reading", _SEXT_READING),
+        _hour_part("Responsory", _SEXT_RESPONSORY),
+        _hour_part("Concluding Prayer", _SEXT_PRAYER),
+    ]
+    return "".join(parts)
+
+
+def _none_full_html() -> str:
+    parts = [
+        _hour_part("Opening", _LOH_OPENING),
+        _hour_part("Hymn", _NONE_HYMN),
+        _hour_part("Psalmody — Psalm 125", _NONE_PSALM),
+        _hour_part("Short Reading", _NONE_READING),
+        _hour_part("Responsory", _NONE_RESPONSORY),
+        _hour_part("Concluding Prayer", _NONE_PRAYER),
+    ]
+    return "".join(parts)
+
+
+def _vespers_full_html() -> str:
+    parts = [
+        _hour_part("Opening", _LOH_OPENING),
+        _hour_part("Hymn", _VESPERS_HYMN),
+        _hour_part("Psalmody — Psalm 110", _VESPERS_ANTIPHON + "\n\n" + _VESPERS_PSALM),
+        _hour_part("Short Reading", _VESPERS_READING),
+        _hour_part("Responsory", _VESPERS_RESPONSORY),
+        _hour_part("Gospel Canticle — Magnificat (Lk 1:46-55)",
+                   _MAGNIFICAT_ANTIPHON + "\n\n" + _MAGNIFICAT),
+        _hour_part("Intercessions", _VESPERS_INTERCESSIONS),
+        _hour_part("The Lord's Prayer", _OUR_FATHER),
+        _hour_part("Concluding Prayer", _VESPERS_CLOSING_PRAYER),
+        _hour_part("Blessing", _VESPERS_BLESSING),
+    ]
+    return "".join(parts)
+
+
+def _compline_full_html(now_dt: datetime) -> str:
+    ant_title, ant_text = _compline_marian_antiphon(now_dt.date())
+    parts = [
+        _hour_part("Opening", _LOH_OPENING),
+        _hour_part("Examination of Conscience", _COMPLINE_EXAMEN),
+        _hour_part("Confiteor", _COMPLINE_CONFITEOR),
+        _hour_part("Hymn — Te lucis ante terminum", _TE_LUCIS_ANTE_TERMINUM),
+        _hour_part("Psalmody — Psalm 91", _PSALM_91),
+        _hour_part("Short Reading (Jer 14:9)", _COMPLINE_SHORT_READING),
+        _hour_part("Responsory", _COMPLINE_RESPONSORY),
+        _hour_part("Gospel Canticle — Nunc Dimittis (Lk 2:29-32)", _NUNC_DIMITTIS),
+        _hour_part("The Lord's Prayer", _OUR_FATHER),
+        _hour_part("Concluding Prayer & Blessing", _COMPLINE_CLOSING),
+        _hour_part(f"Marian Antiphon — {ant_title}", ant_text),
+    ]
+    return "".join(parts)
+
+
 def _render_block_prayers(block: str, now_dt: datetime, weekday: str) -> str:
     out = []
     if block == "early_morning":
         out.append(_card("Morning Offering",
                          _prose(_MORNING_OFFERING),
                          scriptural="In the morning, O Lord, You hear my voice. — Ps 5:3"))
-        out.append(_card("Lauds — at a glance",
-                         _prose("Open the day with the Church: Ps 63 (longing), the Benedictus, "
-                                "and intercession for the Church and the world.")))
+        out.append(_card(
+            "Lauds — Morning Prayer",
+            _hour_details(
+                "Open the day with the Church: Psalm 63 (longing), the "
+                "Benedictus, and intercession for the Church and the world.",
+                _lauds_full_html(),
+            ),
+        ))
     elif block == "morning":
-        # Countdown to Angelus at noon
         secs_to_noon = max(0, (12 * 3600) - (now_dt.hour * 3600 + now_dt.minute * 60))
         mins = secs_to_noon // 60
         when = f"in {mins // 60}h {mins % 60}m" if mins else "now"
         out.append(_card("The Angelus — at noon",
                          _prose(f"Bell rings {when}.\n\n{_ANGELUS}"),
                          scriptural="And the Word became flesh and dwelt among us. — Jn 1:14"))
+        out.append(_card(
+            "Terce — Mid-Morning Prayer",
+            _hour_details(
+                "A brief pause at the third hour, when the Holy Spirit "
+                "descended on the apostles at Pentecost.",
+                _terce_full_html(),
+            ),
+        ))
         out.append(_card("A breath at mid-morning",
                          _prose("Pause. One slow breath. 'Jesus, I trust in You.'"),
                          scriptural="Be still, and know that I am God. — Ps 46:10"))
@@ -625,9 +1061,22 @@ def _render_block_prayers(block: str, now_dt: datetime, weekday: str) -> str:
         scrip = ("At three o'clock, implore My mercy. — Diary of St. Faustina"
                  if is_three else "")
         out.append(_card(title, _prose(_DIVINE_MERCY), scriptural=scrip))
-        out.append(_card("Midday Prayer (Sext)",
-                         _prose("'O God, come to my assistance. O Lord, make haste to help me.' "
-                                "A Psalm, a quiet word, a return to the day's work in His company.")))
+        out.append(_card(
+            "Sext — Midday Prayer",
+            _hour_details(
+                "A still moment at noon: Psalm 123, lifting our eyes to the "
+                "Lord, and a return to the day's work in His company.",
+                _sext_full_html(),
+            ),
+        ))
+        out.append(_card(
+            "None — Mid-Afternoon Prayer",
+            _hour_details(
+                "The ninth hour, when our Lord surrendered His spirit. "
+                "Psalm 125 — those who trust the Lord stand firm as Zion.",
+                _none_full_html(),
+            ),
+        ))
     elif block == "evening":
         out.append(_card("The Angelus — at six",
                          _prose(_ANGELUS),
@@ -644,35 +1093,25 @@ def _render_block_prayers(block: str, now_dt: datetime, weekday: str) -> str:
             f'padding-left:20px;color:#1a1a1a;">{rows}</ol>',
             scriptural="Pray the Rosary every day. — Our Lady of Fatima",
         ))
-        out.append(_card("Vespers — at a glance",
-                         _prose("The Church lifts up the Magnificat with Mary at evening: "
-                                "'My soul magnifies the Lord.'")))
+        out.append(_card(
+            "Vespers — Evening Prayer",
+            _hour_details(
+                "The Church lifts up the Magnificat with Mary at evening: "
+                "'My soul magnifies the Lord.'",
+                _vespers_full_html(),
+            ),
+        ))
     else:  # late_evening
-        out.append(_card("Compline — Night Prayer",
-                         _prose("'Into Your hands, O Lord, I commend my spirit.'\n\n"
-                                "The Church's last prayer of the day. Pray slowly, "
-                                "as one settling into the arms of the Father."),
-                         scriptural="He gives sleep to His beloved. — Ps 127:2"))
-        out.append(_card("1. Examination of Conscience",
-                         _prose(_COMPLINE_EXAMEN),
-                         scriptural="Search me, O God, and know my heart. — Ps 139:23"))
-        out.append(_card("2. Confiteor",
-                         _prose(_COMPLINE_CONFITEOR)))
-        out.append(_card("3. Hymn — Te lucis ante terminum",
-                         _prose(_TE_LUCIS_ANTE_TERMINUM)))
-        out.append(_card("4. Psalm 91 — He who dwells in the shelter of the Most High",
-                         _prose(_PSALM_91),
-                         scriptural="Glory be to the Father, and to the Son, and to the Holy Spirit."))
-        out.append(_card("5. Short Reading",
-                         _prose(_COMPLINE_SHORT_READING)))
-        out.append(_card("6. Gospel Canticle — Nunc Dimittis",
-                         _prose(_NUNC_DIMITTIS),
-                         scriptural="The Canticle of Simeon — Lk 2:29-32"))
-        _ant_title, _ant_text = _compline_marian_antiphon(now_dt.date())
-        out.append(_card(f"7. Marian Antiphon — {_ant_title}",
-                         _prose(_ant_text)))
-        out.append(_card("Closing",
-                         _prose(_COMPLINE_CLOSING)))
+        out.append(_card(
+            "Compline — Night Prayer",
+            _hour_details(
+                "'Into Your hands, O Lord, I commend my spirit.' The Church's "
+                "last prayer of the day — examen, Psalm 91, the Nunc Dimittis, "
+                "and a Marian antiphon to close.",
+                _compline_full_html(now_dt),
+            ),
+            scriptural="He gives sleep to His beloved. — Ps 127:2",
+        ))
     return "".join(out)
 
 
