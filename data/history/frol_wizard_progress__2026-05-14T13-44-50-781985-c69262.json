@@ -1,16 +1,23 @@
 {
   "mode": "structured",
-  "current_step": 7,
+  "current_step": 10,
   "completed_steps": [
     1,
     2,
     3,
     4,
     5,
-    6
+    6,
+    7,
+    8,
+    9
   ],
-  "data": {},
+  "data": {
+    "step_1": {
+      "name": ""
+    }
+  },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-14T08:59:48",
+  "updated_at": "2026-05-14T13:44:50",
   "finalized_at": ""
 }
