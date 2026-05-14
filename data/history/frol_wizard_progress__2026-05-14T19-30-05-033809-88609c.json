@@ -31,15 +31,13 @@
           "color": "#efcaff"
         },
         {
-          "name": "John",
-          "role": "Adult",
-          "birthday": "1983-04-01",
-          "color": "#011d57"
+          "name": "Jo",
+          "role": ""
         }
       ]
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-14T19:31:28",
+  "updated_at": "2026-05-14T19:30:04",
   "finalized_at": ""
 }

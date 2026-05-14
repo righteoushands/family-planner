@@ -27,19 +27,12 @@
         {
           "role": "Adult",
           "name": "Lauren",
-          "birthday": "1983-10-26",
-          "color": "#efcaff"
-        },
-        {
-          "name": "John",
-          "role": "Adult",
-          "birthday": "1983-04-01",
-          "color": "#011d57"
+          "birthday": "1983-05-14"
         }
       ]
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-14T19:31:28",
+  "updated_at": "2026-05-14T19:29:24",
   "finalized_at": ""
 }
