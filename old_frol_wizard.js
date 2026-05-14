@@ -65,40 +65,17 @@
 
   function bindAutoSave() {
     $$("[data-step][data-key]").forEach(function (el) {
-      if (el.getAttribute("data-frol-bound") === "1") return;
-      el.setAttribute("data-frol-bound", "1");
       var ev = (el.tagName === "SELECT" || el.type === "checkbox" || el.type === "color"
                 || el.type === "date" || el.type === "time") ? "change" : "input";
       el.addEventListener(ev, function () { saveField(gatherFieldPayload(el)); });
     });
   }
 
-  /* Step 8 — reveal next emergency contact row (max 5 visible). */
-  window.frolRevealContact = function () {
-    var rows = $$(".frol-contact-row");
-    var nextIdx = -1;
-    for (var i = 0; i < rows.length; i++) {
-      if (rows[i].style.display === "none") { nextIdx = i; break; }
-    }
-    if (nextIdx === -1) return;
-    rows[nextIdx].style.display = "";
-    var visible = rows.filter(function (r) { return r.style.display !== "none"; }).length;
-    if (visible >= 5) {
-      var btn = document.getElementById("frol-add-contact");
-      if (btn) btn.style.display = "none";
-    }
-  };
-
   /* Step 1 — add/remove members */
   window.frolAddMember = function () {
     var holder = document.getElementById("frol-members");
     if (!holder) return;
-    var existing = holder.querySelectorAll("[data-mem-idx]");
-    var i = 0;
-    existing.forEach(function (n) {
-      var v = parseInt(n.getAttribute("data-mem-idx"), 10);
-      if (!isNaN(v) && v >= i) i = v + 1;
-    });
+    var i = holder.children.length;
     var div = document.createElement("div");
     div.className = "frol-member";
     div.setAttribute("data-mem-idx", i);

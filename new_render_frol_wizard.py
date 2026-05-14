@@ -560,7 +560,7 @@ def render_step_3(progress: dict, mode: str) -> str:
         <div class="name">&#10016; Sister Mary</div>
         Sister Mary is your contemplative Marian companion. She remembers your
         family's prayer intentions and answers from a place of stillness.
-        <a href="/sister-mary" target="_blank" style="color:#33507e;">Meet Sister Mary &rarr;</a>
+        <a href="/sister-mary" target="_blank" style="color:#33507e;">Meet her later &rarr;</a>
       </div>
     """
     return _step_chrome(3, "Prayer",
@@ -619,7 +619,7 @@ def render_step_4(progress: dict, mode: str) -> str:
       <div class="frol-companion">
         <div class="name">&#127860; Lorenzo</div>
         Lorenzo is your personal chef AI — meal plans, grocery lists, recipes.
-        <a href="/lorenzo" target="_blank" style="color:#33507e;">Meet Lorenzo &rarr;</a>
+        <a href="/lorenzo" target="_blank" style="color:#33507e;">Meet him later &rarr;</a>
       </div>
     """
     return _step_chrome(4, "Meals",
@@ -629,18 +629,7 @@ def render_step_4(progress: dict, mode: str) -> str:
 
 def render_step_5(progress: dict, mode: str) -> str:
     members = _v(progress, 1, "members", []) or []
-    if not members:
-        members = _settings_members()
-    _kid_roles = ("child", "teen", "kid", "student", "toddler", "baby",
-                  "son", "daughter", "preschool", "preschooler")
-    kid_names = []
-    for m in members:
-        nm = (m.get("name") or "").strip()
-        role = (m.get("role") or "").strip().lower()
-        if not nm:
-            continue
-        if role in _kid_roles or role not in ("mom", "dad", "parent", "adult", "mother", "father"):
-            kid_names.append(nm)
+    kid_names = [m.get("name", "") for m in members if (m.get("role") or "").lower() in ("child", "teen", "kid", "student")]
     homeschool_kids = _v(progress, 5, "homeschool_kids", []) or []
     chk_kids = []
     for n in kid_names:
@@ -677,7 +666,7 @@ def render_step_5(progress: dict, mode: str) -> str:
       <div class="frol-companion">
         <div class="name">&#128218; Father Gregory</div>
         Father Gregory is your homeschool academic headmaster — assignments,
-        gradebook, weekly planning. <a href="/gregory" target="_blank" style="color:#33507e;">Meet Father Gregory &rarr;</a>
+        gradebook, weekly planning. <a href="/gregory" target="_blank" style="color:#33507e;">Meet him later &rarr;</a>
       </div>
     """
     return _step_chrome(5, "Work Blocks",
@@ -718,10 +707,10 @@ def render_step_6(progress: dict, mode: str) -> str:
       <div class="frol-companion">
         <div class="name">&#128170; Coach</div>
         Coach is your family fitness AI — programs, logs, encouragement.
-        <a href="/programs" target="_blank" style="color:#33507e;">Meet Coach &rarr;</a>
+        <a href="/programs" target="_blank" style="color:#33507e;">Meet him later &rarr;</a>
       </div>
     """
-    return _step_chrome(6, "Exercise & Health",
+    return _step_chrome(6, "Exercise &amp; Health",
         "Bodies need rhythm too. How do you move together?",
         body, mode, progress, lucy_visible=True)
 
@@ -769,10 +758,10 @@ def render_step_7(progress: dict, mode: str) -> str:
       <div class="frol-companion">
         <div class="name">&#127800; Dr. Monica</div>
         Dr. Monica is your child development &amp; pediatric health AI — sleep,
-        behavior, milestones. <a href="/dr-monica" target="_blank" style="color:#33507e;">Meet Dr. Monica &rarr;</a>
+        behavior, milestones. <a href="/dr-monica" target="_blank" style="color:#33507e;">Meet her later &rarr;</a>
       </div>
     """
-    return _step_chrome(7, "Rest, Family & Marriage",
+    return _step_chrome(7, "Rest, Family &amp; Marriage",
         "The rhythm of rest, togetherness, and the marriage that holds it all.",
         body, mode, progress, lucy_visible=True)
 
@@ -793,16 +782,13 @@ def render_step_8(progress: dict, mode: str) -> str:
         c = "checked" if n_ in notif_sel else ""
         notif_chk.append(f'<label class="frol-check"><input type="checkbox" data-step="8" '
                          f'data-key="notif_channels" data-multi="1" value="{n_}" {c}> {n_.replace("_"," ").title()}</label>')
-    contacts = _v(progress, 8, "emergency_contacts", []) or []
-    while len(contacts) < 5:
+    contacts = _v(progress, 8, "emergency_contacts", []) or [{}, {}, {}]
+    while len(contacts) < 3:
         contacts.append({})
-    # Show only filled rows, plus row 0 if none filled. Hidden rows revealed by JS.
-    visible_count = max(1, sum(1 for c in contacts[:5] if (c.get("name") or c.get("phone") or c.get("email"))))
     contact_rows = []
     for i, c in enumerate(contacts[:5]):
-        hidden_style = "" if i < visible_count else "display:none;"
         contact_rows.append(f"""
-        <div class="frol-row frol-contact-row" data-contact-idx="{i}" style="{hidden_style}">
+        <div class="frol-row">
           <div><input class="frol-input" data-step="8" data-list="emergency_contacts" data-idx="{i}" data-key="name"
                       value="{escape(c.get('name','') or '', quote=True)}" placeholder="Name"></div>
           <div><input class="frol-input" type="tel" data-step="8" data-list="emergency_contacts" data-idx="{i}" data-key="phone"
@@ -810,9 +796,6 @@ def render_step_8(progress: dict, mode: str) -> str:
           <div><input class="frol-input" type="email" data-step="8" data-list="emergency_contacts" data-idx="{i}" data-key="email"
                       value="{escape(c.get('email','') or '', quote=True)}" placeholder="Email"></div>
         </div>""")
-    add_btn_hidden = "display:none;" if visible_count >= 5 else ""
-    contact_rows.append(f'<button type="button" id="frol-add-contact" class="frol-add" '
-                        f'onclick="frolRevealContact()" style="{add_btn_hidden}">+ Add another contact</button>')
     body = f"""
       <label class="frol-fld">Set up health tracking for which family members?</label>
       {''.join(chk) or '<p class="frol-help">Add family members in step 1 first.</p>'}
@@ -835,7 +818,7 @@ def render_step_8(progress: dict, mode: str) -> str:
       <label class="frol-fld">Emergency contacts <span style="font-weight:400;color:#888;">(up to 5)</span></label>
       {''.join(contact_rows)}
     """
-    return _step_chrome(8, "Family Health & Wellbeing",
+    return _step_chrome(8, "Family Health &amp; Wellbeing",
         "Health tracking, medications, appointments, and how you'd like to be notified.",
         body, mode, progress, lucy_visible=True)
 
@@ -879,8 +862,6 @@ def _build_person_summaries(progress: dict) -> dict:
     """Compose a per-person time-block summary from previous steps."""
     out = {}
     members = _v(progress, 1, "members", []) or []
-    if not members:
-        members = _settings_members()
     s2 = progress.get("data", {}).get("step_2", {}) or {}
     s3 = progress.get("data", {}).get("step_3", {}) or {}
     s4 = progress.get("data", {}).get("step_4", {}) or {}
@@ -923,8 +904,6 @@ def _build_person_summaries(progress: dict) -> dict:
 def render_step_10(progress: dict, mode: str) -> str:
     notes = derive_heuristic_notes(progress)
     members = _v(progress, 1, "members", []) or []
-    if not members:
-        members = _settings_members()
     person_names = [m.get("name", "") for m in members if m.get("name")]
     summaries = _build_person_summaries(progress)
     grid_html = []
