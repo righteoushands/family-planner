@@ -148,6 +148,7 @@ _time.tzset()
 from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import socketserver
+import cgi as _cgi
 from urllib.parse import parse_qs, urlparse
 
 import auth as _auth
@@ -3351,7 +3352,37 @@ class Handler(BaseHTTPRequestHandler):
         else:
             # /plan-import-apply reads its own raw JSON body — don't consume it with URL form parse
             _JSON_PATHS = {"/plan-import-apply", "/plan-import-undo-placement", "/curriculum-save", "/curriculum-minutes", "/poetry-passage-save"}
-            data = {} if path in _JSON_PATHS else parse_urlencoded_body(self)
+            if path in _JSON_PATHS:
+                data = {}
+            else:
+                _ctype = (self.headers.get("Content-Type", "") or "").lower()
+                if _ctype.startswith("multipart/form-data"):
+                    # Parse multipart/form-data via cgi.FieldStorage and
+                    # normalize to the same shape as parse_qs:
+                    # dict[str, list[str]].
+                    _fs = _cgi.FieldStorage(
+                        fp=self.rfile,
+                        headers=self.headers,
+                        environ={"REQUEST_METHOD": "POST", "CONTENT_TYPE": self.headers.get("Content-Type", "")},
+                        keep_blank_values=True,
+                    )
+                    data = {}
+                    try:
+                        _keys = list(_fs.keys())
+                    except Exception:
+                        _keys = []
+                    for _k in _keys:
+                        _items = _fs[_k] if isinstance(_fs[_k], list) else [_fs[_k]]
+                        _vals = []
+                        for _it in _items:
+                            if getattr(_it, "filename", None):
+                                # File upload — preserve raw bytes under the key
+                                _vals.append(_it.file.read() if _it.file else b"")
+                            else:
+                                _vals.append(_it.value if _it.value is not None else "")
+                        data[_k] = _vals
+                else:
+                    data = parse_urlencoded_body(self)
 
             if path == "/toggle-task":
                 _tid  = data.get("task_id",[""])[0]
