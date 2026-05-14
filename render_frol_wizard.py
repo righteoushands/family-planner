@@ -386,6 +386,71 @@ def render_landing(progress: dict) -> str:
         )
     self_btn = ('<a href="/frol-wizard?step=1&mode=structured" class="frol-btn ghost">'
                 "I'll set it up myself</a>")
+
+    # Lucy intro — shown prominently when she'll be guiding the wizard.
+    lucy_intro_html = ""
+    if have_key:
+        lucy_intro_html = """
+        <div style="background:linear-gradient(135deg,#eef2fb,#e1e9f7);
+                    border:1px solid #c8d6ec;border-left:4px solid #7a4ea3;
+                    border-radius:12px;padding:18px 20px;margin:24px auto 0;
+                    max-width:620px;text-align:left;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="font-size:1.6em;">&#10024;</div>
+            <div>
+              <div style="font-weight:700;color:#5a3a82;font-size:1.05em;">
+                Lucy will guide you
+              </div>
+              <div style="font-size:0.92em;color:#444;margin-top:3px;">
+                If you choose <em>Guide me with Lucy</em>, she'll walk you
+                through every step — asking gentle questions, suggesting
+                rhythms, and filling in answers as you talk. You can switch
+                to the structured form at any time.
+              </div>
+            </div>
+          </div>
+        </div>
+        """
+
+    # Companions grid — soft cards, 2 columns, Marian-blue accents.
+    companions = [
+        ("&#10024;", "Lucy",           "Your family's personal assistant, always ready to help you think and plan.", "/lucy"),
+        ("&#127860;", "Lorenzo",       "Meal planning and kitchen wisdom.",                                          "/lorenzo"),
+        ("&#10016;", "Sister Mary",    "Spiritual companion and prayer guide.",                                      "/sister-mary"),
+        ("&#128218;", "Father Gregory","Academic mentor for your children.",                                         "/gregory"),
+        ("&#128170;", "Coach",         "Family fitness and wellness.",                                               "/programs"),
+        ("&#127800;", "Dr. Monica",    "Family health and wellbeing.",                                               "/dr-monica"),
+    ]
+    comp_cards = []
+    for icon, name, desc, href in companions:
+        comp_cards.append(f"""
+          <a href="{href}" target="_blank" style="text-decoration:none;color:inherit;
+              background:#f6f8fc;border:1px solid #d8e1ef;border-left:3px solid #4a6fa5;
+              border-radius:10px;padding:12px 14px;display:block;
+              transition:background 0.15s,transform 0.15s;">
+            <div style="display:flex;align-items:baseline;gap:8px;">
+              <span style="font-size:1.05em;">{icon}</span>
+              <span style="font-weight:700;color:#33507e;">{escape(name)}</span>
+            </div>
+            <div style="font-size:0.85em;color:#555;margin-top:4px;line-height:1.35;">
+              {escape(desc)}
+            </div>
+          </a>
+        """)
+    companions_html = f"""
+      <div style="margin:32px auto 0;max-width:620px;text-align:left;">
+        <div style="font-size:0.78em;color:#7d7d7d;text-transform:uppercase;
+                    letter-spacing:0.06em;font-weight:700;margin-bottom:10px;
+                    text-align:center;">
+          Meet your companions
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+                    gap:10px;">
+          {''.join(comp_cards)}
+        </div>
+      </div>
+    """
+
     return f"""
       <div class="frol-card" style="text-align:center;padding:46px 32px;">
         <h1 class="frol-title" style="font-size:2.1em;">Your Rule of Life</h1>
@@ -403,6 +468,8 @@ def render_landing(progress: dict) -> str:
         <p style="margin-top:30px;font-size:0.85em;color:#7d7d7d;">
           10 short steps · Auto-saves as you go · Takes about 15&ndash;20 minutes
         </p>
+        {lucy_intro_html}
+        {companions_html}
       </div>
     """
 
