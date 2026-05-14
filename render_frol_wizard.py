@@ -842,6 +842,8 @@ def render_step_8(progress: dict, mode: str) -> str:
 
 def render_step_9(progress: dict, mode: str) -> str:
     members = _v(progress, 1, "members", []) or []
+    if not [m for m in members if (m.get("name") or "").strip()]:
+        members = _settings_members()
     if not members:
         body = ('<p class="frol-help">Add family members in step 1 to see '
                 "each person's day here.</p>")

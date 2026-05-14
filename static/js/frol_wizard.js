@@ -119,6 +119,22 @@
       + '</div>';
     holder.appendChild(div);
     bindAutoSave();
+    /* Persist the new (empty) member row immediately so it survives a
+       page reload even if the user doesn't type anything. */
+    var formMode = ($("#frol-form") && $("#frol-form").getAttribute("data-mode")) || "";
+    ["name", "role"].forEach(function (key) {
+      var fd = new FormData();
+      fd.append("action", "save_field");
+      fd.append("step",   "1");
+      fd.append("field",  key);
+      fd.append("list",   "members");
+      fd.append("idx",    String(i));
+      fd.append("value",  "");
+      if (formMode) { fd.append("mode", formMode); }
+      fetch("/frol-wizard", { method: "POST", body: fd, credentials: "same-origin" });
+    });
+    status("Saved");
+    setTimeout(function () { status(""); }, 1500);
   };
 
   window.frolRemoveMember = function (i) {
