@@ -44,6 +44,19 @@ Michael (5, kindergarten), James (13 months, toddler — cannot be assigned task
   will consume the payload silently
 - New routes that receive JSON bodies must be added to _JSON_PATHS
 
+## Anchor-tag navigation
+Plain `<a href="...">` links cannot POST and cannot mutate server state on
+their own. Any state the destination page needs must either travel in the
+URL query string OR already be persisted before the user clicks. The
+destination handler is responsible for accepting those query params AND
+persisting them on arrival if they are required for subsequent renders.
+Counter-pattern that bit us: the FROL wizard landing buttons are anchors
+to /frol-wizard?step=1&mode=structured. Without persisting `mode` on the
+first GET, the page's "is the wizard configured?" gate kept re-rendering
+the landing screen and the wizard appeared unreachable. If a button must
+trigger persistent state without the destination handler doing the write,
+use a `<form method="POST">` with a submit button styled as a link instead.
+
 ## AI calls
 - Model: claude-sonnet-4-20250514
 - Called via urllib.request directly, not the Anthropic SDK

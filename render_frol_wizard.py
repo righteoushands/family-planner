@@ -1008,6 +1008,15 @@ def render_frol_wizard_page(viewer: str = "", step=None, mode: str = "") -> str:
         cur = 0
     cur = max(0, min(WIZARD_TOTAL_STEPS, cur))
 
+    # If the URL passed an explicit mode (lucy / structured) and progress.json
+    # has no mode yet, persist it now. The landing buttons are plain anchors
+    # that can't POST, so the mode arrives only as a GET param — without this
+    # the gate below would re-render the landing screen and the user would
+    # appear stuck. See claud.md "Anchor-tag navigation" rule.
+    if mode in ("lucy", "structured") and not progress.get("mode"):
+        progress["mode"] = mode
+        save_progress(progress)
+
     if cur == 0 or not progress.get("mode"):
         body = render_landing(progress)
     else:
