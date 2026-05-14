@@ -1208,6 +1208,17 @@ class Handler(BaseHTTPRequestHandler):
             try: self.wfile.write(html.encode())
             except BrokenPipeError: pass
             return
+        elif path == "/companions":
+            from render_companions import render_companions_page
+            html = render_companions_page()
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header("Pragma","no-cache")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
         elif path == "/sister-mary":
             from render_sister_mary import render_sister_mary_page
             html = render_sister_mary_page(
@@ -6854,7 +6865,7 @@ class Handler(BaseHTTPRequestHandler):
                             else:
                                 _items[_i] = {_field: _val}
                         save_progress(_p)
-                    elif _field:
+                    elif _field and not _list:
                         save_field(_step_int, _field, _val, mode=_mode)
                     self.send_response(200); self.send_header("Content-Type","text/plain"); self.end_headers()
                     try: self.wfile.write(b"ok")

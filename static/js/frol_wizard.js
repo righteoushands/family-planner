@@ -148,10 +148,38 @@
     fetch("/frol-wizard", { method: "POST", body: fd, credentials: "same-origin" });
   };
 
-  /* Step submit — POSTs the advance action; server bumps current_step. */
+  /* Step submit — wait briefly for any debounced field saves to flush,
+     then POST the advance action via fetch and navigate on success. */
   window.frolAdvance = function (e, step, mode) {
-    /* allow normal form POST so the page reloads onto the next step */
-    return true;
+    if (e && e.preventDefault) e.preventDefault();
+    var btn = e && e.target ? (e.target.querySelector ? e.target.querySelector('button[type="submit"]') : null) : null;
+    if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
+    status("Saving…");
+    setTimeout(function () {
+      var fd = new FormData();
+      fd.append("action", "advance");
+      fd.append("step", String(step));
+      if (mode) fd.append("mode", String(mode));
+      fetch("/frol-wizard", { method: "POST", body: fd, credentials: "same-origin", redirect: "manual" })
+        .then(function (r) {
+          /* opaqueredirect (status 0 with redirect:manual) and 2xx are both success */
+          var ok = r.ok || r.type === "opaqueredirect" || r.status === 0;
+          if (!ok) {
+            status("Save failed (" + r.status + ")");
+            if (btn) { btn.disabled = false; btn.textContent = "Save & Continue"; }
+            return;
+          }
+          status("Saved");
+          var next = (parseInt(step, 10) || 0) + 1;
+          var modeQs = mode ? ("&mode=" + encodeURIComponent(mode)) : "";
+          window.location.href = "/frol-wizard?step=" + next + modeQs;
+        })
+        .catch(function () {
+          status("Save failed — network");
+          if (btn) { btn.disabled = false; btn.textContent = "Save & Continue"; }
+        });
+    }, 400);
+    return false;
   };
 
   /* Setup card dismissal — sets a 1-year cookie. */
