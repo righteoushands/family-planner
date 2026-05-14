@@ -410,7 +410,12 @@ def render_landing(progress: dict) -> str:
 def render_step_1(progress: dict, mode: str) -> str:
     """Your Family — auto-skip if members already exist in settings."""
     existing = _settings_members()
-    members = _v(progress, 1, "members", existing) or []
+    members = _v(progress, 1, "members", []) or []
+    # If the wizard has no named members yet, seed from settings so Lauren
+    # sees her existing family pre-filled. Same fallback pattern as Steps
+    # 5, 8, 9, and 10.
+    if not [m for m in members if (m.get("name") or "").strip()]:
+        members = existing
     if not members:
         members = [{"name": "", "role": "", "birthday": "", "color": ""}]
     rows = []
