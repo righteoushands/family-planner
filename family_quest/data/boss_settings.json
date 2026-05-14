@@ -1,6 +1,6 @@
 {
   "available": true,
-  "difficulty": "medium",
-  "boss_type": "orc",
+  "boss_type": "",
+  "difficulty": 1,
   "exchange_rate": 1
 }

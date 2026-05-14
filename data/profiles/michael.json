@@ -1,18 +1,18 @@
 {
-  "clothing_sizes": {
-    "shirt": "",
-    "pants": "",
-    "jacket": "",
-    "underwear": "",
-    "socks": ""
-  },
-  "shoe_size": "",
-  "gift_ideas": [],
-  "skills_to_learn": [],
   "activities_requested": [],
-  "favorite_foods": [],
-  "meal_requests": [],
+  "clothing_sizes": {
+    "jacket": "",
+    "pants": "",
+    "shirt": "",
+    "socks": "",
+    "underwear": ""
+  },
   "dream_trips": [],
+  "favorite_foods": [],
+  "gift_ideas": [],
   "interests": [],
-  "other_notes": ""
+  "meal_requests": [],
+  "other_notes": "",
+  "shoe_size": "",
+  "skills_to_learn": []
 }
