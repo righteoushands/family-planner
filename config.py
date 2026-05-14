@@ -34,6 +34,7 @@ FAMILY_MEMORY_FILE   = "data/family_memory.json"
 PRAYER_INTENTIONS_FILE   = "data/prayer_intentions.json"
 SISTER_MARY_HISTORY_FILE = "data/sister_mary_history.json"
 POPE_INTENTIONS_FILE     = "data/pope_intentions.json"
+FROL_WIZARD_PROGRESS_FILE = "data/frol_wizard_progress.json"
 
 # ── Validation sets ──────────────────────────────────────────────────────────
 VALID_PRIORITIES = {"HIGH", "MEDIUM", "LOW"}

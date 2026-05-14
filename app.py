@@ -1223,6 +1223,31 @@ class Handler(BaseHTTPRequestHandler):
             try: self.wfile.write(html.encode())
             except BrokenPipeError: pass
             return
+        elif path == "/frol-wizard":
+            _fw_v = self._get_viewer()
+            if not (_fw_v and _auth.is_admin(_fw_v)):
+                self.send_response(302); self.send_header("Location","/"); self.end_headers(); return
+            from render_frol_wizard import (
+                render_frol_wizard_page, render_completion_screen,
+                reset_progress, load_progress, is_complete,
+            )
+            if (query.get("reset",[""])[0] or "") == "1":
+                reset_progress()
+                self.send_response(302); self.send_header("Location","/frol-wizard"); self.end_headers(); return
+            _step_q = (query.get("step",[""])[0] or "").strip()
+            _mode_q = (query.get("mode",[""])[0] or "").strip()
+            if is_complete() and not _step_q:
+                html = render_completion_screen()
+            else:
+                html = render_frol_wizard_page(_fw_v, step=_step_q or None, mode=_mode_q)
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header("Pragma","no-cache")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
         elif path == "/daily-mass":
             from render_settings import resolve_daily_mass_url
             _dm_url = resolve_daily_mass_url(load_app_settings()) or "https://media.ascensionpress.com/category/daily-readings/"
@@ -6791,6 +6816,140 @@ class Handler(BaseHTTPRequestHandler):
                     try: self.wfile.write(str(e).encode("utf-8"))
                     except BrokenPipeError: pass
                 return
+
+            elif path == "/frol-wizard":
+                _fw_v = self._get_viewer()
+                if not (_fw_v and _auth.is_admin(_fw_v)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Admin only.")
+                    except BrokenPipeError: pass
+                    return
+                from render_frol_wizard import save_field, advance_step, load_progress, save_progress
+                _act = (data.get("action",[""])[0] or "").strip()
+                _step = (data.get("step",[""])[0] or "0").strip()
+                _mode = (data.get("mode",[""])[0] or "").strip()
+                try: _step_int = int(_step)
+                except Exception: _step_int = 0
+                if _act == "save_field":
+                    _field = (data.get("field",[""])[0] or "").strip()
+                    _list  = (data.get("list",[""])[0] or "").strip()
+                    _idx   = (data.get("idx",[""])[0] or "").strip()
+                    _values = data.get("value[]", []) or []
+                    if _values:
+                        _val = _values
+                    else:
+                        _val = (data.get("value",[""])[0] or "")
+                    if _list and _idx != "":
+                        _p = load_progress()
+                        if _mode and not _p.get("mode"): _p["mode"] = _mode
+                        _bucket = _p["data"].setdefault(f"step_{_step_int}", {})
+                        _items  = _bucket.setdefault(_list, [])
+                        try: _i = int(_idx)
+                        except Exception: _i = -1
+                        if _i >= 0:
+                            while len(_items) <= _i:
+                                _items.append({})
+                            if isinstance(_items[_i], dict):
+                                _items[_i][_field] = _val if not isinstance(_val, list) else _val
+                            else:
+                                _items[_i] = {_field: _val}
+                        save_progress(_p)
+                    elif _field:
+                        save_field(_step_int, _field, _val, mode=_mode)
+                    self.send_response(200); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"ok")
+                    except BrokenPipeError: pass
+                    return
+                if _act == "remove_list_item":
+                    _list = (data.get("list",[""])[0] or "").strip()
+                    _idx  = (data.get("idx",[""])[0] or "").strip()
+                    if _list:
+                        _p = load_progress()
+                        _bucket = _p["data"].setdefault(f"step_{_step_int}", {})
+                        _items  = _bucket.setdefault(_list, [])
+                        try: _i = int(_idx)
+                        except Exception: _i = -1
+                        if 0 <= _i < len(_items):
+                            _items.pop(_i)
+                        save_progress(_p)
+                    self.send_response(200); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"ok")
+                    except BrokenPipeError: pass
+                    return
+                if _act == "advance":
+                    advance_step(_step_int, mode=_mode)
+                    _next = _step_int + 1
+                    redirect = f"/frol-wizard?step={_next}&mode={_mode}"
+                else:
+                    redirect = "/frol-wizard"
+
+            elif path == "/frol-wizard-chat":
+                import json as _json, urllib.request as _req
+                from render_frol_wizard import (
+                    load_progress, get_anthropic_key, build_wizard_chat_context,
+                )
+                _fwc_v = self._get_viewer()
+                if not (_fwc_v and _auth.is_admin(_fwc_v)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Admin only.")
+                    except BrokenPipeError: pass
+                    return
+                api_key = get_anthropic_key()
+                if not api_key:
+                    self.send_response(400); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"No API key configured.")
+                    except BrokenPipeError: pass
+                    return
+                _msg = clean_text(data.get("message",[""])[0])
+                _progress = load_progress()
+                _ctx = build_wizard_chat_context(_progress)
+                payload = _json.dumps({
+                    "model":      "claude-haiku-4-5-20251001",
+                    "max_tokens": 800,
+                    "system":     _ctx,
+                    "messages":   [{"role":"user","content": _msg}],
+                    "stream":     True,
+                }).encode("utf-8")
+                req = _req.Request("https://api.anthropic.com/v1/messages",
+                    data=payload,
+                    headers={"x-api-key": api_key, "anthropic-version": "2023-06-01",
+                             "content-type": "application/json"})
+                try:
+                    resp = _req.urlopen(req, timeout=60)
+                    self.send_response(200)
+                    self.send_header("Content-Type","text/plain; charset=utf-8")
+                    self.send_header("Transfer-Encoding","chunked")
+                    self.send_header("Cache-Control","no-store")
+                    self.end_headers()
+                    for raw in resp:
+                        line = raw.decode("utf-8").strip()
+                        if line.startswith("data:"):
+                            chunk = line[5:].strip()
+                            if chunk == "[DONE]": break
+                            try:
+                                obj = _json.loads(chunk)
+                                delta = obj.get("delta",{})
+                                piece = delta.get("text","") if delta.get("type") == "text_delta" else ""
+                                if piece:
+                                    try: self.wfile.write(piece.encode("utf-8")); self.wfile.flush()
+                                    except BrokenPipeError: break
+                            except Exception: pass
+                except Exception as e:
+                    try: self.wfile.write(str(e).encode("utf-8"))
+                    except BrokenPipeError: pass
+                return
+
+            elif path == "/frol-wizard-finalize":
+                _fwf_v = self._get_viewer()
+                if not (_fwf_v and _auth.is_admin(_fwf_v)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Admin only.")
+                    except BrokenPipeError: pass
+                    return
+                from render_frol_wizard import finalize_wizard
+                try: finalize_wizard()
+                except Exception as _fwe: debug_log(f"frol_wizard finalize error: {_fwe}")
+                redirect = "/frol-wizard"
 
             elif path == "/sister-mary-clear-history":
                 from data_helpers import clear_sister_mary_history

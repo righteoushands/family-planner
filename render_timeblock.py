@@ -1838,6 +1838,11 @@ def render_timeblock_homepage(viewer: str = "lauren") -> str:
         hero_credit_html = f'<div class="credit">{inner}</div>'
 
     saint_card     = _render_saint_card(iso)
+    try:
+        from render_frol_wizard import render_frol_setup_card
+        frol_wizard_card = render_frol_setup_card(viewer)
+    except Exception:
+        frol_wizard_card = ""
     upcoming_card  = _render_upcoming_feast_notice(today)
     prayers_html   = _render_block_prayers(block, now_dt, weekday)
     pope_card      = _render_pope_card(iso) if block == "afternoon" else ""
@@ -1921,6 +1926,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 </div>
 <div class="tb-body">
   {saint_card}
+  {frol_wizard_card}
   {upcoming_card}
   {prayers_html}
   {daily_mass}

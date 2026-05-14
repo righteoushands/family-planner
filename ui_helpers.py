@@ -388,6 +388,12 @@ def _build_mobile_more_sheet_inner(viewer, is_child: bool) -> str:
                   color:#2d4a78;font-weight:700;font-size:0.88em;">
           <span>&#10016;</span> Sister Mary
         </a>
+        <a href="/frol-wizard" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;
+                  background:#eaf0fa;border-radius:12px;text-decoration:none;
+                  color:#33507e;font-weight:700;font-size:0.88em;">
+          <span>&#9728;</span> Rule of Life
+        </a>
         <a href="/dev" onclick="closeMobileMore()"
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;
                   background:#eef3fc;border-radius:12px;text-decoration:none;
