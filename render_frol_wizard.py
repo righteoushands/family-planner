@@ -955,6 +955,43 @@ def render_step_9(progress: dict, mode: str) -> str:
         "A day's rhythm, one person at a time.", body, mode, progress, lucy_visible=True)
 
 
+def _row_sort_minutes(t: str) -> int:
+    """Convert a row's time field to minutes-since-midnight for sorting.
+    Accepts HH:MM 24-hour strings and a few keyword tokens used elsewhere
+    in the wizard (evening, night). Unknown values sort to the end."""
+    s = (t or "").strip().lower()
+    if s == "evening":
+        return 19 * 60
+    if s == "night":
+        return 21 * 60
+    if len(s) >= 4 and ":" in s:
+        try:
+            hh, mm = s.split(":", 1)
+            return int(hh) * 60 + int(mm[:2])
+        except (ValueError, TypeError):
+            return 24 * 60 + 1
+    return 24 * 60 + 1
+
+
+def _fmt_12h(t: str) -> str:
+    """Format an HH:MM 24-hour string as 12-hour with AM/PM. Pass keyword
+    tokens (evening, night) and unparseable values through unchanged."""
+    s = (t or "").strip()
+    if not s or ":" not in s:
+        return s
+    try:
+        hh_str, rest = s.split(":", 1)
+        hh = int(hh_str)
+        mm = int(rest[:2])
+    except (ValueError, TypeError):
+        return s
+    suffix = "AM" if hh < 12 else "PM"
+    h12 = hh % 12
+    if h12 == 0:
+        h12 = 12
+    return f"{h12}:{mm:02d} {suffix}"
+
+
 def _build_person_summaries(progress: dict) -> dict:
     """Compose a per-person time-block summary purely from the wizard's
     collected answers in frol_wizard_progress.json — never from the
@@ -1060,7 +1097,10 @@ def _build_person_summaries(progress: dict) -> dict:
         for _np in (s3.get("night_prayers_multi") or []):
             rows.append(("night", _np))
         rows.append((bed, "Bedtime"))
-        out[nm] = rows
+        # Sort chronologically by parsed time, then format times in 12-hour
+        # AM/PM. Keyword tokens (evening, night) pass through unchanged.
+        rows.sort(key=lambda r: _row_sort_minutes(r[0]))
+        out[nm] = [(_fmt_12h(t), act) for (t, act) in rows]
     return out
 
 
@@ -1073,8 +1113,8 @@ def _missing_step_buckets(progress: dict) -> list:
         (2, "Anchors",          ("wake_school_adults", "bed_adults")),
         (3, "Prayer",           ("morning_time", "evening_rosary_time")),
         (4, "Meals",            ("breakfast_time", "lunch_time", "dinner_time")),
-        (5, "Work Blocks",      ("school_start", "school_end")),
-        (6, "Exercise",         ("when", "family_routine")),
+        (5, "Work Blocks",      ("homeschool_kids", "chore_time_blocks")),
+        (6, "Exercise",         ("who_exercises_multi",)),
         (7, "Rest & Marriage",  ("family_free_time", "afternoon_rest", "couple_time")),
     ]
     missing = []
