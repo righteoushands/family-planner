@@ -130,13 +130,22 @@
         "Michael"
       ],
       "types": [
+        "Strength",
         "Walks"
-      ]
+      ],
+      "recurring_classes": "John lifts on Tuesdays and Thursdays after work and comes home at 6pm",
+      "family_or_individual": "mixed"
     },
     "step_7": {
       "afternoon_rest": "2 to 4",
       "date_night": "Wednesday 5:30",
-      "couple_time": "evening"
+      "couple_time": "evening",
+      "traditions": [
+        "Read-aloud",
+        "Holy hour",
+        "Game night",
+        "Nature walk"
+      ]
     },
     "step_8": {
       "tracked_members": [
@@ -153,10 +162,20 @@
         "Orthodontist",
         "Therapy"
       ],
-      "recurring_appts": "Orthodontist a"
+      "recurring_appts": "Orthodontist adjustments for jp",
+      "notif_channels": [
+        "email"
+      ],
+      "notif_email": "lm_public@protonmail.com",
+      "emergency_contacts": [
+        {
+          "name": "John McAdams ",
+          "phone": "5403696065"
+        }
+      ]
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-15T08:25:22",
+  "updated_at": "2026-05-15T10:00:14",
   "finalized_at": ""
 }
