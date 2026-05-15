@@ -828,6 +828,33 @@ class Handler(BaseHTTPRequestHandler):
                 self.end_headers()
             return
 
+        # ── Static images (/static/images/**) ────────────────────────────────
+        # Nested paths (timeblock/seasons/spring/1.png etc.) — the general
+        # /static/* handler below flattens slashes for safety, so images
+        # need their own route.
+        if path.startswith("/static/images/"):
+            import os, mimetypes
+            rel = path[len("/static/"):]  # "images/..."
+            # Reject any traversal attempt; only allow [A-Za-z0-9_./-].
+            if ".." in rel.split("/") or not all(c.isalnum() or c in "_./-" for c in rel):
+                self.send_response(404); self.end_headers(); return
+            img_path = os.path.join("static", *rel.split("/"))
+            try:
+                with open(img_path, "rb") as f:
+                    content = f.read()
+                mime, _ = mimetypes.guess_type(img_path)
+                mime = mime or "application/octet-stream"
+                self.send_response(200)
+                self.send_header("Content-Type", mime)
+                self.send_header("Cache-Control", "public, max-age=86400")
+                self.send_header("Content-Length", str(len(content)))
+                self.end_headers()
+                try: self.wfile.write(content)
+                except BrokenPipeError: pass
+            except FileNotFoundError:
+                self.send_response(404); self.end_headers()
+            return
+
         # ── Static files (/static/*) ─────────────────────────────────────────
         if path.startswith("/static/"):
             import os, mimetypes
@@ -9259,10 +9286,9 @@ class Handler(BaseHTTPRequestHandler):
                 # Prayer & Sacraments section
                 if "prayer_section" in data:
                     _dms_val = clean_text(data.get("daily_mass_source", ["ascension_press"])[0])
-                    _valid_dms = {"ascension_press", "little_rose_shop", "word_on_fire", "ewtn", "custom"}
+                    _valid_dms = {"ascension_press", "little_rose_shop", "word_on_fire", "ewtn"}
                     if _dms_val in _valid_dms:
                         settings["daily_mass_source"] = _dms_val
-                    settings["daily_mass_custom_url"] = clean_text(data.get("daily_mass_custom_url", [""])[0])
                     settings["sister_mary_family_context"] = "sister_mary_family_context" in data
                     # Pope monthly intentions (pope_YYYY-MM)
                     try:

@@ -1,0 +1,68 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "22yuYdJzlxwqdJHKFC1OO"
+uri = "file://static/images/timeblock/seasons/winter/1.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "nqun3E1Rz3fOC2f6ZTuAf"
+uri = "file://static/images/timeblock/seasons/winter/2.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "I6fqKInSRLZlkze3ruVfr"
+uri = "file://static/images/timeblock/seasons/winter/3.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "szifZfW8JKSufx5Eeqv1M"
+uri = "file://static/images/timeblock/seasons/summer/1.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "p-Q6jgYXlRckzMV9eNsyW"
+uri = "file://static/images/timeblock/seasons/winter/4.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "XWDTqqLW5e9fmw8xdSAyk"
+uri = "file://static/images/timeblock/seasons/spring/1.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "j6_jdr5ysp-lVRKp8_ayR"
+uri = "file://static/images/timeblock/seasons/summer/4.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "_J0ptYeeQs8yoCBxmlRmE"
+uri = "file://static/images/timeblock/seasons/autumn/1.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "Xc0wJmbdTpdbtIasxM0h8"
+uri = "file://static/images/timeblock/seasons/spring/4.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "AXqmbz34iQxg1QHvl2qsC"
+uri = "file://static/images/timeblock/seasons/autumn/3.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "mfiaSDYYcMlBNd0-8WCFm"
+uri = "file://static/images/timeblock/seasons/autumn/4.png"
+type = "image"
+title = "generated_image"

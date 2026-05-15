@@ -21,7 +21,6 @@ DAILY_MASS_SOURCES = [
     ("little_rose_shop", "Little Rose Shop",  "https://thelittleroseshop.com/blogs/daily-readings"),
     ("word_on_fire",     "Word on Fire",      "https://www.wordonfire.org/daily-mass/"),
     ("ewtn",             "EWTN",              "https://www.ewtn.com/catholicism/daily-readings"),
-    ("custom",           "Custom URL",        ""),
 ]
 
 DAILY_MASS_URL_MAP = {k: u for (k, _, u) in DAILY_MASS_SOURCES}
@@ -29,8 +28,6 @@ DAILY_MASS_URL_MAP = {k: u for (k, _, u) in DAILY_MASS_SOURCES}
 
 def resolve_daily_mass_url(settings: dict) -> str:
     src = (settings or {}).get("daily_mass_source", "ascension_press")
-    if src == "custom":
-        return ((settings or {}).get("daily_mass_custom_url") or "").strip()
     return DAILY_MASS_URL_MAP.get(src, DAILY_MASS_URL_MAP["ascension_press"])
 
 
@@ -43,7 +40,6 @@ SETTINGS_DEFAULTS = {
     "cycle_show_detail_fields": True,
     "color_theme":              "ivory",
     "daily_mass_source":        "ascension_press",
-    "daily_mass_custom_url":    "",
     "sister_mary_family_context": False,
     "child_colors": {
         "JP":      {"bg": "#c0392b", "text": "#fff", "light": "#fdf0ef"},
@@ -1237,7 +1233,6 @@ function savePins(e) {{
 
 def _section_prayer_sacraments(settings: dict) -> str:
     cur_src = settings.get("daily_mass_source", "ascension_press")
-    cur_url = settings.get("daily_mass_custom_url", "")
     sister_mary_ctx = bool(settings.get("sister_mary_family_context", False))
 
     src_opts = ""
@@ -1245,7 +1240,6 @@ def _section_prayer_sacraments(settings: dict) -> str:
         sel = " selected" if key == cur_src else ""
         src_opts += f'<option value="{escape(key)}"{sel}>{escape(label)}</option>'
 
-    custom_display = "block" if cur_src == "custom" else "none"
     checked_attr = "checked" if sister_mary_ctx else ""
 
     # Pope monthly intentions editor
@@ -1270,14 +1264,6 @@ def _section_prayer_sacraments(settings: dict) -> str:
             f'</div>'
         )
 
-    # JS toggle for custom-URL field — keep '\\n' (claud rule 7)
-    toggle_js = (
-        "var sel=document.querySelector('select[name=daily_mass_source]');"
-        "var box=document.getElementById('dm-custom-box');"
-        "if(sel&&box){sel.addEventListener('change',function(){"
-        "box.style.display=(sel.value==='custom')?'block':'none';});}"
-    )
-
     return f"""
     <div class="settings-section" id="s-prayer">
         <h2>Prayer &amp; Sacraments</h2>
@@ -1289,13 +1275,6 @@ def _section_prayer_sacraments(settings: dict) -> str:
             Where the &ldquo;Daily Mass&rdquo; link on the homepage opens.
         </p>
         <select name="daily_mass_source" style="max-width:320px;">{src_opts}</select>
-        <div id="dm-custom-box" style="display:{custom_display};margin-top:10px;">
-            <label>Custom Daily Mass URL</label>
-            <input type="url" name="daily_mass_custom_url"
-                   value="{escape(cur_url)}"
-                   placeholder="https://example.com/daily-mass"
-                   style="width:100%;max-width:520px;">
-        </div>
 
         <h3 style="margin-top:24px;">Sister Mary &mdash; family context</h3>
         <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:normal;">

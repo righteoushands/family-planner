@@ -39,7 +39,15 @@ def _now_eastern() -> datetime:
 
 
 def _resolve_block(now_dt: datetime) -> str:
+    # Split outside-hours rule (Lauren-confirmed):
+    #   05:00–06:59  → early_morning
+    #   07:00–11:59  → morning
+    #   12:00–16:59  → afternoon
+    #   17:00–19:59  → evening
+    #   20:00–02:29  → late_evening   (wraps past midnight)
+    #   02:30–04:59  → early_morning  (rises into Lauds)
     h = now_dt.hour
+    m = now_dt.minute
     if 5 <= h <= 6:
         return "early_morning"
     if 7 <= h <= 11:
@@ -48,7 +56,11 @@ def _resolve_block(now_dt: datetime) -> str:
         return "afternoon"
     if 17 <= h <= 19:
         return "evening"
-    return "late_evening"  # 20-23 and 0-4
+    if h == 2 and m >= 30:
+        return "early_morning"
+    if 3 <= h <= 4:
+        return "early_morning"
+    return "late_evening"  # 20-23 and 0-2:29
 
 
 _BLOCK_LABELS = {
@@ -291,6 +303,22 @@ def _resolve_image(iso: str) -> dict:
                 (f"feast::{feast_name}", day_of_year),
                 day_of_year,
             )
+    if not result:
+        # Priority 4: on-disk seasonal placeholder, rotating by day-of-year.
+        # We ship 4 placeholders per season under
+        # static/images/timeblock/seasons/{season}/{1..4}.png so the
+        # homepage looks beautiful out of the box without a Pexels key.
+        for _n in range(4):
+            _idx = ((day_of_year + _n) % 4) + 1
+            _rel = f"static/images/timeblock/seasons/{season}/{_idx}.png"
+            if _file_exists(_rel):
+                return {
+                    "url":               "/" + _rel,
+                    "photographer":      "",
+                    "photographer_url":  "",
+                    "fallback_gradient": gradient,
+                }
+
     if not result:
         query = _PEXELS_SEASON_QUERIES.get(season, _PEXELS_SEASON_QUERIES["spring"])
         result = _pexels_search(query, (season, day_of_year), day_of_year)
