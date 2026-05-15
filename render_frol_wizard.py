@@ -600,7 +600,6 @@ def render_step_3(progress: dict, mode: str) -> str:
         c = "checked" if t in angelus else ""
         return (f'<label class="frol-check"><input type="checkbox" data-step="3" '
                 f'data-key="angelus_times" data-multi="1" value="{t}" {c}> {label}</label>')
-    morning_choice = _v(progress, 3, "morning_prayer", "Morning Offering")
     body = f"""
       <div class="frol-pop-note">
         The prayer times you set here will automatically populate the
@@ -610,11 +609,6 @@ def render_step_3(progress: dict, mode: str) -> str:
       <label class="frol-fld">Morning prayer time</label>
       <input class="frol-input" type="time" data-step="3" data-key="morning_time"
              value="{escape(_v(progress,3,'morning_time','06:30'), quote=True)}">
-      <label class="frol-fld">Which morning prayer?</label>
-      <select class="frol-select" data-step="3" data-key="morning_prayer">
-        {''.join(f'<option {("selected" if morning_choice==o else "")}>{o}</option>'
-                 for o in ["Morning Offering","Lauds","Rosary","Other"])}
-      </select>
       <label class="frol-fld">Angelus — which times to observe</label>
       {chk("06:00","6 AM")}{chk("12:00","Noon")}{chk("18:00","6 PM")}
       <label class="frol-fld">Divine Mercy Chaplet at 3 PM?</label>
@@ -624,18 +618,6 @@ def render_step_3(progress: dict, mode: str) -> str:
       <label class="frol-fld">Evening Rosary time</label>
       <input class="frol-input" type="time" data-step="3" data-key="evening_rosary_time"
              value="{escape(_v(progress,3,'evening_rosary_time','19:30'), quote=True)}">
-      <label class="frol-fld">Vespers in the evening?</label>
-      <select class="frol-select" data-step="3" data-key="vespers">
-        {_yesno_opts(_v(progress,3,'vespers','no'))}
-      </select>
-      <label class="frol-fld">Compline at night?</label>
-      <select class="frol-select" data-step="3" data-key="compline">
-        {_yesno_opts(_v(progress,3,'compline','no'))}
-      </select>
-      <label class="frol-fld">Examination of conscience at night?</label>
-      <select class="frol-select" data-step="3" data-key="examen">
-        {_yesno_opts(_v(progress,3,'examen','no'))}
-      </select>
       <label class="frol-fld">Morning prayers <span style="font-weight:400;color:#888;">(check any you pray)</span></label>
       {''.join(_checkbox_group(progress, 3, "morning_prayers_multi", ["Morning Offering", "Lauds", "Rosary", "Lectio Divina", "Divine Office"]))}
       <label class="frol-fld">Evening prayers <span style="font-weight:400;color:#888;">(check any you pray)</span></label>
@@ -694,18 +676,6 @@ def render_step_4(progress: dict, mode: str) -> str:
           <input class="frol-input" type="time" data-step="4" data-key="dinner_time"
                  value="{escape(_v(progress,4,'dinner_time','17:30'), quote=True)}"></div>
       </div>
-      <label class="frol-fld">Who prepares each meal?</label>
-      <div class="frol-row">
-        <div><label class="frol-help">Breakfast</label>
-          <input class="frol-input" data-step="4" data-key="breakfast_who"
-                 value="{escape(_v(progress,4,'breakfast_who',''), quote=True)}" placeholder="Mom, Dad, kids…"></div>
-        <div><label class="frol-help">Lunch</label>
-          <input class="frol-input" data-step="4" data-key="lunch_who"
-                 value="{escape(_v(progress,4,'lunch_who',''), quote=True)}"></div>
-        <div><label class="frol-help">Dinner</label>
-          <input class="frol-input" data-step="4" data-key="dinner_who"
-                 value="{escape(_v(progress,4,'dinner_who',''), quote=True)}"></div>
-      </div>
       <label class="frol-fld">Lunch together or separate?</label>
       <select class="frol-select" data-step="4" data-key="lunch_together">
         <option value="together" {"selected" if _v(progress,4,'lunch_together','together')=='together' else ""}>Together</option>
@@ -719,11 +689,6 @@ def render_step_4(progress: dict, mode: str) -> str:
       {''.join(_checkbox_group(progress, 4, "meal_prep_who", ["Mom", "Dad", "JP", "Joseph", "Older children", "Together as family"]))}
       <label class="frol-fld">Batch cooking day(s) <span style="font-weight:400;color:#888;">(check any)</span></label>
       {''.join(_checkbox_group(progress, 4, "batch_cook_days", list(WEEKDAYS)))}
-      <label class="frol-fld">Batch cooking day <span style="font-weight:400;color:#888;">(primary, optional)</span></label>
-      <select class="frol-select" data-step="4" data-key="batch_cook_day">
-        <option value="">— None —</option>
-        {''.join(f'<option {("selected" if _v(progress,4,"batch_cook_day","")==d else "")}>{d}</option>' for d in WEEKDAYS)}
-      </select>
       <div class="frol-companion">
         <div class="name">&#127860; Lorenzo</div>
         Lorenzo is your personal chef AI — meal plans, grocery lists, recipes.
@@ -779,10 +744,6 @@ def render_step_5(progress: dict, mode: str) -> str:
       {''.join(_checkbox_group(progress, 5, "chore_time_blocks", ["Morning", "Midday", "After school", "Evening"]))}
       <label class="frol-fld">Subjects covered <span style="font-weight:400;color:#888;">(check any)</span></label>
       {''.join(_checkbox_group(progress, 5, "subjects_multi", ["Math", "Religion", "Reading", "Writing", "Science", "History", "Latin", "Art", "Music", "PE"]))}
-      <label class="frol-fld">Chore time <span style="font-weight:400;color:#888;">(primary)</span></label>
-      <select class="frol-select" data-step="5" data-key="chore_time">
-        {''.join(f'<option {("selected" if _v(progress,5,"chore_time","morning")==v else "")} value="{v}">{l}</option>' for v,l in [("morning","Morning"),("afternoon","Afternoon"),("after_school","After school"),("evening","Evening")])}
-      </select>
       <label class="frol-fld">Parent work-from-home hours to protect</label>
       <textarea class="frol-textarea" data-step="5" data-key="parent_wfh"
                 placeholder="John: Mon–Fri 09:00–11:30 (deep work, no interruptions)">{escape(_v(progress,5,'parent_wfh',''))}</textarea>
@@ -815,9 +776,6 @@ def render_step_6(progress: dict, mode: str) -> str:
       </select>
       <label class="frol-fld">Who exercises <span style="font-weight:400;color:#888;">(check any)</span></label>
       {''.join(_checkbox_group(progress, 6, "who_exercises_multi", ["Mom", "Dad", "JP", "Joseph", "Michael", "Family together"]))}
-      <label class="frol-fld">Who exercises <span style="font-weight:400;color:#888;">(notes, optional)</span></label>
-      <input class="frol-input" data-step="6" data-key="who"
-             value="{escape(_v(progress,6,'who',''), quote=True)}" placeholder="Everyone, just the boys, …">
       <label class="frol-fld">Types</label>
       {''.join(type_chk)}
       <label class="frol-fld">Recurring classes or scheduled workouts</label>
@@ -966,27 +924,31 @@ def render_step_9(progress: dict, mode: str) -> str:
         return _step_chrome(9, "Each Person's Role",
             "A day's rhythm, one person at a time.", body, mode, progress, lucy_visible=True)
     summaries = _build_person_summaries(progress)
+    missing_html = _missing_steps_prompt(progress, mode)
     blocks = []
     for m in members:
         nm = m.get("name", "")
         if not nm: continue
         s = summaries.get(nm, [])
-        items = "".join(f'<div class="frol-grid"><div>{escape(t)}</div><div>{escape(act)}</div></div>'
+        items = "".join(f'<div class="frol-grid"><div>{escape(str(t))}</div><div>{escape(str(act))}</div></div>'
                         for t, act in s)
         blocks.append(f"""
           <div class="frol-member">
             <h3 style="margin:0 0 6px;color:var(--frol-blue-dark);">{escape(nm)}</h3>
-            <p class="frol-help" style="margin:0 0 8px;">Based on your earlier answers — adjust below.</p>
-            {items or '<p class="frol-help">No anchor times set yet.</p>'}
+            <p class="frol-help" style="margin:0 0 8px;">Built from your wizard answers — adjust below.</p>
+            {items or '<p class="frol-help">No anchor times set yet — go back to the earlier steps to fill them in.</p>'}
             <label class="frol-fld">Adjustments for {escape(nm)}</label>
             <textarea class="frol-textarea" data-step="9" data-list="adjustments" data-idx="{escape(nm,quote=True)}" data-key="notes"
                       placeholder="Anything different for {escape(nm)}?">{escape((((_v(progress,9,'adjustments',{}) or {}).get(nm) or {}).get('notes') or ''))}</textarea>
           </div>
         """)
     body = f"""
-      <p class="frol-help">When you continue from this step, your answers will
-      be written to <code>data/day_templates/&lt;Weekday&gt;.json</code>.
-      Existing templates will be backed up first.</p>
+      <p class="frol-help">Each person's day below is built directly from the
+      answers you've given so far in this wizard. When you continue from this
+      step, those answers will be written to
+      <code>data/day_templates/&lt;Weekday&gt;.json</code>. Existing templates
+      will be backed up first.</p>
+      {missing_html}
       {''.join(blocks)}
     """
     return _step_chrome(9, "Each Person's Role",
@@ -994,48 +956,127 @@ def render_step_9(progress: dict, mode: str) -> str:
 
 
 def _build_person_summaries(progress: dict) -> dict:
-    """Compose a per-person time-block summary from previous steps."""
+    """Compose a per-person time-block summary purely from the wizard's
+    collected answers in frol_wizard_progress.json — never from the
+    existing FROL day_templates. Pulls anchors from step_2, prayer from
+    step_3, meals from step_4, work blocks from step_5, exercise from
+    step_6, and rest/marriage from step_7."""
     out = {}
     members = _v(progress, 1, "members", []) or []
     if not members:
         members = _settings_members()
-    s2 = progress.get("data", {}).get("step_2", {}) or {}
-    s3 = progress.get("data", {}).get("step_3", {}) or {}
-    s4 = progress.get("data", {}).get("step_4", {}) or {}
-    s5 = progress.get("data", {}).get("step_5", {}) or {}
-    s7 = progress.get("data", {}).get("step_7", {}) or {}
+    d  = progress.get("data", {}) or {}
+    s2 = d.get("step_2", {}) or {}
+    s3 = d.get("step_3", {}) or {}
+    s4 = d.get("step_4", {}) or {}
+    s5 = d.get("step_5", {}) or {}
+    s6 = d.get("step_6", {}) or {}
+    s7 = d.get("step_7", {}) or {}
+    _when_to_time = {"morning": "06:30", "afternoon": "15:00", "evening": "18:30"}
     for m in members:
         nm = m.get("name", "")
+        if not nm:
+            continue
         bucket = (m.get("role", "") or "").lower()
-        if bucket in ("mom", "dad", "parent", "adult"):
+        if bucket in ("mom", "dad", "parent", "adult", "mother", "father"):
             wake = s2.get("wake_school_adults", "06:00")
             bed  = s2.get("bed_adults", "22:30")
+            person_class = "adult"
         elif bucket in ("teen", "student") or _age_bucket(m) == "teen":
             wake = s2.get("wake_school_teens", "06:30")
             bed  = s2.get("bed_teens", "21:30")
+            person_class = "teen"
         else:
             wake = s2.get("wake_school_children", "07:00")
             bed  = s2.get("bed_children", "20:30")
+            person_class = "child"
         rows = []
         rows.append((wake, "Up & moving"))
-        if s3.get("morning_time"):
-            rows.append((s3["morning_time"], s3.get("morning_prayer", "Morning prayer")))
+        # ── Step 3 prayer (multi-checkbox groups + times) ────────────────
+        _morning_multi = s3.get("morning_prayers_multi") or []
+        if s3.get("morning_time") and _morning_multi:
+            rows.append((s3["morning_time"], " / ".join(_morning_multi)))
+        elif s3.get("morning_time"):
+            rows.append((s3["morning_time"], "Morning prayer"))
+        for t in (s3.get("angelus_times") or []):
+            rows.append((t, "Angelus"))
+        if s3.get("divine_mercy_3pm") == "yes":
+            rows.append(("15:00", "Divine Mercy Chaplet"))
+        # ── Step 4 meals ─────────────────────────────────────────────────
         if s4.get("breakfast_time"):
             rows.append((s4["breakfast_time"], "Breakfast"))
-        if s5.get("homeschool_yes") in ("yes", True) and nm in (s5.get("homeschool_kids") or []):
-            rows.append((s5.get("school_start", "08:30"), "Homeschool — start"))
-            rows.append((s5.get("school_end", "12:30"),   "Homeschool — end"))
         if s4.get("lunch_time"):
             rows.append((s4["lunch_time"], "Lunch"))
         if s4.get("dinner_time"):
             rows.append((s4["dinner_time"], "Dinner"))
+        # ── Step 5 work blocks (homeschool only for selected kids) ───────
+        if s5.get("homeschool_yes") in ("yes", True) and nm in (s5.get("homeschool_kids") or []):
+            rows.append((s5.get("school_start", "08:30"), "Homeschool — start"))
+            rows.append((s5.get("school_end",   "12:30"), "Homeschool — end"))
+        # ── Step 6 exercise (only for those checked, or family-together) ─
+        _ex_who = s6.get("who_exercises_multi") or []
+        _ex_when = s6.get("when") or ""
+        _is_family = "Family together" in _ex_who
+        if (_ex_who and (nm in _ex_who or _is_family)) and _ex_when in _when_to_time:
+            rows.append((_when_to_time[_ex_when], "Exercise"))
+        # ── Step 3 evening prayers ───────────────────────────────────────
         if s3.get("evening_rosary_time"):
             rows.append((s3["evening_rosary_time"], "Rosary"))
+        for _ep in (s3.get("evening_prayers_multi") or []):
+            if _ep == "Rosary":
+                continue
+            rows.append((s3.get("evening_rosary_time", ""), _ep))
+        # ── Step 7 rest / marriage ───────────────────────────────────────
         if s7.get("family_free_time"):
             rows.append(("evening", f"Family time — {s7['family_free_time']}"))
+        if person_class == "adult":
+            if s7.get("date_night"):
+                rows.append(("evening", f"Date night — {s7['date_night']}"))
+            if s7.get("weekly_checkin"):
+                rows.append(("weekly", f"Marriage check-in — {s7['weekly_checkin']}"))
+        # ── Step 3 night prayers ─────────────────────────────────────────
+        for _np in (s3.get("night_prayers_multi") or []):
+            rows.append(("night", _np))
         rows.append((bed, "Bedtime"))
         out[nm] = rows
     return out
+
+
+def _missing_step_buckets(progress: dict) -> list:
+    """Return [(step_num, friendly_name), ...] for any wizard step whose
+    bucket is empty / unanswered. Used by steps 9 and 10 to show a gentle
+    'go back and complete' prompt instead of an empty schedule."""
+    d = progress.get("data", {}) or {}
+    checks = [
+        (2, "Anchors",          ("wake_school_adults", "bed_adults")),
+        (3, "Prayer",           ("morning_time", "evening_rosary_time")),
+        (4, "Meals",            ("breakfast_time", "lunch_time", "dinner_time")),
+        (5, "Work Blocks",      ("school_start", "school_end")),
+        (6, "Exercise",         ("when", "family_routine")),
+        (7, "Rest & Marriage",  ("family_free_time", "afternoon_rest", "couple_time")),
+    ]
+    missing = []
+    for step_num, label, keys in checks:
+        bucket = d.get(f"step_{step_num}", {}) or {}
+        if not any(bucket.get(k) for k in keys):
+            missing.append((step_num, label))
+    return missing
+
+
+def _missing_steps_prompt(progress: dict, mode: str) -> str:
+    """Render a soft-yellow prompt card listing any wizard steps with no
+    data yet, with a back link to each so the user can fill them in."""
+    missing = _missing_step_buckets(progress)
+    if not missing:
+        return ""
+    items = []
+    for step_num, label in missing:
+        href = f"/frol-wizard?step={step_num}&mode={escape(mode, quote=True)}"
+        items.append(f'<li>Step {step_num} — <strong>{escape(label)}</strong> '
+                     f'<a href="{href}" style="color:#33507e;">go back &amp; complete &rarr;</a></li>')
+    return ('<div class="frol-pop-note"><strong>A few steps still need your '
+            'answers</strong> before we can build your full schedule:'
+            f'<ul style="margin:8px 0 0 18px;">{"".join(items)}</ul></div>')
 
 
 def render_step_10(progress: dict, mode: str) -> str:
@@ -1045,10 +1086,15 @@ def render_step_10(progress: dict, mode: str) -> str:
         members = _settings_members()
     person_names = [m.get("name", "") for m in members if m.get("name")]
     summaries = _build_person_summaries(progress)
+    missing_html = _missing_steps_prompt(progress, mode)
     grid_html = []
     for nm in person_names:
         rows = summaries.get(nm, [])
-        items = "".join(f'<div>{escape(t)} — {escape(act)}</div>' for t, act in rows[:8])
+        if rows:
+            items = "".join(f'<div>{escape(str(t))} — {escape(str(act))}</div>' for t, act in rows[:8])
+        else:
+            items = ('<div style="color:#888;font-style:italic;">No schedule yet — '
+                     'complete the earlier steps to build one.</div>')
         grid_html.append(f"""
           <div class="frol-member">
             <strong style="color:var(--frol-blue-dark);">{escape(nm)}</strong>
@@ -1065,9 +1111,11 @@ def render_step_10(progress: dict, mode: str) -> str:
         note_html = ('<div class="frol-pop-note"><strong>Lucy noticed:</strong><ul>'
                      + "".join(f"<li>{escape(n)}</li>" for n in notes) + "</ul></div>")
     body = f"""
-      <p class="frol-help">A snapshot of your family week. When you click
+      <p class="frol-help">A snapshot of your family week, built directly from
+      the answers you've given so far in this wizard. When you click
       <strong>Save</strong>, your Rule of Life is written to your day templates,
       family settings, and prayer schedule.</p>
+      {missing_html}
       {gap_html}
       {note_html}
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;">
@@ -1119,7 +1167,7 @@ def _detect_gaps(progress: dict) -> list:
         g.append("No morning prayer time set.")
     if not s4.get("breakfast_time") or not s4.get("dinner_time"):
         g.append("Breakfast or dinner time isn't set.")
-    if s4.get("morning_dinner_prep") == "no" and not s4.get("batch_cook_day"):
+    if s4.get("morning_dinner_prep") == "no" and not (s4.get("batch_cook_days") or []):
         g.append("No dinner-prep slot and no batch-cook day — evenings may be tight.")
     return g
 
@@ -1416,17 +1464,24 @@ def finalize_wizard() -> dict:
                        for e in pi["repeating"]):
                 pi["repeating"].append(entry)
                 added += 1
-        if s3.get("morning_prayer"):
-            _add(s3["morning_prayer"], s3.get("morning_time", ""))
+        # Morning prayer: first checked option in the multi group, fall back
+        # to a generic label so finalize still records something useful.
+        _morning_multi = s3.get("morning_prayers_multi") or []
+        for _mp in _morning_multi:
+            _add(_mp, s3.get("morning_time", ""))
+        if not _morning_multi and s3.get("morning_time"):
+            _add("Morning prayer", s3.get("morning_time", ""))
         for t in (s3.get("angelus_times") or []):
             _add(f"Angelus ({t})", t)
         if s3.get("divine_mercy_3pm") == "yes":
             _add("Divine Mercy Chaplet", "15:00")
         if s3.get("evening_rosary_time"):
             _add("Family Rosary", s3["evening_rosary_time"])
-        if s3.get("vespers") == "yes":  _add("Vespers", "")
-        if s3.get("compline") == "yes": _add("Compline", "")
-        if s3.get("examen")   == "yes": _add("Examination of conscience", "")
+        # Evening / night prayers come from the new multi-checkbox groups.
+        for _ep in (s3.get("evening_prayers_multi") or []):
+            _add(_ep, s3.get("evening_rosary_time", "") if _ep == "Rosary" else "")
+        for _np in (s3.get("night_prayers_multi") or []):
+            _add(_np, "")
         safe_save_json(PRAYER_INTENTIONS_FILE, pi)
         summary["prayer_added"] = added
     except Exception:
