@@ -1040,12 +1040,12 @@ def _build_person_summaries(progress: dict) -> dict:
         if s3.get("divine_mercy_3pm") == "yes":
             rows.append(("15:00", "Divine Mercy Chaplet"))
         # ── Step 4 meals ─────────────────────────────────────────────────
+        # Lunch and Dinner default to 12:30 / 18:00 when the user hasn't
+        # filled in the time field, so they always appear on the schedule.
         if s4.get("breakfast_time"):
             rows.append((s4["breakfast_time"], "Breakfast"))
-        if s4.get("lunch_time"):
-            rows.append((s4["lunch_time"], "Lunch"))
-        if s4.get("dinner_time"):
-            rows.append((s4["dinner_time"], "Dinner"))
+        rows.append((s4.get("lunch_time")  or "12:30", "Lunch"))
+        rows.append((s4.get("dinner_time") or "18:00", "Dinner"))
         # ── Step 5 work blocks ───────────────────────────────────────────
         # The old "homeschool_yes" yes/no field was removed in dedup; treat
         # homeschooling as ON when homeschool_kids has any entries.
@@ -1086,6 +1086,8 @@ def _build_person_summaries(progress: dict) -> dict:
                 continue
             rows.append((s3.get("evening_rosary_time", ""), _ep))
         # ── Step 7 rest / marriage ───────────────────────────────────────
+        if s7.get("afternoon_rest"):
+            rows.append(("14:00", f"Afternoon rest — {s7['afternoon_rest']}"))
         if s7.get("family_free_time"):
             rows.append(("evening", f"Family time — {s7['family_free_time']}"))
         if person_class == "adult":
@@ -1097,6 +1099,20 @@ def _build_person_summaries(progress: dict) -> dict:
         for _np in (s3.get("night_prayers_multi") or []):
             rows.append(("night", _np))
         rows.append((bed, "Bedtime"))
+        # ── Step 9 per-person adjustments (free-text notes) ──────────────
+        # Adjustments are saved as step_9.adjustments[name].notes by the
+        # extended save_field handler. Older snapshots may store this as
+        # a list, so guard for both shapes.
+        s9 = d.get("step_9", {}) or {}
+        _adj = s9.get("adjustments")
+        if isinstance(_adj, dict):
+            _entry = _adj.get(nm) or {}
+            _notes = (_entry.get("notes") or "").strip() if isinstance(_entry, dict) else ""
+            if _notes:
+                for _line in _notes.splitlines():
+                    _line = _line.strip()
+                    if _line:
+                        rows.append(("", f"Adjustment — {_line}"))
         # Sort chronologically by parsed time, then format times in 12-hour
         # AM/PM. Keyword tokens (evening, night) pass through unchanged.
         rows.sort(key=lambda r: _row_sort_minutes(r[0]))

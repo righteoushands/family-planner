@@ -6912,16 +6912,33 @@ class Handler(BaseHTTPRequestHandler):
                         _p = load_progress()
                         if _mode and not _p.get("mode"): _p["mode"] = _mode
                         _bucket = _p["data"].setdefault(f"step_{_step_int}", {})
-                        _items  = _bucket.setdefault(_list, [])
-                        try: _i = int(_idx)
-                        except Exception: _i = -1
-                        if _i >= 0:
+                        try: _i = int(_idx); _is_int_idx = True
+                        except Exception: _is_int_idx = False
+                        if _is_int_idx and _i >= 0:
+                            # Integer index → list-of-dicts shape (Step 1
+                            # members, etc.)
+                            _items = _bucket.get(_list)
+                            if not isinstance(_items, list):
+                                _items = []
+                                _bucket[_list] = _items
                             while len(_items) <= _i:
                                 _items.append({})
                             if isinstance(_items[_i], dict):
-                                _items[_i][_field] = _val if not isinstance(_val, list) else _val
+                                _items[_i][_field] = _val
                             else:
                                 _items[_i] = {_field: _val}
+                        else:
+                            # Non-integer index (e.g. a person's name) →
+                            # dict-of-dicts shape (Step 9 adjustments, etc.)
+                            _items = _bucket.get(_list)
+                            if not isinstance(_items, dict):
+                                _items = {}
+                                _bucket[_list] = _items
+                            _entry = _items.get(_idx)
+                            if not isinstance(_entry, dict):
+                                _entry = {}
+                                _items[_idx] = _entry
+                            _entry[_field] = _val
                         save_progress(_p)
                     elif _field and not _list:
                         save_field(_step_int, _field, _val, mode=_mode)
