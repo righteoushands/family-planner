@@ -581,7 +581,9 @@ def render_step_2(progress: dict, mode: str) -> str:
           <input class="frol-input" type="time" data-step="2" data-key="bed_children"
                  value="{escape(_v(progress,2,'bed_children','20:30'), quote=True)}"></div>
       </div>
-      <label class="frol-fld">Fixed weekly commitments</label>
+      <label class="frol-fld">Common fixed commitments <span style="font-weight:400;color:#888;">(check any that apply)</span></label>
+      {''.join(_checkbox_group(progress, 2, "common_anchors", ["Daily Mass", "Piano lessons", "Sports practice", "Co-op", "Therapy", "Work from home", "Doctor appointments", "Sea Cadets", "Music lessons"]))}
+      <label class="frol-fld">Fixed weekly commitments <span style="font-weight:400;color:#888;">(details &amp; times)</span></label>
       <p class="frol-help">Recurring classes, jobs, appointments — one per line.
         Format: <code>Day HH:MM Title</code> (e.g., "Wed 09:30 Piano lessons").</p>
       <textarea class="frol-textarea" data-step="2" data-key="fixed_commitments"
@@ -634,6 +636,12 @@ def render_step_3(progress: dict, mode: str) -> str:
       <select class="frol-select" data-step="3" data-key="examen">
         {_yesno_opts(_v(progress,3,'examen','no'))}
       </select>
+      <label class="frol-fld">Morning prayers <span style="font-weight:400;color:#888;">(check any you pray)</span></label>
+      {''.join(_checkbox_group(progress, 3, "morning_prayers_multi", ["Morning Offering", "Lauds", "Rosary", "Lectio Divina", "Divine Office"]))}
+      <label class="frol-fld">Evening prayers <span style="font-weight:400;color:#888;">(check any you pray)</span></label>
+      {''.join(_checkbox_group(progress, 3, "evening_prayers_multi", ["Rosary", "Vespers", "Chaplet of Divine Mercy", "Chaplet of St Michael"]))}
+      <label class="frol-fld">Night prayers <span style="font-weight:400;color:#888;">(check any you pray)</span></label>
+      {''.join(_checkbox_group(progress, 3, "night_prayers_multi", ["Compline", "Examination of conscience", "Night prayers"]))}
       <label class="frol-fld">Other family devotions <span style="font-weight:400;color:#888;">(optional)</span></label>
       <textarea class="frol-textarea" data-step="3" data-key="other_devotions"
                 placeholder="Sacred Heart enthronement, Lectio Divina on Sundays, …">{escape(_v(progress,3,'other_devotions',''))}</textarea>
@@ -647,6 +655,21 @@ def render_step_3(progress: dict, mode: str) -> str:
     return _step_chrome(3, "Prayer",
         "The rhythm of prayer that anchors your family's day.",
         body, mode, progress, lucy_visible=True)
+
+
+def _checkbox_group(progress: dict, step: int, key: str, options: list) -> list:
+    """Render a multi-checkbox group bound to a single list field via the
+    existing data-multi="1" JS handler. Returns a list of HTML fragments."""
+    sel = _v(progress, step, key, []) or []
+    if not isinstance(sel, list):
+        sel = []
+    out = []
+    for o in options:
+        c = "checked" if o in sel else ""
+        out.append(f'<label class="frol-check"><input type="checkbox" data-step="{step}" '
+                   f'data-key="{key}" data-multi="1" value="{escape(o, quote=True)}" {c}> '
+                   f'{escape(o)}</label>')
+    return out
 
 
 def _yesno_opts(cur: str) -> str:
@@ -692,7 +715,11 @@ def render_step_4(progress: dict, mode: str) -> str:
       <select class="frol-select" data-step="4" data-key="morning_dinner_prep">
         {_yesno_opts(_v(progress,4,'morning_dinner_prep','no'))}
       </select>
-      <label class="frol-fld">Batch cooking day</label>
+      <label class="frol-fld">Who prepares meals <span style="font-weight:400;color:#888;">(check any that apply)</span></label>
+      {''.join(_checkbox_group(progress, 4, "meal_prep_who", ["Mom", "Dad", "JP", "Joseph", "Older children", "Together as family"]))}
+      <label class="frol-fld">Batch cooking day(s) <span style="font-weight:400;color:#888;">(check any)</span></label>
+      {''.join(_checkbox_group(progress, 4, "batch_cook_days", list(WEEKDAYS)))}
+      <label class="frol-fld">Batch cooking day <span style="font-weight:400;color:#888;">(primary, optional)</span></label>
       <select class="frol-select" data-step="4" data-key="batch_cook_day">
         <option value="">— None —</option>
         {''.join(f'<option {("selected" if _v(progress,4,"batch_cook_day","")==d else "")}>{d}</option>' for d in WEEKDAYS)}
@@ -748,7 +775,11 @@ def render_step_5(progress: dict, mode: str) -> str:
       <label class="frol-fld">Subject list per child <span style="font-weight:400;color:#888;">(brief — full curriculum comes later)</span></label>
       <textarea class="frol-textarea" data-step="5" data-key="subjects_per_kid"
                 placeholder="JP: Math, Latin, History, Religion&#10;Joseph: Math, Reading, Science">{escape(_v(progress,5,'subjects_per_kid',''))}</textarea>
-      <label class="frol-fld">Chore time</label>
+      <label class="frol-fld">Chore time blocks <span style="font-weight:400;color:#888;">(check any that apply)</span></label>
+      {''.join(_checkbox_group(progress, 5, "chore_time_blocks", ["Morning", "Midday", "After school", "Evening"]))}
+      <label class="frol-fld">Subjects covered <span style="font-weight:400;color:#888;">(check any)</span></label>
+      {''.join(_checkbox_group(progress, 5, "subjects_multi", ["Math", "Religion", "Reading", "Writing", "Science", "History", "Latin", "Art", "Music", "PE"]))}
+      <label class="frol-fld">Chore time <span style="font-weight:400;color:#888;">(primary)</span></label>
       <select class="frol-select" data-step="5" data-key="chore_time">
         {''.join(f'<option {("selected" if _v(progress,5,"chore_time","morning")==v else "")} value="{v}">{l}</option>' for v,l in [("morning","Morning"),("afternoon","Afternoon"),("after_school","After school"),("evening","Evening")])}
       </select>
@@ -782,7 +813,9 @@ def render_step_6(progress: dict, mode: str) -> str:
       <select class="frol-select" data-step="6" data-key="when">
         {''.join(f'<option {("selected" if _v(progress,6,"when","morning")==v else "")} value="{v}">{l}</option>' for v,l in [("morning","Morning"),("afternoon","Afternoon"),("evening","Evening")])}
       </select>
-      <label class="frol-fld">Who exercises</label>
+      <label class="frol-fld">Who exercises <span style="font-weight:400;color:#888;">(check any)</span></label>
+      {''.join(_checkbox_group(progress, 6, "who_exercises_multi", ["Mom", "Dad", "JP", "Joseph", "Michael", "Family together"]))}
+      <label class="frol-fld">Who exercises <span style="font-weight:400;color:#888;">(notes, optional)</span></label>
       <input class="frol-input" data-step="6" data-key="who"
              value="{escape(_v(progress,6,'who',''), quote=True)}" placeholder="Everyone, just the boys, …">
       <label class="frol-fld">Types</label>
@@ -810,7 +843,7 @@ def render_step_6(progress: dict, mode: str) -> str:
 def render_step_7(progress: dict, mode: str) -> str:
     trad_sel = _v(progress, 7, "traditions", []) or []
     trad_chk = []
-    for t in ["Movie night", "Game night", "Read-aloud", "Sunday brunch", "Holy hour"]:
+    for t in ["Read-aloud", "Sunday brunch", "Holy hour", "Family Rosary", "Game night", "Movie night", "Nature walk", "Sunday meatballs"]:
         c = "checked" if t in trad_sel else ""
         trad_chk.append(f'<label class="frol-check"><input type="checkbox" data-step="7" '
                         f'data-key="traditions" data-multi="1" value="{t}" {c}> {t}</label>')
@@ -900,7 +933,9 @@ def render_step_8(progress: dict, mode: str) -> str:
       <label class="frol-fld">Current medications <span style="font-weight:400;color:#888;">(basic list — full prescription scanning comes in Phase 2)</span></label>
       <textarea class="frol-textarea" data-step="8" data-key="medications"
                 placeholder="JP: daily multivitamin&#10;Mom: prenatal vitamin">{escape(_v(progress,8,'medications',''))}</textarea>
-      <label class="frol-fld">Recurring health appointments</label>
+      <label class="frol-fld">Common recurring appointments <span style="font-weight:400;color:#888;">(check any that apply)</span></label>
+      {''.join(_checkbox_group(progress, 8, "recurring_appt_types", ["Annual physicals", "Dental cleanings", "Eye exams", "Orthodontist", "Therapy", "Postpartum checkup"]))}
+      <label class="frol-fld">Recurring health appointments <span style="font-weight:400;color:#888;">(details &amp; cadence)</span></label>
       <textarea class="frol-textarea" data-step="8" data-key="recurring_appts"
                 placeholder="James PT — Wed 10:30 AM weekly&#10;Mom OBGYN — every 4 weeks">{escape(_v(progress,8,'recurring_appts',''))}</textarea>
       <label class="frol-fld">Notification channels <span style="font-weight:400;color:#888;">(all off by default)</span></label>
@@ -1053,6 +1088,20 @@ def render_step_10(progress: dict, mode: str) -> str:
         {body}
         <form method="POST" action="/frol-wizard-finalize" style="margin-top:24px;">
           <input type="hidden" name="mode" value="{escape(mode, quote=True)}">
+          <label class="frol-check" style="display:flex;align-items:flex-start;gap:10px;
+                  background:#eaf0fa;border:1px solid #c8d6ec;border-radius:10px;
+                  padding:14px 16px;margin:8px 0 18px;font-weight:600;">
+            <input type="checkbox" name="want_ai_suggestions" value="1"
+                   data-step="10" data-key="want_ai_suggestions"
+                   {"checked" if _v(progress,10,'want_ai_suggestions','') in ('1', 'yes', 'true', True) else ""}
+                   style="margin-top:3px;">
+            <span>Would you like suggestions for scheduling remaining activities
+            based on your fixed commitments?
+            <span style="display:block;font-weight:400;color:#555;font-size:0.9em;margin-top:3px;">
+              When checked, Lucy will review your week and suggest specific day &amp; time
+              slots for the activities you haven't yet anchored — shown right after Save.
+            </span></span>
+          </label>
           <div class="frol-actions">
             {back_link}
             <button type="submit" class="frol-btn">Save my Rule of Life &check;</button>
@@ -1076,6 +1125,30 @@ def _detect_gaps(progress: dict) -> list:
 
 
 def render_completion_screen() -> str:
+    # If finalize wrote AI scheduling suggestions to progress.json, surface
+    # them as a beautiful card on the completion screen.
+    suggestions_html = ""
+    try:
+        _p = load_progress()
+        _sug = (_p.get("ai_suggestions") or "").strip()
+        if _sug:
+            _sug_html = escape(_sug).replace("\n\n", "</p><p>").replace("\n", "<br>")
+            suggestions_html = f"""
+    <div class="frol-card" style="background:linear-gradient(135deg,#fbf6ec 0%,#eaf0fa 100%);
+                border:1px solid #c8d6ec;border-left:5px solid var(--frol-blue);
+                margin-top:22px;text-align:left;padding:26px 28px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <span style="font-size:1.6em;color:var(--frol-blue);">&#10024;</span>
+        <h2 class="frol-title" style="margin:0;font-size:1.35em;">Lucy's scheduling suggestions</h2>
+      </div>
+      <p class="frol-sub" style="margin:0 0 14px;">Specific day &amp; time recommendations
+      based on your fixed commitments — adjust freely.</p>
+      <div style="font-family:Georgia,serif;line-height:1.65;color:#2b2b2b;font-size:1em;">
+        <p>{_sug_html}</p>
+      </div>
+    </div>"""
+    except Exception:
+        suggestions_html = ""
     return f"""<!doctype html><html><head><meta charset="utf-8">
 <title>Your Rule of Life · Saved</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -1093,6 +1166,7 @@ def render_completion_screen() -> str:
       <a href="/frol-wizard?reset=1" class="frol-btn ghost">Start over</a>
     </div>
   </div>
+  {suggestions_html}
 </div>
 </body></html>"""
 
@@ -1363,7 +1437,75 @@ def finalize_wizard() -> dict:
     p["current_step"] = WIZARD_TOTAL_STEPS
     save_progress(p)
     summary["finalized_at"] = p["finalized_at"]
+
+    # 5. Optional AI scheduling suggestions (only when the user opted in on
+    # the Step 10 review checkbox). One Anthropic call; failure is silent
+    # so finalize never appears to break.
+    try:
+        _wants = _v(p, 10, "want_ai_suggestions", "")
+        if _wants in ("1", "yes", "true", True) and has_anthropic_key():
+            _sug = _generate_scheduling_suggestions(p)
+            if _sug:
+                p["ai_suggestions"] = _sug
+                save_progress(p)
+                summary["ai_suggestions_generated"] = True
+    except Exception as _se:
+        summary["ai_suggestions_error"] = str(_se)
+
     return summary
+
+
+def _generate_scheduling_suggestions(progress: dict) -> str:
+    """Ask Claude for specific day & time scheduling recommendations based on
+    the wizard's collected fixed commitments and selected activities."""
+    import urllib.request as _req
+    api_key = get_anthropic_key()
+    if not api_key:
+        return ""
+    d = progress.get("data", {}) or {}
+    snapshot = json.dumps(d, indent=2)[:4000]
+    system = (
+        "You are Lucy, a warm Catholic family-rhythm planner. Given a family's "
+        "fixed weekly commitments and the activities they want to anchor "
+        "(prayer, meals, exercise, school, traditions), produce 5–8 specific "
+        "scheduling suggestions. Each suggestion must name a concrete day and "
+        "time window (e.g., 'Wednesday 7:00–7:30 AM family Rosary'). Group by "
+        "morning/afternoon/evening when natural. Keep each line short and "
+        "actionable. Be encouraging, not prescriptive. End with one gentle "
+        "sentence inviting them to adjust freely."
+    )
+    user = (
+        "Here is the family's collected Rule of Life data (JSON):\n\n"
+        f"{snapshot}\n\n"
+        "Please suggest specific day & time slots for the activities they "
+        "selected (checkbox lists like common_anchors, morning/evening/night "
+        "prayers, traditions, meal_prep_who, batch_cook_days, chore_time_blocks, "
+        "subjects_multi, who_exercises_multi, recurring_appt_types) that don't "
+        "yet have explicit times — taking their fixed commitments and existing "
+        "anchor times into account. Format as plain text, one suggestion per "
+        "line, with a blank line between morning/afternoon/evening groups."
+    )
+    payload = {
+        "model": "claude-haiku-4-5-20251001",
+        "max_tokens": 700,
+        "system": system,
+        "messages": [{"role": "user", "content": user}],
+    }
+    try:
+        req = _req.Request(
+            "https://api.anthropic.com/v1/messages",
+            data=json.dumps(payload).encode(),
+            headers={
+                "Content-Type":      "application/json",
+                "x-api-key":         api_key,
+                "anthropic-version": "2023-06-01",
+            },
+        )
+        with _req.urlopen(req, timeout=20) as resp:
+            result = json.loads(resp.read())
+        return (result["content"][0]["text"] or "").strip()
+    except Exception:
+        return ""
 
 
 def _to_slot_label(t: str) -> str:

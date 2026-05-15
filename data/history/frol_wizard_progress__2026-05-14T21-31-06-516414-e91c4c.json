@@ -52,11 +52,16 @@
           "role": "Adult",
           "birthday": "1983-04-01",
           "color": "#011d57"
+        },
+        {
+          "role": "Test",
+          "name": "Test",
+          "birthday": "2026-05-14"
         }
       ]
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-14T21:32:35",
+  "updated_at": "2026-05-14T21:31:06",
   "finalized_at": ""
 }

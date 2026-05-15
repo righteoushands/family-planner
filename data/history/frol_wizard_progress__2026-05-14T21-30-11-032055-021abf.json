@@ -32,12 +32,18 @@
         },
         {
           "name": "John",
-          "role": "A"
+          "role": "Adult",
+          "birthday": "1983-04-01",
+          "color": "#011d57"
+        },
+        {
+          "name": "Testing",
+          "role": "Testing"
         }
       ]
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-14T19:30:06",
+  "updated_at": "2026-05-14T20:57:53",
   "finalized_at": ""
 }
