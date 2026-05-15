@@ -1009,16 +1009,38 @@ def _build_person_summaries(progress: dict) -> dict:
             rows.append((s4["lunch_time"], "Lunch"))
         if s4.get("dinner_time"):
             rows.append((s4["dinner_time"], "Dinner"))
-        # ── Step 5 work blocks (homeschool only for selected kids) ───────
-        if s5.get("homeschool_yes") in ("yes", True) and nm in (s5.get("homeschool_kids") or []):
+        # ── Step 5 work blocks ───────────────────────────────────────────
+        # The old "homeschool_yes" yes/no field was removed in dedup; treat
+        # homeschooling as ON when homeschool_kids has any entries.
+        _hs_kids = s5.get("homeschool_kids") or []
+        if _hs_kids and nm in _hs_kids:
             rows.append((s5.get("school_start", "08:30"), "Homeschool — start"))
             rows.append((s5.get("school_end",   "12:30"), "Homeschool — end"))
-        # ── Step 6 exercise (only for those checked, or family-together) ─
-        _ex_who = s6.get("who_exercises_multi") or []
-        _ex_when = s6.get("when") or ""
+        # Chore time blocks — map each checked block to a representative
+        # time and add a Chores row for everyone.
+        _chore_block_times = {
+            "Morning":      "08:00",
+            "Midday":       "12:00",
+            "After school": "15:00",
+            "Evening":      "18:00",
+        }
+        for _cb in (s5.get("chore_time_blocks") or []):
+            if _cb in _chore_block_times:
+                rows.append((_chore_block_times[_cb], "Chores"))
+        # ── Step 6 exercise ──────────────────────────────────────────────
+        # The old single-select "when" field was removed in dedup; prefer
+        # the new "exercise_when" if present, otherwise default to 07:00
+        # so exercise still appears for everyone who's checked.
+        _ex_who   = s6.get("who_exercises_multi") or []
+        _ex_when  = s6.get("exercise_when") or s6.get("when") or ""
+        _ex_types = s6.get("types") or []
         _is_family = "Family together" in _ex_who
-        if (_ex_who and (nm in _ex_who or _is_family)) and _ex_when in _when_to_time:
-            rows.append((_when_to_time[_ex_when], "Exercise"))
+        if _ex_who and (nm in _ex_who or _is_family):
+            _ex_time = _when_to_time.get(_ex_when, "07:00")
+            _ex_label = "Exercise"
+            if _ex_types:
+                _ex_label = f"Exercise — {_ex_types[0]}"
+            rows.append((_ex_time, _ex_label))
         # ── Step 3 evening prayers ───────────────────────────────────────
         if s3.get("evening_rosary_time"):
             rows.append((s3["evening_rosary_time"], "Rosary"))
