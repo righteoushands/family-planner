@@ -149,13 +149,27 @@
   };
 
   /* Step submit — wait briefly for any debounced field saves to flush,
-     then POST the advance action via fetch and navigate on success. */
+     then POST the advance action via fetch and navigate on success.
+     For step 1 we ALSO fire a one-shot seed_members POST first so the
+     server atomically merges _settings_members() with any newly-typed
+     entries before advancing. */
+  function _seedMembersIfStep1(step, mode) {
+    if (parseInt(step, 10) !== 1) return Promise.resolve();
+    var fd = new FormData();
+    fd.append("action", "seed_members");
+    fd.append("step", "1");
+    if (mode) fd.append("mode", String(mode));
+    return fetch("/frol-wizard", { method: "POST", body: fd, credentials: "same-origin" })
+      .catch(function () { /* non-fatal — fall through to advance */ });
+  }
+
   window.frolAdvance = function (e, step, mode) {
     if (e && e.preventDefault) e.preventDefault();
     var btn = e && e.target ? (e.target.querySelector ? e.target.querySelector('button[type="submit"]') : null) : null;
     if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
     status("Saving…");
     setTimeout(function () {
+      _seedMembersIfStep1(step, mode).then(function () {
       var fd = new FormData();
       fd.append("action", "advance");
       fd.append("step", String(step));
@@ -178,6 +192,7 @@
           status("Save failed — network");
           if (btn) { btn.disabled = false; btn.textContent = "Save & Continue"; }
         });
+      });
     }, 400);
     return false;
   };

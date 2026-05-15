@@ -6866,7 +6866,7 @@ class Handler(BaseHTTPRequestHandler):
                     try: self.wfile.write(b"Admin only.")
                     except BrokenPipeError: pass
                     return
-                from render_frol_wizard import save_field, advance_step, load_progress, save_progress
+                from render_frol_wizard import save_field, advance_step, load_progress, save_progress, _settings_members
                 _act = (data.get("action",[""])[0] or "").strip()
                 _step = (data.get("step",[""])[0] or "0").strip()
                 _mode = (data.get("mode",[""])[0] or "").strip()
@@ -6898,6 +6898,35 @@ class Handler(BaseHTTPRequestHandler):
                         save_progress(_p)
                     elif _field and not _list:
                         save_field(_step_int, _field, _val, mode=_mode)
+                    self.send_response(200); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"ok")
+                    except BrokenPipeError: pass
+                    return
+                if _act == "seed_members":
+                    # Atomic single-write merge of step_1.members:
+                    # _settings_members() (existing family) + any extra named
+                    # entries already typed into progress.step_1.members whose
+                    # name is not already in settings. Replaces all the
+                    # field-by-field seeding races we used to fight with.
+                    _p = load_progress()
+                    if _mode and not _p.get("mode"): _p["mode"] = _mode
+                    try:
+                        _seed = _settings_members() or []
+                    except Exception:
+                        _seed = []
+                    _bucket = _p["data"].setdefault("step_1", {})
+                    _existing_progress = _bucket.get("members", []) or []
+                    _seen = {(m.get("name") or "").strip().lower() for m in _seed if (m.get("name") or "").strip()}
+                    _extras = []
+                    for _m in _existing_progress:
+                        if not isinstance(_m, dict):
+                            continue
+                        _nm = (_m.get("name") or "").strip().lower()
+                        if _nm and _nm not in _seen:
+                            _extras.append(_m)
+                            _seen.add(_nm)
+                    _bucket["members"] = list(_seed) + _extras
+                    save_progress(_p)
                     self.send_response(200); self.send_header("Content-Type","text/plain"); self.end_headers()
                     try: self.wfile.write(b"ok")
                     except BrokenPipeError: pass

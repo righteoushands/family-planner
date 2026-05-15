@@ -475,11 +475,23 @@ def render_landing(progress: dict) -> str:
 
 
 def render_step_1(progress: dict, mode: str) -> str:
-    """Your Family — members are seeded into progress.json at wizard init,
-    so we render exactly what's persisted. The on-screen data-mem-idx
-    values therefore always match the indices in JSON — no drift."""
+    """Your Family — render rows merged from BOTH sources at every render:
+       (a) _settings_members() (existing family from app_settings.json)
+       (b) any extra named members already in progress.step_1.members
+           whose name is NOT already in (a).
+    The renderer never writes — typing saves naturally via debounced
+    saveField, and Save & Continue triggers a single atomic
+    seed_members POST that persists this exact merged list."""
     existing = _settings_members()
-    members = _v(progress, 1, "members", []) or []
+    progress_members = _v(progress, 1, "members", []) or []
+    seen_names = {(m.get("name") or "").strip().lower() for m in existing if (m.get("name") or "").strip()}
+    extras = []
+    for m in progress_members:
+        nm = (m.get("name") or "").strip().lower() if isinstance(m, dict) else ""
+        if nm and nm not in seen_names:
+            extras.append(m)
+            seen_names.add(nm)
+    members = list(existing) + extras
     if not members:
         members = [{"name": "", "role": "", "birthday": "", "color": ""}]
     rows = []
@@ -1114,14 +1126,6 @@ def render_frol_wizard_page(viewer: str = "", step=None, mode: str = "") -> str:
     # destructive race conditions in save_field.
     if mode in ("lucy", "structured") and not progress.get("mode"):
         progress["mode"] = mode
-        _step1 = progress.setdefault("data", {}).setdefault("step_1", {})
-        if not _step1.get("members"):
-            try:
-                _seeded = _settings_members() or []
-            except Exception:
-                _seeded = []
-            if _seeded:
-                _step1["members"] = _seeded
         save_progress(progress)
 
     if cur == 0 or not progress.get("mode"):
