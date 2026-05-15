@@ -475,14 +475,11 @@ def render_landing(progress: dict) -> str:
 
 
 def render_step_1(progress: dict, mode: str) -> str:
-    """Your Family — auto-skip if members already exist in settings."""
+    """Your Family — members are seeded into progress.json at wizard init,
+    so we render exactly what's persisted. The on-screen data-mem-idx
+    values therefore always match the indices in JSON — no drift."""
     existing = _settings_members()
     members = _v(progress, 1, "members", []) or []
-    # If the wizard has no named members yet, seed from settings so Lauren
-    # sees her existing family pre-filled. Same fallback pattern as Steps
-    # 5, 8, 9, and 10.
-    if not [m for m in members if (m.get("name") or "").strip()]:
-        members = existing
     if not members:
         members = [{"name": "", "role": "", "birthday": "", "color": ""}]
     rows = []
@@ -1108,8 +1105,23 @@ def render_frol_wizard_page(viewer: str = "", step=None, mode: str = "") -> str:
     # that can't POST, so the mode arrives only as a GET param — without this
     # the gate below would re-render the landing screen and the user would
     # appear stuck. See claud.md "Anchor-tag navigation" rule.
+    #
+    # We also seed step_1.members from app_settings.json child_birthdays
+    # exactly once here — at the moment the wizard is first entered. Doing
+    # the seed at init (instead of inside save_field) means the persisted
+    # members list always matches what the renderer shows, so the JS
+    # data-mem-idx values line up 1:1 with the indices already in JSON. No
+    # destructive race conditions in save_field.
     if mode in ("lucy", "structured") and not progress.get("mode"):
         progress["mode"] = mode
+        _step1 = progress.setdefault("data", {}).setdefault("step_1", {})
+        if not _step1.get("members"):
+            try:
+                _seeded = _settings_members() or []
+            except Exception:
+                _seeded = []
+            if _seeded:
+                _step1["members"] = _seeded
         save_progress(progress)
 
     if cur == 0 or not progress.get("mode"):

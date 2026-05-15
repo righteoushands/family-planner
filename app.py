@@ -6866,7 +6866,7 @@ class Handler(BaseHTTPRequestHandler):
                     try: self.wfile.write(b"Admin only.")
                     except BrokenPipeError: pass
                     return
-                from render_frol_wizard import save_field, advance_step, load_progress, save_progress, _settings_members
+                from render_frol_wizard import save_field, advance_step, load_progress, save_progress
                 _act = (data.get("action",[""])[0] or "").strip()
                 _step = (data.get("step",[""])[0] or "0").strip()
                 _mode = (data.get("mode",[""])[0] or "").strip()
@@ -6886,36 +6886,6 @@ class Handler(BaseHTTPRequestHandler):
                         if _mode and not _p.get("mode"): _p["mode"] = _mode
                         _bucket = _p["data"].setdefault(f"step_{_step_int}", {})
                         _items  = _bucket.setdefault(_list, [])
-                        # Seed step_1 members from app_settings.json child_birthdays
-                        # the first time anyone writes to the list. Without this,
-                        # _settings_members() only seeded the *renderer*, never
-                        # the persisted progress, so writing to index 0 would
-                        # clobber the implied "first existing child" with the
-                        # newly-typed entry. We only seed when the persisted
-                        # list is shorter than the settings-derived one AND the
-                        # write target index is at-or-beyond the seed length
-                        # (so the user really is appending a NEW person, not
-                        # editing one of the seeded entries).
-                        if _step_int == 1 and _list == "members":
-                            try:
-                                _seed = _settings_members() or []
-                            except Exception:
-                                _seed = []
-                            if _seed and len(_items) < len(_seed):
-                                # Preserve any non-empty entries already in
-                                # progress (oldest-first). Pad/prepend the
-                                # missing seed members up to len(_seed).
-                                _existing_named = [
-                                    m for m in _items
-                                    if isinstance(m, dict) and (m.get("name") or "").strip()
-                                ]
-                                _seed_names = {(m.get("name") or "").strip().lower() for m in _seed}
-                                _extra = [
-                                    m for m in _existing_named
-                                    if (m.get("name") or "").strip().lower() not in _seed_names
-                                ]
-                                _items = list(_seed) + _extra
-                                _bucket[_list] = _items
                         try: _i = int(_idx)
                         except Exception: _i = -1
                         if _i >= 0:
