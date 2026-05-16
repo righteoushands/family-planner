@@ -1,0 +1,155 @@
+Here is the complete build spec to paste to Replit:
+
+Read claud.md first. This is the largest build in the project history. Plan before building. Present the full plan before writing any code. Build in five phases and stop after each phase to report results before continuing.
+PROJECT: Rule of Life Wizard Version 2 + Chores Expansion
+PHILOSOPHY: This wizard is built on the framework from A Plan for Joy in the Home by Laura Dominick. Seven commitments anchor everything: Wake up on time. Be faithful to your prayer plan — morning, noon, and night. Stick to getting your basic chores done every day. Be flexible when God steps in and alters your plan. Look back to your schedule to regain control of your day if you lose it. Spend time with your husband. Go to bed on time. These appear on the landing screen with attribution and are checked against by the AI at the end.
+
+PHASE 1 — DATA LAYER
+Expand data/chores.json to add monthly, seasonal, and annual buckets to every person’s entry alongside existing daily and weekly. Shape per person:
+
+{
+  "daily": [...],
+  "weekly": {"Monday": [...], ...},
+  "monthly": {"week_1": [], "week_2": [], "week_3": [], "week_4": []},
+  "seasonal": {"fall": [], "winter": [], "spring": [], "summer": []},
+  "annual": {"january": [], "february": [], ..., "december": []}
+}
+
+
+Add new helpers to data_helpers.py: load_chores(), save_chores(), get_chores_due_today(person, date) that returns daily chores plus any monthly chores due this week, seasonal chores due this season, and annual chores due this month. Add new config constants for chore file path.
+Add data/hour_tracking.json for JP’s high school hour logging with shape:
+
+{
+  "JP": {
+    "Art": {
+      "categories": [],
+      "logs": []
+    },
+    "PE": {
+      "categories": [],
+      "logs": []
+    }
+  }
+}
+
+
+Add helpers: load_hour_tracking(), save_hour_tracking(), add_hour_log(person, subject, category, duration_min, description, date), get_hour_totals(person, subject).
+Add data/frol_activities.json to store the activity list collected by the wizard with shape: list of activity objects each containing id, name, section, who, leader, participants, credit_to_leader, credits, duration_min, when, time_placed, days, seasonal, color, category.
+Run py_compile on all modified files. Report results before Phase 2.
+
+PHASE 2 — CHORES UI AND POD INTEGRATION
+Update render_chores.py to display all five chore categories for each person. Add tabs or collapsible sections: Daily / Weekly / Monthly / Seasonal / Annual. Monthly chores show which week they’re due. Seasonal show which season. Annual show which month. Keep all existing daily and weekly display unchanged — additive only.
+Update daily_schedule_engine.py to call get_chores_due_today() instead of or in addition to the current chore loading so monthly/seasonal/annual chores surface on the POD when due. A monthly chore due in week 1 appears on the first Monday of the month. A seasonal chore appears on the first day of the season. An annual chore appears on the first day of its month.
+Add a grooming reminder integration with Dr. Monica. When personal grooming items (haircuts, nail trimming, shoe size checks, dental checks) are stored in the chores monthly/seasonal/annual buckets, Dr. Monica can see them and send reminders via the existing notification system when they are due. Add a flag is_grooming: true to grooming-related chore entries so Monica can identify them.
+Run py_compile on all modified files. Report results before Phase 3.
+
+PHASE 3 — WIZARD FOUNDATION
+Complete rewrite of render_frol_wizard.py. This replaces the existing wizard entirely. Keep the same routes: GET /frol-wizard, POST /frol-wizard, POST /frol-wizard-chat, POST /frol-wizard-finalize. Keep the same JS file static/js/frol_wizard.js — extend it, do not replace it.
+The wizard has two modes throughout: Lucy mode (conversational, requires API key) and structured mode (form-based, no API key needed). Auto-saves after every input to data/frol_wizard_progress.json. Resumes where left off.
+Build the shared components first:
+	•	Activity builder component — reused across all sections. Each activity has: name (text + checkbox suggestions), who (family member checkboxes), leader (optional dropdown), participants (optional multi-select), credit_to_leader (yes/no, default yes), credits (multi-select from activity list built so far), duration_min (quick picker: 5/10/15/20/30/45/60/90/120), when (Early morning/Morning/Noon/Afternoon/Evening/Night), days (every day/weekdays/weekends/specific days checkboxes), seasonal (year-round/school year/summer/specific months)
+	•	Reflection card component — collapsible, open by default on first visit, closed on return visits. Shows text and optional book attribution
+	•	Companion intro card component — name, icon, one-line description, Meet link
+	•	Section progress indicator — dots at top, current section filled, completed sections checked
+	•	Real-time Lucy hint card — appears inline when Lucy detects a multitasking opportunity
+LANDING SCREEN:
+Beautiful full-screen. Title: Your Rule of Life. Subtitle: A Workbook for Your Family.
+Seven commitments card — beautiful typography, cream background, warm border:
+“A mother who has a plan is more likely to be prayerful, rested, charitable, and joyful.”
+Then the seven commitments listed. Attribution: A Plan for Joy in the Home by Laura Dominick.
+Two mode buttons: Guide me with Lucy / I’ll set it up myself.
+Companions grid — six cards: Lucy, Lorenzo, Sister Mary, Father Gregory, Coach, Dr. Monica. Each with icon, one-line description, Meet link.
+Run py_compile. Report results before Phase 4.
+
+PHASE 4 — ALL 13 WIZARD SECTIONS
+Build each section in order. Each section has a reflection card, an activity builder, companion introductions where specified, and auto-save on every input.
+SECTION 1 — YOUR FAMILY
+No reflection. Collect: family name, family members (name/role/age group/grade level/color — name and role required, rest optional), weekend rhythm question (significantly different yes/no/somewhat), high school hour tracking toggle for JP (if enabled show: “JP will log hours by category for Art and PE — he will create his own categories”), sibling pairing introduction card.
+SECTION 2 — THE LITTLE ONES FIRST
+Reflection: “James and Michael will reorganize your best plans without asking permission. That’s not failure — that’s Tuesday. Let’s build their rhythms in first, because everything else works around them.”
+For James: wake time, morning nap time and duration, afternoon nap time and duration, feeding rhythm (nursing/bottles/solids and approximate times), bedtime, who is primarily with James during each block (Mom/Dad/older sibling checkboxes), notes free text.
+For Michael: wake time, bedtime, afternoon rest yes/no and duration, daily outdoor free play target (slider: 30min/1hr/2hrs/3hrs/4hrs), simple school block duration and who leads (Mom or paired with older sibling), free play vs structured balance, notes free text.
+Developmental framework info card (collapsible): “Children Michael’s age thrive with 2-4 hours of unstructured outdoor play, 30-90 minutes of focused skill building, and plenty of boredom. We will check your plan against this at the end.”
+SECTION 3 — FIXED COMMITMENTS
+Reflection: “These are the rocks. Everything else fits around them. Getting them on the map first saves a lot of frustration later.”
+Activity builder for recurring commitments. Checkbox suggestions: Daily Mass, Sunday Mass, Piano lessons, Sea Cadets, Sports practice, Co-op, Therapy, Orthodontist, Confession, Adoration, Music lessons, Work, other. Each commitment has: name, who, day(s), time, duration, drive time each way (yes/no — if yes how many minutes), seasonal flag.
+John’s work schedule: typical work hours, work from home days (checkboxes Mon-Fri), travel frequency (rarely/sometimes/often), free text for what changes when John travels.
+Driving and errands: estimated hours per week driving to commitments, regular errand day and duration.
+SECTION 4 — PRAYER
+Reflection: “Some mornings the Rosary gets finished. Some mornings it’s a Morning Offering in the car. Both count. Let’s build in the prayer you can actually do — and trust that God meets you there.”
+Activity builder. Checkbox suggestions: Morning Offering, Lauds, Angelus (6AM/noon/6PM separately), Divine Mercy Chaplet, Rosary, Vespers, Compline, Examination of conscience, Lectio Divina, Holy hour, Adoration, Confession (weekly/monthly), other. Each prayer activity has all standard activity builder fields plus: can this be combined with another activity (yes/no — if yes which one from dropdown of activities added so far).
+Credits awareness card: “Family Rosary can count as Religion for the children. Daily Mass counts as Religion. We will suggest these combinations at the end.”
+Sister Mary introduced here.
+SECTION 5 — MEALS
+Reflection: “Not every dinner is a Norman Rockwell painting. Some nights it’s scrambled eggs and everyone’s grateful. Let’s plan meals that actually happen — the elaborate ones and the easy ones.”
+Activity builder for: Breakfast (time, who prepares checkboxes, duration, who cleans up checkboxes), Lunch (time, together or separate, who prepares, duration, who cleans up), Dinner (time, who prepares, duration, who cleans up), Afternoon snack (yes/no, who handles), Meal prep block (when, who, duration), Batch cooking (which day checkboxes, who, duration), Grocery shopping (which day, who, duration, drive time).
+Credits awareness: cooking with JP/Joseph → Life skills/Home economics.
+Lorenzo introduced here.
+SECTION 6 — SCHOOL
+Reflection: “The best homeschool day isn’t the one with the most lessons checked off. It’s the one where learning happened, even if it looked different than planned. Let’s build a rhythm that can flex.”
+Activity builder. Checkbox suggestions: Math, Religion, Reading, Writing, Science, History, Latin, Art, Music, PE, Nature study, Life skills, other. Each school activity has all standard fields plus: format (Solo — select child / Mom-led — select children / Paired — select leader and participants with credit_to_leader toggle defaulting to yes / Group — all children together), days per week, seasonal flag.
+For subjects with hour tracking (JP only): toggle “Track hours for this subject” — if on show “What categories does JP want to track?” with add-category input. Categories save to data/hour_tracking.json.
+Sibling pairing suggestion card: after several activities are added, Lucy or the structured wizard suggests natural pairings based on age and subjects entered.
+Developmental framework check: after school activities are added show a soft note about Michael’s focused skill building time vs the 30-90 minute recommendation.
+Father Gregory introduced here.
+SECTION 7 — CHORES AND HOUSEHOLD
+Reflection: “A clean house won’t happen all at once. But if everyone does their part consistently, it adds up. The goal isn’t perfection — it’s participation. Let’s figure out who does what and when — without it all falling on you.”
+Five sub-sections:
+Daily chores activity builder. Checkbox suggestions per person from existing chores.json daily lists plus: room reset, bed making, personal space tidy, email checks, instrument practice.
+Weekly chores activity builder. Checkbox suggestions from existing chores.json weekly lists. Assign by day and person. Note rotating jobs (basement zones already rotate for JP/Joseph).
+Monthly chores activity builder. Checkbox suggestions: Deep clean bathrooms, Van thorough clean, Fridge clean out, Wipe baseboards and doors, Pantry/freezer rotation, Wash windows, Change air filters, Haircuts (is_grooming: true), Shoe size check (is_grooming: true), Clothing review. Each monthly chore has: who, which week of month (week 1/2/3/4).
+Seasonal chores activity builder. Checkbox suggestions: Wardrobe rotation, Deep clean bedrooms, Wash curtains and bedding, Basement zone reorganization, Exterior/yard prep, School supply check and restock, Donation run. Each seasonal chore has: who leads, who helps, which season(s).
+Annual chores activity builder. Checkbox suggestions: Deep clean appliances, Tax document gathering, Car maintenance check, Christmas decorations up, Christmas decorations down, Major donation run. Each annual chore has: who, which month.
+Personal grooming section. Confirm existing nail trimming schedule. Add: Haircuts (who, how often, reminder yes/no — is_grooming: true), Dental hygiene checks (who, how often), Shoe size checks (seasonal — is_grooming: true), Eye exams (annual — is_grooming: true). These connect to Dr. Monica reminder system.
+SECTION 8 — EXERCISE AND HEALTH
+Reflection: “A walk counts. Stretching counts. Chasing a toddler counts. Let’s build in movement that fits your actual life — not a gym routine you’ll abandon by Thursday.”
+Activity builder. Checkbox suggestions: Morning walk, Run, Strength training, Family walk, PE, Sports practice, Sea Cadets, Yoga, Bike ride, Swimming, other. Each exercise activity has all standard fields plus: credits (multi-select from what has been added — outdoor time, PE credit, Mom’s free time, family time, Michael outdoor, James outdoor).
+Health setup: which family members to track, recurring health appointments (Annual physicals, Dental, Eye exams, Orthodontist, Therapy, Postpartum checkup — checkboxes with who and frequency), notification preferences (all optional all off by default — email/push/SMS/in-app toggles per type), phone and email for notifications, emergency contacts (optional — up to 5, one shown by default with Add another button).
+Coach and Dr. Monica introduced here.
+SECTION 9 — REST, FREE TIME, AND FAITH LIFE
+Reflection: “You cannot pour from an empty cup — and neither can John. Rest is not laziness. Free time is not wasted time. And the sacraments are not extras — they are the source. Let’s protect all of it.”
+Rest and free time activity builder: Afternoon rest/quiet time (who checkboxes, duration, when), Mom’s free time (when, duration, what fills it — checkboxes: Reading/Prayer/Hobby/Rest/Exercise/Alone time/other), John’s free time (when, duration), Boys’ free time (when, duration, screen time allowed yes/no), Screen time rules (when allowed, for whom, how long, what kind), Outside time daily target for Michael and James (slider), Personal reading time (for Mom, for boys, duration).
+Weekly family traditions checkboxes: Movie night, Game night, Read-aloud, Sunday brunch, Holy hour, Family Rosary, Nature walk, Sunday meatballs, other.
+Marriage activity builder: Date night (day, time, duration), Daily couple time (when, duration), Weekly marriage check-in (day, time).
+Faith life: Confession (frequency checkboxes: weekly/twice monthly/monthly, who goes, which day), Adoration (frequency, who, day, duration), Service/volunteer work (what, how often, who), Feast day celebrations (do you school on minor feast days yes/no/it depends), Family feast day traditions (free text — these get flagged for calendar).
+Dr. Monica and Sister Mary highlighted again here.
+SECTION 10 — FLEX, BUFFERS, AND SEASONAL NOTES
+Reflection: “The schedule that survives contact with real life has margins built in. Not every minute needs to be filled. In fact, the empty minutes are often the best ones.”
+Transition buffer: how long does your family typically take between activities (5/10/15/20 minutes — this auto-inserts as gray blocks in the day builder).
+Flex time: morning flex block yes/no and duration, afternoon flex block yes/no and duration, what usually goes wrong (checkboxes: James needs me/A lesson runs long/Someone has a meltdown/I am tired/Unexpected appointment/Nothing goes wrong/other).
+Energy levels: when is Lauren highest energy (Early morning/Morning/Afternoon/Evening), when is she lowest, when are the boys most focused. This feeds the AI scheduler.
+Weekly reset: when do you review and plan ahead (Sunday evening/Monday morning/Friday afternoon/I do not yet but would like to) — this becomes a recurring slot.
+Seasonal: does schedule change in summer yes/no, does it change during Advent or Lent yes/no — if yes flag for future seasonal schedule build.
+SECTION 11 — BUILD YOUR DAY
+Visual timeline from 5 AM to 10 PM in 30-minute slots. All collected activities appear as color-coded cards in a sidebar. Fixed commitments are placed and locked. Transition buffers from Section 10 auto-insert as gray blocks.
+Color coding: Prayer — Marian blue. Meals — warm amber. School — soft green. Chores — golden. Exercise — orange. Rest and free time — lavender. Marriage and couple time — rose. Faith life — deep purple. Fixed commitments — dark gray locked. Buffer/flex — light gray.
+Two placement modes: Tap mode for mobile (tap activity card then tap time slot), Quick mode (choose Morning/Afternoon/Evening and auto-slot at next available gap).
+Sibling paired activities span multiple people’s rows simultaneously.
+Weekend view toggle — separate timeline for weekend with weekend-appropriate activities.
+Per-person view toggle — see any individual family member’s day.
+SECTION 12 — SEVEN COMMITMENTS CHECK
+Before the AI analysis show the seven commitments from Laura Dominick as a beautiful review card. For each commitment show a gentle status:
+	•	Wake up on time — is a wake time set? ✅ or ⚠️
+	•	Prayer morning noon and night — is prayer scheduled at all three times? ✅ or ⚠️
+	•	Basic chores every day — are daily chores assigned? ✅ or ⚠️
+	•	Flexibility — is flex time built in? ✅ or ⚠️
+	•	Reset mechanism — is there a review/reset slot? ✅ or ⚠️
+	•	Time with husband — is couple time protected? ✅ or ⚠️
+	•	Bedtime — is a bedtime set? ✅ or ⚠️
+For any ⚠️ items show a one-tap fix: “Add flex time now” or “Set couple time now” that opens that section.
+SECTION 13 — AI REVIEW AND SUGGESTIONS
+Three analyses:
+Analysis 1 — Multitasking opportunities: scan all activities for combinations. Present each suggestion as Accept/Modify/Skip card. Examples: morning walk covering outdoor time and Mom’s free time, Family Rosary counting as Religion credit, cooking with JP counting as Life skills.
+Analysis 2 — Developmental framework check: table showing Need / Target / Your Plan / Status for Michael and James. Categories: unstructured outdoor play, focused skill building, boredom/downtime, physical movement, evening connection, sleep. Gentle suggestions for gaps.
+Analysis 3 — Schedule optimization: based on energy levels, fixed commitments, and activity durations suggest specific improvements. Check if demanding tasks are at high-energy times. Flag gaps that could fit unplaced activities. Flag overloaded days.
+Save button — writes everything to day_templates (with backup), chores.json expanded structure, hour_tracking.json categories, app_settings.json preferences, prayer_intentions.json prayer schedule, marks frol_wizard_progress.json complete.
+Closing message: “Your Rule of Life is saved. It won’t be perfect — and that is okay. Come back anytime as your family grows and your seasons change. God meets you in the ordinary.” Attribution: A Plan for Joy in the Home by Laura Dominick.
+
+PHASE 5 — INTEGRATION AND POLISH
+Connect hour tracking to JP’s student portal subject pages. On each subject page with hour tracking enabled add: quick log button (subject pre-selected, category dropdown from his custom list, duration picker, description optional, date defaulting to today but editable), running totals per category, full log list in reverse chronological order with edit and delete, semester/year-end PDF report generation.
+Connect grooming reminders (is_grooming: true chore entries) to Dr. Monica’s reminder system so Monica can surface them when due.
+Add the seven commitments as a small collapsible card on Lauren’s time-block homepage — not a checklist, just a gentle daily reminder. Attribution line at bottom.
+Add A Plan for Joy in the Home by Laura Dominick as a recommended resource in the app — visible on the wizard landing screen and in the More sheet under a Resources section.
+Run py_compile on all modified files. Full smoke test across all five phases. Restart workflow. Report final results.
+
+Follow all claud.md rules throughout. Plan before building. Present the full plan before writing any code. Stop after each phase and report results before continuing to the next phase.​​​​​​​​​​​​​​​​
