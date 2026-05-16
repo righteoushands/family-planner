@@ -87,7 +87,7 @@
     "step_4": {
       "breakfast_time": "08:30",
       "breakfast_who": "Varies",
-      "lunch_together": "separate",
+      "lunch_together": "together",
       "morning_dinner_prep": "yes",
       "meal_prep_who": [
         "Mom",
@@ -179,6 +179,6 @@
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-15T10:02:06",
+  "updated_at": "2026-05-15T13:42:48",
   "finalized_at": ""
 }

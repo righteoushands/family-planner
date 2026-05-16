@@ -130,15 +130,21 @@
         "Michael"
       ],
       "types": [
+        "Strength",
         "Walks"
-      ]
+      ],
+      "recurring_classes": "John lifts on Tuesdays and Thursdays after work and comes home at 6pm",
+      "family_or_individual": "mixed"
     },
     "step_7": {
       "afternoon_rest": "2 to 4",
       "date_night": "Wednesday 5:30",
       "couple_time": "evening",
       "traditions": [
-        "Holy hour"
+        "Read-aloud",
+        "Holy hour",
+        "Game night",
+        "Nature walk"
       ]
     },
     "step_8": {
@@ -167,9 +173,12 @@
           "phone": "5403696065"
         }
       ]
+    },
+    "step_9": {
+      "adjustments": []
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-15T09:56:55",
+  "updated_at": "2026-05-15T10:02:06",
   "finalized_at": ""
 }
