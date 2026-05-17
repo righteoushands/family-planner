@@ -19,6 +19,7 @@ from config import (
     WEEKDAY_ORDER, CURRICULUM_FILE, TASK_OVERRIDES_FILE,
     SCHOOL_WEEK_PLAN_FILE, FAMILY_MEMORY_FILE,
     PRAYER_INTENTIONS_FILE, SISTER_MARY_HISTORY_FILE, POPE_INTENTIONS_FILE,
+    HOUR_TRACKING_FILE, FROL_ACTIVITIES_FILE,
 )
 
 
@@ -438,12 +439,268 @@ def advance_recurring_task(task: dict) -> dict:
 
 
 # ── Chores ───────────────────────────────────────────────────────────────────
+_CHORE_DAYS    = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+_CHORE_WEEKS   = ["week_1", "week_2", "week_3", "week_4"]
+_CHORE_SEASONS = ["fall", "winter", "spring", "summer"]
+_CHORE_MONTHS  = ["january", "february", "march", "april", "may", "june",
+                  "july", "august", "september", "october", "november", "december"]
+
+
+def _ensure_chore_buckets(data: dict) -> bool:
+    """Idempotently add daily/weekly/monthly/seasonal/annual buckets to every
+    person in `data`. Mutates `data` in place. Returns True iff anything was
+    actually added (so callers know whether to persist)."""
+    upgraded = False
+    def _fix(person):
+        nonlocal upgraded
+        if not isinstance(person, dict):
+            return
+        if not isinstance(person.get("daily"), list):
+            person["daily"] = []
+            upgraded = True
+        wk = person.get("weekly")
+        if not isinstance(wk, dict):
+            person["weekly"] = {d: [] for d in _CHORE_DAYS}
+            upgraded = True
+        else:
+            for d in _CHORE_DAYS:
+                if d not in wk:
+                    wk[d] = []
+                    upgraded = True
+        mo = person.get("monthly")
+        if not isinstance(mo, dict):
+            person["monthly"] = {w: [] for w in _CHORE_WEEKS}
+            upgraded = True
+        else:
+            for w in _CHORE_WEEKS:
+                if w not in mo:
+                    mo[w] = []
+                    upgraded = True
+        se = person.get("seasonal")
+        if not isinstance(se, dict):
+            person["seasonal"] = {s: [] for s in _CHORE_SEASONS}
+            upgraded = True
+        else:
+            for s in _CHORE_SEASONS:
+                if s not in se:
+                    se[s] = []
+                    upgraded = True
+        an = person.get("annual")
+        if not isinstance(an, dict):
+            person["annual"] = {m: [] for m in _CHORE_MONTHS}
+            upgraded = True
+        else:
+            for m in _CHORE_MONTHS:
+                if m not in an:
+                    an[m] = []
+                    upgraded = True
+    boys = data.get("boys") or {}
+    if isinstance(boys, dict):
+        for _nm, person in boys.items():
+            _fix(person)
+    if "lauren" in data:
+        _fix(data.get("lauren"))
+    return upgraded
+
+
 def load_chores_data():
     data = ensure_file(CHORES_FILE, {"boys": {}})
-    return data if isinstance(data, dict) else {"boys": {}}
+    if not isinstance(data, dict):
+        data = {"boys": {}}
+    if _ensure_chore_buckets(data):
+        safe_save_json(CHORES_FILE, data)
+    return data
 
 def save_chores_data(data):
+    if isinstance(data, dict):
+        _ensure_chore_buckets(data)
     return safe_save_json(CHORES_FILE, data)
+
+
+# Canonical short-name aliases used by the FROL Wizard V2 / Phase 1+ code.
+load_chores = load_chores_data
+save_chores = save_chores_data
+
+
+def _resolve_chore_person(data: dict, person: str):
+    """Return the chore bucket for `person` (case-insensitive for Lauren),
+    or None if absent. Boys live under data['boys'][Name] (title-case);
+    Lauren lives under the lowercase top-level 'lauren' key."""
+    if not isinstance(data, dict) or not person:
+        return None
+    if person.strip().lower() == "lauren":
+        lr = data.get("lauren")
+        return lr if isinstance(lr, dict) else None
+    boys = data.get("boys") or {}
+    p = boys.get(person)
+    return p if isinstance(p, dict) else None
+
+
+def get_chores_due_today(person: str, date_iso: str = None) -> list:
+    """Return the list of chore entries due for `person` on the given date.
+
+    Includes:
+      - all daily chores
+      - this weekday's weekly chores
+      - monthly chores for the current week-of-month (surfaced on the
+        Monday of that week so the family sees the week's monthly load
+        at week start)
+      - seasonal chores on the first day of each meteorological season
+        (Mar 1 spring, Jun 1 summer, Sep 1 fall, Dec 1 winter)
+      - annual chores on the first day of their month
+    """
+    from datetime import date as _date
+    d = _date.fromisoformat(date_iso) if date_iso else _date.today()
+    data = load_chores_data()
+    p = _resolve_chore_person(data, person)
+    if not p:
+        return []
+    out = []
+    out.extend(p.get("daily") or [])
+    wname = _CHORE_DAYS[d.weekday()]
+    out.extend((p.get("weekly") or {}).get(wname) or [])
+    if d.weekday() == 0:
+        wk = min(((d.day - 1) // 7) + 1, 4)
+        out.extend((p.get("monthly") or {}).get(f"week_{wk}") or [])
+    if d.day == 1:
+        season_starts = {3: "spring", 6: "summer", 9: "fall", 12: "winter"}
+        if d.month in season_starts:
+            out.extend((p.get("seasonal") or {}).get(season_starts[d.month]) or [])
+        out.extend((p.get("annual") or {}).get(_CHORE_MONTHS[d.month - 1]) or [])
+    return out
+
+
+def get_due_grooming(date_iso: str = None) -> list:
+    """Scan every person's chore buckets for entries flagged is_grooming
+    that are due on the given date. Returns a list of dicts:
+    {person, bucket, when_key, item}. `item` may be a plain string (legacy
+    shape) or a dict with at least `text` and `is_grooming` keys."""
+    from datetime import date as _date
+    d = _date.fromisoformat(date_iso) if date_iso else _date.today()
+    data = load_chores_data()
+    out = []
+    weekday_name = _CHORE_DAYS[d.weekday()]
+    month_name   = _CHORE_MONTHS[d.month - 1]
+    season_starts = {3: "spring", 6: "summer", 9: "fall", 12: "winter"}
+    season_today  = season_starts.get(d.month) if d.day == 1 else None
+    week_today    = f"week_{min(((d.day - 1) // 7) + 1, 4)}" if d.weekday() == 0 else None
+
+    def _is_grooming(item) -> bool:
+        return isinstance(item, dict) and bool(item.get("is_grooming"))
+
+    def _scan(person_name, p):
+        if not isinstance(p, dict):
+            return
+        for item in (p.get("daily") or []):
+            if _is_grooming(item):
+                out.append({"person": person_name, "bucket": "daily",
+                            "when_key": "daily", "item": item})
+        for item in ((p.get("weekly") or {}).get(weekday_name) or []):
+            if _is_grooming(item):
+                out.append({"person": person_name, "bucket": "weekly",
+                            "when_key": weekday_name, "item": item})
+        if week_today:
+            for item in ((p.get("monthly") or {}).get(week_today) or []):
+                if _is_grooming(item):
+                    out.append({"person": person_name, "bucket": "monthly",
+                                "when_key": week_today, "item": item})
+        if season_today:
+            for item in ((p.get("seasonal") or {}).get(season_today) or []):
+                if _is_grooming(item):
+                    out.append({"person": person_name, "bucket": "seasonal",
+                                "when_key": season_today, "item": item})
+        if d.day == 1:
+            for item in ((p.get("annual") or {}).get(month_name) or []):
+                if _is_grooming(item):
+                    out.append({"person": person_name, "bucket": "annual",
+                                "when_key": month_name, "item": item})
+
+    for nm, person in (data.get("boys") or {}).items():
+        _scan(nm, person)
+    if "lauren" in data:
+        _scan("Lauren", data.get("lauren"))
+    return out
+
+
+# ── Hour tracking (JP's high-school category logging) ───────────────────────
+_DEFAULT_HOUR_TRACKING = {
+    "JP": {
+        "Art": {"categories": [], "logs": []},
+        "PE":  {"categories": [], "logs": []},
+    }
+}
+
+
+def load_hour_tracking() -> dict:
+    data = ensure_file(HOUR_TRACKING_FILE, _DEFAULT_HOUR_TRACKING)
+    return data if isinstance(data, dict) else dict(_DEFAULT_HOUR_TRACKING)
+
+
+def save_hour_tracking(data: dict):
+    return safe_save_json(HOUR_TRACKING_FILE, data)
+
+
+def add_hour_log(person: str, subject: str, category: str,
+                 duration_min, description: str = "", date_iso: str = None) -> dict:
+    """Append a single hour-log entry. Returns the saved entry (with id)."""
+    import uuid
+    data = load_hour_tracking()
+    p = data.setdefault(person, {})
+    s = p.setdefault(subject, {"categories": [], "logs": []})
+    if not isinstance(s.get("categories"), list):
+        s["categories"] = []
+    if not isinstance(s.get("logs"), list):
+        s["logs"] = []
+    if category and category not in s["categories"]:
+        s["categories"].append(category)
+    try:
+        mins = int(duration_min)
+    except (TypeError, ValueError):
+        mins = 0
+    entry = {
+        "id":           uuid.uuid4().hex[:12],
+        "date":         date_iso or date.today().isoformat(),
+        "category":     category or "",
+        "duration_min": mins,
+        "description":  description or "",
+    }
+    s["logs"].append(entry)
+    save_hour_tracking(data)
+    return entry
+
+
+def get_hour_totals(person: str, subject: str) -> dict:
+    """Return totals + categories for a given person/subject:
+    {by_category: {cat: minutes}, total_min: int, categories: [str]}."""
+    data = load_hour_tracking()
+    s = ((data.get(person) or {}).get(subject) or {})
+    totals = {}
+    grand  = 0
+    for log in (s.get("logs") or []):
+        cat = log.get("category") or ""
+        try:
+            mins = int(log.get("duration_min") or 0)
+        except (TypeError, ValueError):
+            mins = 0
+        totals[cat] = totals.get(cat, 0) + mins
+        grand += mins
+    return {
+        "by_category": totals,
+        "total_min":   grand,
+        "categories":  list(s.get("categories") or []),
+    }
+
+
+# ── FROL Wizard V2 activities store ─────────────────────────────────────────
+def load_frol_activities() -> list:
+    data = ensure_file(FROL_ACTIVITIES_FILE, [])
+    return data if isinstance(data, list) else []
+
+
+def save_frol_activities(items: list):
+    if not isinstance(items, list):
+        items = []
+    return safe_save_json(FROL_ACTIVITIES_FILE, items)
 
 
 # ── Roadmap ──────────────────────────────────────────────────────────────────

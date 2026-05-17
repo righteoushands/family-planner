@@ -58,6 +58,32 @@
           "Prepare Mass clothes (with Mom approval)"
         ],
         "Sunday": []
+      },
+      "monthly": {
+        "week_1": [],
+        "week_2": [],
+        "week_3": [],
+        "week_4": []
+      },
+      "seasonal": {
+        "fall": [],
+        "winter": [],
+        "spring": [],
+        "summer": []
+      },
+      "annual": {
+        "january": [],
+        "february": [],
+        "march": [],
+        "april": [],
+        "may": [],
+        "june": [],
+        "july": [],
+        "august": [],
+        "september": [],
+        "october": [],
+        "november": [],
+        "december": []
       }
     },
     "Joseph": {
@@ -118,6 +144,32 @@
           "Prepare Mass clothes (with Mom approval)"
         ],
         "Sunday": []
+      },
+      "monthly": {
+        "week_1": [],
+        "week_2": [],
+        "week_3": [],
+        "week_4": []
+      },
+      "seasonal": {
+        "fall": [],
+        "winter": [],
+        "spring": [],
+        "summer": []
+      },
+      "annual": {
+        "january": [],
+        "february": [],
+        "march": [],
+        "april": [],
+        "may": [],
+        "june": [],
+        "july": [],
+        "august": [],
+        "september": [],
+        "october": [],
+        "november": [],
+        "december": []
       }
     },
     "Michael": {
@@ -146,6 +198,32 @@
           "Prepare Mass clothes"
         ],
         "Sunday": []
+      },
+      "monthly": {
+        "week_1": [],
+        "week_2": [],
+        "week_3": [],
+        "week_4": []
+      },
+      "seasonal": {
+        "fall": [],
+        "winter": [],
+        "spring": [],
+        "summer": []
+      },
+      "annual": {
+        "january": [],
+        "february": [],
+        "march": [],
+        "april": [],
+        "may": [],
+        "june": [],
+        "july": [],
+        "august": [],
+        "september": [],
+        "october": [],
+        "november": [],
+        "december": []
       }
     },
     "James": {
@@ -158,6 +236,32 @@
         "Friday": [],
         "Saturday": [],
         "Sunday": []
+      },
+      "monthly": {
+        "week_1": [],
+        "week_2": [],
+        "week_3": [],
+        "week_4": []
+      },
+      "seasonal": {
+        "fall": [],
+        "winter": [],
+        "spring": [],
+        "summer": []
+      },
+      "annual": {
+        "january": [],
+        "february": [],
+        "march": [],
+        "april": [],
+        "may": [],
+        "june": [],
+        "july": [],
+        "august": [],
+        "september": [],
+        "october": [],
+        "november": [],
+        "december": []
       }
     }
   },
@@ -193,6 +297,32 @@
         "Tidy my room"
       ],
       "Sunday": []
+    },
+    "monthly": {
+      "week_1": [],
+      "week_2": [],
+      "week_3": [],
+      "week_4": []
+    },
+    "seasonal": {
+      "fall": [],
+      "winter": [],
+      "spring": [],
+      "summer": []
+    },
+    "annual": {
+      "january": [],
+      "february": [],
+      "march": [],
+      "april": [],
+      "may": [],
+      "june": [],
+      "july": [],
+      "august": [],
+      "september": [],
+      "october": [],
+      "november": [],
+      "december": []
     }
   }
 }
