@@ -356,7 +356,8 @@
       ],
       "confession_cadence": "Monthly on first Saturday",
       "adoration_cadence": "Ocassionally",
-      "feast_days_flag": "yes"
+      "feast_days_flag": "yes",
+      "service_notes": "Visiting a sick "
     },
     "section_2": {
       "JP__wake_time": "06:55",
@@ -397,7 +398,7 @@
         "Liturgical New Year (Nov)"
       ],
       "transition_buffer_min": "5",
-      "weekly_reset": "Sunday afternoon: review school week, PODs, calendar, cue up music, pull read aloud books for boy"
+      "weekly_reset": "Sunday afternoon: review school week, PODs, calendar, cue up music, pull read aloud books for boys to read to Michael, family read aloud "
     },
     "section_11": {
       "per_person_filter": "",
@@ -935,11 +936,65 @@
     },
     "section_12": {
       "weekend_view": "no",
-      "per_person_filter": ""
+      "per_person_filter": "",
+      "current_day": "Tuesday",
+      "questions": [
+        {
+          "question_text": "Your teens wake at 6:55 on weekdays, but section 3 says school teens wake at 7:30. Which wake time should I use for JP and Joseph on school days?",
+          "options": [
+            "6:55 as listed in their individual schedules",
+            "7:30 as listed in the school wake time",
+            "6:55 for JP, 7:30 for Joseph",
+            "Different times - please specify"
+          ]
+        },
+        {
+          "question_text": "Morning prayer is at 7:15, but breakfast is at 7:30 when teens are just waking. How should I handle this timing conflict?",
+          "options": [
+            "Move morning prayer to after breakfast",
+            "Have adults pray at 7:15, teens join after waking",
+            "Move breakfast earlier to 8:00",
+            "Teens do their own prayer time separately"
+          ]
+        },
+        {
+          "question_text": "Both JP and Joseph have evening kitchen duties listed, but they overlap significantly. Who does which tasks on a given evening?",
+          "options": [
+            "They alternate days - JP Monday/Wednesday/Friday, Joseph Tuesday/Thursday",
+            "They work together and split the tasks",
+            "One does dishes, the other does cleaning/sweeping",
+            "Joseph does morning kitchen, JP does evening kitchen"
+          ]
+        },
+        {
+          "question_text": "James naps 2-4pm, but your work time with the boys is 2:30-4pm and Lauren's afternoon rest is also 2-4pm. How should I schedule these overlapping activities?",
+          "options": [
+            "Move work time with boys to after James' nap",
+            "Lauren rests while working with boys during James' nap",
+            "Shorten James' nap to 2-3pm",
+            "Work with boys happens during James' morning nap instead"
+          ]
+        },
+        {
+          "question_text": "You mentioned checking schoolwork at 11am and also working with boys 2:30-4pm, but lunch is at 11am and needs to be prepared. When exactly do these schoolwork checks happen?",
+          "options": [
+            "Check schoolwork right after lunch cleanup",
+            "Check schoolwork before lunch prep starts",
+            "Schoolwork check happens during the 2:30-4pm work session",
+            "Quick check at 11am, thorough review at 2:30pm"
+          ]
+        }
+      ],
+      "answers": {
+        "0": "7:30 as listed in the school wake time",
+        "1": "Move breakfast earlier to 8:00",
+        "2": "They work together and split the tasks",
+        "3": "Lauren rests while working with boys during James' nap"
+      }
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-17T09:48:29",
+  "updated_at": "2026-05-17T10:42:01",
   "finalized_at": "",
   "_v1_completed_steps": [
     1,

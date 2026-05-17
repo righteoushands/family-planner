@@ -2747,6 +2747,232 @@ def render_section_12(progress: dict, mode: str) -> str:
           </div>
         """
 
+    # ── Enhancement 2: overload warning ────────────────────────────────────
+    total_kept_min = 0
+    for _it in schedule:
+        if isinstance(_it, dict) and _it.get("keep", True):
+            try:
+                total_kept_min += int(_it.get("duration_min") or 0)
+            except Exception:
+                pass
+    total_hours_disp = round(total_kept_min / 60.0, 1)
+    overload_html = ""
+    if total_kept_min > 960:
+        overload_html = (
+            '<div style="background:#fde2e2;border:1px solid #d97a7a;'
+            'border-radius:8px;padding:14px;margin:10px 0;color:#8a2a2a;'
+            'font-weight:600;">'
+            'This schedule has more activities than hours in the day '
+            f'({total_hours_disp} hours scheduled). Please remove some items.'
+            '</div>'
+        )
+    elif total_kept_min > 840:
+        overload_html = (
+            '<div style="background:#fef3e6;border:1px solid #e6b97a;'
+            'border-radius:8px;padding:14px;margin:10px 0;color:#8a5a1a;'
+            'font-weight:600;">'
+            f'This day is very full — {total_hours_disp} hours scheduled. '
+            'Consider removing or shortening some activities.'
+            '</div>'
+        )
+
+    # ── Enhancement 1: per-person grid view ────────────────────────────────
+    def _s12_hhmm_to_min(hhmm):
+        try:
+            _hp, _mp = str(hhmm).split(":", 1)
+            return int(_hp) * 60 + int(_mp)
+        except Exception:
+            return None
+
+    def _s12_min_to_label(rm):
+        _hh = rm // 60
+        _mm = rm % 60
+        _suf = "AM" if _hh < 12 else "PM"
+        _h12 = _hh % 12 or 12
+        return f"{_h12}:{_mm:02d} {_suf}"
+
+    people_list = []
+    seen_people = set()
+    for _it in schedule:
+        if not isinstance(_it, dict):
+            continue
+        _who = _it.get("who") or []
+        if not isinstance(_who, list):
+            continue
+        for _w in _who:
+            _ws = str(_w).strip()
+            if _ws and _ws not in seen_people:
+                seen_people.add(_ws)
+                people_list.append(_ws)
+
+    slot_mins = []
+    for _it in schedule:
+        if not isinstance(_it, dict):
+            continue
+        _mm = _s12_hhmm_to_min(str(_it.get("time", "")).strip())
+        if _mm is not None:
+            slot_mins.append((_mm // 30) * 30)
+
+    if slot_mins:
+        grid_start = min(slot_mins)
+        grid_end   = max(slot_mins)
+        row_times  = list(range(grid_start, grid_end + 30, 30))
+    else:
+        row_times = []
+
+    cell_map = {}
+    for _it in schedule:
+        if not isinstance(_it, dict):
+            continue
+        _mm = _s12_hhmm_to_min(str(_it.get("time", "")).strip())
+        if _mm is None:
+            continue
+        _row_min = (_mm // 30) * 30
+        _cat = str(_it.get("category", "")).strip() or "free"
+        _lbl_c, c_color = _PALETTE_BY_KEY.get(_cat, ("Free", "#d8d8d8"))
+        _name_v = str(_it.get("activity_name", "")).strip()
+        _who_raw = _it.get("who") or []
+        if not isinstance(_who_raw, list):
+            continue
+        for _w in _who_raw:
+            _ws = str(_w).strip()
+            if not _ws:
+                continue
+            cell_map.setdefault((_row_min, _ws), []).append((_name_v, c_color))
+
+    pills_html = ""
+    for _p in people_list:
+        _p_esc  = escape(_p)
+        _p_attr = escape(_p, quote=True)
+        pills_html += (
+            f'<button type="button" class="s12-person-pill" data-person="{_p_attr}" '
+            'data-hidden="0" onclick="s12TogglePerson(this)" '
+            'style="padding:4px 12px;margin:2px;border:1px solid #4a6fa5;'
+            'background:#4a6fa5;color:#fff;border-radius:999px;cursor:pointer;'
+            f'font-size:0.82em;font-weight:600;">{_p_esc}</button>'
+        )
+
+    th_cells = (
+        '<th style="padding:6px;border:1px solid #d8e1ef;'
+        'background:#f6f8fc;text-align:left;">Time</th>'
+    )
+    for _p in people_list:
+        _p_esc  = escape(_p)
+        _p_attr = escape(_p, quote=True)
+        th_cells += (
+            f'<th class="s12-col" data-person="{_p_attr}" '
+            'style="padding:6px;border:1px solid #d8e1ef;background:#f6f8fc;'
+            f'text-align:center;">{_p_esc}</th>'
+        )
+
+    grid_rows_html = ""
+    for _rm in row_times:
+        _rl = escape(_s12_min_to_label(_rm))
+        _row_cells = (
+            f'<td style="padding:6px;border:1px solid #d8e1ef;background:#fbfcfd;'
+            f'font-size:0.82em;color:#33507e;font-weight:600;'
+            f'white-space:nowrap;">{_rl}</td>'
+        )
+        for _p in people_list:
+            _items_here = cell_map.get((_rm, _p), [])
+            _inner = ""
+            for _nm, _col in _items_here:
+                _inner += (
+                    '<div style="font-size:0.82em;color:#222;'
+                    'line-height:1.3;margin:1px 0;">'
+                    '<span style="display:inline-block;width:8px;height:8px;'
+                    f'background:{_col};border-radius:50%;'
+                    'border:1px solid #00000022;margin-right:4px;'
+                    f'vertical-align:middle;"></span>{escape(_nm)}</div>'
+                )
+            _p_attr = escape(_p, quote=True)
+            _row_cells += (
+                f'<td class="s12-col" data-person="{_p_attr}" '
+                'style="padding:4px;border:1px solid #d8e1ef;'
+                f'vertical-align:top;">{_inner}</td>'
+            )
+        grid_rows_html += f'<tr>{_row_cells}</tr>'
+
+    if row_times and people_list:
+        grid_html = (
+            '<div id="s12-grid" style="display:none;margin:10px 0;">'
+            '<div style="margin-bottom:8px;">'
+            '<span style="font-size:0.82em;color:#7088a8;'
+            'margin-right:6px;font-weight:600;">Show / hide:</span>'
+            f'{pills_html}'
+            '</div>'
+            '<div style="overflow-x:auto;">'
+            '<table style="border-collapse:collapse;width:100%;'
+            'background:#fff;">'
+            f'<thead><tr>{th_cells}</tr></thead>'
+            f'<tbody>{grid_rows_html}</tbody>'
+            '</table></div></div>'
+        )
+    else:
+        grid_html = (
+            '<div id="s12-grid" style="display:none;margin:10px 0;'
+            'padding:14px;background:#f6f8fc;border:1px solid #d8e1ef;'
+            'border-radius:8px;color:#7088a8;">'
+            'No scheduled times to display in grid view.'
+            '</div>'
+        )
+
+    view_toggle_html = (
+        '<div style="margin:10px 0;display:flex;gap:6px;">'
+        '<button type="button" id="s12-btn-list" '
+        'onclick="s12ShowView(&#39;list&#39;)" '
+        'style="padding:6px 16px;border:1px solid #4a6fa5;background:#4a6fa5;'
+        'color:#fff;border-radius:6px;cursor:pointer;font-weight:600;">'
+        'List view</button>'
+        '<button type="button" id="s12-btn-grid" '
+        'onclick="s12ShowView(&#39;grid&#39;)" '
+        'style="padding:6px 16px;border:1px solid #4a6fa5;background:#fff;'
+        'color:#4a6fa5;border-radius:6px;cursor:pointer;font-weight:600;">'
+        'Grid view</button>'
+        '</div>'
+    )
+
+    view_js = """
+<script>
+function s12ShowView(v) {
+  var l  = document.getElementById('s12-list');
+  var g  = document.getElementById('s12-grid');
+  var bl = document.getElementById('s12-btn-list');
+  var bg = document.getElementById('s12-btn-grid');
+  if (v === 'grid') {
+    if (l) l.style.display = 'none';
+    if (g) g.style.display = 'block';
+    if (bl) { bl.style.background = '#fff';    bl.style.color = '#4a6fa5'; }
+    if (bg) { bg.style.background = '#4a6fa5'; bg.style.color = '#fff';    }
+  } else {
+    if (l) l.style.display = 'block';
+    if (g) g.style.display = 'none';
+    if (bl) { bl.style.background = '#4a6fa5'; bl.style.color = '#fff';    }
+    if (bg) { bg.style.background = '#fff';    bg.style.color = '#4a6fa5'; }
+  }
+}
+function s12TogglePerson(btn) {
+  var p = btn.getAttribute('data-person');
+  var hidden = btn.getAttribute('data-hidden') === '1';
+  var all = document.querySelectorAll('.s12-col');
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].getAttribute('data-person') === p) {
+      all[i].style.display = hidden ? '' : 'none';
+    }
+  }
+  if (hidden) {
+    btn.setAttribute('data-hidden', '0');
+    btn.style.background = '#4a6fa5';
+    btn.style.color      = '#fff';
+  } else {
+    btn.setAttribute('data-hidden', '1');
+    btn.style.background = '#fff';
+    btn.style.color      = '#4a6fa5';
+  }
+}
+</script>
+"""
+
     regen_btn = (
         '<form method="POST" action="/frol-wizard" '
         'style="display:inline-block;margin-right:10px;">'
@@ -2782,12 +3008,15 @@ def render_section_12(progress: dict, mode: str) -> str:
         slots kept. Use a time dropdown to move a slot. Tap Remove to drop
         one. Tap Regenerate to start over.
       </div>
-      <div>{cards_html}</div>
+      {overload_html}
+      {view_toggle_html}
+      <div id="s12-list">{cards_html}</div>
+      {grid_html}
       <div style="margin-top:18px;padding-top:14px;border-top:1px solid #d8e1ef;">
         {regen_btn}
         {save_btn}
       </div>
-    """
+    """ + view_js
     return _section_chrome(12, "Build Your Day",
         "AI-suggested weekday schedule built from everything you've collected.",
         body, mode, progress, lucy_visible=True)
