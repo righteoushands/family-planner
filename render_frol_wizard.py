@@ -25,9 +25,12 @@ Public surface:
 """
 
 import os
+import re
 import json
 import shutil
+import urllib.request
 from datetime import datetime
+from data_helpers import save_frol_activities
 from html import escape
 
 from config import (
@@ -2165,176 +2168,628 @@ def render_section_11(progress: dict, mode: str) -> str:
         body, mode, progress, lucy_visible=True)
 
 
+_S12_CATEGORY_KEYS = [_k for _k, _l, _c in _TIMELINE_PALETTE]
+
+
+def _s12_collect_context(progress: dict) -> dict:
+    """Gather all collected data from sections 1-11 plus the seven
+    commitments into a compact dict suitable for the AI prompt."""
+    data = progress.get("data", {}) or {}
+    return {
+        "members":               (data.get("section_1") or {}).get("members") or [],
+        "section_2_anchors":     data.get("section_2") or {},
+        "section_3_meals":       data.get("section_3") or {},
+        "section_4_prayer":      data.get("section_4") or {},
+        "section_5_meals":       data.get("section_5") or {},
+        "section_6_school":      data.get("section_6") or {},
+        "section_7_chores":      data.get("section_7") or {},
+        "section_8_work":        data.get("section_8") or {},
+        "section_9_rest":        data.get("section_9") or {},
+        "section_10_flex":       data.get("section_10") or {},
+        "section_11_activities": data.get("section_11") or {},
+        "seven_commitments":     list(SEVEN_COMMITMENTS),
+    }
+
+
+def _s12_repair_json(raw: str):
+    """Best-effort JSON repair for LLM output. Mirrors the strategy used
+    in app.py's _repair_and_parse_json: try as-is, then strip trailing
+    commas, then escape literal newlines inside string values."""
+    # Attempt 1: as-is
+    try:
+        return json.loads(raw)
+    except Exception:
+        pass
+    # Attempt 2: remove trailing commas before } or ]
+    fixed = re.sub(r',(\s*[}\]])', r'\1', raw)
+    try:
+        return json.loads(fixed)
+    except Exception:
+        pass
+    # Attempt 3: escape literal newlines/tabs/returns inside string values
+    out_chars = []
+    in_str = False
+    i = 0
+    while i < len(fixed):
+        c = fixed[i]
+        if c == '"' and (i == 0 or fixed[i - 1] != "\\"):
+            in_str = not in_str
+            out_chars.append(c)
+        elif in_str and c == "\n":
+            out_chars.append("\\n")
+        elif in_str and c == "\r":
+            out_chars.append("\\r")
+        elif in_str and c == "\t":
+            out_chars.append("\\t")
+        else:
+            out_chars.append(c)
+        i += 1
+    fixed2 = "".join(out_chars)
+    try:
+        return json.loads(fixed2)
+    except Exception:
+        pass
+    # Attempt 4: trailing commas again after newline escape
+    try:
+        return json.loads(re.sub(r',(\s*[}\]])', r'\1', fixed2))
+    except Exception:
+        return None
+
+
+def _s12_call_anthropic_json(system_prompt: str, user_prompt: str,
+                             max_tokens: int = 2000):
+    """Call Claude and parse the response as JSON. Returns None on any
+    failure. Uses the same urllib pattern as the rest of the wizard."""
+    api_key = get_anthropic_key()
+    if not api_key:
+        return None
+    payload = {
+        "model": "claude-sonnet-4-20250514",
+        "max_tokens": max_tokens,
+        "system": system_prompt,
+        "messages": [{"role": "user", "content": user_prompt}],
+    }
+    try:
+        req = urllib.request.Request(
+            "https://api.anthropic.com/v1/messages",
+            data=json.dumps(payload).encode(),
+            headers={
+                "Content-Type":      "application/json",
+                "x-api-key":         api_key,
+                "anthropic-version": "2023-06-01",
+            },
+        )
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            result = json.loads(resp.read())
+        text = (result.get("content", [{}])[0].get("text") or "").strip()
+    except Exception:
+        return None
+    # Strip ``` fences if present
+    if text.startswith("```"):
+        nl = text.find("\n")
+        if nl > 0:
+            text = text[nl + 1:]
+        if text.endswith("```"):
+            text = text[:-3]
+        text = text.strip()
+    # Try repair on the full text first, then on bracket-bounded slices
+    parsed = _s12_repair_json(text)
+    if parsed is not None:
+        return parsed
+    for opener, closer in (("{", "}"), ("[", "]")):
+        i = text.find(opener)
+        j = text.rfind(closer)
+        if i >= 0 and j > i:
+            parsed = _s12_repair_json(text[i:j + 1])
+            if parsed is not None:
+                return parsed
+    return None
+
+
+def _s12_generate_questions(progress: dict) -> list:
+    """Pass 1 — surface 3-5 specific scheduling conflicts or ambiguities
+    that need Lauren's input before a draft schedule can be made. Caches
+    in section_12.questions and returns the cleaned list."""
+    sec12 = (progress.get("data", {}) or {}).get("section_12", {}) or {}
+    cached = sec12.get("questions")
+    if isinstance(cached, list) and cached:
+        return cached
+    ctx = _s12_collect_context(progress)
+    system = (
+        "You are a Catholic family scheduling assistant helping Lauren — "
+        "mother of four boys ages 14, 12, 5, and 13 months — turn a "
+        "collected Rule of Life dataset into a concrete weekday schedule. "
+        "Your job in this pass is to identify 3 to 5 specific conflicts, "
+        "ambiguities, or missing pieces of information that you need "
+        "clarified before producing a clean draft. Examples: two "
+        "activities competing for the same time block; a fixed commitment "
+        "that overlaps morning prayer; whether the toddler naps during "
+        "school hours; which child does which chore when only some are "
+        "listed. Do NOT ask about preferences that are already clearly "
+        "stated in the data."
+    )
+    user = (
+        "Family's collected Rule of Life data (sections 1 through 11) "
+        "plus the seven commitments framing:\n\n"
+        + json.dumps(ctx, indent=2, default=str)
+        + "\n\nReturn ONLY a JSON object of this exact shape, no prose:\n"
+        + '{"questions": [{"question_text": "...", '
+        + '"options": ["option A", "option B", "option C"]}]}\n\n'
+        + "Provide 3 to 5 questions. Each question must have 2 to 4 "
+        + "plain-text options. Phrase each in second person, addressed "
+        + "directly to Lauren."
+    )
+    parsed = _s12_call_anthropic_json(system, user, max_tokens=1500)
+    if not isinstance(parsed, dict):
+        return []
+    raw = parsed.get("questions") or []
+    cleaned = []
+    for q in raw:
+        if not isinstance(q, dict):
+            continue
+        qt = str(q.get("question_text", "")).strip()
+        opts_raw = q.get("options") or []
+        opts = [str(o).strip() for o in opts_raw if str(o).strip()]
+        if qt and 2 <= len(opts) <= 4:
+            cleaned.append({"question_text": qt, "options": opts[:4]})
+    cleaned = cleaned[:5]
+    # Cache via direct save_progress (mirrors _seed_chores_for_section7 pattern)
+    p = load_progress()
+    bucket = p.setdefault("data", {}).setdefault("section_12", {})
+    bucket["questions"] = cleaned
+    save_progress(p)
+    return cleaned
+
+
+def _s12_generate_schedule(progress: dict) -> list:
+    """Pass 2 — with Lauren's answers in hand, ask the AI for a complete
+    suggested weekday schedule honoring the seven commitments. Caches in
+    section_12.schedule and returns the cleaned list."""
+    sec12 = (progress.get("data", {}) or {}).get("section_12", {}) or {}
+    cached = sec12.get("schedule")
+    if isinstance(cached, list) and cached:
+        return cached
+    ctx = _s12_collect_context(progress)
+    questions = sec12.get("questions") or []
+    answers   = sec12.get("answers")   or {}
+    if not isinstance(answers, dict):
+        answers = {}
+    qa_pairs = []
+    for i, q in enumerate(questions):
+        if not isinstance(q, dict):
+            continue
+        ans = answers.get(str(i)) or answers.get(i) or ""
+        qa_pairs.append({
+            "question": q.get("question_text", ""),
+            "answer":   ans,
+        })
+    cat_list = ", ".join(_S12_CATEGORY_KEYS)
+    system = (
+        "You are a Catholic family scheduling assistant. With the family's "
+        "collected Rule of Life data and Lauren's clarifying answers, "
+        "produce a complete suggested weekday schedule (Monday through "
+        "Friday rhythm). The schedule MUST honor the seven commitments: a "
+        "set wake time; prayer in the morning, at noon, and at night; "
+        "basic daily chores; flex buffer time; couple time for John and "
+        "Lauren; a set bedtime. Use the family's stated times where given; "
+        "for everything else, propose sensible times. Order chronologically "
+        "from wake to bedtime."
+    )
+    user = (
+        "Family Rule of Life data (sections 1 through 11):\n\n"
+        + json.dumps(ctx, indent=2, default=str)
+        + "\n\nLauren's clarifying answers:\n"
+        + json.dumps(qa_pairs, indent=2, default=str)
+        + "\n\nReturn ONLY a JSON object of this exact shape, no prose:\n"
+        + '{"schedule": [{"time": "HH:MM", "activity_name": "...", '
+        + '"duration_min": 30, "who": ["Lauren", "John"], '
+        + '"category": "prayer", "note": ""}]}\n\n'
+        + "Rules:\n"
+        + "- time is 24-hour HH:MM\n"
+        + "- duration_min is an integer (minutes)\n"
+        + "- who is a list of names from this family roster only\n"
+        + "- category MUST be one of: " + cat_list + "\n"
+        + "- note is optional and may be empty\n"
+        + "- Include the seven required commitments explicitly\n"
+        + "- 12 to 20 time slots total, ordered chronologically"
+    )
+    parsed = _s12_call_anthropic_json(system, user, max_tokens=3500)
+    if not isinstance(parsed, dict):
+        return []
+    raw = parsed.get("schedule") or []
+    cleaned = []
+    for it in raw:
+        if not isinstance(it, dict):
+            continue
+        t = str(it.get("time", "")).strip()
+        if t and ":" in t:
+            try:
+                hh_s, mm_s = t.split(":", 1)
+                hh_i = int(hh_s); mm_i = int(mm_s[:2])
+                if 0 <= hh_i < 24 and 0 <= mm_i < 60:
+                    t = f"{hh_i:02d}:{mm_i:02d}"
+                else:
+                    continue
+            except Exception:
+                continue
+        else:
+            continue
+        name = str(it.get("activity_name", "")).strip()
+        if not name:
+            continue
+        try:
+            dur = int(it.get("duration_min") or 0)
+        except Exception:
+            dur = 0
+        who_raw = it.get("who") or []
+        if isinstance(who_raw, list):
+            who = [str(w).strip() for w in who_raw if str(w).strip()]
+        else:
+            who = []
+        cat = str(it.get("category", "")).strip().lower()
+        if cat not in _S12_CATEGORY_KEYS:
+            cat = "free"
+        note = str(it.get("note", "")).strip()
+        cleaned.append({
+            "time":          t,
+            "activity_name": name,
+            "duration_min":  dur,
+            "who":           who,
+            "category":      cat,
+            "note":          note,
+            "keep":          True,
+        })
+    cleaned.sort(key=lambda x: x.get("time", ""))
+    p = load_progress()
+    bucket = p.setdefault("data", {}).setdefault("section_12", {})
+    bucket["schedule"] = cleaned
+    save_progress(p)
+    return cleaned
+
+
+def s12_persist_kept_to_activities(progress: dict) -> int:
+    """Write the kept schedule slots from section_12.schedule into
+    data/frol_activities.json. Returns the number of items written, or
+    -1 on a write failure (caller should treat as non-success and NOT
+    advance the wizard)."""
+    sec12 = (progress.get("data", {}) or {}).get("section_12", {}) or {}
+    sched = sec12.get("schedule") or []
+    kept = [it for it in sched if isinstance(it, dict) and it.get("keep", True)]
+    try:
+        save_frol_activities(kept)
+    except Exception:
+        return -1
+    return len(kept)
+
+
 def render_section_12(progress: dict, mode: str) -> str:
-    """V2 §12 — Build Your Day: a visual 5 AM–10 PM 30-minute timeline.
-    Each slot shows day-of-week dropdown content. Per-day editable with
-    activity label, category (color), assigned person, and a paired-with
-    field for shadow activities. Gray buffer slots auto-suggested at the
-    transition-buffer interval from §10."""
+    """V2 §12 — Build Your Day (AI-driven, two-pass).
+    Pass 1 surfaces clarifying questions; Pass 2 produces a suggested
+    weekday schedule. Both calls are cached in section_12 so a page
+    refresh does not re-trigger the API."""
     sec12 = (progress.get("data", {}) or {}).get("section_12", {}) or {}
     if not isinstance(sec12, dict):
         sec12 = {}
-    cur_day = sec12.get("current_day") or "Monday"
-    if cur_day not in _TIMELINE_DAYS:
-        cur_day = "Monday"
-    weekend_view = sec12.get("weekend_view", "") == "yes"
-    per_person = (sec12.get("per_person_filter") or "").strip()
-    placements = sec12.get(f"placements_{cur_day}") or {}
-    if not isinstance(placements, dict):
-        placements = {}
-    buffer_min = int((progress.get("data", {}) or {}).get("section_10", {}).get("transition_buffer_min") or 10)
 
-    members = _v2_members(progress)
-    member_names = [m.get("name","") for m in members if isinstance(m, dict) and m.get("name")]
+    mode_esc = escape(mode, quote=True)
 
     refl = render_reflection_card(
-        "The day, made visible",
-        "<p>Here's where the rule becomes a picture. Click a slot to assign "
-        "an activity, a category color, who's responsible, and (optionally) "
-        "a paired sibling shadowing along. Gray buffer slots are auto-inserted "
-        "between back-to-back activities at the buffer width you set in §10.</p>",
+        "The day, built for you",
+        "<p>Instead of dragging activities onto a blank grid, everything you "
+        "collected in §1 through §11 is sent to an AI scheduler. First it "
+        "asks a few clarifying questions, then it drafts a complete weekday "
+        "schedule honoring the seven commitments. You can tweak each slot "
+        "before saving.</p>",
         key="sec12_intro",
     )
 
-    # Day switcher
-    day_btns = ""
-    for d in _TIMELINE_DAYS:
-        is_cur = d == cur_day
-        day_btns += (
-            f'<a href="/frol-wizard?step=12&amp;day={d}&amp;mode={escape(mode, quote=True)}" '
-            f'style="display:inline-block;padding:6px 12px;margin:2px;'
-            f'background:{"#4a6fa5" if is_cur else "#e8eef7"};'
-            f'color:{"#fff" if is_cur else "#33507e"};'
-            f'border-radius:6px;text-decoration:none;font-weight:700;'
-            f'font-size:0.86em;">{d[:3]}</a>'
+    # Missing API key → friendly notice, no API calls attempted
+    if not has_anthropic_key():
+        notice = (
+            '<div style="background:#fef3e6;border:1px solid #e6b97a;'
+            'border-radius:8px;padding:14px;margin:10px 0;color:#8a5a1a;">'
+            '<strong>Anthropic API key not configured.</strong> Add your key '
+            'in Settings &rarr; AI &amp; Planning, then return here to '
+            'generate your day.'
+            '</div>'
         )
+        return _section_chrome(12, "Build Your Day",
+            "AI-suggested weekday schedule built from everything you've collected.",
+            refl + notice, mode, progress, lucy_visible=True)
 
-    # Per-person filter dropdown
-    person_opts = '<option value="">All people</option>'
-    for nm in member_names:
-        sel = "selected" if nm == per_person else ""
-        person_opts += f'<option value="{escape(nm, quote=True)}" {sel}>{escape(nm)}</option>'
+    # ── Pass 1 cache (call if absent) ──────────────────────────────────────
+    questions = sec12.get("questions")
+    if not isinstance(questions, list) or not questions:
+        questions = _s12_generate_questions(progress)
+        sec12 = (load_progress().get("data", {}) or {}).get("section_12", {}) or {}
 
-    # Color palette legend
-    legend = ""
-    for k, label, color in _TIMELINE_PALETTE:
-        legend += (
-            f'<span style="display:inline-flex;align-items:center;gap:4px;'
-            f'margin:2px 6px 2px 0;font-size:0.8em;color:#555;">'
-            f'<span style="display:inline-block;width:14px;height:14px;'
-            f'background:{color};border-radius:3px;border:1px solid #00000022;"></span>'
-            f'{escape(label)}</span>'
+    answers = sec12.get("answers") or {}
+    if not isinstance(answers, dict):
+        answers = {}
+
+    # Pass 1 failed entirely → show error + regenerate
+    if not questions:
+        body = (
+            '<div style="background:#fef3e6;border:1px solid #e6b97a;'
+            'border-radius:8px;padding:14px;margin:10px 0;color:#8a5a1a;">'
+            "<strong>Couldn't reach the AI to generate questions.</strong> "
+            "Try again in a moment."
+            '</div>'
+            '<form method="POST" action="/frol-wizard" style="margin-top:14px;">'
+            '<input type="hidden" name="action" value="s12_regenerate">'
+            '<input type="hidden" name="section" value="12">'
+            f'<input type="hidden" name="mode" value="{mode_esc}">'
+            '<button type="submit" style="padding:10px 18px;background:#4a6fa5;'
+            'color:#fff;border:none;border-radius:6px;cursor:pointer;'
+            'font-weight:700;">Try again</button>'
+            '</form>'
         )
+        return _section_chrome(12, "Build Your Day",
+            "AI-suggested weekday schedule.",
+            refl + body, mode, progress, lucy_visible=True)
 
-    # Build slot rows
-    slots = _timeline_slots()
-    rows_html = ""
-    last_activity_end_idx = -99
-    for i, slot in enumerate(slots):
-        placement = placements.get(slot) or {}
-        label    = placement.get("label", "") if isinstance(placement, dict) else ""
-        category = placement.get("category", "") if isinstance(placement, dict) else ""
-        person   = placement.get("person", "") if isinstance(placement, dict) else ""
-        paired   = placement.get("paired_with", "") if isinstance(placement, dict) else ""
-        # Per-person filter: gray-out non-matching rows
-        muted = bool(per_person and person and person.lower() != per_person.lower())
-        # Auto-buffer hint: if previous row had a non-buffer activity and the
-        # difference is exactly one 30-min slot and the current row is empty
-        # and the buffer width is <= 30 min, show "buffer suggested" hint.
-        show_buffer_hint = (not label and not category
-                            and (i - last_activity_end_idx) == 1
-                            and buffer_min and buffer_min <= 30)
-        if label and category and category != "buffer":
-            last_activity_end_idx = i
-        # Determine color band
-        _, color = _PALETTE_BY_KEY.get(category, ("", "#f4f4f4"))
-        # Render category dropdown
-        cat_opts = '<option value="">—</option>'
-        for k, lab, _c in _TIMELINE_PALETTE:
-            sel = "selected" if k == category else ""
-            cat_opts += f'<option value="{escape(k, quote=True)}" {sel}>{escape(lab)}</option>'
-        # Person dropdown
-        pers_opts = '<option value="">—</option>'
-        for nm in member_names:
-            sel = "selected" if nm == person else ""
-            pers_opts += f'<option value="{escape(nm, quote=True)}" {sel}>{escape(nm)}</option>'
-        # Paired dropdown
-        pair_opts = '<option value="">—</option>'
-        for nm in member_names:
-            sel = "selected" if nm == paired else ""
-            pair_opts += f'<option value="{escape(nm, quote=True)}" {sel}>{escape(nm)}</option>'
-        row_style = (f"background:{color}1a;border-left:4px solid {color};"
-                     f"opacity:{'0.45' if muted else '1'};")
-        buffer_chip = ""
-        if show_buffer_hint:
-            buffer_chip = (
-                f'<span style="font-size:0.72em;color:#8a8a8a;margin-left:6px;'
-                f'background:#eee;border-radius:3px;padding:2px 6px;">'
-                f'buffer ({buffer_min} min)</span>'
+    # First unanswered question (if any)
+    next_idx = None
+    for i, _q in enumerate(questions):
+        if str(i) not in answers and i not in answers:
+            next_idx = i
+            break
+
+    # ── Stage A: still answering questions ─────────────────────────────────
+    if next_idx is not None:
+        q = questions[next_idx]
+        qt = q.get("question_text", "")
+        opts = q.get("options", []) or []
+        total = len(questions)
+        progress_label = f"Question {next_idx + 1} of {total}"
+
+        opt_buttons = ""
+        for opt in opts:
+            opt_esc = escape(str(opt), quote=True)
+            opt_disp = escape(str(opt))
+            opt_buttons += (
+                '<form method="POST" action="/frol-wizard" style="margin:6px 0;">'
+                '<input type="hidden" name="action" value="s12_answer">'
+                '<input type="hidden" name="section" value="12">'
+                f'<input type="hidden" name="mode" value="{mode_esc}">'
+                f'<input type="hidden" name="q_idx" value="{next_idx}">'
+                f'<input type="hidden" name="value" value="{opt_esc}">'
+                '<button type="submit" style="width:100%;text-align:left;'
+                'padding:14px 18px;background:#fff;border:1px solid #d8e1ef;'
+                'border-radius:8px;cursor:pointer;font-size:1em;'
+                'color:#33507e;font-weight:600;">'
+                f'{opt_disp}'
+                '</button>'
+                '</form>'
             )
-        rows_html += f"""
-          <div class="frol-slot-row" data-slot="{slot}" style="display:grid;
-                grid-template-columns:80px 1.5fr 1fr 1fr 1fr;gap:6px;
-                align-items:center;padding:6px 8px;margin:2px 0;
-                border-radius:6px;{row_style}">
-            <div style="font-weight:700;color:#33507e;font-size:0.86em;">
-              {escape(_slot_to_label(slot))}{buffer_chip}
+
+        regen_form = (
+            '<form method="POST" action="/frol-wizard" style="margin-top:14px;">'
+            '<input type="hidden" name="action" value="s12_regenerate">'
+            '<input type="hidden" name="section" value="12">'
+            f'<input type="hidden" name="mode" value="{mode_esc}">'
+            '<button type="submit" style="background:transparent;border:none;'
+            'color:#7088a8;cursor:pointer;text-decoration:underline;'
+            'font-size:0.86em;">Regenerate questions</button>'
+            '</form>'
+        )
+
+        body = f"""
+          {refl}
+          <div style="background:#f6f8fc;border:1px solid #d8e1ef;
+                      border-radius:8px;padding:18px;margin:10px 0;">
+            <div style="font-size:0.82em;color:#7088a8;margin-bottom:8px;
+                        font-weight:600;text-transform:uppercase;
+                        letter-spacing:0.5px;">
+              {escape(progress_label)}
             </div>
-            <input class="frol-input" type="text"
-                   data-step="12" data-list="placements_{escape(cur_day, quote=True)}"
-                   data-idx="{slot}" data-key="label"
-                   placeholder="Activity (e.g., Math, Rosary)"
-                   value="{escape(label, quote=True)}">
-            <select class="frol-input"
-                    data-step="12" data-list="placements_{escape(cur_day, quote=True)}"
-                    data-idx="{slot}" data-key="category">{cat_opts}</select>
-            <select class="frol-input"
-                    data-step="12" data-list="placements_{escape(cur_day, quote=True)}"
-                    data-idx="{slot}" data-key="person">{pers_opts}</select>
-            <select class="frol-input"
-                    data-step="12" data-list="placements_{escape(cur_day, quote=True)}"
-                    data-idx="{slot}" data-key="paired_with">{pair_opts}</select>
+            <div style="font-size:1.08em;color:#33507e;font-weight:600;
+                        margin-bottom:14px;line-height:1.4;">
+              {escape(qt)}
+            </div>
+            {opt_buttons}
+          </div>
+          {regen_form}
+        """
+        return _section_chrome(12, "Build Your Day",
+            "A few quick clarifying questions, then your draft.",
+            body, mode, progress, lucy_visible=True)
+
+    # ── Stage B: all questions answered → schedule ─────────────────────────
+    schedule = sec12.get("schedule")
+    if not isinstance(schedule, list) or not schedule:
+        schedule = _s12_generate_schedule(progress)
+        sec12 = (load_progress().get("data", {}) or {}).get("section_12", {}) or {}
+        schedule = sec12.get("schedule") or []
+
+    if not schedule:
+        body = (
+            '<div style="background:#fef3e6;border:1px solid #e6b97a;'
+            'border-radius:8px;padding:14px;margin:10px 0;color:#8a5a1a;">'
+            "<strong>Couldn't generate a schedule.</strong> The AI didn't "
+            'return a valid response. Try regenerating below.'
+            '</div>'
+            '<form method="POST" action="/frol-wizard" style="margin-top:14px;">'
+            '<input type="hidden" name="action" value="s12_regenerate">'
+            '<input type="hidden" name="section" value="12">'
+            f'<input type="hidden" name="mode" value="{mode_esc}">'
+            '<button type="submit" style="padding:10px 18px;background:#4a6fa5;'
+            'color:#fff;border:none;border-radius:6px;cursor:pointer;'
+            'font-weight:700;">Regenerate</button>'
+            '</form>'
+        )
+        return _section_chrome(12, "Build Your Day",
+            "AI-suggested weekday schedule.",
+            refl + body, mode, progress, lucy_visible=True)
+
+    # Move-picker options: every 15 min from 04:00 through 23:45
+    time_options = []
+    for _hour in range(4, 24):
+        for _minute in (0, 15, 30, 45):
+            time_options.append(f"{_hour:02d}:{_minute:02d}")
+
+    cards_html = ""
+    for i, item in enumerate(schedule):
+        if not isinstance(item, dict):
+            continue
+        t       = str(item.get("time", "")).strip()
+        name    = str(item.get("activity_name", "")).strip()
+        try:
+            dur = int(item.get("duration_min") or 0)
+        except Exception:
+            dur = 0
+        who_raw = item.get("who") or []
+        if isinstance(who_raw, list):
+            who_str = ", ".join(str(w) for w in who_raw if str(w).strip()) or "—"
+        else:
+            who_str = "—"
+        cat     = str(item.get("category", "")).strip() or "free"
+        note    = str(item.get("note", "")).strip()
+        kept    = bool(item.get("keep", True))
+        _lbl, color = _PALETTE_BY_KEY.get(cat, ("Free", "#d8d8d8"))
+
+        # 12-hour display
+        try:
+            hh_s, mm_s = t.split(":", 1)
+            hh_i = int(hh_s); mm_i = int(mm_s)
+            suffix = "AM" if hh_i < 12 else "PM"
+            hh12 = hh_i % 12 or 12
+            time_disp = f"{hh12}:{mm_i:02d} {suffix}"
+        except Exception:
+            time_disp = t
+
+        move_opts = ""
+        for opt_t in time_options:
+            sel = "selected" if opt_t == t else ""
+            move_opts += f'<option value="{opt_t}" {sel}>{opt_t}</option>'
+
+        if kept:
+            action_name  = "s12_remove"
+            btn_label    = "Remove"
+            btn_color    = "#b04a4a"
+            card_opacity = "1"
+            card_strike  = ""
+        else:
+            action_name  = "s12_restore"
+            btn_label    = "Restore"
+            btn_color    = "#5b8a5b"
+            card_opacity = "0.45"
+            card_strike  = "text-decoration:line-through;"
+
+        dur_chip = ""
+        if dur:
+            dur_chip = f'<span style="font-size:0.78em;color:#888;">· {dur} min</span>'
+        note_html = ""
+        if note:
+            note_html = (
+                '<div style="font-size:0.84em;color:#7d7d7d;margin-top:4px;'
+                f'font-style:italic;">{escape(note)}</div>'
+            )
+
+        cards_html += f"""
+          <div style="background:#fff;border:1px solid #d8e1ef;
+                      border-left:5px solid {color};border-radius:8px;
+                      padding:12px 16px;margin:8px 0;opacity:{card_opacity};">
+            <div style="display:flex;align-items:center;
+                        justify-content:space-between;gap:12px;">
+              <div style="flex:1;{card_strike}">
+                <div style="display:flex;align-items:center;gap:10px;
+                            margin-bottom:4px;">
+                  <span style="font-weight:700;color:#33507e;font-size:1.04em;">
+                    {escape(time_disp)}
+                  </span>
+                  <span style="display:inline-block;width:10px;height:10px;
+                               background:{color};border-radius:50%;
+                               border:1px solid #00000022;"></span>
+                  <span style="font-size:0.78em;color:#888;
+                               text-transform:capitalize;">{escape(cat)}</span>
+                  {dur_chip}
+                </div>
+                <div style="font-size:1.02em;color:#222;font-weight:600;
+                            margin-bottom:3px;">
+                  {escape(name)}
+                </div>
+                <div style="font-size:0.86em;color:#666;">
+                  {escape(who_str)}
+                </div>
+                {note_html}
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px;
+                          align-items:flex-end;">
+                <form method="POST" action="/frol-wizard"
+                      style="margin:0;display:flex;gap:6px;align-items:center;">
+                  <input type="hidden" name="action" value="s12_move">
+                  <input type="hidden" name="section" value="12">
+                  <input type="hidden" name="mode" value="{mode_esc}">
+                  <input type="hidden" name="slot_idx" value="{i}">
+                  <select name="new_time" onchange="this.form.submit()"
+                          style="padding:4px 8px;border:1px solid #d8e1ef;
+                                 border-radius:4px;font-size:0.84em;
+                                 background:#fbfcfd;cursor:pointer;">
+                    {move_opts}
+                  </select>
+                </form>
+                <form method="POST" action="/frol-wizard" style="margin:0;">
+                  <input type="hidden" name="action" value="{action_name}">
+                  <input type="hidden" name="section" value="12">
+                  <input type="hidden" name="mode" value="{mode_esc}">
+                  <input type="hidden" name="slot_idx" value="{i}">
+                  <button type="submit"
+                          style="padding:4px 12px;background:transparent;
+                                 border:1px solid {btn_color};color:{btn_color};
+                                 border-radius:4px;cursor:pointer;
+                                 font-size:0.82em;">
+                    {btn_label}
+                  </button>
+                </form>
+              </div>
+            </div>
           </div>
         """
 
+    regen_btn = (
+        '<form method="POST" action="/frol-wizard" '
+        'style="display:inline-block;margin-right:10px;">'
+        '<input type="hidden" name="action" value="s12_regenerate">'
+        '<input type="hidden" name="section" value="12">'
+        f'<input type="hidden" name="mode" value="{mode_esc}">'
+        '<button type="submit" style="padding:10px 18px;background:#fbf6ee;'
+        'border:1px solid #ead9b8;color:#8a6a2a;border-radius:6px;'
+        'cursor:pointer;font-weight:700;">Regenerate</button>'
+        '</form>'
+    )
+    save_btn = (
+        '<form method="POST" action="/frol-wizard" style="display:inline-block;">'
+        '<input type="hidden" name="action" value="s12_save_continue">'
+        '<input type="hidden" name="section" value="12">'
+        f'<input type="hidden" name="mode" value="{mode_esc}">'
+        '<button type="submit" style="padding:10px 18px;background:#4a6fa5;'
+        'border:none;color:#fff;border-radius:6px;cursor:pointer;'
+        'font-weight:700;">Save and Continue</button>'
+        '</form>'
+    )
+
+    kept_count = sum(
+        1 for it in schedule if isinstance(it, dict) and it.get("keep", True)
+    )
+
     body = f"""
       {refl}
-
-      <div style="background:#f6f8fc;border:1px solid #d8e1ef;border-radius:8px;
-                  padding:10px 14px;margin:10px 0;">
-        <div style="margin-bottom:6px;">{day_btns}</div>
-        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-          <label style="font-size:0.88em;color:#555;font-weight:normal;">
-            <input type="checkbox" data-step="12" data-key="weekend_view" value="yes"
-                   {'checked' if weekend_view else ''}> Show weekend rhythm side-by-side
-          </label>
-          <label style="font-size:0.88em;color:#555;font-weight:normal;display:flex;
-                        align-items:center;gap:6px;">
-            Per-person filter
-            <select class="frol-input" data-step="12" data-key="per_person_filter"
-                    style="max-width:160px;">{person_opts}</select>
-          </label>
-        </div>
-        <div style="margin-top:8px;">{legend}</div>
+      <div style="background:#f6f8fc;border:1px solid #d8e1ef;
+                  border-radius:8px;padding:10px 14px;margin:10px 0;
+                  font-size:0.88em;color:#33507e;">
+        <strong>{kept_count}</strong> of <strong>{len(schedule)}</strong>
+        slots kept. Use a time dropdown to move a slot. Tap Remove to drop
+        one. Tap Regenerate to start over.
       </div>
-
-      <div style="background:#fff;border:1px solid #d8e1ef;border-radius:8px;
-                  padding:12px;margin:10px 0;">
-        <div style="display:grid;grid-template-columns:80px 1.5fr 1fr 1fr 1fr;
-                    gap:6px;padding:0 8px 6px;font-size:0.78em;color:#888;
-                    font-weight:700;">
-          <div>Time</div><div>Activity</div><div>Category</div><div>Person</div><div>Paired with</div>
-        </div>
-        {rows_html}
+      <div>{cards_html}</div>
+      <div style="margin-top:18px;padding-top:14px;border-top:1px solid #d8e1ef;">
+        {regen_btn}
+        {save_btn}
       </div>
-
-      <p class="frol-help">Tap mode: type directly into any row to assign.
-        Quick mode: use the "Common activity templates" list below to bulk-add.
-        Paired activities (e.g., Michael shadowing Joseph for read-aloud) appear
-        as a soft outline on the second person's row.</p>
     """
-    return _section_chrome(12, f"Build Your Day — {cur_day}",
-        "Click any slot to assign an activity, category, and person. The picture builds itself.",
+    return _section_chrome(12, "Build Your Day",
+        "AI-suggested weekday schedule built from everything you've collected.",
         body, mode, progress, lucy_visible=True)
 
 

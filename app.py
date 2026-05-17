@@ -211,6 +211,10 @@ def _shrink_image_for_anthropic(raw_bytes: bytes, mime: str):
         return raw_bytes, mime
 
 from config import HOST, PORT, ROADMAP_STATUSES, WEEKDAYS
+from render_frol_wizard import (
+    s12_persist_kept_to_activities as _s12_persist_kept_to_activities,
+    advance_section as _frol_advance_section,
+)
 from data_helpers import (
     safe_int, clean_text, clean_child, clean_weekday, clean_priority,
     lines_to_list, sort_school_days, is_math_subject, is_math_test_text,
@@ -7022,6 +7026,116 @@ class Handler(BaseHTTPRequestHandler):
                 except Exception: _step_int = 0
                 try: _section_int = int(_section)
                 except Exception: _section_int = 0
+                # §12 Build Your Day — AI two-pass actions (answer / regenerate
+                # / remove / restore / move / save_continue). Each branch
+                # early-returns to keep dispatch simple.
+                if _act == "s12_answer":
+                    _qidx = (data.get("q_idx",[""])[0] or "").strip()
+                    _val  = (data.get("value",[""])[0] or "").strip()
+                    _p = load_progress()
+                    if _mode and not _p.get("mode"): _p["mode"] = _mode
+                    _b = _p.setdefault("data", {}).setdefault("section_12", {})
+                    _ans = _b.get("answers")
+                    if not isinstance(_ans, dict):
+                        _ans = {}
+                        _b["answers"] = _ans
+                    _ans[str(_qidx)] = _val
+                    save_progress(_p)
+                    self.send_response(302)
+                    self.send_header("Location", f"/frol-wizard?step=12&mode={_mode}")
+                    self.end_headers()
+                    return
+                if _act == "s12_regenerate":
+                    _p = load_progress()
+                    if _mode and not _p.get("mode"): _p["mode"] = _mode
+                    _b = _p.setdefault("data", {}).setdefault("section_12", {})
+                    for _k in ("questions", "answers", "schedule"):
+                        if _k in _b:
+                            _b.pop(_k, None)
+                    save_progress(_p)
+                    self.send_response(302)
+                    self.send_header("Location", f"/frol-wizard?step=12&mode={_mode}")
+                    self.end_headers()
+                    return
+                if _act in ("s12_remove", "s12_restore"):
+                    _sidx = (data.get("slot_idx",[""])[0] or "").strip()
+                    try: _si = int(_sidx)
+                    except Exception: _si = -1
+                    _p = load_progress()
+                    _b = _p.setdefault("data", {}).setdefault("section_12", {})
+                    _sch = _b.get("schedule")
+                    if (isinstance(_sch, list) and 0 <= _si < len(_sch)
+                            and isinstance(_sch[_si], dict)):
+                        _sch[_si]["keep"] = (_act == "s12_restore")
+                        save_progress(_p)
+                    self.send_response(302)
+                    self.send_header("Location", f"/frol-wizard?step=12&mode={_mode}")
+                    self.end_headers()
+                    return
+                if _act == "s12_move":
+                    _sidx = (data.get("slot_idx",[""])[0] or "").strip()
+                    _new  = (data.get("new_time",[""])[0] or "").strip()
+                    try: _si = int(_sidx)
+                    except Exception: _si = -1
+                    _norm = ""
+                    if _new and ":" in _new:
+                        try:
+                            _hh, _mm = _new.split(":", 1)
+                            _hh = int(_hh); _mm = int(_mm)
+                            if 0 <= _hh < 24 and 0 <= _mm < 60:
+                                _norm = f"{_hh:02d}:{_mm:02d}"
+                        except Exception:
+                            _norm = ""
+                    if _norm:
+                        _p = load_progress()
+                        _b = _p.setdefault("data", {}).setdefault("section_12", {})
+                        _sch = _b.get("schedule")
+                        if (isinstance(_sch, list) and 0 <= _si < len(_sch)
+                                and isinstance(_sch[_si], dict)):
+                            _sch[_si]["time"] = _norm
+                            _sch.sort(key=lambda _x: _x.get("time", "") if isinstance(_x, dict) else "")
+                            save_progress(_p)
+                    self.send_response(302)
+                    self.send_header("Location", f"/frol-wizard?step=12&mode={_mode}")
+                    self.end_headers()
+                    return
+                if _act == "s12_save_continue":
+                    _p = load_progress()
+                    _wrote = -1
+                    try:
+                        _wrote = _s12_persist_kept_to_activities(_p)
+                    except Exception:
+                        _wrote = -1
+                    if _wrote < 0:
+                        # Persist failed — stamp an error flag in section_12
+                        # and bounce back to §12 (do NOT advance).
+                        _p2 = load_progress()
+                        _b2 = _p2.setdefault("data", {}).setdefault("section_12", {})
+                        _b2["save_error"] = "Could not write frol_activities.json"
+                        save_progress(_p2)
+                        self.send_response(302)
+                        self.send_header("Location", f"/frol-wizard?step=12&mode={_mode}")
+                        self.end_headers()
+                        return
+                    _advanced = False
+                    try:
+                        _frol_advance_section(12, mode=_mode)
+                        _advanced = True
+                    except Exception:
+                        _advanced = False
+                    self.send_response(302)
+                    if _advanced:
+                        # Clear any stale save_error on success
+                        _p3 = load_progress()
+                        _b3 = _p3.setdefault("data", {}).setdefault("section_12", {})
+                        if "save_error" in _b3:
+                            _b3.pop("save_error", None)
+                            save_progress(_p3)
+                        self.send_header("Location", f"/frol-wizard?step=13&mode={_mode}")
+                    else:
+                        self.send_header("Location", f"/frol-wizard?step=12&mode={_mode}")
+                    self.end_headers()
+                    return
                 # V2 actions: save_field_v2 / advance_v2. Mirror the legacy
                 # save_field/advance branches but write to section_N keys.
                 if _act == "save_field_v2":

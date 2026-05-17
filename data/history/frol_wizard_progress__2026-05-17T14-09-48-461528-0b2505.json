@@ -397,7 +397,7 @@
         "Liturgical New Year (Nov)"
       ],
       "transition_buffer_min": "5",
-      "weekly_reset": "Sunday afternoon: review school week, PODs, calendar, cue up music, pull rea"
+      "weekly_reset": "Sunday afternoon: review school week, PODs, calendar, cue up music, pull read aloud books for boys to read to Michael, family read aloud "
     },
     "section_11": {
       "per_person_filter": "",
@@ -935,11 +935,12 @@
     },
     "section_12": {
       "weekend_view": "no",
-      "per_person_filter": ""
+      "per_person_filter": "",
+      "current_day": "Tuesday"
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-17T09:48:09",
+  "updated_at": "2026-05-17T09:49:40",
   "finalized_at": "",
   "_v1_completed_steps": [
     1,
