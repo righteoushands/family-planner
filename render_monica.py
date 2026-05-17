@@ -240,6 +240,44 @@ def build_monica_context(iso: str, weekday: str, date_label: str) -> str:
 # Page renderer
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _render_grooming_reminders(iso: str) -> str:
+    """Surface due grooming chores (haircuts, nail trims, shoe-size, dental,
+    eye exams) on Monica's page. Honors notification_prefs.channels —
+    when channels is set and explicitly excludes 'dashboard' the card is
+    suppressed; otherwise shown (default-on)."""
+    try:
+        from data_helpers import get_due_grooming, load_app_settings
+        prefs = (load_app_settings() or {}).get("notification_prefs") or {}
+        chans = prefs.get("channels")
+        if isinstance(chans, list) and chans and "dashboard" not in chans:
+            return ""
+        due = get_due_grooming(iso) or []
+    except Exception:
+        return ""
+    if not due:
+        return ""
+    rows = []
+    for d in due:
+        item = d.get("item") or {}
+        text = item.get("text") if isinstance(item, dict) else str(item)
+        person = d.get("person", "")
+        bucket = d.get("bucket", "")
+        rows.append(
+            f'<li style="margin:4px 0;font-size:0.88em;">'
+            f'<strong style="color:#8b3a5c;">{escape(person)}</strong> '
+            f'&middot; {escape(text or "")} '
+            f'<span style="color:#a88;font-size:0.82em;">({escape(bucket)})</span></li>'
+        )
+    return (
+        '<div style="background:#fff;border:1px solid #e0b8cc;border-left:4px solid #8b3a5c;'
+        'border-radius:10px;padding:12px 16px;margin:0 0 16px;">'
+        '<div style="font-weight:700;color:#8b3a5c;font-size:0.86em;text-transform:uppercase;'
+        'letter-spacing:0.05em;margin-bottom:6px;">&#9986; Grooming reminders &mdash; due today</div>'
+        f'<ul style="margin:0;padding-left:20px;color:#5a3a48;">{"".join(rows)}</ul>'
+        '</div>'
+    )
+
+
 def render_monica_page(q: str = "", from_: str = "") -> str:
     today      = _today_eastern()
     iso        = today.isoformat()
@@ -385,6 +423,8 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
         &#9432; Dr. Monica shares evidence-based information as a knowledgeable friend, not as your child's physician.
         Always consult your real pediatrician for diagnosis and treatment decisions.
     </div>
+
+    {_render_grooming_reminders(iso)}
 
     <!-- Quick prompts -->
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;">

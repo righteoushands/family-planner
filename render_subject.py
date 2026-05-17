@@ -733,17 +733,196 @@ def _render_grades_tab(child: str, subject: str, by_week: dict,
     return upload_form + manual_form + cards_section
 
 
+def _hour_tracking_enabled(child: str, subject: str) -> bool:
+    """A subject is hour-tracked when its key already exists under the
+    person in data/hour_tracking.json — Phase 4 finalize seeded these."""
+    try:
+        from data_helpers import load_hour_tracking
+        ht = load_hour_tracking() or {}
+        return subject in (ht.get(child) or {})
+    except Exception:
+        return False
+
+
+def _render_hours_tab(child: str, subject: str) -> str:
+    """JP hour-log tab: quick-log form, running totals by category, and a
+    full log list with edit + delete. Each row has data attributes the
+    POST handlers in app.py use."""
+    from data_helpers import load_hour_tracking, get_hour_totals
+    from datetime import date as _date
+    ht = load_hour_tracking() or {}
+    s = ((ht.get(child) or {}).get(subject) or {})
+    logs = list(s.get("logs") or [])
+    cats = list(s.get("categories") or [])
+    totals = get_hour_totals(child, subject) or {"by_category": {}, "total_min": 0}
+    today_iso = _date.today().isoformat()
+
+    cat_opts = '<option value="">— select —</option>' + "".join(
+        f'<option value="{_e(c)}">{_e(c)}</option>' for c in cats
+    )
+
+    # Running totals card
+    totals_rows = ""
+    for cat, mins in sorted(totals["by_category"].items()):
+        hrs = mins / 60.0
+        totals_rows += (
+            f'<tr><td style="padding:4px 8px;">{_e(cat or "Uncategorized")}</td>'
+            f'<td style="padding:4px 8px;text-align:right;font-variant-numeric:tabular-nums;">'
+            f'{mins} min ({hrs:.1f} h)</td></tr>'
+        )
+    grand_h = totals["total_min"] / 60.0
+    totals_html = f"""
+      <div style="background:#fefcf3;border:1px solid #ead9b8;border-radius:10px;padding:12px 16px;margin:14px 0;">
+        <div style="font-weight:700;color:#7d5a1f;font-size:0.86em;text-transform:uppercase;
+                    letter-spacing:0.05em;margin-bottom:6px;">Running totals</div>
+        <table style="width:100%;font-size:0.92em;border-collapse:collapse;">
+          {totals_rows or '<tr><td style="padding:4px 8px;color:#999;">No hours logged yet.</td></tr>'}
+          <tr style="border-top:1px solid #ead9b8;">
+            <td style="padding:6px 8px;font-weight:700;color:#7d5a1f;">Total</td>
+            <td style="padding:6px 8px;text-align:right;font-weight:700;color:#7d5a1f;">
+              {totals['total_min']} min ({grand_h:.1f} h)</td>
+          </tr>
+        </table>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+          <a href="/hour-report?child={_e(child)}&subject={_e(subject)}&period=semester1"
+             style="background:#c89c4a;color:#fff;padding:6px 12px;border-radius:6px;
+                    text-decoration:none;font-size:0.82em;font-weight:700;">Semester 1 report</a>
+          <a href="/hour-report?child={_e(child)}&subject={_e(subject)}&period=semester2"
+             style="background:#c89c4a;color:#fff;padding:6px 12px;border-radius:6px;
+                    text-decoration:none;font-size:0.82em;font-weight:700;">Semester 2 report</a>
+          <a href="/hour-report?child={_e(child)}&subject={_e(subject)}&period=year"
+             style="background:#7d5a1f;color:#fff;padding:6px 12px;border-radius:6px;
+                    text-decoration:none;font-size:0.82em;font-weight:700;">Full-year report</a>
+        </div>
+      </div>
+    """
+
+    # Quick-log form
+    quick_html = f"""
+      <form method="POST" action="/hour-log-add" style="background:#fff;
+            border:1px solid var(--border);border-radius:10px;padding:14px;margin:12px 0;
+            display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:end;">
+        <input type="hidden" name="child" value="{_e(child)}">
+        <input type="hidden" name="subject" value="{_e(subject)}">
+        <div>
+          <label style="display:block;font-size:0.78em;font-weight:700;color:#666;margin-bottom:3px;">
+            Category</label>
+          <select name="category" required style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;">
+            {cat_opts}
+          </select>
+          <input name="category_new" placeholder="…or type a new category"
+                 style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;margin-top:4px;font-size:0.86em;">
+        </div>
+        <div>
+          <label style="display:block;font-size:0.78em;font-weight:700;color:#666;margin-bottom:3px;">
+            Duration (minutes)</label>
+          <input name="duration_min" type="number" min="1" max="600" required value="30"
+                 style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;">
+        </div>
+        <div>
+          <label style="display:block;font-size:0.78em;font-weight:700;color:#666;margin-bottom:3px;">
+            Date</label>
+          <input name="date" type="date" value="{today_iso}"
+                 style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;">
+        </div>
+        <div style="grid-column:1/-1;">
+          <label style="display:block;font-size:0.78em;font-weight:700;color:#666;margin-bottom:3px;">
+            Description (optional)</label>
+          <input name="description" placeholder="What did you work on?"
+                 style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;">
+        </div>
+        <div style="grid-column:1/-1;text-align:right;">
+          <button type="submit" style="background:#33507e;color:#fff;padding:8px 18px;
+                  border:none;border-radius:6px;font-weight:700;cursor:pointer;">
+            Log hours
+          </button>
+        </div>
+      </form>
+    """
+
+    # Log list (reverse chronological)
+    logs_sorted = sorted(logs, key=lambda x: (x.get("date") or ""), reverse=True)
+    log_rows = ""
+    for L in logs_sorted:
+        lid = _e(L.get("id", ""))
+        dat = _e(L.get("date", ""))
+        cat = _e(L.get("category", ""))
+        mins = L.get("duration_min", 0)
+        desc = _e(L.get("description", ""))
+        log_rows += f"""
+          <tr style="border-top:1px solid var(--border-light);">
+            <td style="padding:6px 8px;font-variant-numeric:tabular-nums;font-size:0.88em;">{dat}</td>
+            <td style="padding:6px 8px;font-size:0.88em;">{cat}</td>
+            <td style="padding:6px 8px;text-align:right;font-variant-numeric:tabular-nums;font-size:0.88em;">{mins}</td>
+            <td style="padding:6px 8px;font-size:0.84em;color:#666;">{desc}</td>
+            <td style="padding:6px 8px;text-align:right;white-space:nowrap;">
+              <details style="display:inline-block;text-align:left;">
+                <summary style="cursor:pointer;font-size:0.78em;color:#33507e;">edit</summary>
+                <form method="POST" action="/hour-log-edit"
+                      style="background:#f6f8fc;padding:8px;border-radius:6px;margin-top:4px;
+                             display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:220px;">
+                  <input type="hidden" name="child" value="{_e(child)}">
+                  <input type="hidden" name="subject" value="{_e(subject)}">
+                  <input type="hidden" name="id" value="{lid}">
+                  <input name="date" type="date" value="{dat}" style="padding:4px 6px;font-size:0.84em;">
+                  <input name="duration_min" type="number" value="{mins}" min="1" max="600"
+                         style="padding:4px 6px;font-size:0.84em;">
+                  <input name="category" value="{cat}" style="grid-column:1/-1;padding:4px 6px;font-size:0.84em;">
+                  <input name="description" value="{desc}" style="grid-column:1/-1;padding:4px 6px;font-size:0.84em;">
+                  <button type="submit" style="grid-column:1/-1;background:#33507e;color:#fff;
+                          border:none;padding:4px;border-radius:4px;font-size:0.82em;cursor:pointer;">
+                    Save</button>
+                </form>
+              </details>
+              <form method="POST" action="/hour-log-delete" style="display:inline;"
+                    onsubmit="return confirm('Delete this log entry?');">
+                <input type="hidden" name="child" value="{_e(child)}">
+                <input type="hidden" name="subject" value="{_e(subject)}">
+                <input type="hidden" name="id" value="{lid}">
+                <button type="submit" style="background:none;border:none;color:#c0392b;
+                        font-size:0.78em;cursor:pointer;">delete</button>
+              </form>
+            </td>
+          </tr>
+        """
+
+    logs_html = f"""
+      <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:0;margin:14px 0;overflow:hidden;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr style="background:#f6f8fc;color:#33507e;font-size:0.76em;text-transform:uppercase;letter-spacing:0.04em;">
+            <th style="padding:8px;text-align:left;">Date</th>
+            <th style="padding:8px;text-align:left;">Category</th>
+            <th style="padding:8px;text-align:right;">Min</th>
+            <th style="padding:8px;text-align:left;">Notes</th>
+            <th style="padding:8px;"></th>
+          </tr></thead>
+          <tbody>{log_rows or '<tr><td colspan="5" style="padding:14px;color:#999;text-align:center;">No log entries yet.</td></tr>'}</tbody>
+        </table>
+      </div>
+    """
+    return quick_html + totals_html + logs_html
+
+
 def _render_subject_tabs_html(child: str, subject: str, node: dict,
                               weeks: list, by_week: dict, cur_week: int,
                               viewer_is_admin: bool) -> str:
-    """Wrap the three tab panes in the radio-driven CSS scaffold (D1).
+    """Wrap the tab panes in the radio-driven CSS scaffold (D1).
+    Hours tab appears only when hour-tracking is enabled for this child+subject.
 
-    LAYOUT CONTRACT (do not reorder): the three radio inputs MUST appear
+    LAYOUT CONTRACT (do not reorder): the radio inputs MUST appear
     as older siblings of `.subj-panes` for the `~` general-sibling
     selector to match the right pane."""
     asg_html = _render_assignments_tab(child, subject, weeks, cur_week)
     res_html = _render_resources_tab(child, subject, node, viewer_is_admin)
     gra_html = _render_grades_tab(child, subject, by_week, cur_week, viewer_is_admin)
+    show_hours = _hour_tracking_enabled(child, subject)
+    hours_html = _render_hours_tab(child, subject) if show_hours else ""
+    hours_radio = ('<input type="radio" name="subj-tab" id="subj-tab-hrs" class="subj-tab-radio">'
+                   if show_hours else "")
+    hours_label = ('<label class="subj-tab-label" for="subj-tab-hrs">&#9201; Hours</label>'
+                   if show_hours else "")
+    hours_pane = (f'<div class="subj-pane" data-pane="hrs">{hours_html}</div>'
+                  if show_hours else "")
     style = (
         '<style>'
         '.subj-tab-radio{position:absolute;left:-9999px;}'
@@ -755,11 +934,13 @@ def _render_subject_tabs_html(child: str, subject: str, node: dict,
         '.subj-pane{display:none;}'
         '#subj-tab-asg:checked ~ .subj-tabs label[for="subj-tab-asg"],'
         '#subj-tab-res:checked ~ .subj-tabs label[for="subj-tab-res"],'
-        '#subj-tab-gra:checked ~ .subj-tabs label[for="subj-tab-gra"]'
+        '#subj-tab-gra:checked ~ .subj-tabs label[for="subj-tab-gra"],'
+        '#subj-tab-hrs:checked ~ .subj-tabs label[for="subj-tab-hrs"]'
         '{background:#fef9e8;border-color:var(--gold);color:var(--ink);}'
         '#subj-tab-asg:checked ~ .subj-panes .subj-pane[data-pane="asg"],'
         '#subj-tab-res:checked ~ .subj-panes .subj-pane[data-pane="res"],'
-        '#subj-tab-gra:checked ~ .subj-panes .subj-pane[data-pane="gra"]'
+        '#subj-tab-gra:checked ~ .subj-panes .subj-pane[data-pane="gra"],'
+        '#subj-tab-hrs:checked ~ .subj-panes .subj-pane[data-pane="hrs"]'
         '{display:block;}'
         '</style>'
     )
@@ -768,17 +949,107 @@ def _render_subject_tabs_html(child: str, subject: str, node: dict,
         '<input type="radio" name="subj-tab" id="subj-tab-asg" class="subj-tab-radio" checked>'
         '<input type="radio" name="subj-tab" id="subj-tab-res" class="subj-tab-radio">'
         '<input type="radio" name="subj-tab" id="subj-tab-gra" class="subj-tab-radio">'
+        + hours_radio +
         '<div class="subj-tabs">'
         '<label class="subj-tab-label" for="subj-tab-asg">&#128218; Assignments</label>'
         '<label class="subj-tab-label" for="subj-tab-res">&#128279; Resources</label>'
         '<label class="subj-tab-label" for="subj-tab-gra">&#128211; Grades</label>'
+        + hours_label +
         '</div>'
         '<div class="subj-panes">'
         f'<div class="subj-pane" data-pane="asg">{asg_html}</div>'
         f'<div class="subj-pane" data-pane="res">{res_html}</div>'
         f'<div class="subj-pane" data-pane="gra">{gra_html}</div>'
+        + hours_pane +
         '</div>'
     )
+
+
+def render_hour_report(child: str, subject: str, period: str = "year") -> str:
+    """Printable hour report page (browser Print → Save as PDF satisfies the
+    'saved into the data tree' contract via snapshot dump). period ∈
+    {'semester1', 'semester2', 'year'}."""
+    from data_helpers import load_hour_tracking, save_hour_report_snapshot
+    from datetime import date as _date
+    ht = load_hour_tracking() or {}
+    s = ((ht.get(child) or {}).get(subject) or {})
+    logs = list(s.get("logs") or [])
+    today = _date.today()
+    # Academic year: Sem 1 = Aug 1 – Dec 31 of current year (or prior if
+    # before Aug); Sem 2 = Jan 1 – May 31.
+    year = today.year if today.month >= 8 else today.year - 1
+    s1_start = _date(year, 8, 1);     s1_end = _date(year, 12, 31)
+    s2_start = _date(year + 1, 1, 1); s2_end = _date(year + 1, 5, 31)
+    if period == "semester1":
+        start, end, label = s1_start, s1_end, f"Semester 1 ({year}-{year+1})"
+    elif period == "semester2":
+        start, end, label = s2_start, s2_end, f"Semester 2 ({year}-{year+1})"
+    else:
+        start, end, label = s1_start, s2_end, f"Full year ({year}-{year+1})"
+    def _in_range(L):
+        d = (L.get("date") or "")
+        try:
+            return start.isoformat() <= d <= end.isoformat()
+        except Exception:
+            return False
+    filtered = [L for L in logs if _in_range(L)]
+    filtered.sort(key=lambda x: (x.get("date") or ""))
+    by_cat = {}
+    total = 0
+    for L in filtered:
+        c = L.get("category") or "Uncategorized"
+        try: m = int(L.get("duration_min") or 0)
+        except Exception: m = 0
+        by_cat[c] = by_cat.get(c, 0) + m
+        total += m
+
+    # Snapshot to data/hour_reports for "saved into the data tree" — all I/O
+    # routed through the data_helpers boundary.
+    save_hour_report_snapshot(child, subject, period, by_cat, total, filtered)
+
+    cat_rows = "".join(
+        f'<tr><td>{_e(c)}</td><td style="text-align:right;">{m} min ({m/60:.1f} h)</td></tr>'
+        for c, m in sorted(by_cat.items())
+    ) or '<tr><td colspan="2" style="text-align:center;color:#999;">No hours in this period.</td></tr>'
+    log_rows = "".join(
+        f'<tr><td>{_e(L.get("date",""))}</td><td>{_e(L.get("category",""))}</td>'
+        f'<td style="text-align:right;">{L.get("duration_min",0)}</td>'
+        f'<td>{_e(L.get("description",""))}</td></tr>'
+        for L in filtered
+    ) or '<tr><td colspan="4" style="text-align:center;color:#999;">No logs.</td></tr>'
+
+    body = f"""
+      <h1 style="margin:0;">Hour Report</h1>
+      <h2 style="font-weight:400;margin:4px 0 18px;color:#555;">
+        {_e(child)} &middot; {_e(subject)} &middot; {_e(label)}
+      </h2>
+      <div style="background:#fefcf3;border:1px solid #ead9b8;border-radius:8px;padding:14px;margin:10px 0 18px;">
+        <div style="font-weight:700;color:#7d5a1f;margin-bottom:6px;">Totals by category</div>
+        <table style="width:100%;border-collapse:collapse;font-size:0.92em;">
+          <tbody>{cat_rows}
+            <tr style="border-top:2px solid #ead9b8;font-weight:700;">
+              <td>Total</td><td style="text-align:right;">{total} min ({total/60:.1f} h)</td>
+            </tr></tbody>
+        </table>
+      </div>
+      <h3>Full log</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:0.88em;">
+        <thead><tr style="background:#f6f8fc;color:#33507e;">
+          <th style="padding:6px 8px;text-align:left;">Date</th>
+          <th style="padding:6px 8px;text-align:left;">Category</th>
+          <th style="padding:6px 8px;text-align:right;">Min</th>
+          <th style="padding:6px 8px;text-align:left;">Description</th>
+        </tr></thead>
+        <tbody>{log_rows}</tbody>
+      </table>
+      <div style="margin-top:24px;text-align:center;">
+        <button onclick="window.print()" style="background:#33507e;color:#fff;border:none;
+                padding:10px 22px;border-radius:6px;font-weight:700;cursor:pointer;">
+          Print / Save as PDF</button>
+        <a href="/student/{_e(child)}" style="margin-left:14px;color:#33507e;">← Back to student</a>
+      </div>
+    """
+    return html_page(f"Hour Report · {child} · {subject}", body)
 
 
 

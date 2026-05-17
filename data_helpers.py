@@ -669,6 +669,32 @@ def add_hour_log(person: str, subject: str, category: str,
     return entry
 
 
+def save_hour_report_snapshot(child: str, subject: str, period: str,
+                              by_category: dict, total_min: int,
+                              logs: list) -> str:
+    """Persist an hour-report snapshot under HOUR_REPORTS_DIR. Returns the
+    written path (or "" on failure). All hour-report I/O goes through here
+    so render_subject doesn't touch the filesystem directly."""
+    import os, json as _json
+    from datetime import datetime as _dt
+    from config import HOUR_REPORTS_DIR
+    try:
+        os.makedirs(HOUR_REPORTS_DIR, exist_ok=True)
+        stamp = _dt.now().strftime("%Y%m%d_%H%M%S")
+        path = f"{HOUR_REPORTS_DIR}/{child}_{subject}_{period}_{stamp}.json"
+        payload = {
+            "child": child, "subject": subject, "period": period,
+            "generated_at": _dt.now().isoformat(timespec="seconds"),
+            "by_category": by_category, "total_min": total_min,
+            "logs": logs,
+        }
+        with open(path, "w", encoding="utf-8") as f:
+            _json.dump(payload, f, indent=2)
+        return path
+    except Exception:
+        return ""
+
+
 def get_hour_totals(person: str, subject: str) -> dict:
     """Return totals + categories for a given person/subject:
     {by_category: {cat: minutes}, total_min: int, categories: [str]}."""

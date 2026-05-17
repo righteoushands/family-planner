@@ -1821,6 +1821,39 @@ def _render_daily_mass_link(today_d: date = None, block: str = "") -> str:
 # Page assembly
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _render_seven_commitments_card() -> str:
+    """Small collapsible reminder card with Dominick's seven commitments
+    and attribution. Gentle nudge — not a checklist."""
+    try:
+        from render_frol_wizard import SEVEN_COMMITMENTS as _seven
+    except Exception:
+        _seven = []
+    if not _seven:
+        return ""
+    items = "".join(
+        f'<li style="margin:3px 0;">{escape(c)}</li>' for c in _seven
+    )
+    return (
+        '<details style="background:#fbf7ef;border:1px solid #ead9b8;'
+        'border-left:4px solid #c89c4a;border-radius:12px;padding:10px 16px;'
+        'margin:0 0 14px;">'
+        '<summary style="cursor:pointer;font-weight:700;color:#7d5a1f;'
+        'font-size:0.92em;list-style:none;">'
+        '<span style="margin-right:6px;">&#10086;</span>'
+        'Seven commitments &mdash; today\'s gentle reminder'
+        '</summary>'
+        '<ol style="margin:8px 0 4px 22px;padding:0;color:#3f3220;'
+        'font-size:0.88em;line-height:1.5;">'
+        f'{items}'
+        '</ol>'
+        '<div style="margin-top:6px;font-size:0.72em;color:#7d6a4a;'
+        'font-style:italic;text-align:right;">'
+        'Inspired by <em>A Plan for Joy in the Home</em>, Laura Dominick'
+        '</div>'
+        '</details>'
+    )
+
+
 def render_timeblock_homepage(viewer: str = "lauren") -> str:
     now_dt     = _now_eastern()
     today      = now_dt.date()
@@ -1871,6 +1904,7 @@ def render_timeblock_homepage(viewer: str = "lauren") -> str:
         frol_wizard_card = render_frol_setup_card(viewer)
     except Exception:
         frol_wizard_card = ""
+    commitments_card = _render_seven_commitments_card()
     upcoming_card  = _render_upcoming_feast_notice(today)
     prayers_html   = _render_block_prayers(block, now_dt, weekday)
     pope_card      = _render_pope_card(iso) if block == "afternoon" else ""
@@ -1954,6 +1988,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 </div>
 <div class="tb-body">
   {saint_card}
+  {commitments_card}
   {frol_wizard_card}
   {upcoming_card}
   {prayers_html}

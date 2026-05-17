@@ -2629,6 +2629,29 @@ def render_landing(progress: dict) -> str:
       </div>
     """
 
+    # Resources section — recommended reading that inspires the wizard.
+    resources_html = """
+      <div style="margin:24px auto 0;max-width:620px;text-align:left;">
+        <div style="font-size:0.78em;color:#7d7d7d;text-transform:uppercase;
+                    letter-spacing:0.06em;font-weight:700;margin-bottom:10px;
+                    text-align:center;">
+          Resources
+        </div>
+        <div style="background:#fbf7ef;border:1px solid #ead9b8;border-left:3px solid #c89c4a;
+                    border-radius:10px;padding:12px 14px;">
+          <div style="display:flex;align-items:baseline;gap:8px;">
+            <span style="font-size:1.05em;">&#128218;</span>
+            <span style="font-weight:700;color:#7d5a1f;">A Plan for Joy in the Home</span>
+          </div>
+          <div style="font-size:0.85em;color:#5a4520;margin-top:4px;line-height:1.45;">
+            by Laura Dominick &mdash; the framework that inspired the seven
+            commitments. A gentle, encouraging guide to ordering family life
+            around joy.
+          </div>
+        </div>
+      </div>
+    """
+
     # Seven-commitments cream card (Laura Dominick framing) — appears between
     # the subtitle and the mode buttons on the landing screen.
     commitments_li = "".join(
@@ -2670,6 +2693,7 @@ def render_landing(progress: dict) -> str:
           yours together.
         </p>
         {commitments_card}
+        {resources_html}
         {resume_html}
         <div style="display:flex;gap:14px;justify-content:center;
                     flex-wrap:wrap;margin-top:18px;">

@@ -520,6 +520,20 @@ def _build_mobile_more_sheet_inner(viewer, is_child: bool) -> str:
         </a>
       </div>
 
+      <div style="font-size:0.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+                  color:#9ca3af;margin:14px 0 8px;">Resources</div>
+      <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:4px;">
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;
+                    background:#fbf7ef;border:1px solid #ead9b8;border-left:3px solid #c89c4a;
+                    border-radius:12px;color:#5a4520;font-size:0.88em;line-height:1.4;">
+          <span style="font-size:1.15em;">&#128218;</span>
+          <div>
+            <div style="font-weight:700;color:#7d5a1f;">A Plan for Joy in the Home</div>
+            <div style="font-size:0.86em;margin-top:2px;">by Laura Dominick &mdash; framework behind the seven commitments.</div>
+          </div>
+        </div>
+      </div>
+
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid #f3f4f6;">
         <a href="/logout"
            style="display:flex;align-items:center;justify-content:center;gap:10px;

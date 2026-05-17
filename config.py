@@ -36,6 +36,7 @@ SISTER_MARY_HISTORY_FILE = "data/sister_mary_history.json"
 POPE_INTENTIONS_FILE     = "data/pope_intentions.json"
 FROL_WIZARD_PROGRESS_FILE = "data/frol_wizard_progress.json"
 HOUR_TRACKING_FILE       = "data/hour_tracking.json"
+HOUR_REPORTS_DIR         = "data/hour_reports"
 FROL_ACTIVITIES_FILE     = "data/frol_activities.json"
 
 # ── Validation sets ──────────────────────────────────────────────────────────

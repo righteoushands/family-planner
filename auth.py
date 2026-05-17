@@ -27,7 +27,8 @@ USERS = {
 
 # ── Paths children may GET ────────────────────────────────────────────────────
 _SHARED = frozenset(["/", "/today", "/week", "/meals", "/recipes",
-                     "/chores", "/prayer", "/change-pin", "/subject"])
+                     "/chores", "/prayer", "/change-pin", "/subject",
+                     "/hour-report"])
 
 _UPLOADS = frozenset(["/uploads/grades", "/uploads/grade_docs"])
 
@@ -44,6 +45,7 @@ CHILD_POST_ALLOWED = frozenset([
     "/subject-upload-image",
     "/subject-send-to-mom",
     "/student-message-read",
+    "/hour-log-add", "/hour-log-edit", "/hour-log-delete",
 ])
 
 # ── PIN storage ───────────────────────────────────────────────────────────────

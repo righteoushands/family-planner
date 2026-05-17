@@ -1342,6 +1342,24 @@ class Handler(BaseHTTPRequestHandler):
             try: self.wfile.write(html.encode())
             except BrokenPipeError: pass
             return
+        elif path == "/hour-report":
+            _sv = self._get_viewer()
+            child   = (query.get("child",[""])[0] or "").strip()
+            subject = (query.get("subject",[""])[0] or "").strip()
+            period  = (query.get("period",["year"])[0] or "year").strip()
+            is_admin = bool(_sv and _auth.is_admin(_sv))
+            allowed = is_admin or (_sv and child and _sv.lower() == child.lower())
+            if not allowed:
+                self.send_response(302); self.send_header("Location","/"); self.end_headers(); return
+            from render_subject import render_hour_report
+            html = render_hour_report(child, subject, period)
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
         elif path.startswith("/uploads/recipes/"):
             import mimetypes as _mt
             rel = "data" + path  # actual file lives at data/uploads/recipes/<file>
@@ -6840,6 +6858,64 @@ class Handler(BaseHTTPRequestHandler):
                 from data_helpers import clear_monica_history
                 clear_monica_history()
                 redirect = "/dr-monica"
+
+            elif path == "/hour-log-add":
+                from data_helpers import add_hour_log
+                child   = (data.get("child",[""])[0] or "").strip()
+                subject = (data.get("subject",[""])[0] or "").strip()
+                _hv = self._get_viewer()
+                _hadmin = bool(_hv and _auth.is_admin(_hv))
+                if not (_hadmin or (_hv and child and _hv.lower() == child.lower())):
+                    self.send_response(403); self.end_headers(); return
+                cat_new = (data.get("category_new",[""])[0] or "").strip()
+                category = cat_new or (data.get("category",[""])[0] or "").strip()
+                duration = (data.get("duration_min",[""])[0] or "0").strip()
+                description = (data.get("description",[""])[0] or "").strip()
+                date_iso = (data.get("date",[""])[0] or "").strip() or None
+                if child and subject and category:
+                    add_hour_log(child, subject, category, duration, description, date_iso)
+                redirect = f"/subject?child={child}&subject={subject}"
+
+            elif path == "/hour-log-edit":
+                from data_helpers import load_hour_tracking, save_hour_tracking
+                child   = (data.get("child",[""])[0] or "").strip()
+                subject = (data.get("subject",[""])[0] or "").strip()
+                _hv = self._get_viewer()
+                _hadmin = bool(_hv and _auth.is_admin(_hv))
+                if not (_hadmin or (_hv and child and _hv.lower() == child.lower())):
+                    self.send_response(403); self.end_headers(); return
+                eid     = (data.get("id",[""])[0] or "").strip()
+                ht = load_hour_tracking() or {}
+                s = ((ht.get(child) or {}).get(subject) or {})
+                logs = s.get("logs") or []
+                for L in logs:
+                    if L.get("id") == eid:
+                        L["date"] = (data.get("date",[L.get("date","")])[0] or L.get("date",""))
+                        try: L["duration_min"] = int((data.get("duration_min",["0"])[0] or "0"))
+                        except Exception: pass
+                        new_cat = (data.get("category",[L.get("category","")])[0] or "").strip()
+                        L["category"] = new_cat
+                        if new_cat and new_cat not in (s.get("categories") or []):
+                            s.setdefault("categories", []).append(new_cat)
+                        L["description"] = (data.get("description",[""])[0] or "").strip()
+                        break
+                save_hour_tracking(ht)
+                redirect = f"/subject?child={child}&subject={subject}"
+
+            elif path == "/hour-log-delete":
+                from data_helpers import load_hour_tracking, save_hour_tracking
+                child   = (data.get("child",[""])[0] or "").strip()
+                subject = (data.get("subject",[""])[0] or "").strip()
+                _hv = self._get_viewer()
+                _hadmin = bool(_hv and _auth.is_admin(_hv))
+                if not (_hadmin or (_hv and child and _hv.lower() == child.lower())):
+                    self.send_response(403); self.end_headers(); return
+                eid     = (data.get("id",[""])[0] or "").strip()
+                ht = load_hour_tracking() or {}
+                s = ((ht.get(child) or {}).get(subject) or {})
+                s["logs"] = [L for L in (s.get("logs") or []) if L.get("id") != eid]
+                save_hour_tracking(ht)
+                redirect = f"/subject?child={child}&subject={subject}"
 
             elif path == "/sister-mary-chat":
                 import json as _json, urllib.request as _req
