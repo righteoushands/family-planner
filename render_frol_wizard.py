@@ -106,19 +106,21 @@ def load_progress() -> dict:
     base.update(data if isinstance(data, dict) else {})
     # One-time renumber migration: when §11 duration picker was inserted,
     # old §11 (Build Your Day) shifted to §12 and old §13 (AI Review) to §14.
-    # If pre-migration buckets exist and new ones are empty, copy them over
-    # so in-progress wizards don't lose work. Old buckets are left in place
-    # for safety; the §11 duration picker writes its own keys (durations__/
-    # custom__) which never collide with the old Build-Your-Day shape.
+    # Only scalar settings are carried over. placements_* keys are NOT
+    # migrated — the legacy list-shaped placement data is incompatible with
+    # the renderer (which expects a dict keyed by HHMM slot), and the new
+    # AI-generated schedule replaces the old manual placement approach.
     _pdata = base.get("data") or {}
     if isinstance(_pdata, dict):
         _old11 = _pdata.get("section_11") or {}
         _new12 = _pdata.get("section_12") or {}
-        if (isinstance(_old11, dict) and not _new12 and any(
-                k == "current_day" or k == "weekend_view"
-                or k == "per_person_filter" or k.startswith("placements_")
-                for k in _old11.keys())):
-            _pdata["section_12"] = dict(_old11)
+        if isinstance(_old11, dict) and not _new12:
+            _carry12 = {}
+            for _k in ("current_day", "weekend_view", "per_person_filter"):
+                if _k in _old11:
+                    _carry12[_k] = _old11[_k]
+            if _carry12:
+                _pdata["section_12"] = _carry12
         _old13 = _pdata.get("section_13") or {}
         _new14 = _pdata.get("section_14") or {}
         if (isinstance(_old13, dict) and not _new14 and any(
