@@ -917,11 +917,17 @@
           "person": "JP"
         }
       ],
-      "weekend_view": "no"
+      "weekend_view": "no",
+      "durations__rosary": "30",
+      "durations__morning_offering": "60"
+    },
+    "section_12": {
+      "weekend_view": "no",
+      "per_person_filter": ""
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-17T07:49:20",
+  "updated_at": "2026-05-17T09:01:07",
   "finalized_at": "",
   "_v1_completed_steps": [
     1,

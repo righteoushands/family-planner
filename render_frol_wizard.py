@@ -121,6 +121,17 @@ def load_progress() -> dict:
                     _carry12[_k] = _old11[_k]
             if _carry12:
                 _pdata["section_12"] = _carry12
+        # Defensive normalization: a previous buggy migration may have left
+        # section_12 with list-shaped placements_* values that crash the
+        # renderer. Coerce any non-dict section_12 to {} and drop any
+        # placements_* key whose value isn't a dict.
+        _s12 = _pdata.get("section_12")
+        if not isinstance(_s12, dict):
+            _pdata["section_12"] = {}
+        else:
+            for _k in list(_s12.keys()):
+                if _k.startswith("placements_") and not isinstance(_s12[_k], dict):
+                    del _s12[_k]
         _old13 = _pdata.get("section_13") or {}
         _new14 = _pdata.get("section_14") or {}
         if (isinstance(_old13, dict) and not _new14 and any(
@@ -2058,17 +2069,17 @@ def render_section_11(progress: dict, mode: str) -> str:
                 is_sel = (str(choice) == current)
                 chip_bg = "#4a6fa5" if is_sel else "#fff"
                 chip_fg = "#fff" if is_sel else "#33507e"
-                checked = "checked" if is_sel else ""
+                active_attr = ' data-active="1"' if is_sel else ""
                 chip_html += (
-                    f'<label style="display:inline-flex;align-items:center;'
-                    f'background:{chip_bg};color:{chip_fg};'
+                    f'<button type="button" class="frol-dur-chip"'
+                    f' data-slug="{escape(slug, quote=True)}"'
+                    f' data-value="{choice}"{active_attr}'
+                    f' onclick="frolDurationPick(this)"'
+                    f' style="background:{chip_bg};color:{chip_fg};'
                     f'border:1px solid #4a6fa555;border-radius:14px;'
                     f'padding:4px 10px;margin:2px;font-size:0.82em;'
-                    f'font-weight:700;cursor:pointer;">'
-                    f'<input type="radio" name="dur_{escape(slug, quote=True)}" '
-                    f'data-step="11" data-key="durations__{escape(slug, quote=True)}" '
-                    f'value="{choice}" {checked} style="display:none;">'
-                    f'{choice}m</label>'
+                    f'font-weight:700;cursor:pointer;font-family:inherit;">'
+                    f'{choice}m</button>'
                 )
             rows += f"""
               <div style="background:#fff;border:1px solid #d8e1ef;
@@ -2077,6 +2088,9 @@ def render_section_11(progress: dict, mode: str) -> str:
                 <div style="font-weight:700;color:#33507e;margin-bottom:6px;">{escape(label)}</div>
                 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:2px;">
                   {chip_html}
+                  <input type="hidden" data-step="11"
+                         data-key="durations__{escape(slug, quote=True)}"
+                         value="{escape(current, quote=True)}">
                   <span style="font-size:0.78em;color:#888;margin-left:8px;">or custom:</span>
                   <input class="frol-input" type="text" inputmode="numeric"
                          data-step="11" data-key="custom__{escape(slug, quote=True)}"
@@ -2097,11 +2111,44 @@ def render_section_11(progress: dict, mode: str) -> str:
           </details>
         """
 
+    chip_script = """
+      <script>
+      (function(){
+        if (window.__frolDurationPickReady) return;
+        window.__frolDurationPickReady = true;
+        window.frolDurationPick = function(btn) {
+          var slug = btn.getAttribute('data-slug');
+          var val  = btn.getAttribute('data-value');
+          var parent = btn.parentElement;
+          if (!parent) return;
+          var siblings = parent.querySelectorAll(
+            'button.frol-dur-chip[data-slug="' + slug + '"]'
+          );
+          for (var i = 0; i < siblings.length; i++) {
+            siblings[i].style.background = '#fff';
+            siblings[i].style.color = '#33507e';
+            siblings[i].removeAttribute('data-active');
+          }
+          btn.style.background = '#4a6fa5';
+          btn.style.color = '#fff';
+          btn.setAttribute('data-active', '1');
+          var hidden = parent.querySelector(
+            'input[type=hidden][data-step="11"][data-key="durations__' + slug + '"]'
+          );
+          if (hidden) {
+            hidden.value = val;
+            hidden.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        };
+      })();
+      </script>
+    """
     body = f"""
       {refl}
       {cards_html}
       <p class="frol-help">Durations save as you tap. §12 Build Your Day will
         use these to size each block on the timeline.</p>
+      {chip_script}
     """
     return _section_chrome(11, "How Long Does Each Activity Take?",
         "One card per activity. Pick a realistic duration.",
@@ -2115,12 +2162,16 @@ def render_section_12(progress: dict, mode: str) -> str:
     field for shadow activities. Gray buffer slots auto-suggested at the
     transition-buffer interval from §10."""
     sec12 = (progress.get("data", {}) or {}).get("section_12", {}) or {}
+    if not isinstance(sec12, dict):
+        sec12 = {}
     cur_day = sec12.get("current_day") or "Monday"
     if cur_day not in _TIMELINE_DAYS:
         cur_day = "Monday"
     weekend_view = sec12.get("weekend_view", "") == "yes"
     per_person = (sec12.get("per_person_filter") or "").strip()
     placements = sec12.get(f"placements_{cur_day}") or {}
+    if not isinstance(placements, dict):
+        placements = {}
     buffer_min = int((progress.get("data", {}) or {}).get("section_10", {}).get("transition_buffer_min") or 10)
 
     members = _v2_members(progress)
