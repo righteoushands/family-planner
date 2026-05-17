@@ -1032,6 +1032,29 @@ def build_task_texts_for_day(child: str, weekday: str, iso: str):
     chore_tasks = list(weekday_chores_for_child(child, weekday))
     manual_tasks = get_manual_tasks_for_child_and_date(child, iso)
 
+    # Phase 2: append date-triggered chores from the new monthly/seasonal/
+    # annual buckets (de-duplicated against what's already present from the
+    # legacy daily+weekly path). Lauren stores under "lauren"; boys under
+    # their name. Dr. Monica's grooming dicts are normalized to their text.
+    try:
+        from data_helpers import get_chores_due_today as _due_today
+        _lookup = "Lauren" if child in ("Mom", "Lauren") else child
+        _existing = {(t.strip().lower()) for t in chore_tasks if isinstance(t, str)}
+        for _extra in _due_today(_lookup, iso) or []:
+            if isinstance(_extra, dict):
+                _txt = (_extra.get("text") or "").strip()
+            else:
+                _txt = str(_extra).strip()
+            if not _txt:
+                continue
+            _k = _txt.lower()
+            if _k in _existing:
+                continue
+            chore_tasks.append(_txt)
+            _existing.add(_k)
+    except Exception:
+        pass
+
     # Append meal helper role if the meal plan has one for this child today
     meal_helper = get_meal_helper_task_for_child(child, weekday, iso)
     if meal_helper:

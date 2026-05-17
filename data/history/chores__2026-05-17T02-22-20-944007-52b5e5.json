@@ -58,6 +58,32 @@
           "Prepare Mass clothes (with Mom approval)"
         ],
         "Sunday": []
+      },
+      "monthly": {
+        "week_1": [],
+        "week_2": [],
+        "week_3": [],
+        "week_4": []
+      },
+      "seasonal": {
+        "fall": [],
+        "winter": [],
+        "spring": [],
+        "summer": []
+      },
+      "annual": {
+        "january": [],
+        "february": [],
+        "march": [],
+        "april": [],
+        "may": [],
+        "june": [],
+        "july": [],
+        "august": [],
+        "september": [],
+        "october": [],
+        "november": [],
+        "december": []
       }
     },
     "Joseph": {
@@ -87,6 +113,7 @@
           "Clean kids bathroom"
         ],
         "Wednesday": [
+          "Tidy and vacuum your basement zone. ",
           "Switch basement zone (toy floor)",
           "LAUNDRY — Joseph's own laundry (may be multiple loads)",
           "  → Towels go to downstairs hamper first",
@@ -98,23 +125,51 @@
         ],
         "Thursday": [
           "Tidy garage (10 min)",
-          "Collect trash"
+          "Collect trash from the diaper pails, kid’s bathroom and parent’s bathroom. ",
+          "Check all over for recycling “piles” by the door to the garage or in the garage. ",
+          "Bring recycling can down to the street. "
         ],
         "Friday": [
-          "Bring back recycling",
+          "Bring back recycling can",
           "LAUNDRY — Assist Michael with his laundry",
           "  → Start load after breakfast kitchen jobs",
           "  → Switch load before lunch",
           "  → Bring upstairs after lunch",
           "  → Family fold block (audiobook/read-aloud)",
           "  → Put away completely before evening",
-          "Tidy-up the deck "
+          "Tidy-up the deck + spray and wipe the tables. "
         ],
         "Saturday": [
           "Weekly room clean (~90 min): full clean, vacuum, laundry check",
           "Prepare Mass clothes (with Mom approval)"
         ],
         "Sunday": []
+      },
+      "monthly": {
+        "week_1": [],
+        "week_2": [],
+        "week_3": [],
+        "week_4": []
+      },
+      "seasonal": {
+        "fall": [],
+        "winter": [],
+        "spring": [],
+        "summer": []
+      },
+      "annual": {
+        "january": [],
+        "february": [],
+        "march": [],
+        "april": [],
+        "may": [],
+        "june": [],
+        "july": [],
+        "august": [],
+        "september": [],
+        "october": [],
+        "november": [],
+        "december": []
       }
     },
     "Michael": {
@@ -143,6 +198,32 @@
           "Prepare Mass clothes"
         ],
         "Sunday": []
+      },
+      "monthly": {
+        "week_1": [],
+        "week_2": [],
+        "week_3": [],
+        "week_4": []
+      },
+      "seasonal": {
+        "fall": [],
+        "winter": [],
+        "spring": [],
+        "summer": []
+      },
+      "annual": {
+        "january": [],
+        "february": [],
+        "march": [],
+        "april": [],
+        "may": [],
+        "june": [],
+        "july": [],
+        "august": [],
+        "september": [],
+        "october": [],
+        "november": [],
+        "december": []
       }
     },
     "James": {
@@ -155,6 +236,32 @@
         "Friday": [],
         "Saturday": [],
         "Sunday": []
+      },
+      "monthly": {
+        "week_1": [],
+        "week_2": [],
+        "week_3": [],
+        "week_4": []
+      },
+      "seasonal": {
+        "fall": [],
+        "winter": [],
+        "spring": [],
+        "summer": []
+      },
+      "annual": {
+        "january": [],
+        "february": [],
+        "march": [],
+        "april": [],
+        "may": [],
+        "june": [],
+        "july": [],
+        "august": [],
+        "september": [],
+        "october": [],
+        "november": [],
+        "december": []
       }
     }
   },
@@ -190,6 +297,32 @@
         "Tidy my room"
       ],
       "Sunday": []
+    },
+    "monthly": {
+      "week_1": [],
+      "week_2": [],
+      "week_3": [],
+      "week_4": []
+    },
+    "seasonal": {
+      "fall": [],
+      "winter": [],
+      "spring": [],
+      "summer": []
+    },
+    "annual": {
+      "january": [],
+      "february": [],
+      "march": [],
+      "april": [],
+      "may": [],
+      "june": [],
+      "july": [],
+      "august": [],
+      "september": [],
+      "october": [],
+      "november": [],
+      "december": []
     }
   }
 }

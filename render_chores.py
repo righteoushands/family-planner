@@ -9,6 +9,85 @@ from config import child_color, WEEKDAYS, VAN_ROLE_A, VAN_ROLE_B
 from data_helpers import load_chores_data, save_chores_data
 from ui_helpers import html_page, page_header, render_status_message
 
+# ── Extended chore bucket constants (Phase 1 schema) ────────────────────────
+_MONTHLY_WEEKS = [("week_1", "Week 1"), ("week_2", "Week 2"),
+                  ("week_3", "Week 3"), ("week_4", "Week 4")]
+_SEASONS       = [("fall", "Fall"), ("winter", "Winter"),
+                  ("spring", "Spring"), ("summer", "Summer")]
+_ANNUAL_MONTHS = [("january", "January"), ("february", "February"),
+                  ("march", "March"),     ("april", "April"),
+                  ("may", "May"),         ("june", "June"),
+                  ("july", "July"),       ("august", "August"),
+                  ("september", "September"), ("october", "October"),
+                  ("november", "November"),  ("december", "December")]
+
+
+def _bucket_lines_to_text(items) -> str:
+    """Render a list of chore entries (strings or dicts) into a textarea body.
+    Dict entries become `[grooming] text` so the admin can re-edit them."""
+    out = []
+    for it in (items or []):
+        if isinstance(it, dict):
+            t = (it.get("text") or "").strip()
+            if not t:
+                continue
+            if it.get("is_grooming"):
+                out.append(f"[grooming] {t}")
+            else:
+                out.append(t)
+        else:
+            s = str(it).strip()
+            if s:
+                out.append(s)
+    return "\n".join(out)
+
+
+def _render_extra_chore_buckets(name: str, person_data: dict, accent: str) -> str:
+    """Collapsible Monthly / Seasonal / Annual blocks for one person.
+    Field names mirror the existing daily__/weekly__ convention:
+      monthly__{name}__week_N
+      seasonal__{name}__{season}
+      annual__{name}__{month}
+    """
+    monthly  = person_data.get("monthly")  or {}
+    seasonal = person_data.get("seasonal") or {}
+    annual   = person_data.get("annual")   or {}
+
+    def _group(field_prefix: str, label_pairs: list, store: dict,
+               title: str, hint: str) -> str:
+        rows = ""
+        for key, label in label_pairs:
+            value = _bucket_lines_to_text(store.get(key) or [])
+            rows += (
+                f'<label style="font-size:0.85em;">{escape(label)}</label>'
+                f'<textarea name="{field_prefix}__{escape(name)}__{escape(key)}" '
+                f'rows="2">{escape(value)}</textarea>'
+            )
+        return (
+            f'<details style="margin-top:10px;border:1px solid {accent}22;'
+            f'border-radius:8px;padding:8px 12px;background:rgba(255,255,255,0.45);">'
+            f'<summary style="cursor:pointer;font-weight:600;color:{accent};">'
+            f'{escape(title)}</summary>'
+            f'<div style="font-size:0.78em;color:#6b7280;margin:6px 0 8px;font-style:italic;">'
+            f'{escape(hint)}</div>'
+            f'{rows}'
+            f'</details>'
+        )
+
+    return (
+        _group("monthly",  _MONTHLY_WEEKS,  monthly,
+               "Monthly chores",
+               "Surface on the Monday of each week of the month "
+               "(Week 1 = first Monday, Week 2 = second Monday, etc.).")
+        + _group("seasonal", _SEASONS, seasonal,
+                 "Seasonal chores",
+                 "Surface on the first day of each season "
+                 "(Mar 1 spring, Jun 1 summer, Sep 1 fall, Dec 1 winter).")
+        + _group("annual", _ANNUAL_MONTHS, annual,
+                 "Annual chores",
+                 "Surface on the first day of the listed month each year.")
+    )
+
 # ── Canonical chore defaults (from Family Operating System) ──────────────────
 CANONICAL_CHORES = {
     "JP": {
@@ -571,6 +650,7 @@ def render_chores_page(status_message: str = "") -> str:
         lauren_weekday_fields += f"""
             <label>{escape(weekday)}</label>
             <textarea name="weekly__Lauren__{escape(weekday)}" rows="3">{escape(value)}</textarea>"""
+    lauren_extra = _render_extra_chore_buckets("Lauren", lauren_data, l_bg)
     lauren_section = f"""
         <div class="card" style="border-left:5px solid {l_bg};background:{l_light};margin-bottom:16px;">
             <h2 style="color:{l_bg};">Lauren</h2>
@@ -581,6 +661,7 @@ def render_chores_page(status_message: str = "") -> str:
             <textarea name="daily__Lauren" rows="4">{escape(lauren_daily)}</textarea>
             <h3>Weekly chores / tasks</h3>
             {lauren_weekday_fields}
+            {lauren_extra}
         </div>"""
 
     sections = ""
@@ -602,6 +683,7 @@ def render_chores_page(status_message: str = "") -> str:
             <textarea name="weekly__{escape(child)}__{escape(weekday)}" rows="3">{escape(value)}</textarea>"""
         c_bg    = child_color(child, "bg")
         c_light = child_color(child, "light")
+        child_extra = _render_extra_chore_buckets(child, child_data, c_bg)
         sections += f"""
         <div class="card" style="border-left:5px solid {c_bg};background:{c_light};">
             <h2 style="color:{c_bg};">{escape(child)}</h2>
@@ -609,6 +691,7 @@ def render_chores_page(status_message: str = "") -> str:
             <textarea name="daily__{escape(child)}" rows="4">{escape(daily_text)}</textarea>
             <h3>Weekly chores/jobs</h3>
             {weekday_fields}
+            {child_extra}
         </div>"""
 
     roles     = get_van_roles()

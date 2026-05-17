@@ -4311,6 +4311,37 @@ class Handler(BaseHTTPRequestHandler):
                 _is_ajax = data.get("_ajax",[""])[0] == "1"
                 def _split_lines(text):
                     return [line for line in str(text).splitlines() if line.strip()]
+                # Extended-bucket parsing: an input line beginning with the
+                # case-insensitive `[grooming]` tag becomes a dict
+                # `{"text":..., "is_grooming": true}` so Dr. Monica's reminder
+                # surface (Phase 5) can pick it up. Plain lines remain strings.
+                _GROOMING_TAG = "[grooming]"
+                def _parse_bucket_lines(text):
+                    out = []
+                    for line in str(text).splitlines():
+                        s = line.strip()
+                        if not s:
+                            continue
+                        if s.lower().startswith(_GROOMING_TAG):
+                            t = s[len(_GROOMING_TAG):].strip()
+                            if t:
+                                out.append({"text": t, "is_grooming": True})
+                        else:
+                            out.append(s)
+                    return out
+                _MONTHLY_WEEKS_KEYS = ("week_1", "week_2", "week_3", "week_4")
+                _SEASONS_KEYS       = ("fall", "winter", "spring", "summer")
+                _ANNUAL_MONTH_KEYS  = ("january","february","march","april","may","june",
+                                       "july","august","september","october","november","december")
+                def _parse_extras(name: str) -> dict:
+                    return {
+                        "monthly":  {w: _parse_bucket_lines(data.get(f"monthly__{name}__{w}", [""])[0])
+                                     for w in _MONTHLY_WEEKS_KEYS},
+                        "seasonal": {s: _parse_bucket_lines(data.get(f"seasonal__{name}__{s}", [""])[0])
+                                     for s in _SEASONS_KEYS},
+                        "annual":   {m: _parse_bucket_lines(data.get(f"annual__{name}__{m}", [""])[0])
+                                     for m in _ANNUAL_MONTH_KEYS},
+                    }
                 _expected_fields = {f"daily__{c}" for c in CHILDREN} | {"daily__Lauren"}
                 _received_fields  = set(data.keys()) - {"_ajax"}
                 if not (_expected_fields & _received_fields):
@@ -4325,8 +4356,12 @@ class Handler(BaseHTTPRequestHandler):
                 else:
                     chores={"boys":{},"lauren":{}}
                     for child in CHILDREN:
-                        chores["boys"][child]={"daily":_split_lines(data.get(f"daily__{child}",[""])[0]),"weekly":{wd:_split_lines(data.get(f"weekly__{child}__{wd}",[""])[0]) for wd in WEEKDAYS}}
-                    chores["lauren"]={"daily":_split_lines(data.get("daily__Lauren",[""])[0]),"weekly":{wd:_split_lines(data.get(f"weekly__Lauren__{wd}",[""])[0]) for wd in WEEKDAYS}}
+                        _entry = {"daily":_split_lines(data.get(f"daily__{child}",[""])[0]),"weekly":{wd:_split_lines(data.get(f"weekly__{child}__{wd}",[""])[0]) for wd in WEEKDAYS}}
+                        _entry.update(_parse_extras(child))
+                        chores["boys"][child]=_entry
+                    _lauren_entry = {"daily":_split_lines(data.get("daily__Lauren",[""])[0]),"weekly":{wd:_split_lines(data.get(f"weekly__Lauren__{wd}",[""])[0]) for wd in WEEKDAYS}}
+                    _lauren_entry.update(_parse_extras("Lauren"))
+                    chores["lauren"]=_lauren_entry
                     _ok = save_chores_data(chores)
                     if _is_ajax:
                         _out = _json.dumps({"ok": bool(_ok)}).encode()
