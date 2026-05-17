@@ -2757,22 +2757,23 @@ def render_section_12(progress: dict, mode: str) -> str:
                 pass
     total_hours_disp = round(total_kept_min / 60.0, 1)
     overload_html = ""
-    if total_kept_min > 960:
+    if total_kept_min > 720:
         overload_html = (
             '<div style="background:#fde2e2;border:1px solid #d97a7a;'
             'border-radius:8px;padding:14px;margin:10px 0;color:#8a2a2a;'
             'font-weight:600;">'
-            'This schedule has more activities than hours in the day '
-            f'({total_hours_disp} hours scheduled). Please remove some items.'
+            'This schedule has more structured activity than a family day '
+            'can realistically hold. Please remove or shorten some items.'
             '</div>'
         )
-    elif total_kept_min > 840:
+    elif total_kept_min > 600:
         overload_html = (
             '<div style="background:#fef3e6;border:1px solid #e6b97a;'
             'border-radius:8px;padding:14px;margin:10px 0;color:#8a5a1a;'
             'font-weight:600;">'
             f'This day is very full — {total_hours_disp} hours scheduled. '
-            'Consider removing or shortening some activities.'
+            'For a family with young children 10 hours of structured '
+            'activity is usually the limit.'
             '</div>'
         )
 
