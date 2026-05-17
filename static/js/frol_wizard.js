@@ -43,9 +43,11 @@
 
   var saveField = debounce(function (payload) {
     status("Saving…");
+    var form = $("#frol-form");
+    var isV2 = form && form.getAttribute("data-version") === "2";
     var fd = new FormData();
-    fd.append("action", "save_field");
-    fd.append("step",   payload.step);
+    fd.append("action", isV2 ? "save_field_v2" : "save_field");
+    fd.append(isV2 ? "section" : "step", payload.step);
     fd.append("field",  payload.key);
     if (payload.list) { fd.append("list", payload.list); }
     if (payload.idx !== null && payload.idx !== undefined && payload.idx !== "") {
@@ -56,7 +58,7 @@
     } else {
       fd.append("value", payload.value);
     }
-    var formMode = ($("#frol-form") && $("#frol-form").getAttribute("data-mode")) || "";
+    var formMode = form && form.getAttribute("data-mode") || "";
     if (formMode) { fd.append("mode", formMode); }
     fetch("/frol-wizard", { method: "POST", body: fd, credentials: "same-origin" })
       .then(function (r) { status(r.ok ? "Saved" : "Save failed"); })
@@ -259,9 +261,11 @@
     status("Saving…");
     setTimeout(function () {
       _seedMembersIfStep1(step, mode).then(function () {
+      var form = $("#frol-form");
+      var isV2 = form && form.getAttribute("data-version") === "2";
       var fd = new FormData();
-      fd.append("action", "advance");
-      fd.append("step", String(step));
+      fd.append("action", isV2 ? "advance_v2" : "advance");
+      fd.append(isV2 ? "section" : "step", String(step));
       if (mode) fd.append("mode", String(mode));
       fetch("/frol-wizard", { method: "POST", body: fd, credentials: "same-origin", redirect: "manual" })
         .then(function (r) {

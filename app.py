@@ -1275,6 +1275,11 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_response(302); self.send_header("Location","/frol-wizard"); self.end_headers(); return
             _step_q = (query.get("step",[""])[0] or "").strip()
             _mode_q = (query.get("mode",[""])[0] or "").strip()
+            _day_q  = (query.get("day",[""])[0] or "").strip()
+            # §11 day switcher: persist requested day before render.
+            if _step_q == "11" and _day_q:
+                from render_frol_wizard import save_section_field
+                save_section_field(11, "current_day", _day_q)
             if is_complete() and not _step_q:
                 html = render_completion_screen()
             else:
@@ -6928,12 +6933,50 @@ class Handler(BaseHTTPRequestHandler):
                     try: self.wfile.write(b"Admin only.")
                     except BrokenPipeError: pass
                     return
-                from render_frol_wizard import save_field, advance_step, load_progress, save_progress, _settings_members
+                from render_frol_wizard import (
+                    save_field, advance_step, load_progress, save_progress,
+                    _settings_members, save_section_field, advance_section,
+                    V2_TOTAL_SECTIONS, finalize_v2,
+                )
                 _act = (data.get("action",[""])[0] or "").strip()
                 _step = (data.get("step",[""])[0] or "0").strip()
+                _section = (data.get("section",[""])[0] or "0").strip()
                 _mode = (data.get("mode",[""])[0] or "").strip()
                 try: _step_int = int(_step)
                 except Exception: _step_int = 0
+                try: _section_int = int(_section)
+                except Exception: _section_int = 0
+                # V2 actions: save_field_v2 / advance_v2. Mirror the legacy
+                # save_field/advance branches but write to section_N keys.
+                if _act == "save_field_v2":
+                    _field = (data.get("field",[""])[0] or "").strip()
+                    _list  = (data.get("list",[""])[0] or "").strip()
+                    _idx   = (data.get("idx",[""])[0] or "").strip()
+                    _values = data.get("value[]", []) or []
+                    _val = _values if _values else (data.get("value",[""])[0] or "")
+                    save_section_field(_section_int, _field, _val,
+                                       list_=_list, idx=_idx, mode=_mode)
+                    self.send_response(200); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"ok")
+                    except BrokenPipeError: pass
+                    return
+                if _act == "advance_v2":
+                    advance_section(_section_int, mode=_mode)
+                    _next = _section_int + 1 if _section_int < V2_TOTAL_SECTIONS else _section_int
+                    self.send_response(302)
+                    self.send_header("Location", f"/frol-wizard?step={_next}&mode={_mode}")
+                    self.end_headers()
+                    return
+                if _act == "finalize_v2":
+                    _p = load_progress()
+                    _receipt = finalize_v2(_p)
+                    _p = load_progress()
+                    _p.setdefault("data", {}).setdefault("section_13", {})["receipt"] = _receipt
+                    save_progress(_p)
+                    self.send_response(302)
+                    self.send_header("Location", f"/frol-wizard?step=13&mode={_mode}")
+                    self.end_headers()
+                    return
                 if _act == "save_field":
                     _field = (data.get("field",[""])[0] or "").strip()
                     _list  = (data.get("list",[""])[0] or "").strip()

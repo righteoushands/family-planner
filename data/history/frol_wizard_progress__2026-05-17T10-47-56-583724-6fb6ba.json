@@ -333,6 +333,25 @@
         "Game night",
         "Nature walk"
       ]
+    },
+    "section_11": {
+      "placements_Monday": {
+        "0700": {
+          "label": "Morning Prayer",
+          "category": "prayer",
+          "person": "Lauren"
+        },
+        "0900": {
+          "label": "Math",
+          "category": "school",
+          "person": "JP",
+          "paired_with": "Michael"
+        }
+      }
+    },
+    "section_7": {
+      "grooming__JP": "Brush teeth",
+      "chores__JP__daily__daily": "Make bed\nPiano 15 min"
     }
   },
   "started_at": "2026-05-14T08:48:23",

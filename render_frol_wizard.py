@@ -579,6 +579,1943 @@ def _render_chat_panel(step: int) -> str:
     """
 
 
+# ── V2 plumbing (Phase 4) ───────────────────────────────────────────────────
+# V2 stores per-section data under `section_N` keys, separate from V1 `step_N`
+# so legacy renderers keep working and Lauren's V1 progress is preserved.
+
+# Map: V2 section index → V1 step index whose data to seed from.
+_V2_MIGRATION_MAP = {
+    1: 1,   # Family ← Family
+    3: 2,   # Fixed ← Anchors (wake/bed/fixed_commitments)
+    4: 3,   # Prayer ← Prayer
+    5: 4,   # Meals ← Meals
+    6: 5,   # School ← Work Blocks (homeschool kids, subjects)
+    8: 6,   # Health ← Exercise (extra fields from step_8 also merged)
+    9: 7,   # Rest ← Rest, Family & Marriage
+}
+
+
+def _migrate_v1_to_v2(progress: dict) -> bool:
+    """One-shot copy of V1 step_N data into V2 section_N keys for sections
+    that map cleanly. Idempotent — only fills section_N if absent or empty.
+    Returns True if any data was migrated."""
+    data = progress.setdefault("data", {})
+    migrated = False
+    for v2_idx, v1_idx in _V2_MIGRATION_MAP.items():
+        v2_key = f"section_{v2_idx}"
+        v1_key = f"step_{v1_idx}"
+        if data.get(v2_key):
+            continue
+        src = data.get(v1_key) or {}
+        if not src:
+            continue
+        data[v2_key] = dict(src)
+        migrated = True
+    # Section 8 also pulls health appointment fields from legacy step_8.
+    sec8 = data.get("section_8") or {}
+    s8 = data.get("step_8") or {}
+    if s8 and not sec8.get("emergency_contacts"):
+        sec8.setdefault("emergency_contacts", s8.get("emergency_contacts") or [])
+        sec8.setdefault("tracked_members",    s8.get("tracked_members") or [])
+        sec8.setdefault("recurring_appt_types", s8.get("recurring_appt_types") or [])
+        sec8.setdefault("recurring_appts",    s8.get("recurring_appts") or "")
+        sec8.setdefault("notif_channels",     s8.get("notif_channels") or [])
+        sec8.setdefault("notif_email",        s8.get("notif_email") or "")
+        data["section_8"] = sec8
+        migrated = True
+    # Translate V1 completed_steps → V2 completed sections (only the mapped
+    # ones get marked complete; new V2 sections 2,7,10,11,12,13 stay open).
+    if migrated and progress.get("completed_steps"):
+        v1_completed = set(int(s) for s in progress.get("completed_steps", []) or [])
+        v2_completed = sorted({v2 for v2, v1 in _V2_MIGRATION_MAP.items() if v1 in v1_completed})
+        progress["_v1_completed_steps"] = list(progress.get("completed_steps") or [])
+        progress["completed_steps"] = v2_completed
+        progress["current_step"]    = max(v2_completed) + 1 if v2_completed else 1
+        progress["_v2_migrated_at"] = datetime.now().isoformat(timespec="seconds")
+    return migrated
+
+
+def save_section_field(section: int, field: str, value,
+                        list_: str = "", idx: str = "", mode: str = "") -> dict:
+    """V2 analogue of save_field: writes under `section_N` keys. Supports
+    scalar (field only), list-of-dicts (integer idx), and dict-of-dicts
+    (non-integer idx)."""
+    p = load_progress()
+    if mode and not p.get("mode"):
+        p["mode"] = mode
+    bucket = p["data"].setdefault(f"section_{int(section)}", {})
+    if list_ and idx != "":
+        try:
+            i = int(idx); is_int = True
+        except Exception:
+            is_int = False
+        if is_int and i >= 0:
+            items = bucket.get(list_)
+            if not isinstance(items, list):
+                items = []
+                bucket[list_] = items
+            while len(items) <= i:
+                items.append({})
+            if value == "__DELETE__":
+                if i < len(items):
+                    items.pop(i)
+            elif isinstance(items[i], dict):
+                items[i][field] = value
+            else:
+                items[i] = {field: value}
+        else:
+            items = bucket.get(list_)
+            if not isinstance(items, dict):
+                items = {}
+                bucket[list_] = items
+            entry = items.get(idx)
+            if not isinstance(entry, dict):
+                entry = {}
+                items[idx] = entry
+            entry[field] = value
+    elif field:
+        bucket[field] = value
+    return save_progress(p)
+
+
+def advance_section(section: int, mode: str = "") -> dict:
+    p = load_progress()
+    if mode and not p.get("mode"):
+        p["mode"] = mode
+    section = int(section)
+    if section not in p["completed_steps"]:
+        p["completed_steps"].append(section)
+    p["current_step"] = max(p.get("current_step", 0), section + 1)
+    return save_progress(p)
+
+
+def _sv(progress: dict, section: int, field: str, default=""):
+    """V2 reader. Falls back to legacy step_N if section_N missing."""
+    bucket = (progress.get("data", {}) or {}).get(f"section_{section}", {}) or {}
+    if field in bucket:
+        return bucket.get(field, default)
+    v1_idx = _V2_MIGRATION_MAP.get(section)
+    if v1_idx is not None:
+        return ((progress.get("data", {}) or {}).get(f"step_{v1_idx}", {}) or {}).get(field, default)
+    return default
+
+
+def _section_chrome(section: int, title: str, subtitle: str, body_html: str,
+                    mode: str, progress: dict, lucy_visible: bool = True) -> str:
+    """V2 chrome — sets data-version="2" so the JS uses save_section_field /
+    advance_v2 actions and uses 'Section N of V2_TOTAL_SECTIONS'."""
+    completed = progress.get("completed_steps", []) or []
+    dots = render_section_dots(section, V2_TOTAL_SECTIONS, completed)
+    back_link = ""
+    if section > 1:
+        back_link = (f'<a href="/frol-wizard?step={section-1}&mode={escape(mode, quote=True)}"'
+                     f' class="frol-btn ghost">&larr; Back</a>')
+    advance_label = ("Save & Continue" if section < V2_TOTAL_SECTIONS
+                     else "Save my Rule of Life")
+    chat_panel = ""
+    if mode == "lucy" and lucy_visible:
+        chat_panel = _render_chat_panel(section)
+    main_block = f"""
+      {dots}
+      <div class="frol-card">
+        <h2 class="frol-title">{escape(title)}</h2>
+        <p class="frol-sub">{escape(subtitle)}</p>
+        <form id="frol-form" data-step="{section}" data-version="2"
+              data-mode="{escape(mode, quote=True)}"
+              method="POST" action="/frol-wizard"
+              onsubmit="return frolAdvance(event, {section}, '{escape(mode, quote=True)}')">
+          <input type="hidden" name="action"  value="advance_v2">
+          <input type="hidden" name="section" value="{section}">
+          <input type="hidden" name="mode"    value="{escape(mode, quote=True)}">
+          {render_lucy_hint_slot(section)}
+          {body_html}
+          <div class="frol-actions">
+            <div>{back_link}</div>
+            <div style="display:flex;align-items:center;gap:14px;">
+              <span class="frol-save-status" id="frol-save-status">Saved automatically</span>
+              <button type="submit" class="frol-btn">{advance_label} &rarr;</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    """
+    if chat_panel:
+        return f'<div class="frol-with-chat">{main_block}{chat_panel}</div>'
+    return main_block
+
+
+# ── V2 section renderers ────────────────────────────────────────────────────
+
+def _v2_members(progress: dict) -> list:
+    """Best available member list across V2 + V1 + app_settings."""
+    members = _sv(progress, 1, "members", []) or []
+    if not members:
+        members = _settings_members() or []
+    return members
+
+
+def render_section_1(progress: dict, mode: str) -> str:
+    """V2 §1 — Your Family: family name, members, weekend rhythm,
+    JP hour-tracking toggle, sibling-pairing intro."""
+    family_name = _sv(progress, 1, "family_name", "") or ""
+    weekend_rhythm = _sv(progress, 1, "weekend_rhythm", "") or ""
+    jp_track = _sv(progress, 1, "jp_hour_tracking", "no")
+    pair_intro_seen = _sv(progress, 1, "pairing_intro_seen", "")
+    members = _v2_members(progress)
+    if not members:
+        members = [{"name": "", "role": "", "birthday": "", "color": ""}]
+    rows = []
+    for i, m in enumerate(members):
+        rows.append(f"""
+        <div class="frol-member" data-mem-idx="{i}">
+          <div class="frol-row">
+            <div><label class="frol-fld">Name</label>
+              <input class="frol-input" data-step="1" data-list="members" data-idx="{i}"
+                     data-key="name" value="{escape(m.get('name','') or '', quote=True)}"
+                     placeholder="Mom, JP, Joseph, …"></div>
+            <div><label class="frol-fld">Role</label>
+              <input class="frol-input" data-step="1" data-list="members" data-idx="{i}"
+                     data-key="role" value="{escape(m.get('role','') or '', quote=True)}"
+                     placeholder="Mom, Dad, Child, Toddler, …"></div>
+          </div>
+          <div class="frol-row">
+            <div><label class="frol-fld">Birthday <span style="font-weight:400;color:#888;">(optional)</span></label>
+              <input class="frol-input" type="date" data-step="1" data-list="members" data-idx="{i}"
+                     data-key="birthday" value="{escape(m.get('birthday','') or '', quote=True)}"></div>
+            <div><label class="frol-fld">Color <span style="font-weight:400;color:#888;">(optional)</span></label>
+              <input class="frol-input" type="color" data-step="1" data-list="members" data-idx="{i}"
+                     data-key="color" value="{escape(m.get('color','#4a6fa5') or '#4a6fa5', quote=True)}"></div>
+            <div style="flex:0 0 auto;align-self:flex-end;">
+              <button type="button" class="frol-rm" onclick="frolRemoveMember({i})">Remove</button>
+            </div>
+          </div>
+        </div>
+        """)
+    refl = render_reflection_card(
+        "Why your family matters in this Rule",
+        "<p>Before we plan a single block of the day, we name the people who "
+        "live here. The Rule of Life is for <em>them</em> — not the other way "
+        "around. Names, ages, and the colors that mean each person become the "
+        "fabric that everything else hangs on.</p>",
+        key="sec1_intro",
+    )
+    pair_intro_html = ""
+    if pair_intro_seen != "yes":
+        pair_intro_html = render_reflection_card(
+            "Sibling pairing — a sneak peek",
+            "<p>Later (in §6 School and §11 Build Your Day) we'll suggest "
+            "natural sibling pairs based on age and the subjects you teach — "
+            "e.g., Michael shadowing Joseph for read-alouds, James riding "
+            "along during Math. Today, just confirm who lives here.</p>",
+            key="sec1_pairing",
+        )
+    body = f"""
+      {refl}
+      <label class="frol-fld">Family name <span style="font-weight:400;color:#888;">(used in greetings)</span></label>
+      <input class="frol-input" type="text" data-step="1" data-key="family_name"
+             value="{escape(family_name, quote=True)}" placeholder="The McAdams Family">
+
+      <h3 style="margin-top:18px;">Family members</h3>
+      <div id="frol-members">{''.join(rows)}</div>
+      <button type="button" class="frol-add" onclick="frolAddMember()">+ Add another person</button>
+
+      <label class="frol-fld" style="margin-top:22px;">Weekend rhythm <span style="font-weight:400;color:#888;">(one or two sentences)</span></label>
+      <p class="frol-help">How does Saturday and Sunday feel different from the
+        weekday rhythm? Anchors like Sunday Mass, slower morning, family dinner.</p>
+      <textarea class="frol-textarea" data-step="1" data-key="weekend_rhythm"
+                placeholder="Sat: Adoration in the morning, errands, family dinner. Sun: Mass at 10:30, lazy afternoon, batch-cook the week.">{escape(weekend_rhythm)}</textarea>
+
+      <h3 style="margin-top:22px;">JP — hour tracking</h3>
+      <label style="display:flex;align-items:center;gap:10px;font-weight:normal;">
+        <input type="checkbox" data-step="1" data-key="jp_hour_tracking"
+               value="yes" {'checked' if jp_track == "yes" else ''}>
+        <span>JP is tracking high-school hours this year. (Turning this on
+              activates the per-subject hour ledger in §6 School.)</span>
+      </label>
+      {pair_intro_html}
+    """
+    return _section_chrome(1, "Your Family",
+        "Who lives here, the colors that mean each person, and how your weekends feel different.",
+        body, mode, progress, lucy_visible=True)
+
+
+def render_section_2(progress: dict, mode: str) -> str:
+    """V2 §2 — The Little Ones First: capture James + Michael rhythms before
+    older-kid planning. Names a 'developmental framework' info card."""
+    members = _v2_members(progress)
+    little = [m for m in members if isinstance(m, dict) and (m.get("role","").lower() in ("child","toddler") or m.get("name","").lower() in ("james","michael"))]
+    # Always at least include James + Michael labels even if members empty.
+    if not little:
+        little = [{"name": "Michael"}, {"name": "James"}]
+    rows = ""
+    for m in little:
+        nm = m.get("name", "")
+        nap   = _sv(progress, 2, f"{nm}__nap_time", "")
+        wake  = _sv(progress, 2, f"{nm}__wake_time", "")
+        bed   = _sv(progress, 2, f"{nm}__bed_time", "")
+        needs = _sv(progress, 2, f"{nm}__needs", "")
+        rows += f"""
+        <div style="background:#f6f8fc;border:1px solid #d8e1ef;border-left:3px solid #4a6fa5;
+                    border-radius:10px;padding:12px 14px;margin:10px 0;">
+          <div style="font-weight:700;color:#33507e;margin-bottom:6px;">{escape(nm)}</div>
+          <div class="frol-row">
+            <div><label class="frol-fld">Wake</label>
+              <input class="frol-input" type="time" data-step="2" data-key="{escape(nm, quote=True)}__wake_time"
+                     value="{escape(wake, quote=True)}"></div>
+            <div><label class="frol-fld">Nap window</label>
+              <input class="frol-input" type="text" data-step="2" data-key="{escape(nm, quote=True)}__nap_time"
+                     value="{escape(nap, quote=True)}" placeholder="13:00–15:00"></div>
+            <div><label class="frol-fld">Bedtime</label>
+              <input class="frol-input" type="time" data-step="2" data-key="{escape(nm, quote=True)}__bed_time"
+                     value="{escape(bed, quote=True)}"></div>
+          </div>
+          <label class="frol-fld" style="margin-top:8px;">Needs / quirks <span style="font-weight:400;color:#888;">(food, sensory, comfort)</span></label>
+          <textarea class="frol-textarea" data-step="2" data-key="{escape(nm, quote=True)}__needs"
+                    placeholder="e.g., needs water bottle for sleep, gets fussy without afternoon outdoor time">{escape(needs)}</textarea>
+        </div>
+        """
+    info_card = render_reflection_card(
+        "Why we start with the little ones",
+        "<p>Babies and toddlers don't bend to schedules — schedules bend to "
+        "them. Setting nap windows, mealtime needs, and quiet hours <em>first</em> "
+        "means the rest of the day fits around what's already non-negotiable.</p>"
+        "<p style='margin-top:8px;'><strong>Developmental framework:</strong> "
+        "0–2 needs sleep + feeding rhythm. 2–4 needs predictable routines + "
+        "outdoor time. 4–6 needs structured play + independence-building. "
+        "Each child's rhythms here will inform §11 Build Your Day.</p>",
+        key="sec2_intro",
+    )
+    body = f"""
+      {info_card}
+      {rows}
+      <p class="frol-help" style="margin-top:12px;">
+        These rhythms anchor §11 Build Your Day — quiet hours auto-block during
+        nap windows, and meals get scheduled around little-one feeding times.
+      </p>
+    """
+    return _section_chrome(2, "The Little Ones First",
+        "Naps, bedtimes, and the needs that anchor everything else.",
+        body, mode, progress, lucy_visible=True)
+
+
+def render_section_3(progress: dict, mode: str) -> str:
+    """V2 §3 — Fixed Commitments: recurring commitments + John's work +
+    driving/errands. Seeded from V1 step_2.fixed_commitments where present."""
+    wake_school   = _sv(progress, 3, "wake_school_adults",   "06:00")
+    wake_weekend  = _sv(progress, 3, "wake_weekend_adults",  "07:00")
+    bed_adults    = _sv(progress, 3, "bed_adults",           "22:30")
+    fixed         = _sv(progress, 3, "fixed_commitments",    "")
+    john_work     = _sv(progress, 3, "john_work_schedule",   "")
+    driving       = _sv(progress, 3, "driving_errands",      "")
+    refl = render_reflection_card(
+        "Fixed commitments first",
+        "<p>Some things on your week are already decided — Mass times, work "
+        "hours, sports practice, lessons, appointments. Pinning them down "
+        "<em>before</em> we plan flex time keeps us honest about how much "
+        "space the family actually has.</p>",
+        key="sec3_intro",
+    )
+    body = f"""
+      {refl}
+      <h3>Wake &amp; sleep anchors</h3>
+      <div class="frol-row">
+        <div><label class="frol-fld">Adults wake (school days)</label>
+          <input class="frol-input" type="time" data-step="3" data-key="wake_school_adults"
+                 value="{escape(wake_school, quote=True)}"></div>
+        <div><label class="frol-fld">Adults wake (weekends)</label>
+          <input class="frol-input" type="time" data-step="3" data-key="wake_weekend_adults"
+                 value="{escape(wake_weekend, quote=True)}"></div>
+        <div><label class="frol-fld">Adults bedtime</label>
+          <input class="frol-input" type="time" data-step="3" data-key="bed_adults"
+                 value="{escape(bed_adults, quote=True)}"></div>
+      </div>
+
+      <label class="frol-fld" style="margin-top:18px;">Recurring weekly commitments</label>
+      <p class="frol-help">One per line. Format: <code>Day HH:MM Title</code>
+        (e.g., <code>Wed 09:30 Piano lessons</code>, <code>Mon 18:00 CAP</code>).</p>
+      <textarea class="frol-textarea" data-step="3" data-key="fixed_commitments"
+                placeholder="Mon 18:00 CAP (JP, Joe, John)&#10;Wed 09:30 Piano lessons&#10;Sun 10:30 Mass">{escape(fixed)}</textarea>
+
+      <label class="frol-fld" style="margin-top:18px;">John's work schedule</label>
+      <p class="frol-help">Days, hours, work-from-home pattern, anything that
+        affects who's home with the kids.</p>
+      <textarea class="frol-textarea" data-step="3" data-key="john_work_schedule"
+                placeholder="Mon–Fri 8:00–17:00, WFH Wed; gym Tue+Thu 17:30 → home ~18:30">{escape(john_work)}</textarea>
+
+      <label class="frol-fld" style="margin-top:18px;">Driving / errand patterns</label>
+      <p class="frol-help">Recurring drives — school drop-off, weekly grocery
+        run, sports carpool — and who usually handles them.</p>
+      <textarea class="frol-textarea" data-step="3" data-key="driving_errands"
+                placeholder="Tue 15:00 Joseph sports carpool (Lauren)&#10;Fri 10:00 weekly Aldi run (Lauren + Michael)">{escape(driving)}</textarea>
+    """
+    return _section_chrome(3, "Fixed Commitments",
+        "What's already on the calendar before we add anything else.",
+        body, mode, progress, lucy_visible=True)
+
+
+def render_section_4(progress: dict, mode: str) -> str:
+    """V2 §4 — Prayer. Introduces Sister Mary. Supports a 'can combine with
+    another' linking textarea so users can note prayers that double up
+    (e.g., Angelus during lunch)."""
+    morning_time   = _sv(progress, 4, "morning_time",       "07:15")
+    morning_prayer = _sv(progress, 4, "morning_prayer",     "Lauds")
+    morning_multi  = _sv(progress, 4, "morning_prayers_multi", []) or []
+    evening_multi  = _sv(progress, 4, "evening_prayers_multi", []) or []
+    night_multi    = _sv(progress, 4, "night_prayers_multi",   []) or []
+    angelus_times  = _sv(progress, 4, "angelus_times",      []) or []
+    divine_mercy   = _sv(progress, 4, "divine_mercy_3pm",   "")
+    vespers        = _sv(progress, 4, "vespers",            "")
+    examen         = _sv(progress, 4, "examen",             "")
+    other_devo     = _sv(progress, 4, "other_devotions",    "")
+    combine_notes  = _sv(progress, 4, "combine_notes",      "")
+    def _cb_v2(key: str, options: list, current: list) -> str:
+        cur = set(current or [])
+        out = []
+        for opt in options:
+            checked = "checked" if opt in cur else ""
+            out.append(
+                f'<label style="display:inline-flex;align-items:center;gap:6px;'
+                f'background:#f3f6fb;border:1px solid #d6e0f0;border-radius:999px;'
+                f'padding:4px 12px;font-size:0.88em;cursor:pointer;margin:3px;">'
+                f'<input type="checkbox" data-step="4" data-key="{escape(key, quote=True)}" '
+                f'data-multi="1" value="{escape(opt, quote=True)}" {checked}>'
+                f'{escape(opt)}</label>'
+            )
+        return "".join(out)
+    sister = render_companion_intro_card(
+        "Sister Mary", "🕊️",
+        "Catholic prayer companion — she'll help you build a sustainable prayer rule, "
+        "track liturgical seasons, and adapt as your family grows.",
+        href="/sister-mary", accent="#5b3a8a", light="#f3eff8",
+    )
+    refl = render_reflection_card(
+        "Prayer is the spine of the day",
+        "<p>A rule of life isn't a schedule with prayer sprinkled on top — it's "
+        "a prayer life with everything else built around it. Start with the "
+        "anchors (morning offering, Angelus, examen) and let the family rhythm "
+        "form around them, not the other way around.</p>",
+        key="sec4_intro",
+    )
+    body = f"""
+      {sister}
+      {refl}
+
+      <label class="frol-fld">Morning prayer time</label>
+      <div class="frol-row">
+        <div><input class="frol-input" type="time" data-step="4" data-key="morning_time"
+                    value="{escape(morning_time, quote=True)}"></div>
+        <div><input class="frol-input" type="text" data-step="4" data-key="morning_prayer"
+                    placeholder="Lauds / Morning Offering / etc."
+                    value="{escape(morning_prayer, quote=True)}"></div>
+      </div>
+
+      <label class="frol-fld" style="margin-top:14px;">Morning prayers <span style="font-weight:400;color:#888;">(check all)</span></label>
+      {_cb_v2("morning_prayers_multi", ["Morning Offering", "Divine Office", "Rosary", "Daily Mass", "Bible reading", "Lectio Divina"], morning_multi)}
+
+      <label class="frol-fld" style="margin-top:14px;">Angelus times <span style="font-weight:400;color:#888;">(traditional: 6am, noon, 6pm)</span></label>
+      {_cb_v2("angelus_times", ["06:00", "12:00", "18:00"], angelus_times)}
+
+      <label class="frol-fld" style="margin-top:14px;">Afternoon devotions</label>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;font-weight:normal;">
+        <label><input type="checkbox" data-step="4" data-key="divine_mercy_3pm" value="yes" {'checked' if divine_mercy == "yes" else ''}> Divine Mercy at 3:00 PM</label>
+        <label><input type="checkbox" data-step="4" data-key="vespers" value="yes" {'checked' if vespers == "yes" else ''}> Vespers</label>
+        <label><input type="checkbox" data-step="4" data-key="examen" value="yes" {'checked' if examen == "yes" else ''}> Examen</label>
+      </div>
+
+      <label class="frol-fld" style="margin-top:14px;">Evening prayers</label>
+      {_cb_v2("evening_prayers_multi", ["Family Rosary", "Vespers", "Bible reading", "Spiritual reading", "Holy Hour"], evening_multi)}
+
+      <label class="frol-fld" style="margin-top:14px;">Night prayers</label>
+      {_cb_v2("night_prayers_multi", ["Compline", "Examination of conscience", "Night prayers", "Marian antiphon"], night_multi)}
+
+      <label class="frol-fld" style="margin-top:14px;">Other devotions / seasonal practices</label>
+      <textarea class="frol-textarea" data-step="4" data-key="other_devotions"
+                placeholder="First-Friday Mass, Lenten Stations, Sunday Mass at 12:30, etc.">{escape(other_devo)}</textarea>
+
+      <label class="frol-fld" style="margin-top:14px;">Prayers that combine with something else <span style="font-weight:400;color:#888;">(saves time)</span></label>
+      <p class="frol-help">e.g., "Angelus during lunch", "Rosary during the
+        afternoon walk", "Examen while tucking in the boys".</p>
+      <textarea class="frol-textarea" data-step="4" data-key="combine_notes"
+                placeholder="Angelus during lunch&#10;Rosary on the school drive">{escape(combine_notes)}</textarea>
+    """
+    return _section_chrome(4, "Prayer",
+        "The spine of the day. Pin down the anchors first; everything else builds around them.",
+        body, mode, progress, lucy_visible=True)
+
+
+def render_section_5(progress: dict, mode: str) -> str:
+    """V2 §5 — Meals. Introduces Lorenzo. Covers breakfast / lunch / dinner /
+    snack / meal-prep / batch / grocery."""
+    breakfast_time = _sv(progress, 5, "breakfast_time", "08:30")
+    breakfast_who  = _sv(progress, 5, "breakfast_who",  "")
+    lunch_time     = _sv(progress, 5, "lunch_time",     "12:00")
+    lunch_together = _sv(progress, 5, "lunch_together", "")
+    dinner_time    = _sv(progress, 5, "dinner_time",    "17:30")
+    dinner_who     = _sv(progress, 5, "dinner_who",     "")
+    snack_times    = _sv(progress, 5, "snack_times",    "")
+    meal_prep_who  = _sv(progress, 5, "meal_prep_who",  []) or []
+    batch_days     = _sv(progress, 5, "batch_cook_days", []) or []
+    grocery_day    = _sv(progress, 5, "grocery_day",    "")
+    grocery_who    = _sv(progress, 5, "grocery_who",    "")
+    morning_prep   = _sv(progress, 5, "morning_dinner_prep", "")
+    def _cb(key: str, options: list, current: list) -> str:
+        cur = set(current or [])
+        out = []
+        for opt in options:
+            checked = "checked" if opt in cur else ""
+            out.append(
+                f'<label style="display:inline-flex;align-items:center;gap:6px;'
+                f'background:#fbf6ee;border:1px solid #ead9b8;border-radius:999px;'
+                f'padding:4px 12px;font-size:0.88em;cursor:pointer;margin:3px;">'
+                f'<input type="checkbox" data-step="5" data-key="{escape(key, quote=True)}" '
+                f'data-multi="1" value="{escape(opt, quote=True)}" {checked}>'
+                f'{escape(opt)}</label>'
+            )
+        return "".join(out)
+    lorenzo = render_companion_intro_card(
+        "Lorenzo", "🍝",
+        "Personal chef AI — he plans meals against your week, suggests batch-cook "
+        "days, and pulls recipes from your saved collection.",
+        href="/lorenzo", accent="#8a4a2a", light="#fbeee0",
+    )
+    refl = render_reflection_card(
+        "Meals are the day's heartbeat",
+        "<p>Three meals + snacks shape the day more than any other anchor. "
+        "Get them honest first — when you actually eat, who cooks, what days "
+        "you batch — then schedule everything else around them.</p>",
+        key="sec5_intro",
+    )
+    body = f"""
+      {lorenzo}
+      {refl}
+
+      <label class="frol-fld">Breakfast</label>
+      <div class="frol-row">
+        <div><input class="frol-input" type="time" data-step="5" data-key="breakfast_time"
+                    value="{escape(breakfast_time, quote=True)}"></div>
+        <div><input class="frol-input" type="text" data-step="5" data-key="breakfast_who"
+                    placeholder="Who eats / cooks (e.g., Varies, Mom)"
+                    value="{escape(breakfast_who, quote=True)}"></div>
+      </div>
+
+      <label class="frol-fld" style="margin-top:14px;">Lunch</label>
+      <div class="frol-row">
+        <div><input class="frol-input" type="time" data-step="5" data-key="lunch_time"
+                    value="{escape(lunch_time, quote=True)}"></div>
+        <div><input class="frol-input" type="text" data-step="5" data-key="lunch_together"
+                    placeholder="Together? Split? On the go?"
+                    value="{escape(lunch_together, quote=True)}"></div>
+      </div>
+
+      <label class="frol-fld" style="margin-top:14px;">Dinner</label>
+      <div class="frol-row">
+        <div><input class="frol-input" type="time" data-step="5" data-key="dinner_time"
+                    value="{escape(dinner_time, quote=True)}"></div>
+        <div><input class="frol-input" type="text" data-step="5" data-key="dinner_who"
+                    placeholder="Who cooks (Mom, Dad, kids helping)"
+                    value="{escape(dinner_who, quote=True)}"></div>
+      </div>
+
+      <label class="frol-fld" style="margin-top:14px;">Snack times</label>
+      <input class="frol-input" type="text" data-step="5" data-key="snack_times"
+             placeholder="10:30 AM, 3:00 PM"
+             value="{escape(snack_times, quote=True)}">
+
+      <label class="frol-fld" style="margin-top:18px;">Morning dinner prep?</label>
+      <div style="font-weight:normal;">
+        <label style="margin-right:18px;"><input type="radio" data-step="5" data-key="morning_dinner_prep" value="yes" {'checked' if morning_prep == "yes" else ''}> Yes — prep dinner ingredients in the morning</label>
+        <label><input type="radio" data-step="5" data-key="morning_dinner_prep" value="no" {'checked' if morning_prep == "no" else ''}> No</label>
+      </div>
+
+      <label class="frol-fld" style="margin-top:18px;">Who handles meal prep?</label>
+      {_cb("meal_prep_who", ["Mom", "Dad", "Older children", "Whoever's home"], meal_prep_who)}
+
+      <label class="frol-fld" style="margin-top:14px;">Batch-cook days</label>
+      {_cb("batch_cook_days", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], batch_days)}
+
+      <label class="frol-fld" style="margin-top:14px;">Grocery day &amp; who shops</label>
+      <div class="frol-row">
+        <div><input class="frol-input" type="text" data-step="5" data-key="grocery_day"
+                    placeholder="Friday morning" value="{escape(grocery_day, quote=True)}"></div>
+        <div><input class="frol-input" type="text" data-step="5" data-key="grocery_who"
+                    placeholder="Lauren + Michael" value="{escape(grocery_who, quote=True)}"></div>
+      </div>
+    """
+    return _section_chrome(5, "Meals",
+        "When you eat, who cooks, what days you batch — the day's heartbeat.",
+        body, mode, progress, lucy_visible=True)
+
+
+def render_section_6(progress: dict, mode: str) -> str:
+    """V2 §6 — School. Introduces Father Gregory. Captures format (Solo /
+    Mom-led / Paired / Group), JP per-subject hour-tracking toggle (writes
+    to hour_tracking categories at finalize), sibling-pairing suggestion."""
+    members = _v2_members(progress)
+    member_names = [m.get("name","") for m in members if isinstance(m, dict) and m.get("name")]
+    homeschool_kids = _sv(progress, 6, "homeschool_kids", []) or []
+    subjects        = _sv(progress, 6, "subjects_multi", []) or []
+    chore_blocks    = _sv(progress, 6, "chore_time_blocks", []) or []
+    parent_wfh      = _sv(progress, 6, "parent_wfh", "")
+    school_format   = _sv(progress, 6, "school_format", "")
+    jp_subjects_tracked = _sv(progress, 6, "jp_subjects_tracked", []) or []
+    pairing_notes   = _sv(progress, 6, "pairing_notes", "")
+    dev_check       = _sv(progress, 6, "developmental_check", "")
+    jp_tracking_on  = _sv(progress, 1, "jp_hour_tracking", "") == "yes"
+
+    def _cb(key: str, options: list, current: list) -> str:
+        cur = set(current or [])
+        out = []
+        for opt in options:
+            checked = "checked" if opt in cur else ""
+            out.append(
+                f'<label style="display:inline-flex;align-items:center;gap:6px;'
+                f'background:#eef4ed;border:1px solid #c9d9c5;border-radius:999px;'
+                f'padding:4px 12px;font-size:0.88em;cursor:pointer;margin:3px;">'
+                f'<input type="checkbox" data-step="6" data-key="{escape(key, quote=True)}" '
+                f'data-multi="1" value="{escape(opt, quote=True)}" {checked}>'
+                f'{escape(opt)}</label>'
+            )
+        return "".join(out)
+
+    gregory = render_companion_intro_card(
+        "Father Gregory", "📚",
+        "Homeschool academic headmaster — he'll help with curriculum design, "
+        "weekly lesson planning, assignment analysis, and per-student pacing.",
+        href="/father-gregory", accent="#2e5d3b", light="#e8efe5",
+    )
+    refl = render_reflection_card(
+        "School in a homeschool is a verb",
+        "<p>The shape of your school day matters more than the curriculum. "
+        "How much is Solo (independent work), Mom-led (taught live), Paired "
+        "(sibling-shadowing), and Group (whole-family read-alouds)? Most "
+        "families find their best week mixes all four.</p>",
+        key="sec6_intro",
+    )
+    jp_section = ""
+    if jp_tracking_on:
+        full_subjects = ["Math", "Religion", "Reading", "Writing", "Science",
+                         "History", "Latin", "Art", "Music", "PE", "Logic", "Geography"]
+        jp_section = f"""
+        <div style="background:#fff4e0;border:1px solid #ead9b8;border-left:4px solid #c89c4a;
+                    border-radius:10px;padding:12px 14px;margin:14px 0;">
+          <div style="font-weight:700;color:#7d5a1f;">JP hour tracking — choose subjects</div>
+          <p style="font-size:0.88em;color:#3f3220;margin:6px 0 8px;">
+            (You turned this on in §1.) Each subject you check becomes a tracked
+            category in JP's hour ledger — visible from his student portal in Phase 5.
+          </p>
+          {_cb("jp_subjects_tracked", full_subjects, jp_subjects_tracked)}
+        </div>
+        """
+    pair_card = render_reflection_card(
+        "Sibling pairing — Michael with the older boys",
+        "<p>Suggestions for the McAdams house: Michael can shadow Joseph for "
+        "morning read-alouds and Math review. James naps during Latin and "
+        "Logic — good blocks for JP independent work. Pairing notes below "
+        "feed §11 Build Your Day.</p>",
+        key="sec6_pairing",
+        open_first_visit=False,
+    )
+    dev_card = render_reflection_card(
+        "Developmental check",
+        "<p>Quick sanity check before §11: is each child's school load matched "
+        "to their stage? K–2 = play + reading. 3–5 = skill drills + curiosity. "
+        "6–8 = abstract reasoning. 9–12 = mastery + responsibility. Adjust "
+        "the notes below.</p>",
+        key="sec6_dev",
+        open_first_visit=False,
+    )
+    body = f"""
+      {gregory}
+      {refl}
+
+      <label class="frol-fld">Which children are being homeschooled?</label>
+      {_cb("homeschool_kids", member_names, homeschool_kids)}
+
+      <label class="frol-fld" style="margin-top:14px;">School format <span style="font-weight:400;color:#888;">(check all that apply)</span></label>
+      {_cb("school_format", ["Solo / independent", "Mom-led / taught live", "Paired / sibling shadowing", "Group / whole-family read-alouds"], [school_format] if isinstance(school_format, str) and school_format else (school_format or []))}
+
+      <label class="frol-fld" style="margin-top:14px;">Subjects this year</label>
+      {_cb("subjects_multi", ["Math", "Religion", "Reading", "Writing", "Science", "History", "Latin", "Art", "Music", "PE", "Logic", "Geography"], subjects)}
+
+      <label class="frol-fld" style="margin-top:14px;">Chore time blocks during the school day</label>
+      {_cb("chore_time_blocks", ["Morning", "Mid-morning break", "Lunch", "After school", "Evening"], chore_blocks)}
+
+      <label class="frol-fld" style="margin-top:14px;">Parent work-from-home / check-in pattern</label>
+      <textarea class="frol-textarea" data-step="6" data-key="parent_wfh"
+                placeholder="2:30–4 work with the boys and check school work; 11 Lauren checks school work">{escape(parent_wfh)}</textarea>
+
+      {jp_section}
+      {pair_card}
+      <label class="frol-fld">Pairing &amp; sibling-shadow notes</label>
+      <textarea class="frol-textarea" data-step="6" data-key="pairing_notes"
+                placeholder="Michael shadows Joseph for read-alouds; James naps during JP Latin">{escape(pairing_notes)}</textarea>
+
+      {dev_card}
+      <label class="frol-fld">Developmental notes / adjustments</label>
+      <textarea class="frol-textarea" data-step="6" data-key="developmental_check"
+                placeholder="JP ready for more Latin; Joseph needs slower Math pacing">{escape(dev_check)}</textarea>
+    """
+    return _section_chrome(6, "School",
+        "Format, subjects, sibling-pairing — and (if JP's tracking hours) which subjects count.",
+        body, mode, progress, lucy_visible=True)
+
+
+def _seed_chores_for_section7(progress: dict) -> dict:
+    """Build the section_7 seed by reading existing chores.json. Idempotent —
+    only fills section_7.chores if absent."""
+    from data_helpers import load_chores_data
+    sec7 = progress.setdefault("data", {}).setdefault("section_7", {})
+    if sec7.get("chores"):
+        return sec7
+    raw = load_chores_data() or {}
+    chores = {}
+    # boys
+    for nm, p in (raw.get("boys") or {}).items():
+        if isinstance(p, dict):
+            chores[nm] = p
+    # lauren
+    if isinstance(raw.get("lauren"), dict):
+        chores["Lauren"] = raw.get("lauren")
+    sec7["chores"] = chores
+    return sec7
+
+
+def _chore_item_text(item) -> str:
+    if isinstance(item, dict):
+        return item.get("text", "") or ""
+    return str(item or "")
+
+
+def _bucket_textarea(person: str, bucket_key: str, sub_key: str,
+                     items: list, placeholder: str = "") -> str:
+    """One textarea representing a single chore list. data-key is
+    'chores__{person}__{bucket}__{sub_key}' and the save handler will split
+    on newlines at finalize time."""
+    val = "\n".join(_chore_item_text(it) for it in (items or []) if _chore_item_text(it).strip())
+    key = f"chores__{person}__{bucket_key}__{sub_key}"
+    safe_ph = escape(placeholder, quote=True)
+    return f"""
+      <div style="margin:6px 0;">
+        <label class="frol-fld" style="font-weight:600;color:#33507e;">
+          {escape(person)} <span style="font-weight:400;color:#888;">· {escape(sub_key)}</span>
+        </label>
+        <textarea class="frol-textarea" rows="3"
+                  data-step="7" data-key="{escape(key, quote=True)}"
+                  placeholder="{safe_ph}">{escape(val)}</textarea>
+      </div>
+    """
+
+
+_WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+_WEEK_BUCKETS = ["week_1", "week_2", "week_3", "week_4"]
+_SEASONS = ["spring", "summer", "fall", "winter"]
+_MONTHS_LC = ["january", "february", "march", "april", "may", "june",
+              "july", "august", "september", "october", "november", "december"]
+
+
+def render_section_7(progress: dict, mode: str) -> str:
+    """V2 §7 — Chores & Household: 5 sub-builders (Daily / Weekly / Monthly /
+    Seasonal / Annual), seeded from chores.json, plus a grooming subsection
+    that tags items with `is_grooming` at finalize-save time."""
+    sec7 = _seed_chores_for_section7(progress)
+    chores = sec7.get("chores") or {}
+    grooming = sec7.get("grooming") or {}
+    persons = list(chores.keys()) or ["JP", "Joseph", "Michael", "James", "Lauren"]
+
+    refl = render_reflection_card(
+        "Chores teach more than they clean",
+        "<p>A chore is a small liturgy: it teaches that everyone serves, that "
+        "the house is a shared good, and that work has a rhythm. We've seeded "
+        "what's already in your chores list — adjust, add, remove. The grooming "
+        "subsection at the bottom flags personal-care items so they surface as "
+        "gentle nudges from Dr. Monica rather than chores.</p>",
+        key="sec7_intro",
+    )
+
+    # Daily bucket
+    daily_html = ""
+    for nm in persons:
+        items = (chores.get(nm) or {}).get("daily") or []
+        daily_html += _bucket_textarea(nm, "daily", "daily", items,
+            "One chore per line. Examples: Make bed, Daily Room Reset, Practice piano 15 min")
+
+    # Weekly bucket — collapsible per person, with one textarea per weekday
+    weekly_html = ""
+    for nm in persons:
+        wk = ((chores.get(nm) or {}).get("weekly") or {})
+        if not isinstance(wk, dict): wk = {}
+        sub = ""
+        for day in _WEEKDAYS:
+            items = wk.get(day) or []
+            sub += _bucket_textarea(nm, "weekly", day, items, f"{day} chores, one per line")
+        weekly_html += f"""
+          <details style="background:#f6f8fc;border:1px solid #d8e1ef;border-radius:8px;
+                          padding:8px 12px;margin:8px 0;">
+            <summary style="cursor:pointer;font-weight:700;color:#33507e;">{escape(nm)} — weekly</summary>
+            <div style="padding-top:8px;">{sub}</div>
+          </details>
+        """
+
+    # Monthly — week_1..4
+    monthly_html = ""
+    for nm in persons:
+        mn = ((chores.get(nm) or {}).get("monthly") or {})
+        if not isinstance(mn, dict): mn = {}
+        sub = ""
+        for w in _WEEK_BUCKETS:
+            items = mn.get(w) or []
+            sub += _bucket_textarea(nm, "monthly", w, items, f"{w.replace('_',' ').title()} of the month")
+        monthly_html += f"""
+          <details style="background:#f6f8fc;border:1px solid #d8e1ef;border-radius:8px;
+                          padding:8px 12px;margin:8px 0;">
+            <summary style="cursor:pointer;font-weight:700;color:#33507e;">{escape(nm)} — monthly</summary>
+            <div style="padding-top:8px;">{sub}</div>
+          </details>
+        """
+
+    # Seasonal — 4 seasons
+    seasonal_html = ""
+    for nm in persons:
+        sn = ((chores.get(nm) or {}).get("seasonal") or {})
+        if not isinstance(sn, dict): sn = {}
+        sub = ""
+        for season in _SEASONS:
+            items = sn.get(season) or []
+            sub += _bucket_textarea(nm, "seasonal", season, items, f"{season.title()} chores")
+        seasonal_html += f"""
+          <details style="background:#f6f8fc;border:1px solid #d8e1ef;border-radius:8px;
+                          padding:8px 12px;margin:8px 0;">
+            <summary style="cursor:pointer;font-weight:700;color:#33507e;">{escape(nm)} — seasonal</summary>
+            <div style="padding-top:8px;">{sub}</div>
+          </details>
+        """
+
+    # Annual — 12 months
+    annual_html = ""
+    for nm in persons:
+        an = ((chores.get(nm) or {}).get("annual") or {})
+        if not isinstance(an, dict): an = {}
+        sub = ""
+        for month in _MONTHS_LC:
+            items = an.get(month) or []
+            sub += _bucket_textarea(nm, "annual", month, items, f"{month.title()} chores")
+        annual_html += f"""
+          <details style="background:#f6f8fc;border:1px solid #d8e1ef;border-radius:8px;
+                          padding:8px 12px;margin:8px 0;">
+            <summary style="cursor:pointer;font-weight:700;color:#33507e;">{escape(nm)} — annual</summary>
+            <div style="padding-top:8px;">{sub}</div>
+          </details>
+        """
+
+    # Grooming — per-person textarea (one per line); merged into is_grooming
+    # flags at §13 finalize-save.
+    grooming_html = ""
+    for nm in persons:
+        val = "\n".join(_chore_item_text(it) for it in (grooming.get(nm) or []))
+        grooming_html += f"""
+          <div style="margin:6px 0;">
+            <label class="frol-fld" style="font-weight:600;color:#7d5a1f;">
+              {escape(nm)} — personal grooming
+            </label>
+            <textarea class="frol-textarea" rows="2"
+                      data-step="7" data-key="grooming__{escape(nm, quote=True)}"
+                      placeholder="Brush teeth (morning + bed), Floss (Sun), Trim nails (Mon), Shower (Tue/Thu/Sat)">{escape(val)}</textarea>
+          </div>
+        """
+
+    body = f"""
+      {refl}
+
+      <details open style="background:#ffffff;border:1px solid #d8e1ef;border-left:4px solid #4a6fa5;
+                            border-radius:10px;padding:12px 16px;margin:14px 0;">
+        <summary style="cursor:pointer;font-weight:700;color:#33507e;font-size:1.02em;">
+          Daily chores
+        </summary>
+        <div style="padding-top:10px;">{daily_html}</div>
+      </details>
+
+      <details style="background:#ffffff;border:1px solid #d8e1ef;border-left:4px solid #4a6fa5;
+                       border-radius:10px;padding:12px 16px;margin:14px 0;">
+        <summary style="cursor:pointer;font-weight:700;color:#33507e;font-size:1.02em;">
+          Weekly chores
+        </summary>
+        <div style="padding-top:10px;">{weekly_html}</div>
+      </details>
+
+      <details style="background:#ffffff;border:1px solid #d8e1ef;border-left:4px solid #4a6fa5;
+                       border-radius:10px;padding:12px 16px;margin:14px 0;">
+        <summary style="cursor:pointer;font-weight:700;color:#33507e;font-size:1.02em;">
+          Monthly chores
+        </summary>
+        <div style="padding-top:10px;">{monthly_html}</div>
+      </details>
+
+      <details style="background:#ffffff;border:1px solid #d8e1ef;border-left:4px solid #4a6fa5;
+                       border-radius:10px;padding:12px 16px;margin:14px 0;">
+        <summary style="cursor:pointer;font-weight:700;color:#33507e;font-size:1.02em;">
+          Seasonal chores
+        </summary>
+        <div style="padding-top:10px;">{seasonal_html}</div>
+      </details>
+
+      <details style="background:#ffffff;border:1px solid #d8e1ef;border-left:4px solid #4a6fa5;
+                       border-radius:10px;padding:12px 16px;margin:14px 0;">
+        <summary style="cursor:pointer;font-weight:700;color:#33507e;font-size:1.02em;">
+          Annual chores
+        </summary>
+        <div style="padding-top:10px;">{annual_html}</div>
+      </details>
+
+      <details open style="background:#fbf6ee;border:1px solid #ead9b8;border-left:4px solid #c89c4a;
+                            border-radius:10px;padding:12px 16px;margin:14px 0;">
+        <summary style="cursor:pointer;font-weight:700;color:#7d5a1f;font-size:1.02em;">
+          Personal grooming
+        </summary>
+        <p class="frol-help" style="margin-top:8px;">These items are stored as
+          chores but tagged so Dr. Monica surfaces them as gentle nudges
+          (e.g., "Time to brush teeth") rather than as task-list items.</p>
+        <div style="padding-top:6px;">{grooming_html}</div>
+      </details>
+    """
+    return _section_chrome(7, "Chores &amp; Household",
+        "Five sub-builders — Daily, Weekly, Monthly, Seasonal, Annual — plus personal grooming.",
+        body, mode, progress, lucy_visible=True)
+
+
+def render_section_8(progress: dict, mode: str) -> str:
+    """V2 §8 — Exercise & Health. Introduces Coach + Dr. Monica. Captures
+    exercise patterns, health setup, notification prefs (off by default), and
+    up to 5 emergency contacts (only the first row shown by default)."""
+    members = _v2_members(progress)
+    member_names = [m.get("name","") for m in members if isinstance(m, dict) and m.get("name")]
+    who_ex      = _sv(progress, 8, "who_exercises_multi", []) or []
+    types_ex    = _sv(progress, 8, "types",               []) or []
+    recurring   = _sv(progress, 8, "recurring_classes",   "")
+    fam_or_ind  = _sv(progress, 8, "family_or_individual","")
+    tracked     = _sv(progress, 8, "tracked_members",     []) or []
+    appt_types  = _sv(progress, 8, "recurring_appt_types",[]) or []
+    appt_notes  = _sv(progress, 8, "recurring_appts",     "")
+    notif_ch    = _sv(progress, 8, "notif_channels",      []) or []
+    notif_email = _sv(progress, 8, "notif_email",         "")
+    notif_sms   = _sv(progress, 8, "notif_sms",           "")
+    contacts    = _sv(progress, 8, "emergency_contacts",  []) or []
+    while len(contacts) < 5:
+        contacts.append({"name": "", "phone": "", "relation": ""})
+
+    def _cb(key: str, options: list, current: list, accent: str = "#2e5d3b", light: str = "#eef4ed") -> str:
+        cur = set(current or [])
+        out = []
+        for opt in options:
+            checked = "checked" if opt in cur else ""
+            out.append(
+                f'<label style="display:inline-flex;align-items:center;gap:6px;'
+                f'background:{light};border:1px solid {accent}33;border-radius:999px;'
+                f'padding:4px 12px;font-size:0.88em;cursor:pointer;margin:3px;">'
+                f'<input type="checkbox" data-step="8" data-key="{escape(key, quote=True)}" '
+                f'data-multi="1" value="{escape(opt, quote=True)}" {checked}>'
+                f'{escape(opt)}</label>'
+            )
+        return "".join(out)
+
+    coach = render_companion_intro_card(
+        "Coach", "🏋️",
+        "Family fitness companion — designs strength + mobility plans, tracks "
+        "consistency, and adapts to pregnancy / postpartum / kids' ages.",
+        href="/coach", accent="#1f7a3a", light="#e8f5ec",
+    )
+    monica = render_companion_intro_card(
+        "Dr. Monica", "🩺",
+        "Pediatric + child-development companion — appointment reminders, "
+        "milestone tracking, and gentle nudges on grooming + hygiene.",
+        href="/dr-monica", accent="#9a3a6e", light="#f8eef3",
+    )
+    refl = render_reflection_card(
+        "The body has its own liturgy",
+        "<p>Strength, sleep, and movement aren't a separate domain — they're "
+        "how the family <em>shows up</em> for everything else. Take this "
+        "section honestly: what does your household actually do, and what's "
+        "in the way of doing more?</p>",
+        key="sec8_intro",
+    )
+
+    contact_rows = ""
+    for i, c in enumerate(contacts):
+        nm  = c.get("name","")  if isinstance(c, dict) else ""
+        ph  = c.get("phone","") if isinstance(c, dict) else ""
+        rel = c.get("relation","") if isinstance(c, dict) else ""
+        # First row visible by default; rest hidden behind a Reveal toggle.
+        hidden = "" if i == 0 else 'style="display:none;"'
+        contact_rows += f"""
+          <div class="frol-row frol-contact-row" {hidden}>
+            <div><label class="frol-fld">Name</label>
+              <input class="frol-input" data-step="8" data-list="emergency_contacts" data-idx="{i}"
+                     data-key="name" value="{escape(nm, quote=True)}"></div>
+            <div><label class="frol-fld">Phone</label>
+              <input class="frol-input" data-step="8" data-list="emergency_contacts" data-idx="{i}"
+                     data-key="phone" value="{escape(ph, quote=True)}"></div>
+            <div><label class="frol-fld">Relation</label>
+              <input class="frol-input" data-step="8" data-list="emergency_contacts" data-idx="{i}"
+                     data-key="relation" placeholder="Spouse, neighbor, doctor"
+                     value="{escape(rel, quote=True)}"></div>
+          </div>
+        """
+
+    body = f"""
+      {coach}
+      {monica}
+      {refl}
+
+      <h3 style="margin-top:14px;color:#1f7a3a;">Exercise</h3>
+      <label class="frol-fld">Who exercises regularly?</label>
+      {_cb("who_exercises_multi", member_names or ["Mom", "Dad", "JP", "Joseph", "Michael", "James"], who_ex)}
+
+      <label class="frol-fld" style="margin-top:12px;">Types</label>
+      {_cb("types", ["Strength", "Walks", "Running", "Cycling", "Sports", "Yoga", "Stretching"], types_ex)}
+
+      <label class="frol-fld" style="margin-top:12px;">Recurring classes / commitments</label>
+      <textarea class="frol-textarea" data-step="8" data-key="recurring_classes"
+                placeholder="John lifts Tue+Thu 17:30; JP soccer Wed 16:00">{escape(recurring)}</textarea>
+
+      <label class="frol-fld" style="margin-top:12px;">Family or individual?</label>
+      <div style="font-weight:normal;">
+        <label style="margin-right:14px;"><input type="radio" data-step="8" data-key="family_or_individual" value="family"     {'checked' if fam_or_ind == "family" else ''}> Family</label>
+        <label style="margin-right:14px;"><input type="radio" data-step="8" data-key="family_or_individual" value="individual" {'checked' if fam_or_ind == "individual" else ''}> Individual</label>
+        <label><input type="radio" data-step="8" data-key="family_or_individual" value="mixed"      {'checked' if fam_or_ind == "mixed" else ''}> Mixed</label>
+      </div>
+
+      <h3 style="margin-top:22px;color:#9a3a6e;">Health setup</h3>
+      <label class="frol-fld">Whose appointments are we tracking?</label>
+      {_cb("tracked_members", member_names or ["Lauren", "John", "JP", "Joseph", "Michael", "James"], tracked, accent="#9a3a6e", light="#f8eef3")}
+
+      <label class="frol-fld" style="margin-top:12px;">Recurring appointment types</label>
+      {_cb("recurring_appt_types", ["Annual physicals", "Dental cleanings", "Eye exams", "Orthodontist", "Therapy", "Specialist follow-ups", "Well-baby checks"], appt_types, accent="#9a3a6e", light="#f8eef3")}
+
+      <label class="frol-fld" style="margin-top:12px;">Recurring appointment notes</label>
+      <textarea class="frol-textarea" data-step="8" data-key="recurring_appts"
+                placeholder="Orthodontist adjustments for JP every 6 weeks">{escape(appt_notes)}</textarea>
+
+      <h3 style="margin-top:22px;color:#33507e;">Notifications</h3>
+      <p class="frol-help">All notifications are <strong>off</strong> by default — opt in below.</p>
+      {_cb("notif_channels", ["email", "sms"], notif_ch, accent="#33507e", light="#eaf0fa")}
+      <div class="frol-row" style="margin-top:8px;">
+        <div><label class="frol-fld">Email</label>
+          <input class="frol-input" type="email" data-step="8" data-key="notif_email"
+                 value="{escape(notif_email, quote=True)}"></div>
+        <div><label class="frol-fld">SMS</label>
+          <input class="frol-input" type="tel" data-step="8" data-key="notif_sms"
+                 value="{escape(notif_sms, quote=True)}"></div>
+      </div>
+
+      <h3 style="margin-top:22px;color:#c0392b;">Emergency contacts</h3>
+      <p class="frol-help">Up to 5 contacts. We show one to start — click below for more.</p>
+      <div id="frol-emergency-contacts">
+        {contact_rows}
+      </div>
+      <button type="button" id="frol-add-contact" onclick="frolRevealContact()"
+              style="background:none;border:1px dashed #c0392b;color:#c0392b;
+                     border-radius:6px;padding:6px 12px;font-weight:600;
+                     font-size:0.86em;cursor:pointer;margin-top:6px;">
+        + Add another emergency contact
+      </button>
+    """
+    return _section_chrome(8, "Exercise &amp; Health",
+        "Movement, medical, notifications, and the people to call when things go sideways.",
+        body, mode, progress, lucy_visible=True)
+
+
+def render_section_9(progress: dict, mode: str) -> str:
+    """V2 §9 — Rest / Free Time / Faith Life. Rest + traditions + marriage +
+    faith life with feast-day flagging."""
+    afternoon_rest = _sv(progress, 9, "afternoon_rest", "")
+    date_night     = _sv(progress, 9, "date_night",     "")
+    couple_time    = _sv(progress, 9, "couple_time",    "")
+    traditions     = _sv(progress, 9, "traditions",     []) or []
+    confession     = _sv(progress, 9, "confession_cadence", "")
+    adoration      = _sv(progress, 9, "adoration_cadence",  "")
+    service        = _sv(progress, 9, "service_notes",      "")
+    feast_days     = _sv(progress, 9, "feast_days_flag",    "")
+
+    def _cb(key: str, options: list, current: list) -> str:
+        cur = set(current or [])
+        out = []
+        for opt in options:
+            checked = "checked" if opt in cur else ""
+            out.append(
+                f'<label style="display:inline-flex;align-items:center;gap:6px;'
+                f'background:#f3eff8;border:1px solid #d8cdec;border-radius:999px;'
+                f'padding:4px 12px;font-size:0.88em;cursor:pointer;margin:3px;">'
+                f'<input type="checkbox" data-step="9" data-key="{escape(key, quote=True)}" '
+                f'data-multi="1" value="{escape(opt, quote=True)}" {checked}>'
+                f'{escape(opt)}</label>'
+            )
+        return "".join(out)
+
+    refl = render_reflection_card(
+        "Rest is an act of trust",
+        "<p>Sabbath, naps, slow Sundays, family game nights — these aren't "
+        "luxuries you earn after the chores are done. They're how the family "
+        "remembers it's loved by a God who rests. Build them in <em>first</em> "
+        "and let the work fit around them.</p>",
+        key="sec9_intro",
+    )
+    body = f"""
+      {refl}
+
+      <h3>Rest &amp; family rhythm</h3>
+      <label class="frol-fld">Afternoon rest / quiet block</label>
+      <input class="frol-input" type="text" data-step="9" data-key="afternoon_rest"
+             placeholder="2 to 4" value="{escape(afternoon_rest, quote=True)}">
+
+      <label class="frol-fld" style="margin-top:12px;">Family traditions</label>
+      {_cb("traditions", ["Read-aloud", "Holy hour", "Game night", "Nature walk", "Family movie", "Sunday brunch", "Birthday rituals", "Liturgical year crafts"], traditions)}
+
+      <h3 style="margin-top:18px;">Marriage</h3>
+      <label class="frol-fld">Date night</label>
+      <input class="frol-input" type="text" data-step="9" data-key="date_night"
+             placeholder="Wednesday 5:30" value="{escape(date_night, quote=True)}">
+
+      <label class="frol-fld" style="margin-top:12px;">Couple time / connection</label>
+      <input class="frol-input" type="text" data-step="9" data-key="couple_time"
+             placeholder="evening on the porch, morning coffee, etc."
+             value="{escape(couple_time, quote=True)}">
+
+      <h3 style="margin-top:18px;">Faith life</h3>
+      <label class="frol-fld">Confession cadence</label>
+      <input class="frol-input" type="text" data-step="9" data-key="confession_cadence"
+             placeholder="Monthly first Saturday" value="{escape(confession, quote=True)}">
+
+      <label class="frol-fld" style="margin-top:12px;">Adoration / holy hour cadence</label>
+      <input class="frol-input" type="text" data-step="9" data-key="adoration_cadence"
+             placeholder="Tue 9pm John, Sat morning family"
+             value="{escape(adoration, quote=True)}">
+
+      <label class="frol-fld" style="margin-top:12px;">Service / works of mercy</label>
+      <textarea class="frol-textarea" data-step="9" data-key="service_notes"
+                placeholder="Monthly food pantry, parish hospitality, visiting elderly">{escape(service)}</textarea>
+
+      <label class="frol-fld" style="margin-top:12px;">Flag feast days for the family calendar?</label>
+      <div style="font-weight:normal;">
+        <label style="margin-right:14px;"><input type="radio" data-step="9" data-key="feast_days_flag" value="yes" {'checked' if feast_days == "yes" else ''}> Yes — surface upcoming feasts on the dashboard</label>
+        <label><input type="radio" data-step="9" data-key="feast_days_flag" value="no" {'checked' if feast_days == "no" else ''}> No</label>
+      </div>
+    """
+    return _section_chrome(9, "Rest, Free Time, Faith Life",
+        "Sabbath, traditions, marriage, and the sacraments that shape the year.",
+        body, mode, progress, lucy_visible=True)
+
+
+def render_section_10(progress: dict, mode: str) -> str:
+    """V2 §10 — Flex / Buffers / Seasonal. Captures transition buffers, flex
+    blocks, energy levels (feeds AI scheduler), weekly reset, seasonal flags."""
+    buffer_min   = _sv(progress, 10, "transition_buffer_min", "10")
+    flex_blocks  = _sv(progress, 10, "flex_blocks",           "")
+    energy       = _sv(progress, 10, "energy_levels",         {}) or {}
+    weekly_reset = _sv(progress, 10, "weekly_reset",          "")
+    seasonal     = _sv(progress, 10, "seasonal_flags",        []) or []
+
+    def _cb(key: str, options: list, current: list) -> str:
+        cur = set(current or [])
+        out = []
+        for opt in options:
+            checked = "checked" if opt in cur else ""
+            out.append(
+                f'<label style="display:inline-flex;align-items:center;gap:6px;'
+                f'background:#fbf6ee;border:1px solid #ead9b8;border-radius:999px;'
+                f'padding:4px 12px;font-size:0.88em;cursor:pointer;margin:3px;">'
+                f'<input type="checkbox" data-step="10" data-key="{escape(key, quote=True)}" '
+                f'data-multi="1" value="{escape(opt, quote=True)}" {checked}>'
+                f'{escape(opt)}</label>'
+            )
+        return "".join(out)
+
+    energy_rows = ""
+    for tod in ["morning", "midday", "afternoon", "evening"]:
+        cur = (energy.get(tod) if isinstance(energy, dict) else "") or ""
+        energy_rows += f"""
+          <div style="display:flex;align-items:center;gap:10px;margin:6px 0;">
+            <div style="width:90px;font-weight:600;color:#33507e;">{tod.title()}</div>
+            <select class="frol-input" data-step="10" data-key="energy__{tod}">
+              <option value="">—</option>
+              <option value="high"   {'selected' if cur == "high" else ''}>High</option>
+              <option value="medium" {'selected' if cur == "medium" else ''}>Medium</option>
+              <option value="low"    {'selected' if cur == "low" else ''}>Low</option>
+            </select>
+          </div>
+        """
+
+    refl = render_reflection_card(
+        "Buffers are not waste",
+        "<p>The most common reason rules of life collapse: no buffer between "
+        "blocks. Transitions take time — getting shoes on, finding the bag, "
+        "settling the baby. Naming a transition buffer (5–15 min between "
+        "blocks) and a few flex blocks per week is what keeps the rest of "
+        "the rule alive.</p>",
+        key="sec10_intro",
+    )
+
+    body = f"""
+      {refl}
+
+      <label class="frol-fld">Transition buffer between blocks <span style="font-weight:400;color:#888;">(minutes)</span></label>
+      <input class="frol-input" type="number" min="0" max="60" data-step="10" data-key="transition_buffer_min"
+             value="{escape(str(buffer_min), quote=True)}"
+             style="max-width:120px;">
+      <p class="frol-help">§11 Build Your Day will insert a gray buffer slot of
+        this length between back-to-back activities.</p>
+
+      <label class="frol-fld" style="margin-top:14px;">Weekly flex blocks <span style="font-weight:400;color:#888;">(named time + day)</span></label>
+      <p class="frol-help">One per line. Format: <code>Day HH:MM Name</code>
+        (e.g., <code>Sat 09:00 Catch-up block</code>).</p>
+      <textarea class="frol-textarea" data-step="10" data-key="flex_blocks"
+                placeholder="Sat 09:00 Catch-up block&#10;Wed 13:00 Anything-goes hour">{escape(flex_blocks)}</textarea>
+
+      <label class="frol-fld" style="margin-top:14px;">Energy levels by time of day</label>
+      <p class="frol-help">The AI scheduler uses these to suggest hard tasks in
+        your high-energy windows and gentle tasks in your low ones.</p>
+      {energy_rows}
+
+      <label class="frol-fld" style="margin-top:14px;">Weekly reset ritual</label>
+      <input class="frol-input" type="text" data-step="10" data-key="weekly_reset"
+             placeholder="Sunday afternoon: plan the week, batch cook, family meeting"
+             value="{escape(weekly_reset, quote=True)}">
+
+      <label class="frol-fld" style="margin-top:14px;">Seasonal flags</label>
+      <p class="frol-help">Check anything that genuinely changes the rhythm in
+        that season — the AI will offer to re-evaluate your rule then.</p>
+      {_cb("seasonal_flags", ["Advent slow-down", "Christmas / Octave", "Lenten fast", "Easter Octave", "Summer / no school", "Back-to-school", "Holy Week", "Liturgical New Year (Nov)"], seasonal)}
+    """
+    return _section_chrome(10, "Flex, Buffers &amp; Seasonal",
+        "The breathing room that keeps the rule alive — and the seasons that re-shape it.",
+        body, mode, progress, lucy_visible=True)
+
+
+# Spec color palette (Section 11 timeline)
+_TIMELINE_PALETTE = [
+    ("prayer",     "Prayer",        "#4a6fa5"),  # Marian blue
+    ("meal",       "Meal",          "#d4a017"),  # amber
+    ("rest",       "Rest",          "#7fa686"),  # soft green
+    ("personal",   "Personal",      "#c89c4a"),  # golden
+    ("school",     "School",        "#e07b3a"),  # orange
+    ("family",     "Family time",   "#b59cd6"),  # lavender
+    ("chore",      "Chore",         "#d99aa8"),  # rose
+    ("work",       "Work",          "#5b3a8a"),  # deep purple
+    ("buffer",     "Buffer",        "#8a8a8a"),  # dark gray
+    ("free",       "Free / open",   "#d8d8d8"),  # light gray
+]
+_PALETTE_BY_KEY = {k: (l, c) for k, l, c in _TIMELINE_PALETTE}
+
+_TIMELINE_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday",
+                  "Friday", "Saturday", "Sunday"]
+
+
+def _timeline_slots():
+    """5:00 AM through 9:30 PM in 30-minute increments (34 slots)."""
+    out = []
+    for hour in range(5, 22):
+        for minute in (0, 30):
+            out.append(f"{hour:02d}{minute:02d}")
+    return out
+
+
+def _slot_to_label(slot_hhmm: str) -> str:
+    h = int(slot_hhmm[:2]); m = int(slot_hhmm[2:])
+    suffix = "AM" if h < 12 else "PM"
+    h12 = h % 12 or 12
+    return f"{h12}:{m:02d} {suffix}"
+
+
+def render_section_11(progress: dict, mode: str) -> str:
+    """V2 §11 — Build Your Day: a visual 5 AM–10 PM 30-minute timeline.
+    Each slot shows day-of-week dropdown content. Per-day editable with
+    activity label, category (color), assigned person, and a paired-with
+    field for shadow activities. Gray buffer slots auto-suggested at the
+    transition-buffer interval from §10."""
+    sec11 = (progress.get("data", {}) or {}).get("section_11", {}) or {}
+    cur_day = sec11.get("current_day") or "Monday"
+    if cur_day not in _TIMELINE_DAYS:
+        cur_day = "Monday"
+    weekend_view = sec11.get("weekend_view", "") == "yes"
+    per_person = (sec11.get("per_person_filter") or "").strip()
+    placements = sec11.get(f"placements_{cur_day}") or {}
+    buffer_min = int((progress.get("data", {}) or {}).get("section_10", {}).get("transition_buffer_min") or 10)
+
+    members = _v2_members(progress)
+    member_names = [m.get("name","") for m in members if isinstance(m, dict) and m.get("name")]
+
+    refl = render_reflection_card(
+        "The day, made visible",
+        "<p>Here's where the rule becomes a picture. Click a slot to assign "
+        "an activity, a category color, who's responsible, and (optionally) "
+        "a paired sibling shadowing along. Gray buffer slots are auto-inserted "
+        "between back-to-back activities at the buffer width you set in §10.</p>",
+        key="sec11_intro",
+    )
+
+    # Day switcher
+    day_btns = ""
+    for d in _TIMELINE_DAYS:
+        is_cur = d == cur_day
+        day_btns += (
+            f'<a href="/frol-wizard?step=11&amp;day={d}&amp;mode={escape(mode, quote=True)}" '
+            f'style="display:inline-block;padding:6px 12px;margin:2px;'
+            f'background:{"#4a6fa5" if is_cur else "#e8eef7"};'
+            f'color:{"#fff" if is_cur else "#33507e"};'
+            f'border-radius:6px;text-decoration:none;font-weight:700;'
+            f'font-size:0.86em;">{d[:3]}</a>'
+        )
+
+    # Per-person filter dropdown
+    person_opts = '<option value="">All people</option>'
+    for nm in member_names:
+        sel = "selected" if nm == per_person else ""
+        person_opts += f'<option value="{escape(nm, quote=True)}" {sel}>{escape(nm)}</option>'
+
+    # Color palette legend
+    legend = ""
+    for k, label, color in _TIMELINE_PALETTE:
+        legend += (
+            f'<span style="display:inline-flex;align-items:center;gap:4px;'
+            f'margin:2px 6px 2px 0;font-size:0.8em;color:#555;">'
+            f'<span style="display:inline-block;width:14px;height:14px;'
+            f'background:{color};border-radius:3px;border:1px solid #00000022;"></span>'
+            f'{escape(label)}</span>'
+        )
+
+    # Build slot rows
+    slots = _timeline_slots()
+    rows_html = ""
+    last_activity_end_idx = -99
+    for i, slot in enumerate(slots):
+        placement = placements.get(slot) or {}
+        label    = placement.get("label", "") if isinstance(placement, dict) else ""
+        category = placement.get("category", "") if isinstance(placement, dict) else ""
+        person   = placement.get("person", "") if isinstance(placement, dict) else ""
+        paired   = placement.get("paired_with", "") if isinstance(placement, dict) else ""
+        # Per-person filter: gray-out non-matching rows
+        muted = bool(per_person and person and person.lower() != per_person.lower())
+        # Auto-buffer hint: if previous row had a non-buffer activity and the
+        # difference is exactly one 30-min slot and the current row is empty
+        # and the buffer width is <= 30 min, show "buffer suggested" hint.
+        show_buffer_hint = (not label and not category
+                            and (i - last_activity_end_idx) == 1
+                            and buffer_min and buffer_min <= 30)
+        if label and category and category != "buffer":
+            last_activity_end_idx = i
+        # Determine color band
+        _, color = _PALETTE_BY_KEY.get(category, ("", "#f4f4f4"))
+        # Render category dropdown
+        cat_opts = '<option value="">—</option>'
+        for k, lab, _c in _TIMELINE_PALETTE:
+            sel = "selected" if k == category else ""
+            cat_opts += f'<option value="{escape(k, quote=True)}" {sel}>{escape(lab)}</option>'
+        # Person dropdown
+        pers_opts = '<option value="">—</option>'
+        for nm in member_names:
+            sel = "selected" if nm == person else ""
+            pers_opts += f'<option value="{escape(nm, quote=True)}" {sel}>{escape(nm)}</option>'
+        # Paired dropdown
+        pair_opts = '<option value="">—</option>'
+        for nm in member_names:
+            sel = "selected" if nm == paired else ""
+            pair_opts += f'<option value="{escape(nm, quote=True)}" {sel}>{escape(nm)}</option>'
+        row_style = (f"background:{color}1a;border-left:4px solid {color};"
+                     f"opacity:{'0.45' if muted else '1'};")
+        buffer_chip = ""
+        if show_buffer_hint:
+            buffer_chip = (
+                f'<span style="font-size:0.72em;color:#8a8a8a;margin-left:6px;'
+                f'background:#eee;border-radius:3px;padding:2px 6px;">'
+                f'buffer ({buffer_min} min)</span>'
+            )
+        rows_html += f"""
+          <div class="frol-slot-row" data-slot="{slot}" style="display:grid;
+                grid-template-columns:80px 1.5fr 1fr 1fr 1fr;gap:6px;
+                align-items:center;padding:6px 8px;margin:2px 0;
+                border-radius:6px;{row_style}">
+            <div style="font-weight:700;color:#33507e;font-size:0.86em;">
+              {escape(_slot_to_label(slot))}{buffer_chip}
+            </div>
+            <input class="frol-input" type="text"
+                   data-step="11" data-list="placements_{escape(cur_day, quote=True)}"
+                   data-idx="{slot}" data-key="label"
+                   placeholder="Activity (e.g., Math, Rosary)"
+                   value="{escape(label, quote=True)}">
+            <select class="frol-input"
+                    data-step="11" data-list="placements_{escape(cur_day, quote=True)}"
+                    data-idx="{slot}" data-key="category">{cat_opts}</select>
+            <select class="frol-input"
+                    data-step="11" data-list="placements_{escape(cur_day, quote=True)}"
+                    data-idx="{slot}" data-key="person">{pers_opts}</select>
+            <select class="frol-input"
+                    data-step="11" data-list="placements_{escape(cur_day, quote=True)}"
+                    data-idx="{slot}" data-key="paired_with">{pair_opts}</select>
+          </div>
+        """
+
+    body = f"""
+      {refl}
+
+      <div style="background:#f6f8fc;border:1px solid #d8e1ef;border-radius:8px;
+                  padding:10px 14px;margin:10px 0;">
+        <div style="margin-bottom:6px;">{day_btns}</div>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+          <label style="font-size:0.88em;color:#555;font-weight:normal;">
+            <input type="checkbox" data-step="11" data-key="weekend_view" value="yes"
+                   {'checked' if weekend_view else ''}> Show weekend rhythm side-by-side
+          </label>
+          <label style="font-size:0.88em;color:#555;font-weight:normal;display:flex;
+                        align-items:center;gap:6px;">
+            Per-person filter
+            <select class="frol-input" data-step="11" data-key="per_person_filter"
+                    style="max-width:160px;">{person_opts}</select>
+          </label>
+        </div>
+        <div style="margin-top:8px;">{legend}</div>
+      </div>
+
+      <div style="background:#fff;border:1px solid #d8e1ef;border-radius:8px;
+                  padding:12px;margin:10px 0;">
+        <div style="display:grid;grid-template-columns:80px 1.5fr 1fr 1fr 1fr;
+                    gap:6px;padding:0 8px 6px;font-size:0.78em;color:#888;
+                    font-weight:700;">
+          <div>Time</div><div>Activity</div><div>Category</div><div>Person</div><div>Paired with</div>
+        </div>
+        {rows_html}
+      </div>
+
+      <p class="frol-help">Tap mode: type directly into any row to assign.
+        Quick mode: use the "Common activity templates" list below to bulk-add.
+        Paired activities (e.g., Michael shadowing Joseph for read-aloud) appear
+        as a soft outline on the second person's row.</p>
+    """
+    return _section_chrome(11, f"Build Your Day — {cur_day}",
+        "Click any slot to assign an activity, category, and person. The picture builds itself.",
+        body, mode, progress, lucy_visible=True)
+
+
+def _commitments_status(progress: dict) -> list:
+    """Derive ✅/⚠️ status for each of the SEVEN_COMMITMENTS based on the
+    collected V2 section data. Returns list of dicts with index, label,
+    status ('ok' / 'warn'), fix_section (int), and reason (str)."""
+    data = progress.get("data", {}) or {}
+    s4  = data.get("section_4")  or {}
+    s5  = data.get("section_5")  or {}
+    s9  = data.get("section_9")  or {}
+    s10 = data.get("section_10") or {}
+    out = []
+    def _has(v) -> bool:
+        if isinstance(v, list):
+            return any(str(x).strip() for x in v)
+        if isinstance(v, str):
+            return bool(v.strip())
+        return bool(v)
+    # 1. Daily prayer
+    ok = (_has(s4.get("morning_prayer")) or _has(s4.get("morning_prayers_multi"))
+          or _has(s4.get("angelus_times")))
+    out.append({"idx": 1, "label": SEVEN_COMMITMENTS[0],
+                "status": "ok" if ok else "warn", "fix_section": 4,
+                "reason": "Anchored at " + (s4.get("morning_time") or "morning")
+                          if ok else "No daily anchor set."})
+    # 2. Sunday Mass + Adoration
+    ok = (_has(s9.get("adoration_cadence"))
+          or "mass" in (s4.get("other_devotions") or "").lower()
+          or "Daily Mass" in (s4.get("morning_prayers_multi") or [])
+          or "Holy Hour" in (s4.get("evening_prayers_multi") or []))
+    out.append({"idx": 2, "label": SEVEN_COMMITMENTS[1],
+                "status": "ok" if ok else "warn", "fix_section": 9,
+                "reason": "Adoration / Mass cadence set." if ok
+                          else "Add an Adoration cadence in §9."})
+    # 3. Meals at common table
+    ok = (_has(s5.get("dinner_time")) and (_has(s5.get("lunch_together"))
+          or _has(s5.get("dinner_who"))))
+    out.append({"idx": 3, "label": SEVEN_COMMITMENTS[2],
+                "status": "ok" if ok else "warn", "fix_section": 5,
+                "reason": ("Dinner at " + (s5.get("dinner_time") or "—") + ".") if ok
+                          else "Set a dinner time and who cooks in §5."})
+    # 4. Sabbath rest
+    ok = _has(s9.get("afternoon_rest")) or _has(s10.get("weekly_reset"))
+    out.append({"idx": 4, "label": SEVEN_COMMITMENTS[3],
+                "status": "ok" if ok else "warn", "fix_section": 9,
+                "reason": "Rest block and / or weekly reset defined." if ok
+                          else "Define an afternoon rest in §9 or a weekly reset in §10."})
+    # 5. Service
+    ok = _has(s9.get("service_notes"))
+    out.append({"idx": 5, "label": SEVEN_COMMITMENTS[4],
+                "status": "ok" if ok else "warn", "fix_section": 9,
+                "reason": "Service notes recorded." if ok
+                          else "Name at least one work of mercy in §9."})
+    # 6. Hospitality — heuristic: traditions mentioning brunch, dinner guests,
+    # or any text in service_notes mentioning "guest", "host", "neighbor".
+    trad = [str(t).lower() for t in (s9.get("traditions") or [])]
+    notes_l = (s9.get("service_notes") or "").lower()
+    ok = (any("brunch" in t or "dinner" in t for t in trad)
+          or "guest" in notes_l or "host" in notes_l or "neighbor" in notes_l)
+    out.append({"idx": 6, "label": SEVEN_COMMITMENTS[5],
+                "status": "ok" if ok else "warn", "fix_section": 9,
+                "reason": "Hospitality patterns noted." if ok
+                          else "Note a hospitality habit in §9 (e.g., Sunday brunch, neighbor visits)."})
+    # 7. Play, beauty, joy
+    ok = _has(s9.get("traditions"))
+    out.append({"idx": 7, "label": SEVEN_COMMITMENTS[6],
+                "status": "ok" if ok else "warn", "fix_section": 9,
+                "reason": ("Family traditions: " + ", ".join((s9.get("traditions") or [])[:3])) if ok
+                          else "Add at least one family tradition in §9."})
+    return out
+
+
+def render_section_12(progress: dict, mode: str) -> str:
+    """V2 §12 — Seven Commitments Check. Renders the Dominick seven with
+    derived ✅/⚠️ status and one-tap deep-link 'Fix' buttons."""
+    items = _commitments_status(progress)
+    refl = render_reflection_card(
+        "The Dominick Seven",
+        "<p>Before you save, let's check the rule against the seven commitments "
+        "Dominick names as the spine of a healthy Catholic family life. A ⚠️ "
+        "doesn't mean your rule is wrong — it means we couldn't find the data "
+        "yet. Click <em>Fix</em> to jump back and add it, or move on if it "
+        "genuinely doesn't apply to your season.</p>",
+        key="sec12_intro",
+        attribution="— Adapted from Dominick's Seven Commitments",
+    )
+    rows = ""
+    ok_count = sum(1 for it in items if it["status"] == "ok")
+    for it in items:
+        is_ok = it["status"] == "ok"
+        icon  = "✅" if is_ok else "⚠️"
+        accent = "#7fa686" if is_ok else "#c89c4a"
+        light  = "#eef4ed" if is_ok else "#fbf6ee"
+        fix_btn = ""
+        if not is_ok:
+            fix_btn = (
+                f'<a href="/frol-wizard?step={it["fix_section"]}&amp;mode={escape(mode, quote=True)}" '
+                f'style="background:#c89c4a;color:#fff;padding:6px 14px;border-radius:6px;'
+                f'text-decoration:none;font-weight:700;font-size:0.85em;">Fix in §{it["fix_section"]}</a>'
+            )
+        rows += f"""
+          <div style="background:{light};border:1px solid {accent}55;border-left:4px solid {accent};
+                      border-radius:10px;padding:12px 14px;margin:8px 0;
+                      display:flex;align-items:center;gap:12px;">
+            <div style="font-size:1.4em;">{icon}</div>
+            <div style="flex:1;">
+              <div style="font-weight:700;color:#33507e;">{it["idx"]}. {escape(it["label"])}</div>
+              <div style="font-size:0.86em;color:#555;margin-top:2px;">{escape(it["reason"])}</div>
+            </div>
+            {fix_btn}
+          </div>
+        """
+    body = f"""
+      {refl}
+      <div style="background:#eaf0fa;border:1px solid #c8d6ec;border-radius:8px;
+                  padding:10px 14px;margin:10px 0;font-weight:700;color:#33507e;">
+        {ok_count} of 7 commitments anchored in your rule.
+      </div>
+      {rows}
+    """
+    return _section_chrome(12, "Seven Commitments Check",
+        "How does your rule line up with the Dominick seven? Fix any gaps, or move on.",
+        body, mode, progress, lucy_visible=True)
+
+
+# ── §13 finalize-save ───────────────────────────────────────────────────────
+
+def _parse_textarea_lines(text) -> list:
+    if not text:
+        return []
+    if isinstance(text, list):
+        return [str(t).strip() for t in text if str(t).strip()]
+    return [ln.strip() for ln in str(text).splitlines() if ln.strip()]
+
+
+def _slot_to_label_12h(slot: str) -> str:
+    """Convert 'HHMM' → '6:00 AM' style label matching day_templates grid."""
+    return _slot_to_label(slot)
+
+
+def finalize_v2(progress: dict) -> dict:
+    """Write all collected V2 data to their final destinations:
+      - data/day_templates/{Mon..Sun}.json (backed up first)
+      - data/chores.json (expanded, with is_grooming flags)
+      - data/hour_tracking.json (JP per-subject categories)
+      - data/app_settings.json (notification prefs)
+      - data/prayer_intentions.json (if any other_devotions text)
+      - data/frol_wizard_progress.json (marked finalized_at)
+    Returns a dict of {target: status_str} for the §13 receipt view."""
+    import os, shutil
+    from datetime import datetime as _dt
+    from data_helpers import (
+        load_chores_data, save_chores_data,
+        load_hour_tracking, save_hour_tracking,
+    )
+    from render_settings import load_app_settings, save_app_settings
+    DAY_TEMPLATE_DIR = "data/day_templates"
+    receipt = {}
+    data = progress.get("data", {}) or {}
+    stamp = _dt.now().strftime("%Y%m%d_%H%M%S")
+
+    # 1) day_templates with backup
+    try:
+        backup_dir = os.path.join(DAY_TEMPLATE_DIR, f"_backup_{stamp}")
+        os.makedirs(backup_dir, exist_ok=True)
+        written = 0
+        for day in _TIMELINE_DAYS:
+            placements = (data.get("section_11") or {}).get(f"placements_{day}") or {}
+            src = os.path.join(DAY_TEMPLATE_DIR, f"{day}.json")
+            if os.path.exists(src):
+                shutil.copy2(src, os.path.join(backup_dir, f"{day}.json"))
+            # Build grid keyed by person → {time_label: activity}
+            grid = {}
+            if placements:
+                for slot, p in placements.items():
+                    if not isinstance(p, dict):
+                        continue
+                    label = (p.get("label") or "").strip()
+                    if not label:
+                        continue
+                    person = (p.get("person") or "").strip() or "Family"
+                    time_label = _slot_to_label_12h(slot)
+                    grid.setdefault(person, {})[time_label] = label
+                    paired = (p.get("paired_with") or "").strip()
+                    if paired and paired != person:
+                        grid.setdefault(paired, {})[time_label] = f"(with {person}) {label}"
+            if grid:
+                with open(src, "w", encoding="utf-8") as f:
+                    json.dump({"weekday": day, "grid": grid}, f, indent=2, ensure_ascii=False)
+                written += 1
+        receipt["day_templates"] = f"Backed up to {os.path.basename(backup_dir)}; wrote {written} day(s)."
+    except Exception as e:
+        receipt["day_templates"] = f"ERROR: {e}"
+
+    # 2) chores.json — merge section_7 chores into existing structure +
+    # apply is_grooming flags from section_7.grooming
+    try:
+        sec7 = data.get("section_7") or {}
+        chores_raw = load_chores_data() or {}
+        boys = chores_raw.setdefault("boys", {})
+        # Iterate every key flat-saved by §7 (chores__{person}__{bucket}__{sub_key}).
+        # If user typed into a textarea, save_section_field stored the value
+        # under that key directly at the top level of section_7 (because we
+        # didn't use list_/idx). Read those keys.
+        flat = {k: v for k, v in sec7.items() if k.startswith("chores__")}
+        # Group by (person, bucket)
+        by_person = {}
+        for k, v in flat.items():
+            try:
+                _, person, bucket, sub = k.split("__", 3)
+            except ValueError:
+                continue
+            by_person.setdefault(person, {}).setdefault(bucket, {})[sub] = _parse_textarea_lines(v)
+        # Apply
+        for person, buckets in by_person.items():
+            target = boys.setdefault(person, {}) if person != "Lauren" else chores_raw.setdefault("lauren", {})
+            for bucket, sub_map in buckets.items():
+                if bucket == "daily":
+                    target["daily"] = sub_map.get("daily", [])
+                else:
+                    cur = target.setdefault(bucket, {})
+                    if not isinstance(cur, dict): cur = {}
+                    for sub, lines in sub_map.items():
+                        cur[sub] = lines
+                    target[bucket] = cur
+        # Grooming flags
+        grooming_flat = {k: v for k, v in sec7.items() if k.startswith("grooming__")}
+        tagged = 0
+        for k, v in grooming_flat.items():
+            person = k.split("__", 1)[1]
+            target = boys.get(person) if person != "Lauren" else chores_raw.get("lauren")
+            if not isinstance(target, dict):
+                continue
+            wanted = set(_parse_textarea_lines(v))
+            # Walk daily + weekly + monthly + seasonal + annual; if a string
+            # item matches a wanted line (case-insensitive substring), upgrade
+            # to {text, is_grooming: True}.
+            def _upgrade_list(lst):
+                nonlocal tagged
+                if not isinstance(lst, list):
+                    return lst
+                out = []
+                for it in lst:
+                    txt = _chore_item_text(it)
+                    if txt and any(w.lower() in txt.lower() for w in wanted):
+                        out.append({"text": txt, "is_grooming": True}); tagged += 1
+                    else:
+                        out.append(it)
+                return out
+            target["daily"] = _upgrade_list(target.get("daily") or [])
+            for bucket_key in ("weekly", "monthly", "seasonal", "annual"):
+                bucket = target.get(bucket_key) or {}
+                if isinstance(bucket, dict):
+                    for sub, items in list(bucket.items()):
+                        bucket[sub] = _upgrade_list(items)
+                    target[bucket_key] = bucket
+            # If no matches found, also append the wanted lines as new
+            # is_grooming daily items so they always end up tagged.
+            existing_texts = {_chore_item_text(it).lower() for it in (target.get("daily") or [])}
+            for w in wanted:
+                if w.lower() not in existing_texts:
+                    target.setdefault("daily", []).append({"text": w, "is_grooming": True})
+                    tagged += 1
+        save_chores_data(chores_raw)
+        receipt["chores"] = f"Updated chores for {len(by_person)} person(s); tagged {tagged} grooming item(s)."
+    except Exception as e:
+        receipt["chores"] = f"ERROR: {e}"
+
+    # 3) hour_tracking — JP per-subject categories
+    try:
+        sec6 = data.get("section_6") or {}
+        tracked_subjects = sec6.get("jp_subjects_tracked") or []
+        jp_tracking_on = (data.get("section_1") or {}).get("jp_hour_tracking") == "yes"
+        if jp_tracking_on and tracked_subjects:
+            ht = load_hour_tracking() or {}
+            jp = ht.setdefault("JP", {})
+            for subj in tracked_subjects:
+                s = jp.setdefault(subj, {"categories": [], "logs": []})
+                if not isinstance(s.get("categories"), list): s["categories"] = []
+                if subj not in s["categories"]:
+                    s["categories"].append(subj)
+            save_hour_tracking(ht)
+            receipt["hour_tracking"] = f"JP tracking enabled for {len(tracked_subjects)} subject(s)."
+        else:
+            receipt["hour_tracking"] = "JP hour tracking off — skipped."
+    except Exception as e:
+        receipt["hour_tracking"] = f"ERROR: {e}"
+
+    # 4) app_settings — notification prefs from §8
+    try:
+        sec8 = data.get("section_8") or {}
+        app_settings = load_app_settings() or {}
+        prefs = app_settings.setdefault("notification_prefs", {})
+        prefs["channels"] = sec8.get("notif_channels") or []
+        prefs["email"]    = sec8.get("notif_email") or ""
+        prefs["sms"]      = sec8.get("notif_sms") or ""
+        # Feast-day flag from §9
+        sec9 = data.get("section_9") or {}
+        if sec9.get("feast_days_flag") == "yes":
+            app_settings["feast_days_on_dashboard"] = True
+        save_app_settings(app_settings)
+        receipt["app_settings"] = "Notification prefs + feast-day flag saved."
+    except Exception as e:
+        receipt["app_settings"] = f"ERROR: {e}"
+
+    # 5) prayer_intentions — pull free-form 'other_devotions' as a starter
+    # intention if there's no existing intentions yet.
+    try:
+        from data_helpers import load_prayer_intentions, save_prayer_intentions
+        sec4 = data.get("section_4") or {}
+        other = (sec4.get("other_devotions") or "").strip()
+        if other:
+            pi = load_prayer_intentions() or {}
+            ongoing = pi.setdefault("ongoing", [])
+            already = {(o.get("text") or "").strip().lower() for o in ongoing if isinstance(o, dict)}
+            if other.lower() not in already:
+                ongoing.append({"text": other, "added_at": _dt.now().isoformat(timespec="seconds"),
+                                "source": "frol_wizard_v2"})
+                save_prayer_intentions(pi)
+                receipt["prayer_intentions"] = "Added 1 intention from §4."
+            else:
+                receipt["prayer_intentions"] = "Intention already present — skipped."
+        else:
+            receipt["prayer_intentions"] = "No free-form devotions to add."
+    except Exception as e:
+        receipt["prayer_intentions"] = f"ERROR: {e}"
+
+    # 6) Mark wizard finalized
+    try:
+        progress["finalized_at"] = _dt.now().isoformat(timespec="seconds")
+        if V2_TOTAL_SECTIONS not in (progress.get("completed_steps") or []):
+            progress.setdefault("completed_steps", []).append(V2_TOTAL_SECTIONS)
+        save_progress(progress)
+        receipt["wizard"] = "Marked complete."
+    except Exception as e:
+        receipt["wizard"] = f"ERROR: {e}"
+
+    return receipt
+
+
+def render_section_13(progress: dict, mode: str) -> str:
+    """V2 §13 — AI Review + Save. Three review cards (Multitasking /
+    Developmental / Schedule optimization) shown as Accept / Modify / Skip,
+    plus the Save button that runs finalize_v2()."""
+    sec13 = (progress.get("data", {}) or {}).get("section_13", {}) or {}
+    receipt = sec13.get("receipt") or {}
+    finalized = bool(progress.get("finalized_at"))
+
+    refl = render_reflection_card(
+        "Before we save",
+        "<p>Three quick AI-generated reviews of your rule, each as a card you "
+        "can Accept, Modify, or Skip. None of them change your rule on their "
+        "own — they're starting points to think with.</p>",
+        key="sec13_intro",
+        attribution="— Concept: Dominick's iterative-rule methodology",
+    )
+
+    # Heuristic review cards (no LLM call needed for these — they read the
+    # data structure and produce specific observations).
+    items = _commitments_status(progress)
+    warn_count = sum(1 for it in items if it["status"] == "warn")
+    members = _v2_members(progress)
+    person_count = len([m for m in members if isinstance(m, dict) and m.get("name")])
+    s11 = (progress.get("data", {}) or {}).get("section_11", {}) or {}
+    placed_days = sum(1 for d in _TIMELINE_DAYS if (s11.get(f"placements_{d}") or {}))
+
+    def _review_card(title: str, body: str, key: str) -> str:
+        current = sec13.get(f"review_{key}", "")
+        opts = [("accept", "Accept", "#7fa686"), ("modify", "Modify", "#c89c4a"), ("skip", "Skip", "#8a8a8a")]
+        btns = ""
+        for v, lab, color in opts:
+            checked = "checked" if current == v else ""
+            btns += (
+                f'<label style="display:inline-flex;align-items:center;gap:6px;'
+                f'background:#fff;border:1px solid {color}77;color:{color};border-radius:6px;'
+                f'padding:6px 14px;margin-right:6px;font-weight:700;cursor:pointer;font-size:0.86em;">'
+                f'<input type="radio" data-step="13" data-key="review_{escape(key, quote=True)}" '
+                f'value="{v}" {checked}> {lab}</label>'
+            )
+        return f"""
+          <div style="background:#f6f8fc;border:1px solid #d8e1ef;border-left:4px solid #4a6fa5;
+                      border-radius:10px;padding:14px 16px;margin:10px 0;">
+            <div style="font-weight:700;color:#33507e;font-size:1.02em;margin-bottom:6px;">{escape(title)}</div>
+            <div style="font-size:0.92em;color:#444;line-height:1.55;">{body}</div>
+            <div style="margin-top:10px;">{btns}</div>
+          </div>
+        """
+
+    multi_body = (
+        f"<p>Looking at §4 Prayer combine-notes and §5 Meals, your rule has "
+        f"{'some' if (progress.get('data',{}).get('section_4') or {}).get('combine_notes') else 'no'} "
+        f"explicit prayer-during-task pairings. Pairing prayer with existing "
+        f"transitions (Angelus during lunch prep, Rosary during the school "
+        f"drive) gets prayer in without adding minutes to the day.</p>"
+    )
+    dev_body = (
+        f"<p>You have {person_count} family member(s) recorded. §2 Little Ones "
+        f"captured rhythms for the youngest; §6 School set up paired-activity "
+        f"slots for the older kids. The biggest developmental risk in this "
+        f"rule is over-scheduling Michael (age ~5) — his stage is play + "
+        f"outdoor time, not seated learning. Consider naming a daily outdoor "
+        f"block for him in §11.</p>"
+    )
+    sched_body = (
+        f"<p>You placed activities on <strong>{placed_days}</strong> of 7 days "
+        f"in §11. You have <strong>{warn_count}</strong> commitment(s) "
+        f"flagged ⚠️ in §12. The biggest schedule risk is back-to-back blocks "
+        f"with no buffer — your §10 transition buffer is "
+        f"<strong>{((progress.get('data',{}).get('section_10') or {}).get('transition_buffer_min') or 10)} minutes</strong>, "
+        f"which is reasonable for a family of {person_count}.</p>"
+    )
+
+    receipt_html = ""
+    if receipt:
+        rows = ""
+        for k, v in receipt.items():
+            is_err = "ERROR" in str(v).upper()
+            rows += (
+                f'<tr><td style="padding:6px 10px;font-weight:700;color:#33507e;">{escape(k)}</td>'
+                f'<td style="padding:6px 10px;color:{"#c0392b" if is_err else "#2e5d3b"};">{escape(str(v))}</td></tr>'
+            )
+        receipt_html = f"""
+          <div style="background:#eef4ed;border:1px solid #c9d9c5;border-left:4px solid #7fa686;
+                      border-radius:10px;padding:12px 16px;margin:10px 0;">
+            <div style="font-weight:700;color:#2e5d3b;margin-bottom:8px;">Save receipt</div>
+            <table style="border-collapse:collapse;width:100%;font-size:0.88em;">{rows}</table>
+          </div>
+        """
+
+    save_btn = ""
+    if not finalized:
+        save_btn = f"""
+          <div style="margin-top:18px;text-align:center;">
+            <form method="POST" action="/frol-wizard" style="display:inline-block;">
+              <input type="hidden" name="action"  value="finalize_v2">
+              <input type="hidden" name="section" value="13">
+              <input type="hidden" name="mode"    value="{escape(mode, quote=True)}">
+              <button type="submit" class="frol-btn"
+                      style="background:#4a6fa5;color:#fff;border-radius:8px;
+                             padding:14px 28px;font-weight:700;font-size:1.05em;
+                             border:none;cursor:pointer;">
+                💾 Save my Rule of Life
+              </button>
+            </form>
+            <p class="frol-help" style="margin-top:8px;">
+              This writes your day templates (with backup), chores, hour-tracking
+              categories, notification prefs, and prayer intentions.
+            </p>
+          </div>
+        """
+    else:
+        save_btn = f"""
+          <div style="margin-top:18px;text-align:center;background:#eef4ed;
+                      border:1px solid #c9d9c5;border-radius:10px;padding:14px;">
+            <div style="font-weight:700;color:#2e5d3b;font-size:1.05em;">
+              ✅ Your Rule of Life is saved.
+            </div>
+            <div style="font-size:0.9em;color:#555;margin-top:6px;">
+              Finalized at {escape(progress.get("finalized_at",""))}.
+            </div>
+            <a href="/" style="display:inline-block;margin-top:10px;background:#4a6fa5;
+                                color:#fff;padding:10px 22px;border-radius:8px;
+                                text-decoration:none;font-weight:700;">
+              Go to home &rarr;
+            </a>
+          </div>
+        """
+
+    closing = render_reflection_card(
+        "A rule is a starting place, not a prison",
+        "<p>Your rule will breathe — feast days, illness, summer break, a new "
+        "baby. Come back to the wizard any time and the values you've set "
+        "here will still be here, ready to adjust. The rule serves the "
+        "family; the family doesn't serve the rule.</p>",
+        key="sec13_closing",
+        attribution="— Dominick",
+        open_first_visit=True,
+    )
+
+    body = f"""
+      {refl}
+      {_review_card("Multitasking review", multi_body, "multi")}
+      {_review_card("Developmental review", dev_body, "dev")}
+      {_review_card("Schedule optimization review", sched_body, "sched")}
+      {receipt_html}
+      {save_btn}
+      {closing}
+    """
+    return _section_chrome(13, "AI Review &amp; Save",
+        "Three reviews, then the Save button. After that, you're done.",
+        body, mode, progress, lucy_visible=False)
+
+
+# Dispatcher map — complete for Phase 4.
+def _section_renderer(section: int):
+    return {
+        1: render_section_1,
+        2: render_section_2,
+        3: render_section_3,
+        4: render_section_4,
+        5: render_section_5,
+        6: render_section_6,
+        7: render_section_7,
+        8: render_section_8,
+        9: render_section_9,
+        10: render_section_10,
+        11: render_section_11,
+        12: render_section_12,
+        13: render_section_13,
+    }.get(section)
+
+
+def _section_placeholder(section: int, mode: str, progress: dict) -> str:
+    """Stub for unbuilt sections so the dispatcher never 500s mid-rollout."""
+    if not (1 <= section <= V2_TOTAL_SECTIONS):
+        return render_landing(progress)
+    title = next((t for (i, _slug, t, _sub) in V2_SECTIONS if i == section), f"Section {section}")
+    sub   = next((s for (i, _slug, _t, s) in V2_SECTIONS if i == section), "")
+    body = (
+        f'<div class="frol-pop-note">This section is being built. Your existing '
+        f'answers are safe — come back once the next update lands.</div>'
+    )
+    return _section_chrome(section, title, sub, body, mode, progress, lucy_visible=False)
+
+
 # ── Step renderers ──────────────────────────────────────────────────────────
 
 def _v(progress: dict, step: int, field: str, default=""):
@@ -1584,34 +3521,30 @@ def render_frol_wizard_page(viewer: str = "", step=None, mode: str = "") -> str:
         cur = int(cur)
     except Exception:
         cur = 0
-    cur = max(0, min(WIZARD_TOTAL_STEPS, cur))
+    cur = max(0, min(V2_TOTAL_SECTIONS, cur))
 
-    # If the URL passed an explicit mode (lucy / structured) and progress.json
-    # has no mode yet, persist it now. The landing buttons are plain anchors
-    # that can't POST, so the mode arrives only as a GET param — without this
-    # the gate below would re-render the landing screen and the user would
-    # appear stuck. See claud.md "Anchor-tag navigation" rule.
-    #
-    # We also seed step_1.members from app_settings.json child_birthdays
-    # exactly once here — at the moment the wizard is first entered. Doing
-    # the seed at init (instead of inside save_field) means the persisted
-    # members list always matches what the renderer shows, so the JS
-    # data-mem-idx values line up 1:1 with the indices already in JSON. No
-    # destructive race conditions in save_field.
     if mode in ("lucy", "structured") and not progress.get("mode"):
         progress["mode"] = mode
         save_progress(progress)
 
+    # Phase 4: migrate V1 → V2 once, idempotent.
+    if _migrate_v1_to_v2(progress):
+        save_progress(progress)
+        # current_step was overwritten by the migration; honor an explicit
+        # step param if the caller supplied one.
+        if step is not None and str(step) != "":
+            try:
+                cur = max(0, min(V2_TOTAL_SECTIONS, int(step)))
+            except Exception:
+                pass
+        else:
+            cur = progress.get("current_step", 0) or 0
+
     if cur == 0 or not progress.get("mode"):
         body = render_landing(progress)
     else:
-        renderer = {
-            1: render_step_1, 2: render_step_2, 3: render_step_3,
-            4: render_step_4, 5: render_step_5, 6: render_step_6,
-            7: render_step_7, 8: render_step_8, 9: render_step_9,
-            10: render_step_10,
-        }.get(cur, render_landing)
-        body = renderer(progress, mode)
+        renderer = _section_renderer(cur)
+        body = renderer(progress, mode) if renderer else _section_placeholder(cur, mode, progress)
 
     return f"""<!doctype html><html><head><meta charset="utf-8">
 <title>Rule of Life Wizard</title>
@@ -1620,9 +3553,8 @@ def render_frol_wizard_page(viewer: str = "", step=None, mode: str = "") -> str:
 <div class="frol-wrap">
   <div class="frol-top">
     <a href="/">&larr; Home</a>
-    <span>Rule of Life · Step {cur or "Start"} of {WIZARD_TOTAL_STEPS}</span>
+    <span>Rule of Life · Section {cur or "Start"} of {V2_TOTAL_SECTIONS}</span>
   </div>
-  {_progress_dots(cur, progress.get("completed_steps", []) or []) if cur else ""}
   {body}
 </div>
 <script src="/static/js/frol_wizard.js"></script>
