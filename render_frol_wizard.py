@@ -59,9 +59,11 @@ V2_SECTIONS = [
     (8,  "health",       "Exercise & Health",          "Movement, wellness, emergency contacts"),
     (9,  "rest",         "Rest, Free Time, Faith Life","Sabbath, marriage, traditions"),
     (10, "flex",         "Flex, Buffers & Seasonal",   "Transitions, energy, the things that go wrong"),
-    (11, "build",        "Build Your Day",             "Visual placement on the timeline"),
-    (12, "commitments",  "Seven Commitments Check",    "Where the day reflects each commitment"),
-    (13, "review",       "AI Review & Suggestions",    "Multitasking, development, optimization"),
+    (11, "durations",    "How Long Does Each Activity Take?",
+                                                       "Set a realistic time for each thing in your rule"),
+    (12, "build",        "Build Your Day",             "Visual placement on the timeline"),
+    (13, "commitments",  "Seven Commitments Check",    "Where the day reflects each commitment"),
+    (14, "review",       "AI Review & Suggestions",    "Multitasking, development, optimization"),
 ]
 V2_TOTAL_SECTIONS = len(V2_SECTIONS)
 
@@ -102,6 +104,28 @@ def load_progress() -> dict:
         return _empty_progress()
     base = _empty_progress()
     base.update(data if isinstance(data, dict) else {})
+    # One-time renumber migration: when §11 duration picker was inserted,
+    # old §11 (Build Your Day) shifted to §12 and old §13 (AI Review) to §14.
+    # If pre-migration buckets exist and new ones are empty, copy them over
+    # so in-progress wizards don't lose work. Old buckets are left in place
+    # for safety; the §11 duration picker writes its own keys (durations__/
+    # custom__) which never collide with the old Build-Your-Day shape.
+    _pdata = base.get("data") or {}
+    if isinstance(_pdata, dict):
+        _old11 = _pdata.get("section_11") or {}
+        _new12 = _pdata.get("section_12") or {}
+        if (isinstance(_old11, dict) and not _new12 and any(
+                k == "current_day" or k == "weekend_view"
+                or k == "per_person_filter" or k.startswith("placements_")
+                for k in _old11.keys())):
+            _pdata["section_12"] = dict(_old11)
+        _old13 = _pdata.get("section_13") or {}
+        _new14 = _pdata.get("section_14") or {}
+        if (isinstance(_old13, dict) and not _new14 and any(
+                k == "receipt" or k.startswith("review_")
+                for k in _old13.keys())):
+            _pdata["section_14"] = dict(_old13)
+        base["data"] = _pdata
     return base
 
 
@@ -803,7 +827,7 @@ def render_section_1(progress: dict, mode: str) -> str:
     if pair_intro_seen != "yes":
         pair_intro_html = render_reflection_card(
             "Sibling pairing — a sneak peek",
-            "<p>Later (in §6 School and §11 Build Your Day) we'll suggest "
+            "<p>Later (in §6 School and §12 Build Your Day) we'll suggest "
             "natural sibling pairs based on age and the subjects you teach — "
             "e.g., Michael shadowing Joseph for read-alouds, James riding "
             "along during Math. Today, just confirm who lives here.</p>",
@@ -882,14 +906,14 @@ def render_section_2(progress: dict, mode: str) -> str:
         "<p style='margin-top:8px;'><strong>Developmental framework:</strong> "
         "0–2 needs sleep + feeding rhythm. 2–4 needs predictable routines + "
         "outdoor time. 4–6 needs structured play + independence-building. "
-        "Each child's rhythms here will inform §11 Build Your Day.</p>",
+        "Each child's rhythms here will inform §12 Build Your Day.</p>",
         key="sec2_intro",
     )
     body = f"""
       {info_card}
       {rows}
       <p class="frol-help" style="margin-top:12px;">
-        These rhythms anchor §11 Build Your Day — quiet hours auto-block during
+        These rhythms anchor §12 Build Your Day — quiet hours auto-block during
         nap windows, and meals get scheduled around little-one feeding times.
       </p>
     """
@@ -1211,13 +1235,13 @@ def render_section_6(progress: dict, mode: str) -> str:
         "<p>Suggestions for the McAdams house: Michael can shadow Joseph for "
         "morning read-alouds and Math review. James naps during Latin and "
         "Logic — good blocks for JP independent work. Pairing notes below "
-        "feed §11 Build Your Day.</p>",
+        "feed §12 Build Your Day.</p>",
         key="sec6_pairing",
         open_first_visit=False,
     )
     dev_card = render_reflection_card(
         "Developmental check",
-        "<p>Quick sanity check before §11: is each child's school load matched "
+        "<p>Quick sanity check before §12: is each child's school load matched "
         "to their stage? K–2 = play + reading. 3–5 = skill drills + curiosity. "
         "6–8 = abstract reasoning. 9–12 = mastery + responsibility. Adjust "
         "the notes below.</p>",
@@ -1408,7 +1432,7 @@ def render_section_7(progress: dict, mode: str) -> str:
         """
 
     # Grooming — per-person textarea (one per line); merged into is_grooming
-    # flags at §13 finalize-save.
+    # flags at §14 finalize-save.
     grooming_html = ""
     for nm in persons:
         val = "\n".join(_chore_item_text(it) for it in (grooming.get(nm) or []))
@@ -1760,7 +1784,7 @@ def render_section_10(progress: dict, mode: str) -> str:
       <input class="frol-input" type="number" min="0" max="60" data-step="10" data-key="transition_buffer_min"
              value="{escape(str(buffer_min), quote=True)}"
              style="max-width:120px;">
-      <p class="frol-help">§11 Build Your Day will insert a gray buffer slot of
+      <p class="frol-help">§12 Build Your Day will insert a gray buffer slot of
         this length between back-to-back activities.</p>
 
       <label class="frol-fld" style="margin-top:14px;">Weekly flex blocks <span style="font-weight:400;color:#888;">(named time + day)</span></label>
@@ -1824,19 +1848,277 @@ def _slot_to_label(slot_hhmm: str) -> str:
     return f"{h12}:{m:02d} {suffix}"
 
 
+# ── §11 duration picker ────────────────────────────────────────────────────
+
+_DURATION_CHOICES = [5, 10, 15, 20, 30, 45, 60, 90, 120]
+
+
+def _slugify_activity(s: str) -> str:
+    out = []
+    prev_dash = False
+    for ch in str(s).lower().strip():
+        if ch.isalnum():
+            out.append(ch)
+            prev_dash = False
+        elif not prev_dash:
+            out.append("_")
+            prev_dash = True
+    return "".join(out).strip("_") or "item"
+
+
+def _collect_duration_targets(progress: dict) -> list:
+    """Walk §§2-10 progress data and produce a list of activity targets
+    grouped by section. Each entry: {group, slug, label, default}. Catholic
+    anchor activities (Morning Offering, Rosary, Sunday Mass) are always
+    included even if no specific section enabled them."""
+    data = progress.get("data", {}) or {}
+    if not isinstance(data, dict):
+        data = {}
+
+    def _sect(n: int) -> dict:
+        # Prefer V2 keys; fall back to V1 step_N if V2 section is absent.
+        v2 = data.get(f"section_{n}") or {}
+        v1 = data.get(f"step_{n}") or {}
+        if isinstance(v2, dict) and v2:
+            return v2
+        return v1 if isinstance(v1, dict) else {}
+
+    seen = set()
+    out = []
+
+    def _add(group: str, label: str, default: int):
+        label = (label or "").strip()
+        if not label:
+            return
+        slug = _slugify_activity(label)
+        if slug in seen:
+            return
+        seen.add(slug)
+        out.append({"group": group, "slug": slug, "label": label, "default": int(default)})
+
+    # Always-on Catholic anchors
+    _add("Prayer", "Morning Offering", 5)
+    _add("Prayer", "Rosary", 20)
+    _add("Prayer", "Sunday Mass", 60)
+
+    # §3 Prayer
+    s3 = _sect(3)
+    if s3:
+        mp = (s3.get("morning_prayer") or "").strip()
+        if mp:
+            _add("Prayer", mp if mp.lower() not in ("lauds", "laudes")
+                 else "Lauds (Morning Prayer)", 15)
+        for it in (s3.get("morning_prayers_multi") or []):
+            _add("Prayer", str(it), 15)
+        for it in (s3.get("evening_prayers_multi") or []):
+            _add("Prayer", str(it), 15)
+        for it in (s3.get("night_prayers_multi") or []):
+            _add("Prayer", str(it), 10)
+        if (s3.get("angelus_times") or []):
+            _add("Prayer", "Angelus", 3)
+        if (s3.get("divine_mercy_3pm") or "").lower() == "yes":
+            _add("Prayer", "Divine Mercy Chaplet", 10)
+        if (s3.get("vespers") or "").lower() == "yes":
+            _add("Prayer", "Vespers", 15)
+        if (s3.get("examen") or "").lower() == "yes":
+            _add("Prayer", "Examen", 10)
+        if (s3.get("other_devotions") or "").strip():
+            _add("Prayer", "Other devotions", 15)
+
+    # §5 Meals — try V2 section_5 first, then V1 step_4 (where meals lived).
+    s5 = data.get("section_5") or data.get("step_4") or {}
+    if not isinstance(s5, dict):
+        s5 = {}
+    _add("Meals", "Breakfast", 30)
+    _add("Meals", "Lunch", 30)
+    _add("Meals", "Dinner", 45)
+    _add("Meals", "Snack", 10)
+    if (s5.get("morning_dinner_prep") or "").lower() == "yes":
+        _add("Meals", "Morning dinner prep", 20)
+    if (s5.get("meal_prep_who") or []):
+        _add("Meals", "Meal prep", 30)
+    if (s5.get("batch_cook_days") or []):
+        _add("Meals", "Batch cook session", 120)
+
+    # §6 School — V2 section_6, V1 step_5.
+    s6 = data.get("section_6") or data.get("step_5") or {}
+    if not isinstance(s6, dict):
+        s6 = {}
+    subj_defaults = {
+        "math": 45, "religion": 20, "reading": 30, "writing": 30,
+        "science": 30, "history": 30, "latin": 30, "art": 30,
+        "music": 20, "pe": 30, "geography": 30, "logic": 30,
+        "spelling": 15, "grammar": 20, "handwriting": 15,
+    }
+    for subj in (s6.get("subjects_multi") or []):
+        nm = str(subj).strip()
+        if nm:
+            _add("School", nm, subj_defaults.get(nm.lower(), 30))
+    _add("School", "Read-aloud", 30)
+
+    # §7 Chores
+    s7 = _sect(7)
+    blocks = s7.get("chore_time_blocks") or []
+    if blocks:
+        for blk in blocks:
+            nm = str(blk).strip()
+            if nm:
+                _add("Chores", f"Chores — {nm}", 20)
+    else:
+        _add("Chores", "Daily chores", 20)
+
+    # §8 Health — V2 section_8, V1 step_6.
+    s8 = data.get("section_8") or data.get("step_6") or {}
+    if not isinstance(s8, dict):
+        s8 = {}
+    for t in (s8.get("types") or []):
+        nm = str(t).strip()
+        if nm:
+            _add("Health", f"Exercise — {nm}", 30)
+
+    # §9 Rest — V2 section_9, V1 step_7.
+    s9 = data.get("section_9") or data.get("step_7") or {}
+    if not isinstance(s9, dict):
+        s9 = {}
+    if (s9.get("afternoon_rest") or "").strip():
+        _add("Rest", "Afternoon rest", 60)
+    if (s9.get("date_night") or "").strip():
+        _add("Rest", "Date night", 90)
+    for trad in (s9.get("traditions") or []):
+        nm = str(trad).strip()
+        if nm:
+            _add("Rest", nm, 60)
+
+    # §10 Flex
+    s10 = _sect(10)
+    if (s10.get("weekly_reset") or "").strip():
+        _add("Flex", "Weekly reset", 30)
+    flex_text = (s10.get("flex_blocks") or "").strip()
+    if flex_text:
+        for ln in flex_text.splitlines():
+            ln = ln.strip()
+            if ln:
+                _add("Flex", ln[:60], 60)
+
+    return out
+
+
 def render_section_11(progress: dict, mode: str) -> str:
-    """V2 §11 — Build Your Day: a visual 5 AM–10 PM 30-minute timeline.
+    """V2 §11 — How Long Does Each Activity Take? One card per activity
+    collected across §§2-10, with a duration picker (5/10/15/20/30/45/
+    60/90/120 min + custom free text). Pre-filled with Catholic-homeschool
+    defaults. Saves immediately via the existing saveField pipeline using
+    data-step='11' and data-key='durations__{slug}' / 'custom__{slug}'."""
+    sec11 = (progress.get("data", {}) or {}).get("section_11", {}) or {}
+    targets = _collect_duration_targets(progress)
+
+    groups = {}
+    order = []
+    for t in targets:
+        g = t["group"]
+        if g not in groups:
+            groups[g] = []
+            order.append(g)
+        groups[g].append(t)
+
+    refl = render_reflection_card(
+        "Be honest about minutes",
+        "<p>Schedules collapse when activities take longer than we pretend. "
+        "For each thing you've named so far, pick a realistic duration — "
+        "the time it actually takes on a normal day, not the time you wish "
+        "it took. You can always tune these later as you live the rule.</p>"
+        "<p style='margin-top:8px;'>Defaults are pre-filled with common "
+        "Catholic-homeschool times. Tap a chip to change it, or type a "
+        "custom value if your family's pace is different.</p>",
+        key="sec11_intro",
+    )
+
+    if not targets:
+        body = (refl + '<div class="frol-pop-note">No activities collected '
+                'yet from §§2-10. Fill in earlier sections, then come back '
+                'here to set durations.</div>')
+        return _section_chrome(11, "How Long Does Each Activity Take?",
+            "One card per activity. Pick a realistic duration.",
+            body, mode, progress, lucy_visible=True)
+
+    cards_html = ""
+    for g in order:
+        rows = ""
+        for t in groups[g]:
+            slug    = t["slug"]
+            label   = t["label"]
+            default = t["default"]
+            saved   = sec11.get(f"durations__{slug}")
+            current = str(saved) if saved not in (None, "") else str(default)
+            custom  = str(sec11.get(f"custom__{slug}") or "")
+            chip_html = ""
+            for choice in _DURATION_CHOICES:
+                is_sel = (str(choice) == current)
+                chip_bg = "#4a6fa5" if is_sel else "#fff"
+                chip_fg = "#fff" if is_sel else "#33507e"
+                checked = "checked" if is_sel else ""
+                chip_html += (
+                    f'<label style="display:inline-flex;align-items:center;'
+                    f'background:{chip_bg};color:{chip_fg};'
+                    f'border:1px solid #4a6fa555;border-radius:14px;'
+                    f'padding:4px 10px;margin:2px;font-size:0.82em;'
+                    f'font-weight:700;cursor:pointer;">'
+                    f'<input type="radio" name="dur_{escape(slug, quote=True)}" '
+                    f'data-step="11" data-key="durations__{escape(slug, quote=True)}" '
+                    f'value="{choice}" {checked} style="display:none;">'
+                    f'{choice}m</label>'
+                )
+            rows += f"""
+              <div style="background:#fff;border:1px solid #d8e1ef;
+                          border-left:3px solid #4a6fa5;border-radius:8px;
+                          padding:10px 12px;margin:6px 0;">
+                <div style="font-weight:700;color:#33507e;margin-bottom:6px;">{escape(label)}</div>
+                <div style="display:flex;flex-wrap:wrap;align-items:center;gap:2px;">
+                  {chip_html}
+                  <span style="font-size:0.78em;color:#888;margin-left:8px;">or custom:</span>
+                  <input class="frol-input" type="text" inputmode="numeric"
+                         data-step="11" data-key="custom__{escape(slug, quote=True)}"
+                         value="{escape(custom, quote=True)}"
+                         placeholder="e.g. 25"
+                         style="max-width:110px;font-size:0.86em;padding:4px 8px;">
+                </div>
+              </div>
+            """
+        plural = "s" if len(groups[g]) != 1 else ""
+        cards_html += f"""
+          <details open style="background:#f6f8fc;border:1px solid #d8e1ef;
+                               border-radius:10px;padding:8px 12px;margin:10px 0;">
+            <summary style="cursor:pointer;font-weight:700;color:#33507e;font-size:1.0em;">
+              {escape(g)} <span style="color:#888;font-weight:400;font-size:0.85em;">({len(groups[g])} item{plural})</span>
+            </summary>
+            <div style="padding-top:8px;">{rows}</div>
+          </details>
+        """
+
+    body = f"""
+      {refl}
+      {cards_html}
+      <p class="frol-help">Durations save as you tap. §12 Build Your Day will
+        use these to size each block on the timeline.</p>
+    """
+    return _section_chrome(11, "How Long Does Each Activity Take?",
+        "One card per activity. Pick a realistic duration.",
+        body, mode, progress, lucy_visible=True)
+
+
+def render_section_12(progress: dict, mode: str) -> str:
+    """V2 §12 — Build Your Day: a visual 5 AM–10 PM 30-minute timeline.
     Each slot shows day-of-week dropdown content. Per-day editable with
     activity label, category (color), assigned person, and a paired-with
     field for shadow activities. Gray buffer slots auto-suggested at the
     transition-buffer interval from §10."""
-    sec11 = (progress.get("data", {}) or {}).get("section_11", {}) or {}
-    cur_day = sec11.get("current_day") or "Monday"
+    sec12 = (progress.get("data", {}) or {}).get("section_12", {}) or {}
+    cur_day = sec12.get("current_day") or "Monday"
     if cur_day not in _TIMELINE_DAYS:
         cur_day = "Monday"
-    weekend_view = sec11.get("weekend_view", "") == "yes"
-    per_person = (sec11.get("per_person_filter") or "").strip()
-    placements = sec11.get(f"placements_{cur_day}") or {}
+    weekend_view = sec12.get("weekend_view", "") == "yes"
+    per_person = (sec12.get("per_person_filter") or "").strip()
+    placements = sec12.get(f"placements_{cur_day}") or {}
     buffer_min = int((progress.get("data", {}) or {}).get("section_10", {}).get("transition_buffer_min") or 10)
 
     members = _v2_members(progress)
@@ -1848,7 +2130,7 @@ def render_section_11(progress: dict, mode: str) -> str:
         "an activity, a category color, who's responsible, and (optionally) "
         "a paired sibling shadowing along. Gray buffer slots are auto-inserted "
         "between back-to-back activities at the buffer width you set in §10.</p>",
-        key="sec11_intro",
+        key="sec12_intro",
     )
 
     # Day switcher
@@ -1856,7 +2138,7 @@ def render_section_11(progress: dict, mode: str) -> str:
     for d in _TIMELINE_DAYS:
         is_cur = d == cur_day
         day_btns += (
-            f'<a href="/frol-wizard?step=11&amp;day={d}&amp;mode={escape(mode, quote=True)}" '
+            f'<a href="/frol-wizard?step=12&amp;day={d}&amp;mode={escape(mode, quote=True)}" '
             f'style="display:inline-block;padding:6px 12px;margin:2px;'
             f'background:{"#4a6fa5" if is_cur else "#e8eef7"};'
             f'color:{"#fff" if is_cur else "#33507e"};'
@@ -1936,18 +2218,18 @@ def render_section_11(progress: dict, mode: str) -> str:
               {escape(_slot_to_label(slot))}{buffer_chip}
             </div>
             <input class="frol-input" type="text"
-                   data-step="11" data-list="placements_{escape(cur_day, quote=True)}"
+                   data-step="12" data-list="placements_{escape(cur_day, quote=True)}"
                    data-idx="{slot}" data-key="label"
                    placeholder="Activity (e.g., Math, Rosary)"
                    value="{escape(label, quote=True)}">
             <select class="frol-input"
-                    data-step="11" data-list="placements_{escape(cur_day, quote=True)}"
+                    data-step="12" data-list="placements_{escape(cur_day, quote=True)}"
                     data-idx="{slot}" data-key="category">{cat_opts}</select>
             <select class="frol-input"
-                    data-step="11" data-list="placements_{escape(cur_day, quote=True)}"
+                    data-step="12" data-list="placements_{escape(cur_day, quote=True)}"
                     data-idx="{slot}" data-key="person">{pers_opts}</select>
             <select class="frol-input"
-                    data-step="11" data-list="placements_{escape(cur_day, quote=True)}"
+                    data-step="12" data-list="placements_{escape(cur_day, quote=True)}"
                     data-idx="{slot}" data-key="paired_with">{pair_opts}</select>
           </div>
         """
@@ -1960,13 +2242,13 @@ def render_section_11(progress: dict, mode: str) -> str:
         <div style="margin-bottom:6px;">{day_btns}</div>
         <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
           <label style="font-size:0.88em;color:#555;font-weight:normal;">
-            <input type="checkbox" data-step="11" data-key="weekend_view" value="yes"
+            <input type="checkbox" data-step="12" data-key="weekend_view" value="yes"
                    {'checked' if weekend_view else ''}> Show weekend rhythm side-by-side
           </label>
           <label style="font-size:0.88em;color:#555;font-weight:normal;display:flex;
                         align-items:center;gap:6px;">
             Per-person filter
-            <select class="frol-input" data-step="11" data-key="per_person_filter"
+            <select class="frol-input" data-step="12" data-key="per_person_filter"
                     style="max-width:160px;">{person_opts}</select>
           </label>
         </div>
@@ -1988,7 +2270,7 @@ def render_section_11(progress: dict, mode: str) -> str:
         Paired activities (e.g., Michael shadowing Joseph for read-aloud) appear
         as a soft outline on the second person's row.</p>
     """
-    return _section_chrome(11, f"Build Your Day — {cur_day}",
+    return _section_chrome(12, f"Build Your Day — {cur_day}",
         "Click any slot to assign an activity, category, and person. The picture builds itself.",
         body, mode, progress, lucy_visible=True)
 
@@ -2063,8 +2345,8 @@ def _commitments_status(progress: dict) -> list:
     return out
 
 
-def render_section_12(progress: dict, mode: str) -> str:
-    """V2 §12 — Seven Commitments Check. Renders the Dominick seven with
+def render_section_13(progress: dict, mode: str) -> str:
+    """V2 §13 — Seven Commitments Check. Renders the Dominick seven with
     derived ✅/⚠️ status and one-tap deep-link 'Fix' buttons."""
     items = _commitments_status(progress)
     refl = render_reflection_card(
@@ -2074,7 +2356,7 @@ def render_section_12(progress: dict, mode: str) -> str:
         "doesn't mean your rule is wrong — it means we couldn't find the data "
         "yet. Click <em>Fix</em> to jump back and add it, or move on if it "
         "genuinely doesn't apply to your season.</p>",
-        key="sec12_intro",
+        key="sec13_intro",
         attribution="— Adapted from Dominick's Seven Commitments",
     )
     rows = ""
@@ -2111,12 +2393,12 @@ def render_section_12(progress: dict, mode: str) -> str:
       </div>
       {rows}
     """
-    return _section_chrome(12, "Seven Commitments Check",
+    return _section_chrome(13, "Seven Commitments Check",
         "How does your rule line up with the Dominick seven? Fix any gaps, or move on.",
         body, mode, progress, lucy_visible=True)
 
 
-# ── §13 finalize-save ───────────────────────────────────────────────────────
+# ── §14 finalize-save ───────────────────────────────────────────────────────
 
 def _parse_textarea_lines(text) -> list:
     if not text:
@@ -2139,7 +2421,7 @@ def finalize_v2(progress: dict) -> dict:
       - data/app_settings.json (notification prefs)
       - data/prayer_intentions.json (if any other_devotions text)
       - data/frol_wizard_progress.json (marked finalized_at)
-    Returns a dict of {target: status_str} for the §13 receipt view."""
+    Returns a dict of {target: status_str} for the §14 receipt view."""
     import os, shutil
     from datetime import datetime as _dt
     from data_helpers import (
@@ -2158,7 +2440,7 @@ def finalize_v2(progress: dict) -> dict:
         os.makedirs(backup_dir, exist_ok=True)
         written = 0
         for day in _TIMELINE_DAYS:
-            placements = (data.get("section_11") or {}).get(f"placements_{day}") or {}
+            placements = (data.get("section_12") or {}).get(f"placements_{day}") or {}
             src = os.path.join(DAY_TEMPLATE_DIR, f"{day}.json")
             if os.path.exists(src):
                 shutil.copy2(src, os.path.join(backup_dir, f"{day}.json"))
@@ -2331,12 +2613,12 @@ def finalize_v2(progress: dict) -> dict:
     return receipt
 
 
-def render_section_13(progress: dict, mode: str) -> str:
-    """V2 §13 — AI Review + Save. Three review cards (Multitasking /
+def render_section_14(progress: dict, mode: str) -> str:
+    """V2 §14 — AI Review + Save. Three review cards (Multitasking /
     Developmental / Schedule optimization) shown as Accept / Modify / Skip,
     plus the Save button that runs finalize_v2()."""
-    sec13 = (progress.get("data", {}) or {}).get("section_13", {}) or {}
-    receipt = sec13.get("receipt") or {}
+    sec14 = (progress.get("data", {}) or {}).get("section_14", {}) or {}
+    receipt = sec14.get("receipt") or {}
     finalized = bool(progress.get("finalized_at"))
 
     refl = render_reflection_card(
@@ -2344,7 +2626,7 @@ def render_section_13(progress: dict, mode: str) -> str:
         "<p>Three quick AI-generated reviews of your rule, each as a card you "
         "can Accept, Modify, or Skip. None of them change your rule on their "
         "own — they're starting points to think with.</p>",
-        key="sec13_intro",
+        key="sec14_intro",
         attribution="— Concept: Dominick's iterative-rule methodology",
     )
 
@@ -2354,11 +2636,11 @@ def render_section_13(progress: dict, mode: str) -> str:
     warn_count = sum(1 for it in items if it["status"] == "warn")
     members = _v2_members(progress)
     person_count = len([m for m in members if isinstance(m, dict) and m.get("name")])
-    s11 = (progress.get("data", {}) or {}).get("section_11", {}) or {}
-    placed_days = sum(1 for d in _TIMELINE_DAYS if (s11.get(f"placements_{d}") or {}))
+    s12 = (progress.get("data", {}) or {}).get("section_12", {}) or {}
+    placed_days = sum(1 for d in _TIMELINE_DAYS if (s12.get(f"placements_{d}") or {}))
 
     def _review_card(title: str, body: str, key: str) -> str:
-        current = sec13.get(f"review_{key}", "")
+        current = sec14.get(f"review_{key}", "")
         opts = [("accept", "Accept", "#7fa686"), ("modify", "Modify", "#c89c4a"), ("skip", "Skip", "#8a8a8a")]
         btns = ""
         for v, lab, color in opts:
@@ -2367,7 +2649,7 @@ def render_section_13(progress: dict, mode: str) -> str:
                 f'<label style="display:inline-flex;align-items:center;gap:6px;'
                 f'background:#fff;border:1px solid {color}77;color:{color};border-radius:6px;'
                 f'padding:6px 14px;margin-right:6px;font-weight:700;cursor:pointer;font-size:0.86em;">'
-                f'<input type="radio" data-step="13" data-key="review_{escape(key, quote=True)}" '
+                f'<input type="radio" data-step="14" data-key="review_{escape(key, quote=True)}" '
                 f'value="{v}" {checked}> {lab}</label>'
             )
         return f"""
@@ -2392,12 +2674,12 @@ def render_section_13(progress: dict, mode: str) -> str:
         f"slots for the older kids. The biggest developmental risk in this "
         f"rule is over-scheduling Michael (age ~5) — his stage is play + "
         f"outdoor time, not seated learning. Consider naming a daily outdoor "
-        f"block for him in §11.</p>"
+        f"block for him in §12.</p>"
     )
     sched_body = (
         f"<p>You placed activities on <strong>{placed_days}</strong> of 7 days "
-        f"in §11. You have <strong>{warn_count}</strong> commitment(s) "
-        f"flagged ⚠️ in §12. The biggest schedule risk is back-to-back blocks "
+        f"in §12. You have <strong>{warn_count}</strong> commitment(s) "
+        f"flagged ⚠️ in §13. The biggest schedule risk is back-to-back blocks "
         f"with no buffer — your §10 transition buffer is "
         f"<strong>{((progress.get('data',{}).get('section_10') or {}).get('transition_buffer_min') or 10)} minutes</strong>, "
         f"which is reasonable for a family of {person_count}.</p>"
@@ -2426,7 +2708,7 @@ def render_section_13(progress: dict, mode: str) -> str:
           <div style="margin-top:18px;text-align:center;">
             <form method="POST" action="/frol-wizard" style="display:inline-block;">
               <input type="hidden" name="action"  value="finalize_v2">
-              <input type="hidden" name="section" value="13">
+              <input type="hidden" name="section" value="14">
               <input type="hidden" name="mode"    value="{escape(mode, quote=True)}">
               <button type="submit" class="frol-btn"
                       style="background:#4a6fa5;color:#fff;border-radius:8px;
@@ -2465,7 +2747,7 @@ def render_section_13(progress: dict, mode: str) -> str:
         "baby. Come back to the wizard any time and the values you've set "
         "here will still be here, ready to adjust. The rule serves the "
         "family; the family doesn't serve the rule.</p>",
-        key="sec13_closing",
+        key="sec14_closing",
         attribution="— Dominick",
         open_first_visit=True,
     )
@@ -2479,7 +2761,7 @@ def render_section_13(progress: dict, mode: str) -> str:
       {save_btn}
       {closing}
     """
-    return _section_chrome(13, "AI Review &amp; Save",
+    return _section_chrome(14, "AI Review &amp; Save",
         "Three reviews, then the Save button. After that, you're done.",
         body, mode, progress, lucy_visible=False)
 
@@ -2500,6 +2782,7 @@ def _section_renderer(section: int):
         11: render_section_11,
         12: render_section_12,
         13: render_section_13,
+        14: render_section_14,
     }.get(section)
 
 

@@ -1276,10 +1276,10 @@ class Handler(BaseHTTPRequestHandler):
             _step_q = (query.get("step",[""])[0] or "").strip()
             _mode_q = (query.get("mode",[""])[0] or "").strip()
             _day_q  = (query.get("day",[""])[0] or "").strip()
-            # §11 day switcher: persist requested day before render.
-            if _step_q == "11" and _day_q:
+            # §12 day switcher: persist requested day before render.
+            if _step_q == "12" and _day_q:
                 from render_frol_wizard import save_section_field
-                save_section_field(11, "current_day", _day_q)
+                save_section_field(12, "current_day", _day_q)
             if is_complete() and not _step_q:
                 html = render_completion_screen()
             else:
@@ -7047,10 +7047,10 @@ class Handler(BaseHTTPRequestHandler):
                     _p = load_progress()
                     _receipt = finalize_v2(_p)
                     _p = load_progress()
-                    _p.setdefault("data", {}).setdefault("section_13", {})["receipt"] = _receipt
+                    _p.setdefault("data", {}).setdefault("section_14", {})["receipt"] = _receipt
                     save_progress(_p)
                     self.send_response(302)
-                    self.send_header("Location", f"/frol-wizard?step=13&mode={_mode}")
+                    self.send_header("Location", f"/frol-wizard?step=14&mode={_mode}")
                     self.end_headers()
                     return
                 if _act == "save_field":
