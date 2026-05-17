@@ -1295,8 +1295,6 @@ def _section_prayer_sacraments(settings: dict) -> str:
             Source: <a href="https://popesprayerusa.net/popes-intentions/" target="_blank" rel="noopener">popesprayerusa.net</a>.
         </p>
         {months_html}
-
-        <script>{toggle_js}</script>
     </div>"""
 
 

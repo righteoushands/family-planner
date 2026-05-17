@@ -44,6 +44,40 @@ WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday",
             "Friday", "Saturday", "Sunday"]
 
 
+# ── V2 section identity table (Phase 4 will wire these into the flow) ───────
+# Each tuple: (section_index, slug, display_title, subtitle).
+# Identity-only for Phase 3 — existing 10-step structure remains active until
+# Phase 4 lights up the new sections.
+V2_SECTIONS = [
+    (1,  "family",       "Your Family",                "Who lives here and how the week feels"),
+    (2,  "little_ones",  "The Little Ones First",      "James + Michael's rhythms first"),
+    (3,  "fixed",        "Fixed Commitments",          "What's already on the calendar"),
+    (4,  "prayer",       "Prayer",                     "The heartbeat of the day"),
+    (5,  "meals",        "Meals",                      "Breakfast, lunch, dinner, snacks, prep"),
+    (6,  "school",       "School",                     "Homeschool format and per-subject rhythm"),
+    (7,  "chores",       "Chores & Household",         "Daily, weekly, monthly, seasonal, annual"),
+    (8,  "health",       "Exercise & Health",          "Movement, wellness, emergency contacts"),
+    (9,  "rest",         "Rest, Free Time, Faith Life","Sabbath, marriage, traditions"),
+    (10, "flex",         "Flex, Buffers & Seasonal",   "Transitions, energy, the things that go wrong"),
+    (11, "build",        "Build Your Day",             "Visual placement on the timeline"),
+    (12, "commitments",  "Seven Commitments Check",    "Where the day reflects each commitment"),
+    (13, "review",       "AI Review & Suggestions",    "Multitasking, development, optimization"),
+]
+V2_TOTAL_SECTIONS = len(V2_SECTIONS)
+
+
+# Seven commitments shown on the landing screen (Laura Dominick framing).
+SEVEN_COMMITMENTS = [
+    "Daily prayer that anchors the family",
+    "Sunday Mass and weekly Adoration",
+    "Meals shared at a common table",
+    "Sabbath rest each week",
+    "Service to those in need",
+    "Hospitality and welcome in the home",
+    "Time for play, beauty, and joy",
+]
+
+
 # ── Progress load/save ──────────────────────────────────────────────────────
 
 def _empty_progress() -> dict:
@@ -281,6 +315,213 @@ def _progress_dots(current: int, completed: list) -> str:
     return f'<div class="frol-dots">{"".join(parts)}</div>'
 
 
+# ── V2 shared components (Phase 3) ──────────────────────────────────────────
+# These are additive helpers that Phase 4 section renderers will compose
+# without touching the existing render_step_* functions.
+
+def render_section_dots(current: int, total: int, completed: list) -> str:
+    """Generic progress dots for any N-section flow (V2 uses 13)."""
+    parts = []
+    for i in range(1, int(total) + 1):
+        cls = "frol-dot"
+        if i in (completed or []):
+            cls += " done"
+        if i == current:
+            cls += " current"
+        parts.append(f'<span class="{cls}" title="Section {i}"></span>')
+    return f'<div class="frol-dots">{"".join(parts)}</div>'
+
+
+def render_reflection_card(title: str, body_html: str, key: str,
+                            attribution: str = "",
+                            open_first_visit: bool = True) -> str:
+    """Collapsible reflection card. Opens on first visit (no cookie),
+    remembers user's open/closed choice afterward via localStorage."""
+    safe_key  = escape(key, quote=True)
+    safe_attr = ""
+    if attribution:
+        safe_attr = (
+            f'<div style="margin-top:10px;font-size:0.78em;color:#7d6a4a;'
+            f'font-style:italic;text-align:right;">{escape(attribution)}</div>'
+        )
+    default_open = "open" if open_first_visit else ""
+    return f"""
+      <details class="frol-reflection" data-reflect-key="{safe_key}" {default_open}
+               style="background:#fbf7ef;border:1px solid #ead9b8;border-left:4px solid #c89c4a;
+                      border-radius:10px;padding:12px 16px;margin:14px 0;">
+        <summary style="cursor:pointer;font-weight:700;color:#7d5a1f;font-family:Georgia,serif;">
+          {escape(title)}
+        </summary>
+        <div style="margin-top:10px;color:#3f3220;line-height:1.55;font-size:0.95em;">
+          {body_html}
+        </div>
+        {safe_attr}
+      </details>
+    """
+
+
+def render_companion_intro_card(name: str, icon_html: str, one_liner: str,
+                                 href: str, accent: str = "#4a6fa5",
+                                 light: str = "#eaf0fa") -> str:
+    """Compact companion intro card with a 'Meet' link, used inside a section
+    when that companion is first introduced (Sister Mary in §4, Lorenzo in
+    §5, Father Gregory in §6, Coach + Dr. Monica in §8, etc.)."""
+    return f"""
+      <div style="background:{light};border:1px solid {accent}33;border-left:4px solid {accent};
+                  border-radius:10px;padding:12px 14px;margin:12px 0;
+                  display:flex;align-items:center;gap:12px;">
+        <div style="font-size:1.6em;color:{accent};">{icon_html}</div>
+        <div style="flex:1;">
+          <div style="font-weight:700;color:{accent};font-size:1.02em;">{escape(name)}</div>
+          <div style="font-size:0.88em;color:#444;margin-top:2px;line-height:1.4;">
+            {escape(one_liner)}
+          </div>
+        </div>
+        <a href="{escape(href, quote=True)}" target="_blank"
+           style="text-decoration:none;color:{accent};font-weight:700;font-size:0.86em;
+                  white-space:nowrap;">Meet &rarr;</a>
+      </div>
+    """
+
+
+def render_lucy_hint_slot(step: int) -> str:
+    """Empty container that the wizard JS fills with real-time Lucy hints
+    as the user fills the section. Stays hidden until JS injects content."""
+    return (
+        f'<div class="frol-lucy-hint" id="frol-lucy-hint-{int(step)}" '
+        f'data-step="{int(step)}" style="display:none;background:#f3f0f9;'
+        f'border:1px solid #d8cdec;border-left:4px solid #7a4ea3;border-radius:10px;'
+        f'padding:10px 14px;margin:10px 0;font-size:0.9em;color:#3e2a5e;"></div>'
+    )
+
+
+# Suggestion-checkbox sets the activity builder can render by section slug.
+# Phase 4 will expand these per-section; Phase 3 ships a starter set so the
+# JS + Python wiring can be smoke-tested.
+_ACTIVITY_SUGGESTIONS = {
+    "prayer":  ["Morning Offering", "Family Rosary", "Daily Mass",
+                "Examen", "Bedtime Prayer"],
+    "meals":   ["Breakfast", "Lunch", "Dinner", "Snack",
+                "Meal prep", "Batch cooking", "Grocery run"],
+    "school":  ["Math", "Language Arts", "History", "Science",
+                "Latin", "Religion", "Art", "PE"],
+    "health":  ["Family walk", "Strength training", "Yoga", "Sports practice"],
+    "rest":    ["Quiet reading", "Outdoor play", "Family movie",
+                "Sabbath dinner", "Hobby time"],
+}
+
+_ACTIVITY_WHEN_BUCKETS = [
+    ("early_morning", "Early morning (5:00–6:59)"),
+    ("morning",       "Morning (7:00–11:59)"),
+    ("afternoon",     "Afternoon (12:00–16:59)"),
+    ("evening",       "Evening (17:00–19:59)"),
+    ("late_evening",  "Late evening (20:00–22:00)"),
+    ("anytime",       "Anytime"),
+]
+
+_ACTIVITY_DURATIONS = [5, 10, 15, 20, 30, 45, 60, 90, 120]
+
+
+def render_activity_builder(step: int, section_slug: str,
+                             family_members: list,
+                             saved_activities: list = None) -> str:
+    """Shared activity builder used across every V2 section that collects
+    activities. Renders:
+      - suggestion checkboxes (per section_slug)
+      - a freeform "Add custom activity" row builder
+      - any saved rows for this section, editable in place
+    Auto-save fires through the existing saveField pipeline using
+    data-step / data-key / data-list / data-idx attributes."""
+    saved_activities = saved_activities or []
+    sug = _ACTIVITY_SUGGESTIONS.get(section_slug, [])
+    member_opts = "".join(
+        f'<option value="{escape(m.get("name",""), quote=True)}">{escape(m.get("name",""))}</option>'
+        for m in (family_members or []) if m.get("name")
+    )
+    when_opts = "".join(
+        f'<option value="{escape(k, quote=True)}">{escape(v)}</option>'
+        for k, v in _ACTIVITY_WHEN_BUCKETS
+    )
+    dur_opts = "".join(
+        f'<option value="{d}">{d} min</option>' for d in _ACTIVITY_DURATIONS
+    )
+    sug_html = ""
+    for s in sug:
+        sug_html += (
+            f'<label class="frol-sug" style="display:inline-flex;align-items:center;'
+            f'gap:6px;background:#f3f6fb;border:1px solid #d6e0f0;border-radius:999px;'
+            f'padding:4px 12px;font-size:0.86em;cursor:pointer;margin:3px;">'
+            f'<input type="checkbox" data-step="{int(step)}" data-key="suggested" '
+            f'data-multi="1" value="{escape(s, quote=True)}"> {escape(s)}</label>'
+        )
+    rows_html = ""
+    for idx, row in enumerate(saved_activities):
+        if not isinstance(row, dict):
+            continue
+        rows_html += _activity_row_html(step, section_slug, idx, row,
+                                        member_opts, when_opts, dur_opts)
+    return f"""
+      <div class="frol-activity-builder" data-step="{int(step)}"
+           data-slug="{escape(section_slug, quote=True)}">
+        <div style="font-weight:700;color:#33507e;margin-bottom:6px;">
+          Add what already happens in this section
+        </div>
+        <div class="frol-sug-row" style="margin-bottom:10px;">{sug_html}</div>
+        <div class="frol-activity-rows" id="frol-activity-rows-{int(step)}">
+          {rows_html}
+        </div>
+        <button type="button" class="frol-btn ghost"
+                onclick="frolActivityAdd({int(step)},'{escape(section_slug, quote=True)}')"
+                style="margin-top:8px;">+ Add activity</button>
+      </div>
+    """
+
+
+def _activity_row_html(step: int, slug: str, idx: int, row: dict,
+                       member_opts: str, when_opts: str, dur_opts: str) -> str:
+    """Render one editable row inside the activity builder. Field names use
+    `activities` as data-list and the index as data-idx so the existing
+    saveField pipeline (which already handles dict-of-dicts) persists each
+    column in place."""
+    def attr(k, v):
+        return (f'data-step="{int(step)}" data-key="{escape(k, quote=True)}" '
+                f'data-list="activities" data-idx="{int(idx)}" value="{escape(str(v or ""), quote=True)}"')
+    name      = row.get("name", "")
+    leader    = row.get("leader", "")
+    when_v    = row.get("when", "anytime")
+    dur_v     = row.get("duration_min", 30)
+    credits_v = row.get("credits", "")
+    seasonal  = row.get("seasonal", "no")
+    # Build select options with the row's current values selected.
+    def _sel_options(opts_html: str, current: str) -> str:
+        if not current:
+            return opts_html
+        cur_esc = escape(str(current), quote=True)
+        marker  = f'value="{cur_esc}"'
+        return opts_html.replace(marker, f'{marker} selected', 1)
+    return f"""
+      <div class="frol-activity-row" data-idx="{int(idx)}"
+           style="display:grid;grid-template-columns:1.2fr 0.8fr 1fr 0.7fr 0.7fr auto;
+                  gap:6px;margin-bottom:6px;align-items:center;">
+        <input type="text" placeholder="Activity name" {attr('name', name)}>
+        <select data-step="{int(step)}" data-key="leader" data-list="activities" data-idx="{int(idx)}">
+          <option value="">Leader…</option>{_sel_options(member_opts, leader)}
+        </select>
+        <select data-step="{int(step)}" data-key="when" data-list="activities" data-idx="{int(idx)}">
+          {_sel_options(when_opts, when_v)}
+        </select>
+        <select data-step="{int(step)}" data-key="duration_min" data-list="activities" data-idx="{int(idx)}">
+          {_sel_options(dur_opts, dur_v)}
+        </select>
+        <input type="text" placeholder="Credits" {attr('credits', credits_v)}
+               style="width:100%;">
+        <button type="button" class="frol-btn ghost"
+                onclick="frolActivityRemove(this, {int(step)}, {int(idx)})"
+                style="padding:4px 10px;">&times;</button>
+      </div>
+    """
+
+
 def _step_chrome(step: int, title: str, subtitle: str, body_html: str,
                  mode: str, progress: dict, lucy_visible: bool) -> str:
     completed = progress.get("completed_steps", []) or []
@@ -451,14 +692,47 @@ def render_landing(progress: dict) -> str:
       </div>
     """
 
+    # Seven-commitments cream card (Laura Dominick framing) — appears between
+    # the subtitle and the mode buttons on the landing screen.
+    commitments_li = "".join(
+        f'<li style="margin:4px 0;">{escape(c)}</li>'
+        for c in SEVEN_COMMITMENTS
+    )
+    commitments_card = f"""
+      <div style="background:#fbf7ef;border:1px solid #ead9b8;border-left:4px solid #c89c4a;
+                  border-radius:14px;padding:20px 26px;margin:22px auto 24px;
+                  max-width:620px;text-align:left;">
+        <div style="font-family:Georgia,serif;font-size:1.05em;color:#5a4520;
+                    line-height:1.55;font-style:italic;">
+          &ldquo;A Rule of Life is not a cage &mdash; it is a trellis. It gives the
+          ordinary days of a family the shape that grace can climb.&rdquo;
+        </div>
+        <div style="margin-top:14px;font-weight:700;color:#7d5a1f;font-size:0.92em;
+                    text-transform:uppercase;letter-spacing:0.04em;">
+          Seven commitments
+        </div>
+        <ol style="margin:6px 0 0 22px;padding:0;color:#3f3220;font-size:0.95em;line-height:1.5;">
+          {commitments_li}
+        </ol>
+        <div style="margin-top:14px;font-size:0.78em;color:#7d6a4a;font-style:italic;text-align:right;">
+          Inspired by <em>A Plan for Joy in the Home</em>, Laura Dominick
+        </div>
+      </div>
+    """
+
     return f"""
       <div class="frol-card" style="text-align:center;padding:46px 32px;">
         <h1 class="frol-title" style="font-size:2.1em;">Your Rule of Life</h1>
-        <p class="frol-sub" style="font-size:1.08em;max-width:560px;margin:14px auto 26px;">
+        <p class="frol-sub" style="font-size:1.08em;max-width:560px;margin:14px auto 6px;
+                                    font-family:Georgia,serif;font-style:italic;color:#5a4a78;">
+          A Workbook for Your Family
+        </p>
+        <p class="frol-sub" style="font-size:0.98em;max-width:560px;margin:0 auto 6px;">
           Your Rule of Life is the rhythm that holds your family's day. It's
           not a rigid schedule &mdash; it's a framework of love. Let's build
           yours together.
         </p>
+        {commitments_card}
         {resume_html}
         <div style="display:flex;gap:14px;justify-content:center;
                     flex-wrap:wrap;margin-top:18px;">
@@ -466,7 +740,7 @@ def render_landing(progress: dict) -> str:
           {self_btn}
         </div>
         <p style="margin-top:30px;font-size:0.85em;color:#7d7d7d;">
-          10 short steps · Auto-saves as you go · Takes about 15&ndash;20 minutes
+          A few short sections · Auto-saves as you go · About 15&ndash;20 minutes
         </p>
         {lucy_intro_html}
         {companions_html}

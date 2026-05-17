@@ -89,6 +89,95 @@
     }
   };
 
+  /* V2 shared activity builder — add a new row to the live builder.
+   * Each row's inputs carry data-step/data-key/data-list="activities"
+   * /data-idx, so the existing saveField pipeline handles persistence
+   * (dict-of-dicts shape already supported server-side). */
+  window.frolActivityAdd = function (step, slug) {
+    var holder = document.getElementById("frol-activity-rows-" + step);
+    if (!holder) return;
+    var existing = holder.querySelectorAll(".frol-activity-row");
+    var maxIdx = -1;
+    existing.forEach(function (r) {
+      var v = parseInt(r.getAttribute("data-idx"), 10);
+      if (!isNaN(v) && v > maxIdx) maxIdx = v;
+    });
+    var idx = maxIdx + 1;
+    var row = document.createElement("div");
+    row.className = "frol-activity-row";
+    row.setAttribute("data-idx", String(idx));
+    row.style.cssText = "display:grid;grid-template-columns:1.2fr 0.8fr 1fr 0.7fr 0.7fr auto;" +
+                        "gap:6px;margin-bottom:6px;align-items:center;";
+    // Clone the first row's selects to inherit the member/when/duration options.
+    var template = existing.length ? existing[0] : null;
+    function pickSelect(name) {
+      if (!template) return "<select></select>";
+      var sel = template.querySelector('select[data-key="' + name + '"]');
+      return sel ? sel.outerHTML : "<select></select>";
+    }
+    row.innerHTML =
+      '<input type="text" placeholder="Activity name" data-step="' + step +
+      '" data-key="name" data-list="activities" data-idx="' + idx + '" value="">' +
+      pickSelect("leader").replace(/data-idx="\d+"/, 'data-idx="' + idx + '"') +
+      pickSelect("when").replace(/data-idx="\d+"/, 'data-idx="' + idx + '"') +
+      pickSelect("duration_min").replace(/data-idx="\d+"/, 'data-idx="' + idx + '"') +
+      '<input type="text" placeholder="Credits" data-step="' + step +
+      '" data-key="credits" data-list="activities" data-idx="' + idx + '" value="" style="width:100%;">' +
+      '<button type="button" class="frol-btn ghost" style="padding:4px 10px;"' +
+      ' onclick="frolActivityRemove(this,' + step + ',' + idx + ')">&times;</button>';
+    holder.appendChild(row);
+    bindAutoSave();
+    // Persist the new (empty) row so server-side has an entry to update.
+    var firstInput = row.querySelector('input[data-key="name"]');
+    if (firstInput) saveField(gatherFieldPayload(firstInput));
+  };
+
+  window.frolActivityRemove = function (btn, step, idx) {
+    var row = btn.closest(".frol-activity-row");
+    if (!row) return;
+    row.parentNode.removeChild(row);
+    // Tell the server this row is gone.
+    var fd = new FormData();
+    fd.append("action", "save_field");
+    fd.append("step",   step);
+    fd.append("field",  "name");
+    fd.append("list",   "activities");
+    fd.append("idx",    String(idx));
+    fd.append("value",  "__DELETE__");
+    var formMode = ($("#frol-form") && $("#frol-form").getAttribute("data-mode")) || "";
+    if (formMode) { fd.append("mode", formMode); }
+    fetch("/frol-wizard", { method: "POST", body: fd, credentials: "same-origin" })
+      .then(function (r) { status(r.ok ? "Saved" : "Save failed"); });
+  };
+
+  /* V2 — update generic section dots after async progress changes. */
+  window.frolUpdateDots = function (current, total, completed) {
+    var holder = document.querySelector(".frol-dots");
+    if (!holder) return;
+    var html = "";
+    for (var i = 1; i <= total; i++) {
+      var cls = "frol-dot";
+      if (completed && completed.indexOf(i) !== -1) cls += " done";
+      if (i === current) cls += " current";
+      html += '<span class="' + cls + '" title="Section ' + i + '"></span>';
+    }
+    holder.innerHTML = html;
+  };
+
+  /* V2 — fill the Lucy hint slot for the current step. Server may push
+   * hints in response to /frol-wizard-chat replies; UI just slots them in. */
+  window.frolSetLucyHint = function (step, html) {
+    var slot = document.getElementById("frol-lucy-hint-" + step);
+    if (!slot) return;
+    if (html && String(html).trim()) {
+      slot.innerHTML = html;
+      slot.style.display = "";
+    } else {
+      slot.style.display = "none";
+      slot.innerHTML = "";
+    }
+  };
+
   /* Step 1 — add/remove members */
   window.frolAddMember = function () {
     var holder = document.getElementById("frol-members");

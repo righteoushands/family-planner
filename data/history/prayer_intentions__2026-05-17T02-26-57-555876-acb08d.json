@@ -1,0 +1,40 @@
+{
+  "daily": [
+    {
+      "text": "Pray for Susan's surgery",
+      "added_iso": "2026-05-12"
+    },
+    {
+      "text": "Intentions of Bible Study Moms",
+      "added_iso": "2026-05-13"
+    },
+    {
+      "text": "Novena to the Holy Spirit day six",
+      "added_iso": "2026-05-13"
+    }
+  ],
+  "repeating": [],
+  "novenas": [
+    {
+      "saint": "St. Joseph",
+      "feast_date": "2026-05-18",
+      "start_date": "2026-05-09",
+      "current_day": 4,
+      "total_days": 9
+    },
+    {
+      "saint": "Our Lady of Fatima",
+      "feast_date": "2026-05-13",
+      "start_date": "2026-05-04",
+      "current_day": 9,
+      "total_days": 9
+    },
+    {
+      "saint": "Test Saint XYZ",
+      "feast_date": "2026-08-15",
+      "start_date": "2026-08-06",
+      "current_day": 0,
+      "total_days": 9
+    }
+  ]
+}
