@@ -1324,12 +1324,19 @@ def _chore_item_text(item) -> str:
 
 
 def _bucket_textarea(person: str, bucket_key: str, sub_key: str,
-                     items: list, placeholder: str = "") -> str:
+                     items: list, placeholder: str = "",
+                     sec7: dict | None = None) -> str:
     """One textarea representing a single chore list. data-key is
     'chores__{person}__{bucket}__{sub_key}' and the save handler will split
-    on newlines at finalize time."""
-    val = "\n".join(_chore_item_text(it) for it in (items or []) if _chore_item_text(it).strip())
+    on newlines at finalize time. When sec7 is provided and contains the
+    flat key (autosaved user edits), that value wins over the chores.json
+    seed — otherwise the seed list is shown."""
     key = f"chores__{person}__{bucket_key}__{sub_key}"
+    saved = sec7.get(key) if isinstance(sec7, dict) else None
+    if saved is not None:
+        val = str(saved)
+    else:
+        val = "\n".join(_chore_item_text(it) for it in (items or []) if _chore_item_text(it).strip())
     safe_ph = escape(placeholder, quote=True)
     return f"""
       <div style="margin:6px 0;">
@@ -1374,7 +1381,8 @@ def render_section_7(progress: dict, mode: str) -> str:
     for nm in persons:
         items = (chores.get(nm) or {}).get("daily") or []
         daily_html += _bucket_textarea(nm, "daily", "daily", items,
-            "One chore per line. Examples: Make bed, Daily Room Reset, Practice piano 15 min")
+            "One chore per line. Examples: Make bed, Daily Room Reset, Practice piano 15 min",
+            sec7=sec7)
 
     # Weekly bucket — collapsible per person, with one textarea per weekday
     weekly_html = ""
@@ -1384,7 +1392,7 @@ def render_section_7(progress: dict, mode: str) -> str:
         sub = ""
         for day in _WEEKDAYS:
             items = wk.get(day) or []
-            sub += _bucket_textarea(nm, "weekly", day, items, f"{day} chores, one per line")
+            sub += _bucket_textarea(nm, "weekly", day, items, f"{day} chores, one per line", sec7=sec7)
         weekly_html += f"""
           <details style="background:#f6f8fc;border:1px solid #d8e1ef;border-radius:8px;
                           padding:8px 12px;margin:8px 0;">
@@ -1401,7 +1409,7 @@ def render_section_7(progress: dict, mode: str) -> str:
         sub = ""
         for w in _WEEK_BUCKETS:
             items = mn.get(w) or []
-            sub += _bucket_textarea(nm, "monthly", w, items, f"{w.replace('_',' ').title()} of the month")
+            sub += _bucket_textarea(nm, "monthly", w, items, f"{w.replace('_',' ').title()} of the month", sec7=sec7)
         monthly_html += f"""
           <details style="background:#f6f8fc;border:1px solid #d8e1ef;border-radius:8px;
                           padding:8px 12px;margin:8px 0;">
@@ -1418,7 +1426,7 @@ def render_section_7(progress: dict, mode: str) -> str:
         sub = ""
         for season in _SEASONS:
             items = sn.get(season) or []
-            sub += _bucket_textarea(nm, "seasonal", season, items, f"{season.title()} chores")
+            sub += _bucket_textarea(nm, "seasonal", season, items, f"{season.title()} chores", sec7=sec7)
         seasonal_html += f"""
           <details style="background:#f6f8fc;border:1px solid #d8e1ef;border-radius:8px;
                           padding:8px 12px;margin:8px 0;">
@@ -1435,7 +1443,7 @@ def render_section_7(progress: dict, mode: str) -> str:
         sub = ""
         for month in _MONTHS_LC:
             items = an.get(month) or []
-            sub += _bucket_textarea(nm, "annual", month, items, f"{month.title()} chores")
+            sub += _bucket_textarea(nm, "annual", month, items, f"{month.title()} chores", sec7=sec7)
         annual_html += f"""
           <details style="background:#f6f8fc;border:1px solid #d8e1ef;border-radius:8px;
                           padding:8px 12px;margin:8px 0;">
@@ -1744,9 +1752,11 @@ def render_section_9(progress: dict, mode: str) -> str:
 def render_section_10(progress: dict, mode: str) -> str:
     """V2 §10 — Flex / Buffers / Seasonal. Captures transition buffers, flex
     blocks, energy levels (feeds AI scheduler), weekly reset, seasonal flags."""
+    sec10        = (progress.get("data", {}) or {}).get("section_10", {}) or {}
+    if not isinstance(sec10, dict):
+        sec10 = {}
     buffer_min   = _sv(progress, 10, "transition_buffer_min", "10")
     flex_blocks  = _sv(progress, 10, "flex_blocks",           "")
-    energy       = _sv(progress, 10, "energy_levels",         {}) or {}
     weekly_reset = _sv(progress, 10, "weekly_reset",          "")
     seasonal     = _sv(progress, 10, "seasonal_flags",        []) or []
 
@@ -1767,7 +1777,7 @@ def render_section_10(progress: dict, mode: str) -> str:
 
     energy_rows = ""
     for tod in ["morning", "midday", "afternoon", "evening"]:
-        cur = (energy.get(tod) if isinstance(energy, dict) else "") or ""
+        cur = sec10.get(f"energy__{tod}") or ""
         energy_rows += f"""
           <div style="display:flex;align-items:center;gap:10px;margin:6px 0;">
             <div style="width:90px;font-weight:600;color:#33507e;">{tod.title()}</div>
