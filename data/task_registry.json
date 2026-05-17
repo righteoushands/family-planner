@@ -1624,5 +1624,52 @@
       "SCHOOL::Religion 8 (Our Life in the Church) Syllabus::Work for 5 minutes or less reviewing the spiritual works of mercy. Then write a short summary of the correct understanding of conscience.",
       "SCHOOL::Spelling & Vocabulary 8 (Vocabulary from Classical Roots B) Syllabus::Take a spelling test on the Lesson 12 Key words. If there are definitions you are unsure of, read them over again."
     ]
+  },
+  "2026-05-17": {
+    "JP": [
+      "CHORE::  → Clean sink",
+      "CHORE::  → Clear table + counters",
+      "CHORE::  → Load dishwasher",
+      "CHORE::  → Put food away",
+      "CHORE::  → Spray + wipe table and counters",
+      "CHORE::  → Sweep kitchen / dining room / foyer",
+      "CHORE::  → Take out trash + recycling",
+      "CHORE::  → Unload dishwasher",
+      "CHORE::After school, pickup all your school things and tidy your school shelf.",
+      "CHORE::Check CAP email",
+      "CHORE::Check Sea Cadet email",
+      "CHORE::Clean kitchen jobs:",
+      "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
+      "CHORE::KITCHEN (Evening — Role A):",
+      "CHORE::Practice Piano for 15 minutes",
+      "CHORE::Tidy basement zone — 10 minutes",
+      "MANUAL::MEDIUM::CAPTask: Wash the most used uniform of the month.",
+      "MANUAL::MEDIUM::Friday Penance: give up meat or make another sacrifice."
+    ],
+    "Joseph": [
+      "CHORE::  → Clean sink",
+      "CHORE::  → Clear table + counters",
+      "CHORE::  → Load dishwasher",
+      "CHORE::  → Put food away",
+      "CHORE::  → Spray + wipe table and counters",
+      "CHORE::  → Sweep kitchen / dining room / foyer",
+      "CHORE::  → Take out trash + recycling",
+      "CHORE::  → Unload dishwasher",
+      "CHORE::After school: pickup your school things and tidy your school shelf.",
+      "CHORE::Check Sea Cadet email",
+      "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
+      "CHORE::KITCHEN (After Breakfast — Role B):",
+      "CHORE::KITCHEN (Evening — Role B):",
+      "CHORE::Practice piano for 15 minutes",
+      "CHORE::Tidy basement zone — 10 minutes",
+      "MANUAL::MEDIUM::Did you clean your bathroom this week?",
+      "MANUAL::MEDIUM::Discuss questions for Chapter 25",
+      "MANUAL::MEDIUM::Finish cleaning and vacuuming your area in the basement."
+    ],
+    "Michael": [
+      "CHORE::Daily Room Reset (after breakfast): make bed, pick up clothes, return items, trash",
+      "CHORE::Tidy basement zone — 10 minutes"
+    ],
+    "James": []
   }
 }
