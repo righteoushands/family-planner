@@ -7049,7 +7049,8 @@ class Handler(BaseHTTPRequestHandler):
                     _p = load_progress()
                     if _mode and not _p.get("mode"): _p["mode"] = _mode
                     _b = _p.setdefault("data", {}).setdefault("section_12", {})
-                    for _k in ("questions", "answers", "schedule"):
+                    for _k in ("questions", "answers", "schedule",
+                               "gen_hash", "_generating"):
                         if _k in _b:
                             _b.pop(_k, None)
                     save_progress(_p)
@@ -7158,10 +7159,38 @@ class Handler(BaseHTTPRequestHandler):
                     self.end_headers()
                     return
                 if _act == "finalize_v2":
+                    import traceback as _fin_tb
                     _p = load_progress()
-                    _receipt = finalize_v2(_p)
+                    _receipt = None
+                    _err_msg = None
+                    try:
+                        _receipt = finalize_v2(_p)
+                    except Exception as _fin_exc:
+                        _err_msg = f"{type(_fin_exc).__name__}: {_fin_exc}"
+                        _tb_str  = _fin_tb.format_exc()
+                        # Server-log the full traceback so it shows up in
+                        # the workflow console / deployment logs.
+                        print(f"[finalize_v2] FAILED: {_err_msg}\n{_tb_str}",
+                              flush=True)
+                        # Build a visible receipt with ERROR markers so the
+                        # §14 page can surface the failure to Lauren (the
+                        # receipt-table renderer in render_section_14
+                        # already highlights values containing 'ERROR').
+                        _receipt = {
+                            "ERROR": _err_msg,
+                            "ERROR_TRACEBACK": _tb_str.strip().splitlines()[-1]
+                                                if _tb_str else "(no trace)",
+                            "ERROR_HINT": ("Save failed. Your data is "
+                                           "untouched — try again or check "
+                                           "the server logs."),
+                        }
                     _p = load_progress()
                     _p.setdefault("data", {}).setdefault("section_14", {})["receipt"] = _receipt
+                    # If finalize raised, do NOT mark the wizard finalized.
+                    if _err_msg and "finalized_at" in _p:
+                        # leave any existing finalized_at alone — only
+                        # clear if finalize_v2 set it mid-run before failing.
+                        pass
                     save_progress(_p)
                     self.send_response(302)
                     self.send_header("Location", f"/frol-wizard?step=14&mode={_mode}")

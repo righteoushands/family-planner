@@ -28,6 +28,7 @@ import os
 import re
 import json
 import shutil
+import hashlib
 import urllib.request
 from datetime import datetime
 from data_helpers import save_frol_activities
@@ -2191,6 +2192,17 @@ def _s12_collect_context(progress: dict) -> dict:
     }
 
 
+def _s12_progress_hash(ctx: dict) -> str:
+    """Stable short hash of the sections-1-11 context. Used to detect
+    whether the cached §12 schedule is stale relative to the underlying
+    data the user has since edited."""
+    try:
+        blob = json.dumps(ctx, sort_keys=True, default=str)
+    except Exception:
+        blob = repr(ctx)
+    return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:16]
+
+
 def _s12_repair_json(raw: str):
     """Best-effort JSON repair for LLM output. Mirrors the strategy used
     in app.py's _repair_and_parse_json: try as-is, then strip trailing
@@ -2396,6 +2408,7 @@ def _s12_generate_schedule(progress: dict) -> list:
     parsed = _s12_call_anthropic_json(system, user, max_tokens=3500)
     if not isinstance(parsed, dict):
         return []
+    gen_hash = _s12_progress_hash(ctx)
     raw = parsed.get("schedule") or []
     cleaned = []
     for it in raw:
@@ -2443,6 +2456,7 @@ def _s12_generate_schedule(progress: dict) -> list:
     p = load_progress()
     bucket = p.setdefault("data", {}).setdefault("section_12", {})
     bucket["schedule"] = cleaned
+    bucket["gen_hash"] = gen_hash
     save_progress(p)
     return cleaned
 
@@ -2598,8 +2612,41 @@ def render_section_12(progress: dict, mode: str) -> str:
     # ── Stage B: all questions answered → schedule ─────────────────────────
     schedule = sec12.get("schedule")
     if not isinstance(schedule, list) or not schedule:
+        # Defensive UX: show a loading interstitial on first arrival
+        # rather than blocking the page for the full 20-40s API call
+        # with no feedback. A meta-refresh re-enters this branch with
+        # the _generating flag set, at which point we run the actual
+        # API call synchronously and the next render shows the result.
+        if not sec12.get("_generating"):
+            _pl = load_progress()
+            _pl.setdefault("data", {}).setdefault("section_12", {})["_generating"] = True
+            save_progress(_pl)
+            loading_body = (
+                '<div style="text-align:center;padding:60px 20px;">'
+                '<div style="font-size:1.3em;color:#33507e;'
+                'font-weight:600;">Generating your schedule&hellip;</div>'
+                '<div style="margin-top:10px;color:#7088a8;'
+                'font-size:0.92em;">This usually takes 20 to 40 seconds. '
+                'The page will refresh automatically.</div>'
+                '<div style="margin:24px auto 0;width:40px;height:40px;'
+                'border:4px solid #d8e1ef;border-top-color:#4a6fa5;'
+                'border-radius:50%;animation:s12spin 1s linear infinite;">'
+                '</div>'
+                '<style>@keyframes s12spin{to{transform:rotate(360deg)}}'
+                '</style>'
+                '<meta http-equiv="refresh" content="1">'
+                '</div>'
+            )
+            return _section_chrome(12, "Build Your Day",
+                "Generating your suggested schedule.",
+                refl + loading_body, mode, progress, lucy_visible=False)
+        # _generating flag is set — actually call the API now and clear
         schedule = _s12_generate_schedule(progress)
-        sec12 = (load_progress().get("data", {}) or {}).get("section_12", {}) or {}
+        _pl = load_progress()
+        _bk = _pl.setdefault("data", {}).setdefault("section_12", {})
+        _bk.pop("_generating", None)
+        save_progress(_pl)
+        sec12 = _bk
         schedule = sec12.get("schedule") or []
 
     if not schedule:
@@ -2933,46 +2980,24 @@ def render_section_12(progress: dict, mode: str) -> str:
         '</div>'
     )
 
-    view_js = """
-<script>
-function s12ShowView(v) {
-  var l  = document.getElementById('s12-list');
-  var g  = document.getElementById('s12-grid');
-  var bl = document.getElementById('s12-btn-list');
-  var bg = document.getElementById('s12-btn-grid');
-  if (v === 'grid') {
-    if (l) l.style.display = 'none';
-    if (g) g.style.display = 'block';
-    if (bl) { bl.style.background = '#fff';    bl.style.color = '#4a6fa5'; }
-    if (bg) { bg.style.background = '#4a6fa5'; bg.style.color = '#fff';    }
-  } else {
-    if (l) l.style.display = 'block';
-    if (g) g.style.display = 'none';
-    if (bl) { bl.style.background = '#4a6fa5'; bl.style.color = '#fff';    }
-    if (bg) { bg.style.background = '#fff';    bg.style.color = '#4a6fa5'; }
-  }
-}
-function s12TogglePerson(btn) {
-  var p = btn.getAttribute('data-person');
-  var hidden = btn.getAttribute('data-hidden') === '1';
-  var all = document.querySelectorAll('.s12-col');
-  for (var i = 0; i < all.length; i++) {
-    if (all[i].getAttribute('data-person') === p) {
-      all[i].style.display = hidden ? '' : 'none';
-    }
-  }
-  if (hidden) {
-    btn.setAttribute('data-hidden', '0');
-    btn.style.background = '#4a6fa5';
-    btn.style.color      = '#fff';
-  } else {
-    btn.setAttribute('data-hidden', '1');
-    btn.style.background = '#fff';
-    btn.style.color      = '#4a6fa5';
-  }
-}
-</script>
-"""
+    # NOTE: s12ShowView() and s12TogglePerson() live in
+    # /static/js/frol_wizard.js (loaded by the wizard page chrome) so
+    # they cannot be silently lost to any future <script>-stripping in
+    # _section_chrome or in transit. Do not re-inline them here.
+
+    # ── Fix 3: stale-cache warning ─────────────────────────────────────────
+    _cur_hash   = _s12_progress_hash(_s12_collect_context(progress))
+    _gen_hash   = sec12.get("gen_hash")
+    stale_html  = ""
+    if _gen_hash and _gen_hash != _cur_hash:
+        stale_html = (
+            '<div style="background:#fef3e6;border:1px solid #e6b97a;'
+            'border-radius:8px;padding:14px;margin:10px 0;color:#8a5a1a;'
+            'font-weight:600;">'
+            'You have made changes since this schedule was generated. '
+            'Tap Regenerate to update it.'
+            '</div>'
+        )
 
     regen_btn = (
         '<form method="POST" action="/frol-wizard" '
@@ -3009,6 +3034,7 @@ function s12TogglePerson(btn) {
         slots kept. Use a time dropdown to move a slot. Tap Remove to drop
         one. Tap Regenerate to start over.
       </div>
+      {stale_html}
       {overload_html}
       {view_toggle_html}
       <div id="s12-list">{cards_html}</div>
@@ -3017,7 +3043,7 @@ function s12TogglePerson(btn) {
         {regen_btn}
         {save_btn}
       </div>
-    """ + view_js
+    """
     return _section_chrome(12, "Build Your Day",
         "AI-suggested weekday schedule built from everything you've collected.",
         body, mode, progress, lucy_visible=True)

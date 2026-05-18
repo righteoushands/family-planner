@@ -984,7 +984,8 @@
       ],
       "answers": {
         "0": "Prayer time shifts to accommodate breakfast duties"
-      }
+      },
+      "_generating": true
     },
     "section_14": {
       "review_multi": "accept",
@@ -993,7 +994,7 @@
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-18T15:29:05",
+  "updated_at": "2026-05-18T19:39:45",
   "finalized_at": "",
   "_v1_completed_steps": [
     1,

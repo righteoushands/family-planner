@@ -374,3 +374,44 @@
     bindAutoSave();
   }
 })();
+
+// ─── §12 Build Your Day — view toggles ────────────────────────────────
+// Moved here from inline <script> in render_section_12 so they survive
+// any future <script>-stripping in _section_chrome / in transit.
+window.s12ShowView = function (v) {
+  var l  = document.getElementById('s12-list');
+  var g  = document.getElementById('s12-grid');
+  var bl = document.getElementById('s12-btn-list');
+  var bg = document.getElementById('s12-btn-grid');
+  if (v === 'grid') {
+    if (l) l.style.display = 'none';
+    if (g) g.style.display = 'block';
+    if (bl) { bl.style.background = '#fff';    bl.style.color = '#4a6fa5'; }
+    if (bg) { bg.style.background = '#4a6fa5'; bg.style.color = '#fff';    }
+  } else {
+    if (l) l.style.display = 'block';
+    if (g) g.style.display = 'none';
+    if (bl) { bl.style.background = '#4a6fa5'; bl.style.color = '#fff';    }
+    if (bg) { bg.style.background = '#fff';    bg.style.color = '#4a6fa5'; }
+  }
+};
+
+window.s12TogglePerson = function (btn) {
+  var p = btn.getAttribute('data-person');
+  var hidden = btn.getAttribute('data-hidden') === '1';
+  var all = document.querySelectorAll('.s12-col');
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].getAttribute('data-person') === p) {
+      all[i].style.display = hidden ? '' : 'none';
+    }
+  }
+  if (hidden) {
+    btn.setAttribute('data-hidden', '0');
+    btn.style.background = '#4a6fa5';
+    btn.style.color      = '#fff';
+  } else {
+    btn.setAttribute('data-hidden', '1');
+    btn.style.background = '#fff';
+    btn.style.color      = '#4a6fa5';
+  }
+};
