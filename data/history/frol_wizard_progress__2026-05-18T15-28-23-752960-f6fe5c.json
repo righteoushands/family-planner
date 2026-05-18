@@ -1,6 +1,6 @@
 {
   "mode": "structured",
-  "current_step": 13,
+  "current_step": 15,
   "completed_steps": [
     1,
     3,
@@ -13,7 +13,9 @@
     7,
     10,
     11,
-    12
+    12,
+    13,
+    14
   ],
   "data": {
     "step_1": {
@@ -356,7 +358,8 @@
       ],
       "confession_cadence": "Monthly on first Saturday",
       "adoration_cadence": "Ocassionally",
-      "feast_days_flag": "yes"
+      "feast_days_flag": "yes",
+      "service_notes": "Visiting a sick friend and bringing food. "
     },
     "section_2": {
       "JP__wake_time": "06:55",
@@ -935,11 +938,59 @@
     },
     "section_12": {
       "weekend_view": "no",
-      "per_person_filter": ""
+      "per_person_filter": "",
+      "current_day": "Tuesday",
+      "questions": [
+        {
+          "question_text": "Your morning prayer time is 7:15 AM, but breakfast is also at 7:30 AM with you feeding Michael and James. How do you handle this overlap?",
+          "options": [
+            "Prayer happens before breakfast prep starts",
+            "Prayer happens during breakfast while feeding the little ones",
+            "Prayer time shifts to accommodate breakfast duties"
+          ]
+        },
+        {
+          "question_text": "James naps 9-11 AM and 2-4 PM, but you have 'School with Michael' and '2:30-4 PM work with the boys' listed. Does Michael's school happen during James's morning nap, and do the older boys work independently during the afternoon nap?",
+          "options": [
+            "Michael's school is during James's morning nap, boys work independently during afternoon nap",
+            "Michael's school is separate from nap times, adjust work time with boys",
+            "School times need to be restructured around James's nap schedule"
+          ]
+        },
+        {
+          "question_text": "Both JP and Joseph have kitchen duties listed - JP has evening dishwasher duties while Joseph has morning dishwasher duties, but both also have overlapping tasks like 'clear table and counters.' Which specific kitchen jobs does each boy do at which times?",
+          "options": [
+            "JP handles all evening kitchen tasks, Joseph handles all morning tasks",
+            "They split overlapping tasks by alternating days",
+            "They work together on shared tasks but focus on their assigned time slots"
+          ]
+        },
+        {
+          "question_text": "You have date night on Wednesday at 5:30 PM, but this conflicts with dinner time at 5:00 PM and family rosary in the evening. How do you handle dinner and evening prayers on date nights?",
+          "options": [
+            "Dinner shifts earlier and rosary happens before date night",
+            "Older boys handle dinner and evening prayers",
+            "Date night starts after family obligations are complete"
+          ]
+        },
+        {
+          "question_text": "Lauren's work time is listed as '2:30 to 4 PM work with the boys' but this overlaps with James's afternoon nap (2-4 PM) and your afternoon rest time. Who supervises James during his nap while you're working with the older boys?",
+          "options": [
+            "James naps independently while you work nearby with the boys",
+            "Work time shifts to when James is awake",
+            "One of the older boys monitors James during nap time"
+          ]
+        }
+      ]
+    },
+    "section_14": {
+      "review_multi": "accept",
+      "review_dev": "accept",
+      "review_sched": "modify"
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-17T09:49:17",
+  "updated_at": "2026-05-18T15:28:02",
   "finalized_at": "",
   "_v1_completed_steps": [
     1,

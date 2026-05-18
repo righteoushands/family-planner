@@ -1,6 +1,6 @@
 {
   "mode": "structured",
-  "current_step": 13,
+  "current_step": 14,
   "completed_steps": [
     1,
     3,
@@ -13,7 +13,8 @@
     7,
     10,
     11,
-    12
+    12,
+    13
   ],
   "data": {
     "step_1": {
@@ -356,7 +357,8 @@
       ],
       "confession_cadence": "Monthly on first Saturday",
       "adoration_cadence": "Ocassionally",
-      "feast_days_flag": "yes"
+      "feast_days_flag": "yes",
+      "service_notes": "Visiting a sick friend and bringing food. "
     },
     "section_2": {
       "JP__wake_time": "06:55",
@@ -397,7 +399,7 @@
         "Liturgical New Year (Nov)"
       ],
       "transition_buffer_min": "5",
-      "weekly_reset": "Sunday afternoon: review school week, PODs, calendar, cue up music, pull read aloud books for boys to read to Michael, famil"
+      "weekly_reset": "Sunday afternoon: review school week, PODs, calendar, cue up music, pull read aloud books for boys to read to Michael, family read aloud "
     },
     "section_11": {
       "per_person_filter": "",
@@ -935,11 +937,16 @@
     },
     "section_12": {
       "weekend_view": "no",
-      "per_person_filter": ""
+      "per_person_filter": "",
+      "current_day": "Tuesday"
+    },
+    "section_14": {
+      "review_multi": "accept",
+      "review_dev": "accept"
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-17T09:48:42",
+  "updated_at": "2026-05-17T11:03:10",
   "finalized_at": "",
   "_v1_completed_steps": [
     1,
