@@ -67,9 +67,14 @@ def _moveable_start(label: str, year: int) -> date:
         return easter                              # Easter Sunday
     if label == "Advent":
         christmas = date(year, 12, 25)
-        # First Sunday of Advent = 4th Sunday before Christmas.
-        offset = (christmas.weekday() + 1) % 7 + 21
-        return christmas - timedelta(days=offset)
+        # First Sunday of Advent = the 4th Sunday before Christmas.
+        # weekday(): Mon=0 … Sun=6. Days back to the Sunday *strictly*
+        # before Christmas = ((dow+1) % 7) — but 0 when Christmas itself
+        # is Sunday, so substitute 7 in that case. Then add 3 more weeks
+        # to reach the 4th-prior Sunday.
+        dow = christmas.weekday()
+        days_back = ((dow + 1) % 7) or 7
+        return christmas - timedelta(days=days_back + 21)
     raise ValueError(f"unknown moveable season: {label!r}")
 
 

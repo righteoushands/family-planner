@@ -69,6 +69,27 @@ def _restore(snaps):
                 fh.write(blob)
 
 
+def test_advent_dates():
+    print("\n[0/3] Advent first-Sunday boundary cases")
+    from render_seasons import season_start
+    # Source of truth: USCCB liturgical calendars.
+    expected = {
+        2021: date(2021, 11, 28),   # Sat Christmas
+        2022: date(2022, 11, 27),   # Sun Christmas
+        2023: date(2023, 12,  3),   # Mon Christmas
+        2024: date(2024, 12,  1),   # Wed Christmas
+        2025: date(2025, 11, 30),   # Thu Christmas
+        2026: date(2026, 11, 29),   # Fri Christmas
+        2027: date(2027, 11, 28),   # Sat Christmas
+        2028: date(2028, 12,  3),   # Mon Christmas
+        2033: date(2033, 11, 27),   # Sun Christmas (boundary regression)
+    }
+    for yr, exp in expected.items():
+        got = season_start("Advent", yr)
+        _record(f"Advent {yr} start = {exp.isoformat()}", got == exp,
+                "got " + got.isoformat() if got != exp else "")
+
+
 def test_upcoming_sweep():
     print("\n[1/3] upcoming_season sweep across 2 years")
     today = date(2026, 1, 1)
@@ -205,6 +226,7 @@ def main():
         SEASONAL_SCHEDULES_FILE, APP_SETTINGS_FILE,
     ])
     try:
+        test_advent_dates()
         test_upcoming_sweep()
         test_save_dismiss_cycle()
         test_overlay_smoke()
