@@ -636,9 +636,25 @@ window.s12ShowView = function (v) {
     if (CRUD_PATHS.indexOf(act) < 0) return;
     e.preventDefault();
     var fd = new FormData(form);
+    status('Saving…');
     fetch(act, { method: 'POST', body: fd, credentials: 'same-origin', redirect: 'manual' })
-      .then(function () { refreshGridFull(); })
-      .catch(function () { /* fall back to a manual reload if needed */ });
+      .then(function (r) {
+        // 302 (redirect manual → opaqueredirect/status 0) and 2xx are
+        // both server-side success. Anything else surfaces a status
+        // message so failures don't silently masquerade as success.
+        var ok = r.ok || r.type === 'opaqueredirect' || r.status === 0 ||
+                 (r.status >= 200 && r.status < 400);
+        if (!ok) {
+          status('Save failed (' + r.status + ')');
+          return;
+        }
+        status('Saved');
+        setTimeout(function () { status(''); }, 1500);
+        refreshGridFull();
+      })
+      .catch(function () {
+        status('Save failed — network');
+      });
   }, true);
 
   // iOS Safari sticky-header fallback. Modern iOS handles position:sticky
