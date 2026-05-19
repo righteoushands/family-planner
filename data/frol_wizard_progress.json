@@ -983,35 +983,10 @@
         }
       ],
       "answers": {
-        "0": "stub",
-        "1": "stub",
-        "2": "stub",
-        "3": "stub",
-        "4": "stub"
+        "0": "Prayer time shifts to accommodate breakfast duties"
       },
-      "schedule": [
-        {
-          "time": "07:15",
-          "activity_name": "Morning prayer",
-          "duration_min": 15,
-          "who": [
-            "Lauren"
-          ],
-          "category": "prayer",
-          "keep": true
-        },
-        {
-          "time": "13:30",
-          "activity_name": "Lunch",
-          "duration_min": 30,
-          "who": [
-            "Family"
-          ],
-          "category": "meals",
-          "keep": false
-        }
-      ],
-      "gen_hash": "bd9c1d27552d74f0",
+      "schedule": [],
+      "gen_hash": null,
       "_generating": null
     },
     "section_14": {
