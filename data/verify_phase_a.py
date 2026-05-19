@@ -213,6 +213,32 @@ def main() -> int:
     final = [x for x in after3 if x.get("name") != "Dup Test Activity"]
     dh.save_frol_activities(final)
 
+    print("── 4d. Legacy duplicate-seed rows get unique ids on load ──")
+    # Two structurally identical legacy rows would hash to the same seed.
+    # load_frol_activities() must still return unique ids for both.
+    dup_legacy = [
+        {"name": "Same Legacy", "time": "07:00", "duration_min": 5,
+         "who": ["JP"], "category": "personal"},
+        {"name": "Same Legacy", "time": "07:00", "duration_min": 5,
+         "who": ["JP"], "category": "personal"},
+    ]
+    # Stash current file, write the dup pair, load, restore.
+    import json as _json, shutil as _shutil
+    _bak = dh.FROL_ACTIVITIES_FILE + ".verify_swap.json"
+    _shutil.copy2(dh.FROL_ACTIVITIES_FILE, _bak)
+    try:
+        with open(dh.FROL_ACTIVITIES_FILE, "w") as _f:
+            _json.dump(dup_legacy, _f)
+        loaded = dh.load_frol_activities()
+        check(len(loaded) == 2,
+              "both duplicate legacy rows are returned (none dropped)")
+        check(len({x["id"] for x in loaded}) == 2,
+              "duplicate legacy rows receive distinct ids after load")
+        check(any(x["id"].endswith("_2") for x in loaded),
+              "collided id is suffixed with _2 to disambiguate")
+    finally:
+        _shutil.move(_bak, dh.FROL_ACTIVITIES_FILE)
+
     print("── 5. Delete + add round-trip ──")
     items = dh.load_frol_activities()
     items = [a for a in items if a["id"] != "act_test_fam"]

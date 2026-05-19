@@ -865,7 +865,10 @@ def _upgrade_activity_v2_to_v3(legacy: dict) -> dict:
 def load_frol_activities() -> list:
     """Return the activities list in v3 shape. Upgrades legacy v2 entries
     in memory on every read; never silently rewrites the on-disk file.
-    Writes a one-shot backup the first time legacy entries are detected."""
+    Writes a one-shot backup the first time legacy entries are detected.
+    Guarantees uniqueness of `id` across the returned list — if two legacy
+    rows hash to the same seed, the duplicates are nudged with a numeric
+    suffix so delete/edit by id always targets exactly one record."""
     data = ensure_file(FROL_ACTIVITIES_FILE, [])
     if not isinstance(data, list):
         return []
@@ -875,7 +878,25 @@ def load_frol_activities() -> list:
     )
     if has_legacy:
         _ensure_activities_backup()
-    return [_upgrade_activity_v2_to_v3(it) for it in data if isinstance(it, dict)]
+    out = []
+    seen = set()
+    for it in data:
+        if not isinstance(it, dict):
+            continue
+        up = _upgrade_activity_v2_to_v3(it)
+        aid = up.get("id") or _activity_new_id()
+        if aid in seen:
+            # Deterministic-seed collision among legacy duplicates — make
+            # this row's id unique while keeping the original prefix so
+            # downstream lookups remain stable across reads.
+            n = 2
+            while f"{aid}_{n}" in seen:
+                n += 1
+            aid = f"{aid}_{n}"
+        up["id"] = aid
+        seen.add(aid)
+        out.append(up)
+    return out
 
 
 def save_frol_activities(items: list):

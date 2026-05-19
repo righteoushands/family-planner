@@ -7380,7 +7380,9 @@ class Handler(BaseHTTPRequestHandler):
                 _av_a    = (data.get("active_variant",[""])[0] or "weekday").strip() or "weekday"
                 try: _sec_i = int(_sec_str)
                 except Exception: _sec_i = 0
-                _redirect_back = f"/frol-wizard?step={_sec_i}&mode={_mode_a}"
+                from urllib.parse import quote as _q_av
+                _redirect_back = (f"/frol-wizard?step={_sec_i}&mode={_mode_a}"
+                                  f"&active_variant={_q_av(_av_a)}")
                 _items = load_frol_activities()
                 if path == "/frol-delete-activity":
                     _did = (data.get("id",[""])[0] or "").strip()
