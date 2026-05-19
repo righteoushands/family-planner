@@ -2789,7 +2789,18 @@ def render_section_12(progress: dict, mode: str) -> str:
         move_opts = ""
         for opt_t in time_options:
             sel = "selected" if opt_t == t else ""
-            move_opts += f'<option value="{opt_t}" {sel}>{opt_t}</option>'
+            # Fix 1: render the dropdown labels in 12-hour AM/PM so iOS
+            # and desktop users never see military time. The option
+            # value stays HH:MM 24-hour for server-side parsing.
+            try:
+                _oh, _om = opt_t.split(":", 1)
+                _ohi = int(_oh); _omi = int(_om)
+                _osuf = "AM" if _ohi < 12 else "PM"
+                _o12  = _ohi % 12 or 12
+                opt_lbl = f"{_o12}:{_omi:02d} {_osuf}"
+            except Exception:
+                opt_lbl = opt_t
+            move_opts += f'<option value="{opt_t}" {sel}>{opt_lbl}</option>'
 
         if kept:
             action_name  = "s12_remove"
@@ -2814,16 +2825,24 @@ def render_section_12(progress: dict, mode: str) -> str:
                 f'font-style:italic;">{escape(note)}</div>'
             )
 
+        # Fix 2 + Fix 3: no inline <form>s here. The time-picker and
+        # Remove/Restore button carry data-s12-* attrs; the inline
+        # <script> further down in this body uses fetch() to POST to
+        # the existing s12_move / s12_remove / s12_restore handlers
+        # without a page reload, then patches the card DOM and flashes
+        # the "Saved" pill so Lauren sees the change persisted.
         cards_html += f"""
-          <div style="background:#fff;border:1px solid #d8e1ef;
+          <div class="s12-card" data-slot-idx="{i}"
+               style="background:#fff;border:1px solid #d8e1ef;
                       border-left:5px solid {color};border-radius:8px;
                       padding:12px 16px;margin:8px 0;opacity:{card_opacity};">
             <div style="display:flex;align-items:center;
                         justify-content:space-between;gap:12px;">
-              <div style="flex:1;{card_strike}">
+              <div class="s12-card-body" style="flex:1;{card_strike}">
                 <div style="display:flex;align-items:center;gap:10px;
-                            margin-bottom:4px;">
-                  <span style="font-weight:700;color:#33507e;font-size:1.04em;">
+                            margin-bottom:4px;flex-wrap:wrap;">
+                  <span class="s12-time-disp"
+                        style="font-weight:700;color:#33507e;font-size:1.04em;">
                     {escape(time_disp)}
                   </span>
                   <span style="display:inline-block;width:10px;height:10px;
@@ -2832,6 +2851,10 @@ def render_section_12(progress: dict, mode: str) -> str:
                   <span style="font-size:0.78em;color:#888;
                                text-transform:capitalize;">{escape(cat)}</span>
                   {dur_chip}
+                  <span class="s12-flash"
+                        style="font-size:0.78em;color:#2e5d3b;
+                               font-weight:700;opacity:0;
+                               transition:opacity 0.25s;">Saved &check;</span>
                 </div>
                 <div style="font-size:1.02em;color:#222;font-weight:600;
                             margin-bottom:3px;">
@@ -2844,32 +2867,21 @@ def render_section_12(progress: dict, mode: str) -> str:
               </div>
               <div style="display:flex;flex-direction:column;gap:6px;
                           align-items:flex-end;">
-                <form method="POST" action="/frol-wizard"
-                      style="margin:0;display:flex;gap:6px;align-items:center;">
-                  <input type="hidden" name="action" value="s12_move">
-                  <input type="hidden" name="section" value="12">
-                  <input type="hidden" name="mode" value="{mode_esc}">
-                  <input type="hidden" name="slot_idx" value="{i}">
-                  <select name="new_time" onchange="this.form.submit()"
-                          style="padding:4px 8px;border:1px solid #d8e1ef;
-                                 border-radius:4px;font-size:0.84em;
-                                 background:#fbfcfd;cursor:pointer;">
-                    {move_opts}
-                  </select>
-                </form>
-                <form method="POST" action="/frol-wizard" style="margin:0;">
-                  <input type="hidden" name="action" value="{action_name}">
-                  <input type="hidden" name="section" value="12">
-                  <input type="hidden" name="mode" value="{mode_esc}">
-                  <input type="hidden" name="slot_idx" value="{i}">
-                  <button type="submit"
-                          style="padding:4px 12px;background:transparent;
-                                 border:1px solid {btn_color};color:{btn_color};
-                                 border-radius:4px;cursor:pointer;
-                                 font-size:0.82em;">
-                    {btn_label}
-                  </button>
-                </form>
+                <select data-s12-action="s12_move" data-s12-slot="{i}"
+                        data-s12-mode="{mode_esc}"
+                        style="padding:4px 8px;border:1px solid #d8e1ef;
+                               border-radius:4px;font-size:0.84em;
+                               background:#fbfcfd;cursor:pointer;">
+                  {move_opts}
+                </select>
+                <button type="button" data-s12-action="{action_name}"
+                        data-s12-slot="{i}" data-s12-mode="{mode_esc}"
+                        style="padding:4px 12px;background:transparent;
+                               border:1px solid {btn_color};color:{btn_color};
+                               border-radius:4px;cursor:pointer;
+                               font-size:0.82em;">
+                  {btn_label}
+                </button>
               </div>
             </div>
           </div>
@@ -3106,20 +3118,109 @@ def render_section_12(progress: dict, mode: str) -> str:
         1 for it in schedule if isinstance(it, dict) and it.get("keep", True)
     )
 
+    # ── Fix 2 + Fix 3: inline fetch() handlers for the per-card time
+    # picker and Remove/Restore button. Hooks POST to the existing
+    # s12_move / s12_remove / s12_restore handlers in app.py without
+    # a page reload, then patches the card DOM in place and flashes a
+    # "Saved" pill near the changed card. Guard prevents double-binding
+    # if §12 ever re-renders inside the same page. Plain JS, no JS
+    # string literals contain newlines (per claud.md rule).
+    fetch_script = """
+      <script>
+      (function(){
+        if (window.s12FetchHandlersBound) { return; }
+        window.s12FetchHandlersBound = true;
+        function flash(card){
+          if (!card) { return; }
+          var f = card.querySelector('.s12-flash');
+          if (!f) { return; }
+          f.style.opacity = '1';
+          setTimeout(function(){ f.style.opacity = '0'; }, 1500);
+        }
+        function post(act, slot, mode, extra){
+          var fd = new FormData();
+          fd.append('action',   act);
+          fd.append('section',  '12');
+          fd.append('mode',     mode);
+          fd.append('slot_idx', slot);
+          if (extra) { for (var k in extra) { fd.append(k, extra[k]); } }
+          return fetch('/frol-wizard', {
+            method: 'POST', body: fd, credentials: 'same-origin'
+          });
+        }
+        function fmt12(hhmm){
+          var p = String(hhmm).split(':');
+          var hh = parseInt(p[0], 10);
+          if (isNaN(hh)) { return hhmm; }
+          var mm  = p[1] || '00';
+          var suf = hh < 12 ? 'AM' : 'PM';
+          var h12 = (hh % 12) || 12;
+          return h12 + ':' + mm + ' ' + suf;
+        }
+        document.addEventListener('change', function(ev){
+          var el = ev.target;
+          if (!el || !el.getAttribute) { return; }
+          if (el.getAttribute('data-s12-action') !== 's12_move') { return; }
+          var slot   = el.getAttribute('data-s12-slot');
+          var mode   = el.getAttribute('data-s12-mode') || 'structured';
+          var newVal = el.value;
+          var card   = el.closest('.s12-card');
+          post('s12_move', slot, mode, {new_time: newVal}).then(function(r){
+            if (!r.ok) { return; }
+            var disp = card && card.querySelector('.s12-time-disp');
+            if (disp) { disp.textContent = fmt12(newVal); }
+            flash(card);
+          }).catch(function(){});
+        });
+        document.addEventListener('click', function(ev){
+          var btn = ev.target;
+          if (!btn || !btn.getAttribute) { return; }
+          var act = btn.getAttribute('data-s12-action');
+          if (act !== 's12_remove' && act !== 's12_restore') { return; }
+          ev.preventDefault();
+          var slot = btn.getAttribute('data-s12-slot');
+          var mode = btn.getAttribute('data-s12-mode') || 'structured';
+          var card = btn.closest('.s12-card');
+          post(act, slot, mode, null).then(function(r){
+            if (!r.ok) { return; }
+            var body = card && card.querySelector('.s12-card-body');
+            if (act === 's12_remove'){
+              if (card) { card.style.opacity = '0.45'; }
+              if (body) { body.style.textDecoration = 'line-through'; }
+              btn.setAttribute('data-s12-action', 's12_restore');
+              btn.textContent = 'Restore';
+              btn.style.borderColor = '#5b8a5b';
+              btn.style.color       = '#5b8a5b';
+            } else {
+              if (card) { card.style.opacity = '1'; }
+              if (body) { body.style.textDecoration = ''; }
+              btn.setAttribute('data-s12-action', 's12_remove');
+              btn.textContent = 'Remove';
+              btn.style.borderColor = '#b04a4a';
+              btn.style.color       = '#b04a4a';
+            }
+            flash(card);
+          }).catch(function(){});
+        });
+      })();
+      </script>
+    """
+
     body = f"""
       {refl}
       <div style="background:#f6f8fc;border:1px solid #d8e1ef;
                   border-radius:8px;padding:10px 14px;margin:10px 0;
                   font-size:0.88em;color:#33507e;">
         <strong>{kept_count}</strong> of <strong>{len(schedule)}</strong>
-        slots kept. Use a time dropdown to move a slot. Tap Remove to drop
-        one. Tap Regenerate to start over.
+        slots kept. Change a time or tap Remove and it saves automatically
+        — no page reload. Tap Regenerate to start over.
       </div>
       {stale_html}
       {overload_html}
       {view_toggle_html}
       <div id="s12-list">{cards_html}</div>
       {grid_html}
+      {fetch_script}
       <div style="margin-top:18px;padding-top:14px;border-top:1px solid #d8e1ef;">
         {regen_btn}
         {save_btn}
