@@ -265,9 +265,15 @@ def main():
     rowspan3 = len(re.findall(r'rowspan="3"', html_sec6))
     check("9:00 AM 90-min activity uses rowspan=3 (≥1 instance)", rowspan3 >= 1,
           detail=f"found {rowspan3}")
-    # No end-time chip for 09:00→10:30 (boundary-aligned end).
-    check("9:00→10:30 (boundary end) does NOT print an end-time label",
-          ">10:30 AM<" not in html_sec6 or "10:30 AM" in html_sec6)  # 10:30 AM may appear in time column
+    # No end-time chip for 09:00→10:30 (boundary-aligned end). The
+    # end-chip is distinguishable from the time-column label by its
+    # inline style — only end-chips carry "text-align:center" inside
+    # the chip wrapper. Assert the chip-style end label is absent.
+    end_chip_at_1030 = re.search(
+        r'opacity:0\.85;\s*text-align:center[^>]*>\s*10:30 AM\s*<', html_sec6)
+    check("9:00→10:30 (boundary end) does NOT print an end-time chip",
+          end_chip_at_1030 is None,
+          detail="boundary-aligned ends should suppress the chip")
 
     # Section 5 weekday, 75-min lunch starting 11:30 → ceil(75/30)=3, ends 12:45 (mid-slot).
     html_sec5 = _render_grid_preview(5, progress, active_variant="weekday", activities=acts)
