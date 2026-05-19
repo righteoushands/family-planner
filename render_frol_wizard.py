@@ -2485,6 +2485,30 @@ def render_section_12(progress: dict, mode: str) -> str:
     if not isinstance(sec12, dict):
         sec12 = {}
 
+    # ── Fix 1: clear stuck _generating flag ────────────────────────────────
+    # If a prior cache-miss path was interrupted (API exception, browser
+    # closed mid-refresh, user navigated away), _generating can persist
+    # forever and suppress the loading interstitial on every future visit.
+    # Clear it whenever schedule is absent AND we are NOT actually mid-
+    # Stage-B (i.e. questions are missing or not yet all answered).
+    if sec12.get("_generating") and not sec12.get("schedule"):
+        _qs_chk  = sec12.get("questions") or []
+        _ans_chk = sec12.get("answers") or {}
+        _all_answered = (
+            isinstance(_qs_chk, list) and len(_qs_chk) > 0
+            and isinstance(_ans_chk, dict)
+            and all(
+                (str(_i) in _ans_chk) or (_i in _ans_chk)
+                for _i in range(len(_qs_chk))
+            )
+        )
+        if not _all_answered:
+            _pl = load_progress()
+            _bk = _pl.setdefault("data", {}).setdefault("section_12", {})
+            _bk.pop("_generating", None)
+            save_progress(_pl)
+            sec12 = _bk
+
     mode_esc = escape(mode, quote=True)
 
     refl = render_reflection_card(
@@ -2640,21 +2664,50 @@ def render_section_12(progress: dict, mode: str) -> str:
             return _section_chrome(12, "Build Your Day",
                 "Generating your suggested schedule.",
                 refl + loading_body, mode, progress, lucy_visible=False)
-        # _generating flag is set — actually call the API now and clear
-        schedule = _s12_generate_schedule(progress)
+        # _generating flag is set — actually call the API now and clear.
+        # Fix 2: hard-guard the API call so any exception ALWAYS clears
+        # _generating; otherwise the flag persists and suppresses the
+        # loading interstitial on every subsequent visit.
+        import traceback as _s12_tb
+        _gen_err = None
+        try:
+            schedule = _s12_generate_schedule(progress)
+        except Exception as _s12_exc:
+            schedule = []
+            _gen_err = f"{type(_s12_exc).__name__}: {_s12_exc}"
+            print(
+                f"[s12_generate_schedule] FAILED: {_gen_err}\n"
+                f"{_s12_tb.format_exc()}",
+                flush=True,
+            )
         _pl = load_progress()
         _bk = _pl.setdefault("data", {}).setdefault("section_12", {})
         _bk.pop("_generating", None)
+        if _gen_err:
+            _bk["schedule_error"] = _gen_err
+        else:
+            _bk.pop("schedule_error", None)
         save_progress(_pl)
         sec12 = _bk
         schedule = sec12.get("schedule") or []
 
     if not schedule:
+        _err_detail = sec12.get("schedule_error") or ""
+        _err_html = ""
+        if _err_detail:
+            _err_html = (
+                '<div style="margin-top:8px;font-size:0.88em;color:#8a5a1a;'
+                'font-family:monospace;background:#fff7ea;padding:8px 10px;'
+                'border-radius:6px;">'
+                + escape(str(_err_detail))
+                + '</div>'
+            )
         body = (
             '<div style="background:#fef3e6;border:1px solid #e6b97a;'
             'border-radius:8px;padding:14px;margin:10px 0;color:#8a5a1a;">'
             "<strong>Couldn't generate a schedule.</strong> The AI didn't "
             'return a valid response. Try regenerating below.'
+            + _err_html +
             '</div>'
             '<form method="POST" action="/frol-wizard" style="margin-top:14px;">'
             '<input type="hidden" name="action" value="s12_regenerate">'
