@@ -99,6 +99,119 @@ def _empty_progress() -> dict:
     }
 
 
+_V3_SEED_NARRATIVE_KEYS = {
+    "notes", "extra_notes", "other_notes", "other", "comments",
+    "free_text", "anything_else", "additional_info", "considerations",
+    "narrative", "context", "background",
+}
+
+
+def _seed_v3_activities_from_progress(progress: dict) -> None:
+    """One-shot Phase C seed pass. For each §2-§10 section bucket, parse
+    any obviously-compatible list-shaped answers into Phase A activity
+    entries and stash narrative free-text fields under a `wizard_answers`
+    blob on the same bucket. Idempotent at the section level — if any
+    activity already exists for a section, that section is skipped.
+
+    No-op-safe on failure: callers wrap in try/except so a malformed
+    bucket cannot block the v3 migration.
+    """
+    from data_helpers import load_frol_activities, save_frol_activities
+
+    data = progress.get("data") or {}
+    if not isinstance(data, dict):
+        return
+    try:
+        existing = load_frol_activities() or []
+    except Exception:
+        existing = []
+    sections_with_activities = set()
+    for it in existing:
+        if isinstance(it, dict) and it.get("section") is not None:
+            try:
+                sections_with_activities.add(int(it["section"]))
+            except (TypeError, ValueError):
+                continue
+
+    # (section, list-key, category, default_duration_min)
+    _SEED_RULES = [
+        (3,  "morning_prayers_multi", "prayer", 15),
+        (3,  "evening_prayers_multi", "prayer", 15),
+        (3,  "night_prayers_multi",   "prayer", 10),
+        (5,  "meal_prep_who",         "meal",   30),
+        (6,  "subjects_multi",        "school", 30),
+        (7,  "chore_time_blocks",     "chore",  20),
+        (8,  "types",                 "health", 30),
+        (9,  "traditions",            "rest",   60),
+    ]
+
+    new_items = list(existing)
+    appended = 0
+    for sec_num, key, cat, dur in _SEED_RULES:
+        if sec_num in sections_with_activities:
+            continue
+        bucket = data.get(f"section_{sec_num}") or {}
+        if not isinstance(bucket, dict):
+            continue
+        items = bucket.get(key) or []
+        if not isinstance(items, list):
+            continue
+        for raw in items:
+            name = str(raw).strip()
+            if not name:
+                continue
+            new_items.append({
+                "id":               "",  # filled by save_frol_activities
+                "name":             name[:80],
+                "section":          sec_num,
+                "who_type":         "family",
+                "who":              [],
+                "leader":           "",
+                "per_person_times": {},
+                "time":             "",
+                "duration_min":     int(dur),
+                "days":             ["Monday", "Tuesday", "Wednesday",
+                                     "Thursday", "Friday"],
+                "schedule_variant": "weekday",
+                "category":         cat,
+                "color":            "",
+                "credits":          [],
+                "seasonal":         "year_round",
+                "is_grooming":      False,
+                "_seeded_v3":       True,
+            })
+            appended += 1
+
+    # Preserve narrative free-text in wizard_answers per section so the
+    # builder UI in §§2-10 can surface it back to the user even though
+    # the activity list takes over the structured fields.
+    for sec_num in range(2, 11):
+        bucket = data.get(f"section_{sec_num}")
+        if not isinstance(bucket, dict):
+            continue
+        narrative = {}
+        for k, v in list(bucket.items()):
+            if k == "wizard_answers" or k.startswith("durations__"):
+                continue
+            if isinstance(v, str) and (k in _V3_SEED_NARRATIVE_KEYS
+                                       or len(v.strip()) > 80):
+                narrative[k] = v
+        if narrative:
+            existing_wa = bucket.get("wizard_answers")
+            if not isinstance(existing_wa, dict):
+                existing_wa = {}
+            # Don't clobber prior wizard_answers entries.
+            for k, v in narrative.items():
+                existing_wa.setdefault(k, v)
+            bucket["wizard_answers"] = existing_wa
+
+    if appended:
+        try:
+            save_frol_activities(new_items)
+        except Exception:
+            pass
+
+
 def load_progress() -> dict:
     if not os.path.exists(FROL_WIZARD_PROGRESS_FILE):
         return _empty_progress()
@@ -115,14 +228,14 @@ def load_progress() -> dict:
     # the first time we run, write a backup, and shift the four affected
     # buckets in DESCENDING order so we never double-shift.
     if base.get("schema_version") != "v3" and isinstance(base.get("data"), dict):
+        # Backup BEFORE we mutate — uses safe_save_json so the write is
+        # atomic (the architectural rule for this project: every JSON
+        # write goes through safe_save_json, never raw open/json.dump).
         try:
-            os.makedirs(os.path.dirname(FROL_WIZARD_PROGRESS_FILE) or ".",
-                        exist_ok=True)
             backup_path = FROL_WIZARD_PROGRESS_FILE.replace(
                 ".json", ".v2_backup.json")
             if not os.path.exists(backup_path):
-                with open(backup_path, "w", encoding="utf-8") as _bf:
-                    json.dump(base, _bf, indent=2)
+                safe_save_json(backup_path, base)
         except Exception:
             pass
         _v3d = base["data"]
@@ -155,9 +268,22 @@ def load_progress() -> dict:
         except Exception:
             pass
         base["schema_version"] = "v3"
+        # One-shot seed pass: convert any compatible list-shaped answers in
+        # §§2-10 into Phase A activity entries, and stash narrative
+        # free-text into wizard_answers on each section bucket. Guarded by
+        # data["v3_seeded"] so this only runs once even if the v3 stamp
+        # were ever cleared. Failures here must not block the migration.
         try:
-            with open(FROL_WIZARD_PROGRESS_FILE, "w", encoding="utf-8") as _wf:
-                json.dump(base, _wf, indent=2)
+            if not _v3d.get("v3_seeded"):
+                _seed_v3_activities_from_progress(base)
+                _v3d["v3_seeded"] = True
+        except Exception as _se:
+            try:
+                debug_log(f"frol v3 seed failed: {_se}")
+            except Exception:
+                pass
+        try:
+            safe_save_json(FROL_WIZARD_PROGRESS_FILE, base)
         except Exception:
             pass
     # One-time renumber migration: when §11 duration picker was inserted,
@@ -829,15 +955,24 @@ def _section_chrome(section: int, title: str, subtitle: str, body_html: str,
     # would silently fall back to legacy save_field / step_N writes.
     _body_has_form = "<form" in body_html
     # Phase C: §2-§10 auto-mount the variant tab bar + activity builder
-    # + grid preview underneath each section's existing body. Sections
-    # 1, 11 (holidays), 12 (durations), 13 (build), 14 (commitments) and
-    # 15 (review) opt out — they have their own structure.
+    # + grid preview as a SIBLING of (not inside) the outer #frol-form.
+    # The phase-c block contains its own <form>s (variant tabs, activity
+    # builder CRUD), and HTML forbids nesting <form>s — the parser
+    # silently DROPS the inner <form> tags and merges all their hidden
+    # inputs into the outer form, hijacking the submit action. By
+    # emitting phase_c_html AFTER the closing </form>, we avoid the
+    # nesting entirely while still keeping the outer form (and its
+    # Save & Continue + V2 autosave wiring) intact for §2-§10.
+    # Sections 1, 11 (holidays), 12 (durations), 13 (build), 14
+    # (commitments) and 15 (review) opt out — they have their own
+    # structure.
     try:
         _phase_c_sec = int(section)
     except (TypeError, ValueError):
         _phase_c_sec = 0
+    phase_c_html = ""
     if 2 <= _phase_c_sec <= 10:
-        body_html = body_html + _render_phase_c_block(_phase_c_sec, progress, mode)
+        phase_c_html = _render_phase_c_block(_phase_c_sec, progress, mode)
     if section >= V2_TOTAL_SECTIONS or _body_has_form:
         main_block = f"""
           {dots}
@@ -850,6 +985,7 @@ def _section_chrome(section: int, title: str, subtitle: str, body_html: str,
               <div>{back_link}</div>
               <div></div>
             </div>
+            {phase_c_html}
           </div>
         """
     else:
@@ -875,6 +1011,7 @@ def _section_chrome(section: int, title: str, subtitle: str, body_html: str,
                 </div>
               </div>
             </form>
+            {phase_c_html}
           </div>
         """
     if chat_panel:
@@ -3333,7 +3470,15 @@ def render_section_11(progress: dict, mode: str) -> str:
     data-step='11' and data-key='durations__{slug}' / 'custom__{slug}'."""
     sec11 = (progress.get("data", {}) or {}).get("section_12", {}) or {}
     targets = _collect_duration_targets(progress)
+    active_variant = _active_variant(progress)
+    variant_tabs = _render_variant_tab_bar(12, progress, mode)
 
+    # Group by section first, then by variant. Today every collected
+    # target applies across all variants (per-variant durations are
+    # Phase D), so within each section group we display one card per
+    # activity and persist the duration under a variant-aware key
+    # `durations__{variant}__{slug}` — falling back to the legacy
+    # `durations__{slug}` key for read so existing data isn't orphaned.
     groups = {}
     order = []
     for t in targets:
@@ -3343,6 +3488,18 @@ def render_section_11(progress: dict, mode: str) -> str:
             order.append(g)
         groups[g].append(t)
 
+    # Pre-count missing-duration items (no user-saved value at all) so we
+    # can surface the count at the top of the page and red-flag the
+    # individual cards below.
+    def _saved_for(slug: str):
+        v = sec11.get(f"durations__{active_variant}__{slug}")
+        if v in (None, ""):
+            v = sec11.get(f"durations__{slug}")
+        return v
+    _missing_count = sum(
+        1 for t in targets if _saved_for(t["slug"]) in (None, "")
+    )
+
     refl = render_reflection_card(
         "Be honest about minutes",
         "<p>Schedules collapse when activities take longer than we pretend. "
@@ -3351,12 +3508,27 @@ def render_section_11(progress: dict, mode: str) -> str:
         "it took. You can always tune these later as you live the rule.</p>"
         "<p style='margin-top:8px;'>Defaults are pre-filled with common "
         "Catholic-homeschool times. Tap a chip to change it, or type a "
-        "custom value if your family's pace is different.</p>",
+        "custom value if your family's pace is different. Cards outlined "
+        "in red still need a confirmed duration — defaults are shown but "
+        "not yet saved.</p>",
         key="sec11_intro",
     )
+    _missing_banner = ""
+    if _missing_count:
+        _missing_banner = (
+            f'<div style="background:#fff4f4;border:1px solid #f5c2c2;'
+            f'border-left:4px solid #c0392b;border-radius:8px;'
+            f'padding:8px 12px;margin:8px 0;color:#7a1f1f;'
+            f'font-weight:600;font-size:0.92em;">'
+            f'{_missing_count} activit'
+            f'{"y" if _missing_count == 1 else "ies"} still need '
+            f'a confirmed duration on this variant.'
+            f'</div>'
+        )
 
     if not targets:
-        body = (refl + '<div class="frol-pop-note">No activities collected '
+        body = (refl + variant_tabs +
+                '<div class="frol-pop-note">No activities collected '
                 'yet from §§2-10. Fill in earlier sections, then come back '
                 'here to set durations.</div>')
         return _section_chrome(12, "How Long Does Each Activity Take?",
@@ -3370,18 +3542,37 @@ def render_section_11(progress: dict, mode: str) -> str:
             slug    = t["slug"]
             label   = t["label"]
             default = t["default"]
-            saved   = sec11.get(f"durations__{slug}")
-            current = str(saved) if saved not in (None, "") else str(default)
-            custom  = str(sec11.get(f"custom__{slug}") or "")
+            saved   = _saved_for(slug)
+            is_missing = saved in (None, "")
+            current = str(saved) if not is_missing else str(default)
+            custom  = str(sec11.get(f"custom__{active_variant}__{slug}")
+                          or sec11.get(f"custom__{slug}") or "")
+            # Variant-aware persistence key. Legacy `durations__{slug}`
+            # values still load via _saved_for() fallback so existing
+            # weekday durations aren't lost during the transition.
+            persist_key = f"durations__{active_variant}__{slug}"
+            custom_key  = f"custom__{active_variant}__{slug}"
+            border_color = "#c0392b" if is_missing else "#4a6fa5"
+            border_left  = ("3px solid #c0392b" if is_missing
+                            else "3px solid #4a6fa5")
+            missing_badge = ""
+            if is_missing:
+                missing_badge = (
+                    '<span style="background:#c0392b;color:#fff;'
+                    'border-radius:10px;padding:1px 8px;font-size:0.72em;'
+                    'font-weight:700;margin-left:8px;letter-spacing:0.4px;'
+                    'text-transform:uppercase;">Needs duration</span>'
+                )
             chip_html = ""
             for choice in _DURATION_CHOICES:
-                is_sel = (str(choice) == current)
+                is_sel = (str(choice) == current and not is_missing)
                 chip_bg = "#4a6fa5" if is_sel else "#fff"
                 chip_fg = "#fff" if is_sel else "#33507e"
                 active_attr = ' data-active="1"' if is_sel else ""
                 chip_html += (
                     f'<button type="button" class="frol-dur-chip"'
                     f' data-slug="{escape(slug, quote=True)}"'
+                    f' data-variant="{escape(active_variant, quote=True)}"'
                     f' data-value="{choice}"{active_attr}'
                     f' onclick="frolDurationPick(this)"'
                     f' style="background:{chip_bg};color:{chip_fg};'
@@ -3391,18 +3582,18 @@ def render_section_11(progress: dict, mode: str) -> str:
                     f'{choice}m</button>'
                 )
             rows += f"""
-              <div style="background:#fff;border:1px solid #d8e1ef;
-                          border-left:3px solid #4a6fa5;border-radius:8px;
+              <div style="background:#fff;border:1px solid {border_color}55;
+                          border-left:{border_left};border-radius:8px;
                           padding:10px 12px;margin:6px 0;">
-                <div style="font-weight:700;color:#33507e;margin-bottom:6px;">{escape(label)}</div>
+                <div style="font-weight:700;color:#33507e;margin-bottom:6px;">{escape(label)}{missing_badge}</div>
                 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:2px;">
                   {chip_html}
                   <input type="hidden" data-step="12"
-                         data-key="durations__{escape(slug, quote=True)}"
+                         data-key="{escape(persist_key, quote=True)}"
                          value="{escape(current, quote=True)}">
                   <span style="font-size:0.78em;color:#888;margin-left:8px;">or custom:</span>
                   <input class="frol-input" type="text" inputmode="numeric"
-                         data-step="12" data-key="custom__{escape(slug, quote=True)}"
+                         data-step="12" data-key="{escape(custom_key, quote=True)}"
                          value="{escape(custom, quote=True)}"
                          placeholder="e.g. 25"
                          style="max-width:110px;font-size:0.86em;padding:4px 8px;">
@@ -3441,8 +3632,10 @@ def render_section_11(progress: dict, mode: str) -> str:
           btn.style.background = '#4a6fa5';
           btn.style.color = '#fff';
           btn.setAttribute('data-active', '1');
+          var variant = btn.getAttribute('data-variant') || 'weekday';
           var hidden = parent.querySelector(
-            'input[type=hidden][data-step="12"][data-key="durations__' + slug + '"]'
+            'input[type=hidden][data-step="12"][data-key="durations__' +
+            variant + '__' + slug + '"]'
           );
           if (hidden) {
             hidden.value = val;
@@ -3454,9 +3647,14 @@ def render_section_11(progress: dict, mode: str) -> str:
     """
     body = f"""
       {refl}
+      {variant_tabs}
+      {_missing_banner}
       {cards_html}
-      <p class="frol-help">Durations save as you tap. §12 Build Your Day will
-        use these to size each block on the timeline.</p>
+      <p class="frol-help">Durations save as you tap on the
+        <strong>{escape(active_variant)}</strong> variant. Switch the
+        variant tab above to set different durations for Saturday,
+        Sunday, or travel days. §13 Build Your Day will use these to
+        size each block on the timeline.</p>
       {chip_script}
     """
     return _section_chrome(12, "How Long Does Each Activity Take?",

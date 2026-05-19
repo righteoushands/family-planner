@@ -7417,12 +7417,21 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             elif path == "/frol-rollback-v3":
-                # ── Phase C — admin rollback to the v2_backup file ────────
+                # ── Phase C — PIN-gated rollback to the v2_backup file ────
+                # Destructive: replaces the live progress file with the
+                # pre-v3 snapshot. Requires admin session AND a valid PIN
+                # re-entry (the spec calls this out as PIN-gated).
                 _rbv = self._get_viewer()
                 if not (_rbv and _auth.is_admin(_rbv)):
                     self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
                     try: self.wfile.write(b"Admin only.")
                     except BrokenPipeError: pass
+                    return
+                _rb_pin = (data.get("pin",[""])[0] or "").strip()
+                if not (_rb_pin and _auth.check_pin(_rbv, _rb_pin)):
+                    self.send_response(302)
+                    self.send_header("Location", "/frol-wizard?rollback_pin_failed=1")
+                    self.end_headers()
                     return
                 from render_frol_wizard import FROL_WIZARD_PROGRESS_FILE
                 from data_helpers import safe_save_json
@@ -7434,9 +7443,14 @@ class Handler(BaseHTTPRequestHandler):
                         with open(_bk, encoding="utf-8") as _bf:
                             _restored = _rb_json.load(_bf)
                         # The backup is the pre-v3 snapshot; do NOT carry
-                        # the v3 schema_version stamp forward.
+                        # the v3 schema_version stamp forward. Also clear
+                        # the v3_seeded flag so a subsequent v3 migration
+                        # re-runs the seed pass on the restored data.
                         if isinstance(_restored, dict):
                             _restored.pop("schema_version", None)
+                            _rd = _restored.get("data")
+                            if isinstance(_rd, dict):
+                                _rd.pop("v3_seeded", None)
                         safe_save_json(FROL_WIZARD_PROGRESS_FILE, _restored)
                         _ok = True
                     except Exception:
