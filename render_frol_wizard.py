@@ -756,30 +756,55 @@ def _section_chrome(section: int, title: str, subtitle: str, body_html: str,
     chat_panel = ""
     if mode == "lucy" and lucy_visible:
         chat_panel = _render_chat_panel(section)
-    main_block = f"""
-      {dots}
-      <div class="frol-card">
-        <h2 class="frol-title">{escape(title)}</h2>
-        <p class="frol-sub">{escape(subtitle)}</p>
-        <form id="frol-form" data-step="{section}" data-version="2"
-              data-mode="{escape(mode, quote=True)}"
-              method="POST" action="/frol-wizard"
-              onsubmit="return frolAdvance(event, {section}, '{escape(mode, quote=True)}')">
-          <input type="hidden" name="action"  value="advance_v2">
-          <input type="hidden" name="section" value="{section}">
-          <input type="hidden" name="mode"    value="{escape(mode, quote=True)}">
-          {render_lucy_hint_slot(section)}
-          {body_html}
-          <div class="frol-actions">
-            <div>{back_link}</div>
-            <div style="display:flex;align-items:center;gap:14px;">
-              <span class="frol-save-status" id="frol-save-status">Saved automatically</span>
-              <button type="submit" class="frol-btn">{advance_label} &rarr;</button>
+
+    # ── Fix 3: don't wrap the final section in an advance_v2 form ──────────
+    # On the LAST section, body_html already contains a <form> that posts
+    # action=finalize_v2 (the "Save my Rule of Life" button). HTML forbids
+    # nesting <form>s: the parser silently DROPS the inner <form> tag,
+    # all its hidden inputs end up inside the outer form, and the FIRST
+    # input named "action" wins. That sends action=advance_v2 to the
+    # server and redirects to step+1 (a phantom section 15) instead of
+    # running finalize_v2. Render the final section without the outer
+    # form so the inner Save form is the only one on the page.
+    if section >= V2_TOTAL_SECTIONS:
+        main_block = f"""
+          {dots}
+          <div class="frol-card">
+            <h2 class="frol-title">{escape(title)}</h2>
+            <p class="frol-sub">{escape(subtitle)}</p>
+            {render_lucy_hint_slot(section)}
+            {body_html}
+            <div class="frol-actions" style="margin-top:18px;">
+              <div>{back_link}</div>
+              <div></div>
             </div>
           </div>
-        </form>
-      </div>
-    """
+        """
+    else:
+        main_block = f"""
+          {dots}
+          <div class="frol-card">
+            <h2 class="frol-title">{escape(title)}</h2>
+            <p class="frol-sub">{escape(subtitle)}</p>
+            <form id="frol-form" data-step="{section}" data-version="2"
+                  data-mode="{escape(mode, quote=True)}"
+                  method="POST" action="/frol-wizard"
+                  onsubmit="return frolAdvance(event, {section}, '{escape(mode, quote=True)}')">
+              <input type="hidden" name="action"  value="advance_v2">
+              <input type="hidden" name="section" value="{section}">
+              <input type="hidden" name="mode"    value="{escape(mode, quote=True)}">
+              {render_lucy_hint_slot(section)}
+              {body_html}
+              <div class="frol-actions">
+                <div>{back_link}</div>
+                <div style="display:flex;align-items:center;gap:14px;">
+                  <span class="frol-save-status" id="frol-save-status">Saved automatically</span>
+                  <button type="submit" class="frol-btn">{advance_label} &rarr;</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        """
     if chat_panel:
         return f'<div class="frol-with-chat">{main_block}{chat_panel}</div>'
     return main_block
@@ -3261,6 +3286,18 @@ def finalize_v2(progress: dict) -> dict:
     data = progress.get("data", {}) or {}
     stamp = _dt.now().strftime("%Y%m%d_%H%M%S")
 
+    # ── Fix 4: read §14 review-card answers up front so each day template
+    # can be stamped with what Lauren explicitly accepted / wants to
+    # modify / chose to skip. "accept" is the only value that imports
+    # downstream meaning; the others are recorded for the audit trail.
+    sec14_pre        = data.get("section_14") or {}
+    review_answers   = {
+        "multitasking":  (sec14_pre.get("review_multi") or "").strip(),
+        "developmental": (sec14_pre.get("review_dev")   or "").strip(),
+        "schedule_opt":  (sec14_pre.get("review_sched") or "").strip(),
+    }
+    accepted_reviews = sorted(k for k, v in review_answers.items() if v == "accept")
+
     # 1) day_templates with backup
     try:
         backup_dir = os.path.join(DAY_TEMPLATE_DIR, f"_backup_{stamp}")
@@ -3287,10 +3324,28 @@ def finalize_v2(progress: dict) -> dict:
                     if paired and paired != person:
                         grid.setdefault(paired, {})[time_label] = f"(with {person}) {label}"
             if grid:
+                # Fix 4: stamp accepted review-card guidance into the
+                # day template so downstream readers (today view,
+                # gradebook, etc.) can react to it.
+                _day_payload = {
+                    "weekday": day,
+                    "grid":    grid,
+                    "frol_meta": {
+                        "finalized_at":     stamp,
+                        "review_answers":   review_answers,
+                        "accepted_reviews": accepted_reviews,
+                    },
+                }
                 with open(src, "w", encoding="utf-8") as f:
-                    json.dump({"weekday": day, "grid": grid}, f, indent=2, ensure_ascii=False)
+                    json.dump(_day_payload, f, indent=2, ensure_ascii=False)
                 written += 1
         receipt["day_templates"] = f"Backed up to {os.path.basename(backup_dir)}; wrote {written} day(s)."
+        # Fix 4: report the review-card answers in the receipt so Lauren
+        # sees what got applied on the §14 success panel.
+        receipt["reviews"] = (
+            "; ".join(f"{_k}={_v or '(none)'}" for _k, _v in review_answers.items())
+            + (f"  →  applied: {', '.join(accepted_reviews)}" if accepted_reviews else "")
+        )
     except Exception as e:
         receipt["day_templates"] = f"ERROR: {e}"
 
