@@ -7046,7 +7046,13 @@ class Handler(BaseHTTPRequestHandler):
                     save_field, advance_step, load_progress, save_progress,
                     _settings_members, save_section_field, advance_section,
                     V2_TOTAL_SECTIONS, finalize_v2,
+                    _s12_bucket, _S12_VARIANT_KEYS, _active_variant,
                 )
+                def _resolve_variant(_pp):
+                    _vraw = (data.get("variant",[""])[0] or "").strip().lower()
+                    if _vraw in _S12_VARIANT_KEYS:
+                        return _vraw
+                    return _active_variant(_pp)
                 _act = (data.get("action",[""])[0] or "").strip()
                 _step = (data.get("step",[""])[0] or "0").strip()
                 _section = (data.get("section",[""])[0] or "0").strip()
@@ -7063,7 +7069,8 @@ class Handler(BaseHTTPRequestHandler):
                     _val  = (data.get("value",[""])[0] or "").strip()
                     _p = load_progress()
                     if _mode and not _p.get("mode"): _p["mode"] = _mode
-                    _b = _p.setdefault("data", {}).setdefault("section_13", {})
+                    _variant = _resolve_variant(_p)
+                    _b = _s12_bucket(_p, _variant)
                     _ans = _b.get("answers")
                     if not isinstance(_ans, dict):
                         _ans = {}
@@ -7077,9 +7084,10 @@ class Handler(BaseHTTPRequestHandler):
                 if _act == "s12_regenerate":
                     _p = load_progress()
                     if _mode and not _p.get("mode"): _p["mode"] = _mode
-                    _b = _p.setdefault("data", {}).setdefault("section_13", {})
+                    _variant = _resolve_variant(_p)
+                    _b = _s12_bucket(_p, _variant)
                     for _k in ("questions", "answers", "schedule",
-                               "gen_hash", "_generating"):
+                               "gen_hash", "_generating", "schedule_error"):
                         if _k in _b:
                             _b.pop(_k, None)
                     save_progress(_p)
@@ -7092,7 +7100,8 @@ class Handler(BaseHTTPRequestHandler):
                     try: _si = int(_sidx)
                     except Exception: _si = -1
                     _p = load_progress()
-                    _b = _p.setdefault("data", {}).setdefault("section_13", {})
+                    _variant = _resolve_variant(_p)
+                    _b = _s12_bucket(_p, _variant)
                     _sch = _b.get("schedule")
                     if (isinstance(_sch, list) and 0 <= _si < len(_sch)
                             and isinstance(_sch[_si], dict)):
@@ -7118,7 +7127,8 @@ class Handler(BaseHTTPRequestHandler):
                             _norm = ""
                     if _norm:
                         _p = load_progress()
-                        _b = _p.setdefault("data", {}).setdefault("section_13", {})
+                        _variant = _resolve_variant(_p)
+                        _b = _s12_bucket(_p, _variant)
                         _sch = _b.get("schedule")
                         if (isinstance(_sch, list) and 0 <= _si < len(_sch)
                                 and isinstance(_sch[_si], dict)):
@@ -7131,6 +7141,28 @@ class Handler(BaseHTTPRequestHandler):
                     return
                 if _act == "s12_save_continue":
                     _p = load_progress()
+                    # Phase D gate: require ≥1 variant with a non-empty schedule
+                    _sec13_all = (_p.get("data", {}) or {}).get("section_13", {}) or {}
+                    _has_any = False
+                    for _vk in _S12_VARIANT_KEYS:
+                        _vb = _sec13_all.get(_vk) if isinstance(_sec13_all, dict) else None
+                        if isinstance(_vb, dict):
+                            _vsch = _vb.get("schedule")
+                            if isinstance(_vsch, list) and len(_vsch) > 0:
+                                _has_any = True
+                                break
+                    if not _has_any:
+                        _p_err = load_progress()
+                        _b_err = _s12_bucket(_p_err, _active_variant(_p_err))
+                        _b_err["save_error"] = (
+                            "Generate at least one variant (Weekday, Saturday, "
+                            "Sunday, or John Traveling) before continuing."
+                        )
+                        save_progress(_p_err)
+                        self.send_response(302)
+                        self.send_header("Location", f"/frol-wizard?step=13&mode={_mode}")
+                        self.end_headers()
+                        return
                     _wrote = -1
                     try:
                         _wrote = _s12_persist_kept_to_activities(_p)
@@ -7140,7 +7172,7 @@ class Handler(BaseHTTPRequestHandler):
                         # Persist failed — stamp an error flag in section_12
                         # and bounce back to §12 (do NOT advance).
                         _p2 = load_progress()
-                        _b2 = _p2.setdefault("data", {}).setdefault("section_13", {})
+                        _b2 = _s12_bucket(_p2, _active_variant(_p2))
                         _b2["save_error"] = "Could not write frol_activities.json"
                         save_progress(_p2)
                         self.send_response(302)
@@ -7155,11 +7187,15 @@ class Handler(BaseHTTPRequestHandler):
                         _advanced = False
                     self.send_response(302)
                     if _advanced:
-                        # Clear any stale save_error on success
+                        # Clear any stale save_error on success (across all variants)
                         _p3 = load_progress()
-                        _b3 = _p3.setdefault("data", {}).setdefault("section_13", {})
-                        if "save_error" in _b3:
-                            _b3.pop("save_error", None)
+                        _changed3 = False
+                        for _vk in _S12_VARIANT_KEYS:
+                            _b3 = _s12_bucket(_p3, _vk)
+                            if "save_error" in _b3:
+                                _b3.pop("save_error", None)
+                                _changed3 = True
+                        if _changed3:
                             save_progress(_p3)
                         self.send_header("Location", f"/frol-wizard?step=14&mode={_mode}")
                     else:

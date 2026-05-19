@@ -2940,6 +2940,7 @@ def render_section_10(progress: dict, mode: str) -> str:
     flex_blocks  = _sv(progress, 10, "flex_blocks",           "")
     weekly_reset = _sv(progress, 10, "weekly_reset",          "")
     seasonal     = _sv(progress, 10, "seasonal_flags",        []) or []
+    john_travel  = _sv(progress, 10, "john_travel_notes",     "")
 
     def _cb(key: str, options: list, current: list) -> str:
         cur = set(current or [])
@@ -3006,6 +3007,14 @@ def render_section_10(progress: dict, mode: str) -> str:
       <input class="frol-input" type="text" data-step="10" data-key="weekly_reset"
              placeholder="Sunday afternoon: plan the week, batch cook, family meeting"
              value="{escape(weekly_reset, quote=True)}">
+
+      <label class="frol-fld" style="margin-top:14px;">When John is traveling for work</label>
+      <p class="frol-help">Lauren is solo-parenting on these days — note what
+        shifts (earlier kid bedtime? simpler dinner? skipped couple time?
+        Lauren's own evening routine). This feeds the John-Traveling variant
+        of §13 Build Your Day.</p>
+      <textarea class="frol-textarea" data-step="10" data-key="john_travel_notes"
+                placeholder="Kids go down 30 min earlier. Dinner is sandwiches. Lauren takes 20 min of quiet reading after bedtime instead of couple time.">{escape(john_travel)}</textarea>
 
       <label class="frol-fld" style="margin-top:14px;">Seasonal flags</label>
       <p class="frol-help">Check anything that genuinely changes the rhythm in
@@ -3696,16 +3705,117 @@ def render_section_11(progress: dict, mode: str) -> str:
 _S12_CATEGORY_KEYS = [_k for _k, _l, _c in _TIMELINE_PALETTE]
 
 
-def _s12_collect_context(progress: dict) -> dict:
+# ── Phase D: per-variant bucket structure ──────────────────────────────────
+# section_13 is now keyed by variant slug (weekday/saturday/sunday/
+# john_traveling). Each variant has its own {questions, answers, schedule,
+# gen_hash, _generating, schedule_error} sub-bucket so each day-type can be
+# generated and edited independently.
+
+_S12_VARIANT_KEYS = [_vk for _vk, _vl in ACTIVITY_VARIANTS]
+_S12_FLAT_KEYS = (
+    "questions", "answers", "schedule", "gen_hash",
+    "_generating", "schedule_error", "save_error",
+)
+
+
+def _s12_migrate_per_variant(progress: dict) -> bool:
+    """One-shot in-place migration: if section_13 has any legacy flat key
+    (questions/answers/schedule/...) at the top level, move them under
+    section_13.weekday. Idempotent. Returns True if any migration
+    happened (caller may save_progress)."""
+    data = progress.setdefault("data", {})
+    sec13 = data.setdefault("section_13", {})
+    if not isinstance(sec13, dict):
+        sec13 = {}
+        data["section_13"] = sec13
+    moved = False
+    for _k in _S12_FLAT_KEYS:
+        if _k in sec13:
+            _wk = sec13.setdefault("weekday", {})
+            if not isinstance(_wk, dict):
+                _wk = {}
+                sec13["weekday"] = _wk
+            # Conflict handling: if both root-flat and weekday already
+            # have this key, prefer the weekday copy (post-Phase-D writes
+            # land there, so weekday is presumed fresher). Log the
+            # conflict and stash the dropped root copy under
+            # section_13._migration_conflicts so nothing is silently lost.
+            if _k in _wk:
+                if _wk[_k] != sec13[_k]:
+                    _bin = sec13.setdefault("_migration_conflicts", {})
+                    if isinstance(_bin, dict):
+                        _bin[_k] = sec13[_k]
+                    print(
+                        f"[_s12_migrate_per_variant] conflict on "
+                        f"section_13.{_k}: keeping weekday copy, "
+                        f"dropped root copy parked at "
+                        f"section_13._migration_conflicts.{_k}",
+                        flush=True,
+                    )
+            else:
+                _wk[_k] = sec13[_k]
+            sec13.pop(_k, None)
+            moved = True
+    return moved
+
+
+def _s12_bucket(progress: dict, variant: str = None) -> dict:
+    """Return the per-variant sub-dict of section_13, creating it if
+    missing. Performs lazy migration so any caller is safe."""
+    _s12_migrate_per_variant(progress)
+    if not variant:
+        variant = _active_variant(progress)
+    if variant not in _S12_VARIANT_KEYS:
+        variant = "weekday"
+    sec13 = progress.setdefault("data", {}).setdefault("section_13", {})
+    if not isinstance(sec13, dict):
+        sec13 = {}
+        progress["data"]["section_13"] = sec13
+    bucket = sec13.get(variant)
+    if not isinstance(bucket, dict):
+        bucket = {}
+        sec13[variant] = bucket
+    return bucket
+
+
+def _s12_filter_activities_by_variant(sec12: dict, variant: str) -> dict:
+    """Slice the section_12 (duration review) bucket down to only the
+    keys belonging to a given variant. Pattern keys are
+    'durations__{variant}__{slug}' and 'custom__{variant}__{slug}'."""
+    if not isinstance(sec12, dict):
+        return {}
+    prefix_d = f"durations__{variant}__"
+    prefix_c = f"custom__{variant}__"
+    return {
+        _k: _v for _k, _v in sec12.items()
+        if _k.startswith(prefix_d) or _k.startswith(prefix_c)
+    }
+
+
+def _s12_collect_context(progress: dict, variant: str = "weekday") -> dict:
     """Gather all collected data from sections 1-11 plus the seven
     commitments into a compact dict suitable for the AI prompt.
 
-    Also loads the family's existing Mon-Fri day_templates JSON files
-    so the AI can use the current daily rhythm as the foundation rather
-    than starting from scratch. Missing files are skipped silently."""
+    Variant-aware (Phase D): section_12_activities is filtered to only
+    the durations recorded for this variant, and for 'john_traveling'
+    the §10 john_travel_notes free-text is surfaced explicitly so the
+    Pass 2 prompt can reason about the solo-parent scenario.
+
+    Also loads the family's existing day_templates JSON files so the AI
+    can use the current daily rhythm as the foundation rather than
+    starting from scratch. For the weekday variant we load Mon-Fri; for
+    saturday/sunday we load that single day; for john_traveling we load
+    Mon-Fri (a travel week still falls on weekdays). Missing files are
+    skipped silently."""
     data = progress.get("data", {}) or {}
+    if variant == "saturday":
+        _days = ("Saturday",)
+    elif variant == "sunday":
+        _days = ("Sunday",)
+    else:
+        _days = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
     existing_schedule = {}
-    for _weekday in ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"):
+    for _weekday in _days:
         _path = os.path.join(DAY_TEMPLATES_DIR, f"{_weekday}.json")
         try:
             with open(_path, "r", encoding="utf-8") as _f:
@@ -3713,7 +3823,13 @@ def _s12_collect_context(progress: dict) -> dict:
         except Exception:
             continue
     _sec3 = data.get("section_3") or {}
-    return {
+    _sec10 = data.get("section_10") or {}
+    # Strip john_travel_notes from the generic §10 dump so it only
+    # surfaces when the active variant is john_traveling.
+    if variant != "john_traveling" and isinstance(_sec10, dict) and "john_travel_notes" in _sec10:
+        _sec10 = {_k: _v for _k, _v in _sec10.items() if _k != "john_travel_notes"}
+    ctx = {
+        "variant":               variant,
         "members":               (data.get("section_1") or {}).get("members") or [],
         "section_2_anchors":     data.get("section_2") or {},
         "section_3_meals":       data.get("section_3") or {},
@@ -3725,12 +3841,16 @@ def _s12_collect_context(progress: dict) -> dict:
         "section_7_chores":      data.get("section_7") or {},
         "section_8_work":        data.get("section_8") or {},
         "section_9_rest":        data.get("section_9") or {},
-        "section_10_flex":       data.get("section_10") or {},
+        "section_10_flex":       _sec10,
         "section_11_holidays":   data.get("section_11") or {},
-        "section_12_activities": data.get("section_12") or {},
+        "section_12_activities": _s12_filter_activities_by_variant(
+            data.get("section_12") or {}, variant),
         "seven_commitments":     list(SEVEN_COMMITMENTS),
         "existing_schedule":     existing_schedule,
     }
+    if variant == "john_traveling":
+        ctx["john_travel_notes"] = str(_sec10.get("john_travel_notes") or "").strip()
+    return ctx
 
 
 def _s12_progress_hash(ctx: dict) -> str:
@@ -3839,15 +3959,44 @@ def _s12_call_anthropic_json(system_prompt: str, user_prompt: str,
     return None
 
 
-def _s12_generate_questions(progress: dict) -> list:
+_S12_VARIANT_FRAMING = {
+    "weekday": (
+        "This is a normal Monday–Friday weekday — school, work, the regular "
+        "weekday rhythm. Build the schedule that anchors the rest of the week."
+    ),
+    "saturday": (
+        "This is a Saturday — no school. The day's spine is family time, "
+        "weekly house cleaning, errands, and family activities. Treat "
+        "structured school work and weekday work blocks as absent unless the "
+        "family data explicitly says otherwise."
+    ),
+    "sunday": (
+        "This is a Sunday — the Lord's Day. The schedule must protect Sunday "
+        "Mass attendance and a real Sabbath rest. No school. No work for "
+        "John or Lauren. Lean toward family meals, rest, prayer, hospitality, "
+        "and quiet. Do NOT schedule chores, errands, or work blocks."
+    ),
+    "john_traveling": (
+        "John is out of town this entire day for work — Lauren is solo-"
+        "parenting all four boys. The schedule must NOT include John in the "
+        "'who' list for any slot. Couple time cannot happen. Account for "
+        "Lauren's reduced bandwidth: simpler dinner, possibly earlier kid "
+        "bedtime, no second adult for handoffs. Honor whatever shifts "
+        "Lauren noted in john_travel_notes."
+    ),
+}
+
+
+def _s12_generate_questions(progress: dict, variant: str = "weekday") -> list:
     """Pass 1 — surface 3-5 specific scheduling conflicts or ambiguities
     that need Lauren's input before a draft schedule can be made. Caches
-    in section_12.questions and returns the cleaned list."""
-    sec12 = (progress.get("data", {}) or {}).get("section_13", {}) or {}
-    cached = sec12.get("questions")
+    in section_13[variant].questions and returns the cleaned list."""
+    bucket = _s12_bucket(progress, variant)
+    cached = bucket.get("questions")
     if isinstance(cached, list) and cached:
         return cached
-    ctx = _s12_collect_context(progress)
+    ctx = _s12_collect_context(progress, variant)
+    framing = _S12_VARIANT_FRAMING.get(variant, _S12_VARIANT_FRAMING["weekday"])
     system = (
         "You are a Catholic family scheduling assistant helping Lauren — "
         "mother of four boys ages 14, 12, 5, and 13 months — turn a "
@@ -3869,18 +4018,21 @@ def _s12_generate_questions(progress: dict) -> list:
         "daily schedule under existing_schedule — use it as the "
         "foundation and build on it rather than starting from scratch. "
         "Preserve timing that already works and only suggest changes "
-        "where the wizard data indicates something new or different."
+        "where the wizard data indicates something new or different. "
+        "\n\nDAY-TYPE FRAMING: " + framing
     )
     user = (
         "Family's collected Rule of Life data (sections 1 through 11) "
-        "plus the seven commitments framing:\n\n"
+        "plus the seven commitments framing. The variant being scheduled "
+        f"is: {variant}.\n\n"
         + json.dumps(ctx, indent=2, default=str)
         + "\n\nReturn ONLY a JSON object of this exact shape, no prose:\n"
         + '{"questions": [{"question_text": "...", '
         + '"options": ["option A", "option B", "option C"]}]}\n\n'
         + "Provide 3 to 5 questions. Each question must have 2 to 4 "
         + "plain-text options. Phrase each in second person, addressed "
-        + "directly to Lauren."
+        + "directly to Lauren. Questions must be specific to the "
+        + f"{variant} variant, not generic."
     )
     parsed = _s12_call_anthropic_json(system, user, max_tokens=1500)
     if not isinstance(parsed, dict):
@@ -3898,23 +4050,25 @@ def _s12_generate_questions(progress: dict) -> list:
     cleaned = cleaned[:5]
     # Cache via direct save_progress (mirrors _seed_chores_for_section7 pattern)
     p = load_progress()
-    bucket = p.setdefault("data", {}).setdefault("section_13", {})
+    bucket = _s12_bucket(p, variant)
     bucket["questions"] = cleaned
     save_progress(p)
     return cleaned
 
 
-def _s12_generate_schedule(progress: dict) -> list:
+def _s12_generate_schedule(progress: dict, variant: str = "weekday") -> list:
     """Pass 2 — with Lauren's answers in hand, ask the AI for a complete
-    suggested weekday schedule honoring the seven commitments. Caches in
-    section_12.schedule and returns the cleaned list."""
-    sec12 = (progress.get("data", {}) or {}).get("section_13", {}) or {}
-    cached = sec12.get("schedule")
+    suggested schedule honoring the seven commitments. Variant-aware
+    (Phase D): each variant has its own framing and its own cache in
+    section_13[variant].schedule."""
+    bucket = _s12_bucket(progress, variant)
+    cached = bucket.get("schedule")
     if isinstance(cached, list) and cached:
         return cached
-    ctx = _s12_collect_context(progress)
-    questions = sec12.get("questions") or []
-    answers   = sec12.get("answers")   or {}
+    ctx = _s12_collect_context(progress, variant)
+    framing = _S12_VARIANT_FRAMING.get(variant, _S12_VARIANT_FRAMING["weekday"])
+    questions = bucket.get("questions") or []
+    answers   = bucket.get("answers")   or {}
     if not isinstance(answers, dict):
         answers = {}
     qa_pairs = []
@@ -3930,8 +4084,9 @@ def _s12_generate_schedule(progress: dict) -> list:
     system = (
         "You are a Catholic family scheduling assistant. With the family's "
         "collected Rule of Life data and Lauren's clarifying answers, "
-        "produce a complete suggested weekday schedule (Monday through "
-        "Friday rhythm). The schedule MUST honor the seven commitments: a "
+        f"produce a complete suggested schedule for the {variant} variant. "
+        "\n\nDAY-TYPE FRAMING: " + framing + "\n\n"
+        "The schedule MUST honor the seven commitments: a "
         "set wake time; prayer in the morning, at noon, and at night; "
         "basic daily chores; flex buffer time; couple time for John and "
         "Lauren; a set bedtime. Use the family's stated times where given; "
@@ -4020,7 +4175,7 @@ def _s12_generate_schedule(progress: dict) -> list:
         })
     cleaned.sort(key=lambda x: x.get("time", ""))
     p = load_progress()
-    bucket = p.setdefault("data", {}).setdefault("section_13", {})
+    bucket = _s12_bucket(p, variant)
     bucket["schedule"] = cleaned
     bucket["gen_hash"] = gen_hash
     save_progress(p)
@@ -4028,13 +4183,27 @@ def _s12_generate_schedule(progress: dict) -> list:
 
 
 def s12_persist_kept_to_activities(progress: dict) -> int:
-    """Write the kept schedule slots from section_12.schedule into
-    data/frol_activities.json. Returns the number of items written, or
-    -1 on a write failure (caller should treat as non-success and NOT
+    """Phase D: aggregate kept schedule slots across ALL variants under
+    section_13 and write them to data/frol_activities.json, tagging each
+    item with its variant. Returns the number of items written, or -1
+    on a write failure (caller should treat as non-success and NOT
     advance the wizard)."""
-    sec12 = (progress.get("data", {}) or {}).get("section_13", {}) or {}
-    sched = sec12.get("schedule") or []
-    kept = [it for it in sched if isinstance(it, dict) and it.get("keep", True)]
+    _s12_migrate_per_variant(progress)
+    sec13 = (progress.get("data", {}) or {}).get("section_13", {}) or {}
+    kept = []
+    for vk in _S12_VARIANT_KEYS:
+        vb = sec13.get(vk) or {}
+        if not isinstance(vb, dict):
+            continue
+        sched = vb.get("schedule") or []
+        if not isinstance(sched, list):
+            continue
+        for it in sched:
+            if not isinstance(it, dict) or not it.get("keep", True):
+                continue
+            tagged = dict(it)
+            tagged["variant"] = vk
+            kept.append(tagged)
     try:
         save_frol_activities(kept)
     except Exception:
@@ -4047,16 +4216,15 @@ def render_section_12(progress: dict, mode: str) -> str:
     Pass 1 surfaces clarifying questions; Pass 2 produces a suggested
     weekday schedule. Both calls are cached in section_12 so a page
     refresh does not re-trigger the API."""
-    sec12 = (progress.get("data", {}) or {}).get("section_13", {}) or {}
-    if not isinstance(sec12, dict):
-        sec12 = {}
+    # ── Phase D: per-variant bucket + lazy migration ───────────────────────
+    av = _active_variant(progress)
+    av_esc = escape(av, quote=True)
+    if av not in _S12_VARIANT_KEYS:
+        av = "weekday"; av_esc = "weekday"
+    av_label = dict(ACTIVITY_VARIANTS).get(av, av)
+    sec12 = _s12_bucket(progress, av)
 
-    # ── Fix 1: clear stuck _generating flag ────────────────────────────────
-    # If a prior cache-miss path was interrupted (API exception, browser
-    # closed mid-refresh, user navigated away), _generating can persist
-    # forever and suppress the loading interstitial on every future visit.
-    # Clear it whenever schedule is absent AND we are NOT actually mid-
-    # Stage-B (i.e. questions are missing or not yet all answered).
+    # ── Fix 1: clear stuck _generating flag (per-variant) ──────────────────
     if sec12.get("_generating") and not sec12.get("schedule"):
         _qs_chk  = sec12.get("questions") or []
         _ans_chk = sec12.get("answers") or {}
@@ -4070,12 +4238,13 @@ def render_section_12(progress: dict, mode: str) -> str:
         )
         if not _all_answered:
             _pl = load_progress()
-            _bk = _pl.setdefault("data", {}).setdefault("section_13", {})
+            _bk = _s12_bucket(_pl, av)
             _bk.pop("_generating", None)
             save_progress(_pl)
             sec12 = _bk
 
     mode_esc = escape(mode, quote=True)
+    variant_tabs_html = _render_variant_tab_bar(13, progress, mode)
 
     refl = render_reflection_card(
         "The day, built for you",
@@ -4098,14 +4267,14 @@ def render_section_12(progress: dict, mode: str) -> str:
             '</div>'
         )
         return _section_chrome(13, "Build Your Day",
-            "AI-suggested weekday schedule built from everything you've collected.",
-            refl + notice, mode, progress, lucy_visible=True)
+            "AI-suggested schedule built from everything you've collected.",
+            refl + variant_tabs_html + notice, mode, progress, lucy_visible=True)
 
     # ── Pass 1 cache (call if absent) ──────────────────────────────────────
     questions = sec12.get("questions")
     if not isinstance(questions, list) or not questions:
-        questions = _s12_generate_questions(progress)
-        sec12 = (load_progress().get("data", {}) or {}).get("section_13", {}) or {}
+        questions = _s12_generate_questions(progress, av)
+        sec12 = _s12_bucket(load_progress(), av)
 
     answers = sec12.get("answers") or {}
     if not isinstance(answers, dict):
@@ -4122,6 +4291,7 @@ def render_section_12(progress: dict, mode: str) -> str:
             '<form method="POST" action="/frol-wizard" style="margin-top:14px;">'
             '<input type="hidden" name="action" value="s12_regenerate">'
             '<input type="hidden" name="section" value="12">'
+            f'<input type="hidden" name="variant" value="{av_esc}">'
             f'<input type="hidden" name="mode" value="{mode_esc}">'
             '<button type="submit" style="padding:10px 18px;background:#4a6fa5;'
             'color:#fff;border:none;border-radius:6px;cursor:pointer;'
@@ -4129,8 +4299,8 @@ def render_section_12(progress: dict, mode: str) -> str:
             '</form>'
         )
         return _section_chrome(13, "Build Your Day",
-            "AI-suggested weekday schedule.",
-            refl + body, mode, progress, lucy_visible=True)
+            f"AI-suggested schedule — {av_label}.",
+            refl + variant_tabs_html + body, mode, progress, lucy_visible=True)
 
     # First unanswered question (if any)
     next_idx = None
@@ -4155,6 +4325,7 @@ def render_section_12(progress: dict, mode: str) -> str:
                 '<form method="POST" action="/frol-wizard" style="margin:6px 0;">'
                 '<input type="hidden" name="action" value="s12_answer">'
                 '<input type="hidden" name="section" value="12">'
+                f'<input type="hidden" name="variant" value="{av_esc}">'
                 f'<input type="hidden" name="mode" value="{mode_esc}">'
                 f'<input type="hidden" name="q_idx" value="{next_idx}">'
                 f'<input type="hidden" name="value" value="{opt_esc}">'
@@ -4171,6 +4342,7 @@ def render_section_12(progress: dict, mode: str) -> str:
             '<form method="POST" action="/frol-wizard" style="margin-top:14px;">'
             '<input type="hidden" name="action" value="s12_regenerate">'
             '<input type="hidden" name="section" value="12">'
+            f'<input type="hidden" name="variant" value="{av_esc}">'
             f'<input type="hidden" name="mode" value="{mode_esc}">'
             '<button type="submit" style="background:transparent;border:none;'
             'color:#7088a8;cursor:pointer;text-decoration:underline;'
@@ -4180,6 +4352,7 @@ def render_section_12(progress: dict, mode: str) -> str:
 
         body = f"""
           {refl}
+          {variant_tabs_html}
           <div style="background:#f6f8fc;border:1px solid #d8e1ef;
                       border-radius:8px;padding:18px;margin:10px 0;">
             <div style="font-size:0.82em;color:#7088a8;margin-bottom:8px;
@@ -4196,7 +4369,7 @@ def render_section_12(progress: dict, mode: str) -> str:
           {regen_form}
         """
         return _section_chrome(13, "Build Your Day",
-            "A few quick clarifying questions, then your draft.",
+            f"{av_label}: a few quick clarifying questions, then your draft.",
             body, mode, progress, lucy_visible=True)
 
     # ── Stage B: all questions answered → schedule ─────────────────────────
@@ -4209,7 +4382,7 @@ def render_section_12(progress: dict, mode: str) -> str:
         # API call synchronously and the next render shows the result.
         if not sec12.get("_generating"):
             _pl = load_progress()
-            _pl.setdefault("data", {}).setdefault("section_13", {})["_generating"] = True
+            _s12_bucket(_pl, av)["_generating"] = True
             save_progress(_pl)
             loading_body = (
                 '<div style="text-align:center;padding:60px 20px;">'
@@ -4228,8 +4401,8 @@ def render_section_12(progress: dict, mode: str) -> str:
                 '</div>'
             )
             return _section_chrome(13, "Build Your Day",
-                "Generating your suggested schedule.",
-                refl + loading_body, mode, progress, lucy_visible=False)
+                f"Generating your suggested {av_label} schedule.",
+                refl + variant_tabs_html + loading_body, mode, progress, lucy_visible=False)
         # _generating flag is set — actually call the API now and clear.
         # Fix 2: hard-guard the API call so any exception ALWAYS clears
         # _generating; otherwise the flag persists and suppresses the
@@ -4237,17 +4410,18 @@ def render_section_12(progress: dict, mode: str) -> str:
         import traceback as _s12_tb
         _gen_err = None
         try:
-            schedule = _s12_generate_schedule(progress)
+            schedule = _s12_generate_schedule(progress, av)
         except Exception as _s12_exc:
             schedule = []
             _gen_err = f"{type(_s12_exc).__name__}: {_s12_exc}"
+            _tb_blob = _s12_tb.format_exc()
             print(
-                f"[s12_generate_schedule] FAILED: {_gen_err}\n"
-                f"{_s12_tb.format_exc()}",
+                f"[s12_generate_schedule] FAILED ({av}): {_gen_err}",
                 flush=True,
             )
+            print(_tb_blob, flush=True)
         _pl = load_progress()
-        _bk = _pl.setdefault("data", {}).setdefault("section_13", {})
+        _bk = _s12_bucket(_pl, av)
         _bk.pop("_generating", None)
         if _gen_err:
             _bk["schedule_error"] = _gen_err
@@ -4278,6 +4452,7 @@ def render_section_12(progress: dict, mode: str) -> str:
             '<form method="POST" action="/frol-wizard" style="margin-top:14px;">'
             '<input type="hidden" name="action" value="s12_regenerate">'
             '<input type="hidden" name="section" value="12">'
+            f'<input type="hidden" name="variant" value="{av_esc}">'
             f'<input type="hidden" name="mode" value="{mode_esc}">'
             '<button type="submit" style="padding:10px 18px;background:#4a6fa5;'
             'color:#fff;border:none;border-radius:6px;cursor:pointer;'
@@ -4285,8 +4460,8 @@ def render_section_12(progress: dict, mode: str) -> str:
             '</form>'
         )
         return _section_chrome(13, "Build Your Day",
-            "AI-suggested weekday schedule.",
-            refl + body, mode, progress, lucy_visible=True)
+            f"AI-suggested {av_label} schedule.",
+            refl + variant_tabs_html + body, mode, progress, lucy_visible=True)
 
     # Move-picker options: every 10 min from 04:00 through 23:50
     time_options = []
@@ -4406,7 +4581,7 @@ def render_section_12(progress: dict, mode: str) -> str:
               <div style="display:flex;flex-direction:column;gap:6px;
                           align-items:flex-end;">
                 <select data-s12-action="s12_move" data-s12-slot="{i}"
-                        data-s12-mode="{mode_esc}"
+                        data-s12-mode="{mode_esc}" data-s12-variant="{av_esc}"
                         style="padding:4px 8px;border:1px solid #d8e1ef;
                                border-radius:4px;font-size:0.84em;
                                background:#fbfcfd;cursor:pointer;">
@@ -4414,6 +4589,7 @@ def render_section_12(progress: dict, mode: str) -> str:
                 </select>
                 <button type="button" data-s12-action="{action_name}"
                         data-s12-slot="{i}" data-s12-mode="{mode_esc}"
+                        data-s12-variant="{av_esc}"
                         style="padding:4px 12px;background:transparent;
                                border:1px solid {btn_color};color:{btn_color};
                                border-radius:4px;cursor:pointer;
@@ -4616,8 +4792,8 @@ def render_section_12(progress: dict, mode: str) -> str:
     # they cannot be silently lost to any future <script>-stripping in
     # _section_chrome or in transit. Do not re-inline them here.
 
-    # ── Fix 3: stale-cache warning ─────────────────────────────────────────
-    _cur_hash   = _s12_progress_hash(_s12_collect_context(progress))
+    # ── Fix 3: stale-cache warning (per-variant ctx) ───────────────────────
+    _cur_hash   = _s12_progress_hash(_s12_collect_context(progress, av))
     _gen_hash   = sec12.get("gen_hash")
     stale_html  = ""
     if _gen_hash and _gen_hash != _cur_hash:
@@ -4635,10 +4811,11 @@ def render_section_12(progress: dict, mode: str) -> str:
         'style="display:inline-block;margin-right:10px;">'
         '<input type="hidden" name="action" value="s12_regenerate">'
         '<input type="hidden" name="section" value="12">'
+        f'<input type="hidden" name="variant" value="{av_esc}">'
         f'<input type="hidden" name="mode" value="{mode_esc}">'
-        '<button type="submit" style="padding:10px 18px;background:#fbf6ee;'
-        'border:1px solid #ead9b8;color:#8a6a2a;border-radius:6px;'
-        'cursor:pointer;font-weight:700;">Regenerate</button>'
+        f'<button type="submit" style="padding:10px 18px;background:#fbf6ee;'
+        f'border:1px solid #ead9b8;color:#8a6a2a;border-radius:6px;'
+        f'cursor:pointer;font-weight:700;">Regenerate {escape(av_label)}</button>'
         '</form>'
     )
     save_btn = (
@@ -4650,6 +4827,29 @@ def render_section_12(progress: dict, mode: str) -> str:
         'border:none;color:#fff;border-radius:6px;cursor:pointer;'
         'font-weight:700;">Save and Continue</button>'
         '</form>'
+    )
+
+    # ── Phase D: cross-variant status strip ────────────────────────────────
+    _all_sec13 = (progress.get("data", {}) or {}).get("section_13", {}) or {}
+    _gen_chips = ""
+    for _vk, _vl in ACTIVITY_VARIANTS:
+        _vb = _all_sec13.get(_vk) if isinstance(_all_sec13, dict) else None
+        _has = isinstance(_vb, dict) and isinstance(_vb.get("schedule"), list) and len(_vb.get("schedule")) > 0
+        _bg = "#e2efe5" if _has else "#f0f0f0"
+        _fg = "#2e5d3b" if _has else "#888"
+        _mark = "✓" if _has else "—"
+        _gen_chips += (
+            f'<span style="display:inline-block;padding:3px 10px;margin:2px;'
+            f'border-radius:999px;background:{_bg};color:{_fg};'
+            f'font-size:0.78em;font-weight:700;">{_mark} {escape(_vl)}</span>'
+        )
+    variant_status_html = (
+        '<div style="background:#f6f8fc;border:1px solid #d8e1ef;'
+        'border-radius:8px;padding:8px 12px;margin:10px 0;font-size:0.82em;'
+        'color:#7088a8;">'
+        '<strong style="color:#33507e;">Variants generated:</strong> '
+        + _gen_chips +
+        '</div>'
     )
 
     kept_count = sum(
@@ -4675,12 +4875,13 @@ def render_section_12(progress: dict, mode: str) -> str:
           f.style.opacity = '1';
           setTimeout(function(){ f.style.opacity = '0'; }, 1500);
         }
-        function post(act, slot, mode, extra){
+        function post(act, slot, mode, variant, extra){
           var fd = new FormData();
           fd.append('action',   act);
           fd.append('section',  '12');
           fd.append('mode',     mode);
           fd.append('slot_idx', slot);
+          fd.append('variant',  variant || 'weekday');
           if (extra) { for (var k in extra) { fd.append(k, extra[k]); } }
           return fetch('/frol-wizard', {
             method: 'POST', body: fd, credentials: 'same-origin'
@@ -4701,9 +4902,10 @@ def render_section_12(progress: dict, mode: str) -> str:
           if (el.getAttribute('data-s12-action') !== 's12_move') { return; }
           var slot   = el.getAttribute('data-s12-slot');
           var mode   = el.getAttribute('data-s12-mode') || 'structured';
+          var variant = el.getAttribute('data-s12-variant') || 'weekday';
           var newVal = el.value;
           var card   = el.closest('.s12-card');
-          post('s12_move', slot, mode, {new_time: newVal}).then(function(r){
+          post('s12_move', slot, mode, variant, {new_time: newVal}).then(function(r){
             if (!r.ok) { return; }
             var disp = card && card.querySelector('.s12-time-disp');
             if (disp) { disp.textContent = fmt12(newVal); }
@@ -4718,8 +4920,9 @@ def render_section_12(progress: dict, mode: str) -> str:
           ev.preventDefault();
           var slot = btn.getAttribute('data-s12-slot');
           var mode = btn.getAttribute('data-s12-mode') || 'structured';
+          var variant = btn.getAttribute('data-s12-variant') || 'weekday';
           var card = btn.closest('.s12-card');
-          post(act, slot, mode, null).then(function(r){
+          post(act, slot, mode, variant, null).then(function(r){
             if (!r.ok) { return; }
             var body = card && card.querySelector('.s12-card-body');
             if (act === 's12_remove'){
@@ -4746,12 +4949,14 @@ def render_section_12(progress: dict, mode: str) -> str:
 
     body = f"""
       {refl}
+      {variant_tabs_html}
+      {variant_status_html}
       <div style="background:#f6f8fc;border:1px solid #d8e1ef;
                   border-radius:8px;padding:10px 14px;margin:10px 0;
                   font-size:0.88em;color:#33507e;">
         <strong>{kept_count}</strong> of <strong>{len(schedule)}</strong>
-        slots kept. Change a time or tap Remove and it saves automatically
-        — no page reload. Tap Regenerate to start over.
+        {escape(av_label)} slots kept. Change a time or tap Remove and it saves
+        automatically — no page reload. Tap Regenerate to start over.
       </div>
       {stale_html}
       {overload_html}
@@ -4765,7 +4970,7 @@ def render_section_12(progress: dict, mode: str) -> str:
       </div>
     """
     return _section_chrome(13, "Build Your Day",
-        "AI-suggested weekday schedule built from everything you've collected.",
+        f"AI-suggested {av_label} schedule — flip the tabs above to build each variant.",
         body, mode, progress, lucy_visible=True)
 
 
