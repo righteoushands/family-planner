@@ -789,6 +789,16 @@ def _upgrade_activity_v2_to_v3(legacy: dict) -> dict:
     with any missing v3 fields filled in with defaults."""
     if not isinstance(legacy, dict):
         return {}
+    # Preserve any unrecognized legacy fields (e.g. note/keep) so a first
+    # save after upgrade cannot silently drop them. They round-trip through
+    # the v3 store as-is.
+    _RESERVED_V3 = {
+        "id", "name", "section", "who_type", "who", "leader",
+        "per_person_times", "time", "duration_min", "days",
+        "schedule_variant", "category", "color", "credits",
+        "seasonal", "is_grooming", "activity_name",
+    }
+    _extras = {k: v for k, v in legacy.items() if k not in _RESERVED_V3}
     if legacy.get("id") and legacy.get("who_type"):
         # Already v3 — backfill any missing fields with defaults so the
         # caller always gets a complete 16-field record.
@@ -807,6 +817,9 @@ def _upgrade_activity_v2_to_v3(legacy: dict) -> dict:
         out.setdefault("credits", [])
         out.setdefault("seasonal", "year_round")
         out.setdefault("is_grooming", False)
+        # Re-attach any extras that weren't already present in the v3 row.
+        for _k, _v in _extras.items():
+            out.setdefault(_k, _v)
         return out
     # ── True legacy entry ─────────────────────────────────────────────────
     name = (legacy.get("activity_name") or legacy.get("name") or "").strip()
@@ -859,6 +872,7 @@ def _upgrade_activity_v2_to_v3(legacy: dict) -> dict:
         "credits":           [],
         "seasonal":          "year_round",
         "is_grooming":       False,
+        **_extras,
     }
 
 

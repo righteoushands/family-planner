@@ -845,13 +845,15 @@ def _category_color(cat: str) -> str:
     return "#64748b"
 
 
+_SAFE_COLOR_RE = re.compile(r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})")
+
+
 def _safe_color(c: str, fallback: str = "#64748b") -> str:
     """Allow only #RGB / #RRGGBB hex tokens through to inline style attrs.
     Anything else (including empty, named colors, or attacker-controlled
     text) is replaced with the fallback so we never inject CSS-breakout
     characters into a style="..." block."""
-    import re as _re
-    if isinstance(c, str) and _re.fullmatch(r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})", c.strip()):
+    if isinstance(c, str) and _SAFE_COLOR_RE.fullmatch(c.strip()):
         return c.strip()
     return fallback
 

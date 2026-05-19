@@ -239,6 +239,33 @@ def main() -> int:
     finally:
         _shutil.move(_bak, dh.FROL_ACTIVITIES_FILE)
 
+    print("── 4e. Legacy extras (note/keep) survive upgrade + save ──")
+    extras_legacy = [{
+        "name": "Legacy with note", "time": "06:30", "duration_min": 5,
+        "who": ["Lauren"], "category": "personal",
+        "note": "important reminder text", "keep": True,
+    }]
+    import json as _json2, shutil as _sh2
+    _bak2 = dh.FROL_ACTIVITIES_FILE + ".verify_extras.json"
+    _sh2.copy2(dh.FROL_ACTIVITIES_FILE, _bak2)
+    try:
+        with open(dh.FROL_ACTIVITIES_FILE, "w") as _f:
+            _json2.dump(extras_legacy, _f)
+        loaded = dh.load_frol_activities()
+        check(loaded and loaded[0].get("note") == "important reminder text",
+              "legacy 'note' field is preserved after upgrade")
+        check(loaded and loaded[0].get("keep") is True,
+              "legacy 'keep' field is preserved after upgrade")
+        # Round-trip: save then re-load — extras must still be present.
+        dh.save_frol_activities(loaded)
+        reloaded = dh.load_frol_activities()
+        check(reloaded and reloaded[0].get("note") == "important reminder text",
+              "extras survive save → reload round-trip")
+        check(reloaded and reloaded[0].get("keep") is True,
+              "extras survive save → reload round-trip (keep)")
+    finally:
+        _sh2.move(_bak2, dh.FROL_ACTIVITIES_FILE)
+
     print("── 5. Delete + add round-trip ──")
     items = dh.load_frol_activities()
     items = [a for a in items if a["id"] != "act_test_fam"]
