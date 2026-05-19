@@ -757,16 +757,19 @@ def _section_chrome(section: int, title: str, subtitle: str, body_html: str,
     if mode == "lucy" and lucy_visible:
         chat_panel = _render_chat_panel(section)
 
-    # ── Fix 3: don't wrap the final section in an advance_v2 form ──────────
-    # On the LAST section, body_html already contains a <form> that posts
-    # action=finalize_v2 (the "Save my Rule of Life" button). HTML forbids
-    # nesting <form>s: the parser silently DROPS the inner <form> tag,
-    # all its hidden inputs end up inside the outer form, and the FIRST
-    # input named "action" wins. That sends action=advance_v2 to the
-    # server and redirects to step+1 (a phantom section 15) instead of
-    # running finalize_v2. Render the final section without the outer
-    # form so the inner Save form is the only one on the page.
-    if section >= V2_TOTAL_SECTIONS:
+    # ── Fix 3 (generalized): don't wrap bodies that already contain a <form>
+    # in the outer advance_v2 form. HTML forbids nesting <form>s: the
+    # parser silently DROPS the inner <form> tag, all its hidden inputs
+    # end up inside the outer form, and the FIRST input named "action"
+    # wins. That broke §14 (Save button POSTing finalize_v2 was hijacked
+    # by the outer advance_v2 form, redirecting to a phantom step+1) and
+    # also breaks §12 Stage A — each question-option is its own <form>
+    # posting action=s12_answer, but nesting causes the click to fire
+    # advance_v2 instead, silently skipping past §12 without saving the
+    # answer. Auto-detect inner <form> tags and, if present, skip the
+    # outer form entirely; the body's own forms handle submission.
+    _body_has_form = "<form" in body_html
+    if section >= V2_TOTAL_SECTIONS or _body_has_form:
         main_block = f"""
           {dots}
           <div class="frol-card">
