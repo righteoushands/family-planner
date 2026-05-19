@@ -1160,6 +1160,350 @@ def _render_activity_list(section: int, progress: dict, activities: list,
     return "".join(_render_activity_card(a, sec_int, mode, av) for a in matches)
 
 
+# ─── Phase B — Persistent live grid preview ─────────────────────────────
+# A reusable component that renders the per-person daily grid (time rows ×
+# person columns) at the bottom of any section page. Phase B builds the
+# component only; Phase C mounts it into every section.
+
+GRID_PERSONS = ["Lauren", "John", "JP", "Joseph", "Michael", "James"]
+
+# 36 half-hour slots from 05:00 through 22:30 inclusive. The task spec
+# says "34 rows from 5:00 AM to 10:30 PM" — those two numbers don't agree
+# (34 half-hours from 05:00 ends at 21:30; 22:30 needs 36). We honor the
+# end-label "10:30 PM" since that's what the user sees and what fits the
+# family's actual bedtime data (e.g. 22:00 Bedtime in current fixture).
+GRID_SLOTS = [(h, m) for h in range(5, 23) for m in (0, 30)]
+
+# Default visible person columns per section. Sections that center around
+# the whole family default to everyone; the Little Ones / school / chores
+# sections default to the relevant subset so the grid isn't visually busy
+# when there's nothing to look at in the other columns. Stored toggle
+# state in progress.data.section_{N}.grid_visible_persons overrides this.
+SECTION_DEFAULT_VISIBLE = {
+    2:  ["James", "Michael", "Lauren"],
+    6:  ["JP", "Joseph", "Michael", "Lauren"],
+    7:  ["Lauren", "John", "JP", "Joseph", "Michael"],
+    8:  ["Lauren", "John", "JP", "Joseph", "Michael"],
+}
+
+
+def _grid_time_label(hh: int, mm: int) -> str:
+    """5,0 -> '5:00 AM'; 22,30 -> '10:30 PM'."""
+    suffix = "AM" if hh < 12 else "PM"
+    h12 = hh % 12
+    if h12 == 0:
+        h12 = 12
+    return f"{h12}:{mm:02d} {suffix}"
+
+
+def _grid_parse_hhmm(t):
+    """'09:30' -> 570 (minutes since midnight). None on failure."""
+    if not t or ":" not in str(t):
+        return None
+    try:
+        parts = str(t).split(":", 1)
+        return int(parts[0]) * 60 + int(parts[1][:2])
+    except Exception:
+        return None
+
+
+def _grid_activity_placements(act: dict):
+    """Yield (person, start_min, dur_min) tuples for one activity. Reads
+    the right field per who_type: family uses top-level time/duration;
+    individual + mixed use per_person_times[person]."""
+    wt = (act.get("who_type") or "individual").strip() or "individual"
+    who = act.get("who") or []
+    out = []
+    if wt == "family":
+        sm = _grid_parse_hhmm(act.get("time") or "")
+        try:
+            dm = int(act.get("duration_min") or 0)
+        except (TypeError, ValueError):
+            dm = 0
+        if sm is None:
+            return out
+        for p in who:
+            if isinstance(p, str) and p.strip():
+                out.append((p.strip(), sm, dm))
+        return out
+    ppt = act.get("per_person_times") or {}
+    for p in who:
+        if not (isinstance(p, str) and p.strip()):
+            continue
+        pp = ppt.get(p) or {}
+        sm = _grid_parse_hhmm(pp.get("time") or "")
+        if sm is None:
+            continue
+        try:
+            dm = int(pp.get("duration_min") or 0)
+        except (TypeError, ValueError):
+            dm = 0
+        out.append((p.strip(), sm, dm))
+    return out
+
+
+def _grid_visible_persons(section: int, progress: dict) -> list:
+    """Resolve the visible person columns for this section. Order is
+    always the canonical GRID_PERSONS order so the grid is stable across
+    toggles. Stored override under section_{N}.grid_visible_persons wins;
+    otherwise falls back to SECTION_DEFAULT_VISIBLE or full roster."""
+    bucket = ((progress.get("data") or {})
+              .get(f"section_{int(section)}") or {})
+    stored = bucket.get("grid_visible_persons")
+    if isinstance(stored, list) and stored:
+        keep = {str(s).strip() for s in stored if str(s).strip()}
+        return [p for p in GRID_PERSONS if p in keep]
+    default = SECTION_DEFAULT_VISIBLE.get(int(section), GRID_PERSONS)
+    return [p for p in GRID_PERSONS if p in default]
+
+
+def _grid_chip_html(act: dict, start_min: int, dur_min: int,
+                    rowspan: int) -> str:
+    """Render the inner activity chip. End time appears at the bottom
+    only when the activity ends mid-slot (end_min % 30 != 0) and the
+    activity actually spans more than one slot."""
+    cat = (act.get("category") or "").strip() or "fixed"
+    color = _safe_color(act.get("color") or "", _category_color(cat))
+    name = (act.get("name") or "").strip() or "(untitled)"
+    sh, sm = divmod(start_min, 60)
+    start_lbl = _grid_time_label(sh, sm)
+    end_min = start_min + max(0, dur_min)
+    eh, em = divmod(end_min, 60)
+    end_lbl = _grid_time_label(eh, em) if eh < 24 else ""
+    show_end = (rowspan > 1) and (end_min % 30 != 0) and bool(end_lbl)
+    end_html = ""
+    if show_end:
+        end_html = (
+            f'<div style="font-size:9px;color:#fff;opacity:0.85;'
+            f'text-align:center;margin-top:auto;">{escape(end_lbl)}</div>'
+        )
+    return (
+        f'<div class="frol-grid-chip" '
+        f'style="background:{color};color:#fff;border-radius:4px;'
+        f'padding:3px 5px;margin:1px 0;min-height:22px;'
+        f'display:flex;flex-direction:column;height:100%;'
+        f'box-sizing:border-box;font-size:10px;line-height:1.15;'
+        f'overflow:hidden;">'
+        f'<div style="font-size:9px;opacity:0.85;">{escape(start_lbl)}</div>'
+        f'<div style="font-weight:600;flex:1;">{escape(name)}</div>'
+        f'{end_html}'
+        f'</div>'
+    )
+
+
+def _grid_build_table(section: int, active_variant: str,
+                      visible: list, activities: list) -> str:
+    """Build the inner <table> for the grid. Sticky thead + first column.
+    Multi-slot activities use rowspan; collisions in the same start cell
+    stack as multiple chips inside one td. Slots covered by a rowspan
+    above are skipped (no <td> emitted)."""
+    av = (active_variant or "weekday").strip() or "weekday"
+    sec_i = int(section)
+    # Pre-bucket activity placements per (person, start_slot_index).
+    placements = {p: {} for p in visible}
+    for a in activities:
+        if not isinstance(a, dict):
+            continue
+        try:
+            if int(a.get("section") or 0) != sec_i:
+                continue
+        except (TypeError, ValueError):
+            continue
+        variants = a.get("schedule_variant") or ["weekday"]
+        if av not in variants:
+            continue
+        for p, sm, dm in _grid_activity_placements(a):
+            if p not in placements:
+                continue
+            if sm < 5 * 60 or sm >= 5 * 60 + 36 * 30:
+                continue
+            slot_idx = (sm - 5 * 60) // 30
+            placements[p].setdefault(slot_idx, []).append((sm, dm, a))
+    # Track skip-until-slot per person (rowspan continuation tracker).
+    skip_until = {p: -1 for p in visible}
+    rows_html = []
+    header_cells = ['<th class="frol-grid-corner" '
+                    'style="position:sticky;top:0;left:0;z-index:3;'
+                    'background:#f6f8fc;border:1px solid #d8e1ef;'
+                    'min-width:62px;padding:4px 6px;font-size:10px;'
+                    'color:#33507e;">Time</th>']
+    for p in visible:
+        header_cells.append(
+            f'<th class="frol-grid-head" '
+            f'style="position:sticky;top:0;z-index:2;'
+            f'background:#f6f8fc;border:1px solid #d8e1ef;'
+            f'min-width:88px;padding:4px 6px;font-size:11px;'
+            f'color:#33507e;font-weight:700;">{escape(p)}</th>'
+        )
+    thead = "<thead><tr>" + "".join(header_cells) + "</tr></thead>"
+    body = []
+    for slot_idx, (hh, mm) in enumerate(GRID_SLOTS):
+        is_hour = (mm == 0)
+        label = _grid_time_label(hh, mm)
+        row_bg = "#fafbfd" if is_hour else "#fff"
+        time_border = "2px solid #c9d4e6" if is_hour else "1px solid #eef1f6"
+        cells = [
+            f'<td class="frol-grid-time" '
+            f'style="position:sticky;left:0;z-index:1;background:{row_bg};'
+            f'border:1px solid #d8e1ef;border-top:{time_border};'
+            f'padding:2px 6px;font-size:10px;color:#6b7280;'
+            f'text-align:right;white-space:nowrap;'
+            f'min-width:62px;height:30px;">{escape(label)}</td>'
+        ]
+        for p in visible:
+            if skip_until[p] > slot_idx:
+                continue
+            acts_here = placements[p].get(slot_idx) or []
+            if not acts_here:
+                cells.append(
+                    f'<td class="frol-grid-cell" '
+                    f'style="border:1px solid #eef1f6;'
+                    f'border-top:{time_border};background:{row_bg};'
+                    f'height:30px;padding:0;"></td>'
+                )
+                continue
+            # Rowspan = max slot-span among activities starting in this
+            # cell. We cap to the grid bottom so we never overflow.
+            max_span = 1
+            for _sm, _dm, _a in acts_here:
+                span = max(1, (max(0, _dm) + 29) // 30)
+                span = min(span, len(GRID_SLOTS) - slot_idx)
+                if span > max_span:
+                    max_span = span
+            skip_until[p] = slot_idx + max_span
+            chips = "".join(
+                _grid_chip_html(_a, _sm, _dm,
+                                min(max(1, (max(0, _dm) + 29) // 30),
+                                    len(GRID_SLOTS) - slot_idx))
+                for (_sm, _dm, _a) in acts_here
+            )
+            rs = f' rowspan="{max_span}"' if max_span > 1 else ""
+            cells.append(
+                f'<td class="frol-grid-cell"{rs} '
+                f'style="border:1px solid #eef1f6;'
+                f'border-top:{time_border};background:#fff;'
+                f'padding:1px;vertical-align:top;'
+                f'height:{30 * max_span}px;">{chips}</td>'
+            )
+        body.append("<tr>" + "".join(cells) + "</tr>")
+    tbody = "<tbody>" + "".join(body) + "</tbody>"
+    return (
+        '<table class="frol-grid-table" '
+        'style="border-collapse:separate;border-spacing:0;'
+        'table-layout:fixed;width:max-content;'
+        'font-family:inherit;">'
+        + thead + tbody + '</table>'
+    )
+
+
+def _render_grid_preview(section: int, progress: dict,
+                         active_variant: str = "weekday",
+                         activities=None) -> str:
+    """Reusable grid preview component. Returns the full container with
+    variant tabs, person pills, scrollbox, and table. Phase B builds it;
+    Phase C will mount it at the bottom of every section page.
+
+    Live updates: JS in static/js/frol_wizard.js listens for Phase A
+    add/edit/delete responses and refetches /frol-grid-fragment for the
+    inner table, so the grid never causes a full page reload."""
+    sec_i = int(section)
+    av = (active_variant or "weekday").strip() or "weekday"
+    if activities is None:
+        try:
+            from data_helpers import load_frol_activities as _laa
+            activities = _laa()
+        except Exception:
+            activities = []
+    visible = _grid_visible_persons(sec_i, progress)
+    # Variant tabs
+    tabs = []
+    for vkey, vlabel in ACTIVITY_VARIANTS:
+        is_on = (vkey == av)
+        bg = "#4a6fa5" if is_on else "#fff"
+        fg = "#fff" if is_on else "#33507e"
+        tabs.append(
+            f'<button type="button" class="frol-grid-vtab" '
+            f'data-variant="{escape(vkey, quote=True)}" '
+            f'onclick="frolGridVariant(this)" '
+            f'style="background:{bg};color:{fg};border:1px solid #4a6fa555;'
+            f'border-radius:14px;padding:4px 10px;margin:2px;'
+            f'font-size:0.82em;font-weight:700;cursor:pointer;'
+            f'font-family:inherit;">{escape(vlabel)}</button>'
+        )
+    tab_bar = (
+        '<div class="frol-grid-tabs" '
+        'style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">'
+        + "".join(tabs) + '</div>'
+    )
+    # Person pills
+    pills = []
+    for p in GRID_PERSONS:
+        is_on = (p in visible)
+        bg = "#4a6fa5" if is_on else "#fff"
+        fg = "#fff" if is_on else "#33507e"
+        pills.append(
+            f'<button type="button" class="frol-grid-ppill" '
+            f'data-person="{escape(p, quote=True)}" '
+            f'data-on="{"1" if is_on else "0"}" '
+            f'onclick="frolGridTogglePerson(this)" '
+            f'style="background:{bg};color:{fg};border:1px solid #4a6fa555;'
+            f'border-radius:12px;padding:3px 9px;margin:2px;'
+            f'font-size:0.78em;font-weight:600;cursor:pointer;'
+            f'font-family:inherit;">{escape(p)}</button>'
+        )
+    pill_bar = (
+        '<div class="frol-grid-pills" '
+        'style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;">'
+        '<span style="font-size:11px;color:#6b7280;align-self:center;'
+        'margin-right:4px;">Show:</span>' + "".join(pills) + '</div>'
+    )
+    table_html = _grid_build_table(sec_i, av, visible, activities)
+    # Status label for screen readers + manual debugging.
+    status = (
+        f'<div class="frol-grid-status" '
+        f'style="font-size:11px;color:#9ca3af;margin-top:4px;">'
+        f'Section {sec_i} · {escape(av)} · {len(visible)} person(s)'
+        f'</div>'
+    )
+    scrollbox = (
+        '<div class="frol-grid-scroll" '
+        'style="overflow:auto;max-height:70vh;'
+        'border:1px solid #d8e1ef;border-radius:8px;background:#fff;'
+        '-webkit-overflow-scrolling:touch;">'
+        + table_html + '</div>'
+    )
+    container = (
+        f'<div class="frol-grid-preview" id="frol-grid-container" '
+        f'data-section="{sec_i}" '
+        f'data-active-variant="{escape(av, quote=True)}" '
+        f'style="background:#f6f8fc;border:1px solid #d8e1ef;'
+        f'border-radius:10px;padding:10px 12px;margin:14px 0;">'
+        f'<div style="font-weight:700;color:#33507e;font-size:0.95em;'
+        f'margin-bottom:6px;">Live grid preview</div>'
+        f'{tab_bar}{pill_bar}{scrollbox}{status}'
+        f'</div>'
+    )
+    return container
+
+
+def _render_grid_preview_fragment(section: int, progress: dict,
+                                  active_variant: str = "weekday",
+                                  activities=None) -> str:
+    """Return only the inner table HTML for the grid — used by the
+    /frol-grid-fragment GET so the JS can swap innerHTML on the scrollbox
+    without rebuilding the tabs/pills chrome."""
+    sec_i = int(section)
+    av = (active_variant or "weekday").strip() or "weekday"
+    if activities is None:
+        try:
+            from data_helpers import load_frol_activities as _laa
+            activities = _laa()
+        except Exception:
+            activities = []
+    visible = _grid_visible_persons(sec_i, progress)
+    return _grid_build_table(sec_i, av, visible, activities)
+
+
 def _render_activity_builder(section: int, progress: dict,
                              existing_activities: list,
                              active_variant: str,

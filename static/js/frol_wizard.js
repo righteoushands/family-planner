@@ -506,6 +506,193 @@ window.s12ShowView = function (v) {
   }
 };
 
+// ─── Phase B — Persistent live grid preview ──────────────────────────
+// Component HTML is rendered by render_frol_wizard._render_grid_preview.
+// These handlers wire up:
+//   - Variant tab clicks (ephemeral; no persistence)
+//   - Person pill toggles (persisted via /frol-wizard save_field)
+//   - Phase A form submits (intercept → fetch → refresh grid fragment)
+//   - iOS Safari sticky-header fallback (UA-gated)
+(function () {
+  if (window.__frolGridBound) return;
+  window.__frolGridBound = true;
+
+  function gridContainer() { return document.getElementById('frol-grid-container'); }
+
+  function refreshGrid() {
+    var c = gridContainer();
+    if (!c) return Promise.resolve();
+    var sec = c.getAttribute('data-section') || '';
+    var av  = c.getAttribute('data-active-variant') || 'weekday';
+    var url = '/frol-grid-fragment?section=' + encodeURIComponent(sec) +
+              '&active_variant=' + encodeURIComponent(av);
+    return fetch(url, { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (html) {
+        if (!html) return;
+        var box = c.querySelector('.frol-grid-scroll');
+        if (box) {
+          box.innerHTML = html;
+          applyIosStickyFallback(box);
+        }
+      })
+      .catch(function () { /* swallow — grid is non-critical */ });
+  }
+
+  window.frolGridVariant = function (btn) {
+    var c = gridContainer();
+    if (!c || !btn) return;
+    var v = btn.getAttribute('data-variant');
+    c.setAttribute('data-active-variant', v);
+    var tabs = c.querySelectorAll('.frol-grid-vtab');
+    for (var i = 0; i < tabs.length; i++) {
+      var on = (tabs[i].getAttribute('data-variant') === v);
+      tabs[i].style.background = on ? '#4a6fa5' : '#fff';
+      tabs[i].style.color      = on ? '#fff'    : '#33507e';
+    }
+    refreshGrid();
+  };
+
+  window.frolGridTogglePerson = function (btn) {
+    var c = gridContainer();
+    if (!c || !btn) return;
+    var on = (btn.getAttribute('data-on') === '1');
+    var newOn = !on;
+    btn.setAttribute('data-on', newOn ? '1' : '0');
+    btn.style.background = newOn ? '#4a6fa5' : '#fff';
+    btn.style.color      = newOn ? '#fff'    : '#33507e';
+    // Persist the new visible set to the section bucket via save_field.
+    var section = c.getAttribute('data-section') || '0';
+    var pills = c.querySelectorAll('.frol-grid-ppill');
+    var visible = [];
+    for (var i = 0; i < pills.length; i++) {
+      if (pills[i].getAttribute('data-on') === '1') {
+        visible.push(pills[i].getAttribute('data-person'));
+      }
+    }
+    var form = document.getElementById('frol-form');
+    var formMode = (form && form.getAttribute('data-mode')) || '';
+    var isV2 = form && form.getAttribute('data-version') === '2';
+    var fd = new FormData();
+    fd.append('action', isV2 ? 'save_field_v2' : 'save_field');
+    fd.append(isV2 ? 'section' : 'step', section);
+    fd.append('field', 'grid_visible_persons');
+    visible.forEach(function (p) { fd.append('value[]', p); });
+    if (!visible.length) { fd.append('value', ''); }
+    if (formMode) { fd.append('mode', formMode); }
+    fetch('/frol-wizard', { method: 'POST', body: fd, credentials: 'same-origin' })
+      .catch(function () {});
+    // Refresh the whole container (chrome included) so pill state +
+    // column visibility stay in sync. Fall back to fragment-only swap
+    // if the full-page refetch fails for any reason.
+    refreshGridFull();
+  };
+
+  function refreshGridFull() {
+    var c = gridContainer();
+    if (!c) return;
+    var sec = c.getAttribute('data-section') || '';
+    var av  = c.getAttribute('data-active-variant') || 'weekday';
+    // Re-request the section page and pluck out a fresh #frol-grid-container.
+    var pageUrl = window.location.pathname + window.location.search;
+    fetch(pageUrl, { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (html) {
+        if (!html) { refreshGrid(); return; }
+        var tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        var fresh = tmp.querySelector('#frol-grid-container');
+        if (!fresh) { refreshGrid(); return; }
+        // Preserve the user's current active variant choice across the swap.
+        fresh.setAttribute('data-active-variant', av);
+        c.parentNode.replaceChild(fresh, c);
+        var box = document.querySelector('#frol-grid-container .frol-grid-scroll');
+        if (box) { applyIosStickyFallback(box); }
+        // After replacement, re-sync variant tab visuals + table contents
+        // to the preserved active variant.
+        var nc = gridContainer();
+        if (nc) {
+          var tabs = nc.querySelectorAll('.frol-grid-vtab');
+          for (var i = 0; i < tabs.length; i++) {
+            var on = (tabs[i].getAttribute('data-variant') === av);
+            tabs[i].style.background = on ? '#4a6fa5' : '#fff';
+            tabs[i].style.color      = on ? '#fff'    : '#33507e';
+          }
+        }
+        refreshGrid();
+      })
+      .catch(function () { refreshGrid(); });
+  }
+
+  // Intercept Phase A CRUD form submits when a grid is on the page,
+  // so add/edit/delete refreshes the grid in place rather than
+  // triggering a full navigation back to the section.
+  var CRUD_PATHS = ['/frol-add-activity', '/frol-edit-activity', '/frol-delete-activity'];
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (!form || form.tagName !== 'FORM') return;
+    if (!gridContainer()) return;
+    var act = (form.getAttribute('action') || '').split('?')[0];
+    if (CRUD_PATHS.indexOf(act) < 0) return;
+    e.preventDefault();
+    var fd = new FormData(form);
+    fetch(act, { method: 'POST', body: fd, credentials: 'same-origin', redirect: 'manual' })
+      .then(function () { refreshGridFull(); })
+      .catch(function () { /* fall back to a manual reload if needed */ });
+  }, true);
+
+  // iOS Safari sticky-header fallback. Modern iOS handles position:sticky
+  // natively, but older iOS Safari (≤12) loses the sticky on cells inside
+  // a scrollable <table>. We add a UA-gated handler that re-applies
+  // transform offsets to thead + first-column cells on scroll. Desktop
+  // browsers use pure CSS.
+  function isIosSafari() {
+    var ua = navigator.userAgent || '';
+    var isIos = /iP(hone|od|ad)/.test(ua);
+    var isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
+    return isIos && isSafari;
+  }
+
+  function applyIosStickyFallback(scrollBox) {
+    if (!isIosSafari() || !scrollBox) return;
+    if (scrollBox.__frolStickyBound) return;
+    scrollBox.__frolStickyBound = true;
+    var thead = scrollBox.querySelector('thead');
+    var firstColCells = scrollBox.querySelectorAll('tbody td.frol-grid-time');
+    var corner = scrollBox.querySelector('.frol-grid-corner');
+    function paint() {
+      var sx = scrollBox.scrollLeft;
+      var sy = scrollBox.scrollTop;
+      if (thead) {
+        var ths = thead.querySelectorAll('th');
+        for (var i = 0; i < ths.length; i++) {
+          ths[i].style.transform = 'translateY(' + sy + 'px)';
+        }
+      }
+      for (var j = 0; j < firstColCells.length; j++) {
+        firstColCells[j].style.transform = 'translateX(' + sx + 'px)';
+      }
+      if (corner) {
+        corner.style.transform = 'translate(' + sx + 'px,' + sy + 'px)';
+        corner.style.zIndex = '4';
+      }
+    }
+    scrollBox.addEventListener('scroll', paint, { passive: true });
+    paint();
+  }
+
+  // Apply the fallback once on load if the grid is already on the page.
+  function initFallback() {
+    var box = document.querySelector('#frol-grid-container .frol-grid-scroll');
+    if (box) applyIosStickyFallback(box);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFallback);
+  } else {
+    initFallback();
+  }
+})();
+
 window.s12TogglePerson = function (btn) {
   var p = btn.getAttribute('data-person');
   var hidden = btn.getAttribute('data-hidden') === '1';

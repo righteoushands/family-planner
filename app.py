@@ -1268,6 +1268,33 @@ class Handler(BaseHTTPRequestHandler):
             try: self.wfile.write(html.encode())
             except BrokenPipeError: pass
             return
+        elif path == "/frol-grid-fragment":
+            # Phase B — return the inner grid <table> for the current
+            # section + active_variant. JS swaps innerHTML on the
+            # scrollbox so the grid updates without a full page reload.
+            _gv = self._get_viewer()
+            if not (_gv and _auth.is_admin(_gv)):
+                self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                try: self.wfile.write(b"Admin only.")
+                except BrokenPipeError: pass
+                return
+            from render_frol_wizard import (
+                _render_grid_preview_fragment, load_progress as _lp_g,
+            )
+            try:
+                _gsec = int((query.get("section",[""])[0] or "0").strip() or "0")
+            except Exception:
+                _gsec = 0
+            _gav = (query.get("active_variant",[""])[0] or "weekday").strip() or "weekday"
+            _ghtml = _render_grid_preview_fragment(_gsec, _lp_g(), active_variant=_gav)
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store")
+            self.end_headers()
+            try: self.wfile.write(_ghtml.encode())
+            except BrokenPipeError: pass
+            return
+
         elif path == "/frol-wizard":
             _fw_v = self._get_viewer()
             if not (_fw_v and _auth.is_admin(_fw_v)):
