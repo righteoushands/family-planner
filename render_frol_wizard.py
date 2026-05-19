@@ -2750,10 +2750,10 @@ def render_section_12(progress: dict, mode: str) -> str:
             "AI-suggested weekday schedule.",
             refl + body, mode, progress, lucy_visible=True)
 
-    # Move-picker options: every 15 min from 04:00 through 23:45
+    # Move-picker options: every 10 min from 04:00 through 23:50
     time_options = []
     for _hour in range(4, 24):
-        for _minute in (0, 15, 30, 45):
+        for _minute in (0, 10, 20, 30, 40, 50):
             time_options.append(f"{_hour:02d}:{_minute:02d}")
 
     cards_html = ""
