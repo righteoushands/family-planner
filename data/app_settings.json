@@ -7,7 +7,6 @@
   "cycle_show_detail_fields": false,
   "color_theme": "liturgical",
   "daily_mass_source": "ascension_press",
-  "daily_mass_custom_url": "",
   "sister_mary_family_context": false,
   "child_colors": {
     "JP": {
@@ -31,6 +30,7 @@
       "light": "#eaf4fb"
     }
   },
+  "daily_mass_custom_url": "",
   "location": "22405",
   "child_birthdays": {
     "JP": "2012-01-20",

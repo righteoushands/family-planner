@@ -298,6 +298,11 @@ def build_coach_context(iso: str, weekday: str, date_label: str) -> str:
 
     from data_helpers import get_memory_context_block as _gmcb
     lines += ["", _gmcb(), ""]
+    try:
+        from data_helpers import get_companion_seasonal_block as _gcsb
+        lines += _gcsb("COACH", iso)
+    except Exception:
+        pass
     lines += [""] + frol_context_block(weekday) + frol_edit_instructions()
     lines += [""] + companion_system_block("COACH")
     return "\n".join(lines)

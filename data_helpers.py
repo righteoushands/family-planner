@@ -998,6 +998,187 @@ def delete_seasonal_schedule(entry_id: str) -> bool:
     return True
 
 
+# ── Phase G: companion seasonal awareness ───────────────────────────────────
+def get_seasonal_context(today: date = None) -> dict:
+    """Return a small dict the companions can consume to be season-aware.
+
+    Shape::
+        {
+            "current_label":  str | None,
+            "current_year":   int  | None,
+            "upcoming_label": str | None,
+            "upcoming_year":  int  | None,
+            "days_until":     int  | None,
+            "prior_year_saved": bool,   # any saved schedule for upcoming label
+            "school_phase":   "Back to School ramp-up" |
+                              "Mid-year" |
+                              "End-of-year wind-down" |
+                              "Summer mode",
+            "is_summer":      bool,
+            "is_stress_season": bool,    # True during November / End of school year
+        }
+    """
+    from datetime import date as _date
+    if today is None:
+        today = _date.today()
+    try:
+        from render_seasons import current_season, upcoming_season
+        cur = current_season(today) or {}
+        nxt = upcoming_season(today) or {}
+    except Exception:
+        cur, nxt = {}, {}
+
+    cur_label = cur.get("label")
+    nxt_label = nxt.get("label")
+    nxt_year  = nxt.get("year")
+    days_until = nxt.get("days_until")
+
+    prior_saved = False
+    if nxt_label:
+        try:
+            for e in load_seasonal_schedules():
+                if (e.get("season_label") or "").strip() == nxt_label:
+                    prior_saved = True
+                    break
+        except Exception:
+            prior_saved = False
+
+    # School-year phase derived from today's date (Aug 15 – Sep 30 = ramp-up,
+    # Oct 1 – Apr 30 = mid-year, May 1 – May 31 = wind-down, Jun 1 – Aug 14 = summer).
+    m, d = today.month, today.day
+    if (m == 8 and d >= 15) or m == 9:
+        school_phase = "Back to School ramp-up"
+    elif m in (10, 11, 12, 1, 2, 3, 4):
+        school_phase = "Mid-year"
+    elif m == 5:
+        school_phase = "End-of-year wind-down"
+    else:
+        school_phase = "Summer mode"
+
+    is_summer = (m == 6) or (m == 7) or (m == 8 and d < 15)
+    is_stress = cur_label in ("November", "End of school year")
+
+    return {
+        "current_label":    cur_label,
+        "current_year":     cur.get("year"),
+        "upcoming_label":   nxt_label,
+        "upcoming_year":    nxt_year,
+        "days_until":       days_until,
+        "prior_year_saved": prior_saved,
+        "school_phase":     school_phase,
+        "is_summer":        is_summer,
+        "is_stress_season": is_stress,
+    }
+
+
+def get_companion_seasonal_block(role: str, iso: str = "") -> list:
+    """Return a list of lines forming the role-specific seasonal context block.
+
+    Role: one of LUCY, LORENZO, SISTERMARY, GREGORY, COACH, MONICA.
+    `iso` (optional): YYYY-MM-DD date the prompt is being built for. When
+    provided, seasonal facts are aligned to that date instead of today.
+    Always returns a non-empty list (header + at least one fact line)."""
+    role = (role or "").strip().upper()
+    ref_date = None
+    if iso:
+        try:
+            ref_date = date.fromisoformat(iso)
+        except Exception:
+            ref_date = None
+    ctx  = get_seasonal_context(ref_date)
+    cur  = ctx.get("current_label") or "(unknown)"
+    nxt  = ctx.get("upcoming_label") or "(none upcoming)"
+    days = ctx.get("days_until")
+    days_txt = f"{days} days away" if isinstance(days, int) else "no upcoming season"
+    prior = "yes" if ctx.get("prior_year_saved") else "no"
+    phase = ctx.get("school_phase") or "Mid-year"
+
+    out = ["", "== SEASONAL CONTEXT =="]
+    out.append(f"Current season: {cur}.")
+    out.append(f"Upcoming season: {nxt} ({days_txt}).")
+    out.append(f"A saved schedule exists for the upcoming season: {prior}.")
+
+    if role == "LUCY":
+        out += [
+            f"School-year phase: {phase}.",
+            "When a new season is within 14 days, you should mention the approaching",
+            "transition in conversation — gently, not as alarm.",
+            "If Lauren asks 'what did we do differently during {season} last year' or",
+            "anything similar, retrieve from the seasonal library (data/seasonal_schedules.json)",
+            "and summarize what was saved for that season last year.",
+        ]
+    elif role == "LORENZO":
+        out += [
+            "Reflect the current season in meal planning:",
+            "  - Lent: simplicity, Friday abstinence, soups, beans, no-meat options.",
+            "  - Christmas: feast planning, batch baking, hospitality.",
+            "  - Summer: simple, cold, grill-forward meals; lighter cooking.",
+            "  - Back to School: easy weeknight dinners, prep-ahead, packable lunches.",
+            "Tie suggestions to the current season above without being preachy about it.",
+        ]
+    elif role == "SISTERMARY":
+        # Liturgical context is already provided above this block in Sister Mary's
+        # prompt — this block adds only the upcoming transition flag.
+        if isinstance(days, int) and days <= 14 and ctx.get("upcoming_label"):
+            out += [
+                f"A seasonal transition is approaching: {nxt} in {days} days.",
+                "Offer Lauren appropriate spiritual encouragement for this transition —",
+                "without rushing her, and without adding tasks.",
+            ]
+        else:
+            out += [
+                "No imminent seasonal transition. Stay with Lauren in the present.",
+            ]
+    elif role == "GREGORY":
+        if phase == "Back to School ramp-up":
+            tone = ("Ease the boys back in; rebuild rhythm before piling on rigor. "
+                    "Heavy formal assessments should wait two weeks.")
+        elif phase == "Mid-year":
+            tone = ("This is the heart of the school year — full rigor is appropriate. "
+                    "Keep momentum, watch for burnout.")
+        elif phase == "End-of-year wind-down":
+            tone = ("End-of-year wind-down: prioritize finishing essentials over starting "
+                    "new units. Lighter affective tone in feedback.")
+        else:
+            tone = ("Summer mode: school is not in formal session. Recommend living-book "
+                    "reading, nature study, and project work — no formal lesson scheduling.")
+        out += [
+            f"School-year phase: {phase}.",
+            f"Adjust assignment feedback and planning accordingly: {tone}",
+        ]
+    elif role == "COACH":
+        if ctx.get("is_summer"):
+            out += [
+                "Summer mode: prioritize outdoor adventure, swimming, hiking, family activity.",
+                "Programming can be looser — leverage the long daylight and unstructured days.",
+            ]
+        else:
+            out += [
+                "School-year mode: anchor exercise to the FROL slot. Short, repeatable",
+                "sessions that fit between school blocks work best for the boys.",
+            ]
+    elif role == "MONICA":
+        if ctx.get("is_stress_season"):
+            out += [
+                f"HEADS UP: '{cur}' is historically a hard season for this household.",
+                "Proactively check in on Lauren's bandwidth and the boys' stress signals.",
+                "Lower the threshold for offering rest, simplification, and grace.",
+            ]
+        elif ctx.get("upcoming_label") in ("November", "End of school year") and isinstance(days, int) and days <= 21:
+            out += [
+                f"A historically hard season ({nxt}) is approaching in {days} days.",
+                "Begin gently surfacing supports before it arrives — sleep, simplification, ",
+                "preventive pediatric scheduling.",
+            ]
+        else:
+            out += [
+                "No elevated seasonal stress flag right now.",
+            ]
+    else:
+        out += [f"School-year phase: {phase}."]
+    return out
+
+
 # ── Roadmap ──────────────────────────────────────────────────────────────────
 def load_roadmap():
     data = ensure_file(ROADMAP_FILE, [])

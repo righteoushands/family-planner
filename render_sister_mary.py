@@ -203,6 +203,11 @@ def build_sister_mary_context(iso: str, weekday: str, date_label: str) -> str:
             lines += ["", _gmcb(), ""]
         except Exception:
             pass
+        try:
+            from data_helpers import get_companion_seasonal_block as _gcsb
+            lines += _gcsb("SISTERMARY", iso)
+        except Exception:
+            pass
         # Companion handoffs + remember-tag spec only when family-context is on
         lines += [""] + companion_system_block("SISTERMARY")
     else:
