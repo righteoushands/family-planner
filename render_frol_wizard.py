@@ -927,12 +927,27 @@ def _section_chrome(section: int, title: str, subtitle: str, body_html: str,
     advance_v2 actions and uses 'Section N of V2_TOTAL_SECTIONS'."""
     completed = progress.get("completed_steps", []) or []
     dots = render_section_dots(section, V2_TOTAL_SECTIONS, completed)
+
+    def _v2_title(i: int) -> str:
+        for (idx, _slug, t, _sub) in V2_SECTIONS:
+            if idx == i:
+                return t
+        return f"Section {i}"
+
     back_link = ""
     if section > 1:
+        _prev_title = _v2_title(section - 1)
         back_link = (f'<a href="/frol-wizard?step={section-1}&mode={escape(mode, quote=True)}"'
-                     f' class="frol-btn ghost">&larr; Back</a>')
+                     f' class="frol-btn ghost">&larr; {escape(_prev_title)}</a>')
     advance_label = ("Save & Continue" if section < V2_TOTAL_SECTIONS
                      else "Save my Rule of Life")
+    next_dest_html = ""
+    if section < V2_TOTAL_SECTIONS:
+        _next_title = _v2_title(section + 1)
+        next_dest_html = (
+            f'<div style="font-size:0.78em;color:#6b7280;margin-top:3px;'
+            f'text-align:center;">{escape(_next_title)} &rarr;</div>'
+        )
     chat_panel = ""
     if mode == "lucy" and lucy_visible:
         chat_panel = _render_chat_panel(section)
@@ -1009,7 +1024,10 @@ def _section_chrome(section: int, title: str, subtitle: str, body_html: str,
                 <div>{back_link}</div>
                 <div style="display:flex;align-items:center;gap:14px;">
                   <span class="frol-save-status" id="frol-save-status">Saved automatically</span>
-                  <button type="submit" class="frol-btn">{advance_label} &rarr;</button>
+                  <div style="display:flex;flex-direction:column;align-items:stretch;">
+                    <button type="submit" class="frol-btn">{advance_label} &rarr;</button>
+                    {next_dest_html}
+                  </div>
                 </div>
               </div>
             </form>
@@ -7288,14 +7306,48 @@ def render_frol_wizard_page(viewer: str = "", step=None, mode: str = "") -> str:
         renderer = _section_renderer(cur)
         body = renderer(progress, mode) if renderer else _section_placeholder(cur, mode, progress)
 
+    _completed_set = set(progress.get("completed_steps", []) or [])
+    _jump_mode = escape(mode or progress.get("mode") or "structured", quote=True)
+    _jump_items = []
+    for (_idx, _slug, _t, _sub) in V2_SECTIONS:
+        _check  = "✓ " if _idx in _completed_set else ""
+        _is_cur = (_idx == cur)
+        _bg     = "#fff4d6" if _is_cur else "transparent"
+        _weight = "700" if _is_cur else "500"
+        _color  = "#7a4ea3" if _is_cur else "#222"
+        _jump_items.append(
+            f'<a href="/frol-wizard?step={_idx}&mode={_jump_mode}" '
+            f'style="display:block;padding:8px 12px;text-decoration:none;'
+            f'background:{_bg};color:{_color};font-weight:{_weight};'
+            f'border-bottom:1px solid #f1ecde;font-size:0.92em;">'
+            f'<span style="display:inline-block;width:28px;color:#888;">{_idx}.</span>'
+            f'{_check}{escape(_t)}</a>'
+        )
+    _cur_label = f"Section {cur} of {V2_TOTAL_SECTIONS}" if cur else f"Start · {V2_TOTAL_SECTIONS} sections"
+    _jump_popover = (
+        f'<details class="frol-section-jump" '
+        f'style="position:relative;display:inline-block;">'
+        f'<summary style="cursor:pointer;list-style:none;user-select:none;'
+        f'padding:2px 8px;border-radius:6px;background:#f5efe0;'
+        f'border:1px solid #e2d6b8;font-size:0.92em;color:#5a4520;">'
+        f'Rule of Life · {_cur_label} &#9662;</summary>'
+        f'<div style="position:absolute;top:100%;left:0;margin-top:6px;'
+        f'min-width:280px;max-height:60vh;overflow-y:auto;background:#fff;'
+        f'border:1px solid #d8cdb0;border-radius:10px;'
+        f'box-shadow:0 6px 20px rgba(0,0,0,0.12);z-index:1000;">'
+        f'{"".join(_jump_items)}</div></details>'
+    )
     return f"""<!doctype html><html><head><meta charset="utf-8">
 <title>Rule of Life Wizard</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<style>{WIZARD_CSS}</style></head><body>
+<style>{WIZARD_CSS}
+.frol-section-jump > summary::-webkit-details-marker {{ display:none; }}
+.frol-section-jump > summary::marker {{ content:""; }}
+</style></head><body>
 <div class="frol-wrap">
   <div class="frol-top">
     <a href="/">&larr; Home</a>
-    <span>Rule of Life · Section {cur or "Start"} of {V2_TOTAL_SECTIONS}</span>
+    {_jump_popover}
   </div>
   {body}
 </div>
