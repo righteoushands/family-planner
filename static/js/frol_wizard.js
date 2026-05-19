@@ -669,17 +669,38 @@ window.s12ShowView = function (v) {
     return isIos && isSafari;
   }
 
-  // Capability test: does position:sticky actually hold inside a
-  // scrollable <table>? Modern browsers + iOS 13+ pass; older iOS
-  // Safari (≤12) fails. Only those failing devices need the JS
-  // transform fallback — applying it everywhere would over-correct.
+  // Behavioral probe: does position:sticky actually hold on a <th>
+  // inside a scrollable <table>? This is what old iOS Safari (≤12)
+  // gets wrong even when the CSS property parses. We build a tiny
+  // hidden scrollable table, scroll it, and check whether the
+  // header's bounding box stays pinned. Only true failures get the
+  // JS transform fallback — newer iOS where sticky works natively
+  // is left alone so the script can't fight the browser.
   var _stickyCapCache = null;
   function nativeStickyWorks() {
     if (_stickyCapCache !== null) return _stickyCapCache;
     try {
       var probe = document.createElement('div');
-      probe.style.cssText = 'position:sticky;position:-webkit-sticky;top:0;';
-      _stickyCapCache = (probe.style.position.indexOf('sticky') !== -1);
+      probe.style.cssText =
+        'position:absolute;left:-9999px;top:-9999px;' +
+        'width:120px;height:60px;overflow:auto;';
+      probe.innerHTML =
+        '<table style="width:100%;border-collapse:collapse;">' +
+        '<thead><tr><th id="_frolStProbe" style="' +
+        'position:sticky;position:-webkit-sticky;top:0;height:20px;' +
+        'background:#fff;">h</th></tr></thead>' +
+        '<tbody>' +
+        '<tr><td style="height:200px;">x</td></tr>' +
+        '</tbody></table>';
+      document.body.appendChild(probe);
+      probe.scrollTop = 100;
+      var head = probe.querySelector('#_frolStProbe');
+      var headTop = head.getBoundingClientRect().top;
+      var boxTop = probe.getBoundingClientRect().top;
+      // If sticky works, the header's top stays at (or very near)
+      // the scroll container's top, regardless of scrollTop.
+      _stickyCapCache = Math.abs(headTop - boxTop) < 2;
+      document.body.removeChild(probe);
     } catch (e) {
       _stickyCapCache = false;
     }
