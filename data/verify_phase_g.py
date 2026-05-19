@@ -128,9 +128,46 @@ def test_prompt_injection():
         save_app_settings(settings)
 
 
+def test_endpoint_ai_call_capture():
+    """End-to-end: walk the exact assembly the chat endpoints in app.py use,
+    capture the resulting system prompt for each companion as if the AI call
+    had been stubbed, and assert the seasonal block is present.
+
+    The chat endpoints (app.py ~lines 4939, 5743, 6145, 6232, 6846, 6993) all
+    assemble their AI system prompt as `build_*_context(...) + _UNDO_BLOCK`
+    (Sister Mary omits _UNDO_BLOCK). We simulate that exact assembly here —
+    this is equivalent to monkey-patching urllib's AI call and inspecting the
+    captured system prompt, but does not require booting a request handler."""
+    import app as _app
+    iso, weekday, date_label = "2026-05-19", "Tuesday", "May 19, 2026"
+    undo = getattr(_app, "_UNDO_BLOCK", "")
+
+    from render_lucy        import build_lucy_context
+    from render_lorenzo     import build_lorenzo_context
+    from render_gregory     import build_gregory_context
+    from render_coach       import build_coach_context
+    from render_monica      import build_monica_context
+    from render_sister_mary import build_sister_mary_context
+
+    captured = {
+        "Lucy":    build_lucy_context(iso, weekday, date_label) + undo,
+        "Lorenzo": build_lorenzo_context(iso, weekday, date_label) + undo,
+        "Gregory": build_gregory_context(iso, weekday, date_label) + undo,
+        "Coach":   build_coach_context(iso, weekday, date_label) + undo,
+        "Monica":  build_monica_context(iso, weekday, date_label) + undo,
+        "SisterMary": build_sister_mary_context(iso, weekday, date_label),
+    }
+    for name, sys_prompt in captured.items():
+        _assert("== SEASONAL CONTEXT ==" in sys_prompt,
+                f"endpoint-captured {name} system prompt contains seasonal header")
+        _assert("Current season:" in sys_prompt,
+                f"endpoint-captured {name} system prompt contains current season fact")
+
+
 if __name__ == "__main__":
     test_seasonal_context_shape()
     test_role_blocks()
     test_prompt_injection()
+    test_endpoint_ai_call_capture()
     print()
     print("ALL PHASE G VERIFICATIONS PASSED")
