@@ -845,6 +845,17 @@ def _category_color(cat: str) -> str:
     return "#64748b"
 
 
+def _safe_color(c: str, fallback: str = "#64748b") -> str:
+    """Allow only #RGB / #RRGGBB hex tokens through to inline style attrs.
+    Anything else (including empty, named colors, or attacker-controlled
+    text) is replaced with the fallback so we never inject CSS-breakout
+    characters into a style="..." block."""
+    import re as _re
+    if isinstance(c, str) and _re.fullmatch(r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})", c.strip()):
+        return c.strip()
+    return fallback
+
+
 def _category_label(cat: str) -> str:
     for key, label, _color in ACTIVITY_CATEGORIES:
         if key == cat:
@@ -1037,7 +1048,7 @@ def _render_activity_card(activity: dict, section: int, mode: str,
     aid = escape(str(activity.get("id") or ""), quote=True)
     name = escape(activity.get("name") or "(unnamed)")
     cat = activity.get("category") or ""
-    color = activity.get("color") or _category_color(cat)
+    color = _safe_color(activity.get("color") or "", _category_color(cat))
     who_type = activity.get("who_type") or "individual"
     wt_icon = _WHO_TYPE_ICONS.get(who_type, "&#128100;")
     who_list = activity.get("who") or []
