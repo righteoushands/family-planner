@@ -669,8 +669,30 @@ window.s12ShowView = function (v) {
     return isIos && isSafari;
   }
 
+  // Capability test: does position:sticky actually hold inside a
+  // scrollable <table>? Modern browsers + iOS 13+ pass; older iOS
+  // Safari (≤12) fails. Only those failing devices need the JS
+  // transform fallback — applying it everywhere would over-correct.
+  var _stickyCapCache = null;
+  function nativeStickyWorks() {
+    if (_stickyCapCache !== null) return _stickyCapCache;
+    try {
+      var probe = document.createElement('div');
+      probe.style.cssText = 'position:sticky;position:-webkit-sticky;top:0;';
+      _stickyCapCache = (probe.style.position.indexOf('sticky') !== -1);
+    } catch (e) {
+      _stickyCapCache = false;
+    }
+    return _stickyCapCache;
+  }
+
   function applyIosStickyFallback(scrollBox) {
-    if (!isIosSafari() || !scrollBox) return;
+    // Two gates: must be iOS Safari AND native sticky must be missing
+    // (capability test). Newer iOS where sticky works natively gets no
+    // fallback at all, so the JS transforms can't fight the browser.
+    if (!scrollBox) return;
+    if (!isIosSafari()) return;
+    if (nativeStickyWorks()) return;
     if (scrollBox.__frolStickyBound) return;
     scrollBox.__frolStickyBound = true;
     var thead = scrollBox.querySelector('thead');
