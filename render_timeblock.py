@@ -1926,7 +1926,7 @@ def render_timeblock_homepage(viewer: str = "lauren") -> str:
         f'style="margin:8px 0;display:flex;align-items:center;gap:10px;'
         f'background:#fff;border:1px solid #e2e8f0;border-radius:10px;'
         f'padding:10px 14px;font-size:0.88em;">'
-        f'<span style="font-weight:600;color:#33507e;">✈️ John traveling</span>'
+        f'<span style="font-weight:600;color:#33507e;">✈️ John is traveling</span>'
         f'<input type="hidden" name="enabled" value="{_jt_new_val}">'
         f'<button type="submit" '
         f'style="margin-left:auto;background:{_jt_pill_bg};color:{_jt_pill_fg};'

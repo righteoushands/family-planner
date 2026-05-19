@@ -1042,7 +1042,7 @@ ACTIVITY_VARIANTS = [
     ("weekday",         "Weekday (Mon–Fri)"),
     ("saturday",        "Saturday"),
     ("sunday",          "Sunday"),
-    ("john_traveling",  "John traveling"),
+    ("john_traveling",  "John is traveling"),
 ]
 
 
