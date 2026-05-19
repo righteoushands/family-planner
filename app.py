@@ -149,7 +149,7 @@ from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import socketserver
 import cgi as _cgi
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse, quote as _url_quote
 
 import auth as _auth
 
@@ -230,6 +230,8 @@ from data_helpers import (
     advance_curriculum_cursor,
     load_thankyou_reminders, save_thankyou_reminders,
     list_snapshots, restore_snapshot, load_snapshot_data,
+    load_frol_activities, save_frol_activities,
+    _activity_new_id, _DEFAULT_WEEKDAYS,
 )
 from ui_helpers import parse_urlencoded_body, parse_multipart_form
 from render_schedule import render_child_schedule, render_today_all, render_week, render_print_day, render_print_week, render_print_child_day_list
@@ -7371,18 +7373,13 @@ class Handler(BaseHTTPRequestHandler):
                     try: self.wfile.write(b"Admin only.")
                     except BrokenPipeError: pass
                     return
-                from data_helpers import (
-                    load_frol_activities, save_frol_activities,
-                    _activity_new_id, _DEFAULT_WEEKDAYS,
-                )
                 _sec_str = (data.get("section",[""])[0] or "0").strip()
                 _mode_a  = (data.get("mode",[""])[0] or "").strip()
                 _av_a    = (data.get("active_variant",[""])[0] or "weekday").strip() or "weekday"
                 try: _sec_i = int(_sec_str)
                 except Exception: _sec_i = 0
-                from urllib.parse import quote as _q_av
                 _redirect_back = (f"/frol-wizard?step={_sec_i}&mode={_mode_a}"
-                                  f"&active_variant={_q_av(_av_a)}")
+                                  f"&active_variant={_url_quote(_av_a)}")
                 _items = load_frol_activities()
                 if path == "/frol-delete-activity":
                     _did = (data.get("id",[""])[0] or "").strip()
