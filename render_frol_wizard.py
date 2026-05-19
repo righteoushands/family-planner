@@ -6209,16 +6209,22 @@ def _render_save_seasonal_card() -> str:
 
 def _render_landing_seasonal_awareness_card() -> str:
     """Phase F: on the wizard landing, show a Marian-blue card when an
-    upcoming season is within 14 days AND a saved schedule exists for it."""
+    upcoming season is within 14 days AND a *previous-year* saved
+    schedule (year < upcoming year) exists for that label."""
     try:
-        from render_seasons import upcoming_season as _us
+        from render_seasons import upcoming_season as _us, migrate_label as _ml
         from datetime import date as _date
         from data_helpers import load_seasonal_schedules as _lss
         nxt = _us(_date.today(), window_days=14)
         if not nxt:
             return ""
         label = nxt["label"]
-        matches = [e for e in _lss() if e.get("season_label") == label]
+        upcoming_year = int(nxt["year"])
+        matches = [
+            e for e in _lss()
+            if _ml(e.get("season_label")) == label
+            and int(e.get("year") or 0) < upcoming_year
+        ]
         if not matches:
             return ""
         matches.sort(key=lambda e: e.get("year", 0), reverse=True)

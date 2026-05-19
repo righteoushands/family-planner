@@ -1861,23 +1861,24 @@ def _render_seven_commitments_card() -> str:
 
 
 def _render_seasonal_prompt_card(today) -> str:
-    """Phase F: Marian-blue POD card prompting the family to review last
-    year's saved schedule when a new season is within 14 days. Dismissal
-    persists per-(label,year) in app_settings.dismissed_season_prompts."""
+    """Phase F: Marian-blue POD prompt shown whenever an upcoming season
+    is within 14 days. The CTA jumps into the Rule of Life wizard to set
+    up that season's schedule. If a previous-year saved schedule exists,
+    we also expose a secondary "View last year" link. The card persists
+    per-(label,year) dismissal in app_settings.dismissed_season_prompts
+    via the corner ✕ button or a tap on the card itself."""
     try:
         import json as _json
-        from render_seasons import upcoming_season as _us
+        from render_seasons import (
+            upcoming_season as _us, migrate_label as _ml,
+        )
         from data_helpers import load_seasonal_schedules as _lss
         from config import APP_SETTINGS_FILE as _ASF
         nxt = _us(today, window_days=14)
         if not nxt:
             return ""
         label = nxt["label"]
-        year  = nxt["year"]
-        matches = [e for e in _lss() if e.get("season_label") == label]
-        if not matches:
-            return ""
-        # Check dismissal: app_settings.dismissed_season_prompts[label] == year
+        year  = int(nxt["year"])
         dismissed = {}
         try:
             if os.path.exists(_ASF):
@@ -1886,45 +1887,70 @@ def _render_seasonal_prompt_card(today) -> str:
                 dismissed = _s.get("dismissed_season_prompts", {}) or {}
         except Exception:
             dismissed = {}
-        if int(dismissed.get(label, 0) or 0) == int(year):
+        if int(dismissed.get(label, 0) or 0) == year:
             return ""
-        matches.sort(key=lambda e: e.get("year", 0), reverse=True)
-        latest = matches[0]
-        _id  = escape(str(latest.get("id") or ""), quote=True)
-        _olbl = escape(label)
-        _dn  = int(nxt.get("days_until") or 0)
-        when = "today" if _dn == 0 else ("tomorrow" if _dn == 1 else f"in {_dn} days")
-        _yr_prev = int(latest.get("year") or 0)
+        # Optional previous-year reference for a secondary "View last year"
+        # action — never gates display of the card itself.
+        prev = None
+        try:
+            prev_matches = [
+                e for e in _lss()
+                if _ml(e.get("season_label")) == label
+                and int(e.get("year") or 0) < year
+            ]
+            if prev_matches:
+                prev_matches.sort(key=lambda e: e.get("year", 0), reverse=True)
+                prev = prev_matches[0]
+        except Exception:
+            prev = None
+        _olbl  = escape(label)
+        _dn    = int(nxt.get("days_until") or 0)
+        when_n = "today" if _dn == 0 else ("tomorrow" if _dn == 1 else f"in {_dn} days")
+        msg    = f"We are approaching {_olbl} which begins {escape(when_n)}."
+        cta_lbl = f"Set Up {_olbl} Schedule"
+        prev_link = ""
+        if prev:
+            _pid  = escape(str(prev.get("id") or ""), quote=True)
+            _pyr  = int(prev.get("year") or 0)
+            prev_link = (
+                f'<a href="/frol-seasonal-view?id={_pid}" '
+                f'onclick="event.stopPropagation();" '
+                f'style="background:#fff;color:#1e3a8a;border:1px solid #2563eb;'
+                f'border-radius:6px;padding:6px 12px;text-decoration:none;'
+                f'font-weight:700;font-size:0.85em;">View last year ({_pyr})</a>'
+            )
+        # The dismissal form posts the canonical label + year. We use a
+        # data attribute + tiny inline script so a tap on the card body
+        # (outside the buttons) also submits dismissal then follows the
+        # primary CTA. The ✕ button does dismissal only.
         return (
-            '<div style="background:linear-gradient(135deg,#dbe7f7,#c3d4ef);'
+            '<form method="POST" action="/pod-dismiss-season" '
+            'class="pod-seasonal-prompt" '
+            'style="background:linear-gradient(135deg,#dbe7f7,#c3d4ef);'
             'border:1px solid #9bb6dc;border-left:4px solid #2563eb;'
-            'border-radius:12px;padding:14px 16px;margin:12px 0;'
-            'position:relative;">'
+            'border-radius:12px;padding:14px 36px 14px 16px;margin:12px 0;'
+            'position:relative;display:block;cursor:pointer;" '
+            'onclick="if(event.target.closest(\'a,button\'))return;'
+            'this.submit();" '
+            f'data-cta="/frol-wizard">'
+            f'<input type="hidden" name="label" value="{_olbl}">'
+            f'<input type="hidden" name="year"  value="{year}">'
+            '<button type="submit" aria-label="Dismiss" '
+            'onclick="event.stopPropagation();" '
+            'style="position:absolute;top:6px;right:8px;background:transparent;'
+            'border:none;color:#1e3a8a;font-size:1.1em;line-height:1;'
+            'cursor:pointer;padding:4px 6px;font-weight:700;">&times;</button>'
             f'<div style="font-weight:700;color:#1e3a8a;font-size:1em;'
-            f'margin-bottom:4px;">🗓 {_olbl} starts {escape(when)}</div>'
-            f'<div style="font-size:0.88em;color:#33507e;line-height:1.45;'
-            f'margin-bottom:10px;">'
-            f'You have a saved rule of life from {_yr_prev}. Want to revisit '
-            f'it before the season changes?</div>'
+            f'margin-bottom:8px;">🗓 {msg}</div>'
             '<div style="display:flex;gap:6px;flex-wrap:wrap;">'
-            f'<a href="/frol-seasonal-view?id={_id}" '
-            f'style="background:#fff;color:#1e3a8a;border:1px solid #2563eb;'
-            f'border-radius:6px;padding:6px 12px;text-decoration:none;'
-            f'font-weight:700;font-size:0.85em;">View saved schedule</a>'
             f'<a href="/frol-wizard" '
+            f'onclick="event.stopPropagation();" '
             f'style="background:#2563eb;color:#fff;border-radius:6px;'
             f'padding:6px 12px;text-decoration:none;font-weight:700;'
-            f'font-size:0.85em;">Open Rule of Life</a>'
-            '<form method="POST" action="/pod-dismiss-season" '
-            'style="margin-left:auto;display:inline-block;">'
-            f'<input type="hidden" name="label" value="{_olbl}">'
-            f'<input type="hidden" name="year"  value="{int(year)}">'
-            '<button type="submit" '
-            'style="background:transparent;border:none;color:#5570a0;'
-            'text-decoration:underline;font-size:0.82em;cursor:pointer;">'
-            'Dismiss</button></form>'
+            f'font-size:0.85em;">{cta_lbl}</a>'
+            f'{prev_link}'
             '</div>'
-            '</div>'
+            '</form>'
         )
     except Exception:
         return ""

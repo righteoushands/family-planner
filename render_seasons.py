@@ -15,25 +15,27 @@ from render_liturgical import _easter
 
 # 8 fixed-date seasons (Mon-Fri assumed irrelevant — these are calendar dates)
 _FIXED_SEASONS = [
-    ("End of School Year",  5, 15),
-    ("Summer",              6, 1),
-    ("Back to School",      8, 15),
-    ("Fall",                9, 22),
-    ("November",           11, 1),
-    ("Christmas",          12, 25),
-    ("New Year",            1, 1),
-    ("Post-Christmas Break", 1, 7),
+    ("End of school year",   5, 15),
+    ("Summer",               6, 1),
+    ("Back to School",       8, 15),
+    ("Fall",                 9, 22),
+    ("November",            11, 1),
+    ("Christmas",           12, 25),
+    ("New Year",             1, 1),
+    ("Post-break ramp-up",   1, 7),
 ]
 
 # 3 moveable Catholic seasons keyed by their starting feast.
 _MOVEABLE_KEYS = ("Lent", "Easter", "Advent")
 
-# Ordered for UI dropdowns + library grouping.
+# Ordered for UI dropdowns + library grouping. Exact strings here are
+# persisted in app_settings.dismissed_season_prompts and in saved
+# schedules — do not rename without a migration.
 SEASON_LABELS = [
-    "Post-Christmas Break",
+    "Post-break ramp-up",
     "Lent",
     "Easter",
-    "End of School Year",
+    "End of school year",
     "Summer",
     "Back to School",
     "Fall",
@@ -42,6 +44,18 @@ SEASON_LABELS = [
     "Christmas",
     "New Year",
 ]
+
+# One-time migration: any persisted entries that still use the old label
+# spellings need to be updated to the new strings at read time.
+_LABEL_MIGRATIONS = {
+    "Post-Christmas Break": "Post-break ramp-up",
+    "End of School Year":   "End of school year",
+}
+
+
+def migrate_label(label: str) -> str:
+    """Return the canonical label for a (possibly historical) string."""
+    return _LABEL_MIGRATIONS.get((label or "").strip(), label)
 
 
 def _moveable_start(label: str, year: int) -> date:
