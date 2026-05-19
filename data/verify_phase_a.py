@@ -173,6 +173,46 @@ def main() -> int:
     check('name="active_variant"' in edit_html,
           "edit form includes active_variant hidden fallback")
 
+    print("── 4c. New-activity IDs are unique per call ──")
+    id1 = dh._activity_new_id()
+    id2 = dh._activity_new_id()
+    id3 = dh._activity_new_id()
+    check(id1 != id2 and id2 != id3 and id1 != id3,
+          "_activity_new_id() with no seed returns distinct ids per call")
+    # Simulate two identical adds (same name/section/who_type) — both must
+    # land in the store as independent rows with independent ids.
+    items = dh.load_frol_activities()
+    base = {
+        "id": "", "name": "Dup Test Activity", "section": 5,
+        "who_type": "family", "who": ["Lauren","John","JP","Joseph","Michael","James"],
+        "leader": "", "per_person_times": {},
+        "time": "08:00", "duration_min": 10,
+        "days": ["Monday"], "schedule_variant": ["weekday"],
+        "category": "personal", "color": "", "credits": [],
+        "seasonal": "year_round", "is_grooming": False,
+    }
+    a1 = dict(base); a1["id"] = dh._activity_new_id()
+    a2 = dict(base); a2["id"] = dh._activity_new_id()
+    check(a1["id"] != a2["id"],
+          "two identical add payloads receive distinct ids")
+    items_dup = items + [a1, a2]
+    dh.save_frol_activities(items_dup)
+    after = dh.load_frol_activities()
+    ids_after = [x["id"] for x in after if x.get("name") == "Dup Test Activity"]
+    check(len(ids_after) == 2 and len(set(ids_after)) == 2,
+          "both duplicate-name activities persist with unique ids")
+    # Delete only one; the other must remain.
+    keep_id = a2["id"]
+    after2 = [x for x in after if x["id"] != a1["id"]]
+    dh.save_frol_activities(after2)
+    after3 = dh.load_frol_activities()
+    remaining = [x for x in after3 if x.get("name") == "Dup Test Activity"]
+    check(len(remaining) == 1 and remaining[0]["id"] == keep_id,
+          "delete by id removes exactly one duplicate (sibling survives)")
+    # Cleanup
+    final = [x for x in after3 if x.get("name") != "Dup Test Activity"]
+    dh.save_frol_activities(final)
+
     print("── 5. Delete + add round-trip ──")
     items = dh.load_frol_activities()
     items = [a for a in items if a["id"] != "act_test_fam"]

@@ -7465,7 +7465,7 @@ class Handler(BaseHTTPRequestHandler):
                             break
                 else:
                     _new = {
-                        "id": _activity_new_id(f"{_name}|{_sec_i}|{_wt}"),
+                        "id": _activity_new_id(),
                         "name": _name, "section": _sec_i, "who_type": _wt,
                         "who": _who, "leader": _leader,
                         "per_person_times": _per_person,
