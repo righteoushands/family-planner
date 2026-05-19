@@ -102,7 +102,7 @@ def test_prompt_injection():
     _assert("School-year phase: Back to School ramp-up" in aug_prompt,
             "Lucy prompt for Aug 20 reflects Back to School ramp-up phase")
 
-    # Sister Mary — only injected when family-context setting is on.
+    # Sister Mary — seasonal block must appear in BOTH branches.
     from render_sister_mary import build_sister_mary_context
     from render_settings    import load_app_settings, save_app_settings
     settings = load_app_settings() or {}
@@ -110,9 +110,19 @@ def test_prompt_injection():
     try:
         settings["sister_mary_family_context"] = True
         save_app_settings(settings)
-        sm_prompt = build_sister_mary_context(iso, weekday, date_label)
-        _assert("== SEASONAL CONTEXT ==" in sm_prompt,
-                "Sister Mary (family-ctx on) contains seasonal header")
+        sm_on = build_sister_mary_context(iso, weekday, date_label)
+        _assert("== SEASONAL CONTEXT ==" in sm_on,
+                "Sister Mary (family-ctx ON) contains seasonal header")
+
+        settings["sister_mary_family_context"] = False
+        save_app_settings(settings)
+        sm_off = build_sister_mary_context(iso, weekday, date_label)
+        _assert("== SEASONAL CONTEXT ==" in sm_off,
+                "Sister Mary (family-ctx OFF / privacy mode) still contains seasonal header")
+        _assert("Current season:" in sm_off,
+                "Sister Mary (privacy mode) contains current season fact")
+        _assert("== PRIVACY MODE ==" in sm_off,
+                "Sister Mary (privacy mode) still emits privacy notice")
     finally:
         settings["sister_mary_family_context"] = prev
         save_app_settings(settings)

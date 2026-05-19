@@ -211,6 +211,14 @@ def build_sister_mary_context(iso: str, weekday: str, date_label: str) -> str:
         # Companion handoffs + remember-tag spec only when family-context is on
         lines += [""] + companion_system_block("SISTERMARY")
     else:
+        # Seasonal awareness is non-personal — safe to include even in privacy
+        # mode, so Sister Mary can still note approaching liturgical/seasonal
+        # transitions for Lauren without touching the family memory store.
+        try:
+            from data_helpers import get_companion_seasonal_block as _gcsb
+            lines += _gcsb("SISTERMARY", iso)
+        except Exception:
+            pass
         lines += [
             "",
             "== PRIVACY MODE ==",
