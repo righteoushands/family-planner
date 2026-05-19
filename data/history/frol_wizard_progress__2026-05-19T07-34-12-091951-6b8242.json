@@ -988,12 +988,12 @@
     },
     "section_14": {
       "review_multi": "accept",
-      "review_dev": "skip",
+      "review_dev": "accept",
       "review_sched": "modify"
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-19T07:34:53",
+  "updated_at": "2026-05-19T07:34:08",
   "finalized_at": "",
   "_v1_completed_steps": [
     1,

@@ -359,7 +359,7 @@
       "confession_cadence": "Monthly on first Saturday",
       "adoration_cadence": "Ocassionally",
       "feast_days_flag": "yes",
-      "service_notes": "Visiting a sick friend and bringing food. "
+      "service_notes": "Visiting a sick friend and bringing food. \r\nHosting Mom nights at my home. "
     },
     "section_2": {
       "JP__wake_time": "06:55",
@@ -981,7 +981,10 @@
             "One of the older boys monitors James during nap time"
           ]
         }
-      ]
+      ],
+      "answers": {
+        "0": "Prayer time shifts to accommodate breakfast duties"
+      }
     },
     "section_14": {
       "review_multi": "accept",
@@ -990,7 +993,7 @@
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-18T15:25:20",
+  "updated_at": "2026-05-19T07:33:49",
   "finalized_at": "",
   "_v1_completed_steps": [
     1,
