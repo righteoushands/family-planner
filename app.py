@@ -7063,7 +7063,7 @@ class Handler(BaseHTTPRequestHandler):
                     _val  = (data.get("value",[""])[0] or "").strip()
                     _p = load_progress()
                     if _mode and not _p.get("mode"): _p["mode"] = _mode
-                    _b = _p.setdefault("data", {}).setdefault("section_12", {})
+                    _b = _p.setdefault("data", {}).setdefault("section_13", {})
                     _ans = _b.get("answers")
                     if not isinstance(_ans, dict):
                         _ans = {}
@@ -7071,20 +7071,20 @@ class Handler(BaseHTTPRequestHandler):
                     _ans[str(_qidx)] = _val
                     save_progress(_p)
                     self.send_response(302)
-                    self.send_header("Location", f"/frol-wizard?step=12&mode={_mode}")
+                    self.send_header("Location", f"/frol-wizard?step=13&mode={_mode}")
                     self.end_headers()
                     return
                 if _act == "s12_regenerate":
                     _p = load_progress()
                     if _mode and not _p.get("mode"): _p["mode"] = _mode
-                    _b = _p.setdefault("data", {}).setdefault("section_12", {})
+                    _b = _p.setdefault("data", {}).setdefault("section_13", {})
                     for _k in ("questions", "answers", "schedule",
                                "gen_hash", "_generating"):
                         if _k in _b:
                             _b.pop(_k, None)
                     save_progress(_p)
                     self.send_response(302)
-                    self.send_header("Location", f"/frol-wizard?step=12&mode={_mode}")
+                    self.send_header("Location", f"/frol-wizard?step=13&mode={_mode}")
                     self.end_headers()
                     return
                 if _act in ("s12_remove", "s12_restore"):
@@ -7092,14 +7092,14 @@ class Handler(BaseHTTPRequestHandler):
                     try: _si = int(_sidx)
                     except Exception: _si = -1
                     _p = load_progress()
-                    _b = _p.setdefault("data", {}).setdefault("section_12", {})
+                    _b = _p.setdefault("data", {}).setdefault("section_13", {})
                     _sch = _b.get("schedule")
                     if (isinstance(_sch, list) and 0 <= _si < len(_sch)
                             and isinstance(_sch[_si], dict)):
                         _sch[_si]["keep"] = (_act == "s12_restore")
                         save_progress(_p)
                     self.send_response(302)
-                    self.send_header("Location", f"/frol-wizard?step=12&mode={_mode}")
+                    self.send_header("Location", f"/frol-wizard?step=13&mode={_mode}")
                     self.end_headers()
                     return
                 if _act == "s12_move":
@@ -7118,7 +7118,7 @@ class Handler(BaseHTTPRequestHandler):
                             _norm = ""
                     if _norm:
                         _p = load_progress()
-                        _b = _p.setdefault("data", {}).setdefault("section_12", {})
+                        _b = _p.setdefault("data", {}).setdefault("section_13", {})
                         _sch = _b.get("schedule")
                         if (isinstance(_sch, list) and 0 <= _si < len(_sch)
                                 and isinstance(_sch[_si], dict)):
@@ -7126,7 +7126,7 @@ class Handler(BaseHTTPRequestHandler):
                             _sch.sort(key=lambda _x: _x.get("time", "") if isinstance(_x, dict) else "")
                             save_progress(_p)
                     self.send_response(302)
-                    self.send_header("Location", f"/frol-wizard?step=12&mode={_mode}")
+                    self.send_header("Location", f"/frol-wizard?step=13&mode={_mode}")
                     self.end_headers()
                     return
                 if _act == "s12_save_continue":
@@ -7140,16 +7140,16 @@ class Handler(BaseHTTPRequestHandler):
                         # Persist failed — stamp an error flag in section_12
                         # and bounce back to §12 (do NOT advance).
                         _p2 = load_progress()
-                        _b2 = _p2.setdefault("data", {}).setdefault("section_12", {})
+                        _b2 = _p2.setdefault("data", {}).setdefault("section_13", {})
                         _b2["save_error"] = "Could not write frol_activities.json"
                         save_progress(_p2)
                         self.send_response(302)
-                        self.send_header("Location", f"/frol-wizard?step=12&mode={_mode}")
+                        self.send_header("Location", f"/frol-wizard?step=13&mode={_mode}")
                         self.end_headers()
                         return
                     _advanced = False
                     try:
-                        _frol_advance_section(12, mode=_mode)
+                        _frol_advance_section(13, mode=_mode)
                         _advanced = True
                     except Exception:
                         _advanced = False
@@ -7157,13 +7157,13 @@ class Handler(BaseHTTPRequestHandler):
                     if _advanced:
                         # Clear any stale save_error on success
                         _p3 = load_progress()
-                        _b3 = _p3.setdefault("data", {}).setdefault("section_12", {})
+                        _b3 = _p3.setdefault("data", {}).setdefault("section_13", {})
                         if "save_error" in _b3:
                             _b3.pop("save_error", None)
                             save_progress(_p3)
-                        self.send_header("Location", f"/frol-wizard?step=13&mode={_mode}")
+                        self.send_header("Location", f"/frol-wizard?step=14&mode={_mode}")
                     else:
-                        self.send_header("Location", f"/frol-wizard?step=12&mode={_mode}")
+                        self.send_header("Location", f"/frol-wizard?step=13&mode={_mode}")
                     self.end_headers()
                     return
                 # V2 actions: save_field_v2 / advance_v2. Mirror the legacy
@@ -7214,7 +7214,7 @@ class Handler(BaseHTTPRequestHandler):
                                            "the server logs."),
                         }
                     _p = load_progress()
-                    _p.setdefault("data", {}).setdefault("section_14", {})["receipt"] = _receipt
+                    _p.setdefault("data", {}).setdefault("section_15", {})["receipt"] = _receipt
                     # If finalize raised, do NOT mark the wizard finalized.
                     if _err_msg and "finalized_at" in _p:
                         # leave any existing finalized_at alone — only
@@ -7222,7 +7222,7 @@ class Handler(BaseHTTPRequestHandler):
                         pass
                     save_progress(_p)
                     self.send_response(302)
-                    self.send_header("Location", f"/frol-wizard?step=14&mode={_mode}")
+                    self.send_header("Location", f"/frol-wizard?step=15&mode={_mode}")
                     self.end_headers()
                     return
                 if _act == "save_field":
@@ -7391,6 +7391,61 @@ class Handler(BaseHTTPRequestHandler):
                 try: finalize_wizard()
                 except Exception as _fwe: debug_log(f"frol_wizard finalize error: {_fwe}")
                 redirect = "/frol-wizard"
+
+            elif path == "/frol-set-variant":
+                # ── Phase C — persist active_variant across sections ──────
+                _svv = self._get_viewer()
+                if not (_svv and _auth.is_admin(_svv)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Admin only.")
+                    except BrokenPipeError: pass
+                    return
+                from render_frol_wizard import load_progress, save_progress
+                _vsel  = (data.get("variant",[""])[0] or "weekday").strip() or "weekday"
+                _vsec  = (data.get("section",[""])[0] or "0").strip()
+                _vmode = (data.get("mode",[""])[0] or "").strip()
+                _p = load_progress()
+                _p.setdefault("data", {})["active_variant"] = _vsel
+                save_progress(_p)
+                try: _vsec_i = int(_vsec)
+                except Exception: _vsec_i = 0
+                _dest = (f"/frol-wizard?step={_vsec_i}&mode={_vmode}"
+                         if _vsec_i else "/frol-wizard")
+                self.send_response(302)
+                self.send_header("Location", _dest)
+                self.end_headers()
+                return
+
+            elif path == "/frol-rollback-v3":
+                # ── Phase C — admin rollback to the v2_backup file ────────
+                _rbv = self._get_viewer()
+                if not (_rbv and _auth.is_admin(_rbv)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Admin only.")
+                    except BrokenPipeError: pass
+                    return
+                from render_frol_wizard import FROL_WIZARD_PROGRESS_FILE
+                from data_helpers import safe_save_json
+                import json as _rb_json, os as _rb_os
+                _bk = FROL_WIZARD_PROGRESS_FILE.replace(".json", ".v2_backup.json")
+                _ok = False
+                if _rb_os.path.exists(_bk):
+                    try:
+                        with open(_bk, encoding="utf-8") as _bf:
+                            _restored = _rb_json.load(_bf)
+                        # The backup is the pre-v3 snapshot; do NOT carry
+                        # the v3 schema_version stamp forward.
+                        if isinstance(_restored, dict):
+                            _restored.pop("schema_version", None)
+                        safe_save_json(FROL_WIZARD_PROGRESS_FILE, _restored)
+                        _ok = True
+                    except Exception:
+                        _ok = False
+                self.send_response(302)
+                self.send_header("Location",
+                    "/frol-wizard" + ("?rolled_back=1" if _ok else "?rollback_failed=1"))
+                self.end_headers()
+                return
 
             elif path in ("/frol-add-activity", "/frol-edit-activity", "/frol-delete-activity"):
                 # ── Phase A — activity CRUD (shared by all section pages) ─

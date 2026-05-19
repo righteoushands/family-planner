@@ -63,11 +63,12 @@ V2_SECTIONS = [
     (8,  "health",       "Exercise & Health",          "Movement, wellness, emergency contacts"),
     (9,  "rest",         "Rest, Free Time, Faith Life","Sabbath, marriage, traditions"),
     (10, "flex",         "Flex, Buffers & Seasonal",   "Transitions, energy, the things that go wrong"),
-    (11, "durations",    "How Long Does Each Activity Take?",
+    (11, "holidays",     "Holidays & Feast Days",      "Catholic feasts and US holidays — what changes"),
+    (12, "durations",    "How Long Does Each Activity Take?",
                                                        "Set a realistic time for each thing in your rule"),
-    (12, "build",        "Build Your Day",             "Visual placement on the timeline"),
-    (13, "commitments",  "Seven Commitments Check",    "Where the day reflects each commitment"),
-    (14, "review",       "AI Review & Suggestions",    "Multitasking, development, optimization"),
+    (13, "build",        "Build Your Day",             "Visual placement on the timeline"),
+    (14, "commitments",  "Seven Commitments Check",    "Where the day reflects each commitment"),
+    (15, "review",       "AI Review & Save",           "Multitasking, development, optimization — then Save"),
 ]
 V2_TOTAL_SECTIONS = len(V2_SECTIONS)
 
@@ -108,6 +109,57 @@ def load_progress() -> dict:
         return _empty_progress()
     base = _empty_progress()
     base.update(data if isinstance(data, dict) else {})
+    # ─── v3 one-time renumber migration ─────────────────────────────────
+    # When the new §11 Holiday & Feast Day was inserted, sections 11..14
+    # shifted forward by one to become 12..15. We stamp schema_version="v3"
+    # the first time we run, write a backup, and shift the four affected
+    # buckets in DESCENDING order so we never double-shift.
+    if base.get("schema_version") != "v3" and isinstance(base.get("data"), dict):
+        try:
+            os.makedirs(os.path.dirname(FROL_WIZARD_PROGRESS_FILE) or ".",
+                        exist_ok=True)
+            backup_path = FROL_WIZARD_PROGRESS_FILE.replace(
+                ".json", ".v2_backup.json")
+            if not os.path.exists(backup_path):
+                with open(backup_path, "w", encoding="utf-8") as _bf:
+                    json.dump(base, _bf, indent=2)
+        except Exception:
+            pass
+        _v3d = base["data"]
+        # Descending order means each destination has just been vacated
+        # by the previous step, so we don't need the "_k_to not in _v3d"
+        # guard. Any stale payload sitting in a destination bucket prior
+        # to migration is moved out first by its own iteration. This
+        # avoids leaving orphaned old data stranded under 11-14 in
+        # mixed-shape snapshots.
+        for _from, _to in ((14, 15), (13, 14), (12, 13), (11, 12)):
+            _k_from = f"section_{_from}"
+            _k_to = f"section_{_to}"
+            if _k_from in _v3d:
+                _v3d[_k_to] = _v3d.pop(_k_from)
+        # Bump completed_steps + current_step pointers to match.
+        _comp = base.get("completed_steps") or []
+        if isinstance(_comp, list):
+            _comp_new = []
+            for _s in _comp:
+                try:
+                    _si = int(_s)
+                except (TypeError, ValueError):
+                    continue
+                _comp_new.append(_si + 1 if 11 <= _si <= 14 else _si)
+            base["completed_steps"] = _comp_new
+        _cur = base.get("current_step")
+        try:
+            if isinstance(_cur, int) and 11 <= _cur <= 14:
+                base["current_step"] = _cur + 1
+        except Exception:
+            pass
+        base["schema_version"] = "v3"
+        try:
+            with open(FROL_WIZARD_PROGRESS_FILE, "w", encoding="utf-8") as _wf:
+                json.dump(base, _wf, indent=2)
+        except Exception:
+            pass
     # One-time renumber migration: when §11 duration picker was inserted,
     # old §11 (Build Your Day) shifted to §12 and old §13 (AI Review) to §14.
     # Only scalar settings are carried over. placements_* keys are NOT
@@ -768,7 +820,24 @@ def _section_chrome(section: int, title: str, subtitle: str, body_html: str,
     # advance_v2 instead, silently skipping past §12 without saving the
     # answer. Auto-detect inner <form> tags and, if present, skip the
     # outer form entirely; the body's own forms handle submission.
+    # Compute _body_has_form against the ORIGINAL body so the Phase C
+    # mount (which contains its own <form>s for the variant tab bar and
+    # activity builder) does not trip the outer-form bypass below. If we
+    # let the mount's forms count, sections §2-§10 would lose their
+    # Save & Continue button and the V2 autosave probe in
+    # static/js/frol_wizard.js (which checks #frol-form[data-version="2"])
+    # would silently fall back to legacy save_field / step_N writes.
     _body_has_form = "<form" in body_html
+    # Phase C: §2-§10 auto-mount the variant tab bar + activity builder
+    # + grid preview underneath each section's existing body. Sections
+    # 1, 11 (holidays), 12 (durations), 13 (build), 14 (commitments) and
+    # 15 (review) opt out — they have their own structure.
+    try:
+        _phase_c_sec = int(section)
+    except (TypeError, ValueError):
+        _phase_c_sec = 0
+    if 2 <= _phase_c_sec <= 10:
+        body_html = body_html + _render_phase_c_block(_phase_c_sec, progress, mode)
     if section >= V2_TOTAL_SECTIONS or _body_has_form:
         main_block = f"""
           {dots}
@@ -2811,6 +2880,261 @@ def render_section_10(progress: dict, mode: str) -> str:
         body, mode, progress, lucy_visible=True)
 
 
+# ── Phase C §11: Holiday & Feast Day ────────────────────────────────────────
+# A short, checkbox-driven page. Each checked feast/holiday surfaces a
+# small per-item "what changes" selector + free-text note. At the bottom
+# two general rules cover all Marian feasts and major solemnities.
+# Persisted under progress.data.section_11 via the standard /frol-save-field
+# pipeline (data-step="11", data-key="…").
+
+CATHOLIC_FEASTS = [
+    ("all_saints",      "All Saints' Day (Nov 1)"),
+    ("immaculate",      "Immaculate Conception (Dec 8)"),
+    ("christmas",       "Christmas (Dec 25)"),
+    ("epiphany",        "Epiphany"),
+    ("ash_wednesday",   "Ash Wednesday"),
+    ("holy_thursday",   "Holy Thursday"),
+    ("good_friday",     "Good Friday"),
+    ("easter",          "Easter Sunday"),
+    ("easter_monday",   "Easter Monday"),
+    ("ascension",       "Ascension"),
+    ("pentecost",       "Pentecost"),
+    ("assumption",      "Assumption (Aug 15)"),
+    ("our_lady_guadalupe", "Our Lady of Guadalupe (Dec 12)"),
+]
+
+US_HOLIDAYS = [
+    ("new_years",       "New Year's Day"),
+    ("mlk",             "Martin Luther King Jr. Day"),
+    ("presidents",      "Presidents' Day"),
+    ("memorial",        "Memorial Day"),
+    ("juneteenth",      "Juneteenth"),
+    ("independence",    "Independence Day (Jul 4)"),
+    ("labor",           "Labor Day"),
+    ("columbus",        "Columbus Day"),
+    ("veterans",        "Veterans Day"),
+    ("thanksgiving",    "Thanksgiving"),
+    ("day_after_thx",   "Day after Thanksgiving"),
+]
+
+SCHEDULE_MODES = [
+    ("normal",     "Normal day"),
+    ("lighter",    "Lighter schedule"),
+    ("school_off", "School off"),
+    ("rest_day",   "Full rest day"),
+]
+
+
+def _holiday_card(slug: str, label: str, saved: dict) -> str:
+    cur = saved.get(slug) or {}
+    checked = " checked" if cur.get("observe") else ""
+    mode_val = (cur.get("mode") or "normal")
+    note_val = escape(cur.get("note") or "", quote=True)
+    mode_opts = "".join(
+        f'<option value="{k}"{" selected" if k == mode_val else ""}>{escape(l)}</option>'
+        for k, l in SCHEDULE_MODES
+    )
+    slug_esc = escape(slug, quote=True)
+    return f"""
+      <label style="display:flex;align-items:flex-start;gap:8px;
+                    padding:8px;border:1px solid #d8e1ef;border-radius:8px;
+                    background:#fff;margin:4px 0;">
+        <input type="checkbox" data-step="11"
+               data-list="holidays" data-idx="{slug_esc}" data-field="observe"
+               value="1"{checked}
+               onchange="frolHolidayToggle(this);"
+               style="margin-top:4px;">
+        <div style="flex:1;">
+          <div style="font-weight:600;color:#33507e;">{escape(label)}</div>
+          <div class="frol-holiday-detail"
+               data-slug="{slug_esc}"
+               style="margin-top:6px;{'display:none;' if not checked else ''}">
+            <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+              <label style="font-size:0.82em;color:#666;">What changes?</label>
+              <select class="frol-input" data-step="11"
+                      data-list="holidays" data-idx="{slug_esc}" data-field="mode"
+                      style="font-size:0.86em;padding:3px 8px;">
+                {mode_opts}
+              </select>
+            </div>
+            <input class="frol-input" type="text" data-step="11"
+                   data-list="holidays" data-idx="{slug_esc}" data-field="note"
+                   value="{note_val}"
+                   placeholder="Notes (e.g. attend morning Mass)"
+                   style="width:100%;margin-top:6px;font-size:0.86em;
+                          padding:4px 8px;">
+          </div>
+        </div>
+      </label>
+    """
+
+
+def _rule_card(label: str, sub: str, key: str, saved: dict) -> str:
+    cur_mode = (saved.get(key) or {}).get("mode") or "normal"
+    cur_note = escape((saved.get(key) or {}).get("note") or "", quote=True)
+    mode_opts = "".join(
+        f'<option value="{k}"{" selected" if k == cur_mode else ""}>{escape(l)}</option>'
+        for k, l in SCHEDULE_MODES
+    )
+    key_esc = escape(key, quote=True)
+    return f"""
+      <div style="border:1px solid #d8e1ef;border-radius:8px;
+                  background:#fff;padding:10px 12px;margin:6px 0;">
+        <div style="font-weight:600;color:#33507e;">{escape(label)}</div>
+        <div style="font-size:0.82em;color:#888;margin-bottom:6px;">{escape(sub)}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+          <label style="font-size:0.82em;color:#666;">Default rule:</label>
+          <select class="frol-input" data-step="11"
+                  data-field="{key_esc}_mode"
+                  style="font-size:0.86em;padding:3px 8px;">
+            {mode_opts}
+          </select>
+        </div>
+        <input class="frol-input" type="text" data-step="11"
+               data-field="{key_esc}_note" value="{cur_note}"
+               placeholder="Notes"
+               style="width:100%;margin-top:6px;font-size:0.86em;
+                      padding:4px 8px;">
+      </div>
+    """
+
+
+def render_section_11_holidays(progress: dict, mode: str) -> str:
+    """New v3 §11 — Holidays & Feast Days. Two checkbox grids (Catholic
+    feasts + US civic holidays) with per-item what-changes selectors,
+    plus two general rules at the bottom. All inputs persist via the
+    standard data-step/data-key save pipeline."""
+    sec = (progress.get("data", {}) or {}).get("section_11", {}) or {}
+    holidays = sec.get("holidays") or {}
+
+    refl = render_reflection_card(
+        "When the calendar pulls the day off its rails",
+        "<p>The liturgical year and US holidays will reshape your weekly "
+        "rhythm dozens of times. Telling the wizard which ones you observe "
+        "— and what changes when they hit — lets §13 Build Your Day "
+        "produce a schedule that already knows when to relax, when to add "
+        "a morning Mass, and when to stand the school day down.</p>",
+        key="sec11_intro",
+    )
+    feast_cards = "".join(
+        _holiday_card(slug, label, holidays) for slug, label in CATHOLIC_FEASTS
+    )
+    us_cards = "".join(
+        _holiday_card(slug, label, holidays) for slug, label in US_HOLIDAYS
+    )
+    marian = _rule_card(
+        "All other Marian feasts",
+        "What's the family's default on Marian feast days not listed above?",
+        "marian_rule", sec,
+    )
+    sol = _rule_card(
+        "All other major solemnities",
+        "What's the default for any solemnity (e.g. St. Joseph, Sts. Peter & Paul)?",
+        "solemnity_rule", sec,
+    )
+
+    holiday_script = """
+      <script>
+      (function(){
+        if (window.__frolHolidayReady) return;
+        window.__frolHolidayReady = true;
+        window.frolHolidayToggle = function(cb) {
+          var slug = cb.getAttribute('data-idx');
+          if (!slug) return;
+          var detail = cb.parentElement.querySelector(
+            '.frol-holiday-detail[data-slug="' + slug + '"]'
+          );
+          if (detail) {
+            detail.style.display = cb.checked ? '' : 'none';
+          }
+        };
+      })();
+      </script>
+    """
+    body = f"""
+      {refl}
+      <h3 style="color:#33507e;margin-top:14px;">Catholic feast days</h3>
+      <div>{feast_cards}</div>
+      <h3 style="color:#33507e;margin-top:18px;">US holidays</h3>
+      <div>{us_cards}</div>
+      <h3 style="color:#33507e;margin-top:18px;">General rules</h3>
+      {marian}
+      {sol}
+      {holiday_script}
+    """
+    return _section_chrome(11, "Holidays &amp; Feast Days",
+        "Catholic feasts and US holidays — what changes when each one lands.",
+        body, mode, progress, lucy_visible=True)
+
+
+# ── Phase C variant tab bar + per-section grid mount ────────────────────────
+
+def _active_variant(progress: dict) -> str:
+    av = ((progress.get("data") or {}).get("active_variant") or "weekday")
+    return str(av).strip() or "weekday"
+
+
+def _render_variant_tab_bar(section: int, progress: dict, mode: str) -> str:
+    """Sticky tab bar that lets the user flip between weekday/Sat/Sun/
+    travel variants. Selection is persisted to progress.data.active_variant
+    via /frol-set-variant so it survives navigation between sections."""
+    av = _active_variant(progress)
+    sec_esc = str(int(section))
+    mode_esc = escape(mode, quote=True)
+    tabs = ""
+    for vk, vl in ACTIVITY_VARIANTS:
+        is_sel = (vk == av)
+        bg = "#4a6fa5" if is_sel else "#fff"
+        fg = "#fff" if is_sel else "#33507e"
+        tabs += (
+            f'<form method="POST" action="/frol-set-variant" style="display:inline;">'
+            f'<input type="hidden" name="variant" value="{escape(vk, quote=True)}">'
+            f'<input type="hidden" name="section" value="{sec_esc}">'
+            f'<input type="hidden" name="mode" value="{mode_esc}">'
+            f'<button type="submit" '
+            f'style="background:{bg};color:{fg};border:1px solid #4a6fa555;'
+            f'border-radius:14px;padding:4px 12px;margin:2px;font-size:0.85em;'
+            f'font-weight:700;cursor:pointer;font-family:inherit;">'
+            f'{escape(vl)}</button></form>'
+        )
+    return (
+        '<div class="frol-variant-tabs" style="position:sticky;top:0;z-index:5;'
+        'background:#f6f8fc;border:1px solid #d8e1ef;border-radius:8px;'
+        'padding:6px 8px;margin:8px 0;display:flex;flex-wrap:wrap;'
+        'align-items:center;gap:2px;">'
+        '<span style="font-size:0.78em;color:#666;margin-right:6px;">Variant:</span>'
+        f'{tabs}</div>'
+    )
+
+
+def _render_phase_c_block(section: int, progress: dict, mode: str) -> str:
+    """Mounted by _section_chrome for §2-§10: variant tab bar, activity
+    builder, activity list, and grid preview. Self-contained — needs no
+    external state beyond the progress dict."""
+    try:
+        from data_helpers import load_frol_activities as _laa
+        activities = _laa()
+    except Exception:
+        activities = []
+    av = _active_variant(progress)
+    tabs = _render_variant_tab_bar(section, progress, mode)
+    builder = _render_activity_builder(section, progress, activities, av, mode)
+    grid = _render_grid_preview(section, progress, av, activities)
+    return f"""
+      <div class="frol-phase-c-mount" style="margin-top:16px;">
+        {tabs}
+        <details open style="background:#f9fafb;border:1px solid #e5e7eb;
+                             border-radius:8px;padding:10px;margin-top:8px;">
+          <summary style="cursor:pointer;font-weight:700;color:#33507e;">
+            Activities &amp; preview
+          </summary>
+          <div style="margin-top:10px;">{builder}</div>
+          <div style="margin-top:14px;">{grid}</div>
+        </details>
+      </div>
+    """
+
+
 # Spec color palette (Section 11 timeline)
 _TIMELINE_PALETTE = [
     ("prayer",     "Prayer",        "#4a6fa5"),  # Marian blue
@@ -3007,7 +3331,7 @@ def render_section_11(progress: dict, mode: str) -> str:
     60/90/120 min + custom free text). Pre-filled with Catholic-homeschool
     defaults. Saves immediately via the existing saveField pipeline using
     data-step='11' and data-key='durations__{slug}' / 'custom__{slug}'."""
-    sec11 = (progress.get("data", {}) or {}).get("section_11", {}) or {}
+    sec11 = (progress.get("data", {}) or {}).get("section_12", {}) or {}
     targets = _collect_duration_targets(progress)
 
     groups = {}
@@ -3035,7 +3359,7 @@ def render_section_11(progress: dict, mode: str) -> str:
         body = (refl + '<div class="frol-pop-note">No activities collected '
                 'yet from §§2-10. Fill in earlier sections, then come back '
                 'here to set durations.</div>')
-        return _section_chrome(11, "How Long Does Each Activity Take?",
+        return _section_chrome(12, "How Long Does Each Activity Take?",
             "One card per activity. Pick a realistic duration.",
             body, mode, progress, lucy_visible=True)
 
@@ -3073,12 +3397,12 @@ def render_section_11(progress: dict, mode: str) -> str:
                 <div style="font-weight:700;color:#33507e;margin-bottom:6px;">{escape(label)}</div>
                 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:2px;">
                   {chip_html}
-                  <input type="hidden" data-step="11"
+                  <input type="hidden" data-step="12"
                          data-key="durations__{escape(slug, quote=True)}"
                          value="{escape(current, quote=True)}">
                   <span style="font-size:0.78em;color:#888;margin-left:8px;">or custom:</span>
                   <input class="frol-input" type="text" inputmode="numeric"
-                         data-step="11" data-key="custom__{escape(slug, quote=True)}"
+                         data-step="12" data-key="custom__{escape(slug, quote=True)}"
                          value="{escape(custom, quote=True)}"
                          placeholder="e.g. 25"
                          style="max-width:110px;font-size:0.86em;padding:4px 8px;">
@@ -3118,7 +3442,7 @@ def render_section_11(progress: dict, mode: str) -> str:
           btn.style.color = '#fff';
           btn.setAttribute('data-active', '1');
           var hidden = parent.querySelector(
-            'input[type=hidden][data-step="11"][data-key="durations__' + slug + '"]'
+            'input[type=hidden][data-step="12"][data-key="durations__' + slug + '"]'
           );
           if (hidden) {
             hidden.value = val;
@@ -3135,7 +3459,7 @@ def render_section_11(progress: dict, mode: str) -> str:
         use these to size each block on the timeline.</p>
       {chip_script}
     """
-    return _section_chrome(11, "How Long Does Each Activity Take?",
+    return _section_chrome(12, "How Long Does Each Activity Take?",
         "One card per activity. Pick a realistic duration.",
         body, mode, progress, lucy_visible=True)
 
@@ -3173,7 +3497,8 @@ def _s12_collect_context(progress: dict) -> dict:
         "section_8_work":        data.get("section_8") or {},
         "section_9_rest":        data.get("section_9") or {},
         "section_10_flex":       data.get("section_10") or {},
-        "section_11_activities": data.get("section_11") or {},
+        "section_11_holidays":   data.get("section_11") or {},
+        "section_12_activities": data.get("section_13") or {},
         "seven_commitments":     list(SEVEN_COMMITMENTS),
         "existing_schedule":     existing_schedule,
     }
@@ -3289,7 +3614,7 @@ def _s12_generate_questions(progress: dict) -> list:
     """Pass 1 — surface 3-5 specific scheduling conflicts or ambiguities
     that need Lauren's input before a draft schedule can be made. Caches
     in section_12.questions and returns the cleaned list."""
-    sec12 = (progress.get("data", {}) or {}).get("section_12", {}) or {}
+    sec12 = (progress.get("data", {}) or {}).get("section_13", {}) or {}
     cached = sec12.get("questions")
     if isinstance(cached, list) and cached:
         return cached
@@ -3344,7 +3669,7 @@ def _s12_generate_questions(progress: dict) -> list:
     cleaned = cleaned[:5]
     # Cache via direct save_progress (mirrors _seed_chores_for_section7 pattern)
     p = load_progress()
-    bucket = p.setdefault("data", {}).setdefault("section_12", {})
+    bucket = p.setdefault("data", {}).setdefault("section_13", {})
     bucket["questions"] = cleaned
     save_progress(p)
     return cleaned
@@ -3354,7 +3679,7 @@ def _s12_generate_schedule(progress: dict) -> list:
     """Pass 2 — with Lauren's answers in hand, ask the AI for a complete
     suggested weekday schedule honoring the seven commitments. Caches in
     section_12.schedule and returns the cleaned list."""
-    sec12 = (progress.get("data", {}) or {}).get("section_12", {}) or {}
+    sec12 = (progress.get("data", {}) or {}).get("section_13", {}) or {}
     cached = sec12.get("schedule")
     if isinstance(cached, list) and cached:
         return cached
@@ -3466,7 +3791,7 @@ def _s12_generate_schedule(progress: dict) -> list:
         })
     cleaned.sort(key=lambda x: x.get("time", ""))
     p = load_progress()
-    bucket = p.setdefault("data", {}).setdefault("section_12", {})
+    bucket = p.setdefault("data", {}).setdefault("section_13", {})
     bucket["schedule"] = cleaned
     bucket["gen_hash"] = gen_hash
     save_progress(p)
@@ -3478,7 +3803,7 @@ def s12_persist_kept_to_activities(progress: dict) -> int:
     data/frol_activities.json. Returns the number of items written, or
     -1 on a write failure (caller should treat as non-success and NOT
     advance the wizard)."""
-    sec12 = (progress.get("data", {}) or {}).get("section_12", {}) or {}
+    sec12 = (progress.get("data", {}) or {}).get("section_13", {}) or {}
     sched = sec12.get("schedule") or []
     kept = [it for it in sched if isinstance(it, dict) and it.get("keep", True)]
     try:
@@ -3493,7 +3818,7 @@ def render_section_12(progress: dict, mode: str) -> str:
     Pass 1 surfaces clarifying questions; Pass 2 produces a suggested
     weekday schedule. Both calls are cached in section_12 so a page
     refresh does not re-trigger the API."""
-    sec12 = (progress.get("data", {}) or {}).get("section_12", {}) or {}
+    sec12 = (progress.get("data", {}) or {}).get("section_13", {}) or {}
     if not isinstance(sec12, dict):
         sec12 = {}
 
@@ -3516,7 +3841,7 @@ def render_section_12(progress: dict, mode: str) -> str:
         )
         if not _all_answered:
             _pl = load_progress()
-            _bk = _pl.setdefault("data", {}).setdefault("section_12", {})
+            _bk = _pl.setdefault("data", {}).setdefault("section_13", {})
             _bk.pop("_generating", None)
             save_progress(_pl)
             sec12 = _bk
@@ -3543,7 +3868,7 @@ def render_section_12(progress: dict, mode: str) -> str:
             'generate your day.'
             '</div>'
         )
-        return _section_chrome(12, "Build Your Day",
+        return _section_chrome(13, "Build Your Day",
             "AI-suggested weekday schedule built from everything you've collected.",
             refl + notice, mode, progress, lucy_visible=True)
 
@@ -3551,7 +3876,7 @@ def render_section_12(progress: dict, mode: str) -> str:
     questions = sec12.get("questions")
     if not isinstance(questions, list) or not questions:
         questions = _s12_generate_questions(progress)
-        sec12 = (load_progress().get("data", {}) or {}).get("section_12", {}) or {}
+        sec12 = (load_progress().get("data", {}) or {}).get("section_13", {}) or {}
 
     answers = sec12.get("answers") or {}
     if not isinstance(answers, dict):
@@ -3574,7 +3899,7 @@ def render_section_12(progress: dict, mode: str) -> str:
             'font-weight:700;">Try again</button>'
             '</form>'
         )
-        return _section_chrome(12, "Build Your Day",
+        return _section_chrome(13, "Build Your Day",
             "AI-suggested weekday schedule.",
             refl + body, mode, progress, lucy_visible=True)
 
@@ -3641,7 +3966,7 @@ def render_section_12(progress: dict, mode: str) -> str:
           </div>
           {regen_form}
         """
-        return _section_chrome(12, "Build Your Day",
+        return _section_chrome(13, "Build Your Day",
             "A few quick clarifying questions, then your draft.",
             body, mode, progress, lucy_visible=True)
 
@@ -3655,7 +3980,7 @@ def render_section_12(progress: dict, mode: str) -> str:
         # API call synchronously and the next render shows the result.
         if not sec12.get("_generating"):
             _pl = load_progress()
-            _pl.setdefault("data", {}).setdefault("section_12", {})["_generating"] = True
+            _pl.setdefault("data", {}).setdefault("section_13", {})["_generating"] = True
             save_progress(_pl)
             loading_body = (
                 '<div style="text-align:center;padding:60px 20px;">'
@@ -3673,7 +3998,7 @@ def render_section_12(progress: dict, mode: str) -> str:
                 '<meta http-equiv="refresh" content="1">'
                 '</div>'
             )
-            return _section_chrome(12, "Build Your Day",
+            return _section_chrome(13, "Build Your Day",
                 "Generating your suggested schedule.",
                 refl + loading_body, mode, progress, lucy_visible=False)
         # _generating flag is set — actually call the API now and clear.
@@ -3693,7 +4018,7 @@ def render_section_12(progress: dict, mode: str) -> str:
                 flush=True,
             )
         _pl = load_progress()
-        _bk = _pl.setdefault("data", {}).setdefault("section_12", {})
+        _bk = _pl.setdefault("data", {}).setdefault("section_13", {})
         _bk.pop("_generating", None)
         if _gen_err:
             _bk["schedule_error"] = _gen_err
@@ -3730,7 +4055,7 @@ def render_section_12(progress: dict, mode: str) -> str:
             'font-weight:700;">Regenerate</button>'
             '</form>'
         )
-        return _section_chrome(12, "Build Your Day",
+        return _section_chrome(13, "Build Your Day",
             "AI-suggested weekday schedule.",
             refl + body, mode, progress, lucy_visible=True)
 
@@ -4210,7 +4535,7 @@ def render_section_12(progress: dict, mode: str) -> str:
         {save_btn}
       </div>
     """
-    return _section_chrome(12, "Build Your Day",
+    return _section_chrome(13, "Build Your Day",
         "AI-suggested weekday schedule built from everything you've collected.",
         body, mode, progress, lucy_visible=True)
 
@@ -4333,7 +4658,7 @@ def render_section_13(progress: dict, mode: str) -> str:
       </div>
       {rows}
     """
-    return _section_chrome(13, "Seven Commitments Check",
+    return _section_chrome(14, "Seven Commitments Check",
         "How does your rule line up with the Dominick seven? Fix any gaps, or move on.",
         body, mode, progress, lucy_visible=True)
 
@@ -4378,7 +4703,7 @@ def finalize_v2(progress: dict) -> dict:
     # can be stamped with what Lauren explicitly accepted / wants to
     # modify / chose to skip. "accept" is the only value that imports
     # downstream meaning; the others are recorded for the audit trail.
-    sec14_pre        = data.get("section_14") or {}
+    sec14_pre        = data.get("section_15") or {}
     review_answers   = {
         "multitasking":  (sec14_pre.get("review_multi") or "").strip(),
         "developmental": (sec14_pre.get("review_dev")   or "").strip(),
@@ -4392,7 +4717,7 @@ def finalize_v2(progress: dict) -> dict:
         os.makedirs(backup_dir, exist_ok=True)
         written = 0
         for day in _TIMELINE_DAYS:
-            placements = (data.get("section_12") or {}).get(f"placements_{day}") or {}
+            placements = (data.get("section_13") or {}).get(f"placements_{day}") or {}
             src = os.path.join(DAY_TEMPLATE_DIR, f"{day}.json")
             if os.path.exists(src):
                 shutil.copy2(src, os.path.join(backup_dir, f"{day}.json"))
@@ -4587,7 +4912,7 @@ def render_section_14(progress: dict, mode: str) -> str:
     """V2 §14 — AI Review + Save. Three review cards (Multitasking /
     Developmental / Schedule optimization) shown as Accept / Modify / Skip,
     plus the Save button that runs finalize_v2()."""
-    sec14 = (progress.get("data", {}) or {}).get("section_14", {}) or {}
+    sec14 = (progress.get("data", {}) or {}).get("section_15", {}) or {}
     receipt = sec14.get("receipt") or {}
     finalized = bool(progress.get("finalized_at"))
 
@@ -4606,7 +4931,7 @@ def render_section_14(progress: dict, mode: str) -> str:
     warn_count = sum(1 for it in items if it["status"] == "warn")
     members = _v2_members(progress)
     person_count = len([m for m in members if isinstance(m, dict) and m.get("name")])
-    s12 = (progress.get("data", {}) or {}).get("section_12", {}) or {}
+    s12 = (progress.get("data", {}) or {}).get("section_13", {}) or {}
     placed_days = sum(1 for d in _TIMELINE_DAYS if (s12.get(f"placements_{d}") or {}))
 
     def _review_card(title: str, body: str, key: str) -> str:
@@ -4619,7 +4944,7 @@ def render_section_14(progress: dict, mode: str) -> str:
                 f'<label style="display:inline-flex;align-items:center;gap:6px;'
                 f'background:#fff;border:1px solid {color}77;color:{color};border-radius:6px;'
                 f'padding:6px 14px;margin-right:6px;font-weight:700;cursor:pointer;font-size:0.86em;">'
-                f'<input type="radio" data-step="14" data-key="review_{escape(key, quote=True)}" '
+                f'<input type="radio" data-step="15" data-key="review_{escape(key, quote=True)}" '
                 f'value="{v}" {checked}> {lab}</label>'
             )
         return f"""
@@ -4731,7 +5056,7 @@ def render_section_14(progress: dict, mode: str) -> str:
       {save_btn}
       {closing}
     """
-    return _section_chrome(14, "AI Review &amp; Save",
+    return _section_chrome(15, "AI Review &amp; Save",
         "Three reviews, then the Save button. After that, you're done.",
         body, mode, progress, lucy_visible=False)
 
@@ -4749,10 +5074,14 @@ def _section_renderer(section: int):
         8: render_section_8,
         9: render_section_9,
         10: render_section_10,
-        11: render_section_11,
-        12: render_section_12,
-        13: render_section_13,
-        14: render_section_14,
+        # Phase C insertion: §11 is the new Holiday & Feast Day page.
+        # Old §11..§14 shifted to §12..§15. Function names were kept
+        # to keep diffs small; only their dispatch slots moved.
+        11: render_section_11_holidays,
+        12: render_section_11,   # old "duration picker" — now §12
+        13: render_section_12,   # old "Build Your Day"  — now §13
+        14: render_section_13,   # old "Commitments"     — now §14
+        15: render_section_14,   # old "AI Review"       — now §15
     }.get(section)
 
 
