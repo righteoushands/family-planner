@@ -580,12 +580,12 @@ window.s12ShowView = function (v) {
     visible.forEach(function (p) { fd.append('value[]', p); });
     if (!visible.length) { fd.append('value', ''); }
     if (formMode) { fd.append('mode', formMode); }
+    // Serialize: wait for persistence to commit before re-rendering,
+    // otherwise a high-latency POST can race the page refetch and the
+    // refreshed grid would reflect the stale stored visible-set.
     fetch('/frol-wizard', { method: 'POST', body: fd, credentials: 'same-origin' })
-      .catch(function () {});
-    // Refresh the whole container (chrome included) so pill state +
-    // column visibility stay in sync. Fall back to fragment-only swap
-    // if the full-page refetch fails for any reason.
-    refreshGridFull();
+      .then(function () { refreshGridFull(); })
+      .catch(function () { refreshGridFull(); });
   };
 
   function refreshGridFull() {
