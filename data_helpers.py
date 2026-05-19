@@ -988,6 +988,54 @@ def get_seasonal_schedule(entry_id: str) -> dict:
     return None
 
 
+def find_seasonal_schedule_for(label: str, year: int = None) -> dict:
+    """Return the most recent saved seasonal schedule entry for the given
+    season label, or None.
+
+    - `label`: case-insensitive season label match (e.g. "November", "Lent").
+    - `year` (optional): if given, restrict to entries saved for that year
+      (matching the entry's `year` field). If omitted, the most recent
+      entry by `saved_at` across all years is returned.
+    """
+    if not label:
+        return None
+    lab = str(label).strip().lower()
+    if not lab:
+        return None
+    matches = []
+    try:
+        for e in load_seasonal_schedules():
+            if (e.get("season_label") or "").strip().lower() != lab:
+                continue
+            if year is not None:
+                try:
+                    if int(e.get("year") or 0) != int(year):
+                        continue
+                except Exception:
+                    continue
+            matches.append(e)
+    except Exception:
+        return None
+    if not matches:
+        return None
+    matches.sort(key=lambda e: str(e.get("saved_at") or ""), reverse=True)
+    return matches[0]
+
+
+def _summarize_prior_seasonal_entry(entry: dict, max_chars: int = 220) -> str:
+    """Compact one-line summary of a prior seasonal entry's notes.
+    Returns "" if the entry has no usable notes."""
+    if not isinstance(entry, dict):
+        return ""
+    notes = (entry.get("notes") or "").strip()
+    if not notes:
+        return ""
+    notes = " ".join(notes.split())
+    if len(notes) > max_chars:
+        notes = notes[: max_chars - 1].rstrip() + "…"
+    return notes
+
+
 def delete_seasonal_schedule(entry_id: str) -> bool:
     """Remove an entry by id; return True if anything was deleted."""
     entries = load_seasonal_schedules()
@@ -1097,6 +1145,47 @@ def get_companion_seasonal_block(role: str, iso: str = "") -> list:
     out.append(f"Current season: {cur}.")
     out.append(f"Upcoming season: {nxt} ({days_txt}).")
     out.append(f"A saved schedule exists for the upcoming season: {prior}.")
+
+    # Prior-year excerpt: if a saved entry exists for the upcoming season label,
+    # surface a brief, role-aware excerpt so each companion can speak to what
+    # the family did during this season last year.
+    prior_entry = None
+    target_prior_year = None
+    if ctx.get("upcoming_label"):
+        try:
+            up_year = ctx.get("upcoming_year")
+            if isinstance(up_year, int) and up_year > 0:
+                target_prior_year = up_year - 1
+                prior_entry = find_seasonal_schedule_for(
+                    ctx.get("upcoming_label"), year=target_prior_year)
+        except Exception:
+            prior_entry = None
+    if prior_entry:
+        p_label = (prior_entry.get("season_label") or ctx.get("upcoming_label") or "").strip()
+        p_year  = prior_entry.get("year")
+        excerpt = _summarize_prior_seasonal_entry(prior_entry)
+        na      = prior_entry.get("narrative_answers") or {}
+        na_n    = len(na) if isinstance(na, dict) else 0
+        header  = f"Last year ({p_year}) '{p_label}' saved notes:" if p_year else f"Last year's '{p_label}' saved notes:"
+        out.append(header)
+        if excerpt:
+            out.append(f"  \"{excerpt}\"")
+        else:
+            out.append("  (no free-text notes were saved)")
+        if na_n:
+            out.append(f"  Plus {na_n} narrative answer(s) from the FROL wizard for that season.")
+        if role == "LUCY":
+            out.append("If Lauren asks what we did during this season last year, quote the above and offer to pull more from the seasonal library.")
+        elif role == "LORENZO":
+            out.append("Mine the above for any meal, food, or hospitality cues from last year's same season.")
+        elif role == "GREGORY":
+            out.append("Mine the above for any homeschool rhythm or assignment cues from last year's same season.")
+        elif role == "COACH":
+            out.append("Mine the above for any activity, fitness, or outdoor cues from last year's same season.")
+        elif role == "MONICA":
+            out.append("Mine the above for any stress, sleep, or pediatric cues from last year's same season.")
+        elif role == "SISTERMARY":
+            out.append("Mine the above for any spiritual or liturgical cues from last year's same season.")
 
     if role == "LUCY":
         out += [
