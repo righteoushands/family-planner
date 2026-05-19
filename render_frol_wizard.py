@@ -813,6 +813,554 @@ def _section_chrome(section: int, title: str, subtitle: str, body_html: str,
     return main_block
 
 
+# ── V3 shared activity builder (Phase A) ────────────────────────────────────
+# Self-contained — does not touch any existing section renderer. Phases B-D
+# will mount _render_activity_builder()/_render_activity_card() inside the
+# section pages and grid preview.
+
+ACTIVITY_CATEGORIES = [
+    ("prayer",   "Prayer",        "#7c3aed"),
+    ("meal",     "Meal",          "#d97706"),
+    ("school",   "School",        "#2563eb"),
+    ("chore",    "Chore",         "#0891b2"),
+    ("rest",     "Rest / Sleep",  "#475569"),
+    ("family",   "Family time",   "#16a34a"),
+    ("personal", "Personal",      "#db2777"),
+    ("health",   "Health / Fitness", "#dc2626"),
+    ("fixed",    "Fixed / Other", "#64748b"),
+]
+
+ACTIVITY_VARIANTS = [
+    ("weekday",         "Weekday (Mon–Fri)"),
+    ("saturday",        "Saturday"),
+    ("sunday",          "Sunday"),
+    ("john_traveling",  "John traveling"),
+]
+
+
+def _category_color(cat: str) -> str:
+    for key, _label, color in ACTIVITY_CATEGORIES:
+        if key == cat:
+            return color
+    return "#64748b"
+
+
+def _category_label(cat: str) -> str:
+    for key, label, _color in ACTIVITY_CATEGORIES:
+        if key == cat:
+            return label
+    return cat or "—"
+
+
+def _activity_persons(progress: dict) -> list:
+    """Names of every adult + child in the family. Drives the Step C
+    person-pickers. Falls back to a sensible default if no members exist."""
+    members = _v2_members(progress) or []
+    names = []
+    for m in members:
+        if isinstance(m, dict):
+            n = (m.get("name") or "").strip()
+            if n and n not in names:
+                names.append(n)
+    if not names:
+        names = ["Lauren", "John", "JP", "Joseph", "Michael", "James"]
+    return names
+
+
+def _fmt_time_12h(t: str) -> str:
+    """'09:30' -> '9:30 AM'. Returns the input unchanged if it can't parse."""
+    if not t or ":" not in t:
+        return t or ""
+    try:
+        hh, mm = t.split(":", 1)
+        hh_i = int(hh)
+        mm_i = int(mm)
+    except (ValueError, TypeError):
+        return t
+    suffix = "AM" if hh_i < 12 else "PM"
+    h12 = hh_i % 12 or 12
+    return f"{h12}:{mm_i:02d} {suffix}"
+
+
+def _render_activity_edit_form(activity: dict, section: int, mode: str) -> str:
+    """Inline edit form embedded in each card's <details> drawer. Mirrors
+    the builder fields but is pre-populated and posts to /frol-edit-activity.
+    Kept compact (single column) so it fits inside the card."""
+    aid = escape(str(activity.get("id") or ""), quote=True)
+    name = escape(activity.get("name") or "", quote=True)
+    wt = activity.get("who_type") or "individual"
+    cat = activity.get("category") or ""
+    seas = activity.get("seasonal") or "year_round"
+    days_set = set(activity.get("days") or [])
+    vars_set = set(activity.get("schedule_variant") or ["weekday"])
+    mode_esc = escape(mode, quote=True)
+    sec_esc = str(int(section))
+    persons = ["Lauren", "John", "JP", "Joseph", "Michael", "James"]
+    # Time/duration fields differ by who_type — render all three but
+    # show only the relevant one (no JS toggle here since who_type
+    # rarely changes after creation; user can delete + re-add for that).
+    if wt == "family":
+        t_val = escape(activity.get("time") or "", quote=True)
+        d_val = int(activity.get("duration_min") or 0)
+        time_block = (f'<label style="font-size:11px;color:#6b7280;">Time</label>'
+                      f'<input type="time" name="time" value="{t_val}" '
+                      f'style="width:100%;padding:5px;border:1px solid #d1d5db;border-radius:6px;margin-bottom:4px;">'
+                      f'<label style="font-size:11px;color:#6b7280;">Duration (min)</label>'
+                      f'<input type="number" name="duration_min" min="0" max="600" value="{d_val}" '
+                      f'style="width:100%;padding:5px;border:1px solid #d1d5db;border-radius:6px;">')
+    elif wt == "individual":
+        # Render the single-person row using the server's individual-branch
+        # field names (single_time/single_duration_min) so edits actually
+        # persist. who_single is hidden — person identity doesn't change
+        # via the edit drawer (delete + re-add for that).
+        who_lst = activity.get("who") or []
+        if who_lst:
+            p0 = who_lst[0]
+            slot = (activity.get("per_person_times") or {}).get(p0) or {}
+            pt = escape(slot.get("time") or "", quote=True)
+            pd = int(slot.get("duration_min") or 0)
+            time_block = (
+                f'<input type="hidden" name="who_single" value="{escape(p0, quote=True)}">'
+                f'<div style="font-size:11px;color:#374151;margin-bottom:4px;">'
+                f'For: <strong>{escape(p0)}</strong></div>'
+                f'<label style="font-size:11px;color:#6b7280;">Time</label>'
+                f'<input type="time" name="single_time" value="{pt}" '
+                f'style="width:100%;padding:5px;border:1px solid #d1d5db;border-radius:6px;margin-bottom:4px;">'
+                f'<label style="font-size:11px;color:#6b7280;">Duration (min)</label>'
+                f'<input type="number" name="single_duration_min" min="0" max="600" value="{pd}" '
+                f'style="width:100%;padding:5px;border:1px solid #d1d5db;border-radius:6px;">'
+            )
+        else:
+            time_block = '<em style="font-size:11px;color:#9ca3af;">No person assigned.</em>'
+    else:
+        # mixed
+        ppt = activity.get("per_person_times") or {}
+        rows = []
+        for p in (activity.get("who") or []):
+            slot = ppt.get(p) or {}
+            pt = escape(slot.get("time") or "", quote=True)
+            pd = int(slot.get("duration_min") or 0)
+            p_safe = escape(str(p), quote=True)
+            p_disp = escape(str(p))
+            rows.append(
+                f'<div style="display:grid;grid-template-columns:80px 1fr 80px;gap:4px;'
+                f'margin-bottom:3px;align-items:center;">'
+                f'<span style="font-size:11px;color:#374151;">{p_disp}</span>'
+                f'<input type="time" name="person_{p_safe}_time" value="{pt}" '
+                f'style="padding:4px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;">'
+                f'<input type="number" name="person_{p_safe}_duration_min" value="{pd}" min="0" max="600" '
+                f'style="padding:4px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;">'
+                f'</div>'
+            )
+            # Also include hidden checkbox-equivalent so server sees who:
+            rows.append(f'<input type="hidden" name="who" value="{p_safe}">')
+        time_block = "".join(rows) if rows else '<em style="font-size:11px;color:#9ca3af;">No people assigned.</em>'
+    day_chips = "".join(
+        f'<label style="font-size:11px;margin-right:4px;">'
+        f'<input type="checkbox" name="days" value="{d}"{" checked" if d in days_set else ""}> {d[:3]}'
+        f'</label>'
+        for d in WEEKDAYS
+    )
+    var_chips = "".join(
+        f'<label style="font-size:11px;margin-right:4px;">'
+        f'<input type="checkbox" name="schedule_variant" value="{vk}"'
+        f'{" checked" if vk in vars_set else ""}> {escape(vl)}'
+        f'</label>'
+        for vk, vl in ACTIVITY_VARIANTS
+    )
+    cat_opts = "".join(
+        f'<option value="{k}"{" selected" if k == cat else ""}>{escape(l)}</option>'
+        for k, l, _c in ACTIVITY_CATEGORIES
+    )
+    seas_opts = "".join(
+        f'<option value="{k}"{" selected" if k == seas else ""}>{escape(l)}</option>'
+        for k, l in (("year_round","Year-round"),("school_year","School year"),("summer","Summer"))
+    )
+    leader_opts = '<option value="">— none —</option>' + "".join(
+        f'<option value="{escape(p, quote=True)}"'
+        f'{" selected" if p == activity.get("leader") else ""}>{escape(p)}</option>'
+        for p in persons
+    )
+    credits_val = escape(",".join(activity.get("credits") or []), quote=True)
+    grm_chk = " checked" if activity.get("is_grooming") else ""
+    return f"""
+    <form method="POST" action="/frol-edit-activity"
+          style="margin-top:8px;padding:8px;background:#f9fafb;border:1px solid #e5e7eb;
+                 border-radius:6px;font-size:12px;">
+      <input type="hidden" name="id" value="{aid}">
+      <input type="hidden" name="section" value="{sec_esc}">
+      <input type="hidden" name="mode" value="{mode_esc}">
+      <input type="hidden" name="who_type" value="{escape(wt, quote=True)}">
+      <input type="hidden" name="active_variant" value="weekday">
+      <label style="font-size:11px;color:#6b7280;">Name</label>
+      <input type="text" name="name" value="{name}" required
+             style="width:100%;padding:5px;border:1px solid #d1d5db;border-radius:6px;margin-bottom:6px;">
+      {time_block}
+      <div style="margin-top:6px;">{day_chips}</div>
+      <div style="margin-top:4px;">{var_chips}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:6px;">
+        <div><label style="font-size:11px;color:#6b7280;">Category</label>
+          <select name="category" style="width:100%;padding:5px;border:1px solid #d1d5db;border-radius:6px;">{cat_opts}</select></div>
+        <div><label style="font-size:11px;color:#6b7280;">Seasonal</label>
+          <select name="seasonal" style="width:100%;padding:5px;border:1px solid #d1d5db;border-radius:6px;">{seas_opts}</select></div>
+        <div><label style="font-size:11px;color:#6b7280;">Leader</label>
+          <select name="leader" style="width:100%;padding:5px;border:1px solid #d1d5db;border-radius:6px;">{leader_opts}</select></div>
+      </div>
+      <label style="font-size:11px;color:#6b7280;display:block;margin-top:6px;">Credits</label>
+      <input type="text" name="credits" value="{credits_val}"
+             style="width:100%;padding:5px;border:1px solid #d1d5db;border-radius:6px;">
+      <label style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:11px;">
+        <input type="checkbox" name="is_grooming" value="1"{grm_chk}> Counts as grooming
+      </label>
+      <div style="text-align:right;margin-top:8px;">
+        <button type="submit" class="frol-btn" style="padding:4px 12px;font-size:12px;">Save changes</button>
+      </div>
+    </form>
+    """
+
+
+def _render_activity_card(activity: dict, section: int, mode: str) -> str:
+    """Compact chip-style display of one activity. Includes an inline edit
+    form (toggled via <details>) and a delete button. All POSTs go to the
+    Phase A routes — section pages just embed this card."""
+    if not isinstance(activity, dict):
+        return ""
+    aid = escape(str(activity.get("id") or ""), quote=True)
+    name = escape(activity.get("name") or "(unnamed)")
+    cat = activity.get("category") or ""
+    color = activity.get("color") or _category_color(cat)
+    who_type = activity.get("who_type") or "individual"
+    who_list = activity.get("who") or []
+    who_str = ", ".join(escape(str(w)) for w in who_list) or "—"
+    # Time summary line.
+    if who_type == "family":
+        t_str = _fmt_time_12h(activity.get("time") or "")
+        dur = int(activity.get("duration_min") or 0)
+        time_html = f"{escape(t_str) or '—'} · {dur} min" if (t_str or dur) else "—"
+    else:
+        ppt = activity.get("per_person_times") or {}
+        bits = []
+        for n in who_list:
+            slot = ppt.get(n) or {}
+            t = _fmt_time_12h(slot.get("time") or "")
+            d = int(slot.get("duration_min") or 0)
+            if t or d:
+                bits.append(f"{escape(str(n))} {escape(t) or '?'} · {d}m")
+        time_html = " · ".join(bits) if bits else "—"
+    edit_form = _render_activity_edit_form(activity, int(section), mode)
+    days_list = activity.get("days") or []
+    days_short = "".join((d[:1] if d else "") for d in days_list) or "—"
+    variants = activity.get("schedule_variant") or ["weekday"]
+    var_labels = []
+    for v in variants:
+        for vk, vl in ACTIVITY_VARIANTS:
+            if vk == v:
+                var_labels.append(vl)
+                break
+    var_html = escape(", ".join(var_labels) or "Weekday")
+    seasonal = escape(activity.get("seasonal") or "year_round")
+    mode_esc = escape(mode, quote=True)
+    cat_label = escape(_category_label(cat))
+    return f"""
+    <div class="frol-act-card" data-act-id="{aid}"
+         style="border-left:4px solid {color};background:#fff;border-radius:8px;
+                padding:10px 12px;margin:6px 0;box-shadow:0 1px 2px rgba(0,0,0,.05);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:14px;color:#1f2937;">{name}</div>
+          <div style="font-size:12px;color:#6b7280;margin-top:2px;">
+            <span style="display:inline-block;padding:1px 6px;border-radius:4px;
+                         background:{color}22;color:{color};font-weight:600;">{cat_label}</span>
+            · <strong>{escape(who_type)}</strong> · {who_str}
+          </div>
+          <div style="font-size:12px;color:#374151;margin-top:4px;">{time_html}</div>
+          <div style="font-size:11px;color:#9ca3af;margin-top:2px;">
+            Days: {escape(days_short)} · Variants: {var_html} · {seasonal}
+          </div>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0;align-items:flex-start;">
+          <details style="margin:0;">
+            <summary style="cursor:pointer;padding:4px 8px;font-size:11px;color:#2563eb;
+                            list-style:none;">Edit</summary>
+            {edit_form}
+          </details>
+          <form method="POST" action="/frol-delete-activity"
+                onsubmit="return confirm('Delete this activity?');" style="margin:0;">
+            <input type="hidden" name="id" value="{aid}">
+            <input type="hidden" name="section" value="{section}">
+            <input type="hidden" name="mode" value="{mode_esc}">
+            <button type="submit" class="frol-btn ghost"
+                    style="padding:4px 8px;font-size:11px;color:#dc2626;">Delete</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    """
+
+
+def _render_activity_list(section: int, progress: dict, activities: list,
+                          active_variant: str, mode: str) -> str:
+    """Render every activity assigned to (section, active_variant) as a
+    stack of cards. Phase A scope: section filter + variant filter only."""
+    if not isinstance(activities, list):
+        return ""
+    try:
+        sec_int = int(section)
+    except (TypeError, ValueError):
+        sec_int = 0
+    av = (active_variant or "weekday").strip() or "weekday"
+    matches = []
+    for a in activities:
+        if not isinstance(a, dict):
+            continue
+        if int(a.get("section") or 0) != sec_int:
+            continue
+        variants = a.get("schedule_variant") or ["weekday"]
+        if av not in variants:
+            continue
+        matches.append(a)
+    if not matches:
+        return ('<div style="font-size:12px;color:#9ca3af;font-style:italic;'
+                'padding:8px 0;">No activities yet for this section.</div>')
+    return "".join(_render_activity_card(a, sec_int, mode) for a in matches)
+
+
+def _render_activity_builder(section: int, progress: dict,
+                             existing_activities: list,
+                             active_variant: str,
+                             mode: str = "") -> str:
+    """The 4-step add-activity form. Self-contained <form> posting to
+    /frol-add-activity. JS in static/js/frol_wizard.js handles progressive
+    reveal of Steps B/C/D. Phase A: builder + list display only — section
+    pages will mount this in Phase C."""
+    try:
+        sec_int = int(section)
+    except (TypeError, ValueError):
+        sec_int = 0
+    av = (active_variant or "weekday").strip() or "weekday"
+    persons = _activity_persons(progress)
+    mode_esc = escape(mode, quote=True)
+    sec_esc = str(sec_int)
+    # ── Step A: name ─────────────────────────────────────────────────────
+    step_a = f"""
+    <div class="frol-ab-step" data-ab-step="A">
+      <div style="font-weight:600;font-size:12px;color:#6b7280;
+                  text-transform:uppercase;letter-spacing:.5px;">Step A — Name</div>
+      <input type="text" name="name" required maxlength="80"
+             placeholder="What is this activity called?"
+             class="frol-input"
+             oninput="frolActivityStepReveal(this.form);"
+             style="width:100%;margin-top:4px;padding:8px;border:1px solid #d1d5db;
+                    border-radius:6px;">
+    </div>
+    """
+    # ── Step B: who_type ─────────────────────────────────────────────────
+    step_b = f"""
+    <div class="frol-ab-step" data-ab-step="B" style="margin-top:14px;display:none;">
+      <div style="font-weight:600;font-size:12px;color:#6b7280;
+                  text-transform:uppercase;letter-spacing:.5px;">Step B — Who is this for?</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px;">
+        <label class="frol-ab-radio">
+          <input type="radio" name="who_type" value="family" required
+                 onchange="frolActivityWhoType(this.form,'family');"> Whole family
+        </label>
+        <label class="frol-ab-radio">
+          <input type="radio" name="who_type" value="individual"
+                 onchange="frolActivityWhoType(this.form,'individual');"> Individual
+        </label>
+        <label class="frol-ab-radio">
+          <input type="radio" name="who_type" value="mixed"
+                 onchange="frolActivityWhoType(this.form,'mixed');"> Mixed (some people)
+        </label>
+      </div>
+    </div>
+    """
+    # ── Step C: per-who_type branches ────────────────────────────────────
+    person_options = "".join(
+        f'<option value="{escape(n, quote=True)}">{escape(n)}</option>'
+        for n in persons
+    )
+    person_checkboxes = "".join(
+        f"""<label class="frol-ab-person" style="display:inline-flex;align-items:center;
+                  gap:4px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;
+                  margin:2px;font-size:12px;cursor:pointer;">
+              <input type="checkbox" name="who" value="{escape(n, quote=True)}"
+                     onchange="frolActivityPeopleChange(this.form);"> {escape(n)}
+            </label>"""
+        for n in persons
+    )
+    # Family branch: single time + duration + optional leader.
+    family_branch = f"""
+      <div class="frol-ab-branch" data-branch="family" style="display:none;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px;">
+          <div>
+            <label style="font-size:11px;color:#6b7280;">Time</label>
+            <input type="time" name="time" class="frol-input"
+                   style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;">
+          </div>
+          <div>
+            <label style="font-size:11px;color:#6b7280;">Duration (min)</label>
+            <input type="number" name="duration_min" min="0" max="600" value="30"
+                   class="frol-input"
+                   style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;">
+          </div>
+          <div>
+            <label style="font-size:11px;color:#6b7280;">Leader (optional)</label>
+            <select name="leader" class="frol-input"
+                    style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;">
+              <option value="">— none —</option>
+              {person_options}
+            </select>
+          </div>
+        </div>
+      </div>
+    """
+    # Individual branch: single-person select + their time + duration.
+    individual_branch = f"""
+      <div class="frol-ab-branch" data-branch="individual" style="display:none;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px;">
+          <div>
+            <label style="font-size:11px;color:#6b7280;">Person</label>
+            <select name="who_single" class="frol-input"
+                    onchange="frolActivitySinglePerson(this.form, this.value);"
+                    style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;">
+              <option value="">— choose —</option>
+              {person_options}
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;color:#6b7280;">Time</label>
+            <input type="time" name="single_time" class="frol-input"
+                   style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;">
+          </div>
+          <div>
+            <label style="font-size:11px;color:#6b7280;">Duration (min)</label>
+            <input type="number" name="single_duration_min" min="0" max="600" value="30"
+                   class="frol-input"
+                   style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;">
+          </div>
+        </div>
+      </div>
+    """
+    # Mixed branch: checkboxes + per-person time/duration (JS-generated).
+    mixed_branch = f"""
+      <div class="frol-ab-branch" data-branch="mixed" style="display:none;">
+        <div style="font-size:11px;color:#6b7280;margin-top:6px;">Pick the people involved:</div>
+        <div style="display:flex;flex-wrap:wrap;margin-top:4px;">
+          {person_checkboxes}
+        </div>
+        <div data-mixed-rows style="margin-top:8px;"></div>
+      </div>
+    """
+    step_c = f"""
+    <div class="frol-ab-step" data-ab-step="C" style="margin-top:14px;display:none;">
+      <div style="font-weight:600;font-size:12px;color:#6b7280;
+                  text-transform:uppercase;letter-spacing:.5px;">Step C — When &amp; how long</div>
+      {family_branch}
+      {individual_branch}
+      {mixed_branch}
+    </div>
+    """
+    # ── Step D: days + variants + category + seasonal + credits ──────────
+    day_chips = "".join(
+        f"""<label style="display:inline-flex;align-items:center;gap:4px;padding:4px 8px;
+                  border:1px solid #d1d5db;border-radius:6px;margin:2px;font-size:11px;
+                  cursor:pointer;">
+              <input type="checkbox" name="days" value="{d}"
+                {' checked' if d in ('Monday','Tuesday','Wednesday','Thursday','Friday') else ''}>
+              {d[:3]}
+            </label>"""
+        for d in WEEKDAYS
+    )
+    variant_chips = "".join(
+        f"""<label style="display:inline-flex;align-items:center;gap:4px;padding:4px 8px;
+                  border:1px solid #d1d5db;border-radius:6px;margin:2px;font-size:11px;
+                  cursor:pointer;">
+              <input type="checkbox" name="schedule_variant" value="{vk}"
+                {' checked' if vk == av else ''}>
+              {escape(vl)}
+            </label>"""
+        for vk, vl in ACTIVITY_VARIANTS
+    )
+    cat_options = "".join(
+        f'<option value="{key}">{escape(label)}</option>'
+        for key, label, _c in ACTIVITY_CATEGORIES
+    )
+    step_d = f"""
+    <div class="frol-ab-step" data-ab-step="D" style="margin-top:14px;display:none;">
+      <div style="font-weight:600;font-size:12px;color:#6b7280;
+                  text-transform:uppercase;letter-spacing:.5px;">Step D — Days &amp; details</div>
+      <div style="margin-top:6px;">
+        <div style="font-size:11px;color:#6b7280;">Days of week:</div>
+        <div style="display:flex;flex-wrap:wrap;">{day_chips}</div>
+      </div>
+      <div style="margin-top:8px;">
+        <div style="font-size:11px;color:#6b7280;">Schedule variants:</div>
+        <div style="display:flex;flex-wrap:wrap;">{variant_chips}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;">
+        <div>
+          <label style="font-size:11px;color:#6b7280;">Category</label>
+          <select name="category" class="frol-input"
+                  style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;">
+            {cat_options}
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;color:#6b7280;">Seasonal</label>
+          <select name="seasonal" class="frol-input"
+                  style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;">
+            <option value="year_round">Year-round</option>
+            <option value="school_year">School year only</option>
+            <option value="summer">Summer only</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;color:#6b7280;">Credits (FQ, comma-separated)</label>
+          <input type="text" name="credits" placeholder="e.g. xp:10,gold:2"
+                 class="frol-input"
+                 style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;">
+        </div>
+      </div>
+      <label style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;">
+        <input type="checkbox" name="is_grooming" value="1"> Counts as grooming
+      </label>
+    </div>
+    """
+    # ── Submit row ───────────────────────────────────────────────────────
+    submit_row = f"""
+    <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px;">
+      <button type="submit" class="frol-btn">Add activity</button>
+    </div>
+    """
+    # ── Existing activity cards above the builder ────────────────────────
+    list_html = _render_activity_list(sec_int, progress, existing_activities, av, mode)
+    return f"""
+    <div class="frol-activity-builder" data-section="{sec_esc}" data-variant="{escape(av, quote=True)}">
+      <div class="frol-activity-list" style="margin-bottom:14px;">
+        <div style="font-weight:600;font-size:13px;color:#374151;margin-bottom:4px;">
+          Activities in this section (variant: {escape(av)})
+        </div>
+        {list_html}
+      </div>
+      <form method="POST" action="/frol-add-activity" class="frol-ab-form"
+            style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px;">
+        <input type="hidden" name="section" value="{sec_esc}">
+        <input type="hidden" name="mode" value="{mode_esc}">
+        <input type="hidden" name="active_variant" value="{escape(av, quote=True)}">
+        <div style="font-weight:600;font-size:14px;color:#1f2937;margin-bottom:6px;">
+          Add a new activity
+        </div>
+        {step_a}
+        {step_b}
+        {step_c}
+        {step_d}
+        {submit_row}
+      </form>
+    </div>
+    """
+
+
 # ── V2 section renderers ────────────────────────────────────────────────────
 
 def _v2_members(progress: dict) -> list:

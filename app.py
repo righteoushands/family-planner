@@ -7363,6 +7363,121 @@ class Handler(BaseHTTPRequestHandler):
                 except Exception as _fwe: debug_log(f"frol_wizard finalize error: {_fwe}")
                 redirect = "/frol-wizard"
 
+            elif path in ("/frol-add-activity", "/frol-edit-activity", "/frol-delete-activity"):
+                # ── Phase A — activity CRUD (shared by all section pages) ─
+                _aav = self._get_viewer()
+                if not (_aav and _auth.is_admin(_aav)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Admin only.")
+                    except BrokenPipeError: pass
+                    return
+                from data_helpers import (
+                    load_frol_activities, save_frol_activities,
+                    _activity_new_id, _DEFAULT_WEEKDAYS,
+                )
+                _sec_str = (data.get("section",[""])[0] or "0").strip()
+                _mode_a  = (data.get("mode",[""])[0] or "").strip()
+                _av_a    = (data.get("active_variant",[""])[0] or "weekday").strip() or "weekday"
+                try: _sec_i = int(_sec_str)
+                except Exception: _sec_i = 0
+                _redirect_back = f"/frol-wizard?step={_sec_i}&mode={_mode_a}"
+                _items = load_frol_activities()
+                if path == "/frol-delete-activity":
+                    _did = (data.get("id",[""])[0] or "").strip()
+                    _items = [a for a in _items if a.get("id") != _did]
+                    save_frol_activities(_items)
+                    self.send_response(302); self.send_header("Location", _redirect_back); self.end_headers(); return
+                # /frol-add-activity and /frol-edit-activity share the same
+                # form shape. Edit carries an existing `id`; add does not.
+                # Enum whitelists — anything outside falls to the default.
+                _VALID_WT       = ("family", "individual", "mixed")
+                _VALID_VARIANTS = ("weekday", "saturday", "sunday", "john_traveling")
+                _VALID_SEASONAL = ("year_round", "school_year", "summer")
+                _wt    = (data.get("who_type",[""])[0] or "individual").strip()
+                if _wt not in _VALID_WT:
+                    _wt = "individual"
+                _name  = (data.get("name",[""])[0] or "").strip()
+                _cat   = (data.get("category",[""])[0] or "").strip()
+                _seas  = (data.get("seasonal",[""])[0] or "year_round").strip()
+                if _seas not in _VALID_SEASONAL:
+                    _seas = "year_round"
+                _grm   = bool(data.get("is_grooming",[""])[0])
+                _days  = [d for d in data.get("days", []) if d in WEEKDAYS]
+                if not _days:
+                    _days = list(_DEFAULT_WEEKDAYS)
+                _vars  = [v for v in data.get("schedule_variant", [])
+                          if v in _VALID_VARIANTS]
+                if not _vars:
+                    _av_safe = _av_a if _av_a in _VALID_VARIANTS else "weekday"
+                    _vars = [_av_safe]
+                _credits_raw = (data.get("credits",[""])[0] or "").strip()
+                _credits = [c.strip() for c in _credits_raw.split(",") if c.strip()]
+                _leader  = (data.get("leader",[""])[0] or "").strip()
+                # Build who/per_person_times based on who_type:
+                _who = []
+                _per_person = {}
+                _top_time = ""
+                _top_dur  = 0
+                if _wt == "family":
+                    # Family = all current members (fallback to canonical list).
+                    try:
+                        from render_frol_wizard import _activity_persons, load_progress as _lp_a
+                        _who = _activity_persons(_lp_a())
+                    except Exception:
+                        _who = ["Lauren","John","JP","Joseph","Michael","James"]
+                    _top_time = (data.get("time",[""])[0] or "").strip()
+                    try: _top_dur = int((data.get("duration_min",[""])[0] or "0").strip() or 0)
+                    except Exception: _top_dur = 0
+                elif _wt == "individual":
+                    _single = (data.get("who_single",[""])[0] or "").strip()
+                    if _single:
+                        _who = [_single]
+                        _st = (data.get("single_time",[""])[0] or "").strip()
+                        try: _sd = int((data.get("single_duration_min",[""])[0] or "0").strip() or 0)
+                        except Exception: _sd = 0
+                        _per_person[_single] = {"time": _st, "duration_min": _sd}
+                else:  # mixed
+                    _who = [w for w in data.get("who", []) if (w or "").strip()]
+                    for _n in _who:
+                        _pt = (data.get(f"person_{_n}_time",[""])[0] or "").strip()
+                        try:
+                            _pd = int((data.get(f"person_{_n}_duration_min",[""])[0] or "0").strip() or 0)
+                        except Exception:
+                            _pd = 0
+                        _per_person[_n] = {"time": _pt, "duration_min": _pd}
+                if not _name:
+                    # Refuse silently — bounce back without writing.
+                    self.send_response(302); self.send_header("Location", _redirect_back); self.end_headers(); return
+                _aid = (data.get("id",[""])[0] or "").strip()
+                if path == "/frol-edit-activity" and _aid:
+                    # Update in place.
+                    for _a in _items:
+                        if _a.get("id") == _aid:
+                            _a.update({
+                                "name": _name, "section": _sec_i, "who_type": _wt,
+                                "who": _who, "leader": _leader,
+                                "per_person_times": _per_person,
+                                "time": _top_time, "duration_min": _top_dur,
+                                "days": _days, "schedule_variant": _vars,
+                                "category": _cat, "credits": _credits,
+                                "seasonal": _seas, "is_grooming": _grm,
+                            })
+                            break
+                else:
+                    _new = {
+                        "id": _activity_new_id(f"{_name}|{_sec_i}|{_wt}"),
+                        "name": _name, "section": _sec_i, "who_type": _wt,
+                        "who": _who, "leader": _leader,
+                        "per_person_times": _per_person,
+                        "time": _top_time, "duration_min": _top_dur,
+                        "days": _days, "schedule_variant": _vars,
+                        "category": _cat, "color": "",
+                        "credits": _credits, "seasonal": _seas, "is_grooming": _grm,
+                    }
+                    _items.append(_new)
+                save_frol_activities(_items)
+                self.send_response(302); self.send_header("Location", _redirect_back); self.end_headers(); return
+
             elif path == "/sister-mary-clear-history":
                 from data_helpers import clear_sister_mary_history
                 clear_sister_mary_history()

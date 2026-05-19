@@ -717,16 +717,177 @@ def get_hour_totals(person: str, subject: str) -> dict:
     }
 
 
-# ── FROL Wizard V2 activities store ─────────────────────────────────────────
+# ── FROL Wizard V2/V3 activities store ──────────────────────────────────────
+# v3 schema (Phase A) — each activity:
+#   id, name, section, who_type (family|individual|mixed), who [list],
+#   leader, per_person_times {name: {time, duration_min}},
+#   time (family), duration_min (family),
+#   days [weekday names], schedule_variant [weekday|saturday|sunday|john_traveling],
+#   category, color, credits [list], seasonal (year_round|school_year|summer),
+#   is_grooming (bool).
+#
+# Legacy v2 entries had: {time, activity_name, duration_min, who, category, note, keep}.
+# load_frol_activities() upgrades them in memory on every read; the on-disk
+# file is rewritten in v3 shape only when save_frol_activities() runs. A
+# one-shot backup of the pre-v3 file is written to
+# data/frol_activities.v2_backup.json the first time an upgrade is detected.
+
+_ACTIVITIES_V2_BACKUP = "data/frol_activities.v2_backup.json"
+
+_DEFAULT_WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+
+
+def _activity_new_id(seed: str = "") -> str:
+    """Stable-ish short id for a new activity. Seed is only used to keep
+    legacy-upgrade ids deterministic across reads of the same file."""
+    import hashlib as _hl, time as _t, os as _os
+    if seed:
+        h = _hl.sha1(seed.encode("utf-8", "replace")).hexdigest()[:8]
+        return f"act_{h}"
+    h = _hl.sha1(f"{_t.time()}-{_os.urandom(4).hex()}".encode("utf-8")).hexdigest()[:8]
+    return f"act_{h}"
+
+
+def _file_has_legacy_activities() -> bool:
+    """True iff the on-disk activities file contains at least one entry
+    missing the v3 marker fields. Used to scope the backup tightly."""
+    import os as _os, json as _json
+    if not _os.path.exists(FROL_ACTIVITIES_FILE):
+        return False
+    try:
+        with open(FROL_ACTIVITIES_FILE, "r") as f:
+            raw = _json.load(f)
+    except Exception:
+        return False
+    if not isinstance(raw, list):
+        return False
+    return any(
+        isinstance(it, dict) and not (it.get("id") and it.get("who_type"))
+        for it in raw
+    )
+
+
+def _ensure_activities_backup() -> None:
+    """Write a one-shot backup of the on-disk activities file iff it
+    currently contains legacy v2 entries. Idempotent — no-op if the
+    backup already exists, the file is missing, or the file is already
+    fully v3."""
+    import os as _os, shutil as _sh
+    if _os.path.exists(_ACTIVITIES_V2_BACKUP):
+        return
+    if not _file_has_legacy_activities():
+        return
+    try:
+        _sh.copy2(FROL_ACTIVITIES_FILE, _ACTIVITIES_V2_BACKUP)
+    except Exception:
+        pass
+
+
+def _upgrade_activity_v2_to_v3(legacy: dict) -> dict:
+    """Convert one legacy activity dict to the v3 shape. Idempotent — if
+    the input already looks v3 (has id + who_type), returns it unchanged
+    with any missing v3 fields filled in with defaults."""
+    if not isinstance(legacy, dict):
+        return {}
+    if legacy.get("id") and legacy.get("who_type"):
+        # Already v3 — backfill any missing fields with defaults so the
+        # caller always gets a complete 16-field record.
+        out = dict(legacy)
+        out.setdefault("name", "")
+        out.setdefault("section", 0)
+        out.setdefault("who", [])
+        out.setdefault("leader", "")
+        out.setdefault("per_person_times", {})
+        out.setdefault("time", "")
+        out.setdefault("duration_min", 0)
+        out.setdefault("days", list(_DEFAULT_WEEKDAYS))
+        out.setdefault("schedule_variant", ["weekday"])
+        out.setdefault("category", "")
+        out.setdefault("color", "")
+        out.setdefault("credits", [])
+        out.setdefault("seasonal", "year_round")
+        out.setdefault("is_grooming", False)
+        return out
+    # ── True legacy entry ─────────────────────────────────────────────────
+    name = (legacy.get("activity_name") or legacy.get("name") or "").strip()
+    who_list = legacy.get("who") or []
+    if not isinstance(who_list, list):
+        who_list = []
+    who_clean = [str(w).strip() for w in who_list if str(w).strip()]
+    t = (legacy.get("time") or "").strip()
+    try:
+        dur = int(legacy.get("duration_min") or 0)
+    except (TypeError, ValueError):
+        dur = 0
+    # who_type inference from legacy "who" list size:
+    #   1 person  → individual
+    #   2-3       → mixed
+    #   4 or more → family
+    if len(who_clean) <= 1:
+        who_type = "individual"
+    elif len(who_clean) >= 4:
+        who_type = "family"
+    else:
+        who_type = "mixed"
+    # Populate per_person_times for non-family upgrades so any reader
+    # that prefers per-person fields still gets a value.
+    per_person = {}
+    if who_type in ("individual", "mixed"):
+        for n in who_clean:
+            per_person[n] = {"time": t, "duration_min": dur}
+    # Family activities keep top-level time/duration; clear them for
+    # individual/mixed so the reader knows to look at per_person_times.
+    if who_type == "family":
+        top_time, top_dur = t, dur
+    else:
+        top_time, top_dur = "", 0
+    seed = f"{name}|{t}|{','.join(who_clean)}"
+    return {
+        "id":                _activity_new_id(seed),
+        "name":              name,
+        "section":           0,
+        "who_type":          who_type,
+        "who":               who_clean,
+        "leader":            "",
+        "per_person_times":  per_person,
+        "time":              top_time,
+        "duration_min":      top_dur,
+        "days":              list(_DEFAULT_WEEKDAYS),
+        "schedule_variant":  ["weekday"],
+        "category":          (legacy.get("category") or "").strip(),
+        "color":             "",
+        "credits":           [],
+        "seasonal":          "year_round",
+        "is_grooming":       False,
+    }
+
+
 def load_frol_activities() -> list:
+    """Return the activities list in v3 shape. Upgrades legacy v2 entries
+    in memory on every read; never silently rewrites the on-disk file.
+    Writes a one-shot backup the first time legacy entries are detected."""
     data = ensure_file(FROL_ACTIVITIES_FILE, [])
-    return data if isinstance(data, list) else []
+    if not isinstance(data, list):
+        return []
+    has_legacy = any(
+        isinstance(it, dict) and not (it.get("id") and it.get("who_type"))
+        for it in data
+    )
+    if has_legacy:
+        _ensure_activities_backup()
+    return [_upgrade_activity_v2_to_v3(it) for it in data if isinstance(it, dict)]
 
 
 def save_frol_activities(items: list):
+    """Persist activities in v3 shape via safe_save_json. Any legacy
+    entries in `items` are upgraded before write."""
     if not isinstance(items, list):
         items = []
-    return safe_save_json(FROL_ACTIVITIES_FILE, items)
+    # If the on-disk file contains legacy entries and no backup yet,
+    # take one BEFORE this write replaces them.
+    _ensure_activities_backup()
+    clean = [_upgrade_activity_v2_to_v3(it) for it in items if isinstance(it, dict)]
+    return safe_save_json(FROL_ACTIVITIES_FILE, clean)
 
 
 # ── Roadmap ──────────────────────────────────────────────────────────────────

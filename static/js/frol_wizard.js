@@ -152,6 +152,79 @@
       .then(function (r) { status(r.ok ? "Saved" : "Save failed"); });
   };
 
+  /* ── V3 activity builder (Phase A) ───────────────────────────────────
+   * The builder is rendered by render_frol_wizard._render_activity_builder.
+   * Steps A→B→C→D reveal progressively as the user fills in earlier steps. */
+  window.frolActivityStepReveal = function (form) {
+    if (!form) return;
+    var name = form.querySelector('input[name="name"]');
+    var stepB = form.querySelector('[data-ab-step="B"]');
+    if (name && stepB) {
+      stepB.style.display = (name.value || "").trim() ? "" : "none";
+    }
+  };
+
+  window.frolActivityWhoType = function (form, wt) {
+    if (!form) return;
+    var stepC = form.querySelector('[data-ab-step="C"]');
+    var stepD = form.querySelector('[data-ab-step="D"]');
+    if (stepC) stepC.style.display = "";
+    if (stepD) stepD.style.display = "";
+    var branches = form.querySelectorAll('.frol-ab-branch');
+    for (var i = 0; i < branches.length; i++) {
+      branches[i].style.display = (branches[i].getAttribute('data-branch') === wt) ? "" : "none";
+    }
+  };
+
+  window.frolActivitySinglePerson = function (form, name) {
+    /* Individual branch — no per-person rows to build; just a placeholder
+     * hook for future Phase B/C enhancements. */
+    if (!form || !name) return;
+  };
+
+  window.frolActivityPeopleChange = function (form) {
+    /* Mixed branch — rebuild per-person time/duration rows for everyone
+     * currently checked in the people picker. */
+    if (!form) return;
+    var holder = form.querySelector('[data-mixed-rows]');
+    if (!holder) return;
+    var checks = form.querySelectorAll('input[name="who"]:checked');
+    var names  = Array.prototype.map.call(checks, function (c) { return c.value; });
+    /* Preserve any already-typed values across re-renders. */
+    var prev = {};
+    holder.querySelectorAll('[data-mixed-person]').forEach(function (row) {
+      var p = row.getAttribute('data-mixed-person');
+      var t = row.querySelector('input[type="time"]');
+      var d = row.querySelector('input[type="number"]');
+      prev[p] = { time: t ? t.value : '', duration: d ? d.value : '' };
+    });
+    function escHtml(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    holder.innerHTML = '';
+    names.forEach(function (n) {
+      var row = document.createElement('div');
+      row.setAttribute('data-mixed-person', n);
+      row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px;align-items:end;';
+      var pv = prev[n] || { time: '', duration: '30' };
+      var attr = escHtml(n);
+      var disp = escHtml(n);
+      var pvTime = escHtml(pv.time || '');
+      var pvDur  = escHtml(pv.duration || '30');
+      row.innerHTML =
+        '<div style="font-size:12px;color:#374151;font-weight:600;align-self:center;">' + disp + '</div>' +
+        '<div><label style="font-size:11px;color:#6b7280;">Time</label>' +
+          '<input type="time" name="person_' + attr + '_time" value="' + pvTime +
+          '" style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;"></div>' +
+        '<div><label style="font-size:11px;color:#6b7280;">Duration (min)</label>' +
+          '<input type="number" min="0" max="600" name="person_' + attr + '_duration_min" value="' + pvDur +
+          '" style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;"></div>';
+      holder.appendChild(row);
+    });
+  };
+
   /* V2 — update generic section dots after async progress changes. */
   window.frolUpdateDots = function (current, total, completed) {
     var holder = document.querySelector(".frol-dots");
