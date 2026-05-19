@@ -19,7 +19,8 @@ from config import (
     WEEKDAY_ORDER, CURRICULUM_FILE, TASK_OVERRIDES_FILE,
     SCHOOL_WEEK_PLAN_FILE, FAMILY_MEMORY_FILE,
     PRAYER_INTENTIONS_FILE, SISTER_MARY_HISTORY_FILE, POPE_INTENTIONS_FILE,
-    HOUR_TRACKING_FILE, FROL_ACTIVITIES_FILE,
+    HOUR_TRACKING_FILE, FROL_ACTIVITIES_FILE, SEASONAL_SCHEDULES_FILE,
+    DAY_TEMPLATES_DIR,
 )
 
 
@@ -923,6 +924,78 @@ def save_frol_activities(items: list):
     _ensure_activities_backup()
     clean = [_upgrade_activity_v2_to_v3(it) for it in items if isinstance(it, dict)]
     return safe_save_json(FROL_ACTIVITIES_FILE, clean)
+
+
+# ── Phase F: seasonal schedule library ──────────────────────────────────────
+def load_seasonal_schedules() -> list:
+    """Return all saved seasonal schedule snapshots (list of dicts)."""
+    data = ensure_file(SEASONAL_SCHEDULES_FILE, [])
+    if not isinstance(data, list):
+        return []
+    return [it for it in data if isinstance(it, dict)]
+
+
+def _seasonal_snapshot_day_templates() -> dict:
+    """Read all current day_templates JSON files into a dict keyed by
+    filename stem (Monday, Tuesday, …, JohnTraveling). Missing files
+    are simply omitted."""
+    import os as _os
+    import json as _json
+    out = {}
+    if not _os.path.isdir(DAY_TEMPLATES_DIR):
+        return out
+    for fn in sorted(_os.listdir(DAY_TEMPLATES_DIR)):
+        if not fn.endswith(".json"):
+            continue
+        stem = fn[:-5]
+        try:
+            with open(_os.path.join(DAY_TEMPLATES_DIR, fn), "r") as f:
+                out[stem] = _json.load(f)
+        except Exception:
+            continue
+    return out
+
+
+def save_seasonal_schedule(season_label: str, year: int,
+                           notes: str = "",
+                           narrative_answers: dict = None) -> dict:
+    """Persist a snapshot of the current activities + day_templates under
+    the given season label. Returns the saved entry."""
+    from datetime import datetime as _dt
+    entries = load_seasonal_schedules()
+    activities_snapshot = load_frol_activities()
+    day_templates_snapshot = _seasonal_snapshot_day_templates()
+    entry = {
+        "id": f"ss_{_dt.now().strftime('%Y%m%d%H%M%S')}_{len(entries)+1}",
+        "season_label": str(season_label or "").strip() or "Unlabeled",
+        "year": int(year) if year else _dt.now().year,
+        "saved_at": _dt.now().isoformat(timespec="seconds"),
+        "activities_snapshot": activities_snapshot,
+        "day_templates_snapshot": day_templates_snapshot,
+        "notes": str(notes or "").strip(),
+        "narrative_answers": narrative_answers or {},
+    }
+    entries.append(entry)
+    safe_save_json(SEASONAL_SCHEDULES_FILE, entries)
+    return entry
+
+
+def get_seasonal_schedule(entry_id: str) -> dict:
+    """Return one entry by id, or None."""
+    for e in load_seasonal_schedules():
+        if e.get("id") == entry_id:
+            return e
+    return None
+
+
+def delete_seasonal_schedule(entry_id: str) -> bool:
+    """Remove an entry by id; return True if anything was deleted."""
+    entries = load_seasonal_schedules()
+    kept = [e for e in entries if e.get("id") != entry_id]
+    if len(kept) == len(entries):
+        return False
+    safe_save_json(SEASONAL_SCHEDULES_FILE, kept)
+    return True
 
 
 # ── Roadmap ──────────────────────────────────────────────────────────────────

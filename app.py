@@ -1295,6 +1295,22 @@ class Handler(BaseHTTPRequestHandler):
             except BrokenPipeError: pass
             return
 
+        elif path == "/frol-seasonal-view":
+            # Phase F — read-only saved-schedule snapshot.
+            _sv_v = self._get_viewer()
+            if not (_sv_v and _auth.is_admin(_sv_v)):
+                self.send_response(302); self.send_header("Location","/"); self.end_headers(); return
+            from render_frol_wizard import render_seasonal_view_page as _rsvp
+            _sid = (query.get("id",[""])[0] or "").strip()
+            _shtml = _rsvp(_sid)
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store")
+            self.end_headers()
+            try: self.wfile.write(_shtml.encode())
+            except BrokenPipeError: pass
+            return
+
         elif path == "/frol-wizard":
             _fw_v = self._get_viewer()
             if not (_fw_v and _auth.is_admin(_fw_v)):
@@ -7034,6 +7050,163 @@ class Handler(BaseHTTPRequestHandler):
                     try: self.wfile.write(str(e).encode("utf-8"))
                     except BrokenPipeError: pass
                 return
+
+            elif path == "/frol-save-seasonal":
+                _ss_v = self._get_viewer()
+                if not (_ss_v and _auth.is_admin(_ss_v)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Admin only.")
+                    except BrokenPipeError: pass
+                    return
+                from data_helpers import save_seasonal_schedule as _sss
+                from render_frol_wizard import load_progress as _lp_save
+                _label = (data.get("season_label",[""])[0] or "").strip()
+                try:
+                    _yr_i = int((data.get("year",[""])[0] or "0").strip() or "0")
+                except Exception:
+                    _yr_i = 0
+                _notes = (data.get("notes",[""])[0] or "").strip()
+                _prog = {}
+                try:
+                    _prog = _lp_save() or {}
+                except Exception:
+                    _prog = {}
+                try:
+                    _sss(_label, _yr_i, notes=_notes, narrative_answers=_prog)
+                except Exception:
+                    pass
+                self.send_response(302); self.send_header("Location","/frol-wizard"); self.end_headers(); return
+
+            elif path == "/frol-seasonal-use":
+                _su_v = self._get_viewer()
+                if not (_su_v and _auth.is_admin(_su_v)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Admin only.")
+                    except BrokenPipeError: pass
+                    return
+                from data_helpers import (
+                    get_seasonal_schedule as _gss2,
+                    safe_save_json as _ssj2,
+                    ensure_file as _lj2,
+                )
+                from config import FROL_ACTIVITIES_FILE as _FAF, APP_SETTINGS_FILE as _ASF
+                import shutil as _sh, os as _os, time as _ttt
+                _sid = (data.get("id",[""])[0] or "").strip()
+                _entry = _gss2(_sid)
+                if _entry:
+                    try:
+                        if _os.path.exists(_FAF):
+                            _sh.copyfile(_FAF, f"{_FAF}.bak.{int(_ttt.time())}")
+                    except Exception:
+                        pass
+                    try:
+                        _ssj2(_FAF, _entry.get("activities_snapshot") or [])
+                    except Exception:
+                        pass
+                    # Stash overlay-source for the grid to pick up.
+                    try:
+                        _s = _lj2(_ASF, {}) or {}
+                        _s["frol_overlay_source_id"] = _sid
+                        _s["frol_overlay_on"] = True
+                        _ssj2(_ASF, _s)
+                    except Exception:
+                        pass
+                self.send_response(302); self.send_header("Location","/frol-wizard"); self.end_headers(); return
+
+            elif path == "/frol-seasonal-delete":
+                _sd_v = self._get_viewer()
+                if not (_sd_v and _auth.is_admin(_sd_v)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Admin only.")
+                    except BrokenPipeError: pass
+                    return
+                from data_helpers import delete_seasonal_schedule as _dss
+                _sid = (data.get("id",[""])[0] or "").strip()
+                try: _dss(_sid)
+                except Exception: pass
+                self.send_response(302); self.send_header("Location","/frol-wizard"); self.end_headers(); return
+
+            elif path == "/frol-overlay-toggle":
+                _ot_v = self._get_viewer()
+                if not (_ot_v and _auth.is_admin(_ot_v)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Admin only.")
+                    except BrokenPipeError: pass
+                    return
+                from data_helpers import safe_save_json as _ssj3, ensure_file as _lj3
+                from config import APP_SETTINGS_FILE as _ASF
+                try:
+                    _s = _lj3(_ASF, {}) or {}
+                    _s["frol_overlay_on"] = not bool(_s.get("frol_overlay_on"))
+                    _ssj3(_ASF, _s)
+                except Exception:
+                    pass
+                _ref = self.headers.get("Referer") or "/frol-wizard"
+                self.send_response(302); self.send_header("Location", _ref); self.end_headers(); return
+
+            elif path == "/frol-overlay-set":
+                _os2_v = self._get_viewer()
+                if not (_os2_v and _auth.is_admin(_os2_v)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Admin only.")
+                    except BrokenPipeError: pass
+                    return
+                from data_helpers import safe_save_json as _ssj4, ensure_file as _lj4
+                from config import APP_SETTINGS_FILE as _ASF
+                _sid = (data.get("id",[""])[0] or "").strip()
+                try:
+                    _s = _lj4(_ASF, {}) or {}
+                    _s["frol_overlay_source_id"] = _sid
+                    _s["frol_overlay_on"] = True
+                    _ssj4(_ASF, _s)
+                except Exception:
+                    pass
+                self.send_response(302); self.send_header("Location","/frol-wizard"); self.end_headers(); return
+
+            elif path == "/frol-overlay-clear":
+                _oc_v = self._get_viewer()
+                if not (_oc_v and _auth.is_admin(_oc_v)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Admin only.")
+                    except BrokenPipeError: pass
+                    return
+                from data_helpers import safe_save_json as _ssj5, ensure_file as _lj5
+                from config import APP_SETTINGS_FILE as _ASF
+                try:
+                    _s = _lj5(_ASF, {}) or {}
+                    _s.pop("frol_overlay_source_id", None)
+                    _s["frol_overlay_on"] = False
+                    _ssj5(_ASF, _s)
+                except Exception:
+                    pass
+                _ref = self.headers.get("Referer") or "/frol-wizard"
+                self.send_response(302); self.send_header("Location", _ref); self.end_headers(); return
+
+            elif path == "/pod-dismiss-season":
+                _pd_v = self._get_viewer()
+                if not _pd_v:
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Login required.")
+                    except BrokenPipeError: pass
+                    return
+                from data_helpers import safe_save_json as _ssj6, ensure_file as _lj6
+                from config import APP_SETTINGS_FILE as _ASF
+                _lab = (data.get("label",[""])[0] or "").strip()
+                try:
+                    _yri = int((data.get("year",[""])[0] or "0").strip() or "0")
+                except Exception:
+                    _yri = 0
+                try:
+                    _s = _lj6(_ASF, {}) or {}
+                    _dsp = _s.get("dismissed_season_prompts") or {}
+                    if _lab:
+                        _dsp[_lab] = _yri
+                    _s["dismissed_season_prompts"] = _dsp
+                    _ssj6(_ASF, _s)
+                except Exception:
+                    pass
+                _ref = self.headers.get("Referer") or "/"
+                self.send_response(302); self.send_header("Location", _ref); self.end_headers(); return
 
             elif path == "/frol-wizard":
                 _fw_v = self._get_viewer()

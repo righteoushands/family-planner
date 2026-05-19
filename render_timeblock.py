@@ -1860,6 +1860,76 @@ def _render_seven_commitments_card() -> str:
     )
 
 
+def _render_seasonal_prompt_card(today) -> str:
+    """Phase F: Marian-blue POD card prompting the family to review last
+    year's saved schedule when a new season is within 14 days. Dismissal
+    persists per-(label,year) in app_settings.dismissed_season_prompts."""
+    try:
+        import json as _json
+        from render_seasons import upcoming_season as _us
+        from data_helpers import load_seasonal_schedules as _lss
+        from config import APP_SETTINGS_FILE as _ASF
+        nxt = _us(today, window_days=14)
+        if not nxt:
+            return ""
+        label = nxt["label"]
+        year  = nxt["year"]
+        matches = [e for e in _lss() if e.get("season_label") == label]
+        if not matches:
+            return ""
+        # Check dismissal: app_settings.dismissed_season_prompts[label] == year
+        dismissed = {}
+        try:
+            if os.path.exists(_ASF):
+                with open(_ASF, encoding="utf-8") as _fh:
+                    _s = _json.load(_fh) or {}
+                dismissed = _s.get("dismissed_season_prompts", {}) or {}
+        except Exception:
+            dismissed = {}
+        if int(dismissed.get(label, 0) or 0) == int(year):
+            return ""
+        matches.sort(key=lambda e: e.get("year", 0), reverse=True)
+        latest = matches[0]
+        _id  = escape(str(latest.get("id") or ""), quote=True)
+        _olbl = escape(label)
+        _dn  = int(nxt.get("days_until") or 0)
+        when = "today" if _dn == 0 else ("tomorrow" if _dn == 1 else f"in {_dn} days")
+        _yr_prev = int(latest.get("year") or 0)
+        return (
+            '<div style="background:linear-gradient(135deg,#dbe7f7,#c3d4ef);'
+            'border:1px solid #9bb6dc;border-left:4px solid #2563eb;'
+            'border-radius:12px;padding:14px 16px;margin:12px 0;'
+            'position:relative;">'
+            f'<div style="font-weight:700;color:#1e3a8a;font-size:1em;'
+            f'margin-bottom:4px;">🗓 {_olbl} starts {escape(when)}</div>'
+            f'<div style="font-size:0.88em;color:#33507e;line-height:1.45;'
+            f'margin-bottom:10px;">'
+            f'You have a saved rule of life from {_yr_prev}. Want to revisit '
+            f'it before the season changes?</div>'
+            '<div style="display:flex;gap:6px;flex-wrap:wrap;">'
+            f'<a href="/frol-seasonal-view?id={_id}" '
+            f'style="background:#fff;color:#1e3a8a;border:1px solid #2563eb;'
+            f'border-radius:6px;padding:6px 12px;text-decoration:none;'
+            f'font-weight:700;font-size:0.85em;">View saved schedule</a>'
+            f'<a href="/frol-wizard" '
+            f'style="background:#2563eb;color:#fff;border-radius:6px;'
+            f'padding:6px 12px;text-decoration:none;font-weight:700;'
+            f'font-size:0.85em;">Open Rule of Life</a>'
+            '<form method="POST" action="/pod-dismiss-season" '
+            'style="margin-left:auto;display:inline-block;">'
+            f'<input type="hidden" name="label" value="{_olbl}">'
+            f'<input type="hidden" name="year"  value="{int(year)}">'
+            '<button type="submit" '
+            'style="background:transparent;border:none;color:#5570a0;'
+            'text-decoration:underline;font-size:0.82em;cursor:pointer;">'
+            'Dismiss</button></form>'
+            '</div>'
+            '</div>'
+        )
+    except Exception:
+        return ""
+
+
 def render_timeblock_homepage(viewer: str = "lauren") -> str:
     now_dt     = _now_eastern()
     today      = now_dt.date()
@@ -1936,6 +2006,7 @@ def render_timeblock_homepage(viewer: str = "lauren") -> str:
         f'</form>'
     )
     commitments_card = _render_seven_commitments_card()
+    seasonal_prompt_card = _render_seasonal_prompt_card(today)
     upcoming_card  = _render_upcoming_feast_notice(today)
     prayers_html   = _render_block_prayers(block, now_dt, weekday)
     pope_card      = _render_pope_card(iso) if block == "afternoon" else ""
@@ -2021,6 +2092,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   {saint_card}
   {commitments_card}
   {frol_wizard_card}
+  {seasonal_prompt_card}
   {john_traveling_card}
   {upcoming_card}
   {prayers_html}

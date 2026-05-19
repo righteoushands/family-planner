@@ -1466,10 +1466,13 @@ def _grid_visible_persons(section: int, progress: dict) -> list:
 
 
 def _grid_chip_html(act: dict, start_min: int, dur_min: int,
-                    rowspan: int) -> str:
+                    rowspan: int, is_overlay: bool = False) -> str:
     """Render the inner activity chip. End time appears at the bottom
     only when the activity ends mid-slot (end_min % 30 != 0) and the
-    activity actually spans more than one slot."""
+    activity actually spans more than one slot.
+
+    is_overlay=True renders a year-over-year ghost chip (faded, dashed
+    border, no rowspan, no end-time) used by the Phase F overlay."""
     cat = (act.get("category") or "").strip() or "fixed"
     color = _safe_color(act.get("color") or "", _category_color(cat))
     name = (act.get("name") or "").strip() or "(untitled)"
@@ -1478,6 +1481,18 @@ def _grid_chip_html(act: dict, start_min: int, dur_min: int,
     end_min = start_min + max(0, dur_min)
     eh, em = divmod(end_min, 60)
     end_lbl = _grid_time_label(eh, em) if eh < 24 else ""
+    if is_overlay:
+        return (
+            f'<div class="frol-grid-chip frol-grid-overlay-chip" '
+            f'data-overlay="1" '
+            f'style="background:{color};color:#fff;border-radius:4px;'
+            f'padding:2px 4px;margin:1px 0;min-height:14px;opacity:0.35;'
+            f'border:1px dashed rgba(255,255,255,0.85);font-size:9px;'
+            f'line-height:1.1;overflow:hidden;font-style:italic;">'
+            f'<span style="font-size:8px;opacity:0.9;">{escape(start_lbl)} </span>'
+            f'<span style="font-weight:600;">{escape(name)}</span>'
+            f'</div>'
+        )
     show_end = (rowspan > 1) and (end_min % 30 != 0) and bool(end_lbl)
     end_html = ""
     if show_end:
@@ -1500,15 +1515,22 @@ def _grid_chip_html(act: dict, start_min: int, dur_min: int,
 
 
 def _grid_build_table(section: int, active_variant: str,
-                      visible: list, activities: list) -> str:
+                      visible: list, activities: list,
+                      overlay_activities: list = None) -> str:
     """Build the inner <table> for the grid. Sticky thead + first column.
     Multi-slot activities use rowspan; collisions in the same start cell
     stack as multiple chips inside one td. Slots covered by a rowspan
-    above are skipped (no <td> emitted)."""
+    above are skipped (no <td> emitted).
+
+    overlay_activities (Phase F) renders as faded ghost chips inside each
+    cell, without contributing to rowspan. Cells inside a current-row
+    rowspan continuation will not display overlay chips — an accepted
+    edge-case for year-over-year visual comparison."""
     av = (active_variant or "weekday").strip() or "weekday"
     sec_i = int(section)
     # Pre-bucket activity placements per (person, start_slot_index).
     placements = {p: {} for p in visible}
+    overlay_placements = {p: {} for p in visible}
     for a in activities:
         if not isinstance(a, dict):
             continue
@@ -1527,6 +1549,24 @@ def _grid_build_table(section: int, active_variant: str,
                 continue
             slot_idx = (sm - 5 * 60) // 30
             placements[p].setdefault(slot_idx, []).append((sm, dm, a))
+    for a in (overlay_activities or []):
+        if not isinstance(a, dict):
+            continue
+        try:
+            if int(a.get("section") or 0) != sec_i:
+                continue
+        except (TypeError, ValueError):
+            continue
+        variants = a.get("schedule_variant") or ["weekday"]
+        if av not in variants:
+            continue
+        for p, sm, dm in _grid_activity_placements(a):
+            if p not in overlay_placements:
+                continue
+            if sm < 5 * 60 or sm >= 5 * 60 + 36 * 30:
+                continue
+            slot_idx = (sm - 5 * 60) // 30
+            overlay_placements[p].setdefault(slot_idx, []).append((sm, dm, a))
     # Track skip-until-slot per person (rowspan continuation tracker).
     skip_until = {p: -1 for p in visible}
     rows_html = []
@@ -1562,12 +1602,17 @@ def _grid_build_table(section: int, active_variant: str,
             if skip_until[p] > slot_idx:
                 continue
             acts_here = placements[p].get(slot_idx) or []
+            overlay_here = overlay_placements[p].get(slot_idx) or []
+            overlay_chips = "".join(
+                _grid_chip_html(_a, _sm, _dm, 1, is_overlay=True)
+                for (_sm, _dm, _a) in overlay_here
+            )
             if not acts_here:
                 cells.append(
                     f'<td class="frol-grid-cell" '
                     f'style="border:1px solid #eef1f6;'
                     f'border-top:{time_border};background:{row_bg};'
-                    f'height:30px;padding:0;"></td>'
+                    f'height:30px;padding:0;">{overlay_chips}</td>'
                 )
                 continue
             # Rowspan = max slot-span among activities starting in this
@@ -1591,7 +1636,7 @@ def _grid_build_table(section: int, active_variant: str,
                 f'style="border:1px solid #eef1f6;'
                 f'border-top:{time_border};background:#fff;'
                 f'padding:1px;vertical-align:top;'
-                f'height:{30 * max_span}px;">{chips}</td>'
+                f'height:{30 * max_span}px;">{chips}{overlay_chips}</td>'
             )
         body.append("<tr>" + "".join(cells) + "</tr>")
     tbody = "<tbody>" + "".join(body) + "</tbody>"
@@ -1602,6 +1647,34 @@ def _grid_build_table(section: int, active_variant: str,
         'font-family:inherit;">'
         + thead + tbody + '</table>'
     )
+
+
+def _seasonal_overlay_state():
+    """Phase F: return (overlay_activities_or_None, source_label, source_id, on)
+    by consulting app_settings.frol_overlay_source_id / frol_overlay_on
+    and looking up the snapshot. Activities are stripped to dicts compatible
+    with the grid; on=False when toggle is off but a source is configured."""
+    try:
+        import json as _json
+        from config import APP_SETTINGS_FILE as _ASF
+        if not os.path.exists(_ASF):
+            return (None, "", "", False)
+        with open(_ASF, encoding="utf-8") as _fh:
+            _s = _json.load(_fh) or {}
+        src_id = (_s.get("frol_overlay_source_id") or "").strip()
+        on = bool(_s.get("frol_overlay_on"))
+        if not src_id:
+            return (None, "", "", False)
+        from data_helpers import get_seasonal_schedule as _gss
+        entry = _gss(src_id)
+        if not entry:
+            return (None, "", src_id, False)
+        label = (
+            f"{entry.get('season_label','')} {entry.get('year','')}"
+        ).strip()
+        return (entry.get("activities_snapshot") or [], label, src_id, on)
+    except Exception:
+        return (None, "", "", False)
 
 
 def _render_grid_preview(section: int, progress: dict,
@@ -1665,7 +1738,40 @@ def _render_grid_preview(section: int, progress: dict,
         '<span style="font-size:11px;color:#6b7280;align-self:center;'
         'margin-right:4px;">Show:</span>' + "".join(pills) + '</div>'
     )
-    table_html = _grid_build_table(sec_i, av, visible, activities)
+    overlay_acts, overlay_label, overlay_id, overlay_on = _seasonal_overlay_state()
+    overlay_for_grid = overlay_acts if (overlay_acts and overlay_on) else None
+    table_html = _grid_build_table(sec_i, av, visible, activities,
+                                   overlay_activities=overlay_for_grid)
+    overlay_toggle = ""
+    if overlay_acts:
+        _olbl   = escape(overlay_label or "saved schedule")
+        _btn_lbl = "Hide overlay" if overlay_on else "Show overlay"
+        _btn_bg  = "#4a235a" if overlay_on else "#fff"
+        _btn_fg  = "#fff" if overlay_on else "#4a235a"
+        _clear_form = (
+            '<form method="POST" action="/frol-overlay-clear" '
+            'style="display:inline-block;margin:0 0 0 4px;">'
+            '<button type="submit" style="background:transparent;border:none;'
+            'color:#7d5a9a;text-decoration:underline;font-size:0.8em;'
+            'cursor:pointer;padding:0;">clear</button>'
+            '</form>'
+        )
+        overlay_toggle = (
+            '<div class="frol-grid-overlay-bar" '
+            'style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;'
+            'background:#f3eef7;border:1px solid #d8c8e6;border-radius:8px;'
+            'padding:6px 10px;margin-bottom:6px;font-size:0.85em;color:#4a235a;">'
+            f'<span style="font-weight:700;">Year-over-year overlay:</span>'
+            f'<span style="font-style:italic;">{_olbl}</span>'
+            f'<form method="POST" action="/frol-overlay-toggle" '
+            f'style="margin-left:auto;">'
+            f'<button type="submit" style="background:{_btn_bg};color:{_btn_fg};'
+            f'border:1px solid #4a235a55;border-radius:14px;padding:3px 12px;'
+            f'font-weight:700;font-size:0.82em;cursor:pointer;">{_btn_lbl}</button>'
+            f'</form>'
+            f'{_clear_form}'
+            '</div>'
+        )
     # Status label for screen readers + manual debugging.
     status = (
         f'<div class="frol-grid-status" '
@@ -1688,7 +1794,7 @@ def _render_grid_preview(section: int, progress: dict,
         f'border-radius:10px;padding:10px 12px;margin:14px 0;">'
         f'<div style="font-weight:700;color:#33507e;font-size:0.95em;'
         f'margin-bottom:6px;">Live grid preview</div>'
-        f'{tab_bar}{pill_bar}{scrollbox}{status}'
+        f'{overlay_toggle}{tab_bar}{pill_bar}{scrollbox}{status}'
         f'</div>'
     )
     return container
@@ -1709,7 +1815,10 @@ def _render_grid_preview_fragment(section: int, progress: dict,
         except Exception:
             activities = []
     visible = _grid_visible_persons(sec_i, progress)
-    return _grid_build_table(sec_i, av, visible, activities)
+    overlay_acts, _olbl, _oid, overlay_on = _seasonal_overlay_state()
+    overlay_for_grid = overlay_acts if (overlay_acts and overlay_on) else None
+    return _grid_build_table(sec_i, av, visible, activities,
+                             overlay_activities=overlay_for_grid)
 
 
 def _render_activity_builder(section: int, progress: dict,
@@ -5752,6 +5861,8 @@ def render_section_14(progress: dict, mode: str) -> str:
                 Marks the wizard complete without changing your day templates.
               </p>
             </form>
+
+            {_render_save_seasonal_card()}
           </div>
         """
     else:
@@ -5999,6 +6110,8 @@ def render_landing(progress: dict) -> str:
       </div>
     """
 
+    upcoming_card_html = _render_landing_seasonal_awareness_card()
+    library_html = _render_seasonal_library_section()
     return f"""
       <div class="frol-card" style="text-align:center;padding:46px 32px;">
         <h1 class="frol-title" style="font-size:2.1em;">Your Rule of Life</h1>
@@ -6012,6 +6125,7 @@ def render_landing(progress: dict) -> str:
           yours together.
         </p>
         {commitments_card}
+        {upcoming_card_html}
         {resources_html}
         {resume_html}
         <div style="display:flex;gap:14px;justify-content:center;
@@ -6022,10 +6136,289 @@ def render_landing(progress: dict) -> str:
         <p style="margin-top:30px;font-size:0.85em;color:#7d7d7d;">
           A few short sections · Auto-saves as you go · About 15&ndash;20 minutes
         </p>
+        {library_html}
         {lucy_intro_html}
         {companions_html}
       </div>
     """
+
+
+# ── Phase F: seasonal library helpers ────────────────────────────────────────
+def _render_save_seasonal_card() -> str:
+    """The §15 save-with-season-label card. Lives below the three save
+    buttons. Dropdown pre-selects the upcoming season."""
+    from render_seasons import SEASON_LABELS as _SL, upcoming_season as _us
+    from datetime import date as _date
+    nxt = _us(_date.today()) or {}
+    pre_label = nxt.get("label") or _SL[0]
+    pre_year  = nxt.get("year") or _date.today().year
+    opts = []
+    for lab in _SL:
+        sel = " selected" if lab == pre_label else ""
+        opts.append(f'<option value="{escape(lab, quote=True)}"{sel}>{escape(lab)}</option>')
+    days_blurb = ""
+    if nxt:
+        _dn = nxt.get("days_until", 0)
+        if _dn == 0:
+            days_blurb = " (begins today)"
+        elif _dn == 1:
+            days_blurb = " (begins tomorrow)"
+        else:
+            days_blurb = f" (in {int(_dn)} days)"
+    return f"""
+      <div style="background:#f3eef7;border:1px solid #d8c8e6;
+                  border-left:4px solid #4a235a;border-radius:10px;
+                  padding:14px 16px;margin-top:14px;">
+        <div style="font-weight:700;color:#4a235a;margin-bottom:6px;">
+          📚 Save this rule to your seasonal library
+        </div>
+        <div style="font-size:0.86em;color:#555;margin-bottom:10px;">
+          Tag this snapshot with a season so you can return to it next year.
+          We've pre-selected your upcoming season{escape(days_blurb)}.
+        </div>
+        <form method="POST" action="/frol-save-seasonal"
+              style="display:flex;flex-direction:column;gap:8px;">
+          <label style="font-size:0.85em;color:#4a235a;font-weight:600;">
+            Season label
+            <select name="season_label"
+                    style="margin-left:8px;padding:6px 10px;border-radius:6px;
+                           border:1px solid #c8b3d8;font-size:0.92em;">
+              {"".join(opts)}
+            </select>
+          </label>
+          <label style="font-size:0.85em;color:#4a235a;font-weight:600;">
+            Year
+            <input type="number" name="year" value="{int(pre_year)}"
+                   min="2020" max="2099"
+                   style="margin-left:8px;width:80px;padding:6px 10px;
+                          border-radius:6px;border:1px solid #c8b3d8;font-size:0.92em;">
+          </label>
+          <textarea name="notes" rows="2" placeholder="Notes for next year (optional)…"
+                    style="padding:8px 10px;border-radius:6px;border:1px solid #c8b3d8;
+                           font-size:0.9em;font-family:inherit;resize:vertical;"></textarea>
+          <button type="submit"
+                  style="background:#4a235a;color:#fff;border:none;
+                         border-radius:8px;padding:10px 16px;font-weight:700;
+                         font-size:0.95em;cursor:pointer;">
+            📚 Save to seasonal library
+          </button>
+        </form>
+      </div>
+    """
+
+
+def _render_landing_seasonal_awareness_card() -> str:
+    """Phase F: on the wizard landing, show a Marian-blue card when an
+    upcoming season is within 14 days AND a saved schedule exists for it."""
+    try:
+        from render_seasons import upcoming_season as _us
+        from datetime import date as _date
+        from data_helpers import load_seasonal_schedules as _lss
+        nxt = _us(_date.today(), window_days=14)
+        if not nxt:
+            return ""
+        label = nxt["label"]
+        matches = [e for e in _lss() if e.get("season_label") == label]
+        if not matches:
+            return ""
+        matches.sort(key=lambda e: e.get("year", 0), reverse=True)
+        latest = matches[0]
+        _olbl = escape(label)
+        _yr   = int(latest.get("year") or 0)
+        _dn   = int(nxt.get("days_until") or 0)
+        _id   = escape(str(latest.get("id") or ""), quote=True)
+        when  = "today" if _dn == 0 else ("tomorrow" if _dn == 1 else f"in {_dn} days")
+        return f"""
+          <div style="background:linear-gradient(135deg,#e6edf7,#d6e1f0);
+                      border:1px solid #b3c5e0;border-left:4px solid #2563eb;
+                      border-radius:12px;padding:16px 20px;margin:18px auto 0;
+                      max-width:620px;text-align:left;">
+            <div style="font-weight:700;color:#1e3a8a;font-size:1.02em;
+                        margin-bottom:6px;">
+              🗓 {_olbl} starts {escape(when)}
+            </div>
+            <div style="font-size:0.9em;color:#33507e;line-height:1.45;
+                        margin-bottom:10px;">
+              You have a saved schedule from {_yr}. Want to start with last
+              year's rhythm and edit from there?
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <a href="/frol-seasonal-view?id={_id}"
+                 style="background:#fff;color:#1e3a8a;border:1px solid #2563eb;
+                        border-radius:8px;padding:8px 14px;text-decoration:none;
+                        font-weight:700;font-size:0.88em;">View</a>
+              <form method="POST" action="/frol-seasonal-use" style="margin:0;">
+                <input type="hidden" name="id" value="{_id}">
+                <button type="submit"
+                        style="background:#2563eb;color:#fff;border:none;
+                               border-radius:8px;padding:8px 14px;font-weight:700;
+                               font-size:0.88em;cursor:pointer;">
+                  Use as starting point
+                </button>
+              </form>
+            </div>
+          </div>
+        """
+    except Exception:
+        return ""
+
+
+def _render_seasonal_library_section() -> str:
+    """Phase F: list every saved seasonal schedule with View + Use buttons."""
+    try:
+        from data_helpers import load_seasonal_schedules as _lss
+        entries = _lss()
+    except Exception:
+        entries = []
+    if not entries:
+        return """
+          <div style="margin:32px auto 0;max-width:620px;text-align:left;">
+            <div style="font-size:0.78em;color:#7d7d7d;text-transform:uppercase;
+                        letter-spacing:0.06em;font-weight:700;margin-bottom:10px;
+                        text-align:center;">Seasonal library</div>
+            <div style="background:#f7f5fb;border:1px dashed #cdb6e1;
+                        border-radius:10px;padding:14px 16px;color:#6b5a82;
+                        font-size:0.88em;line-height:1.5;text-align:center;">
+              No saved schedules yet. Finish a rule and save it from §15
+              to build your seasonal library.
+            </div>
+          </div>
+        """
+    entries_sorted = sorted(
+        entries,
+        key=lambda e: (e.get("year", 0), e.get("saved_at", "")),
+        reverse=True,
+    )
+    cards = []
+    for e in entries_sorted:
+        _eid   = escape(str(e.get("id") or ""), quote=True)
+        _lab   = escape(str(e.get("season_label") or ""))
+        _yr    = int(e.get("year") or 0)
+        _saved = escape(str(e.get("saved_at") or "")[:10])
+        _notes = escape((e.get("notes") or "")[:140])
+        _acount = len(e.get("activities_snapshot") or [])
+        _dcount = len(e.get("day_templates_snapshot") or {})
+        cards.append(f"""
+          <div style="background:#fff;border:1px solid #d8c8e6;border-left:3px solid #4a235a;
+                      border-radius:10px;padding:12px 14px;display:flex;
+                      flex-direction:column;gap:6px;">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;">
+              <span style="font-weight:700;color:#4a235a;">{_lab} {_yr}</span>
+              <span style="font-size:0.78em;color:#888;">saved {_saved}</span>
+            </div>
+            <div style="font-size:0.82em;color:#666;">
+              {_acount} activities · {_dcount} day templates
+            </div>
+            {f'<div style="font-size:0.85em;color:#5a4a78;font-style:italic;">{_notes}</div>' if _notes else ''}
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
+              <a href="/frol-seasonal-view?id={_eid}"
+                 style="background:#fff;color:#4a235a;border:1px solid #4a235a;
+                        border-radius:6px;padding:5px 10px;text-decoration:none;
+                        font-weight:600;font-size:0.82em;">View</a>
+              <form method="POST" action="/frol-seasonal-use" style="margin:0;">
+                <input type="hidden" name="id" value="{_eid}">
+                <button type="submit"
+                        style="background:#4a235a;color:#fff;border:none;
+                               border-radius:6px;padding:5px 10px;font-weight:600;
+                               font-size:0.82em;cursor:pointer;">
+                  Use as starting point
+                </button>
+              </form>
+              <form method="POST" action="/frol-seasonal-delete" style="margin:0;"
+                    onsubmit="return confirm('Delete this saved schedule?');">
+                <input type="hidden" name="id" value="{_eid}">
+                <button type="submit"
+                        style="background:transparent;color:#a33;border:none;
+                               text-decoration:underline;font-size:0.82em;
+                               cursor:pointer;padding:5px 4px;">Delete</button>
+              </form>
+            </div>
+          </div>
+        """)
+    return f"""
+      <div style="margin:32px auto 0;max-width:620px;text-align:left;">
+        <div style="font-size:0.78em;color:#7d7d7d;text-transform:uppercase;
+                    letter-spacing:0.06em;font-weight:700;margin-bottom:10px;
+                    text-align:center;">Seasonal library</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+                    gap:10px;">
+          {''.join(cards)}
+        </div>
+      </div>
+    """
+
+
+def render_seasonal_view_page(entry_id: str) -> str:
+    """Phase F: read-only snapshot view at /frol-seasonal-view?id=…"""
+    from data_helpers import get_seasonal_schedule as _gss
+    entry = _gss(entry_id)
+    if not entry:
+        return """<!doctype html><html><head><title>Not found</title></head>
+          <body style="font-family:sans-serif;padding:40px;text-align:center;">
+            <h2>Saved schedule not found.</h2>
+            <p><a href="/frol-wizard">&larr; Back to Rule of Life</a></p>
+          </body></html>"""
+    acts = entry.get("activities_snapshot") or []
+    dts  = entry.get("day_templates_snapshot") or {}
+    rows = []
+    for a in acts:
+        if not isinstance(a, dict):
+            continue
+        rows.append(
+            "<tr>"
+            f"<td style='padding:4px 8px;border-bottom:1px solid #eee;'>{escape(str(a.get('time') or a.get('start_time') or ''))}</td>"
+            f"<td style='padding:4px 8px;border-bottom:1px solid #eee;'>{escape(str(a.get('name') or a.get('activity_name') or ''))}</td>"
+            f"<td style='padding:4px 8px;border-bottom:1px solid #eee;'>{escape(str(a.get('duration_min') or ''))}</td>"
+            f"<td style='padding:4px 8px;border-bottom:1px solid #eee;'>{escape(', '.join(a.get('who') or []))}</td>"
+            "</tr>"
+        )
+    dt_summary = "".join(
+        f"<li><strong>{escape(stem)}</strong>: {len(items) if isinstance(items, list) else '—'} slots</li>"
+        for stem, items in sorted(dts.items())
+    )
+    _eid_esc = escape(str(entry.get("id") or ""), quote=True)
+    return f"""<!doctype html><html><head><meta charset="utf-8">
+<title>{escape(entry.get('season_label',''))} {int(entry.get('year') or 0)} — Saved Schedule</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{{font-family:-apple-system,sans-serif;background:#f7f5fb;color:#1a1a1a;margin:0;padding:24px;}}
+.wrap{{max-width:760px;margin:0 auto;background:#fff;border-radius:12px;
+       padding:24px;border:1px solid #d8c8e6;}}
+h1{{color:#4a235a;font-size:1.5em;margin:0 0 6px;}}
+.sub{{color:#666;font-size:0.9em;margin-bottom:18px;}}
+table{{width:100%;border-collapse:collapse;font-size:0.9em;}}
+th{{text-align:left;padding:6px 8px;background:#f3eef7;color:#4a235a;
+     border-bottom:2px solid #d8c8e6;}}
+.btn{{background:#4a235a;color:#fff;border:none;border-radius:8px;
+      padding:10px 16px;font-weight:700;cursor:pointer;text-decoration:none;
+      display:inline-block;}}
+.btn-ghost{{background:#fff;color:#4a235a;border:1px solid #4a235a;}}
+</style></head>
+<body><div class="wrap">
+  <a href="/frol-wizard" style="color:#4a235a;">&larr; Back to Rule of Life</a>
+  <h1>{escape(entry.get('season_label',''))} {int(entry.get('year') or 0)}</h1>
+  <div class="sub">
+    Saved {escape(str(entry.get('saved_at') or '')[:19])}
+  </div>
+  {f'<p style="background:#f3eef7;border-left:3px solid #4a235a;padding:10px 14px;border-radius:6px;color:#4a235a;font-style:italic;">{escape(entry.get("notes",""))}</p>' if entry.get('notes') else ''}
+  <h3 style="color:#4a235a;margin-top:18px;">Day templates</h3>
+  <ul style="margin:8px 0 18px 22px;color:#555;line-height:1.6;">{dt_summary or '<li>(none)</li>'}</ul>
+  <h3 style="color:#4a235a;">Activities ({len(acts)})</h3>
+  <table>
+    <thead><tr><th>Time</th><th>Activity</th><th>Min</th><th>Who</th></tr></thead>
+    <tbody>{''.join(rows) or '<tr><td colspan=4 style="padding:12px;color:#999;">No activities recorded.</td></tr>'}</tbody>
+  </table>
+  <div style="margin-top:20px;display:flex;gap:8px;flex-wrap:wrap;">
+    <form method="POST" action="/frol-seasonal-use" style="margin:0;">
+      <input type="hidden" name="id" value="{_eid_esc}">
+      <button type="submit" class="btn">Use as starting point</button>
+    </form>
+    <form method="POST" action="/frol-overlay-set" style="margin:0;">
+      <input type="hidden" name="id" value="{_eid_esc}">
+      <button type="submit" class="btn btn-ghost">Overlay on current grid</button>
+    </form>
+  </div>
+</div></body></html>"""
 
 
 def render_step_1(progress: dict, mode: str) -> str:

@@ -47,6 +47,11 @@ DAY_TEMPLATES_DIR         = "data/day_templates"
 DAY_TEMPLATES_PREVIEW_DIR = "data/day_templates_preview"
 DAY_TEMPLATES_BACKUP_DIR  = "data/day_templates_backups"
 
+# ── Phase F: seasonal schedule library ───────────────────────────────────────
+# A single JSON file containing a list of saved schedule snapshots, each
+# tagged with one of the 11 season labels (8 fixed + 3 moveable).
+SEASONAL_SCHEDULES_FILE   = "data/seasonal_schedules.json"
+
 # ── Validation sets ──────────────────────────────────────────────────────────
 VALID_PRIORITIES = {"HIGH", "MEDIUM", "LOW"}
 VALID_STATUSES   = {"active", "done", "inactive"}
