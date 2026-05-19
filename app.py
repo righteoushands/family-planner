@@ -7223,6 +7223,63 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_header("Location", f"/frol-wizard?step={_next}&mode={_mode}")
                     self.end_headers()
                     return
+                # ── Phase E: §15 three-way save actions ────────────────────
+                if _act in ("frol_s15_preview", "frol_s15_save", "frol_s15_keep"):
+                    import traceback as _s15_tb
+                    from render_frol_wizard import (
+                        s15_write_variants_to_dir,
+                        s15_backup_permanent,
+                        s15_discard_preview,
+                    )
+                    from config import (
+                        DAY_TEMPLATES_DIR as _DT_DIR,
+                        DAY_TEMPLATES_PREVIEW_DIR as _DT_PREV,
+                    )
+                    _p = load_progress()
+                    _receipt = {"action": _act}
+                    try:
+                        if _act == "frol_s15_preview":
+                            _written = s15_write_variants_to_dir(_p, _DT_PREV)
+                            _receipt["preview_written"] = ", ".join(_written) or "(none)"
+                            _receipt["preview_dir"]     = _DT_PREV
+                        elif _act == "frol_s15_save":
+                            _bk = s15_backup_permanent()
+                            _receipt["backup_dir"] = _bk or "(no existing files)"
+                            _written = s15_write_variants_to_dir(_p, _DT_DIR)
+                            _receipt["permanent_written"] = ", ".join(_written) or "(none)"
+                            # A successful permanent save discards any preview.
+                            if s15_discard_preview():
+                                _receipt["preview_cleared"] = "yes"
+                            _p["finalized_at"] = datetime.now().isoformat(timespec="seconds")
+                            _receipt["finalized_at"] = _p["finalized_at"]
+                        else:  # frol_s15_keep
+                            # "Keep existing" must also drop any active
+                            # preview, otherwise POD would still show the
+                            # preview schedule and contradict the user's
+                            # choice to keep their existing rule.
+                            if s15_discard_preview():
+                                _receipt["preview_cleared"] = "yes"
+                            _p["finalized_at"] = datetime.now().isoformat(timespec="seconds")
+                            _receipt["finalized_at"] = _p["finalized_at"]
+                            _receipt["note"] = "Existing day templates kept unchanged."
+                    except Exception as _s15_exc:
+                        _tb = _s15_tb.format_exc()
+                        print(f"[{_act}] FAILED: {_s15_exc}\n{_tb}", flush=True)
+                        _receipt["ERROR"] = f"{type(_s15_exc).__name__}: {_s15_exc}"
+                    _p.setdefault("data", {}).setdefault("section_15", {})["receipt"] = _receipt
+                    save_progress(_p)
+                    # Preview → stay on §15 so the user can see the receipt
+                    # and the preview-banner; Save/Keep → bounce home.
+                    if _act == "frol_s15_preview" and "ERROR" not in _receipt:
+                        _loc = "/"
+                    elif _act in ("frol_s15_save", "frol_s15_keep") and "ERROR" not in _receipt:
+                        _loc = "/"
+                    else:
+                        _loc = f"/frol-wizard?step=15&mode={_mode}"
+                    self.send_response(302)
+                    self.send_header("Location", _loc)
+                    self.end_headers()
+                    return
                 if _act == "finalize_v2":
                     import traceback as _fin_tb
                     _p = load_progress()
@@ -11484,6 +11541,66 @@ class Handler(BaseHTTPRequestHandler):
                 try: self.wfile.write(out)
                 except BrokenPipeError: pass
                 return
+
+            # ── Phase E: POD-level preview controls + John-traveling toggle ──
+            elif path == "/preview-keep":
+                _pv = self._get_viewer()
+                if not (_pv and _auth.is_admin(_pv)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Admin only.")
+                    except BrokenPipeError: pass
+                    return
+                try:
+                    from render_frol_wizard import (
+                        s15_promote_preview_to_permanent,
+                        load_progress as _lp_keep, save_progress as _sp_keep,
+                    )
+                    _pk_receipt = s15_promote_preview_to_permanent()
+                    # Mark the wizard finalized once preview is promoted
+                    # so the setup-card flips to the green-check badge.
+                    if not _pk_receipt.get("errors"):
+                        _pk_p = _lp_keep()
+                        _pk_p["finalized_at"] = datetime.now().isoformat(timespec="seconds")
+                        _pk_p.setdefault("data", {}).setdefault("section_15", {})["receipt"] = {
+                            "action": "preview_keep",
+                            "promoted":   _pk_receipt.get("promoted", 0),
+                            "backup_dir": _pk_receipt.get("backup_dir", ""),
+                            "finalized_at": _pk_p["finalized_at"],
+                        }
+                        _sp_keep(_pk_p)
+                except Exception as _pk_exc:
+                    print(f"[/preview-keep] {_pk_exc}", flush=True)
+                self.send_response(303); self.send_header("Location","/"); self.end_headers(); return
+
+            elif path == "/preview-discard":
+                _pv = self._get_viewer()
+                if not (_pv and _auth.is_admin(_pv)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Admin only.")
+                    except BrokenPipeError: pass
+                    return
+                try:
+                    from render_frol_wizard import s15_discard_preview
+                    s15_discard_preview()
+                except Exception as _pd_exc:
+                    print(f"[/preview-discard] {_pd_exc}", flush=True)
+                self.send_response(303); self.send_header("Location","/"); self.end_headers(); return
+
+            elif path == "/pod-toggle-traveling":
+                _pv = self._get_viewer()
+                if not (_pv and _auth.is_admin(_pv)):
+                    self.send_response(403); self.send_header("Content-Type","text/plain"); self.end_headers()
+                    try: self.wfile.write(b"Admin only.")
+                    except BrokenPipeError: pass
+                    return
+                _en_raw = (data.get("enabled",[""])[0] or "").strip()
+                _enabled = _en_raw in ("1", "true", "True", "on", "yes")
+                try:
+                    from render_frol_wizard import set_john_traveling
+                    set_john_traveling(_enabled)
+                except Exception as _jt_exc:
+                    print(f"[/pod-toggle-traveling] {_jt_exc}", flush=True)
+                self.send_response(303); self.send_header("Location","/"); self.end_headers(); return
 
         self.send_response(303); self.send_header("Location",redirect); self.end_headers()
 

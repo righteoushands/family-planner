@@ -38,12 +38,14 @@ from config import (
     FROL_WIZARD_PROGRESS_FILE,
     APP_SETTINGS_FILE,
     PRAYER_INTENTIONS_FILE,
+    DAY_TEMPLATES_DIR,
+    DAY_TEMPLATES_PREVIEW_DIR,
+    DAY_TEMPLATES_BACKUP_DIR,
 )
 from data_helpers import safe_save_json
 
 
 WIZARD_TOTAL_STEPS = 10
-DAY_TEMPLATES_DIR = "data/day_templates"
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday",
             "Friday", "Saturday", "Sunday"]
 
@@ -4211,6 +4213,250 @@ def s12_persist_kept_to_activities(progress: dict) -> int:
     return len(kept)
 
 
+# ── Phase E: §15 Preview / Save / Keep helpers ─────────────────────────────
+# §15 (the wizard's final step) writes per-variant day-template files into
+# either the preview dir or the permanent dir. Mon-Fri are written from the
+# weekday variant's schedule (5 copies); Saturday + Sunday + JohnTraveling
+# are written from their own variant. The POD reader chooses which file to
+# read at request time based on (weekday × john_traveling toggle × whether
+# a preview dir is present).
+
+_S15_VARIANT_TO_FILENAMES = {
+    "weekday":        ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    "saturday":       ["Saturday"],
+    "sunday":         ["Sunday"],
+    "john_traveling": ["JohnTraveling"],
+}
+
+
+def _s15_hhmm24_to_label12(t: str) -> str:
+    """Convert '14:30' → '2:30 PM'. Returns '' on invalid input."""
+    try:
+        parts = (t or "").strip().split(":", 1)
+        if len(parts) != 2:
+            return ""
+        hh = int(parts[0])
+        mm = int(parts[1][:2])
+        if not (0 <= hh < 24 and 0 <= mm < 60):
+            return ""
+        suffix = "AM" if hh < 12 else "PM"
+        h12 = hh % 12
+        if h12 == 0:
+            h12 = 12
+        return f"{h12}:{mm:02d} {suffix}"
+    except Exception:
+        return ""
+
+
+def _s15_build_grid_from_schedule(sched_list: list) -> dict:
+    """Turn a per-variant schedule (list of {time, activity_name, who[], ...})
+    into a day-template grid: {Person: {"H:MM AM": activity_name}}. Skips
+    items with keep=False, blank labels, blank times, or empty who[]."""
+    grid: dict = {}
+    if not isinstance(sched_list, list):
+        return grid
+    for it in sched_list:
+        if not isinstance(it, dict):
+            continue
+        if not it.get("keep", True):
+            continue
+        label = str(it.get("activity_name") or "").strip()
+        if not label:
+            continue
+        lab = _s15_hhmm24_to_label12(str(it.get("time") or "").strip())
+        if not lab:
+            continue
+        who = it.get("who") or []
+        if not isinstance(who, list):
+            continue
+        for person in who:
+            nm = str(person or "").strip()
+            if not nm:
+                continue
+            grid.setdefault(nm, {})[lab] = label
+    return grid
+
+
+def s15_write_variants_to_dir(progress: dict, target_dir: str) -> list:
+    """Write all per-variant schedules from section_13 into JSON files
+    under `target_dir`. Returns the list of filename stems written.
+    Variants with no schedule data are skipped silently."""
+    _s12_migrate_per_variant(progress)
+    os.makedirs(target_dir, exist_ok=True)
+    sec13 = (progress.get("data", {}) or {}).get("section_13", {}) or {}
+    written: list = []
+    for variant, stems in _S15_VARIANT_TO_FILENAMES.items():
+        bucket = sec13.get(variant) or {}
+        if not isinstance(bucket, dict):
+            continue
+        sched = bucket.get("schedule") or []
+        if not isinstance(sched, list) or not sched:
+            continue
+        grid = _s15_build_grid_from_schedule(sched)
+        if not grid:
+            continue
+        for stem in stems:
+            payload = {
+                "weekday": stem,
+                "grid":    grid,
+                "frol_meta": {
+                    "variant":     variant,
+                    "written_at":  datetime.now().isoformat(timespec="seconds"),
+                },
+            }
+            path = os.path.join(target_dir, f"{stem}.json")
+            safe_save_json(path, payload)
+            written.append(stem)
+    return written
+
+
+def s15_backup_permanent() -> str:
+    """Copy every *.json under DAY_TEMPLATES_DIR into a fresh timestamped
+    subdir under DAY_TEMPLATES_BACKUP_DIR. Returns the backup dir path
+    (may be empty if there was nothing to back up). Safe to call when
+    DAY_TEMPLATES_DIR is missing — returns "" in that case."""
+    if not os.path.isdir(DAY_TEMPLATES_DIR):
+        return ""
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    backup_dir = os.path.join(DAY_TEMPLATES_BACKUP_DIR, stamp)
+    os.makedirs(backup_dir, exist_ok=True)
+    for nm in os.listdir(DAY_TEMPLATES_DIR):
+        src = os.path.join(DAY_TEMPLATES_DIR, nm)
+        if os.path.isfile(src) and nm.endswith(".json"):
+            try:
+                shutil.copy2(src, os.path.join(backup_dir, nm))
+            except Exception:
+                pass
+    return backup_dir
+
+
+def s15_preview_active() -> bool:
+    """True if a preview dir exists and contains at least one JSON file."""
+    if not os.path.isdir(DAY_TEMPLATES_PREVIEW_DIR):
+        return False
+    try:
+        return any(
+            nm.endswith(".json")
+            for nm in os.listdir(DAY_TEMPLATES_PREVIEW_DIR)
+        )
+    except Exception:
+        return False
+
+
+def s15_discard_preview() -> bool:
+    """Remove the preview dir entirely. Returns True if anything was deleted."""
+    if os.path.isdir(DAY_TEMPLATES_PREVIEW_DIR):
+        shutil.rmtree(DAY_TEMPLATES_PREVIEW_DIR, ignore_errors=True)
+        return True
+    return False
+
+
+def s15_promote_preview_to_permanent() -> dict:
+    """Back up the permanent dir, then copy every JSON file out of the
+    preview dir into the permanent dir. Only deletes the preview dir if
+    ALL eligible files copy successfully; otherwise the preview is left
+    intact so no data is lost and the error is surfaced in the receipt."""
+    receipt: dict = {"promoted": 0, "backup_dir": "",
+                     "skipped": "no_preview", "errors": []}
+    if not s15_preview_active():
+        return receipt
+    receipt["skipped"] = ""
+    receipt["backup_dir"] = s15_backup_permanent()
+    os.makedirs(DAY_TEMPLATES_DIR, exist_ok=True)
+    copied = 0
+    errors: list = []
+    eligible = [
+        nm for nm in os.listdir(DAY_TEMPLATES_PREVIEW_DIR)
+        if nm.endswith(".json")
+        and os.path.isfile(os.path.join(DAY_TEMPLATES_PREVIEW_DIR, nm))
+    ]
+    for nm in eligible:
+        src = os.path.join(DAY_TEMPLATES_PREVIEW_DIR, nm)
+        try:
+            shutil.copy2(src, os.path.join(DAY_TEMPLATES_DIR, nm))
+            copied += 1
+        except Exception as _exc:
+            errors.append(f"{nm}: {type(_exc).__name__}: {_exc}")
+    receipt["promoted"] = copied
+    receipt["errors"]   = errors
+    # Only clear preview if every eligible file made it across. If even
+    # one failed, keep the preview dir so the user can retry or inspect.
+    if not errors and copied == len(eligible):
+        shutil.rmtree(DAY_TEMPLATES_PREVIEW_DIR, ignore_errors=True)
+        receipt["preview_cleared"] = "yes"
+    else:
+        receipt["preview_cleared"] = "no (errors)"
+    return receipt
+
+
+def john_traveling_enabled() -> bool:
+    """Read app_settings.john_traveling.enabled. Defaults to False."""
+    try:
+        from render_settings import load_app_settings
+        st = (load_app_settings() or {}).get("john_traveling") or {}
+        return bool(st.get("enabled"))
+    except Exception:
+        return False
+
+
+def set_john_traveling(enabled: bool) -> None:
+    """Set the app-wide john_traveling toggle, stamping set_at."""
+    from render_settings import load_app_settings, save_app_settings
+    s = load_app_settings() or {}
+    s["john_traveling"] = {
+        "enabled": bool(enabled),
+        "set_at":  datetime.now().isoformat(timespec="seconds"),
+    }
+    save_app_settings(s)
+
+
+def pod_template_stem(weekday: str) -> str:
+    """Return the day-template filename stem the POD should read for
+    `weekday`, honoring the john_traveling toggle. Saturday/Sunday are
+    always their own files; Mon-Fri use JohnTraveling when the toggle
+    is on, otherwise the weekday's own file."""
+    if weekday in ("Saturday", "Sunday"):
+        return weekday
+    if john_traveling_enabled():
+        return "JohnTraveling"
+    return weekday
+
+
+def pod_template_dir() -> str:
+    """Return the directory POD should read from: preview if a preview
+    is active, otherwise the permanent dir."""
+    return DAY_TEMPLATES_PREVIEW_DIR if s15_preview_active() else DAY_TEMPLATES_DIR
+
+
+def get_pod_day_slots(weekday: str, person: str = "Mom") -> dict:
+    """POD-aware variant of get_frol_day_slots. Resolves the right file
+    (Saturday/Sunday/JohnTraveling/{weekday}) and the right directory
+    (preview dir if active, else permanent dir), then returns the same
+    {time_label: activity_name} dict get_frol_day_slots returns. All JSON
+    reads are delegated to data_helpers.load_day_template (per the
+    'data_helpers is the only file that should read/write JSON' rule)."""
+    from data_helpers import load_day_template
+    stem = pod_template_stem(weekday)
+    base = pod_template_dir()
+    payload = load_day_template(stem, base_dir=base)
+    if not payload and base != DAY_TEMPLATES_DIR:
+        # Preview is active but this variant isn't in the preview dir
+        # (e.g. user only previewed weekday but it's Saturday); fall
+        # back to the permanent copy.
+        payload = load_day_template(stem, base_dir=DAY_TEMPLATES_DIR)
+    grid = (payload or {}).get("grid", {}) or {}
+    if person in ("Lauren", "Mom"):
+        mom_grid    = dict(grid.get("Mom", {})    or {})
+        lauren_grid = dict(grid.get("Lauren", {}) or {})
+        if person == "Mom":
+            merged = {**lauren_grid, **mom_grid}
+        else:
+            merged = {**mom_grid, **lauren_grid}
+        return {t: v for t, v in merged.items() if (v or "").strip()}
+    own = grid.get(person, {}) or {}
+    return {t: v for t, v in dict(own).items() if (v or "").strip()}
+
+
 def render_section_12(progress: dict, mode: str) -> str:
     """V2 §12 — Build Your Day (AI-driven, two-pass).
     Pass 1 surfaces clarifying questions; Pass 2 produces a suggested
@@ -5431,29 +5677,86 @@ def render_section_14(progress: dict, mode: str) -> str:
           </div>
         """
 
-    save_btn = ""
+    # ── Phase E: three save actions ────────────────────────────────────────
+    # 1. Preview this week  — write to data/day_templates_preview/
+    # 2. Save permanently   — back up + write to data/day_templates/
+    # 3. Keep existing      — just mark wizard finalized, write nothing
+    preview_on = s15_preview_active()
+    _mesc      = escape(mode, quote=True)
+
+    preview_banner = ""
+    if preview_on:
+        preview_banner = """
+          <div style="background:#fff7e0;border:1px solid #e7c66a;border-left:4px solid #d99a16;
+                      border-radius:10px;padding:12px 16px;margin:10px 0;">
+            <div style="font-weight:700;color:#8a5a00;margin-bottom:4px;">
+              🟡 Preview is live
+            </div>
+            <div style="font-size:0.9em;color:#555;">
+              Your home page is showing the preview schedule. Use the buttons
+              below to keep it permanently or discard it.
+            </div>
+          </div>
+        """
+
     if not finalized:
         save_btn = f"""
-          <div style="margin-top:18px;text-align:center;">
-            <form method="POST" action="/frol-wizard" style="display:inline-block;">
-              <input type="hidden" name="action"  value="finalize_v2">
-              <input type="hidden" name="section" value="14">
-              <input type="hidden" name="mode"    value="{escape(mode, quote=True)}">
+          {preview_banner}
+          <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px;
+                      max-width:520px;margin-left:auto;margin-right:auto;">
+
+            <form method="POST" action="/frol-wizard">
+              <input type="hidden" name="action"  value="frol_s15_preview">
+              <input type="hidden" name="section" value="15">
+              <input type="hidden" name="mode"    value="{_mesc}">
+              <button type="submit" class="frol-btn"
+                      style="background:#d99a16;color:#fff;border-radius:8px;
+                             padding:12px 18px;font-weight:700;font-size:1em;
+                             border:none;cursor:pointer;width:100%;">
+                👀 Preview this week
+              </button>
+              <p class="frol-help" style="margin:6px 0 0;font-size:0.84em;color:#666;">
+                Writes a non-destructive preview. Your home page will show the
+                new schedule with Keep / Discard buttons.
+              </p>
+            </form>
+
+            <form method="POST" action="/frol-wizard">
+              <input type="hidden" name="action"  value="frol_s15_save">
+              <input type="hidden" name="section" value="15">
+              <input type="hidden" name="mode"    value="{_mesc}">
               <button type="submit" class="frol-btn"
                       style="background:#4a6fa5;color:#fff;border-radius:8px;
-                             padding:14px 28px;font-weight:700;font-size:1.05em;
-                             border:none;cursor:pointer;">
-                💾 Save my Rule of Life
+                             padding:14px 22px;font-weight:700;font-size:1.05em;
+                             border:none;cursor:pointer;width:100%;"
+                      onclick="return confirm('Save permanently? Your current day templates will be backed up.');">
+                💾 Save permanently
               </button>
+              <p class="frol-help" style="margin:6px 0 0;font-size:0.84em;color:#666;">
+                Backs up your current day templates, then writes the new
+                weekday / Saturday / Sunday / John-traveling schedules.
+              </p>
             </form>
-            <p class="frol-help" style="margin-top:8px;">
-              This writes your day templates (with backup), chores, hour-tracking
-              categories, notification prefs, and prayer intentions.
-            </p>
+
+            <form method="POST" action="/frol-wizard">
+              <input type="hidden" name="action"  value="frol_s15_keep">
+              <input type="hidden" name="section" value="15">
+              <input type="hidden" name="mode"    value="{_mesc}">
+              <button type="submit" class="frol-btn"
+                      style="background:#f3f4f6;color:#444;border-radius:8px;
+                             padding:10px 16px;font-weight:600;font-size:0.95em;
+                             border:1px solid #d1d5db;cursor:pointer;width:100%;">
+                Keep my existing schedule
+              </button>
+              <p class="frol-help" style="margin:6px 0 0;font-size:0.84em;color:#666;">
+                Marks the wizard complete without changing your day templates.
+              </p>
+            </form>
           </div>
         """
     else:
         save_btn = f"""
+          {preview_banner}
           <div style="margin-top:18px;text-align:center;background:#eef4ed;
                       border:1px solid #c9d9c5;border-radius:10px;padding:14px;">
             <div style="font-weight:700;color:#2e5d3b;font-size:1.05em;">
@@ -6607,8 +6910,61 @@ def render_frol_setup_card(viewer: str = "") -> str:
     if (viewer or "").lower() not in ("lauren", "john"):
         return ""
     p = load_progress()
-    if p.get("finalized_at"):
-        return ""
+    finalized = bool(p.get("finalized_at"))
+
+    # ── Phase E: preview-mode banner (highest priority) ────────────────────
+    # When a preview is live, show Keep / Discard right on the dashboard.
+    if s15_preview_active():
+        return """
+          <div class="tb-card" data-frol-preview="1"
+               style="background:#fff7e0;border:1px solid #e7c66a;
+                      border-left:4px solid #d99a16;border-radius:12px;
+                      padding:14px 16px;margin:12px 0;">
+            <div style="font-weight:700;color:#8a5a00;margin-bottom:4px;">
+              🟡 Previewing your new Rule of Life
+            </div>
+            <div style="font-size:0.9em;color:#444;margin-bottom:10px;">
+              The schedule shown below is a preview from the wizard. Keep it
+              to make it your everyday schedule, or discard to return to your
+              previous Rule of Life.
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <form method="POST" action="/preview-keep" style="margin:0;">
+                <button type="submit"
+                        style="background:#2e7d4f;color:#fff;border:none;
+                               border-radius:8px;padding:8px 16px;font-weight:700;
+                               font-size:0.9em;cursor:pointer;">
+                  ✅ Keep this schedule
+                </button>
+              </form>
+              <form method="POST" action="/preview-discard" style="margin:0;"
+                    onsubmit="return confirm('Discard the preview?');">
+                <button type="submit"
+                        style="background:#fff;color:#a33;border:1px solid #a33;
+                               border-radius:8px;padding:8px 16px;font-weight:700;
+                               font-size:0.9em;cursor:pointer;">
+                  Discard preview
+                </button>
+              </form>
+            </div>
+          </div>
+        """
+
+    # ── Phase E: tiny green-check badge once §15 has saved permanently ─────
+    if finalized:
+        return """
+          <div class="tb-card" data-frol-finalized="1"
+               style="background:#eef6f0;border:1px solid #cde0d2;
+                      border-left:4px solid #2e7d4f;border-radius:10px;
+                      padding:8px 14px;margin:10px 0;font-size:0.85em;
+                      color:#2e5d3b;display:flex;align-items:center;
+                      justify-content:space-between;gap:8px;">
+            <span><strong>✓</strong> Rule of Life saved.</span>
+            <a href="/frol-wizard" style="color:#2e5d3b;text-decoration:underline;
+                                           font-size:0.85em;">Edit</a>
+          </div>
+        """
+
     cur = int(p.get("current_step", 0) or 0)
     has_started = bool(p.get("mode"))
     label = "Continue setup" if has_started else "Start setup"

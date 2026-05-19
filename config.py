@@ -39,6 +39,14 @@ HOUR_TRACKING_FILE       = "data/hour_tracking.json"
 HOUR_REPORTS_DIR         = "data/hour_reports"
 FROL_ACTIVITIES_FILE     = "data/frol_activities.json"
 
+# ── FROL day-template paths (Phase E) ────────────────────────────────────────
+# Permanent live templates POD reads from. Preview dir is created by §15
+# "Preview this week" and consumed by POD when present. Backups land in a
+# timestamped subdir before any destructive write to the permanent dir.
+DAY_TEMPLATES_DIR         = "data/day_templates"
+DAY_TEMPLATES_PREVIEW_DIR = "data/day_templates_preview"
+DAY_TEMPLATES_BACKUP_DIR  = "data/day_templates_backups"
+
 # ── Validation sets ──────────────────────────────────────────────────────────
 VALID_PRIORITIES = {"HIGH", "MEDIUM", "LOW"}
 VALID_STATUSES   = {"active", "done", "inactive"}

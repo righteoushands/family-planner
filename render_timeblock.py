@@ -1359,11 +1359,17 @@ _BLOCK_EMPTY_FROL_MSG = {
 
 
 def _render_frol_snapshot(weekday: str, block: str) -> str:
+    # Phase E: route through the POD-aware reader that honors the
+    # john_traveling toggle and the (non-destructive) preview dir.
     try:
-        from data_helpers import get_frol_day_slots
-        slots = get_frol_day_slots(weekday, person="Mom") or {}
+        from render_frol_wizard import get_pod_day_slots
+        slots = get_pod_day_slots(weekday, person="Mom") or {}
     except Exception:
-        slots = {}
+        try:
+            from data_helpers import get_frol_day_slots
+            slots = get_frol_day_slots(weekday, person="Mom") or {}
+        except Exception:
+            slots = {}
     lo, hi = _BLOCK_HOUR_RANGE.get(block, (0, 24))
     hi_ext = min(24, hi + 2)
 
@@ -1904,6 +1910,31 @@ def render_timeblock_homepage(viewer: str = "lauren") -> str:
         frol_wizard_card = render_frol_setup_card(viewer)
     except Exception:
         frol_wizard_card = ""
+    # Phase E: John-traveling toggle — flips the POD onto the
+    # JohnTraveling.json schedule variant for Mon-Fri.
+    try:
+        from render_frol_wizard import john_traveling_enabled
+        _jt_on = john_traveling_enabled()
+    except Exception:
+        _jt_on = False
+    _jt_pill_bg   = "#4a6fa5" if _jt_on else "#e2e8f0"
+    _jt_pill_fg   = "#ffffff" if _jt_on else "#4a5568"
+    _jt_state_lbl = "ON" if _jt_on else "OFF"
+    _jt_new_val   = "0" if _jt_on else "1"
+    john_traveling_card = (
+        f'<form method="POST" action="/pod-toggle-traveling" '
+        f'style="margin:8px 0;display:flex;align-items:center;gap:10px;'
+        f'background:#fff;border:1px solid #e2e8f0;border-radius:10px;'
+        f'padding:10px 14px;font-size:0.88em;">'
+        f'<span style="font-weight:600;color:#33507e;">✈️ John traveling</span>'
+        f'<input type="hidden" name="enabled" value="{_jt_new_val}">'
+        f'<button type="submit" '
+        f'style="margin-left:auto;background:{_jt_pill_bg};color:{_jt_pill_fg};'
+        f'border:none;border-radius:14px;padding:5px 14px;font-weight:700;'
+        f'font-size:0.82em;cursor:pointer;letter-spacing:0.04em;">'
+        f'{_jt_state_lbl}</button>'
+        f'</form>'
+    )
     commitments_card = _render_seven_commitments_card()
     upcoming_card  = _render_upcoming_feast_notice(today)
     prayers_html   = _render_block_prayers(block, now_dt, weekday)
@@ -1990,6 +2021,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   {saint_card}
   {commitments_card}
   {frol_wizard_card}
+  {john_traveling_card}
   {upcoming_card}
   {prayers_html}
   {daily_mass}

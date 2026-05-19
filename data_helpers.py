@@ -1031,6 +1031,21 @@ def get_frol_day_slots(weekday: str, person: str = "Mom") -> dict:
     return {t: v for t, v in dict(own).items() if (v or "").strip()}
 
 
+def load_day_template(weekday: str, base_dir: str = "data/day_templates") -> dict:
+    """Load a single day-template JSON from `base_dir` (defaults to the
+    permanent dir). Returns {} if missing or malformed. data_helpers is
+    the only module that should read/write these files directly."""
+    import json as _json
+    from pathlib import Path as _Path
+    path = _Path(base_dir) / f"{weekday}.json"
+    if not path.exists():
+        return {}
+    try:
+        return _json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
 def get_frol_times() -> list:
     """Return the canonical ordered half-hour time slots used by the FROL."""
     from render_schedule_support import generate_half_hour_times
