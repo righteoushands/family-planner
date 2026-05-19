@@ -4,6 +4,15 @@ data/calendar_cache.json
 data/calendar_rules.json
 data/subscribed_calendars.json
 data/auth/sessions.json
+# Companion conversation history (contains intimate PII / pastoral content).
+# These accumulate during normal app use; do NOT track them in git.
+data/history/
+data/sister_mary_history.json
+data/lucy_history.json
+data/lorenzo_history.json
+data/father_gregory_history.json
+data/coach_history.json
+data/dr_monica_history.json
 family_quest/data/xp.json
 family_quest/data/battles.json
 family_quest/data/mines.json

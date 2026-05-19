@@ -3117,43 +3117,42 @@ def _holiday_card(slug: str, label: str, saved: dict) -> str:
     """
 
 
+_RULE_MODES = [
+    ("normal",     "Normal day"),
+    ("lighter",    "Lighter day"),
+    ("school_off", "School off"),
+]
+
+
 def _rule_card(label: str, sub: str, key: str, saved: dict) -> str:
-    """General-rule card (Marian feasts, major solemnities). Same
-    school-off + special-schedule + note schema as individual holiday
-    cards, persisted under section_11.{key}.{school_off,
-    special_schedule, note}. Uses data-key (NOT data-field) so the
-    autosave binder picks it up."""
-    cur = saved.get(key) or {}
-    checked_so = " checked" if cur.get("school_off") in (True, "yes", "1", 1) else ""
-    checked_ss = " checked" if cur.get("special_schedule") in (True, "yes", "1", 1) else ""
-    cur_note = escape(cur.get("note") or "", quote=True)
+    """General-rule card (Marian feasts, major solemnities). Per spec,
+    one single 3-state selector: normal / lighter / school_off. Persists
+    DIRECTLY under section_11.{key} as a flat string (not nested under
+    a list), e.g. section_11.marian_rule = "lighter". Uses data-key
+    (not data-field) so the autosave binder picks it up."""
+    cur_mode = saved if isinstance(saved, str) else ""
+    if not cur_mode or cur_mode not in {m for m, _ in _RULE_MODES}:
+        cur_mode = "normal"
+    opts = "".join(
+        f'<option value="{m}"{" selected" if m == cur_mode else ""}>'
+        f'{escape(l)}</option>'
+        for m, l in _RULE_MODES
+    )
     key_esc = escape(key, quote=True)
     return f"""
       <div style="border:1px solid #d8e1ef;border-radius:8px;
                   background:#fff;padding:10px 12px;margin:6px 0;">
         <div style="font-weight:600;color:#33507e;">{escape(label)}</div>
         <div style="font-size:0.82em;color:#888;margin-bottom:6px;">{escape(sub)}</div>
-        <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;
-                    font-size:0.86em;color:#33507e;">
-          <label style="display:flex;align-items:center;gap:5px;">
-            <input type="checkbox" data-step="11"
-                   data-list="rules" data-idx="{key_esc}"
-                   data-key="school_off"
-                   value="1"{checked_so}> School off
-          </label>
-          <label style="display:flex;align-items:center;gap:5px;">
-            <input type="checkbox" data-step="11"
-                   data-list="rules" data-idx="{key_esc}"
-                   data-key="special_schedule"
-                   value="1"{checked_ss}> Special schedule
-          </label>
-        </div>
-        <input class="frol-input" type="text" data-step="11"
-               data-list="rules" data-idx="{key_esc}" data-key="note"
-               value="{cur_note}"
-               placeholder="Notes"
-               style="width:100%;margin-top:6px;font-size:0.86em;
-                      padding:4px 8px;">
+        <label style="display:flex;align-items:center;gap:8px;
+                      font-size:0.86em;color:#33507e;">
+          What happens?
+          <select class="frol-input" data-step="11"
+                  data-key="{key_esc}"
+                  style="font-size:0.86em;padding:3px 8px;">
+            {opts}
+          </select>
+        </label>
       </div>
     """
 
@@ -3181,16 +3180,15 @@ def render_section_11_holidays(progress: dict, mode: str) -> str:
     us_cards = "".join(
         _holiday_card(slug, label, holidays) for slug, label in US_HOLIDAYS
     )
-    rules = sec.get("rules") or {}
     marian = _rule_card(
         "All other Marian feasts",
         "What's the family's default on Marian feast days not listed above?",
-        "marian_rule", rules,
+        "marian_rule", sec.get("marian_rule") or "",
     )
     sol = _rule_card(
         "All other major solemnities",
         "What's the default for any solemnity (e.g. St. Joseph, Sts. Peter & Paul)?",
-        "solemnity_rule", rules,
+        "solemnity_rule", sec.get("solemnity_rule") or "",
     )
 
     holiday_script = """
@@ -3729,7 +3727,7 @@ def _s12_collect_context(progress: dict) -> dict:
         "section_9_rest":        data.get("section_9") or {},
         "section_10_flex":       data.get("section_10") or {},
         "section_11_holidays":   data.get("section_11") or {},
-        "section_12_activities": data.get("section_13") or {},
+        "section_12_activities": data.get("section_12") or {},
         "seven_commitments":     list(SEVEN_COMMITMENTS),
         "existing_schedule":     existing_schedule,
     }
