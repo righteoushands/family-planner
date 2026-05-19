@@ -7447,8 +7447,19 @@ class Handler(BaseHTTPRequestHandler):
                         except Exception:
                             _pd = 0
                         _per_person[_n] = {"time": _pt, "duration_min": _pd}
+                # Per-who_type required-field validation. Reject (302 back,
+                # no write) if the row would be meaningless after save.
+                _invalid = False
                 if not _name:
-                    # Refuse silently — bounce back without writing.
+                    _invalid = True
+                elif _wt == "individual" and (not _who or not _who[0]):
+                    _invalid = True
+                elif _wt == "mixed" and len(_who) < 1:
+                    _invalid = True
+                elif _wt == "family" and not _top_time:
+                    # Family activities without a time are useless on the grid.
+                    _invalid = True
+                if _invalid:
                     self.send_response(302); self.send_header("Location", _redirect_back); self.end_headers(); return
                 _aid = (data.get("id",[""])[0] or "").strip()
                 if path == "/frol-edit-activity" and _aid:

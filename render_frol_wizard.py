@@ -882,7 +882,8 @@ def _fmt_time_12h(t: str) -> str:
     return f"{h12}:{mm_i:02d} {suffix}"
 
 
-def _render_activity_edit_form(activity: dict, section: int, mode: str) -> str:
+def _render_activity_edit_form(activity: dict, section: int, mode: str,
+                               active_variant: str = "weekday") -> str:
     """Inline edit form embedded in each card's <details> drawer. Mirrors
     the builder fields but is pre-populated and posts to /frol-edit-activity.
     Kept compact (single column) so it fits inside the card."""
@@ -991,7 +992,7 @@ def _render_activity_edit_form(activity: dict, section: int, mode: str) -> str:
       <input type="hidden" name="section" value="{sec_esc}">
       <input type="hidden" name="mode" value="{mode_esc}">
       <input type="hidden" name="who_type" value="{escape(wt, quote=True)}">
-      <input type="hidden" name="active_variant" value="weekday">
+      <input type="hidden" name="active_variant" value="{escape((active_variant or 'weekday'), quote=True)}">
       <label style="font-size:11px;color:#6b7280;">Name</label>
       <input type="text" name="name" value="{name}" required
              style="width:100%;padding:5px;border:1px solid #d1d5db;border-radius:6px;margin-bottom:6px;">
@@ -1026,7 +1027,8 @@ _WHO_TYPE_ICONS = {
 }
 
 
-def _render_activity_card(activity: dict, section: int, mode: str) -> str:
+def _render_activity_card(activity: dict, section: int, mode: str,
+                          active_variant: str = "weekday") -> str:
     """Compact chip-style display of one activity. Includes an inline edit
     form (toggled via <details>) and a delete button. All POSTs go to the
     Phase A routes — section pages just embed this card."""
@@ -1055,7 +1057,9 @@ def _render_activity_card(activity: dict, section: int, mode: str) -> str:
             if t or d:
                 bits.append(f"{escape(str(n))} {escape(t) or '?'} · {d}m")
         time_html = " · ".join(bits) if bits else "—"
-    edit_form = _render_activity_edit_form(activity, int(section), mode)
+    av_card = (active_variant or "weekday").strip() or "weekday"
+    av_esc = escape(av_card, quote=True)
+    edit_form = _render_activity_edit_form(activity, int(section), mode, av_card)
     days_list = activity.get("days") or []
     days_short = "".join((d[:1] if d else "") for d in days_list) or "—"
     variants = activity.get("schedule_variant") or ["weekday"]
@@ -1106,6 +1110,7 @@ def _render_activity_card(activity: dict, section: int, mode: str) -> str:
             <input type="hidden" name="id" value="{aid}">
             <input type="hidden" name="section" value="{section}">
             <input type="hidden" name="mode" value="{mode_esc}">
+            <input type="hidden" name="active_variant" value="{av_esc}">
             <button type="submit" class="frol-btn ghost"
                     style="padding:4px 8px;font-size:11px;color:#dc2626;">Delete</button>
           </form>
@@ -1139,7 +1144,7 @@ def _render_activity_list(section: int, progress: dict, activities: list,
     if not matches:
         return ('<div style="font-size:12px;color:#9ca3af;font-style:italic;'
                 'padding:8px 0;">No activities yet for this section.</div>')
-    return "".join(_render_activity_card(a, sec_int, mode) for a in matches)
+    return "".join(_render_activity_card(a, sec_int, mode, av) for a in matches)
 
 
 def _render_activity_builder(section: int, progress: dict,
