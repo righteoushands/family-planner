@@ -975,6 +975,8 @@ def render_section_3(progress: dict, mode: str) -> str:
     bed_adults    = _sv(progress, 3, "bed_adults",           "22:30")
     fixed         = _sv(progress, 3, "fixed_commitments",    "")
     john_work     = _sv(progress, 3, "john_work_schedule",   "")
+    john_wake     = _sv(progress, 3, "john_wake_time",       "06:00")
+    john_bed      = _sv(progress, 3, "john_bedtime",         "22:30")
     driving       = _sv(progress, 3, "driving_errands",      "")
     refl = render_reflection_card(
         "Fixed commitments first",
@@ -1004,6 +1006,18 @@ def render_section_3(progress: dict, mode: str) -> str:
         (e.g., <code>Wed 09:30 Piano lessons</code>, <code>Mon 18:00 CAP</code>).</p>
       <textarea class="frol-textarea" data-step="3" data-key="fixed_commitments"
                 placeholder="Mon 18:00 CAP (JP, Joe, John)&#10;Wed 09:30 Piano lessons&#10;Sun 10:30 Mass">{escape(fixed)}</textarea>
+
+      <label class="frol-fld" style="margin-top:18px;">John's personal rhythm</label>
+      <p class="frol-help">John's own wake and sleep times — separate from
+        the family adult anchors above. Auto-saves as you type.</p>
+      <div class="frol-row">
+        <div><label class="frol-fld">John's typical wake time</label>
+          <input class="frol-input" type="time" data-step="3" data-key="john_wake_time"
+                 value="{escape(john_wake, quote=True)}"></div>
+        <div><label class="frol-fld">John's typical bedtime</label>
+          <input class="frol-input" type="time" data-step="3" data-key="john_bedtime"
+                 value="{escape(john_bed, quote=True)}"></div>
+      </div>
 
       <label class="frol-fld" style="margin-top:18px;">John's work schedule</label>
       <p class="frol-help">Days, hours, work-from-home pattern, anything that
@@ -2216,10 +2230,13 @@ def _s12_collect_context(progress: dict) -> dict:
                 existing_schedule[_weekday] = json.load(_f)
         except Exception:
             continue
+    _sec3 = data.get("section_3") or {}
     return {
         "members":               (data.get("section_1") or {}).get("members") or [],
         "section_2_anchors":     data.get("section_2") or {},
         "section_3_meals":       data.get("section_3") or {},
+        "john_wake_time":        _sec3.get("john_wake_time") or "",
+        "john_bedtime":          _sec3.get("john_bedtime")   or "",
         "section_4_prayer":      data.get("section_4") or {},
         "section_5_meals":       data.get("section_5") or {},
         "section_6_school":      data.get("section_6") or {},
