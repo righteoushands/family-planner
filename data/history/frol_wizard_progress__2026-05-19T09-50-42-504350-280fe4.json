@@ -942,56 +942,378 @@
       "current_day": "Tuesday",
       "questions": [
         {
-          "question_text": "Your morning prayer is scheduled for 7:15 AM but breakfast is also at 7:30 AM with you feeding Michael and James. How do you want to handle this timing overlap?",
+          "question_text": "What time does John wake up on weekdays, and is he home during morning prayer at 7:15 AM?",
           "options": [
-            "Move morning prayer to 6:45 AM before the children wake",
-            "Do morning prayer at 7:15 while the older boys handle their own breakfast",
-            "Move breakfast to 7:45 AM to allow prayer time first",
-            "Combine prayer and breakfast preparation time"
+            "John wakes at 6:00 AM and joins morning prayer before leaving for work",
+            "John wakes at 6:30 AM and participates in morning prayer",
+            "John leaves early and misses morning prayer with the family"
           ]
         },
         {
-          "question_text": "James has nap times listed as '9-11 and 2-4' but school time and other activities need to be scheduled around this. Are these flexible nap windows or fixed sleep times?",
+          "question_text": "During the 2:30-4:00 PM time block when you work with the boys individually, who supervises Michael and James?",
           "options": [
-            "These are fixed nap times that cannot be moved",
-            "These are flexible windows - he can nap anytime within these ranges",
-            "Morning nap is flexible, afternoon nap is fixed",
-            "Both naps can shift by 30 minutes if needed for activities"
+            "The boys not in session supervise the little ones",
+            "Michael and James play independently in a safe area",
+            "You manage all children while doing individual work",
+            "John is home early some days to help"
           ]
         },
         {
-          "question_text": "You have different kitchen responsibilities listed for JP and Joseph (JP does evening kitchen jobs, Joseph does after-breakfast kitchen jobs), but some tasks overlap. Who does what when both are listed for the same job?",
+          "question_text": "What time do JP and Joseph start their independent school work each morning?",
           "options": [
-            "They alternate days for overlapping tasks",
-            "JP takes over all evening kitchen work, Joseph handles morning only",
-            "They work together on overlapping tasks",
-            "Split tasks - one does dishes, other does cleaning/sweeping"
+            "8:00 AM after morning jobs are complete",
+            "8:30 AM to allow more time for morning routine",
+            "7:30 AM immediately after breakfast"
           ]
         },
         {
-          "question_text": "Your work schedule shows '2:30 pm to 4 pm work with the boys' but this conflicts with James's afternoon nap time (2-4 PM). How should this be resolved?",
+          "question_text": "On Tuesday mornings from 10:00-12:00 PM when you're visiting your sick friend, who cares for Michael and James?",
           "options": [
-            "Move work time with boys to 1:00-2:30 PM before James's nap",
-            "Work with boys from 4:00-5:30 PM after James's nap",
-            "Work with one boy at a time while James naps nearby",
-            "James can skip afternoon nap on school work days"
+            "JP and Joseph supervise the little ones at home",
+            "Michael and James come with you to visit",
+            "John works from home those mornings",
+            "You reschedule this service time"
           ]
         },
         {
-          "question_text": "Your afternoon rest time is listed as '2 to 4 and 6 to 7' but you also have activities scheduled during these times. What takes priority during these rest blocks?",
+          "question_text": "When does your family rosary happen in the evening, and who participates?",
           "options": [
-            "Rest time is protected - other activities move around it",
-            "Rest time is flexible and can be shortened for important activities",
-            "Only the 6-7 PM rest block is protected",
-            "Rest time applies only when no other commitments are scheduled"
+            "7:00 PM with all family members before little ones' bedtime",
+            "8:00 PM after Michael is in bed, with older children and adults",
+            "6:30 PM right after dinner cleanup",
+            "9:00 PM as part of night prayers with John and older boys"
           ]
         }
       ],
       "answers": {
-        "0": "Move morning prayer to 6:45 AM before the children wake",
-        "1": "These are flexible windows - he can nap anytime within these ranges",
-        "2": "Split tasks - one does dishes, other does cleaning/sweeping"
-      }
+        "0": "John leaves early and misses morning prayer with the family",
+        "1": "The boys not in session supervise the little ones",
+        "2": "8:00 AM after morning jobs are complete",
+        "3": "Michael and James come with you to visit",
+        "4": "7:00 PM with all family members before little ones' bedtime"
+      },
+      "_generating": true,
+      "schedule": [
+        {
+          "time": "06:00",
+          "activity_name": "Wake up",
+          "duration_min": 30,
+          "who": [
+            "Lauren"
+          ],
+          "category": "personal",
+          "note": "John leaves early for work",
+          "keep": true
+        },
+        {
+          "time": "06:45",
+          "activity_name": "Wake up",
+          "duration_min": 10,
+          "who": [
+            "James"
+          ],
+          "category": "personal",
+          "note": "",
+          "keep": true
+        },
+        {
+          "time": "06:55",
+          "activity_name": "Wake up",
+          "duration_min": 5,
+          "who": [
+            "JP",
+            "Joseph"
+          ],
+          "category": "personal",
+          "note": "",
+          "keep": true
+        },
+        {
+          "time": "07:00",
+          "activity_name": "Wake up",
+          "duration_min": 15,
+          "who": [
+            "Michael"
+          ],
+          "category": "personal",
+          "note": "",
+          "keep": true
+        },
+        {
+          "time": "07:15",
+          "activity_name": "Morning Prayer - Divine Office",
+          "duration_min": 15,
+          "who": [
+            "Lauren",
+            "JP",
+            "Joseph",
+            "Michael",
+            "James"
+          ],
+          "category": "prayer",
+          "note": "John at work",
+          "keep": true
+        },
+        {
+          "time": "07:30",
+          "activity_name": "Breakfast",
+          "duration_min": 30,
+          "who": [
+            "Lauren",
+            "JP",
+            "Joseph",
+            "Michael",
+            "James"
+          ],
+          "category": "meal",
+          "note": "Lauren feeds Michael and James",
+          "keep": true
+        },
+        {
+          "time": "08:00",
+          "activity_name": "Morning chores and school prep",
+          "duration_min": 30,
+          "who": [
+            "JP",
+            "Joseph",
+            "Michael"
+          ],
+          "category": "chore",
+          "note": "Daily room reset, kitchen jobs",
+          "keep": true
+        },
+        {
+          "time": "08:30",
+          "activity_name": "School - Independent work",
+          "duration_min": 90,
+          "who": [
+            "JP",
+            "Joseph"
+          ],
+          "category": "school",
+          "note": "Math and other subjects",
+          "keep": true
+        },
+        {
+          "time": "09:00",
+          "activity_name": "James morning nap",
+          "duration_min": 120,
+          "who": [
+            "James"
+          ],
+          "category": "rest",
+          "note": "Scheduled nap time",
+          "keep": true
+        },
+        {
+          "time": "10:30",
+          "activity_name": "School with Michael",
+          "duration_min": 30,
+          "who": [
+            "Lauren",
+            "Michael"
+          ],
+          "category": "school",
+          "note": "",
+          "keep": true
+        },
+        {
+          "time": "11:00",
+          "activity_name": "Lunch prep and check schoolwork",
+          "duration_min": 60,
+          "who": [
+            "Lauren",
+            "JP",
+            "Joseph",
+            "Michael",
+            "James"
+          ],
+          "category": "meal",
+          "note": "Lauren checks boys' work",
+          "keep": true
+        },
+        {
+          "time": "12:00",
+          "activity_name": "Angelus and Divine Mercy",
+          "duration_min": 15,
+          "who": [
+            "Lauren",
+            "JP",
+            "Joseph",
+            "Michael",
+            "James"
+          ],
+          "category": "prayer",
+          "note": "Noon prayer",
+          "keep": true
+        },
+        {
+          "time": "14:00",
+          "activity_name": "James afternoon nap",
+          "duration_min": 120,
+          "who": [
+            "James"
+          ],
+          "category": "rest",
+          "note": "Scheduled nap time",
+          "keep": true
+        },
+        {
+          "time": "14:30",
+          "activity_name": "Individual school time with boys",
+          "duration_min": 90,
+          "who": [
+            "Lauren",
+            "JP",
+            "Joseph"
+          ],
+          "category": "school",
+          "note": "One-on-one instruction, Michael supervised by other brother",
+          "keep": true
+        },
+        {
+          "time": "16:00",
+          "activity_name": "Buffer time",
+          "duration_min": 60,
+          "who": [
+            "Lauren",
+            "JP",
+            "Joseph",
+            "Michael",
+            "James"
+          ],
+          "category": "buffer",
+          "note": "Transition and catch-up time",
+          "keep": true
+        },
+        {
+          "time": "17:00",
+          "activity_name": "Dinner",
+          "duration_min": 60,
+          "who": [
+            "Lauren",
+            "JP",
+            "Joseph",
+            "Michael",
+            "James",
+            "John"
+          ],
+          "category": "meal",
+          "note": "Family dinner when John returns from work",
+          "keep": true
+        },
+        {
+          "time": "18:00",
+          "activity_name": "Angelus",
+          "duration_min": 10,
+          "who": [
+            "Lauren",
+            "John",
+            "JP",
+            "Joseph",
+            "Michael",
+            "James"
+          ],
+          "category": "prayer",
+          "note": "Evening Angelus",
+          "keep": true
+        },
+        {
+          "time": "18:30",
+          "activity_name": "Family time and chores",
+          "duration_min": 30,
+          "who": [
+            "Lauren",
+            "John",
+            "JP",
+            "Joseph",
+            "Michael",
+            "James"
+          ],
+          "category": "family",
+          "note": "Dinner cleanup and family activities",
+          "keep": true
+        },
+        {
+          "time": "19:00",
+          "activity_name": "Family Rosary",
+          "duration_min": 30,
+          "who": [
+            "Lauren",
+            "John",
+            "JP",
+            "Joseph",
+            "Michael",
+            "James"
+          ],
+          "category": "prayer",
+          "note": "Before little ones' bedtime",
+          "keep": true
+        },
+        {
+          "time": "20:00",
+          "activity_name": "James bedtime",
+          "duration_min": 30,
+          "who": [
+            "Lauren",
+            "James"
+          ],
+          "category": "personal",
+          "note": "",
+          "keep": true
+        },
+        {
+          "time": "20:30",
+          "activity_name": "Michael bedtime",
+          "duration_min": 30,
+          "who": [
+            "Lauren",
+            "Michael"
+          ],
+          "category": "personal",
+          "note": "",
+          "keep": true
+        },
+        {
+          "time": "21:00",
+          "activity_name": "JP and Joseph bedtime",
+          "duration_min": 30,
+          "who": [
+            "Lauren",
+            "John",
+            "JP",
+            "Joseph"
+          ],
+          "category": "personal",
+          "note": "",
+          "keep": true
+        },
+        {
+          "time": "21:30",
+          "activity_name": "Couple time",
+          "duration_min": 30,
+          "who": [
+            "Lauren",
+            "John"
+          ],
+          "category": "family",
+          "note": "Daily couple connection time",
+          "keep": true
+        },
+        {
+          "time": "22:00",
+          "activity_name": "Night prayers and bedtime",
+          "duration_min": 30,
+          "who": [
+            "Lauren",
+            "John"
+          ],
+          "category": "prayer",
+          "note": "Compline, examination of conscience, adult bedtime",
+          "keep": true
+        }
+      ],
+      "gen_hash": "387a80f6a838adda"
     },
     "section_14": {
       "review_multi": "accept",
@@ -1000,7 +1322,7 @@
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-19T09:25:09",
+  "updated_at": "2026-05-19T09:50:42",
   "finalized_at": "",
   "_v1_completed_steps": [
     1,

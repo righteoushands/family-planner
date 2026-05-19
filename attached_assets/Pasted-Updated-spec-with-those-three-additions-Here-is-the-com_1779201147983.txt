@@ -1,0 +1,143 @@
+Updated spec with those three additions. Here is the complete final spec ready to copy and paste to Replit:
+
+Read claud.md first. This is a complete rewrite of the Rule of Life Wizard Sections 2-11 plus updates to Sections 12 and 15 and new Phases F and G. Plan before building. Present the full plan before writing any code. Build in phases and stop after each phase to report results before continuing.
+
+PHILOSOPHY: Every activity in the wizard is assigned as Family (everyone together), Individual (each person separately), or Mixed (some together, some separate). This creates a per-person daily grid that maps directly to the day_templates structure. A persistent live grid preview sits at the bottom of every section page showing the day filling in as Lauren works. Seasonal schedules are saved and reused year over year so Lauren never starts from scratch. The wizard builds three schedule variants: weekday, weekend, and John-traveling.
+
+PHASE A — EXTENDED ACTIVITY DATA STRUCTURE AND BUILDER COMPONENT
+
+Extend data/frol_activities.json schema. Each activity now has: id, name, section, who_type (family/individual/mixed), who (list of names), leader (optional), per_person_times (dict of person name to time and duration_min for individual and mixed activities), duration_min (for family activities), time (for family activities in HH:MM), days (list of weekday names including Saturday and Sunday), schedule_variant (list containing any of: weekday, saturday, sunday, john_traveling — defaults to weekday if not specified), category, color, credits (list), seasonal (year_round/school_year/summer), is_grooming (boolean).
+
+Build a new shared activity builder Python component _render_activity_builder(section, progress, existing_activities, active_variant) in render_frol_wizard.py. The active_variant parameter controls which schedule variant is being edited. This component renders:
+
+Step A — What: activity name via checkbox suggestions relevant to the section plus a free text input.
+
+Step B — Who: three large tap-to-select buttons labeled Family, Individual, Mixed.
+
+Step C — When and how long. Branches based on Step B selection. If Family: time picker, duration picker, optional leader dropdown, days checkboxes including Saturday and Sunday separately. If Individual: one row per family member. If Mixed: group selection then individual rows.
+
+Step D — Which schedule: checkboxes for Weekday, Saturday, Sunday, When John travels. An activity can belong to multiple variants. Default is Weekday only. This step appears after Step C.
+
+After completing all steps an Add Activity button saves the activity. Activity card shows name, who_type icon, time, duration, schedule variant badges, category color dot, edit button, delete button.
+
+Add the add_activity and delete_activity and edit_activity POST handlers to app.py using the existing elif chain pattern. Use safe_save_json for all writes.
+
+Run py_compile on all modified files. Report results before Phase B.
+
+PHASE B — PERSISTENT LIVE GRID PREVIEW COMPONENT
+
+Build _render_live_grid_preview(activities, section, active_variant) in render_frol_wizard.py. This renders a persistent grid fixed at the bottom of every section page.
+
+Grid structure: sticky time column on the left showing every half hour from 5:00 AM to 10:30 PM (34 rows). Sticky person name header row at the top showing Lauren, John, JP, Joseph, Michael, James. Both sticky simultaneously using CSS position sticky with correct z-index layering so the top-left corner cell is always visible regardless of scroll direction. Horizontal scroll to see all person columns. Small person-pill toggle buttons above the grid to show and hide individual columns. Default visible columns vary by section.
+
+Schedule variant tabs above the grid: Weekday, Saturday, Sunday, John Traveling. Tapping a tab switches the grid to show only activities for that variant. The active tab is highlighted. Lauren can switch between variants at any time to see how each day looks.
+
+Cell behavior: activities shorter than 30 minutes share their half-hour cell stacked vertically. Activities longer than 30 minutes span multiple rows. End time shown centered at the bottom inside the spanning cell when activity ends mid-slot. Color coded by category.
+
+Sticky headers: person name header row uses position sticky top 0. Time column uses position sticky left 0. Top-left corner cell uses both with higher z-index.
+
+JavaScript live update via fetch on every activity add edit or delete.
+
+Run py_compile on all modified files. Report results before Phase C.
+
+PHASE C — SECTIONS 2-11 REWRITTEN
+
+Each section uses the new _render_activity_builder component with the active_variant tab selector. Each section keeps its Catholic reflection card. Each section ends with the persistent grid preview. The variant tab selector persists across sections — if Lauren is editing Saturday activities she stays in Saturday mode as she moves through sections.
+
+Section 2 Little Ones First: Activities include James nap morning, James nap afternoon, James feeding rhythm, James awake play time, Michael rest quiet time, Michael outdoor free play, Michael simple school block. Add a note: James and Michael’s Saturday and Sunday rhythms may differ — the activity builder will ask which days each applies to. Developmental framework info card shown here. Default who_type Individual for naps and feeding, Mixed for shared play time.
+
+Section 3 Fixed Commitments: Activities include Mass (Sunday variant primarily, also weekday for daily Mass families), Piano lessons, Sea Cadets, Sports practice, Co-op, Therapy, Orthodontist, Confession, Adoration, Music lessons, John work hours (weekday only), driving and errand blocks. John wake time and John bedtime collected as standalone fields. Add John traveling toggle: when John travels how does the family day change? Free text field for notes. These notes feed the John-traveling schedule variant. Default who_type Family for Mass, Individual for most others.
+
+Section 4 Prayer: Activities include Morning Offering, Lauds, Angelus, Divine Mercy Chaplet, Rosary, Vespers, Compline, Examination of conscience, Lectio Divina, Holy hour, Adoration, Confession. Note: Sunday prayer rhythm often differs — Sunday Mass replaces Lauds, longer family prayer time is common. The activity builder will ask which days each prayer applies to. Sister Mary introduced here.
+
+Section 5 Meals: Activities include Breakfast, Lunch, Dinner, Afternoon snack, Meal prep, Batch cooking, Grocery shopping, Cleanup. Note: Saturday and Sunday meals often differ — Sunday brunch, bigger family dinner. Lorenzo introduced here.
+
+Section 6 School: Activities include subjects per child, paired activities, read-aloud, independent work. Note: School activities default to weekday only. Saturday and Sunday should have no school unless Lauren specifies otherwise. JP hour tracking toggle per subject. Father Gregory introduced here.
+
+Section 7 Chores and Household: Activities include morning jobs, cleanup, weekly zone cleaning, laundry, monthly chores, seasonal chores, annual chores, personal grooming. Note: Saturday is often the main cleaning day — the activity builder will capture this separately from weekday chores. is_grooming flag for grooming activities.
+
+Section 8 Exercise and Health: Activities include walks, workouts, PE, sports, health appointments. Note: weekend exercise often looks different — longer family walks, less structured. Health setup, notification preferences, emergency contacts. Coach and Dr. Monica introduced here.
+
+Section 9 Rest Free Time and Faith Life: Activities include afternoon rest, Mom free time, John free time, boys free time, screen time, outdoor time, personal reading, date night, couple time, marriage check-in, family traditions, Confession, Adoration, service, feast day traditions. Note: Saturday and Sunday have more family free time and faith life activities — Sunday is a day of rest and should feel different from weekdays. Dr. Monica and Sister Mary highlighted here.
+
+Section 10 Flex Buffers and Seasonal Notes: No activity builder. Collects transition buffer, flex blocks, energy levels, weekly reset, seasonal flags. Add three additional questions: How does your Saturday rhythm differ from weekdays (free text)? How does your Sunday rhythm differ (free text)? When John travels what are the biggest changes to the family day (free text)? These notes are passed to the AI in Section 12.
+
+Section 10B — Holiday and Feast Day Schedule (new section between 10 and 11): Ask Lauren which feast days and holidays the family observes as school-free or schedule-change days. Checkbox list of major feasts: All Saints, All Souls, Immaculate Conception, Christmas, Epiphany, Ash Wednesday, Holy Week (Mon-Wed), Holy Thursday, Good Friday, Holy Saturday, Easter Monday, Ascension, Pentecost, Assumption, patron saint feast days, plus US holidays: Thanksgiving, Independence Day, Labor Day, Memorial Day, New Year. For each checked day ask: School off yes/no, Special schedule yes/no (if yes what changes — free text). Also ask: do you have a general rule for Marian feast days (school off/lighter school/normal)? For major solemnities (school off/lighter/normal)? These create schedule exception rules that the AI uses in Section 12 and that populate the seasonal schedule library.
+
+Section 11 Duration Review: List all activities grouped by section and by schedule variant (Weekday tab, Saturday tab, Sunday tab, John Traveling tab). For each activity show name, who_type, assigned people, current duration, which variants it applies to. Flag any activity with no duration in red. Duration picker on each card. Save duration changes immediately via fetch.
+
+Run py_compile on all modified files. Report results before Phase D.
+
+PHASE D — SECTION 12 REVISED WITH PER-PERSON CONFLICT DETECTION
+
+Section 12 now generates three schedule variants: Weekday, Weekend (Saturday and Sunday separately), and John Traveling.
+
+Three tabs at the top of Section 12: Weekday, Saturday, Sunday, John Traveling. Each tab shows its own conflict check questions and its own generated schedule.
+
+Pass 1 Conflict check per variant: AI reviews the per-person grid for each variant plus existing_schedule from day_templates plus the seven commitments. For the John Traveling variant AI also reads the traveling notes from Section 10. Returns maximum 5 questions per variant. Display one question at a time per variant.
+
+Pass 2 Gap fill per variant: AI fills empty slots per variant. Sunday gap fill should reflect a day of rest — heavier on prayer and family time, lighter on chores and school. Saturday gap fill reflects cleaning day and family activity. John Traveling variant reflects solo-parent mode.
+
+Display List view and Grid view per variant. Grid view uses sticky headers and horizontal scroll from Phase B. Each variant is saved separately.
+
+Run py_compile on all modified files. Report results before Phase E.
+
+PHASE E — SECTION 15 PREVIEW MODE AND POD CONNECTION
+
+Section 15 Save and Preview. Three options: Preview this week, Save permanently, Keep existing.
+
+Preview mode writes to data/day_templates_preview/ with separate files for weekday, saturday, sunday, and john_traveling variants.
+
+Lauren’s POD shows the appropriate variant based on today’s day of week and whether John is marked as traveling in the family schedule.
+
+Add /frol-preview-keep and /frol-preview-discard POST routes to app.py.
+
+After saving redirect to time-block homepage.
+
+Update More sheet entry with green checkmark when complete and yellow dot when preview active.
+
+Run py_compile on all modified files. Report results before Phase F.
+
+PHASE F — SEASONAL SCHEDULE LIBRARY
+
+New data file data/seasonal_schedules.json. Each saved schedule contains: id, season_label (Lent, Easter Season, Summer, Back to School, Fall, November, Advent, Christmas Season, New Year, Post-break ramp-up, End of school year, Custom), year, saved_at, activities (full copy of frol_activities.json), day_templates (full copy of all variants), notes, wizard_answers.
+
+Season detection helper get_current_approaching_season(date) in data_helpers.py returns upcoming season name and days until it starts based on liturgical calendar and these approximate dates: Summer June 1, Back to School August 15, Fall September 22, November November 1, Advent first Sunday of Advent, Christmas December 25, New Year January 1, Post-break January 7, End of school year May 15, Lent Ash Wednesday, Easter Easter Sunday.
+
+End of wizard save card in Section 15: dropdown of all season labels pre-selected based on get_current_approaching_season, free text notes field, Save seasonal schedule button POSTs to /frol-save-seasonal.
+
+FROL page seasonal library section: saved schedules as labeled cards with view and Use as starting point buttons.
+
+Wizard landing screen seasonal awareness card: when approaching season is within 14 days show card with previous year’s schedule option if it exists.
+
+Time-block homepage seasonal prompt card: when a new season is within 14 days show a gentle Marian blue card. Text: We are approaching Season Name which begins in N days. Button: Set Up Season Name Schedule. Card dismisses when tapped or X’d. Does not reappear until following year.
+
+Year over year comparison: when using previous year’s schedule as starting point show it as a faded layer in the Phase B grid preview with a Show last year overlay toggle.
+
+Run py_compile on all modified files. Report results before Phase G.
+
+PHASE G — COMPANION SEASONAL AWARENESS
+
+Add get_seasonal_context() helper to data_helpers.py that returns: current season label, days until next season, next season label, and whether a seasonal schedule exists for the upcoming season. This helper reads from data/seasonal_schedules.json and calls get_current_approaching_season().
+
+Update each companion system prompt to include seasonal context:
+
+Lucy: inject current season and upcoming season. Lucy proactively mentions approaching seasonal transitions in conversation. She can retrieve last year’s seasonal notes when Lauren asks what did we do differently during Lent last year.
+
+Lorenzo: inject current season label so meal planning reflects liturgical and secular season. Lenten meals, Christmas feast planning, summer simplicity, back to school easy dinners.
+
+Sister Mary: inject current liturgical season (already present) plus the seasonal schedule transition if within 14 days. She offers appropriate spiritual encouragement for the approaching season.
+
+Father Gregory: inject school year phase — Back to School ramp-up, mid-year, end of year wind-down, summer mode. His feedback on assignments reflects whether it is a heavy or lighter school period.
+
+Coach: inject Summer vs school year flag since exercise patterns change significantly between seasons.
+
+Dr. Monica: inject seasonal stress awareness. November and end of school year are historically hard. She offers proactive support when these seasons approach.
+
+All six companions receive the seasonal context via get_seasonal_context() injected into their system prompts in their respective render_*.py files. Find where each companion builds its system prompt and add the seasonal context block after the existing memory context block.
+
+Run py_compile on all modified files. Full smoke test across all phases. Restart workflow. Report final results.
+
+ARCHITECTURAL CONSTRAINTS throughout all phases: follow all claud.md rules, elif chains only in routing, all JSON writes via safe_save_json, all paths from config.py, no backslashes in f-strings, no walrus operator, imports at top of file, extend static/js/frol_wizard.js in place do not create new JS files, plan before building present plan before writing any code stop after each phase and report before continuing.
+
+That is the complete final spec. Send it to Replit when ready.

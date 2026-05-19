@@ -939,49 +939,7 @@
     "section_12": {
       "weekend_view": "no",
       "per_person_filter": "",
-      "current_day": "Tuesday",
-      "questions": [
-        {
-          "question_text": "CAP is scheduled Mondays 6:00-9:00 AM, but your morning prayer is at 7:15 AM and breakfast is at 7:30 AM. How should this be handled on CAP Mondays?",
-          "options": [
-            "Skip morning prayer and breakfast at home on CAP Mondays",
-            "Do abbreviated morning prayer at 6:45 AM and pack breakfast to go",
-            "Move morning prayer to 6:30 AM and breakfast to 7:00 AM on CAP Mondays"
-          ]
-        },
-        {
-          "question_text": "You have both kitchen chores assigned to JP and Joseph after breakfast, but they're different tasks. When exactly should each boy do their specific kitchen jobs?",
-          "options": [
-            "Joseph does his jobs right after breakfast, JP waits until Joseph is done",
-            "They work simultaneously on their different tasks",
-            "They alternate days doing all kitchen jobs together"
-          ]
-        },
-        {
-          "question_text": "James has naps scheduled 9-11 AM and 2-4 PM, but your work time with the older boys is 2:30-4:00 PM. Will James be sleeping during your work time, or do these conflict?",
-          "options": [
-            "James sleeps 2-4 PM, work time moves to after his nap",
-            "James naps 1:30-3:30 PM to avoid conflict with work time",
-            "Work time happens while James naps 2-4 PM as scheduled"
-          ]
-        },
-        {
-          "question_text": "Your afternoon rest is listed as '2 to 4 and 6 to 7' - do you mean two separate rest periods, or are you clarifying a single time block?",
-          "options": [
-            "Two separate rest periods: 2-4 PM and 6-7 PM",
-            "One rest period from 2-4 PM (the 6-7 was a typo)",
-            "Family quiet time 2-4 PM, personal rest 6-7 PM"
-          ]
-        },
-        {
-          "question_text": "You mention checking schoolwork for both boys at 11 AM and again working with them 2:30-4:00 PM. What's the difference between these two school times?",
-          "options": [
-            "11 AM is reviewing completed work, 2:30-4 PM is teaching new lessons",
-            "11 AM is for Joseph only, 2:30-4 PM is for JP only",
-            "11 AM is quick check-in, 2:30-4 PM is intensive help and instruction"
-          ]
-        }
-      ]
+      "current_day": "Tuesday"
     },
     "section_14": {
       "review_multi": "accept",
@@ -990,7 +948,7 @@
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-19T09:23:21",
+  "updated_at": "2026-05-19T09:47:52",
   "finalized_at": "",
   "_v1_completed_steps": [
     1,

@@ -942,46 +942,56 @@
       "current_day": "Tuesday",
       "questions": [
         {
-          "question_text": "CAP is scheduled Mondays 6:00-9:00 AM, but your morning prayer is at 7:15 AM and breakfast is at 7:30 AM. How should this be handled on CAP Mondays?",
+          "question_text": "What time does John wake up on weekdays, and is he home during morning prayer at 7:15 AM?",
           "options": [
-            "Skip morning prayer and breakfast at home on CAP Mondays",
-            "Do abbreviated morning prayer at 6:45 AM and pack breakfast to go",
-            "Move morning prayer to 6:30 AM and breakfast to 7:00 AM on CAP Mondays"
+            "John wakes at 6:00 AM and joins morning prayer before leaving for work",
+            "John wakes at 6:30 AM and participates in morning prayer",
+            "John leaves early and misses morning prayer with the family"
           ]
         },
         {
-          "question_text": "You have both kitchen chores assigned to JP and Joseph after breakfast, but they're different tasks. When exactly should each boy do their specific kitchen jobs?",
+          "question_text": "During the 2:30-4:00 PM time block when you work with the boys individually, who supervises Michael and James?",
           "options": [
-            "Joseph does his jobs right after breakfast, JP waits until Joseph is done",
-            "They work simultaneously on their different tasks",
-            "They alternate days doing all kitchen jobs together"
+            "The boys not in session supervise the little ones",
+            "Michael and James play independently in a safe area",
+            "You manage all children while doing individual work",
+            "John is home early some days to help"
           ]
         },
         {
-          "question_text": "James has naps scheduled 9-11 AM and 2-4 PM, but your work time with the older boys is 2:30-4:00 PM. Will James be sleeping during your work time, or do these conflict?",
+          "question_text": "What time do JP and Joseph start their independent school work each morning?",
           "options": [
-            "James sleeps 2-4 PM, work time moves to after his nap",
-            "James naps 1:30-3:30 PM to avoid conflict with work time",
-            "Work time happens while James naps 2-4 PM as scheduled"
+            "8:00 AM after morning jobs are complete",
+            "8:30 AM to allow more time for morning routine",
+            "7:30 AM immediately after breakfast"
           ]
         },
         {
-          "question_text": "Your afternoon rest is listed as '2 to 4 and 6 to 7' - do you mean two separate rest periods, or are you clarifying a single time block?",
+          "question_text": "On Tuesday mornings from 10:00-12:00 PM when you're visiting your sick friend, who cares for Michael and James?",
           "options": [
-            "Two separate rest periods: 2-4 PM and 6-7 PM",
-            "One rest period from 2-4 PM (the 6-7 was a typo)",
-            "Family quiet time 2-4 PM, personal rest 6-7 PM"
+            "JP and Joseph supervise the little ones at home",
+            "Michael and James come with you to visit",
+            "John works from home those mornings",
+            "You reschedule this service time"
           ]
         },
         {
-          "question_text": "You mention checking schoolwork for both boys at 11 AM and again working with them 2:30-4:00 PM. What's the difference between these two school times?",
+          "question_text": "When does your family rosary happen in the evening, and who participates?",
           "options": [
-            "11 AM is reviewing completed work, 2:30-4 PM is teaching new lessons",
-            "11 AM is for Joseph only, 2:30-4 PM is for JP only",
-            "11 AM is quick check-in, 2:30-4 PM is intensive help and instruction"
+            "7:00 PM with all family members before little ones' bedtime",
+            "8:00 PM after Michael is in bed, with older children and adults",
+            "6:30 PM right after dinner cleanup",
+            "9:00 PM as part of night prayers with John and older boys"
           ]
         }
-      ]
+      ],
+      "answers": {
+        "0": "John leaves early and misses morning prayer with the family",
+        "1": "The boys not in session supervise the little ones",
+        "2": "8:00 AM after morning jobs are complete",
+        "3": "Michael and James come with you to visit",
+        "4": "7:00 PM with all family members before little ones' bedtime"
+      }
     },
     "section_14": {
       "review_multi": "accept",
@@ -990,7 +1000,7 @@
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-19T09:23:05",
+  "updated_at": "2026-05-19T09:50:19",
   "finalized_at": "",
   "_v1_completed_steps": [
     1,

@@ -939,7 +939,57 @@
     "section_12": {
       "weekend_view": "no",
       "per_person_filter": "",
-      "current_day": "Tuesday"
+      "current_day": "Tuesday",
+      "questions": [
+        {
+          "question_text": "What time does John wake up on weekdays, and is he home during morning prayer at 7:15 AM?",
+          "options": [
+            "John wakes at 6:00 AM and joins morning prayer before leaving for work",
+            "John wakes at 6:30 AM and participates in morning prayer",
+            "John leaves early and misses morning prayer with the family"
+          ]
+        },
+        {
+          "question_text": "During the 2:30-4:00 PM time block when you work with the boys individually, who supervises Michael and James?",
+          "options": [
+            "The boys not in session supervise the little ones",
+            "Michael and James play independently in a safe area",
+            "You manage all children while doing individual work",
+            "John is home early some days to help"
+          ]
+        },
+        {
+          "question_text": "What time do JP and Joseph start their independent school work each morning?",
+          "options": [
+            "8:00 AM after morning jobs are complete",
+            "8:30 AM to allow more time for morning routine",
+            "7:30 AM immediately after breakfast"
+          ]
+        },
+        {
+          "question_text": "On Tuesday mornings from 10:00-12:00 PM when you're visiting your sick friend, who cares for Michael and James?",
+          "options": [
+            "JP and Joseph supervise the little ones at home",
+            "Michael and James come with you to visit",
+            "John works from home those mornings",
+            "You reschedule this service time"
+          ]
+        },
+        {
+          "question_text": "When does your family rosary happen in the evening, and who participates?",
+          "options": [
+            "7:00 PM with all family members before little ones' bedtime",
+            "8:00 PM after Michael is in bed, with older children and adults",
+            "6:30 PM right after dinner cleanup",
+            "9:00 PM as part of night prayers with John and older boys"
+          ]
+        }
+      ],
+      "answers": {
+        "0": "John leaves early and misses morning prayer with the family",
+        "1": "The boys not in session supervise the little ones",
+        "2": "8:00 AM after morning jobs are complete"
+      }
     },
     "section_14": {
       "review_multi": "accept",
@@ -948,7 +998,7 @@
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-19T09:23:25",
+  "updated_at": "2026-05-19T09:49:44",
   "finalized_at": "",
   "_v1_completed_steps": [
     1,

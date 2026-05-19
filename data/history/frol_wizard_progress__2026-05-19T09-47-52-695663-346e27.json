@@ -942,54 +942,47 @@
       "current_day": "Tuesday",
       "questions": [
         {
-          "question_text": "Your morning prayer is scheduled for 7:15 AM but breakfast is also at 7:30 AM with you feeding Michael and James. How do you want to handle this timing overlap?",
+          "question_text": "James (13 months) has nap times listed as '9-11 and 2-4' in the anchors, but the existing schedule shows different nap patterns. Which nap schedule should we follow for James?",
           "options": [
-            "Move morning prayer to 6:45 AM before the children wake",
-            "Do morning prayer at 7:15 while the older boys handle their own breakfast",
-            "Move breakfast to 7:45 AM to allow prayer time first",
-            "Combine prayer and breakfast preparation time"
+            "Keep the existing schedule pattern (naps around 9:30 AM and 2:00 PM)",
+            "Use the Rule of Life times (9:00-11:00 AM and 2:00-4:00 PM)",
+            "Flexible - adjust based on James' daily needs"
           ]
         },
         {
-          "question_text": "James has nap times listed as '9-11 and 2-4' but school time and other activities need to be scheduled around this. Are these flexible nap windows or fixed sleep times?",
+          "question_text": "Your Rule of Life shows evening prayers include 'Family Rosary' but also lists a rosary duration of 30 minutes. When should the family rosary happen during weekdays?",
           "options": [
-            "These are fixed nap times that cannot be moved",
-            "These are flexible windows - he can nap anytime within these ranges",
-            "Morning nap is flexible, afternoon nap is fixed",
-            "Both naps can shift by 30 minutes if needed for activities"
+            "Right after dinner cleanup (around 6:00-6:30 PM)",
+            "During the evening family time block (6:30-7:30 PM)",
+            "As part of bedtime routine after showers",
+            "Skip weekday rosary and focus on weekends only"
           ]
         },
         {
-          "question_text": "You have different kitchen responsibilities listed for JP and Joseph (JP does evening kitchen jobs, Joseph does after-breakfast kitchen jobs), but some tasks overlap. Who does what when both are listed for the same job?",
+          "question_text": "The Rule of Life mentions specific prayer times (Morning Office at 7:15, Angelus at 12:00 and 6:00 PM, Divine Mercy at 3:00 PM) but the existing schedule doesn't show these. How should we integrate these prayers?",
           "options": [
-            "They alternate days for overlapping tasks",
-            "JP takes over all evening kitchen work, Joseph handles morning only",
-            "They work together on overlapping tasks",
-            "Split tasks - one does dishes, other does cleaning/sweeping"
+            "Replace 'Morning Prayer' with Morning Office at 7:15 AM sharp",
+            "Add prayer bells/reminders for Angelus and Divine Mercy without disrupting activities",
+            "Keep current prayer timing and treat specific times as ideals when possible"
           ]
         },
         {
-          "question_text": "Your work schedule shows '2:30 pm to 4 pm work with the boys' but this conflicts with James's afternoon nap time (2-4 PM). How should this be resolved?",
+          "question_text": "Your chores list shows different kitchen responsibilities for JP and Joseph that seem to overlap with existing schedule tasks. Should we reassign the evening kitchen duties?",
           "options": [
-            "Move work time with boys to 1:00-2:30 PM before James's nap",
-            "Work with boys from 4:00-5:30 PM after James's nap",
-            "Work with one boy at a time while James naps nearby",
-            "James can skip afternoon nap on school work days"
+            "JP handles evening kitchen cleanup (unload/load dishwasher, clean sink)",
+            "Joseph handles evening kitchen cleanup (clear table, wipe counters, sweep, trash)",
+            "Keep current schedule assignments and use chore list as backup/substitute system"
           ]
         },
         {
-          "question_text": "Your afternoon rest time is listed as '2 to 4 and 6 to 7' but you also have activities scheduled during these times. What takes priority during these rest blocks?",
+          "question_text": "The Rule of Life mentions 'afternoon rest 2 to 4 and 6 to 7' for the family, but the existing schedule shows active time during these periods. How should we handle family rest time?",
           "options": [
-            "Rest time is protected - other activities move around it",
-            "Rest time is flexible and can be shortened for important activities",
-            "Only the 6-7 PM rest block is protected",
-            "Rest time applies only when no other commitments are scheduled"
+            "Enforce quiet time 2:00-4:00 PM when James naps (older boys read/quiet activities)",
+            "Add 6:00-7:00 PM as family wind-down time before evening activities",
+            "Keep current active schedule and use rest times only when needed"
           ]
         }
-      ],
-      "answers": {
-        "0": "Move morning prayer to 6:45 AM before the children wake"
-      }
+      ]
     },
     "section_14": {
       "review_multi": "accept",
@@ -998,7 +991,7 @@
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-19T09:24:22",
+  "updated_at": "2026-05-19T09:47:47",
   "finalized_at": "",
   "_v1_completed_steps": [
     1,
