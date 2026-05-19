@@ -1019,6 +1019,13 @@ def _render_activity_edit_form(activity: dict, section: int, mode: str) -> str:
     """
 
 
+_WHO_TYPE_ICONS = {
+    "family":     "&#128106;",   # 👪 family
+    "individual": "&#128100;",   # 👤 single bust
+    "mixed":      "&#128101;",   # 👥 two busts
+}
+
+
 def _render_activity_card(activity: dict, section: int, mode: str) -> str:
     """Compact chip-style display of one activity. Includes an inline edit
     form (toggled via <details>) and a delete button. All POSTs go to the
@@ -1030,6 +1037,7 @@ def _render_activity_card(activity: dict, section: int, mode: str) -> str:
     cat = activity.get("category") or ""
     color = activity.get("color") or _category_color(cat)
     who_type = activity.get("who_type") or "individual"
+    wt_icon = _WHO_TYPE_ICONS.get(who_type, "&#128100;")
     who_list = activity.get("who") or []
     who_str = ", ".join(escape(str(w)) for w in who_list) or "—"
     # Time summary line.
@@ -1051,31 +1059,40 @@ def _render_activity_card(activity: dict, section: int, mode: str) -> str:
     days_list = activity.get("days") or []
     days_short = "".join((d[:1] if d else "") for d in days_list) or "—"
     variants = activity.get("schedule_variant") or ["weekday"]
-    var_labels = []
-    for v in variants:
-        for vk, vl in ACTIVITY_VARIANTS:
-            if vk == v:
-                var_labels.append(vl)
-                break
-    var_html = escape(", ".join(var_labels) or "Weekday")
+    # Variant badges — one chip per variant, short labels.
+    _VAR_SHORT = {"weekday": "Wkdy", "saturday": "Sat",
+                  "sunday": "Sun", "john_traveling": "John✈"}
+    var_badges = "".join(
+        f'<span style="display:inline-block;padding:1px 6px;border-radius:10px;'
+        f'background:#eef2ff;color:#4338ca;font-size:10px;font-weight:600;'
+        f'margin-right:3px;">{escape(_VAR_SHORT.get(v, v))}</span>'
+        for v in variants
+    ) or '<span style="font-size:10px;color:#9ca3af;">—</span>'
     seasonal = escape(activity.get("seasonal") or "year_round")
     mode_esc = escape(mode, quote=True)
     cat_label = escape(_category_label(cat))
+    # Explicit category color dot in addition to the left border.
+    color_dot = (f'<span title="{cat_label}" style="display:inline-block;width:10px;'
+                 f'height:10px;border-radius:50%;background:{color};'
+                 f'margin-right:6px;vertical-align:middle;"></span>')
     return f"""
     <div class="frol-act-card" data-act-id="{aid}"
          style="border-left:4px solid {color};background:#fff;border-radius:8px;
                 padding:10px 12px;margin:6px 0;box-shadow:0 1px 2px rgba(0,0,0,.05);">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
         <div style="flex:1;min-width:0;">
-          <div style="font-weight:600;font-size:14px;color:#1f2937;">{name}</div>
+          <div style="font-weight:600;font-size:14px;color:#1f2937;">
+            {color_dot}<span style="font-size:14px;margin-right:4px;" aria-label="{escape(who_type)}"
+                  title="{escape(who_type)}">{wt_icon}</span>{name}
+          </div>
           <div style="font-size:12px;color:#6b7280;margin-top:2px;">
             <span style="display:inline-block;padding:1px 6px;border-radius:4px;
                          background:{color}22;color:{color};font-weight:600;">{cat_label}</span>
-            · <strong>{escape(who_type)}</strong> · {who_str}
+            · {who_str}
           </div>
           <div style="font-size:12px;color:#374151;margin-top:4px;">{time_html}</div>
-          <div style="font-size:11px;color:#9ca3af;margin-top:2px;">
-            Days: {escape(days_short)} · Variants: {var_html} · {seasonal}
+          <div style="font-size:11px;color:#9ca3af;margin-top:4px;">
+            Days: {escape(days_short)} &nbsp; {var_badges} &nbsp; · {seasonal}
           </div>
         </div>
         <div style="display:flex;gap:4px;flex-shrink:0;align-items:flex-start;">
@@ -1272,12 +1289,14 @@ def _render_activity_builder(section: int, progress: dict,
             </label>"""
         for d in WEEKDAYS
     )
+    # Spec: builder always defaults to weekday-only, regardless of what
+    # variant the user is currently viewing. They can opt into more.
     variant_chips = "".join(
         f"""<label style="display:inline-flex;align-items:center;gap:4px;padding:4px 8px;
                   border:1px solid #d1d5db;border-radius:6px;margin:2px;font-size:11px;
                   cursor:pointer;">
               <input type="checkbox" name="schedule_variant" value="{vk}"
-                {' checked' if vk == av else ''}>
+                {' checked' if vk == 'weekday' else ''}>
               {escape(vl)}
             </label>"""
         for vk, vl in ACTIVITY_VARIANTS

@@ -164,30 +164,66 @@
     }
   };
 
+  /* Step D reveal — gated per who_type branch. Called by the Step C
+   * inputs whenever they change so D appears only after C is meaningfully
+   * satisfied (family: time entered; individual: person picked;
+   * mixed: at least one person checked). */
+  function _frolMaybeRevealStepD(form) {
+    if (!form) return;
+    var stepD = form.querySelector('[data-ab-step="D"]');
+    if (!stepD) return;
+    var wt = (form.querySelector('input[name="who_type"]:checked') || {}).value || "";
+    var ready = false;
+    if (wt === "family") {
+      var ft = form.querySelector('input[name="time"]');
+      ready = !!(ft && (ft.value || "").trim());
+    } else if (wt === "individual") {
+      var sp = form.querySelector('select[name="who_single"]');
+      ready = !!(sp && (sp.value || "").trim());
+    } else if (wt === "mixed") {
+      ready = form.querySelectorAll('input[name="who"]:checked').length > 0;
+    }
+    stepD.style.display = ready ? "" : "none";
+  }
+
   window.frolActivityWhoType = function (form, wt) {
     if (!form) return;
     var stepC = form.querySelector('[data-ab-step="C"]');
-    var stepD = form.querySelector('[data-ab-step="D"]');
     if (stepC) stepC.style.display = "";
-    if (stepD) stepD.style.display = "";
     var branches = form.querySelectorAll('.frol-ab-branch');
     for (var i = 0; i < branches.length; i++) {
       branches[i].style.display = (branches[i].getAttribute('data-branch') === wt) ? "" : "none";
     }
+    /* Wire Step C inputs in the active branch to re-check Step D readiness
+     * on every change. Bind once (data-d-bound flag) so toggling who_type
+     * back and forth doesn't pile up listeners. */
+    var active = form.querySelector('.frol-ab-branch[data-branch="' + wt + '"]');
+    if (active) {
+      var inputs = active.querySelectorAll('input, select');
+      for (var j = 0; j < inputs.length; j++) {
+        var el = inputs[j];
+        if (el.getAttribute('data-d-bound') === '1') continue;
+        el.setAttribute('data-d-bound', '1');
+        var ev = (el.tagName === 'SELECT' || el.type === 'checkbox' || el.type === 'time')
+                  ? 'change' : 'input';
+        el.addEventListener(ev, function () { _frolMaybeRevealStepD(form); });
+      }
+    }
+    _frolMaybeRevealStepD(form);
   };
 
   window.frolActivitySinglePerson = function (form, name) {
-    /* Individual branch — no per-person rows to build; just a placeholder
-     * hook for future Phase B/C enhancements. */
-    if (!form || !name) return;
+    /* Individual branch — re-check Step D readiness when a person is picked. */
+    if (!form) return;
+    _frolMaybeRevealStepD(form);
   };
 
   window.frolActivityPeopleChange = function (form) {
     /* Mixed branch — rebuild per-person time/duration rows for everyone
-     * currently checked in the people picker. */
+     * currently checked in the people picker, then re-check Step D readiness. */
     if (!form) return;
     var holder = form.querySelector('[data-mixed-rows]');
-    if (!holder) return;
+    if (!holder) { _frolMaybeRevealStepD(form); return; }
     var checks = form.querySelectorAll('input[name="who"]:checked');
     var names  = Array.prototype.map.call(checks, function (c) { return c.value; });
     /* Preserve any already-typed values across re-renders. */
@@ -223,6 +259,7 @@
           '" style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;"></div>';
       holder.appendChild(row);
     });
+    _frolMaybeRevealStepD(form);
   };
 
   /* V2 — update generic section dots after async progress changes. */
