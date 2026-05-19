@@ -231,10 +231,10 @@
       "wake_school_teens": "07:30",
       "wake_weekend_teens": "09:00",
       "wake_weekend_children": "07:00",
-      "fixed_commitments": "CAP Mondays 06:00 to 09:00 for JP, Joe and john",
+      "fixed_commitments": "CAP Mondays 06:00 PM to 09:00 PM for JP, Joe and john",
       "bed_adults": "22:00",
-      "john_work_schedule": "Monday - Friday 7 - 5\r\n",
-      "driving_errands": "Weekly Wegmans run, John and all kids on Saturdays after 11"
+      "john_work_schedule": "Monday - Friday 7 am - 5 pm\r\n",
+      "driving_errands": "Weekly Wegmans run, John and all kids on Saturdays after 11 am"
     },
     "section_4": {
       "morning_time": "07:15",
@@ -258,7 +258,7 @@
         "Night prayers",
         "Marian antiphon"
       ],
-      "other_devotions": "Mass at 12:30 on sundays"
+      "other_devotions": "Mass at 12:30 pm on sundays"
     },
     "section_5": {
       "breakfast_time": "07:30",
@@ -299,7 +299,7 @@
         "History",
         "Latin"
       ],
-      "parent_wfh": "2:30 to 4: work with the boys and check school work\r\n11 Lauren checks school work",
+      "parent_wfh": "2:30 pm to 4 pm work with the boys and check school work\r\n11 am Lauren/mom quickly checks school work",
       "school_format": [
         "Solo / independent",
         "Mom-led / taught live",
@@ -349,7 +349,7 @@
     },
     "section_9": {
       "afternoon_rest": "2 to 4 and 6 to 7",
-      "date_night": "Wednesday 5:30",
+      "date_night": "Wednesday 5:3 pm",
       "couple_time": "9:00 pm to 9:30 pm",
       "traditions": [
         "Read-aloud",
@@ -359,7 +359,7 @@
       "confession_cadence": "Monthly on first Saturday",
       "adoration_cadence": "Ocassionally",
       "feast_days_flag": "yes",
-      "service_notes": "Visiting a sick friend and bringing food. \r\nHosting Mom nights at my home. "
+      "service_notes": "Visiting a sick friend and bringing food on Tuesday 10 am to 12 pm\r\nHosting Mom nights at my home, days and times varies"
     },
     "section_2": {
       "JP__wake_time": "06:55",
@@ -942,77 +942,46 @@
       "current_day": "Tuesday",
       "questions": [
         {
-          "question_text": "Your morning prayer time is 7:15 AM, but breakfast is also at 7:30 AM with you feeding Michael and James. How do you handle this overlap?",
+          "question_text": "CAP is scheduled Mondays 6:00-9:00 AM, but your morning prayer is at 7:15 AM and breakfast is at 7:30 AM. How should this be handled on CAP Mondays?",
           "options": [
-            "Prayer happens before breakfast prep starts",
-            "Prayer happens during breakfast while feeding the little ones",
-            "Prayer time shifts to accommodate breakfast duties"
+            "Skip morning prayer and breakfast at home on CAP Mondays",
+            "Do abbreviated morning prayer at 6:45 AM and pack breakfast to go",
+            "Move morning prayer to 6:30 AM and breakfast to 7:00 AM on CAP Mondays"
           ]
         },
         {
-          "question_text": "James naps 9-11 AM and 2-4 PM, but you have 'School with Michael' and '2:30-4 PM work with the boys' listed. Does Michael's school happen during James's morning nap, and do the older boys work independently during the afternoon nap?",
+          "question_text": "You have both kitchen chores assigned to JP and Joseph after breakfast, but they're different tasks. When exactly should each boy do their specific kitchen jobs?",
           "options": [
-            "Michael's school is during James's morning nap, boys work independently during afternoon nap",
-            "Michael's school is separate from nap times, adjust work time with boys",
-            "School times need to be restructured around James's nap schedule"
+            "Joseph does his jobs right after breakfast, JP waits until Joseph is done",
+            "They work simultaneously on their different tasks",
+            "They alternate days doing all kitchen jobs together"
           ]
         },
         {
-          "question_text": "Both JP and Joseph have kitchen duties listed - JP has evening dishwasher duties while Joseph has morning dishwasher duties, but both also have overlapping tasks like 'clear table and counters.' Which specific kitchen jobs does each boy do at which times?",
+          "question_text": "James has naps scheduled 9-11 AM and 2-4 PM, but your work time with the older boys is 2:30-4:00 PM. Will James be sleeping during your work time, or do these conflict?",
           "options": [
-            "JP handles all evening kitchen tasks, Joseph handles all morning tasks",
-            "They split overlapping tasks by alternating days",
-            "They work together on shared tasks but focus on their assigned time slots"
+            "James sleeps 2-4 PM, work time moves to after his nap",
+            "James naps 1:30-3:30 PM to avoid conflict with work time",
+            "Work time happens while James naps 2-4 PM as scheduled"
           ]
         },
         {
-          "question_text": "You have date night on Wednesday at 5:30 PM, but this conflicts with dinner time at 5:00 PM and family rosary in the evening. How do you handle dinner and evening prayers on date nights?",
+          "question_text": "Your afternoon rest is listed as '2 to 4 and 6 to 7' - do you mean two separate rest periods, or are you clarifying a single time block?",
           "options": [
-            "Dinner shifts earlier and rosary happens before date night",
-            "Older boys handle dinner and evening prayers",
-            "Date night starts after family obligations are complete"
+            "Two separate rest periods: 2-4 PM and 6-7 PM",
+            "One rest period from 2-4 PM (the 6-7 was a typo)",
+            "Family quiet time 2-4 PM, personal rest 6-7 PM"
           ]
         },
         {
-          "question_text": "Lauren's work time is listed as '2:30 to 4 PM work with the boys' but this overlaps with James's afternoon nap (2-4 PM) and your afternoon rest time. Who supervises James during his nap while you're working with the older boys?",
+          "question_text": "You mention checking schoolwork for both boys at 11 AM and again working with them 2:30-4:00 PM. What's the difference between these two school times?",
           "options": [
-            "James naps independently while you work nearby with the boys",
-            "Work time shifts to when James is awake",
-            "One of the older boys monitors James during nap time"
+            "11 AM is reviewing completed work, 2:30-4 PM is teaching new lessons",
+            "11 AM is for Joseph only, 2:30-4 PM is for JP only",
+            "11 AM is quick check-in, 2:30-4 PM is intensive help and instruction"
           ]
         }
-      ],
-      "answers": {
-        "0": "stub",
-        "1": "stub",
-        "2": "stub",
-        "3": "stub",
-        "4": "stub"
-      },
-      "schedule": [
-        {
-          "time": "07:15",
-          "activity_name": "Morning prayer",
-          "duration_min": 15,
-          "who": [
-            "Lauren"
-          ],
-          "category": "prayer",
-          "keep": true
-        },
-        {
-          "time": "13:30",
-          "activity_name": "Lunch",
-          "duration_min": 30,
-          "who": [
-            "Family"
-          ],
-          "category": "meals",
-          "keep": false
-        }
-      ],
-      "gen_hash": "bd9c1d27552d74f0",
-      "_generating": null
+      ]
     },
     "section_14": {
       "review_multi": "accept",
@@ -1021,7 +990,7 @@
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-19T08:40:24",
+  "updated_at": "2026-05-19T09:23:12",
   "finalized_at": "",
   "_v1_completed_steps": [
     1,
