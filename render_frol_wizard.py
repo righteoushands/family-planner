@@ -2202,8 +2202,20 @@ _S12_CATEGORY_KEYS = [_k for _k, _l, _c in _TIMELINE_PALETTE]
 
 def _s12_collect_context(progress: dict) -> dict:
     """Gather all collected data from sections 1-11 plus the seven
-    commitments into a compact dict suitable for the AI prompt."""
+    commitments into a compact dict suitable for the AI prompt.
+
+    Also loads the family's existing Mon-Fri day_templates JSON files
+    so the AI can use the current daily rhythm as the foundation rather
+    than starting from scratch. Missing files are skipped silently."""
     data = progress.get("data", {}) or {}
+    existing_schedule = {}
+    for _weekday in ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"):
+        _path = os.path.join(DAY_TEMPLATES_DIR, f"{_weekday}.json")
+        try:
+            with open(_path, "r", encoding="utf-8") as _f:
+                existing_schedule[_weekday] = json.load(_f)
+        except Exception:
+            continue
     return {
         "members":               (data.get("section_1") or {}).get("members") or [],
         "section_2_anchors":     data.get("section_2") or {},
@@ -2217,6 +2229,7 @@ def _s12_collect_context(progress: dict) -> dict:
         "section_10_flex":       data.get("section_10") or {},
         "section_11_activities": data.get("section_11") or {},
         "seven_commitments":     list(SEVEN_COMMITMENTS),
+        "existing_schedule":     existing_schedule,
     }
 
 
@@ -2346,7 +2359,11 @@ def _s12_generate_questions(progress: dict) -> list:
         "that overlaps morning prayer; whether the toddler naps during "
         "school hours; which child does which chore when only some are "
         "listed. Do NOT ask about preferences that are already clearly "
-        "stated in the data."
+        "stated in the data. You have access to this family's existing "
+        "daily schedule under existing_schedule — use it as the "
+        "foundation and build on it rather than starting from scratch. "
+        "Preserve timing that already works and only suggest changes "
+        "where the wizard data indicates something new or different."
     )
     user = (
         "Family's collected Rule of Life data (sections 1 through 11) "
@@ -2413,7 +2430,11 @@ def _s12_generate_schedule(progress: dict) -> list:
         "basic daily chores; flex buffer time; couple time for John and "
         "Lauren; a set bedtime. Use the family's stated times where given; "
         "for everything else, propose sensible times. Order chronologically "
-        "from wake to bedtime."
+        "from wake to bedtime. You have access to this family's existing "
+        "daily schedule under existing_schedule — use it as the "
+        "foundation and build on it rather than starting from scratch. "
+        "Preserve timing that already works and only suggest changes "
+        "where the wizard data indicates something new or different."
     )
     user = (
         "Family Rule of Life data (sections 1 through 11):\n\n"
