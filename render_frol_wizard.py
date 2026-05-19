@@ -3063,41 +3063,52 @@ SCHEDULE_MODES = [
 
 
 def _holiday_card(slug: str, label: str, saved: dict) -> str:
+    """Per-holiday card. Spec calls for THREE inputs once the holiday is
+    observed: school off Y/N, special schedule Y/N, and a free-text
+    note. We persist via the existing list/idx/key autosave pipeline so
+    every field lands under section_11.holidays[slug].{observe,
+    school_off, special_schedule, note}. Using data-key (not data-field)
+    is critical — the binder in static/js/frol_wizard.js only picks up
+    [data-step][data-key] elements."""
     cur = saved.get(slug) or {}
-    checked = " checked" if cur.get("observe") else ""
-    mode_val = (cur.get("mode") or "normal")
+    checked_obs = " checked" if cur.get("observe") in (True, "yes", "1", 1) else ""
+    checked_so  = " checked" if cur.get("school_off") in (True, "yes", "1", 1) else ""
+    checked_ss  = " checked" if cur.get("special_schedule") in (True, "yes", "1", 1) else ""
     note_val = escape(cur.get("note") or "", quote=True)
-    mode_opts = "".join(
-        f'<option value="{k}"{" selected" if k == mode_val else ""}>{escape(l)}</option>'
-        for k, l in SCHEDULE_MODES
-    )
     slug_esc = escape(slug, quote=True)
     return f"""
       <label style="display:flex;align-items:flex-start;gap:8px;
                     padding:8px;border:1px solid #d8e1ef;border-radius:8px;
                     background:#fff;margin:4px 0;">
         <input type="checkbox" data-step="11"
-               data-list="holidays" data-idx="{slug_esc}" data-field="observe"
-               value="1"{checked}
+               data-list="holidays" data-idx="{slug_esc}" data-key="observe"
+               value="1"{checked_obs}
                onchange="frolHolidayToggle(this);"
                style="margin-top:4px;">
         <div style="flex:1;">
           <div style="font-weight:600;color:#33507e;">{escape(label)}</div>
           <div class="frol-holiday-detail"
                data-slug="{slug_esc}"
-               style="margin-top:6px;{'display:none;' if not checked else ''}">
-            <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
-              <label style="font-size:0.82em;color:#666;">What changes?</label>
-              <select class="frol-input" data-step="11"
-                      data-list="holidays" data-idx="{slug_esc}" data-field="mode"
-                      style="font-size:0.86em;padding:3px 8px;">
-                {mode_opts}
-              </select>
+               style="margin-top:6px;{'display:none;' if not checked_obs else ''}">
+            <div style="display:flex;flex-wrap:wrap;gap:14px;
+                        align-items:center;font-size:0.86em;color:#33507e;">
+              <label style="display:flex;align-items:center;gap:5px;">
+                <input type="checkbox" data-step="11"
+                       data-list="holidays" data-idx="{slug_esc}"
+                       data-key="school_off"
+                       value="1"{checked_so}> School off
+              </label>
+              <label style="display:flex;align-items:center;gap:5px;">
+                <input type="checkbox" data-step="11"
+                       data-list="holidays" data-idx="{slug_esc}"
+                       data-key="special_schedule"
+                       value="1"{checked_ss}> Special schedule
+              </label>
             </div>
             <input class="frol-input" type="text" data-step="11"
-                   data-list="holidays" data-idx="{slug_esc}" data-field="note"
+                   data-list="holidays" data-idx="{slug_esc}" data-key="note"
                    value="{note_val}"
-                   placeholder="Notes (e.g. attend morning Mass)"
+                   placeholder="Notes (e.g. attend morning Mass, dinner with cousins)"
                    style="width:100%;margin-top:6px;font-size:0.86em;
                           padding:4px 8px;">
           </div>
@@ -3107,28 +3118,39 @@ def _holiday_card(slug: str, label: str, saved: dict) -> str:
 
 
 def _rule_card(label: str, sub: str, key: str, saved: dict) -> str:
-    cur_mode = (saved.get(key) or {}).get("mode") or "normal"
-    cur_note = escape((saved.get(key) or {}).get("note") or "", quote=True)
-    mode_opts = "".join(
-        f'<option value="{k}"{" selected" if k == cur_mode else ""}>{escape(l)}</option>'
-        for k, l in SCHEDULE_MODES
-    )
+    """General-rule card (Marian feasts, major solemnities). Same
+    school-off + special-schedule + note schema as individual holiday
+    cards, persisted under section_11.{key}.{school_off,
+    special_schedule, note}. Uses data-key (NOT data-field) so the
+    autosave binder picks it up."""
+    cur = saved.get(key) or {}
+    checked_so = " checked" if cur.get("school_off") in (True, "yes", "1", 1) else ""
+    checked_ss = " checked" if cur.get("special_schedule") in (True, "yes", "1", 1) else ""
+    cur_note = escape(cur.get("note") or "", quote=True)
     key_esc = escape(key, quote=True)
     return f"""
       <div style="border:1px solid #d8e1ef;border-radius:8px;
                   background:#fff;padding:10px 12px;margin:6px 0;">
         <div style="font-weight:600;color:#33507e;">{escape(label)}</div>
         <div style="font-size:0.82em;color:#888;margin-bottom:6px;">{escape(sub)}</div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
-          <label style="font-size:0.82em;color:#666;">Default rule:</label>
-          <select class="frol-input" data-step="11"
-                  data-field="{key_esc}_mode"
-                  style="font-size:0.86em;padding:3px 8px;">
-            {mode_opts}
-          </select>
+        <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;
+                    font-size:0.86em;color:#33507e;">
+          <label style="display:flex;align-items:center;gap:5px;">
+            <input type="checkbox" data-step="11"
+                   data-list="rules" data-idx="{key_esc}"
+                   data-key="school_off"
+                   value="1"{checked_so}> School off
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;">
+            <input type="checkbox" data-step="11"
+                   data-list="rules" data-idx="{key_esc}"
+                   data-key="special_schedule"
+                   value="1"{checked_ss}> Special schedule
+          </label>
         </div>
         <input class="frol-input" type="text" data-step="11"
-               data-field="{key_esc}_note" value="{cur_note}"
+               data-list="rules" data-idx="{key_esc}" data-key="note"
+               value="{cur_note}"
                placeholder="Notes"
                style="width:100%;margin-top:6px;font-size:0.86em;
                       padding:4px 8px;">
@@ -3159,15 +3181,16 @@ def render_section_11_holidays(progress: dict, mode: str) -> str:
     us_cards = "".join(
         _holiday_card(slug, label, holidays) for slug, label in US_HOLIDAYS
     )
+    rules = sec.get("rules") or {}
     marian = _rule_card(
         "All other Marian feasts",
         "What's the family's default on Marian feast days not listed above?",
-        "marian_rule", sec,
+        "marian_rule", rules,
     )
     sol = _rule_card(
         "All other major solemnities",
         "What's the default for any solemnity (e.g. St. Joseph, Sts. Peter & Paul)?",
-        "solemnity_rule", sec,
+        "solemnity_rule", rules,
     )
 
     holiday_script = """
@@ -3633,13 +3656,23 @@ def render_section_11(progress: dict, mode: str) -> str:
           btn.style.color = '#fff';
           btn.setAttribute('data-active', '1');
           var variant = btn.getAttribute('data-variant') || 'weekday';
+          var keyName = 'durations__' + variant + '__' + slug;
           var hidden = parent.querySelector(
-            'input[type=hidden][data-step="12"][data-key="durations__' +
-            variant + '__' + slug + '"]'
+            'input[type=hidden][data-step="12"][data-key="' + keyName + '"]'
           );
           if (hidden) {
             hidden.value = val;
+            // Belt-and-suspenders: the bound input listener will fire
+            // off the dispatched 'input' event, but we also push the
+            // save directly so a chip click always persists even if
+            // the binder hasn't run yet (e.g. dynamically inserted
+            // chips after Phase D variant switch).
             hidden.dispatchEvent(new Event('input', { bubbles: true }));
+            if (typeof window.frolSaveField === 'function') {
+              window.frolSaveField({
+                step: '12', key: keyName, list: '', idx: '', value: val
+              });
+            }
           }
         };
       })();

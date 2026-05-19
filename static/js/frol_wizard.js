@@ -41,6 +41,12 @@
     return { step: step, key: key, list: list, idx: idx, value: value };
   }
 
+  // Exposed on window for ad-hoc savers (Phase C duration chips, holiday
+  // rule cards, etc.) that need to push a save without relying on the
+  // bound input/change listener. Same payload shape gatherFieldPayload
+  // returns: {step, key, list, idx, value}.
+  window.frolSaveField = function (payload) { saveField(payload); };
+  window.frolGatherFieldPayload = gatherFieldPayload;
   var saveField = debounce(function (payload) {
     status("Saving…");
     var form = $("#frol-form");
