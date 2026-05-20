@@ -7766,8 +7766,14 @@ class Handler(BaseHTTPRequestHandler):
                 _days  = [d for d in data.get("days", []) if d in WEEKDAYS]
                 if not _days:
                     _days = list(_DEFAULT_WEEKDAYS)
-                _vars  = [v for v in data.get("schedule_variant", [])
-                          if v in _VALID_VARIANTS]
+                _sv_raw = data.get("schedule_variant", [])
+                # Defensive: if the parser ever hands us a bare string
+                # (e.g. JSON payload variant of the same route), wrap it
+                # so the on-disk shape is always a list. The grid filter
+                # in _grid_build_table treats schedule_variant as a list.
+                if isinstance(_sv_raw, str):
+                    _sv_raw = [_sv_raw]
+                _vars  = [v for v in _sv_raw if v in _VALID_VARIANTS]
                 if not _vars:
                     _av_safe = _av_a if _av_a in _VALID_VARIANTS else "weekday"
                     _vars = [_av_safe]

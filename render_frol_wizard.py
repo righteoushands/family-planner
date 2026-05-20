@@ -174,7 +174,7 @@ def _seed_v3_activities_from_progress(progress: dict) -> None:
                 "duration_min":     int(dur),
                 "days":             ["Monday", "Tuesday", "Wednesday",
                                      "Thursday", "Friday"],
-                "schedule_variant": "weekday",
+                "schedule_variant": ["weekday"],
                 "category":         cat,
                 "color":            "",
                 "credits":          [],
@@ -1319,7 +1319,7 @@ def _render_activity_card(activity: dict, section: int, mode: str,
                  f'height:10px;border-radius:50%;background:{color};'
                  f'margin-right:6px;vertical-align:middle;"></span>')
     return f"""
-    <div class="frol-act-card" data-act-id="{aid}"
+    <div class="frol-act-card" id="frol-act-{aid}" data-act-id="{aid}"
          style="border-left:4px solid {color};background:#fff;border-radius:8px;
                 padding:10px 12px;margin:6px 0;box-shadow:0 1px 2px rgba(0,0,0,.05);">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
@@ -1549,6 +1549,12 @@ def _grid_build_table(section: int, active_variant: str,
     # Pre-bucket activity placements per (person, start_slot_index).
     placements = {p: {} for p in visible}
     overlay_placements = {p: {} for p in visible}
+    # Fix 2: collect activities that match section + variant but yield no
+    # placements (no time, or no who assigned). These are seeded/in-flight
+    # activities that Lauren still needs to fill in — show them as a soft
+    # gray "needs setup" chip in a dedicated Unscheduled row above the
+    # time grid so they don't silently disappear.
+    incomplete = []
     for a in activities:
         if not isinstance(a, dict):
             continue
@@ -1560,6 +1566,7 @@ def _grid_build_table(section: int, active_variant: str,
         variants = a.get("schedule_variant") or ["weekday"]
         if av not in variants:
             continue
+        placed_any = False
         for p, sm, dm in _grid_activity_placements(a):
             if p not in placements:
                 continue
@@ -1567,6 +1574,9 @@ def _grid_build_table(section: int, active_variant: str,
                 continue
             slot_idx = (sm - 5 * 60) // 30
             placements[p].setdefault(slot_idx, []).append((sm, dm, a))
+            placed_any = True
+        if not placed_any:
+            incomplete.append(a)
     for a in (overlay_activities or []):
         if not isinstance(a, dict):
             continue
@@ -1603,6 +1613,46 @@ def _grid_build_table(section: int, active_variant: str,
         )
     thead = "<thead><tr>" + "".join(header_cells) + "</tr></thead>"
     body = []
+    # Fix 2: "Unscheduled" row at the top of tbody — one cell across all
+    # visible person columns containing a placeholder chip per incomplete
+    # activity. Each chip is an anchor link to that activity's card on
+    # the same page (#frol-act-{id}) so clicking scrolls to the card,
+    # where the Edit drawer can be expanded to assign time + people.
+    if incomplete:
+        chips_html = []
+        for _a in incomplete:
+            _aid = escape(str(_a.get("id") or ""), quote=True)
+            _nm = escape((_a.get("name") or "(untitled)")[:40])
+            _cat = (_a.get("category") or "").strip() or "fixed"
+            _col = _safe_color(_a.get("color") or "", _category_color(_cat))
+            chips_html.append(
+                f'<a href="#frol-act-{_aid}" class="frol-grid-chip frol-grid-incomplete-chip" '
+                f'data-act-id="{_aid}" title="Needs time and people — click to edit" '
+                f'style="display:inline-flex;align-items:center;gap:4px;'
+                f'background:#f3f4f6;color:#4b5563;border:1px dashed #9ca3af;'
+                f'border-left:3px solid {_col};border-radius:4px;'
+                f'padding:3px 6px;margin:2px;font-size:10px;line-height:1.15;'
+                f'text-decoration:none;font-weight:600;cursor:pointer;">'
+                f'<span aria-hidden="true">&#9998;</span>'
+                f'<span>{_nm}</span></a>'
+            )
+        unsched_cells = (
+            f'<td class="frol-grid-time" '
+            f'style="position:sticky;left:0;z-index:1;background:#f9fafb;'
+            f'border:1px solid #d8e1ef;border-top:2px solid #c9d4e6;'
+            f'padding:2px 6px;font-size:10px;color:#6b7280;'
+            f'text-align:right;white-space:nowrap;'
+            f'min-width:62px;font-style:italic;">Setup</td>'
+            f'<td colspan="{max(1, len(visible))}" '
+            f'class="frol-grid-cell frol-grid-unscheduled" '
+            f'style="border:1px solid #eef1f6;border-top:2px solid #c9d4e6;'
+            f'background:#f9fafb;padding:4px 6px;vertical-align:top;">'
+            f'<div style="font-size:10px;color:#6b7280;font-weight:700;'
+            f'margin-bottom:2px;">Needs time &amp; people:</div>'
+            f'<div style="display:flex;flex-wrap:wrap;">'
+            f'{"".join(chips_html)}</div></td>'
+        )
+        body.append("<tr>" + unsched_cells + "</tr>")
     for slot_idx, (hh, mm) in enumerate(GRID_SLOTS):
         is_hour = (mm == 0)
         label = _grid_time_label(hh, mm)
