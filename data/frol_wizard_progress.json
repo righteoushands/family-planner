@@ -919,17 +919,17 @@
     },
     "step_12": {
       "durations__weekday__morning_offering": "10",
-      "durations__weekday__breakfast": "20",
-      "durations__weekday__lunch": "20",
+      "durations__weekday__breakfast": "15",
+      "durations__weekday__lunch": "15",
       "durations__weekday__dinner": "45",
-      "durations__weekday__snack": "10",
+      "durations__weekday__snack": "5",
       "durations__weekday__religion": "60",
       "durations__weekday__read_aloud": "30",
-      "durations__weekday__daily_chores": "20",
+      "durations__weekday__daily_chores": "30",
       "durations__weekday__afternoon_rest": "30",
       "durations__weekday__game_night": "60",
       "durations__weekday__nature_walk": "60",
-      "durations__weekday__weekly_reset": "90",
+      "durations__weekday__weekly_reset": "120",
       "durations__weekday__fridays_are_for_catching_up_on_school_and_chores_and_schedul": "120"
     },
     "active_variant": "weekday",
@@ -939,7 +939,7 @@
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-20T07:45:24",
+  "updated_at": "2026-05-20T07:54:06",
   "finalized_at": "",
   "_v1_completed_steps": [
     1,
