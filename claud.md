@@ -29,6 +29,31 @@ Michael (5, kindergarten), James (13 months, toddler — cannot be assigned task
 5. All file writes use safe_save_json (tmp file + os.replace) — never open(f, 'w') directly
 6. No walrus operator (:=)
 7. Never use '\n' inside a JS string within a Python string literal — use '\\n' so the browser receives the escape sequence, not a raw newline
+8. multipart/form-data parsing: when fetch POSTs use FormData the server
+   receives multipart/form-data not urlencoded. The do_POST handler must
+   sniff Content-Type and parse accordingly using cgi.FieldStorage for
+   multipart. If a POST handler receives empty data check the
+   Content-Type first.
+9. py_compile passes but runtime fails: py_compile only validates syntax
+   not runtime correctness. Always run an in-process smoke test after
+   py_compile to catch NameError, missing variable definitions, and
+   import failures.
+10. test fixtures must never write to live data: verification harnesses
+    must always operate on a temp copy of live data files. Never call
+    save_progress, safe_save_json, or any write helper on live data
+    during testing. Always restore from backup after any test that
+    touches data files.
+11. double-escaping HTML entities: never pass a string that is already
+    HTML-escaped through escape() again. If a string contains literal
+    ampersands for display use plain ampersands in the source string
+    and let escape() handle it once. Strings pre-escaped with &amp;
+    will render as visible &amp; in the browser if escaped again.
+12. JS newline in Python f-strings applies everywhere: rule 7 (never
+    use backslash-n in JS strings inside Python f-strings) applies to
+    ALL files containing JS embedded in Python, not just
+    render_frol_wizard.py. This includes render_schedule.py,
+    render_timeblock.py, render_lucy.py, render_lorenzo.py, and any
+    other render file with inline JavaScript.
 
 ## Data file patterns
 - Most data lives in data/*.json as flat dicts or lists
