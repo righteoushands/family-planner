@@ -818,7 +818,22 @@
       "durations__exercise_sports": "30",
       "durations__exercise_stretching": "15",
       "durations__date_night": "60",
-      "durations__fridays_are_for_catching_up_on_school_and_chores_and_appoint": "120"
+      "durations__fridays_are_for_catching_up_on_school_and_chores_and_appoint": "120",
+      "durations__weekday__breakfast": "15",
+      "durations__weekday__lunch": "15",
+      "durations__weekday__dinner": "30",
+      "durations__weekday__snack": "5",
+      "durations__weekday__morning_dinner_prep": "30",
+      "durations__weekday__meal_prep": "60",
+      "durations__weekday__batch_cook_session": "90",
+      "durations__weekday__religion": "45",
+      "durations__weekday__read_aloud": "30",
+      "durations__weekday__daily_chores": "30",
+      "durations__weekday__afternoon_rest": "30",
+      "durations__weekday__game_night": "60",
+      "durations__weekday__nature_walk": "60",
+      "durations__weekday__weekly_reset": "120",
+      "durations__weekday__fridays_are_for_catching_up_on_school_and_chores_and_schedul": "120"
     },
     "section_11": {
       "holidays": {
@@ -939,7 +954,7 @@
     }
   },
   "started_at": "2026-05-14T08:48:23",
-  "updated_at": "2026-05-20T07:54:06",
+  "updated_at": "2026-05-20T08:05:16",
   "finalized_at": "",
   "_v1_completed_steps": [
     1,
