@@ -70,6 +70,18 @@ use a `<form method="POST">` with a submit button styled as a link instead.
 - Keep modules under 800 lines where possible
 - render_plan_importer.py is 1,114 lines (JS lives in static/js/plan_importer_core.js and static/js/plan_importer_consult.js — edit those, not the Python file, for JS changes)
 
+## FROL Wizard form bypass trap
+The _section_chrome function in render_frol_wizard.py suppresses the
+Save and Continue button when it detects a form in the body via the
+_body_has_form check. This check currently looks for action="/frol-wizard"
+in the body. Any utility form in a section body that posts to
+/frol-wizard will incorrectly suppress the Save and Continue button.
+Utility forms that post to other routes (like /frol-set-variant,
+/frol-add-activity, /frol-delete-activity) are safe and will not trigger
+the bypass. When adding new forms to section bodies always check whether
+they post to /frol-wizard and if so either use a different route or
+handle the advance separately in the section body itself.
+
 ## Current major features
 - /plan-import — paste text → AI extracts events, tasks, placements → approve → apply
 - Placements route information to existing records (events, profiles, friends, pantry, etc.)

@@ -970,7 +970,7 @@ def _section_chrome(section: int, title: str, subtitle: str, body_html: str,
     # Save & Continue button and the V2 autosave probe in
     # static/js/frol_wizard.js (which checks #frol-form[data-version="2"])
     # would silently fall back to legacy save_field / step_N writes.
-    _body_has_form = "<form" in body_html
+    _body_has_form = 'action="/frol-wizard"' in body_html
     # Phase C: §2-§10 auto-mount the variant tab bar + activity builder
     # + grid preview as a SIBLING of (not inside) the outer #frol-form.
     # The phase-c block contains its own <form>s (variant tabs, activity
