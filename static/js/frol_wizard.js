@@ -406,6 +406,21 @@
     return false;
   };
 
+  /* Variant tab switch — POST via fetch then reload so the variant tab
+   * bar can live inside the outer #frol-form without nesting <form>s
+   * (HTML forbids nested forms — the parser would auto-close the outer
+   * form, orphaning the Save & Continue button below it). */
+  window.frolSetVariant = function (variant, section, mode) {
+    var fd = new FormData();
+    fd.append("variant", String(variant));
+    fd.append("section", String(section));
+    if (mode) fd.append("mode", String(mode));
+    status("Switching variant…");
+    fetch("/frol-set-variant", { method: "POST", body: fd, credentials: "same-origin", redirect: "manual" })
+      .then(function () { window.location.reload(); })
+      .catch(function () { status("Variant switch failed — network"); });
+  };
+
   /* Setup card dismissal — sets a 1-year cookie. */
   window.frolDismissCard = function () {
     document.cookie = "frol_card_dismissed=1; path=/; max-age=" + (60 * 60 * 24 * 365);

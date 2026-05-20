@@ -3433,15 +3433,13 @@ def _render_variant_tab_bar(section: int, progress: dict, mode: str) -> str:
         bg = "#4a6fa5" if is_sel else "#fff"
         fg = "#fff" if is_sel else "#33507e"
         tabs += (
-            f'<form method="POST" action="/frol-set-variant" style="display:inline;">'
-            f'<input type="hidden" name="variant" value="{escape(vk, quote=True)}">'
-            f'<input type="hidden" name="section" value="{sec_esc}">'
-            f'<input type="hidden" name="mode" value="{mode_esc}">'
-            f'<button type="submit" '
+            f'<button type="button" '
+            f'onclick="frolSetVariant(\'{escape(vk, quote=True)}\','
+            f'{sec_esc},\'{mode_esc}\')" '
             f'style="background:{bg};color:{fg};border:1px solid #4a6fa555;'
             f'border-radius:14px;padding:4px 12px;margin:2px;font-size:0.85em;'
             f'font-weight:700;cursor:pointer;font-family:inherit;">'
-            f'{escape(vl)}</button></form>'
+            f'{escape(vl)}</button>'
         )
     return (
         '<div class="frol-variant-tabs" style="position:sticky;top:0;z-index:5;'
