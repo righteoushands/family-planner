@@ -1,7 +1,7 @@
 [
   {
-    "id": "act_5b5ce8b1",
-    "name": "John wake up & personal time",
+    "id": "act_ad6eeb10",
+    "name": "Wake up",
     "section": 0,
     "who_type": "individual",
     "who": [
@@ -36,8 +36,8 @@
     "variant": "weekday"
   },
   {
-    "id": "act_c03a1a57",
-    "name": "Lauren wake up & personal time",
+    "id": "act_e532fdc0",
+    "name": "Wake up & moving",
     "section": 0,
     "who_type": "individual",
     "who": [
@@ -72,17 +72,63 @@
     "variant": "weekday"
   },
   {
-    "id": "act_a71eaa73",
-    "name": "John leaves for work",
+    "id": "act_9bb98538",
+    "name": "Wake up",
     "section": 0,
     "who_type": "individual",
     "who": [
-      "John"
+      "James"
     ],
     "leader": "",
     "per_person_times": {
-      "John": {
-        "time": "06:30",
+      "James": {
+        "time": "06:45",
+        "duration_min": 15
+      }
+    },
+    "time": "",
+    "duration_min": 0,
+    "days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday"
+    ],
+    "schedule_variant": [
+      "weekday"
+    ],
+    "category": "personal",
+    "color": "",
+    "credits": [],
+    "seasonal": "year_round",
+    "is_grooming": false,
+    "note": "",
+    "keep": true,
+    "variant": "weekday"
+  },
+  {
+    "id": "act_3e45ce76",
+    "name": "Wake up & John leaves for work",
+    "section": 0,
+    "who_type": "mixed",
+    "who": [
+      "JP",
+      "Joseph",
+      "Michael"
+    ],
+    "leader": "",
+    "per_person_times": {
+      "JP": {
+        "time": "07:00",
+        "duration_min": 30
+      },
+      "Joseph": {
+        "time": "07:00",
+        "duration_min": 30
+      },
+      "Michael": {
+        "time": "07:00",
         "duration_min": 30
       }
     },
@@ -98,93 +144,18 @@
     "schedule_variant": [
       "weekday"
     ],
-    "category": "work",
-    "color": "",
-    "credits": [],
-    "seasonal": "year_round",
-    "is_grooming": false,
-    "note": "",
-    "keep": true,
-    "variant": "weekday"
-  },
-  {
-    "id": "act_5fbc7d1a",
-    "name": "James wake up",
-    "section": 0,
-    "who_type": "mixed",
-    "who": [
-      "James",
-      "Lauren"
-    ],
-    "leader": "",
-    "per_person_times": {
-      "James": {
-        "time": "06:45",
-        "duration_min": 15
-      },
-      "Lauren": {
-        "time": "06:45",
-        "duration_min": 15
-      }
-    },
-    "time": "",
-    "duration_min": 0,
-    "days": [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday"
-    ],
-    "schedule_variant": [
-      "weekday"
-    ],
     "category": "personal",
     "color": "",
     "credits": [],
     "seasonal": "year_round",
     "is_grooming": false,
-    "note": "",
+    "note": "John departs at 7:00 AM",
     "keep": true,
     "variant": "weekday"
   },
   {
-    "id": "act_c7f2befc",
-    "name": "Children wake up & morning preparation",
-    "section": 0,
-    "who_type": "family",
-    "who": [
-      "JP",
-      "Joseph",
-      "Michael",
-      "Lauren"
-    ],
-    "leader": "",
-    "per_person_times": {},
-    "time": "07:00",
-    "duration_min": 15,
-    "days": [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday"
-    ],
-    "schedule_variant": [
-      "weekday"
-    ],
-    "category": "personal",
-    "color": "",
-    "credits": [],
-    "seasonal": "year_round",
-    "is_grooming": false,
-    "note": "",
-    "keep": true,
-    "variant": "weekday"
-  },
-  {
-    "id": "act_4764cd4a",
-    "name": "Morning Prayer - Divine Office",
+    "id": "act_575f5676",
+    "name": "Morning Office",
     "section": 0,
     "who_type": "family",
     "who": [
@@ -213,13 +184,13 @@
     "credits": [],
     "seasonal": "year_round",
     "is_grooming": false,
-    "note": "Morning commitment - Morning Office",
+    "note": "Family morning prayer anchoring the day",
     "keep": true,
     "variant": "weekday"
   },
   {
-    "id": "act_8755d049",
-    "name": "Breakfast & kitchen cleanup",
+    "id": "act_6385e2e4",
+    "name": "Breakfast",
     "section": 0,
     "who_type": "family",
     "who": [
@@ -232,7 +203,7 @@
     "leader": "",
     "per_person_times": {},
     "time": "07:30",
-    "duration_min": 60,
+    "duration_min": 30,
     "days": [
       "Monday",
       "Tuesday",
@@ -248,7 +219,41 @@
     "credits": [],
     "seasonal": "year_round",
     "is_grooming": false,
-    "note": "JP and Joseph handle kitchen duties",
+    "note": "Lauren feeds Michael and James",
+    "keep": true,
+    "variant": "weekday"
+  },
+  {
+    "id": "act_86a3e29d",
+    "name": "Morning chores & school prep",
+    "section": 0,
+    "who_type": "family",
+    "who": [
+      "Lauren",
+      "JP",
+      "Joseph",
+      "Michael"
+    ],
+    "leader": "",
+    "per_person_times": {},
+    "time": "08:00",
+    "duration_min": 30,
+    "days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday"
+    ],
+    "schedule_variant": [
+      "weekday"
+    ],
+    "category": "chore",
+    "color": "",
+    "credits": [],
+    "seasonal": "year_round",
+    "is_grooming": false,
+    "note": "Review PODs, morning jobs, get boys started on independent work",
     "keep": true,
     "variant": "weekday"
   },
@@ -265,11 +270,11 @@
     "per_person_times": {
       "JP": {
         "time": "08:30",
-        "duration_min": 30
+        "duration_min": 120
       },
       "Joseph": {
         "time": "08:30",
-        "duration_min": 30
+        "duration_min": 120
       }
     },
     "time": "",
@@ -289,33 +294,69 @@
     "credits": [],
     "seasonal": "year_round",
     "is_grooming": false,
-    "note": "Math and other subjects, same workspace",
+    "note": "Math and other subjects independently",
     "keep": true,
     "variant": "weekday"
   },
   {
-    "id": "act_1d6591ca",
-    "name": "James nap, Michael school with Lauren",
+    "id": "act_96a0fc9e",
+    "name": "James nap & Lauren exercise",
     "section": 0,
     "who_type": "mixed",
     "who": [
       "James",
-      "Michael",
       "Lauren"
     ],
     "leader": "",
     "per_person_times": {
       "James": {
         "time": "09:00",
-        "duration_min": 120
-      },
-      "Michael": {
-        "time": "09:00",
-        "duration_min": 120
+        "duration_min": 90
       },
       "Lauren": {
         "time": "09:00",
-        "duration_min": 120
+        "duration_min": 90
+      }
+    },
+    "time": "",
+    "duration_min": 0,
+    "days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday"
+    ],
+    "schedule_variant": [
+      "weekday"
+    ],
+    "category": "rest",
+    "color": "",
+    "credits": [],
+    "seasonal": "year_round",
+    "is_grooming": false,
+    "note": "James first nap, Lauren exercise time",
+    "keep": true,
+    "variant": "weekday"
+  },
+  {
+    "id": "act_5f5d244a",
+    "name": "School with Michael",
+    "section": 0,
+    "who_type": "mixed",
+    "who": [
+      "Lauren",
+      "Michael"
+    ],
+    "leader": "",
+    "per_person_times": {
+      "Lauren": {
+        "time": "10:30",
+        "duration_min": 60
+      },
+      "Michael": {
+        "time": "10:30",
+        "duration_min": 60
       }
     },
     "time": "",
@@ -335,20 +376,19 @@
     "credits": [],
     "seasonal": "year_round",
     "is_grooming": false,
-    "note": "James naps 9-11 AM, Michael gets focused time with Lauren",
+    "note": "One-on-one instruction while James naps",
     "keep": true,
     "variant": "weekday"
   },
   {
-    "id": "act_ff5889b2",
-    "name": "Family exercise & James wakes",
+    "id": "act_dd86c57e",
+    "name": "School check-in & prep lunch",
     "section": 0,
     "who_type": "family",
     "who": [
       "Lauren",
       "JP",
       "Joseph",
-      "Michael",
       "James"
     ],
     "leader": "",
@@ -365,18 +405,18 @@
     "schedule_variant": [
       "weekday"
     ],
-    "category": "work",
+    "category": "school",
     "color": "",
     "credits": [],
     "seasonal": "year_round",
     "is_grooming": false,
-    "note": "Physical activity together",
+    "note": "Check boys' work completion, prep lunch",
     "keep": true,
     "variant": "weekday"
   },
   {
-    "id": "act_b7992be8",
-    "name": "Lunch & Angelus prayer",
+    "id": "act_3bedf9b6",
+    "name": "Lunch & Angelus",
     "section": 0,
     "who_type": "family",
     "who": [
@@ -389,7 +429,7 @@
     "leader": "",
     "per_person_times": {},
     "time": "12:00",
-    "duration_min": 60,
+    "duration_min": 30,
     "days": [
       "Monday",
       "Tuesday",
@@ -405,25 +445,37 @@
     "credits": [],
     "seasonal": "year_round",
     "is_grooming": false,
-    "note": "Noon commitment - Angelus during meal",
+    "note": "Shared meal with midday prayer",
     "keep": true,
     "variant": "weekday"
   },
   {
-    "id": "act_eb532700",
-    "name": "Afternoon chores & buffer time",
+    "id": "act_3210da4f",
+    "name": "Kitchen cleanup",
     "section": 0,
-    "who_type": "family",
+    "who_type": "mixed",
     "who": [
       "Lauren",
       "JP",
-      "Joseph",
-      "Michael"
+      "Joseph"
     ],
     "leader": "",
-    "per_person_times": {},
-    "time": "13:00",
-    "duration_min": 60,
+    "per_person_times": {
+      "Lauren": {
+        "time": "12:30",
+        "duration_min": 30
+      },
+      "JP": {
+        "time": "12:30",
+        "duration_min": 30
+      },
+      "Joseph": {
+        "time": "12:30",
+        "duration_min": 30
+      }
+    },
+    "time": "",
+    "duration_min": 0,
     "days": [
       "Monday",
       "Tuesday",
@@ -439,13 +491,13 @@
     "credits": [],
     "seasonal": "year_round",
     "is_grooming": false,
-    "note": "Weekly jobs, flex buffer time",
+    "note": "Post-lunch cleaning",
     "keep": true,
     "variant": "weekday"
   },
   {
-    "id": "act_211dfc67",
-    "name": "James afternoon nap",
+    "id": "act_ed369b6c",
+    "name": "James nap & rest time",
     "section": 0,
     "who_type": "individual",
     "who": [
@@ -475,25 +527,37 @@
     "credits": [],
     "seasonal": "year_round",
     "is_grooming": false,
-    "note": "James naps 2-4 PM",
+    "note": "Second nap 2-4 PM",
     "keep": true,
     "variant": "weekday"
   },
   {
-    "id": "act_aee7563d",
-    "name": "Individual school time with Lauren",
+    "id": "act_0e06b5e5",
+    "name": "Individual school instruction",
     "section": 0,
-    "who_type": "family",
+    "who_type": "mixed",
     "who": [
       "Lauren",
-      "JP",
       "Joseph",
-      "Michael"
+      "JP"
     ],
     "leader": "",
-    "per_person_times": {},
-    "time": "14:30",
-    "duration_min": 90,
+    "per_person_times": {
+      "Lauren": {
+        "time": "14:30",
+        "duration_min": 60
+      },
+      "Joseph": {
+        "time": "14:30",
+        "duration_min": 60
+      },
+      "JP": {
+        "time": "14:30",
+        "duration_min": 60
+      }
+    },
+    "time": "",
+    "duration_min": 0,
     "days": [
       "Monday",
       "Tuesday",
@@ -509,26 +573,71 @@
     "credits": [],
     "seasonal": "year_round",
     "is_grooming": false,
-    "note": "2:30-4 PM work with boys, Michael stays with non-active brother",
+    "note": "Joseph 2:30-3:00, JP 3:00-3:30",
     "keep": true,
     "variant": "weekday"
   },
   {
-    "id": "act_03bfe9ab",
-    "name": "Meal preparation & James wakes",
+    "id": "act_ee480db2",
+    "name": "Divine Mercy & break",
     "section": 0,
     "who_type": "family",
     "who": [
       "Lauren",
       "JP",
       "Joseph",
-      "Michael",
-      "James"
+      "Michael"
     ],
     "leader": "",
     "per_person_times": {},
-    "time": "16:00",
-    "duration_min": 60,
+    "time": "15:30",
+    "duration_min": 30,
+    "days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday"
+    ],
+    "schedule_variant": [
+      "weekday"
+    ],
+    "category": "prayer",
+    "color": "",
+    "credits": [],
+    "seasonal": "year_round",
+    "is_grooming": false,
+    "note": "3 PM Divine Mercy devotion",
+    "keep": true,
+    "variant": "weekday"
+  },
+  {
+    "id": "act_b7e2a374",
+    "name": "Meal prep",
+    "section": 0,
+    "who_type": "mixed",
+    "who": [
+      "Lauren",
+      "JP",
+      "Joseph"
+    ],
+    "leader": "",
+    "per_person_times": {
+      "Lauren": {
+        "time": "16:00",
+        "duration_min": 60
+      },
+      "JP": {
+        "time": "16:00",
+        "duration_min": 60
+      },
+      "Joseph": {
+        "time": "16:00",
+        "duration_min": 60
+      }
+    },
+    "time": "",
+    "duration_min": 0,
     "days": [
       "Monday",
       "Tuesday",
@@ -544,13 +653,13 @@
     "credits": [],
     "seasonal": "year_round",
     "is_grooming": false,
-    "note": "Dinner prep, James up from nap",
+    "note": "Dinner preparation with older boys helping",
     "keep": true,
     "variant": "weekday"
   },
   {
-    "id": "act_1f7a7a48",
-    "name": "John returns, family dinner",
+    "id": "act_e600f916",
+    "name": "Dinner & John returns",
     "section": 0,
     "who_type": "family",
     "who": [
@@ -564,7 +673,7 @@
     "leader": "",
     "per_person_times": {},
     "time": "17:00",
-    "duration_min": 90,
+    "duration_min": 60,
     "days": [
       "Monday",
       "Tuesday",
@@ -580,26 +689,25 @@
     "credits": [],
     "seasonal": "year_round",
     "is_grooming": false,
-    "note": "John home at 5 PM, dinner together",
+    "note": "Family dinner, John home at 5 PM",
     "keep": true,
     "variant": "weekday"
   },
   {
-    "id": "act_9673a5db",
-    "name": "Dinner cleanup & evening chores",
+    "id": "act_0fdf7a36",
+    "name": "Kitchen cleanup & Angelus",
     "section": 0,
     "who_type": "family",
     "who": [
       "Lauren",
       "John",
       "JP",
-      "Joseph",
-      "Michael"
+      "Joseph"
     ],
     "leader": "",
     "per_person_times": {},
-    "time": "18:30",
-    "duration_min": 60,
+    "time": "18:00",
+    "duration_min": 30,
     "days": [
       "Monday",
       "Tuesday",
@@ -615,26 +723,62 @@
     "credits": [],
     "seasonal": "year_round",
     "is_grooming": false,
-    "note": "Kitchen duties, basic daily chores",
+    "note": "Evening prayer during cleanup",
     "keep": true,
     "variant": "weekday"
   },
   {
-    "id": "act_e7e40c1c",
+    "id": "act_e1f37dba",
+    "name": "Family Rosary",
+    "section": 0,
+    "who_type": "family",
+    "who": [
+      "Lauren",
+      "John",
+      "JP",
+      "Joseph",
+      "Michael",
+      "James"
+    ],
+    "leader": "",
+    "per_person_times": {},
+    "time": "18:30",
+    "duration_min": 30,
+    "days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday"
+    ],
+    "schedule_variant": [
+      "weekday"
+    ],
+    "category": "prayer",
+    "color": "",
+    "credits": [],
+    "seasonal": "year_round",
+    "is_grooming": false,
+    "note": "After dinner and kitchen cleaning",
+    "keep": true,
+    "variant": "weekday"
+  },
+  {
+    "id": "act_45b869e9",
     "name": "James bedtime routine",
     "section": 0,
     "who_type": "mixed",
     "who": [
-      "James",
-      "Lauren"
+      "Lauren",
+      "James"
     ],
     "leader": "",
     "per_person_times": {
-      "James": {
+      "Lauren": {
         "time": "19:30",
         "duration_min": 30
       },
-      "Lauren": {
+      "James": {
         "time": "19:30",
         "duration_min": 30
       }
@@ -661,8 +805,8 @@
     "variant": "weekday"
   },
   {
-    "id": "act_5eac8816",
-    "name": "Family Rosary & evening prayer",
+    "id": "act_0c0ad530",
+    "name": "Family time & buffer",
     "section": 0,
     "who_type": "family",
     "who": [
@@ -675,7 +819,7 @@
     "leader": "",
     "per_person_times": {},
     "time": "20:00",
-    "duration_min": 30,
+    "duration_min": 60,
     "days": [
       "Monday",
       "Tuesday",
@@ -686,36 +830,31 @@
     "schedule_variant": [
       "weekday"
     ],
-    "category": "prayer",
+    "category": "buffer",
     "color": "",
     "credits": [],
     "seasonal": "year_round",
     "is_grooming": false,
-    "note": "Evening commitment - Family Rosary after dinner",
+    "note": "Flex time for homework, baths, family activities",
     "keep": true,
     "variant": "weekday"
   },
   {
-    "id": "act_709eac15",
-    "name": "Michael bedtime routine",
+    "id": "act_672a7391",
+    "name": "Michael bedtime",
     "section": 0,
     "who_type": "mixed",
     "who": [
-      "Michael",
       "Lauren",
-      "John"
+      "Michael"
     ],
     "leader": "",
     "per_person_times": {
-      "Michael": {
-        "time": "20:30",
-        "duration_min": 30
-      },
       "Lauren": {
         "time": "20:30",
         "duration_min": 30
       },
-      "John": {
+      "Michael": {
         "time": "20:30",
         "duration_min": 30
       }
@@ -737,25 +876,25 @@
     "credits": [],
     "seasonal": "year_round",
     "is_grooming": false,
-    "note": "Michael bedtime at 8:30 PM",
+    "note": "Michael bedtime routine",
     "keep": true,
     "variant": "weekday"
   },
   {
-    "id": "act_86c7a3af",
+    "id": "act_9ba47b45",
     "name": "JP & Joseph bedtime routine",
     "section": 0,
     "who_type": "family",
     "who": [
-      "JP",
-      "Joseph",
       "Lauren",
-      "John"
+      "John",
+      "JP",
+      "Joseph"
     ],
     "leader": "",
     "per_person_times": {},
     "time": "21:00",
-    "duration_min": 60,
+    "duration_min": 30,
     "days": [
       "Monday",
       "Tuesday",
@@ -776,8 +915,8 @@
     "variant": "weekday"
   },
   {
-    "id": "act_f6a0bc15",
-    "name": "Couple time & night prayers",
+    "id": "act_2f55864b",
+    "name": "Couple time",
     "section": 0,
     "who_type": "mixed",
     "who": [
@@ -787,12 +926,12 @@
     "leader": "",
     "per_person_times": {
       "Lauren": {
-        "time": "21:30",
-        "duration_min": 60
+        "time": "21:00",
+        "duration_min": 30
       },
       "John": {
-        "time": "21:30",
-        "duration_min": 60
+        "time": "21:00",
+        "duration_min": 30
       }
     },
     "time": "",
@@ -807,12 +946,53 @@
     "schedule_variant": [
       "weekday"
     ],
-    "category": "rest",
+    "category": "family",
     "color": "",
     "credits": [],
     "seasonal": "year_round",
     "is_grooming": false,
-    "note": "9:00-9:30 PM couple time, Compline & night prayers commitment",
+    "note": "Daily couple connection time 9:00-9:30 PM",
+    "keep": true,
+    "variant": "weekday"
+  },
+  {
+    "id": "act_b848f637",
+    "name": "Night prayers",
+    "section": 0,
+    "who_type": "mixed",
+    "who": [
+      "Lauren",
+      "John"
+    ],
+    "leader": "",
+    "per_person_times": {
+      "Lauren": {
+        "time": "21:30",
+        "duration_min": 30
+      },
+      "John": {
+        "time": "21:30",
+        "duration_min": 30
+      }
+    },
+    "time": "",
+    "duration_min": 0,
+    "days": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday"
+    ],
+    "schedule_variant": [
+      "weekday"
+    ],
+    "category": "prayer",
+    "color": "",
+    "credits": [],
+    "seasonal": "year_round",
+    "is_grooming": false,
+    "note": "Compline, examination of conscience, night prayers",
     "keep": true,
     "variant": "weekday"
   },
@@ -853,7 +1033,7 @@
     "credits": [],
     "seasonal": "year_round",
     "is_grooming": false,
-    "note": "Set bedtime commitment",
+    "note": "Set bedtime for adults",
     "keep": true,
     "variant": "weekday"
   }

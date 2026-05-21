@@ -687,6 +687,433 @@
       "prep_time": "3 hours",
       "image": "",
       "created": "2026-05-08"
+    },
+    {
+      "name": "Frozen Corn (Heated)",
+      "servings": "6",
+      "prep_time": "2 minutes",
+      "cook_time": "5 minutes",
+      "ingredients": [
+        "1 large bag frozen corn",
+        "2 tbsp butter",
+        "Salt and pepper to taste"
+      ],
+      "instructions": [
+        "Pour frozen corn into a pot",
+        "Add butter",
+        "Heat over medium-high heat, stirring occasionally, until corn is heated through (about 5 minutes)",
+        "Season with salt and pepper",
+        "Serve hot"
+      ],
+      "kid_steps": [
+        {
+          "step": "Pour corn into pot",
+          "age_min": 5
+        },
+        {
+          "step": "Stir corn while it heats",
+          "age_min": 5,
+          "age_max": 99
+        }
+      ],
+      "notes": "Michael's specialty — simple, safe, and he loves stirring.",
+      "tags": [
+        "side",
+        "corn",
+        "Michael",
+        "quick"
+      ],
+      "id": "9172fd3f",
+      "date_added": "2026-05-20"
+    },
+    {
+      "name": "Caesar Salad",
+      "servings": "6",
+      "prep_time": "5 minutes",
+      "cook_time": "0 minutes",
+      "ingredients": [
+        "1 salad kit (pre-washed lettuce)",
+        "1/2 cup Caesar dressing",
+        "1/4 cup Parmesan cheese, grated or shaved"
+      ],
+      "instructions": [
+        "Open salad kit and pour lettuce into a large bowl",
+        "Drizzle Caesar dressing over lettuce",
+        "Toss until evenly coated",
+        "Top with Parmesan cheese",
+        "Serve immediately"
+      ],
+      "kid_steps": [
+        {
+          "step": "Pour lettuce into the bowl",
+          "age_min": 5
+        },
+        {
+          "step": "Toss the salad with dressing",
+          "age_min": 5,
+          "age_max": 99
+        },
+        {
+          "step": "Sprinkle Parmesan on top",
+          "age_min": 5,
+          "age_max": 99
+        }
+      ],
+      "notes": "No chopping needed with the salad kit. Michael can lead this one.",
+      "tags": [
+        "side",
+        "salad",
+        "quick",
+        "no-chop"
+      ],
+      "id": "e6a626fb",
+      "date_added": "2026-05-20"
+    },
+    {
+      "name": "Instant Mashed Potatoes",
+      "servings": "6",
+      "prep_time": "3 minutes",
+      "cook_time": "10 minutes",
+      "ingredients": [
+        "2 cups water or chicken broth",
+        "4 tbsp butter",
+        "1/2 cup instant mashed potatoes (dry)",
+        "Salt and pepper to taste",
+        "Optional: milk or sour cream for creaminess"
+      ],
+      "instructions": [
+        "Bring water or broth to a boil in a pot",
+        "Add butter and stir until melted",
+        "Remove from heat",
+        "Add instant mashed potatoes and stir until smooth",
+        "Season with salt and pepper",
+        "Serve hot"
+      ],
+      "kid_steps": [
+        {
+          "step": "Measure and pour instant potatoes into a bowl",
+          "age_min": 5
+        },
+        {
+          "step": "Stir the potato mixture after the hot water is added (with adult supervision)",
+          "age_min": 8
+        }
+      ],
+      "notes": "Quick and reliable side. Joseph can manage the heating and stirring with light supervision.",
+      "tags": [
+        "side",
+        "potatoes",
+        "instant",
+        "quick"
+      ],
+      "id": "393783fa",
+      "date_added": "2026-05-20"
+    },
+    {
+      "name": "Canned Green Beans (Heated)",
+      "servings": "6",
+      "prep_time": "2 minutes",
+      "cook_time": "5 minutes",
+      "ingredients": [
+        "2 cans green beans, drained",
+        "2 tbsp butter",
+        "Salt and pepper to taste",
+        "Optional: garlic powder"
+      ],
+      "instructions": [
+        "Drain liquid from canned green beans",
+        "Place green beans in a pot",
+        "Add butter",
+        "Heat over medium heat, stirring occasionally, until warmed through (about 5 minutes)",
+        "Season with salt, pepper, and optional garlic powder",
+        "Serve hot"
+      ],
+      "kid_steps": [
+        {
+          "step": "Drain the green beans into a colander",
+          "age_min": 8
+        },
+        {
+          "step": "Stir the green beans while they heat",
+          "age_min": 5,
+          "age_max": 99
+        }
+      ],
+      "notes": "Simple, quick, and forgiving. Good for any helper.",
+      "tags": [
+        "side",
+        "vegetables",
+        "canned",
+        "quick"
+      ],
+      "id": "4100df05",
+      "date_added": "2026-05-20"
+    },
+    {
+      "name": "Wild Rice",
+      "servings": "6",
+      "prep_time": "5 minutes",
+      "cook_time": "45 minutes",
+      "ingredients": [
+        "2 cups wild rice (dry)",
+        "5 cups water or chicken broth",
+        "1 tsp salt",
+        "2 tbsp butter"
+      ],
+      "instructions": [
+        "Rinse wild rice under cold water",
+        "Bring water or broth to a boil in a pot",
+        "Add salt and wild rice",
+        "Reduce heat to low, cover, and simmer for 40–45 minutes until rice is tender and liquid is absorbed",
+        "Fluff with a fork",
+        "Stir in butter",
+        "Serve hot"
+      ],
+      "kid_steps": [
+        {
+          "step": "Rinse the wild rice in a colander",
+          "age_min": 8
+        },
+        {
+          "step": "Measure water and rice carefully",
+          "age_min": 12
+        }
+      ],
+      "notes": "Start this early — it takes 45 minutes. JP can manage the stovetop work.",
+      "tags": [
+        "side",
+        "rice",
+        "wild rice",
+        "batch"
+      ],
+      "id": "fdac2bc9",
+      "date_added": "2026-05-20"
+    },
+    {
+      "name": "Sautéed Frozen Mixed Vegetables",
+      "servings": "6",
+      "prep_time": "3 minutes",
+      "cook_time": "8 minutes",
+      "ingredients": [
+        "1 large bag frozen mixed vegetables",
+        "3 tbsp butter or olive oil",
+        "Salt and pepper to taste",
+        "Optional: garlic powder"
+      ],
+      "instructions": [
+        "Heat butter or oil in a large skillet over medium-high heat",
+        "Pour frozen mixed vegetables into the skillet",
+        "Stir occasionally until vegetables are heated through and slightly tender (about 8 minutes)",
+        "Season with salt, pepper, and optional garlic powder",
+        "Serve hot"
+      ],
+      "kid_steps": [
+        {
+          "step": "Pour frozen vegetables into the skillet (with adult supervision)",
+          "age_min": 10
+        },
+        {
+          "step": "Stir vegetables while they cook",
+          "age_min": 8,
+          "age_max": 99
+        }
+      ],
+      "notes": "Joseph's role on Saturday — he can handle the skillet work with light supervision.",
+      "tags": [
+        "side",
+        "vegetables",
+        "frozen",
+        "quick"
+      ],
+      "id": "1caa2350",
+      "date_added": "2026-05-20"
+    },
+    {
+      "name": "Spinach Pie (Frozen Crust)",
+      "servings": "6",
+      "prep_time": "15 minutes",
+      "cook_time": "35 minutes",
+      "ingredients": [
+        "1 frozen pie crust, thawed in fridge overnight",
+        "10 oz frozen chopped spinach, thawed and drained well",
+        "4 large eggs",
+        "1 cup crumbled feta cheese",
+        "1/4 white onion, finely diced",
+        "Salt and pepper to taste",
+        "Optional: garlic powder, nutmeg"
+      ],
+      "instructions": [
+        "Preheat oven to 375°F",
+        "Thaw spinach thoroughly and squeeze out excess moisture",
+        "In a bowl, whisk together eggs, feta, diced onion, salt, and pepper",
+        "Fold spinach into egg mixture",
+        "Pour into thawed pie crust",
+        "Bake 35 minutes until set and golden",
+        "Let cool 5 minutes before slicing"
+      ],
+      "kid_steps": [
+        {
+          "step": "squeeze the spinach to remove water",
+          "age_min": 5
+        },
+        {
+          "step": "whisk eggs and combine filling ingredients",
+          "age_min": 14
+        },
+        {
+          "step": "pour filling into crust and slide into oven with mitts",
+          "age_min": 12
+        }
+      ],
+      "notes": "Pie crust must thaw overnight in fridge. JP can lead this meal.",
+      "tags": [
+        "spinach",
+        "meatless",
+        "Friday",
+        "pie"
+      ],
+      "id": "a42827d4",
+      "date_added": "2026-05-20"
+    },
+    {
+      "name": "Shredded Chicken Tacos",
+      "servings": "6",
+      "prep_time": "10 minutes",
+      "cook_time": "5 minutes",
+      "ingredients": [
+        "2 lbs shredded chicken (thawed)",
+        "6-8 flour or corn tortillas",
+        "1.5 cups shredded cheddar cheese",
+        "1 fresh tomato, diced",
+        "1 cup sour cream",
+        "Salsa to taste"
+      ],
+      "instructions": [
+        "Warm shredded chicken in a pot over medium heat (3-5 min)",
+        "Warm tortillas in a dry skillet or over gas flame",
+        "Set out all toppings in bowls: cheese, tomato, sour cream, salsa",
+        "Let family assemble their own tacos",
+        "Serve with warm corn on the side"
+      ],
+      "kid_steps": [
+        {
+          "step": "warm tortillas in the skillet",
+          "age_min": 12
+        },
+        {
+          "step": "set out toppings in bowls",
+          "age_min": 12
+        },
+        {
+          "step": "stir the corn in a pot",
+          "age_min": 5
+        }
+      ],
+      "notes": "Easy family assembly meal. JP leads warmup and coordination.",
+      "tags": [
+        "chicken",
+        "tacos",
+        "Wednesday",
+        "family-friendly"
+      ],
+      "id": "bf5da053",
+      "date_added": "2026-05-20"
+    },
+    {
+      "name": "Ground Beef Pasta with Spaghetti Sauce",
+      "servings": "6",
+      "prep_time": "15 minutes",
+      "cook_time": "20 minutes",
+      "ingredients": [
+        "2 lbs ground beef",
+        "1 jar spaghetti sauce (24 oz)",
+        "1 can diced tomatoes (14.5 oz)",
+        "1 lb pasta (penne or spaghetti)",
+        "Salt and pepper to taste",
+        "Optional: garlic powder, Italian seasoning"
+      ],
+      "instructions": [
+        "Boil water in a large pot for pasta",
+        "Brown ground beef in a skillet over medium-high heat, breaking it apart as it cooks (8-10 min)",
+        "Drain excess fat if needed",
+        "Add spaghetti sauce and canned diced tomatoes to beef",
+        "Simmer sauce while pasta cooks (8-10 min)",
+        "Cook pasta according to package directions, drain",
+        "Combine pasta and sauce in a large bowl or pot",
+        "Serve hot"
+      ],
+      "kid_steps": [
+        {
+          "step": "boil water and add pasta",
+          "age_min": 12
+        },
+        {
+          "step": "stir the sauce as it simmers",
+          "age_min": 5
+        },
+        {
+          "step": "drain pasta carefully with adult help",
+          "age_min": 12
+        }
+      ],
+      "notes": "JP leads pasta; Joseph manages sauce. Thursday lifting day — good carb load.",
+      "tags": [
+        "beef",
+        "pasta",
+        "Thursday",
+        "high-carb"
+      ],
+      "id": "fdb4bc62",
+      "date_added": "2026-05-20"
+    },
+    {
+      "name": "Cajun Sausages with Wild Rice and Sautéed Vegetables",
+      "servings": "6",
+      "prep_time": "5 minutes",
+      "cook_time": "25 minutes",
+      "ingredients": [
+        "12-15 Cajun sausage links (from freezer)",
+        "2 cups wild rice (dry)",
+        "5 cups water or chicken broth",
+        "1 tsp salt",
+        "2 tbsp butter",
+        "1 large bag frozen mixed vegetables (10-12 oz)",
+        "3 tbsp butter or olive oil for vegetables",
+        "Salt and pepper to taste"
+      ],
+      "instructions": [
+        "Bring water or broth to a boil in a pot",
+        "Add wild rice and salt, reduce heat to medium-low",
+        "Cover and simmer 45 minutes until tender",
+        "While rice cooks, heat sausages in a skillet over medium heat, turning occasionally (12-15 min)",
+        "In another skillet, melt 3 tbsp butter over medium-high heat",
+        "Add frozen vegetables and sauté until heated through (8 min)",
+        "Season vegetables with salt and pepper",
+        "Serve sausages over wild rice with vegetables on the side"
+      ],
+      "kid_steps": [
+        {
+          "step": "add wild rice to boiling broth",
+          "age_min": 12
+        },
+        {
+          "step": "heat sausages in skillet, turning with tongs",
+          "age_min": 14
+        },
+        {
+          "step": "sauté frozen vegetables in butter",
+          "age_min": 12
+        }
+      ],
+      "notes": "Saturday meal. JP leads sausage heating; Joseph sautés vegetables. Quick and satisfying.",
+      "tags": [
+        "sausage",
+        "wild rice",
+        "Saturday",
+        "one-pan"
+      ],
+      "id": "774b15bb",
+      "date_added": "2026-05-20"
     }
   ]
 }

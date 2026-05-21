@@ -61,23 +61,15 @@
       "dinner": "Cajun sausages + wild rice + sautéed frozen mixed vegetables",
       "dessert": "Popcorn",
       "snacks": "",
-      "dad_lunch": "",
-      "helpers": "Lauren: Heat sausages & sauté vegetables — JP: Cook wild rice — Joseph: Assist with timing — Michael: Set table & pour drinks",
-      "prep_time": "10 minutes",
-      "cook_time": "20 minutes",
-      "serve_time": "6:00 PM"
+      "dad_lunch": ""
     },
     "Sunday": {
-      "breakfast": "Scrambled eggs + whole wheat toast",
-      "lunch": "Pulled pork + instant mashed potatoes + canned carrots",
-      "dinner": "Red lentil soup + whole wheat bread",
-      "dessert": "Popcorn",
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
       "snacks": "",
-      "dad_lunch": "",
-      "helpers": "Lauren: Batch-cook lentil soup base (post-Mass), cook barley or quinoa for next week — JP: Assist with soup prep — Joseph: Assist with batch cooking — Michael: Stir soup (with supervision)",
-      "prep_time": "20 minutes",
-      "cook_time": "45 minutes",
-      "serve_time": "6:00 PM"
+      "dad_lunch": ""
     }
   }
 }

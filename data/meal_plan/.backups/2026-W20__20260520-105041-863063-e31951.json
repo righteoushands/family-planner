@@ -1,0 +1,67 @@
+{
+  "start": "2026-W20",
+  "week": "2026-W20",
+  "generated": false,
+  "days": {
+    "Monday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Tuesday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Wednesday": {
+      "breakfast": "Scrambled eggs + whole wheat toast + apples",
+      "lunch": "Macaroni & cheese (1 box made) + apple slices",
+      "dinner": "Shredded chicken tacos with cheese, tomato, sour cream + frozen corn",
+      "dessert": "Ice cream",
+      "snacks": "",
+      "dad_lunch": "",
+      "helpers": "Lauren: Defrost 2 lbs ground beef in fridge (for Thursday) — JP: Lead taco assembly & warm chicken — Joseph: Warm corn & set table — Michael: Pour drinks & help with toppings",
+      "prep_time": "15 minutes",
+      "cook_time": "20 minutes",
+      "serve_time": "5:00 PM"
+    },
+    "Thursday": {
+      "breakfast": "Oatmeal + old banana + milk",
+      "lunch": "Shredded chicken + rice + roasted broccoli",
+      "dinner": "Ground beef pasta with spaghetti sauce + Caesar salad",
+      "dessert": "Apple slices",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Friday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Saturday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Sunday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": ""
+    }
+  }
+}
