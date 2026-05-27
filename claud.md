@@ -107,6 +107,73 @@ the bypass. When adding new forms to section bodies always check whether
 they post to /frol-wizard and if so either use a different route or
 handle the advance separately in the section body itself.
 
+## Additional rules (13–18)
+
+13. **FROL WIZARD NESTED FORM ADDENDUM** — The _body_has_form check in
+    _section_chrome looks for action=”/frol-wizard” in the body string.
+    Any form inside a section body posting to /frol-wizard will suppress
+    the Save and Continue button. Variant tab forms posting to
+    /frol-set-variant are safe. Activity builder forms posting to
+    /frol-add-activity are safe. Before adding any form to a section body
+    confirm its action attribute. This is a recurring bug — document
+    before fixing if it appears again.
+
+14. **PRE-FLIGHT CHECKLIST** — Before writing any spec answer these
+    questions. One — how many files does this touch, list them, if
+    unknown that is a diagnosis step first. Two — does it involve
+    JavaScript inside Python f-strings, if yes flag the backslash-n rule
+    explicitly in the spec. Three — does it touch form handling, if yes
+    confirm no nested forms posting to /frol-wizard. Four — is the root
+    cause confirmed or assumed, if assumed run diagnosis first never
+    draft a fix on an assumed cause. Five — does it touch multiple files
+    at once, if yes break into separate single-purpose instructions.
+    Six — does it involve data shape changes or migration, if yes
+    confirm before and after data structure explicitly before writing
+    the spec.
+
+15. **CLAUD.MD READ-BACK REQUIRED** — At the start of every session read
+    claud.md and paste back every rule found. Then identify which rules
+    apply to today’s task. If you cannot paste the rules back accurately
+    stop and ask Lauren to re-paste claud.md before proceeding.
+
+16. **MAGNIFICA HUMANITAS DESIGN PRINCIPLES** — Every feature built must
+    reflect these principles. One — the app is a tool not an authority.
+    Every AI suggestion is framed as a suggestion never a prescription.
+    Language uses “here is one way to think about this” never “you
+    should” or “the optimal schedule is.” Two — companions serve real
+    relationships they do not replace them. Every companion orients
+    toward real people, real community, and real pastoral support.
+    Sister Mary never replaces a confessor. Father Gregory never replaces
+    real mentors. Lucy regularly suggests real conversations over app
+    conversations. Three — AI supports thinking it does not replace it.
+    Ask before suggesting. Boys build their own plans before seeing AI
+    suggestions. Father Gregory asks questions more than he gives
+    answers. Four — be transparent about what AI is. Companions never
+    make theological claims with personal authority. Prayer texts come
+    from verified Catholic sources only never AI generated. Five —
+    language of grace not performance. No gamification no streaks no
+    scores that shame. A hard day is never framed as failure. Sick Day
+    Mode is relief not defeat. Six — subsidiarity. The family governs
+    itself. Lauren is always the authority. The app serves the family’s
+    discernment it does not replace it. Seven — formation in digital
+    wisdom. Father Gregory teaches the boys to think critically about
+    AI. The explicit goal is that JP finishes high school able to plan
+    his day without the app.
+
+17. **ONE FIX PER INSTRUCTION** — Never bundle multiple fixes into one
+    Agent instruction unless they are in the same file and directly
+    related. Complex multi-file builds must be broken into sequential
+    single-purpose phases with a compile check and report between each
+    phase.
+
+18. **AUGUST 15TH BUILD PLAN IS THE PRIORITY FILTER** — Between June 1st
+    and August 15th 2026 every build request must be checked against the
+    August 15th build plan before proceeding. If a requested build is
+    not on the must-have or should-have list for the current week flag
+    it to Lauren before starting. New feature ideas go on the
+    post-September list unless they directly enable one of the 14 goals
+    in the August 15th plan. Scope is the first thing to cut not quality.
+
 ## Current major features
 - /plan-import — paste text → AI extracts events, tasks, placements → approve → apply
 - Placements route information to existing records (events, profiles, friends, pantry, etc.)
