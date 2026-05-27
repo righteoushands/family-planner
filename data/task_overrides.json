@@ -86,6 +86,19 @@
         "action": "dismiss",
         "label": "Tidy basement zone — 10 minutes"
       }
+    },
+    "2026-05-28": {
+      "CHORE::JP::2026-05-28::morning::Practice Piano for 15 minutes": {
+        "action": "dismiss",
+        "label": "Practice Piano for 15 minutes"
+      }
+    },
+    "2026-05-29": {
+      "CHORE::JP::2026-05-29::weekly::Bring back trash can": {
+        "action": "postpone",
+        "postpone_to": "2026-05-30",
+        "label": "Bring back trash can"
+      }
     }
   },
   "Joseph": {
@@ -152,6 +165,13 @@
       "ROUTINE::Joseph::2026-04-30::Prep vegetables for sheet pan": {
         "action": "dismiss",
         "label": "Prep vegetables for sheet pan"
+      }
+    },
+    "2026-05-28": {
+      "CHORE::Joseph::2026-05-28::weekly::Bring recycling can down to the street.": {
+        "action": "postpone",
+        "postpone_to": "2026-05-29",
+        "label": "Bring recycling can down to the street."
       }
     }
   },

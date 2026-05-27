@@ -1,8 +1,9 @@
 {
   "mode": "structured",
-  "current_step": 2,
+  "current_step": 3,
   "completed_steps": [
-    1
+    1,
+    2
   ],
   "data": {
     "v3_seeded": true,
@@ -54,10 +55,17 @@
           "color": "#2980b9"
         }
       ]
+    },
+    "section_2": {
+      "Michael__wake_time": "07:00",
+      "Michael__bed_time": "20:00",
+      "James__wake_time": "06:30",
+      "James__nap_time": "9 am - 11 am",
+      "James__bed_time": "19:30"
     }
   },
   "started_at": "2026-05-20T20:44:37",
-  "updated_at": "2026-05-20T20:49:53",
+  "updated_at": "2026-05-22T12:27:19",
   "finalized_at": "",
   "schema_version": "v3"
 }

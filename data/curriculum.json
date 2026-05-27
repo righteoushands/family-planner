@@ -1,5 +1,5 @@
 {
-  "current_week": 1,
+  "current_week": 99,
   "JP": {
     "Algebra 1/2": {
       "1": "Lesson 115 of Math 76 or Math 87; Lesson 116 of Math 76 or Math 87; Lesson 117 of Math 76 or Math 87; Lesson 118 of Math 76 or Math 87; Lesson 119 of Math 76 or Math 87",
@@ -34,7 +34,7 @@
       "30": "Lesson 113; Lesson 114; Lesson 115; Lesson 116; Test 28",
       "31": "Lesson 117; Lesson 118; Lesson 119; Lesson 120; Test 29",
       "32": "Lesson 121; Lesson 122; Lesson 123; Test 30; Pre-Algebra: Quarterly Assessment 4",
-      "_current_week": 999,
+      "_current_week": 99,
       "_current_day": 1,
       "_minutes": 60,
       "_weekdays": [
@@ -177,7 +177,7 @@
       },
       "_minutes": 45,
       "_current_day": 4,
-      "_current_week": 19,
+      "_current_week": 99,
       "_weekdays": [
         "Monday",
         "Friday"
@@ -379,8 +379,8 @@
         "5": "Complete English 8: Semesterly Assessment 1 online.\nAssessments\nEnglish 8: Semesterly Assessment 2"
       },
       "_minutes": 30,
-      "_current_day": 4,
-      "_current_week": 21,
+      "_current_day": 2,
+      "_current_week": 32,
       "_weekdays": [
         "Monday",
         "Wednesday",
@@ -570,7 +570,7 @@
         "4": "Now, write a summary of your history class this year. (You would enjoy reading The Trumpeter of Krakow by Eric Kelly, The Blood Red Crescent by Henry Garnett, and Red Hugh, Prince of Donegal by Robert T Reilly, all of which are in print.)"
       },
       "_minutes": 45,
-      "_current_day": 2,
+      "_current_day": 4,
       "_current_week": 21,
       "_weekdays": [
         "Monday",
@@ -617,7 +617,7 @@
       "31": "This week have someone play the pieces from this year, in a random order, and try to identify as many of the pieces from the year as you can. Listen as long as you need to in order to identify the piece. Use the list from the front of this syllabus to help you.",
       "32": "Try again to identify as many of the pieces from the year as you can. This time don’t use a list and see how you do.\nResources\n8th Grade - Learning Objectives.pdf\n8th Grade - Reasons We Use These Specific Texts.pdf\n8th Grade - Rubrics.pdf\n8th Grade - Suggested Schedule.pdf\nMusic 8 (Top 100 Classical Music) - Grading Chart.pdf",
       "_minutes": 10,
-      "_current_week": 22,
+      "_current_week": 99,
       "_weekdays": [
         "Wednesday"
       ]
@@ -657,7 +657,7 @@
       "32": "Review for and take Religion Test II if you have not yet done so.",
       "_minutes": 45,
       "_current_day": 4,
-      "_current_week": 20,
+      "_current_week": 99,
       "_weekdays": [
         "Monday",
         "Tuesday",
@@ -832,7 +832,7 @@
       "32": "Day 1: Write sentences using the Lesson 15 Key words. You can put each word in a separate sentence, but if you use more than one word in the same sentence that is even better. Make sure your sentences are intelligible.\nDay 2: Write sentences using the Lesson 16 Key words. You can put each word in a separate sentence, but if you use more than one word in the same sentence that is even better. Make sure your sentences are intelligible.\nDay 3: Write a single paragraph using as many of the Lessons 15 and 16 Key Words as you can. Make sure the paragraph is intelligible.\nDay 4: Take a spelling test on the Lesson 15 and Lesson 16 Key Words.",
       "_minutes": 20,
       "_current_day": 5,
-      "_current_week": 22,
+      "_current_week": 99,
       "_weekdays": [
         "Monday",
         "Tuesday",
@@ -1011,7 +1011,7 @@
       },
       "_minutes": 5,
       "_current_day": 2,
-      "_current_week": 20,
+      "_current_week": 99,
       "_weekdays": [
         "Monday",
         "Tuesday",
@@ -1378,7 +1378,7 @@
       },
       "_minutes": 30,
       "_current_day": 1,
-      "_current_week": 22,
+      "_current_week": 99,
       "_weekdays": [
         "Monday",
         "Tuesday",

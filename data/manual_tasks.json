@@ -165,7 +165,7 @@
   {
     "text": "Friday Penance: give up meat or make another sacrifice.",
     "assigned_to": "JP",
-    "due_date": "2026-05-22",
+    "due_date": "2026-05-29",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": true,
@@ -872,6 +872,15 @@
     "text": "Buy Mother's Day cards",
     "assigned_to": "Mom",
     "due_date": "2026-04-25",
+    "priority": "MEDIUM",
+    "status": "active",
+    "recurring": false
+  },
+  {
+    "id": "cf9b6ea8",
+    "text": "Exercise",
+    "assigned_to": "JP",
+    "due_date": "",
     "priority": "MEDIUM",
     "status": "active",
     "recurring": false
