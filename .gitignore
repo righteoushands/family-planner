@@ -1,32 +1,148 @@
-# Sensitive data files - never commit these
+# ─── Sensitive data files — never commit these ─────────────────────────
+# Calendar config + cached events (contains private calendar URLs / data)
 data/calendar_config.json
 data/calendar_cache.json
 data/calendar_rules.json
 data/subscribed_calendars.json
+data/subscribed_calendar_cache.json
+
+# Authentication (PINs, sessions) — NEVER commit
+data/auth/pins.json
 data/auth/sessions.json
-# Companion conversation history (contains intimate PII / pastoral content).
-# These accumulate during normal app use; do NOT track them in git.
+
+# App-level settings (contains API keys, family-specific config)
+data/app_settings.json
+
+# Companion conversation history (intimate PII / pastoral content)
 data/history/
-data/sister_mary_history.json
 data/lucy_history.json
 data/lorenzo_history.json
+data/gregory_history.json
 data/father_gregory_history.json
 data/coach_history.json
+data/monica_history.json
 data/dr_monica_history.json
+data/sister_mary_history.json
+data/sister_mary_history.json.archive/
+data/dev_history.json
+
+# Companion "last writes" / undo journals
+data/lucy_last_writes.json
+data/lorenzo_last_writes.json
+data/gregory_last_writes.json
+data/coach_last_writes.json
+data/monica_last_writes.json
+data/felix_undo.json
+
+# Family memory + memory book
+data/family_memory.json
+data/memory_book.json
+
+# Personal tracking — health, cycle, exercise, 5AM, hour log
+data/cycle_log.json
+data/cycle/
+data/hour_tracking.json
+data/hour_reports/
+data/5am/
+data/exercise_assignments.json
+data/exercise_logs.json
+data/coach_programs.json
+
+# Tasks, notes, plans, progress — all family-specific
+data/manual_tasks.json
+data/task_overrides.json
+data/task_registry.json
+data/progress.json
+data/notes.json
+data/mom_notes.json
+data/thankyou_reminders.json
+data/roadmap.json
+data/planning_session.json
+data/monthly_planner.json
+data/daily_plans/
+data/day_grids/
+data/day_templates/
+data/day_templates_preview/
+data/day_templates_backups/
+data/weekly_school_plan/
+
+# Chores (family-specific assignments)
+data/chores.json
+
+# Curriculum + school
+data/curriculum.json
+data/curriculum.json.with-dupes.bak
+data/school_previews.json
+data/school_week_plan.json
+data/school_weeks.json
+data/gradebook.json
+data/grades.json
+data/assignment_analyses.json
+data/assignment_uploads/
+
+# Profiles (per-person personal data)
+data/profiles/
+
+# FROL wizard answers (personal narrative)
+data/frol_wizard_progress.json
+data/frol_wizard_progress.v2_backup.json
+data/frol_activities.json
+data/frol_activities.v2_backup.json
+
+# Seasonal library (snapshots of family schedules)
+data/seasonal_schedules.json
+
+# Local events
+data/events.json
+
+# Prayer intentions (personal)
+data/prayer_intentions.json
+data/prayer/
+data/pope_intentions.json
+data/poetry_passages.json
+
+# Virtues tracker (personal check-ins)
+data/virtues/
+
+# Liturgical custom entries
+data/liturgical.json
+
+# Family schedule, friends, recipes (personal)
+data/family_schedule.json
+data/friends.json
+data/recipes.json
+data/meal_inventory.json
+data/meal_rules.json
+data/readings_cache/
+data/saint_cache/
+
+# Plan-importer history
+data/plan_import_history.json
+
+# Kid messages
+data/kid_messages.json
+
+# Test / scratch fixtures
+data/_undo_smoke_test.json
+
+# Family Quest game state
 family_quest/data/xp.json
 family_quest/data/battles.json
 family_quest/data/mines.json
 family_quest/data/stamina.json
 family_quest/data/inventory.json
 
-# Python cache
+# ─── Python cache ──────────────────────────────────────────────────────
 __pycache__/
 *.pyc
 *.pyo
 .pythonlibs/
 
-# Replit files
+# ─── Replit files ──────────────────────────────────────────────────────
 .replit
 replit.nix
 .upm/
 .config/
+
+# ─── Local agent / task scaffolding ────────────────────────────────────
+.local/
