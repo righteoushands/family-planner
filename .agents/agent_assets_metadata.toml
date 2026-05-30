@@ -1,5 +1,4 @@
 uploads = []
-outputs = []
 
 [[generated]]
 id = "22yuYdJzlxwqdJHKFC1OO"
@@ -66,3 +65,9 @@ id = "mfiaSDYYcMlBNd0-8WCFm"
 uri = "file://static/images/timeblock/seasons/autumn/4.png"
 type = "image"
 title = "generated_image"
+
+[[outputs]]
+id = "4iMP4tbJLszsbg1sds0wf"
+uri = "file://.local/state/lorenzo_transcript_2026-05-30.md"
+type = "text"
+title = "Lorenzo ↔ Lauren — full verbatim transcript (2026-05-30)"
