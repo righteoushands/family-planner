@@ -5413,7 +5413,7 @@ def render_section_13(progress: dict, mode: str) -> str:
         "Seven Commitments",
         "<p>Before you save, reflect on these seven commitments from Laura Dominick. They are the spine of a peaceful, ordered home — not a checklist to pass, but a daily standard to return to.</p>",
         key="sec13_intro",
-        attribution="— From <em>A Plan for Joy in the Home</em> by Laura Dominick",
+        attribution="— From A Plan for Joy in the Home by Laura Dominick",
     )
     rows = ""
     for it in items:
