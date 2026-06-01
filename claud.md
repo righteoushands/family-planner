@@ -37,7 +37,12 @@ Michael (5, kindergarten), James (13 months, toddler — cannot be assigned task
 9. py_compile passes but runtime fails: py_compile only validates syntax
    not runtime correctness. Always run an in-process smoke test after
    py_compile to catch NameError, missing variable definitions, and
-   import failures.
+   import failures. After the in-process smoke test, also run the relevant
+   existing verify_phase_*.py harness for the area touched and paste the
+   result — the smoke test confirms the changed function works, but the
+   harness catches regressions in nearby functionality. Do not skip the
+   harness run for changes that touch shared data files, save paths, or any
+   function called from more than one place.
 10. test fixtures must never write to live data: verification harnesses
     must always operate on a temp copy of live data files. Never call
     save_progress, safe_save_json, or any write helper on live data
@@ -107,7 +112,7 @@ the bypass. When adding new forms to section bodies always check whether
 they post to /frol-wizard and if so either use a different route or
 handle the advance separately in the section body itself.
 
-## Additional rules (13–18)
+## Additional rules (13–19)
 
 13. **FROL WIZARD NESTED FORM ADDENDUM** — The _body_has_form check in
     _section_chrome looks for action=”/frol-wizard” in the body string.
@@ -173,6 +178,19 @@ handle the advance separately in the section body itself.
     it to Lauren before starting. New feature ideas go on the
     post-September list unless they directly enable one of the 14 goals
     in the August 15th plan. Scope is the first thing to cut not quality.
+
+19. **BUILD FOR A FUTURE SECOND FAMILY** — This app will eventually be
+    shared with and possibly sold to other families using a hosted
+    multi-family model. Every feature must be written as if a second family
+    will use it. Never hardcode McAdams or any single family’s specifics
+    into code as if it is the only family — keep family identity and config
+    in app_settings.json. Keep all data reads and writes flowing through
+    data_helpers.py with no direct file access in route handlers, so the
+    eventual swap from JSON files to a database happens in one place. Do not
+    bake in single-user assumptions in new feature logic where it is cheap
+    to avoid them. This is design hygiene that costs nothing now and
+    prevents a full rewrite later; it does NOT mean building multi-user
+    features before August 15th.
 
 ## Current major features
 - /plan-import — paste text → AI extracts events, tasks, placements → approve → apply
