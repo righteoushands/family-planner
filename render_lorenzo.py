@@ -335,22 +335,66 @@ def _get_liturgical_note(iso: str) -> str:
 
 def _get_calendar_this_week(iso: str) -> str:
     """Return a compact text listing of events for the next 7 days starting at iso.
-    Uses expand_local_events_for_range; safe-fallback string on any error."""
+    Merges local events.json, the Google/CalDAV cache, and subscribed iCal feeds,
+    deduped by (title, start) and sorted chronologically; safe-fallback on error."""
     try:
         from datetime import date as _dc, timedelta as _td
-        from data_helpers import expand_local_events_for_range
+        from data_helpers import (expand_local_events_for_range,
+                                   load_calendar_cache,
+                                   load_subscribed_calendar_cache)
         _today = _dc.fromisoformat(iso)
         _end   = _today + _td(days=6)
-        _evs   = expand_local_events_for_range(_today.isoformat(), _end.isoformat())
-        if not _evs:
+        _window = {(_today + _td(days=o)).isoformat() for o in range(7)}
+
+        def _norm(ev, who):
+            return {
+                "title": (ev.get("title") or "").strip(),
+                "start": ev.get("start", "") or "",
+                "end":   ev.get("end", "") or "",
+                "who":   who or "",
+            }
+
+        merged = []
+        # 1. Local events.json (already expanded across the range)
+        for e in (expand_local_events_for_range(_today.isoformat(), _end.isoformat()) or []):
+            _assigned = e.get("assigned_to") or []
+            if isinstance(_assigned, list):
+                _who = ", ".join(str(x) for x in _assigned if str(x).strip())
+            else:
+                _who = str(_assigned).strip()
+            merged.append(_norm(e, _who))
+        # 2. Google / CalDAV cache  +  3. Subscribed iCal feeds (no people field)
+        for _loader in (load_calendar_cache, load_subscribed_calendar_cache):
+            _cache = _loader() or {}
+            _cache_evs = _cache.get("events") if isinstance(_cache, dict) else []
+            if not isinstance(_cache_evs, list):
+                _cache_evs = []
+            for e in _cache_evs:
+                if isinstance(e, dict):
+                    merged.append(_norm(e, ""))
+
+        # Keep only events inside the 7-day window
+        merged = [m for m in merged if m["start"][:10] in _window]
+        if not merged:
             return "No events scheduled in the next 7 days."
-        by_date = {}
-        for e in _evs:
-            _start    = e.get("start", "") or ""
-            _date_str = _start[:10] if _start else ""
-            if not _date_str:
+
+        # Deduplicate by (title, start) regardless of source
+        _seen = set()
+        _deduped = []
+        for m in merged:
+            _key = (m["title"], m["start"])
+            if _key in _seen:
                 continue
-            by_date.setdefault(_date_str, []).append(e)
+            _seen.add(_key)
+            _deduped.append(m)
+
+        # Sort chronologically by start
+        _deduped.sort(key=lambda m: m["start"])
+
+        by_date = {}
+        for m in _deduped:
+            by_date.setdefault(m["start"][:10], []).append(m)
+
         out_lines = []
         for offset in range(7):
             d  = _today + _td(days=offset)
@@ -365,24 +409,20 @@ def _get_calendar_this_week(iso: str) -> str:
                 _label = d.strftime("%A")
             _date_label = d.strftime("%b %-d")
             out_lines.append(f"{_label} ({_date_label}, {ds}):")
-            for e in by_date[ds]:
-                title = (e.get("title") or "(untitled)").strip() or "(untitled)"
-                st = (e.get("start_time") or "").strip()
-                et = (e.get("end_time") or "").strip()
+            for m in by_date[ds]:
+                title  = m["title"] or "(untitled)"
+                _start = m["start"]
+                _end_v = m["end"]
+                st = _start.split("T", 1)[1][:5] if "T" in _start else ""
+                et = _end_v.split("T", 1)[1][:5] if "T" in _end_v else ""
                 if st and et:
                     _time_str = f"{st}-{et} "
                 elif st:
                     _time_str = f"{st} "
-                elif e.get("all_day"):
+                else:
                     _time_str = "(all day) "
-                else:
-                    _time_str = ""
-                _assigned = e.get("assigned_to") or []
-                if isinstance(_assigned, list) and _assigned:
-                    _who_join = ", ".join(str(x) for x in _assigned if str(x).strip())
-                    _who_str  = f" — for {_who_join}" if _who_join else ""
-                else:
-                    _who_str = ""
+                _who = m["who"]
+                _who_str = f" — for {_who}" if _who else ""
                 out_lines.append(f"  - {_time_str}{title}{_who_str}")
         return "\n".join(out_lines) if out_lines else "No events scheduled in the next 7 days."
     except Exception:

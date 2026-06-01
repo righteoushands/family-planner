@@ -1,0 +1,53 @@
+Pre-flight (Rule 14):
+
+	1.	Files touched: render_lorenzo.py only — but we need to confirm the exact shape of all three loader outputs before writing merge code. That confirmation happens inside the instruction.
+	2.	JS in f-strings: render_lorenzo.py is explicitly named in Rule 12. Rules 7 and 12 apply — Replit must not touch any JS string lines.
+	3.	Form handling: no
+	4.	Root cause confirmed: yes — _get_calendar_this_week() reads only events.json, never merges the other two caches
+	5.	Multiple files: no — read-only use of existing data_helpers loaders, no changes to data_helpers.py
+	6.	Data shape changes: the Lorenzo Fixes doc flags a critical shape warning — the three loaders may return different shapes. Replit must normalize before merging. This must be confirmed before writing merge code.
+
+Read claud.md and paste back all 19 rules. Then tell me which rules apply to today’s task before you begin.
+
+Task: Lorenzo Fix A — calendar merge. render_lorenzo.py only. Diagnosis step embedded — do not write the merge until you have confirmed the output shapes.
+
+Background: _get_calendar_this_week() in render_lorenzo.py currently reads only events.json via expand_local_events_for_range. It never reads calendar_cache.json or subscribed_calendar_cache.json. The fix wires in the two missing loaders so Lorenzo sees all three calendar sources.
+
+The three loaders already exist in data_helpers.py:
+
+	•	expand_local_events_for_range(start_date, end_date) — local events.json
+	•	load_calendar_cache() — Google/CalDAV cache
+	•	load_subscribed_calendar_cache() — subscribed iCal feeds
+
+Step 1 — Shape confirmation before any code (diagnosis):
+
+Read the current _get_calendar_this_week() function and paste it verbatim. Then read the return value shapes of all three loaders in data_helpers.py and paste a one-line description of what each returns — specifically: what keys does each event dict have? Are they the same shape or different?
+
+Do not write any merge code until you have pasted the shape confirmation.
+
+Step 2 — Write the merge (only after Step 1 is confirmed):
+
+Once shapes are confirmed, modify _get_calendar_this_week() to:
+
+	1.	Call all three loaders for the target date range
+	2.	Normalize all three into one common shape with keys: title, start, end, who (use empty string for missing fields — never None in the formatted output)
+	3.	Deduplicate by (title, start) — same title and same start time is a duplicate regardless of source
+	4.	Sort chronologically by start
+	5.	Build the calendar string from the merged, deduplicated, sorted list using the same formatting already in the function
+
+Constraints:
+
+	•	Do not change the output format of _get_calendar_this_week() — only the set of events feeding it
+	•	Do not modify data_helpers.py
+	•	render_lorenzo.py contains inline JS — do not touch any JS string lines. If any part of this change would require editing a JS string, stop and flag it.
+	•	If load_calendar_cache() or load_subscribed_calendar_cache() returns an empty list or empty dict, handle it gracefully — no crash on empty cache
+
+After the change:
+
+	1.	Run py_compile on render_lorenzo.py and paste the result
+	2.	Run an in-process smoke test confirming _get_calendar_this_week() returns a string and does not crash on empty caches
+	3.	No verify harness needed — no data files written, no save paths touched
+	4.	Paste the before/after event count for the current week (how many events from events.json alone vs. how many after the merge)
+	5.	Paste the diff
+
+Paste that to Replit and bring back the shape confirmation first, before it writes anything.
