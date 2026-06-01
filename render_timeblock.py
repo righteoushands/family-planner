@@ -1854,7 +1854,7 @@ def _render_seven_commitments_card() -> str:
         '</ol>'
         '<div style="margin-top:6px;font-size:0.72em;color:#7d6a4a;'
         'font-style:italic;text-align:right;">'
-        'Inspired by <em>A Plan for Joy in the Home</em>, Laura Dominick'
+        'From A Plan for Joy in the Home by Laura Dominick'
         '</div>'
         '</details>'
     )
