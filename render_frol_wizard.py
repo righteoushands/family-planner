@@ -77,13 +77,13 @@ V2_TOTAL_SECTIONS = len(V2_SECTIONS)
 
 # Seven commitments shown on the landing screen (Laura Dominick framing).
 SEVEN_COMMITMENTS = [
-    "Daily prayer that anchors the family",
-    "Sunday Mass and weekly Adoration",
-    "Meals shared at a common table",
-    "Sabbath rest each week",
-    "Service to those in need",
-    "Hospitality and welcome in the home",
-    "Time for play, beauty, and joy",
+    "Wake up on time.",
+    "Be faithful to your prayer plan morning, noon, and night.",
+    "Stick to getting your basic chores done every day.",
+    "Be flexible when God steps in and alters your plan.",
+    "Look back to your schedule to regain control of your day if you lose it.",
+    "Spend time with your husband.",
+    "Go to bed on time.",
 ]
 
 
@@ -5399,70 +5399,10 @@ def _commitments_status(progress: dict) -> list:
     """Derive ✅/⚠️ status for each of the SEVEN_COMMITMENTS based on the
     collected V2 section data. Returns list of dicts with index, label,
     status ('ok' / 'warn'), fix_section (int), and reason (str)."""
-    data = progress.get("data", {}) or {}
-    s4  = data.get("section_4")  or {}
-    s5  = data.get("section_5")  or {}
-    s9  = data.get("section_9")  or {}
-    s10 = data.get("section_10") or {}
-    out = []
-    def _has(v) -> bool:
-        if isinstance(v, list):
-            return any(str(x).strip() for x in v)
-        if isinstance(v, str):
-            return bool(v.strip())
-        return bool(v)
-    # 1. Daily prayer
-    ok = (_has(s4.get("morning_prayer")) or _has(s4.get("morning_prayers_multi"))
-          or _has(s4.get("angelus_times")))
-    out.append({"idx": 1, "label": SEVEN_COMMITMENTS[0],
-                "status": "ok" if ok else "warn", "fix_section": 4,
-                "reason": "Anchored at " + (s4.get("morning_time") or "morning")
-                          if ok else "No daily anchor set."})
-    # 2. Sunday Mass + Adoration
-    ok = (_has(s9.get("adoration_cadence"))
-          or "mass" in (s4.get("other_devotions") or "").lower()
-          or "Daily Mass" in (s4.get("morning_prayers_multi") or [])
-          or "Holy Hour" in (s4.get("evening_prayers_multi") or []))
-    out.append({"idx": 2, "label": SEVEN_COMMITMENTS[1],
-                "status": "ok" if ok else "warn", "fix_section": 9,
-                "reason": "Adoration / Mass cadence set." if ok
-                          else "Add an Adoration cadence in §9."})
-    # 3. Meals at common table
-    ok = (_has(s5.get("dinner_time")) and (_has(s5.get("lunch_together"))
-          or _has(s5.get("dinner_who"))))
-    out.append({"idx": 3, "label": SEVEN_COMMITMENTS[2],
-                "status": "ok" if ok else "warn", "fix_section": 5,
-                "reason": ("Dinner at " + (s5.get("dinner_time") or "—") + ".") if ok
-                          else "Set a dinner time and who cooks in §5."})
-    # 4. Sabbath rest
-    ok = _has(s9.get("afternoon_rest")) or _has(s10.get("weekly_reset"))
-    out.append({"idx": 4, "label": SEVEN_COMMITMENTS[3],
-                "status": "ok" if ok else "warn", "fix_section": 9,
-                "reason": "Rest block and / or weekly reset defined." if ok
-                          else "Define an afternoon rest in §9 or a weekly reset in §10."})
-    # 5. Service
-    ok = _has(s9.get("service_notes"))
-    out.append({"idx": 5, "label": SEVEN_COMMITMENTS[4],
-                "status": "ok" if ok else "warn", "fix_section": 9,
-                "reason": "Service notes recorded." if ok
-                          else "Name at least one work of mercy in §9."})
-    # 6. Hospitality — heuristic: traditions mentioning brunch, dinner guests,
-    # or any text in service_notes mentioning "guest", "host", "neighbor".
-    trad = [str(t).lower() for t in (s9.get("traditions") or [])]
-    notes_l = (s9.get("service_notes") or "").lower()
-    ok = (any("brunch" in t or "dinner" in t for t in trad)
-          or "guest" in notes_l or "host" in notes_l or "neighbor" in notes_l)
-    out.append({"idx": 6, "label": SEVEN_COMMITMENTS[5],
-                "status": "ok" if ok else "warn", "fix_section": 9,
-                "reason": "Hospitality patterns noted." if ok
-                          else "Note a hospitality habit in §9 (e.g., Sunday brunch, neighbor visits)."})
-    # 7. Play, beauty, joy
-    ok = _has(s9.get("traditions"))
-    out.append({"idx": 7, "label": SEVEN_COMMITMENTS[6],
-                "status": "ok" if ok else "warn", "fix_section": 9,
-                "reason": ("Family traditions: " + ", ".join((s9.get("traditions") or [])[:3])) if ok
-                          else "Add at least one family tradition in §9."})
-    return out
+    return [
+        {"idx": i + 1, "label": SEVEN_COMMITMENTS[i], "status": "ok", "fix_section": None, "reason": ""}
+        for i in range(len(SEVEN_COMMITMENTS))
+    ]
 
 
 def render_section_13(progress: dict, mode: str) -> str:
@@ -5470,29 +5410,17 @@ def render_section_13(progress: dict, mode: str) -> str:
     derived ✅/⚠️ status and one-tap deep-link 'Fix' buttons."""
     items = _commitments_status(progress)
     refl = render_reflection_card(
-        "The Dominick Seven",
-        "<p>Before you save, let's check the rule against the seven commitments "
-        "Dominick names as the spine of a healthy Catholic family life. A ⚠️ "
-        "doesn't mean your rule is wrong — it means we couldn't find the data "
-        "yet. Click <em>Fix</em> to jump back and add it, or move on if it "
-        "genuinely doesn't apply to your season.</p>",
+        "Seven Commitments",
+        "<p>Before you save, reflect on these seven commitments from Laura Dominick. They are the spine of a peaceful, ordered home — not a checklist to pass, but a daily standard to return to.</p>",
         key="sec13_intro",
-        attribution="— Adapted from Dominick's Seven Commitments",
+        attribution="— From <em>A Plan for Joy in the Home</em> by Laura Dominick",
     )
     rows = ""
-    ok_count = sum(1 for it in items if it["status"] == "ok")
     for it in items:
         is_ok = it["status"] == "ok"
         icon  = "✅" if is_ok else "⚠️"
         accent = "#7fa686" if is_ok else "#c89c4a"
         light  = "#eef4ed" if is_ok else "#fbf6ee"
-        fix_btn = ""
-        if not is_ok:
-            fix_btn = (
-                f'<a href="/frol-wizard?step={it["fix_section"]}&amp;mode={escape(mode, quote=True)}" '
-                f'style="background:#c89c4a;color:#fff;padding:6px 14px;border-radius:6px;'
-                f'text-decoration:none;font-weight:700;font-size:0.85em;">Fix in §{it["fix_section"]}</a>'
-            )
         rows += f"""
           <div style="background:{light};border:1px solid {accent}55;border-left:4px solid {accent};
                       border-radius:10px;padding:12px 14px;margin:8px 0;
@@ -5502,19 +5430,14 @@ def render_section_13(progress: dict, mode: str) -> str:
               <div style="font-weight:700;color:#33507e;">{it["idx"]}. {escape(it["label"])}</div>
               <div style="font-size:0.86em;color:#555;margin-top:2px;">{escape(it["reason"])}</div>
             </div>
-            {fix_btn}
           </div>
         """
     body = f"""
       {refl}
-      <div style="background:#eaf0fa;border:1px solid #c8d6ec;border-radius:8px;
-                  padding:10px 14px;margin:10px 0;font-weight:700;color:#33507e;">
-        {ok_count} of 7 commitments anchored in your rule.
-      </div>
       {rows}
     """
     return _section_chrome(14, "Seven Commitments Check",
-        "How does your rule line up with the Dominick seven? Fix any gaps, or move on.",
+        "Reflect on these seven commitments before you save your Rule of Life.",
         body, mode, progress, lucy_visible=True)
 
 
