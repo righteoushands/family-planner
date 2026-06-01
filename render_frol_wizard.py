@@ -5406,8 +5406,7 @@ def _commitments_status(progress: dict) -> list:
 
 
 def render_section_13(progress: dict, mode: str) -> str:
-    """V2 §13 — Seven Commitments Check. Renders the Dominick seven with
-    derived ✅/⚠️ status and one-tap deep-link 'Fix' buttons."""
+    """§14 — Seven Commitments Check. Displays Laura Dominick's seven commitments as a reflection card before the user saves their Rule of Life. No computed status — all items display in green as a personal standard, not a wizard gate."""
     items = _commitments_status(progress)
     refl = render_reflection_card(
         "Seven Commitments",
