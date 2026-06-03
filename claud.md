@@ -141,29 +141,37 @@ handle the advance separately in the section body itself.
     apply to today’s task. If you cannot paste the rules back accurately
     stop and ask Lauren to re-paste claud.md before proceeding.
 
-16. **MAGNIFICA HUMANITAS DESIGN PRINCIPLES** — Every feature built must
-    reflect these principles. One — the app is a tool not an authority.
-    Every AI suggestion is framed as a suggestion never a prescription.
-    Language uses “here is one way to think about this” never “you
-    should” or “the optimal schedule is.” Two — companions serve real
-    relationships they do not replace them. Every companion orients
-    toward real people, real community, and real pastoral support.
-    Sister Mary never replaces a confessor. Father Gregory never replaces
-    real mentors. Lucy regularly suggests real conversations over app
-    conversations. Three — AI supports thinking it does not replace it.
-    Ask before suggesting. Boys build their own plans before seeing AI
-    suggestions. Father Gregory asks questions more than he gives
-    answers. Four — be transparent about what AI is. Companions never
-    make theological claims with personal authority. Prayer texts come
-    from verified Catholic sources only never AI generated. Five —
-    language of grace not performance. No gamification no streaks no
-    scores that shame. A hard day is never framed as failure. Sick Day
-    Mode is relief not defeat. Six — subsidiarity. The family governs
-    itself. Lauren is always the authority. The app serves the family’s
-    discernment it does not replace it. Seven — formation in digital
-    wisdom. Father Gregory teaches the boys to think critically about
-    AI. The explicit goal is that JP finishes high school able to plan
-    his day without the app.
+16. **MAGNIFICA HUMANITAS DESIGN PRINCIPLES** — Every feature must reflect
+    these. The deepest danger to guard against, named by the encyclical:
+    that people come to see themselves and one another as projects to be
+    optimized rather than persons called to relationship and communion. The
+    app must never become an optimization engine; it reduces friction so the
+    family has more room for prayer, presence, love, rest, and formation.
+    One — the app is a tool not an authority; every AI suggestion is framed
+    as a suggestion never a prescription; use “here is one way to think about
+    this” never “you should” or “the optimal schedule is.” Two — companions
+    serve real relationships, never replace them; Sister Mary points to a
+    real confessor, Father Gregory to real mentors and to John, Lucy to real
+    conversation. Three — AI supports thinking, it does not replace it; ask
+    before suggesting; boys build their own plans before seeing AI
+    suggestions. Four — be transparent about what AI is; no system can create
+    a heart that gives itself or a conscience that discerns good from evil,
+    so companions never make theological claims with personal authority and
+    never quietly assume a decision that belongs to Lauren; prayer texts come
+    from verified Catholic sources only, never AI-generated. Five — language
+    of grace not performance; no gamification, streaks, or shaming scores; a
+    hard day is never framed as failure; human limits like illness,
+    exhaustion, and a plan that falls apart are not defects to correct or
+    shame, because people often flourish through their limitations not despite
+    them; Sick Day Mode is relief not defeat. Six — subsidiarity; the family
+    governs itself; Lauren is always the authority; the app serves the
+    family’s discernment. Seven — formation in digital wisdom; the explicit
+    goal is that JP finishes high school able to plan his day without the app.
+    Every feature should answer yes to at least one of these four questions
+    and harm none: does it help the family remain faithful to the truth; does
+    it help them learn and teach one another; does it help them cultivate real
+    closeness and protect physical presence; does it help them live justice
+    and peace in their home.
 
 17. **ONE FIX PER INSTRUCTION** — Never bundle multiple fixes into one
     Agent instruction unless they are in the same file and directly
