@@ -1,0 +1,34 @@
+Read claud.md and paste back all 19 rules. Then tell me which rules apply to today’s task before you begin.
+
+Task: Lorenzo Fix B — server-driven save confirmation. app.py only.
+
+Background: After parsing [MEAL_UPDATE] tags, the server already has _save_ok (bool) and _meal_updates_found (list of (day, slot) tuples). The model’s prose save narration is generated before the server knows the result, so they are never reconciled. The fix: after tag parsing, strip any model-authored save claims from the reply text and append a deterministic server-generated confirmation line built from the actual _save_ok values.
+
+Step 1 — Read before writing.
+
+Paste lines 5895–5930 of app.py verbatim with line numbers. This is where _meal_updates_found is used after the parse loop — I need to see exactly what happens after the loop before drafting the insertion point.
+
+Do not write any code until you have pasted those lines.
+
+Step 2 — Write the fix (only after Step 1).
+
+After the parse loop, where _meal_updates_found is already available:
+
+	1.	If _meal_updates_found is non-empty, build a confirmation line:
+	•	Success: "✓ Saved: " followed by a comma-separated list of "Day/slot" pairs from _meal_updates_found
+	•	Any failed tag (where _save_ok was False inside the loop): append " | ⚠ Some updates could not be saved — the tag may have been malformed."
+	2.	Strip model-authored save claims from text before appending — specifically remove any sentence containing "MEAL_UPDATE" or "nothing was actually saved" or "I couldn't save" or "wasn't saved" or "save tag" from the reply text. Use a simple line-by-line filter: drop any line where any of those phrases appear (case-insensitive).
+	3.	Append the server confirmation line to text as a new paragraph separated by \n\n.
+
+Constraints:
+
+	•	Touch only the post-parse block in /lorenzo-chat — do not change the parse loop itself, do not change save_meal_plan, do not change any other route
+	•	If any edit site contains JS strings, stop and flag
+	•	Keep the change minimal — this is one insertion point, not a refactor
+
+After the change:
+
+	1.	Run py_compile on app.py and paste the result
+	2.	Run an in-process smoke test simulating a well-formed tag save (confirms _meal_updates_found populates and the confirmation line appends) and a failed tag (confirms the warning appends)
+	3.	No verify harness — no data files written in new paths, no shared save paths changed
+	4.	Paste the diff

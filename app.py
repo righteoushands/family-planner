@@ -5915,6 +5915,30 @@ class Handler(BaseHTTPRequestHandler):
                                 advance_planning_session(_up_day, _up_slot)
                     except Exception:
                         pass
+                # ── Server-driven save confirmation ───────────────────────────
+                # The model narrates the save BEFORE the server knows the real
+                # outcome, so its prose can lie either way. _meal_updates_found
+                # now holds the slots that ACTUALLY persisted; replace any
+                # model-authored save claims with a deterministic, outcome-based
+                # confirmation line. (Pure server-side text — no JS at this site.)
+                # Failure is detected by comparing matched [MEAL_UPDATE] tags to
+                # the count that actually saved, so the parse loop is untouched.
+                if _meal_updates_found:
+                    _total_meal_tags = sum(1 for _ in _meal_rx.finditer(text))
+                    _any_meal_failed = _total_meal_tags > len(_meal_updates_found)
+                    _saved_pairs = ", ".join(f"{_cd}/{_cs}" for (_cd, _cs) in _meal_updates_found)
+                    _confirm_line = f"✓ Saved: {_saved_pairs}"
+                    if _any_meal_failed:
+                        _confirm_line += " | ⚠ Some updates could not be saved — the tag may have been malformed."
+                    _claim_markers = ("meal_update", "nothing was actually saved",
+                                      "i couldn't save", "wasn't saved", "save tag")
+                    _kept_lines = []
+                    for _cl_line in text.split("\n"):
+                        if any(_mk in _cl_line.lower() for _mk in _claim_markers):
+                            continue
+                        _kept_lines.append(_cl_line)
+                    text = "\n".join(_kept_lines)
+                    text = text + "\n\n" + _confirm_line
                 # ── Parse [RECIPE_CARD:add]JSON[/RECIPE_CARD] and auto-save ──
                 import json as _rj
                 _rc_rx = _re.compile(
