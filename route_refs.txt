@@ -1,0 +1,1271 @@
+render_5am.py:  GET  /5am              — today
+render_5am.py:  GET  /5am?date=YYYY-MM-DD — specific day
+render_5am.py:Data: data/5am/YYYY-MM-DD.json
+render_5am.py:CLUB_DIR = "data/5am"
+render_5am.py:        f'<a href="/5am" style="font-size:0.9em;color:var(--brown);'
+render_5am.py:    <a href="/5am?date={prev_date}"
+render_5am.py:    {"" if is_today else '<a href="/5am" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:0.82em;text-decoration:none;color:var(--ink);">Today</a>'}
+render_5am.py:    {'<a href="/5am?date=' + next_date + '" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:0.82em;text-decoration:none;color:var(--ink);">&rarr;</a>' if not is_today else ''}
+render_5am.py:  <a href="/virtues/me" style="font-size:0.82em;color:var(--brown);font-weight:700;text-decoration:none;">Virtue focus &rarr;</a>
+render_5am.py:  <a href="/plan-week" style="font-size:0.82em;color:var(--ink-muted);text-decoration:none;">Plan my week &rarr;</a>
+render_5am.py:  fetch('/5am-save', {{
+render_ai_daily.py:  1. /ai-daily-schedule     — time-blocked day plan based on capacity + constraints
+render_ai_daily.py:  2. /ai-meal-plan          — weekly meal suggestions respecting rules
+render_ai_daily.py:  3. /ai-school-plan        — subject suggestions based on completion + Mom time
+render_ai_daily.py:  4. /ai-evening-examen     — personalized reflection prompt from the day
+render_ai_daily.py:  5. /ai-weekly-review      — Sunday review + next week prep
+render_ai_daily.py:  6. /ai-chore-adjust       — chore reshuffling for Low capacity days
+render_ai_daily.py:  7. /ai-intention-prayer   — short prayer for each active intention
+render_ai_planner.py:API: POST /plan-ai-suggest → streams Claude response as plain text
+render_ai_planner.py:                        <a href="/settings#s-constraints"
+render_ai_planner.py:        fetch('/plan-ai-suggest', {{
+render_ai_planner.py:        fetch('/plan-ai-suggest', {{
+render_ai_planner.py:        fetch('/plan-ai-suggest', {{
+render_assignment_analyzer.py:            f'href="/gradebook?child={_q(str(child) or "JP")}">{chip}</a>'
+render_assignment_analyzer.py:            _img_url = f"/assignment-image?id={_q(rid)}&n={_i}"
+render_assignment_analyzer.py:            f'<form class="aa-reply-form" method="post" action="/assignment-reply">'
+render_assignment_analyzer.py:        <a href="/curriculum" class="aa-back">← Curriculum</a>
+render_assignment_analyzer.py:        <a href="/gradebook" class="aa-back aa-back-gradebook">📓 Gradebook →</a>
+render_assignment_analyzer.py:        fetch('/assignment-update', {{ method: 'POST', body: fd }})
+render_assignment_analyzer.py:          fetch('/assignment-delete', {{ method: 'POST', body: fd }})
+render_assignment_analyzer.py:            fetch('/gradebook-add', {{ method: 'POST', body: fd }})
+render_assignment_analyzer.py:                    foot.innerHTML = '<a class="aa-status aa-status-recorded" href="/gradebook?child=' +
+render_calendar.py:            "Content-Type": "text/calendar; charset=utf-8",
+render_calendar.py:    # Manual events from data/events.json (also surfaces /plan-import-apply entries).
+render_calendar.py:        return "<div style='color:#aaa;font-size:0.85em;padding:4px 0;'><a href='/settings#s-integrations' style='color:#7c4a2d;'>Set up calendars →</a></div>"
+render_calendar.py:    # Manual events from data/events.json (also surfaces /plan-import-apply entries).
+render_calendar.py:        return "<p class='muted' style='font-size:0.88em;'>No events today. <a href='/calendar'>Calendar →</a></p>"
+render_calendar.py:    return f"<div>{pills}<div style='margin-top:6px;'><a class='link-button' href='/calendar' style='font-size:0.8em;'>Full Calendar</a></div></div>"
+render_calendar.py:            <form method="POST" action="/calendar-refresh" style="display:inline;">
+render_calendar.py:            <a class="link-button" href="/settings#s-integrations">⚙ Calendar settings</a>
+render_calendar.py:            <a class="link-button" href="/settings#s-integrations">Connect iCloud or add .ics feeds →</a>
+render_calendar.py:    # Manual events from data/events.json (also surfaces /plan-import-apply entries).
+render_child_goals.py:            fetch('/child-goal-add', {{method:'POST', body: fd}})
+render_child_goals.py:    fetch('/child-substep-toggle', {{method:'POST', body: fd}})
+render_child_goals.py:    fetch('/child-substep-add', {{method:'POST', body: fd}})
+render_child_goals.py:    fetch('/child-substep-delete', {{method:'POST', body: fd}})
+render_child_goals.py:    fetch('/child-goal-archive', {{method:'POST', body: fd}})
+render_child_profile.py:    fetch('/save-child-profile', {{
+render_chores.py:    Field names mirror the existing daily__/weekly__ convention:
+render_chores.py:# Static description for reference (used in settings/van-roles page)
+render_chores.py:            <a class="link-button" href="/van-roles">Full schedule</a>
+render_chores.py:        <form method="POST" action="/apply-van-rotation" style="display:inline;">
+render_chores.py:        f"<a href='/chores' style='font-size:0.78em;color:#9ca3af;text-decoration:none;'>\u21bb refresh</a>"
+render_chores.py:                <a class="link-button" href="/van-roles">Rotation schedule</a>
+render_chores.py:                <a class="link-button" href="/settings#s-systems">Configure in Settings</a>
+render_chores.py:    fetch('/ai-chore-adjust', {{
+render_chores.py:    <form method="POST" action="/save-chores" id="chore-form">
+render_chores.py:        fetch('/save-chores', {{
+render_coach.py:API: POST /coach-chat
+render_coach.py:        "- Whole page:        [View your Fitness Programs](/programs)",
+render_coach.py:        "- A specific person: [Lauren's Fitness Programs](/programs?focus=Lauren)",
+render_coach.py:        "                     [That postpartum block](/programs#prog-9799d31b258b)",
+render_coach.py:        '<form method="POST" action="/coach-clear-history" style="display:inline;">'
+render_coach.py:    fetch('/coach-chat', {{
+render_companions.py:"""Standalone /companions page — discoverable directory of the six AI companions."""
+render_companions.py:    ("&#10024;",   "Lucy",          "Your family's personal assistant — always ready to help you think, plan, and remember.", "/lucy",        "#5b3a8a", "#f3f0f9", "#7a4ea3"),
+render_companions.py:    ("&#127869;&#65039;", "Lorenzo",       "Personal chef and meal-planning companion. Kitchen wisdom and weekly menus.",            "/lorenzo",     "#8b3a1a", "#faf0ec", "#c87146"),
+render_companions.py:    ("&#10016;",   "Sister Mary",   "Marian companion and prayer guide. Be still, and know that I am God.",                   "/sister-mary", "#2d4a78", "#eaf0fa", "#4a6fa5"),
+render_companions.py:    ("&#128218;",  "Father Gregory","Academic headmaster — homeschool guidance, curriculum, and student support.",            "/headmaster",  "#1e3566", "#eef1f8", "#3a5a99"),
+render_companions.py:    ("&#128170;",  "Coach",         "Family fitness, programs, and wellness routines.",                                       "/programs",    "#1a6e3e", "#eef7f1", "#3a8e5e"),
+render_companions.py:    ("&#127800;",  "Dr. Monica",    "Pediatric and child-development companion for family health questions.",                 "/dr-monica",   "#8b3a5c", "#faf0f5", "#c8769a"),
+render_curriculum.py:                  <td class="cur-subj"><a href="/subject?child={_url_quote(child)}&amp;subject={_url_quote(subj)}" style="color:inherit;text-decoration:none;border-bottom:1px dotted #c9a44a;">{_html_escape(subj)}</a></td>
+render_curriculum.py:  <a href="/settings">← Settings</a>
+render_curriculum.py:  fetch('/curriculum-week', {{
+render_curriculum.py:    fetch('/curriculum-subject-week', {{
+render_curriculum.py:    fetch('/curriculum-subject-day', {{
+render_curriculum.py:  fetch('/curriculum-subject-day', {{
+render_curriculum.py:    const res = await fetch('/curriculum-parse', {{
+render_curriculum.py:    fetch('/curriculum-minutes', {{
+render_curriculum.py:    const res = await fetch('/curriculum-save', {{
+render_curriculum.py:  const res = await fetch('/curriculum-delete', {{
+render_daily_bar.py:    readings_url = f"https://bible.usccb.org/bible/readings/{for_date.strftime('%m%d%y')}.cfm"
+render_daily_bar.py:        weather_html = f'<a href="/settings#s-general" style="font-size:0.82em;color:#aaa;">Add location for weather →</a>'
+render_daily_bar.py:    <a href="/readings?date={for_date.isoformat()}"
+render_daily_bar.py:        '<a href="/settings#s-daily" style="margin-left:auto;font-size:0.78em;color:#ccc;">&#9881;</a>'
+render_daily_plan.py:        'fetch("/grid-cell-save",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},'
+render_daily_plan.py:        'fetch("/grid-publish",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},'
+render_daily_plan.py:        'fetch("/grid-save-template",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},'
+render_daily_plan.py:        'fetch("/grid-push-weekly",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},'
+render_daily_plan.py:        'fetch("/grid-reset",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},'
+render_daily_plan.py:        'setTimeout(function(){window.open("/grid-print?iso="+encodeURIComponent(dpIso),"_blank");},600);}'
+render_daily_plan.py:        "fetch('/plan-add-item',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},"
+render_daily_plan.py:        "fetch('/plan-item-update',{method:'POST',"
+render_daily_plan.py:        '<a class="link-button" href="/mom#s-plan" style="font-size:0.78em;">Edit plan</a>'
+render_daily_plan.py:        'fetch("/plan-toggle-item",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},'
+render_daily_plan.py:        '<a href="/grid-print?iso=' + escape(iso) + '" target="_blank" class="link-button" style="font-size:0.78em;">Print</a>'
+render_daily_plan.py:        '<a href="/mom#s-plan" class="link-button" style="font-size:0.78em;">Edit grid</a>'
+render_daily_plan.py:        "<a href='/mom#s-plan' style='color:#ccc;'>Edit grid</a>"
+render_dev.py:  POST /dev-chat          — streaming chat (Help Desk diagnostic replies only)
+render_dev.py:  POST /dev-apply         — legacy code-fix apply endpoint (Izzy will not emit
+render_dev.py:  POST /dev-restart       — gracefully restart the server (manual use only)
+render_dev.py:  POST /dev-clear         — clear Izzy's chat history
+render_dev.py:    (["schedule", "slot", "today", "/today", "daily plan"],                 "render_schedule.py"),
+render_dev.py:  render_schedule.py          → /today HTML for each person; check-off UI; suggested-tasks
+render_dev.py:  "wrong on /today / day list"        → render_schedule.py + daily_schedule_engine.py
+render_dev.py:  "Izzy / Felix / dev page / undo"    → render_dev.py + the /dev-* routes in app.py
+render_dev.py:    <form method="POST" action="/dev-clear" style="display:inline;">
+render_dev.py:    const logResp = await fetch('/dev-logs');
+render_dev.py:    const resp = await fetch('/dev-chat', {{
+render_dev.py:      const resp = await fetch('/dev-read-file?' + params);
+render_dev.py:      const resp = await fetch('/dev-grep-files?' + params);
+render_dev.py:    const resp = await fetch('/dev-git-log');
+render_dev.py:    const resp = await fetch('/dev-git-diff?' + new URLSearchParams({{ref}}));
+render_dev.py:    const resp = await fetch('/dev-logs?' + qs);
+render_dev.py:    const resp = await fetch('/dev-diag?' + new URLSearchParams({{file: fname}}));
+render_dev.py:    const resp = await fetch('/dev-logs');
+render_dev.py:    const resp = await fetch('/dev-read-file?' + params.toString());
+render_dev.py:        resp = await fetch('/dev-write', {{method:'POST', body}});
+render_dev.py:        resp = await fetch('/dev-apply', {{method:'POST', body}});
+render_dev.py:      const r = await fetch('/dev-health', {{cache:'no-store'}});
+render_dev.py:// After applyAllFixes triggers a restart, poll /dev-health for ~14 seconds.
+render_dev.py:      const r = await fetch('/dev-health', {{cache:'no-store'}});
+render_dev.py:    const r = await fetch('/dev-undo', {{
+render_dev.py:    const resp = await fetch('/dev-undo', {{
+render_dev.py:    const resp = await fetch('/dev-undo', {{
+render_dev.py:    const resp = await fetch('/dev-restart', {{method:'POST'}});
+render_friends.py:FRIENDS_PATH = "data/friends.json"
+render_friends.py:    fetch('/save-friend', {{
+render_friends.py:    fetch('/delete-friend', {{
+render_friends.py:    fetch('/save-friend', {{
+render_frol_wizard.py:A 10-step setup flow that helps any family build their daily/weekly rhythm.
+render_frol_wizard.py:        back_link = (f'<a href="/frol-wizard?step={step-1}&mode={escape(mode, quote=True)}"'
+render_frol_wizard.py:    next_action = f"/frol-wizard?step={next_step}&mode={escape(mode, quote=True)}"
+render_frol_wizard.py:              method="POST" action="/frol-wizard"
+render_frol_wizard.py:        back_link = (f'<a href="/frol-wizard?step={section-1}&mode={escape(mode, quote=True)}"'
+render_frol_wizard.py:    _body_has_form = 'action="/frol-wizard"' in body_html
+render_frol_wizard.py:                  method="POST" action="/frol-wizard"
+render_frol_wizard.py:    add/edit/delete responses and refetches /frol-grid-fragment for the
+render_frol_wizard.py:            '<form method="POST" action="/frol-overlay-clear" '
+render_frol_wizard.py:            f'<form method="POST" action="/frol-overlay-toggle" '
+render_frol_wizard.py:    /frol-grid-fragment GET so the JS can swap innerHTML on the scrollbox
+render_frol_wizard.py:        href="/sister-mary", accent="#5b3a8a", light="#f3eff8",
+render_frol_wizard.py:        href="/lorenzo", accent="#8a4a2a", light="#fbeee0",
+render_frol_wizard.py:        href="/coach", accent="#1f7a3a", light="#e8f5ec",
+render_frol_wizard.py:        href="/dr-monica", accent="#9a3a6e", light="#f8eef3",
+render_frol_wizard.py:    via /frol-set-variant so it survives navigation between sections."""
+render_frol_wizard.py:    (questions/answers/schedule/...) at the top level, move them under
+render_frol_wizard.py:            '<form method="POST" action="/frol-wizard" style="margin-top:14px;">'
+render_frol_wizard.py:                '<form method="POST" action="/frol-wizard" style="margin:6px 0;">'
+render_frol_wizard.py:            '<form method="POST" action="/frol-wizard" style="margin-top:14px;">'
+render_frol_wizard.py:            '<form method="POST" action="/frol-wizard" style="margin-top:14px;">'
+render_frol_wizard.py:        '<form method="POST" action="/frol-wizard" '
+render_frol_wizard.py:        '<form method="POST" action="/frol-wizard" style="display:inline-block;">'
+render_frol_wizard.py:          return fetch('/frol-wizard', {
+render_frol_wizard.py:      - data/chores.json (expanded, with is_grooming flags)
+render_frol_wizard.py:      - data/prayer_intentions.json (if any other_devotions text)
+render_frol_wizard.py:            <form method="POST" action="/frol-wizard">
+render_frol_wizard.py:            <form method="POST" action="/frol-wizard">
+render_frol_wizard.py:            <form method="POST" action="/frol-wizard">
+render_frol_wizard.py:            f'step {cur}. <a href="/frol-wizard?step={cur}&mode={escape(mode, quote=True)}"'
+render_frol_wizard.py:            f'<a href="/frol-wizard?reset=1" style="color:#a0524a;">Start over</a></div>'
+render_frol_wizard.py:            '<a href="/frol-wizard?step=1&mode=lucy" class="frol-btn" '
+render_frol_wizard.py:    self_btn = ('<a href="/frol-wizard?step=1&mode=structured" class="frol-btn ghost">'
+render_frol_wizard.py:        ("&#10024;", "Lucy",           "Your family's personal assistant, always ready to help you think and plan.", "/lucy"),
+render_frol_wizard.py:        ("&#127860;", "Lorenzo",       "Meal planning and kitchen wisdom.",                                          "/lorenzo"),
+render_frol_wizard.py:        ("&#10016;", "Sister Mary",    "Spiritual companion and prayer guide.",                                      "/sister-mary"),
+render_frol_wizard.py:        ("&#128170;", "Coach",         "Family fitness and wellness.",                                               "/programs"),
+render_frol_wizard.py:        ("&#127800;", "Dr. Monica",    "Family health and wellbeing.",                                               "/dr-monica"),
+render_frol_wizard.py:        <form method="POST" action="/frol-save-seasonal"
+render_frol_wizard.py:              <a href="/frol-seasonal-view?id={_id}"
+render_frol_wizard.py:              <form method="POST" action="/frol-seasonal-use" style="margin:0;">
+render_frol_wizard.py:              <a href="/frol-seasonal-view?id={_eid}"
+render_frol_wizard.py:              <form method="POST" action="/frol-seasonal-use" style="margin:0;">
+render_frol_wizard.py:              <form method="POST" action="/frol-seasonal-delete" style="margin:0;"
+render_frol_wizard.py:    """Phase F: read-only snapshot view at /frol-seasonal-view?id=…"""
+render_frol_wizard.py:            <p><a href="/frol-wizard">&larr; Back to Rule of Life</a></p>
+render_frol_wizard.py:  <a href="/frol-wizard" style="color:#4a235a;">&larr; Back to Rule of Life</a>
+render_frol_wizard.py:    <form method="POST" action="/frol-seasonal-use" style="margin:0;">
+render_frol_wizard.py:    <form method="POST" action="/frol-overlay-set" style="margin:0;">
+render_frol_wizard.py:        <a href="/sister-mary" target="_blank" style="color:#33507e;">Meet Sister Mary &rarr;</a>
+render_frol_wizard.py:        <a href="/lorenzo" target="_blank" style="color:#33507e;">Meet Lorenzo &rarr;</a>
+render_frol_wizard.py:        <a href="/programs" target="_blank" style="color:#33507e;">Meet Coach &rarr;</a>
+render_frol_wizard.py:        behavior, milestones. <a href="/dr-monica" target="_blank" style="color:#33507e;">Meet Dr. Monica &rarr;</a>
+render_frol_wizard.py:        href = f"/frol-wizard?step={step_num}&mode={escape(mode, quote=True)}"
+render_frol_wizard.py:    back_link = (f'<a href="/frol-wizard?step=9&mode={escape(mode, quote=True)}" '
+render_frol_wizard.py:        <form method="POST" action="/frol-wizard-finalize" style="margin-top:24px;">
+render_frol_wizard.py:      <a href="/frol-wizard?reset=1" class="frol-btn ghost">Start over</a>
+render_frol_wizard.py:            f'<a href="/frol-wizard?step={_idx}&mode={_jump_mode}" '
+render_frol_wizard.py:              <form method="POST" action="/preview-keep" style="margin:0;">
+render_frol_wizard.py:              <form method="POST" action="/preview-discard" style="margin:0;"
+render_frol_wizard.py:            <a href="/frol-wizard" style="color:#2e5d3b;text-decoration:underline;
+render_frol_wizard.py:        <a href="/frol-wizard" class="frol-btn"
+render_gradebook.py:Page: /gradebook?child=JP&year=2025-2026
+render_gradebook.py:- Stored in data/gradebook.json via data_helpers.
+render_gradebook.py:  /gradebook-add     {child, subject, title, date, raw_score, total, percentage, letter, note, source_analysis_id}
+render_gradebook.py:  /gradebook-update  {id, edits:json}
+render_gradebook.py:  /gradebook-delete  {id}
+render_gradebook.py:        src_link = f' <a class="gb-src" href="/assignment-analyzer#{_esc(src)}" title="View original analysis">📎</a>'
+render_gradebook.py:            'Record one from the <a href="/assignment-analyzer">Assignment Analyzer</a> — '
+render_gradebook.py:        f'href="/gradebook?child={_q(c)}&year={_q(year)}">{_esc(c)}</a>'
+render_gradebook.py:        f'href="/gradebook?child={_q(child)}&year={_q(y)}">{_esc(y)}</a>'
+render_gradebook.py:      <a class="gb-back" href="/school">← School</a>
+render_gradebook.py:          fetch('/gradebook-add', {{ method: 'POST', body: fd }})
+render_gradebook.py:            fetch('/gradebook-delete', {{ method: 'POST', body: fd }})
+render_gradebook.py:            fetch('/gradebook-update', {{ method: 'POST', body: fd }})
+render_gregory.py:API: POST /headmaster-chat
+render_gregory.py:        CURR_FILE = "data/curriculum.json"
+render_gregory.py:        '<form method="POST" action="/headmaster-clear-history" style="display:inline;">'
+render_gregory.py:        <a href="/week-school"
+render_gregory.py:    fetch('/headmaster-chat', {{
+render_john.py:JOHN_PROFILE_PATH = "data/profiles/john.json"
+render_john.py:    fetch('/save-john-profile', {{
+render_kids_week.py:for the upcoming week. Data stored in data/weekly_school_plan/YYYY-WW.json
+render_kids_week.py:PLAN_DIR = "data/weekly_school_plan"
+render_kids_week.py:    <a href="/kids-week?week={escape(prev_key)}"
+render_kids_week.py:    <a href="/kids-week"
+render_kids_week.py:    <a href="/kids-week?week={escape(next_key)}"
+render_kids_week.py:  fetch('/kids-week-save', {{
+render_liturgical.py:    edit_link = f"<a class='link-button' href='/liturgical/edit?date={escape(info_date)}'>Add / Edit</a>"
+render_liturgical.py:    readings_url  = f"https://bible.usccb.org/bible/readings/{d.strftime('%m%d%y')}.cfm"
+render_liturgical.py:    <form method="POST" action="/liturgical-note">
+render_liturgical.py:        _readings_url = _sd.get("usccb_link") or f"https://bible.usccb.org/bible/readings/{today_d.strftime('%m%d%y')}.cfm"
+render_liturgical.py:        _readings_url = f"https://bible.usccb.org/bible/readings/{today_d.strftime('%m%d%y')}.cfm"
+render_liturgical.py:                <a class="link-button" href="/liturgical/edit?date={escape(info['date'])}">Add / Edit</a>
+render_liturgical.py:                <form method="POST" action="/liturgical-save">
+render_liturgical.py:        f"<form method='POST' action='/liturgical-delete'>"
+render_liturgical.py:        <form method="POST" action="/liturgical-save">
+render_liturgical.py:    <div class="link-row"><a class="link-button" href="/liturgical">Back to Calendar</a></div>"""
+render_liturgy_hours.py:  GET  /liturgy-hours              — today
+render_liturgy_hours.py:  GET  /liturgy-hours?date=YYYY-MM-DD
+render_liturgy_hours.py:  POST /liturgy-hours-fetch        — manual fetch (background, optional)
+render_liturgy_hours.py:        # Universalis puts the sidebar (dates/links/calendar) in a div with class "day"
+render_liturgy_hours.py:        link = f"/liturgy-hours?date={today.isoformat()}&open={key}#{key}"
+render_liturgy_hours.py:        f'<a href="/liturgy-hours" style="font-size:0.9em;color:var(--brown);'
+render_liturgy_hours.py:  <a href="/5am" style="font-size:0.82em;color:var(--brown);font-weight:700;text-decoration:none;">5AM Club &rarr;</a>
+render_liturgy_hours.py:  <a href="/virtues" style="font-size:0.82em;color:var(--ink-muted);text-decoration:none;">Virtue Tracker &rarr;</a>
+render_liturgy_hours.py:  fetch('/liturgy-hours-save', {{
+render_lorenzo.py:API: POST /lorenzo-chat     → Claude response
+render_lorenzo.py:     POST /lorenzo-rule-save → save permanent rule to meal_constraints
+render_lorenzo.py:        "The card is always available at /meal-print. You can also just tell her to tap",
+render_lorenzo.py:        '<form method="POST" action="/lorenzo-clear-history" style="display:inline;">'
+render_lorenzo.py:            <a href="/meals" style="font-size:0.78em;color:#8b3a1a;text-decoration:none;">&#127869; Meal Planner</a>
+render_lorenzo.py:            <a href="/meal-print?week={escape(plan_week_iso)}" target="_blank"
+render_lorenzo.py:        <a id="lz-fridge-card-btn" href="/meal-print?week={escape(plan_week_iso)}" target="_blank"
+render_lorenzo.py:    fetch('/lucy-tts', {{
+render_lorenzo.py:                fetch('/lucy-tts', {{
+render_lorenzo.py:    fetch('/lorenzo-chat', {{
+render_lorenzo.py:                                fetch('/lorenzo-rule-save', {{
+render_lorenzo.py:                            mBtn.href = '/meals';
+render_lorenzo.py:                        _printLink.href = '/meal-print?week=' + encodeURIComponent(_lzPlanWeekIso || _lzIso.slice(0,10));
+render_lorenzo.py:    fetch('/lorenzo-plan-start', {{
+render_lorenzo.py:    fetch('/lorenzo-plan-end', {{method:'POST'}}).then(function() {{
+render_lorenzo.py:    fetch('/lorenzo-plan-state')
+render_lorenzo.py:            if (el) el.href = '/meal-print' + _wkParam;
+render_lucy.py:API: POST /lucy-chat  → streams Claude response as plain text
+render_lucy.py:        "  approaches for specific ages. Refer medical/developmental questions to her.",
+render_lucy.py:        "- Izzy (Isidore) — the family's built-in programmer, lives at /dev. Izzy built this entire dashboard",
+render_lucy.py:        "  </settings_update>",
+render_lucy.py:        '  <prayer_add title="Safe travels for Grandpa">Full prayer intention details here.</prayer_add>',
+render_lucy.py:                _print_url = f"/print/day?date={_pd}"
+render_lucy.py:                _print_url2 = f"/print/day?date={_cd}"
+render_lucy.py:                    f'<a href="/settings#s-cycle" target="_blank" style="padding:4px 12px;background:#9b3a7e;'
+render_lucy.py:                    f'<a href="/settings" target="_blank" style="padding:4px 12px;background:#7c3aed;'
+render_lucy.py:                    f'<a href="/calendar" target="_blank" style="padding:4px 12px;background:#1d6fa4;'
+render_lucy.py:                    f'<a href="/friends" target="_blank" style="padding:4px 12px;background:#2d7a4a;'
+render_lucy.py:                    f'<a href="/meals" target="_blank" style="padding:4px 12px;background:#b07d10;'
+render_lucy.py:                    f'<a href="/prayer" target="_blank" style="padding:4px 12px;background:#7c2fa8;'
+render_lucy.py:                    f'<a href="/recipes" target="_blank" style="padding:4px 12px;background:#c05800;'
+render_lucy.py:            {'<form method="POST" action="/lucy-clear-history" style="display:inline;">'
+render_lucy.py:            <a href="/memory-book" style="font-size:0.78em;color:#c49020;text-decoration:none;">📖 Memory Book</a>
+render_lucy.py:    fetch('/lucy-chat', {{
+render_lucy.py:                                fetch('/lucy-rule-save', {{
+render_lucy.py:                            printBtn2.href = '/print/day?date=' + encodeURIComponent(cDate);
+render_lucy.py:                            cyclBtn.href = '/settings#s-cycle';
+render_lucy.py:                            settBtn.href = '/settings';
+render_lucy.py:                            evtBtn.href = '/calendar';
+render_lucy.py:                            printBtn.href = '/print/day?date=' + encodeURIComponent(pDate);
+render_lucy.py:                            frBtn.href = '/friends';
+render_lucy.py:                            mealBtn.href = '/meals';
+render_lucy.py:                            prayBtn.href = '/prayer';
+render_lucy.py:                            recipeBtn.href = '/recipes';
+render_lucy.py:            fetch('/memory-book-save', {{
+render_lucy.py:                fetch('/lucy-tts', {{method:'POST', body: new URLSearchParams(fd)}})
+render_lucy.py:    fetch('/lucy-tts', {{method:'POST', body: params}})
+render_meals.py:  data/recipes.json             - Saved recipe library
+render_meals.py:RECIPES_FILE  = "data/recipes.json"
+render_meals.py:            f'<a href="/recipes#recipe-{escape(_link_rid)}" '
+render_meals.py:        f'<a href="/meals" style="margin-left:auto;font-size:0.72em;color:var(--ink-faint);'
+render_meals.py:            # Editor saves plain strings via /meal-save-plan (recipe links are
+render_meals.py:        f'<a href="/meals?week={escape(prev_week)}" class="link-button" style="font-size:0.82em;">&larr;</a>'
+render_meals.py:        f'<a href="/meals?week={escape(next_week)}" class="link-button" style="font-size:0.82em;">&rarr;</a>'
+render_meals.py:        '<a href="/lorenzo" style="padding:7px 14px;font-size:0.82em;background:#8b3a1a;color:white;border-radius:8px;text-decoration:none;font-weight:600;white-space:nowrap;">&#127860; Ask Lorenzo</a>'
+render_meals.py:           f'fetch("/ai-meal-plan",{{method:"POST",headers:{{"Content-Type":"application/x-www-form-urlencoded"}},'
+render_meals.py:        # External JS — all logic lives in static/meals.js
+render_meals.py:        '<script src="/static/meals.js"></script>'
+render_meals.py:        text in an anchor pointing at /recipes#recipe-<id> so Lauren can
+render_meals.py:            return (f'<a href="/recipes#recipe-{escape(_rid)}" '
+render_meals.py:                f"<a href='/recipes#recipe-{escape(_rid)}' "
+render_meals.py:        "    <a href='/meals' style='color:#f5ead8;font-size:13px;'>&#8592; Meal Planner</a>"
+render_meals.py:        "    <a href='/meals' style='color:#f5ead8;font-size:12px;margin-top:4px;'>&#8592; Back to Meal Planner</a>"
+render_meals.py:        '<a href="/recipes" style="padding:10px 18px;background:transparent;border:1.5px solid var(--border);'
+render_meals.py:            f'<form method="POST" action="/recipe-delete" style="display:inline;">'
+render_meals.py:        '<a href="/meal-print" target="_blank" '
+render_memory_book.py:        <a href="/lucy" style="font-size:0.82em;color:#8b5a3c;text-decoration:none;">Talk to Lucy &rarr;</a>
+render_memory_book.py:    fetch('/memory-book-save', {{
+render_memory_book.py:    fetch('/memory-book-delete', {{
+render_misc.py:            <form method="POST" action="/planner-add-task" style="flex-shrink:0;">
+render_misc.py:    month_links = " · ".join(f"<a href='/planner?month={m}'>{m[:3]}</a>" for m in MONTH_NAMES)
+render_misc.py:    primary_link  = "/mom"
+render_misc.py:        primary_link  = "/mom"
+render_misc.py:        primary_link  = f"/mom#{current_step_id}"
+render_misc.py:        primary_link  = "/tasks"
+render_misc.py:            f'<a href="/mom#{escape(sid)}" '
+render_misc.py:            f'<a href="/mom" style="display:flex;align-items:center;gap:8px;'
+render_misc.py:        + f'<a href="/lorenzo" style="display:flex;align-items:center;justify-content:center;gap:6px;'
+render_misc.py:        + f'<a href="/plan-import" style="display:flex;align-items:center;justify-content:center;gap:6px;'
+render_misc.py:        + f'<a href="/curriculum" style="display:flex;align-items:center;justify-content:center;gap:6px;'
+render_misc.py:        f'<a href="/prayer" style="font-size:0.7em;color:{c_bg};text-decoration:none;font-weight:600;">Prayer</a>'
+render_misc.py:        f'<a href="/5am" style="font-size:0.7em;color:{c_bg};text-decoration:none;font-weight:600;">5AM</a>'
+render_misc.py:        f'<a href="/virtues/me" style="font-size:0.7em;color:{c_bg};text-decoration:none;font-weight:600;">Virtue</a>'
+render_misc.py:    fetch('/ai-capacity-preview', {{
+render_misc.py:  fetch('/anchor-save', {{
+render_misc.py:    schedule: '/ai-daily-schedule',
+render_misc.py:    school:   '/ai-school-plan',
+render_misc.py:    examen:   '/ai-evening-examen'
+render_misc.py:  var url = endpoints[type] || '/ai-daily-schedule';
+render_misc.py:            f'<a href="/schedule/{c_id}?date={escape(iso)}" '
+render_misc.py:        f'<form method="POST" action="/approve-school-week" style="margin:0;">'
+render_misc.py:        f'<form method="POST" action="/regenerate-school-week" style="margin:0;">'
+render_misc.py:        _target = f"/schedule/{_viewer}"
+render_misc.py:        f"https://bible.usccb.org/bible/readings/{today_d.strftime('%m%d%y')}.cfm"
+render_misc.py:    _readings_url    = f"https://bible.usccb.org/bible/readings/{today_d.strftime('%m%d%y')}.cfm"
+render_misc.py:        <a href="/lucy"
+render_misc.py:        <a href="/lorenzo"
+render_misc.py:        <a href="/dev"
+render_misc.py:        <a href="/headmaster"
+render_misc.py:        <a href="/coach"
+render_misc.py:        <a href="/dr-monica"
+render_misc.py:          <a href="/prayer" style="display:inline-flex;align-items:center;gap:4px;
+render_misc.py:    <a class="link-button no-print" href="/today"
+render_misc.py:              '&return_url=' + encodeURIComponent('/today')
+render_misc.py:        fetch('/api/today-progress?date=' + _iso)
+render_misc.py:    /now — Clean full-page view of what every family member is doing right now.
+render_misc.py:        "Mom", mom_bg, mom_light, "/mom",
+render_misc.py:            child, c_bg, c_light, f"/schedule/{escape(child)}?date={iso}",
+render_misc.py:        "James", james_bg, james_light, "/settings",
+render_misc.py:        f'  <a href="/now" style="margin-left:10px;font-size:.9em;color:var(--brown);">↻ Refresh</a>'
+render_misc.py:        f'<a href="/today" style="font-size:.82em;color:var(--brown);">← Back to Today</a>'
+render_misc.py:                <a class="link-button" href="/settings#s-systems" style="font-size:0.82em;">
+render_misc.py:        <div style="margin-top:8px;"><a class="link-button" href="/tasks" style="font-size:0.78em;">All tasks</a></div>
+render_misc.py:        <form method="POST" action="/mom-add-note">
+render_misc.py:            f'<a class="link-button" href="/schedule/{escape(c)}?date={escape(iso)}" style="font-size:0.8em;">{escape(c)}</a>'
+render_misc.py:    day_nav         = render_day_nav("/mom", iso)
+render_misc.py:            '<a href="/curriculum" '
+render_misc.py:        <a href="/print/day/lauren?date={escape(iso)}"
+render_misc.py:        <a href="/frol-pdf"
+render_misc.py:        <a href="/school-week-pdf"
+render_misc.py:        fetch('/mom-step?step=' + encodeURIComponent(stepId) + '&iso=' + encodeURIComponent(_iso) + '&_=' + Date.now())
+render_misc.py:    <a href="/mom?date={_e(iso)}" style="color:#aaa;margin-left:auto;font-size:12px;">← Back</a>
+render_misc.py:                f'<a href="/settings" class="link-button" style="margin-top:10px;">⚙ Settings</a>'
+render_misc.py:    '<a href="/settings" style="font-size:0.75em;color:var(--ink-faint);'
+render_misc.py:    settings_link = f'/settings#{settings_anchor}' if settings_anchor else '/settings'
+render_misc.py:            '<a href="/prayer-intentions" style="font-size:0.72em;color:var(--brown);'
+render_misc.py:            'No active intentions. <a href="/prayer-intentions" '
+render_misc.py:        f'<a href="/prayer-intentions" style="font-size:0.72em;color:var(--brown);'
+render_misc.py:        '<a href="/prayer-intentions" style="font-size:0.72em;color:var(--brown);'
+render_misc.py:        '  fetch("/prayer-intention-log", {'
+render_misc.py:    readings_url = f"https://bible.usccb.org/bible/readings/{target_date.strftime('%m%d%y')}.cfm"
+render_misc.py:  fetch('/anchor-save', {{
+render_misc.py:                    '<a href="/settings#s-cycle" style="font-size:0.75em;color:#8e44ad;font-weight:600;'
+render_misc.py:  <a href="/settings#s-cycle" style="font-size:0.75em;color:var(--ink-faint);text-decoration:none;">
+render_misc.py:  fetch('/cycle-save', {{
+render_misc.py:  fetch('/cycle-ai-suggest', {{
+render_misc.py:            '<a href="/meals" style="padding:10px 20px;background:var(--ink);color:var(--gold-light);' +
+render_misc.py:            '<a href="/settings#s-meals" style="padding:10px 16px;background:var(--parchment);color:var(--ink);' +
+render_misc.py:    <a href="/meals" style="font-size:0.82em;color:var(--brown);font-weight:700;text-decoration:none;">
+render_misc.py:    <a href="/lorenzo" style="font-size:0.82em;color:#8b3a1a;font-weight:700;text-decoration:none;">&#127860; Ask Lorenzo</a>
+render_misc.py:    <a href="/settings#s-meals" style="font-size:0.78em;color:var(--ink-faint);text-decoration:none;">⚙ Meal rules</a>
+render_misc.py:  fetch('/add-to-plan-quick', {{
+render_misc.py:    <a href="/calendar" style="font-size:0.82em;color:var(--brown);font-weight:700;text-decoration:none;">
+render_misc.py:    <a href="/settings#s-integrations" style="font-size:0.78em;color:var(--ink-faint);text-decoration:none;">
+render_misc.py:    <form method="POST" action="/calendar-add-event">
+render_misc.py:            '<a href="/tasks" style="font-size:0.82em;color:var(--brown);font-weight:700;text-decoration:none;">'
+render_misc.py:    <a href="/tasks" style="font-size:0.82em;color:var(--brown);font-weight:700;text-decoration:none;">
+render_misc.py:    <a href="/settings#s-systems" style="font-size:0.78em;color:var(--ink-faint);text-decoration:none;">⚙ Settings</a>
+render_misc.py:    fetch('/add-to-plan-quick', {{
+render_misc.py:  fetch('/task-update', {{
+render_misc.py:  fetch('/task-done', {{
+render_misc.py:                    cb_url  = f"/schedule/{child}?date={iso}"
+render_misc.py:                            cb_url   = f"/schedule/{child_e}?date={iso_e}"
+render_misc.py:                f'<a href="/schedule/{_e(child)}?date={_e(iso)}" '
+render_misc.py:                f'<a href="/chores" style="font-size:0.75em;color:var(--ink-faint);text-decoration:none;">'
+render_misc.py:  <a href="/kids-week{('?week=' + _e(_wk_key)) if _wk_key else ''}"
+render_misc.py:  <a href="/school" style="padding:9px 14px;background:var(--parchment);color:var(--ink);
+render_misc.py:  <a href="/tasks" style="font-size:0.82em;color:var(--ink-muted);text-decoration:none;">
+render_misc.py:  <a href="/chores" style="font-size:0.82em;color:var(--ink-muted);text-decoration:none;">
+render_misc.py:  fetch('/anchor-save', {{
+render_misc.py:  fetch('/anchor-save', {{
+render_misc.py:  <a href="/grid-print?iso={_e(iso)}" target="_blank"
+render_misc.py:  <a href="/meal-print" target="_blank"
+render_misc.py:  fetch('/grid-publish', {{
+render_misc.py:                f'<a href="/schedule/{_e(child)}?date={_e(iso)}" ' +
+render_misc.py:  <a href="/school" style="font-size:0.82em;color:var(--brown);font-weight:700;text-decoration:none;">
+render_misc.py:  <a href="/chores" style="font-size:0.82em;color:var(--ink-muted);text-decoration:none;">Chores &rarr;</a>
+render_misc.py:  <a href="/settings#s-systems" style="font-size:0.78em;color:var(--ink-faint);text-decoration:none;">⚙ Settings</a>
+render_misc.py:            <form method="POST" action="/convert-note">
+render_misc.py:            <form method="POST" action="/archive-note">
+render_misc.py:        <form method="POST" action="/add-note">
+render_misc.py:# Add-Task form on /tasks and every per-task inline edit panel on /tasks and
+render_misc.py:# /mom Step 5. All DOM ids are suffixed `-{tid}` so multiple instances coexist
+render_misc.py:            <button type="button" onclick="_taskAction(this,'/task-done','{tid_e}')">&#10003; Done</button>
+render_misc.py:            <button type="button" class="ghost" onclick="_taskAction(this,'/task-delete','{tid_e}')">Archive</button>
+render_misc.py:            <form method="POST" action="/task-hard-delete" style="display:inline;">
+render_misc.py:            '<form method="POST" action="/task-purge-inactive"'
+render_misc.py:                <form method="POST" action="/thankyou-done" style="margin:0;">
+render_misc.py:                <form method="POST" action="/thankyou-dismiss" style="margin:0;">
+render_misc.py:            <a href="/thankyou-reminders" style="font-size:0.82em;color:#8b5a3c;text-decoration:none;">
+render_misc.py:        <form method="POST" action="/add-task">
+render_misc.py:      fetch('/task-update', {{
+render_misc.py:                <form method="POST" action="/roadmap-update">
+render_misc.py:                <form method="POST" action="/roadmap-delete" style="margin-top:6px;">
+render_misc.py:        <form method="POST" action="/roadmap-add">
+render_misc.py:                    <a class="link-button" href="/history/preview?key={key}">Preview</a>
+render_misc.py:                    <form method="POST" action="/history-restore" style="display:inline;">
+render_misc.py:        <div class="link-row no-print"><a class="link-button" href="/school/edit?child={escape(child)}">Edit Preview</a></div>
+render_misc.py:        <form method="POST" action="/approve-school-preview" class="no-print">
+render_misc.py:    <a href="/headmaster" style="display:flex;align-items:center;gap:16px;
+render_misc.py:    <a href="/assignment-analyzer" style="display:flex;align-items:center;gap:14px;
+render_misc.py:    <a href="/gradebook" style="display:flex;align-items:center;gap:14px;
+render_misc.py:      <a href="/curriculum" style="display:flex;align-items:center;gap:12px;
+render_misc.py:      <a href="/week-school" style="display:flex;align-items:center;gap:12px;
+render_misc.py:      fetch('/school-settings-save', {{
+render_misc.py:            <form id="school-upload-form" method="POST" action="/school-upload" enctype="multipart/form-data">
+render_misc.py:                fetch('/gdrive-files?folder=' + encodeURIComponent(fid))
+render_misc.py:        <form method="POST" action="/reparse-school-preview">
+render_misc.py:    <form method="POST" action="/save-school-preview-edits">
+render_misc.py:                <form method="POST" action="/thankyou-done">
+render_misc.py:                <form method="POST" action="/thankyou-dismiss">
+render_misc.py:        <form method="POST" action="/thankyou-add">
+render_mom_profile.py:MOM_PROFILE_PATH = "data/profiles/mom.json"
+render_mom_profile.py:    day_nav  = render_day_nav("/mom-profile", iso)
+render_mom_profile.py:    _ty_inner        = _ty_pod_strip(_due_ty_for("Lauren") + _due_ty_for("Family"), c_bg, "/mom-profile")
+render_mom_profile.py:            <a class="link-button" href="/print/day/Lauren?date={_e(iso)}">Print Day List</a>
+render_mom_profile.py:        <form method="POST" action="/add-task"
+render_mom_profile.py:            <input type="hidden" name="return_url" value="/mom-profile">
+render_mom_profile.py:    fetch('/lucy-child-brief/' + child)
+render_mom_profile.py:  {_section_cycle(return_url="/mom-profile")}
+render_mom_profile.py:    fetch('/save-mom-profile', {{
+render_monica.py:API: POST /dr-monica-chat
+render_monica.py:        '<form method="POST" action="/dr-monica-clear-history" style="display:inline;">'
+render_monica.py:    fetch('/dr-monica-chat', {{
+render_morning_anchor.py:    readings_url = f"https://bible.usccb.org/bible/readings/{for_date.strftime('%m%d%y')}.cfm"
+render_morning_anchor.py:        fetch('/anchor-save', {{
+render_morning_anchor.py:        fetch('/anchor-save', {{
+render_morning_anchor.py:            fetch('/mom-add-note', {{
+render_plan_importer.py:- profiles/mom.json, profiles/john.json — adult profile data
+render_plan_importer.py:  <a href="/plan-import-history" style="margin-left:auto;font-size:0.82em;">&#128190; Saved analyses</a>
+render_plan_importer.py:    <a href="/plan-import-history" style="color:#166534;text-decoration:underline;">Saved analyses</a>
+render_plan_importer.py:      <a href="/calendar" class="pi-btn pi-btn-primary" style="text-decoration:none;">
+render_plan_importer.py:      <a href="/today" class="pi-btn" style="background:var(--green);color:#fff;text-decoration:none;">
+render_plan_importer.py:    <a href="/calendar" class="pi-btn pi-btn-primary" style="text-decoration:none;">
+render_plan_importer.py:    <a href="/today" class="pi-btn" style="background:var(--green);color:#fff;text-decoration:none;">
+render_plan_month.py:            '<a href="/plan-quarter" style="font-size:0.85em;color:var(--brown);font-weight:700;">'
+render_plan_month.py:    <a href="/plan-month?month={escape(prev_key)}"
+render_plan_month.py:    <a href="/plan-month"
+render_plan_month.py:    <a href="/plan-month?month={escape(next_key)}"
+render_plan_month.py:    <a href="/plan-quarter" style="font-size:0.9em;color:var(--brown);font-weight:600;text-decoration:none;text-transform:none;">
+render_plan_month.py:  <a href="/plan-week" style="font-size:0.82em;color:var(--brown);font-weight:700;text-decoration:none;">This week &rarr;</a>
+render_plan_month.py:  <a href="/plan-year" style="font-size:0.82em;color:var(--ink-muted);text-decoration:none;">Annual overview &rarr;</a>
+render_plan_month.py:  <a href="/plan-quarter" style="font-size:0.82em;color:var(--ink-muted);text-decoration:none;">Quarterly goals &rarr;</a>
+render_plan_month.py:  fetch('/plan-month-save', {{
+render_plan_month.py:  fetch('/ai-month-brief', {{
+render_plan_quarter.py:        ("exam_review",       "Reviewed the day/week from morning to night"),
+render_plan_quarter.py:  <form method="POST" action="/goal-add">
+render_plan_quarter.py:  <a href="/plan-year" style="font-size:0.82em;color:var(--brown);font-weight:700;text-decoration:none;">
+render_plan_quarter.py:  <a href="/plan-week" style="font-size:0.82em;color:var(--ink-muted);text-decoration:none;">
+render_plan_quarter.py:  fetch('/quarter-save-goals', {{
+render_plan_quarter.py:  fetch('/quarter-journal-save', {{
+render_plan_quarter.py:  fetch('/ai-suggest-goals', {{
+render_plan_quarter.py:  fetch('/ai-generate-steps', {{
+render_plan_quarter.py:  fetch('/quarter-save-step', {{
+render_plan_quarter.py:  fetch('/quarter-checkin', {
+render_plan_tomorrow.py:        f'<a href="/settings" style="color:#92400e;">Settings → AI & Planning</a> to use this feature.'
+render_plan_tomorrow.py:    _today_btn    = "" if is_today else f'<a href="/plan-today" style="{_nav_btn_style}">Plan Today</a>'
+render_plan_tomorrow.py:  fetch('/plan-tomorrow-questions', {{
+render_plan_tomorrow.py:  fetch('/plan-tomorrow-generate', {{
+render_plan_tomorrow.py:  fetch('/plan-tomorrow-generate', {{
+render_plan_tomorrow.py:  fetch('/plan-tomorrow-push', {{
+render_plan_week.py:INTENTIONS_DIR = "data/weekly_intentions"
+render_plan_week.py:            '<a href="/plan-quarter" style="font-size:0.85em;color:var(--brown);font-weight:700;">'
+render_plan_week.py:                '<a href="/kids-week?week=' + escape(week_key) + '" '
+render_plan_week.py:    <a href="/plan-week?week={escape(prev_key)}" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:0.82em;text-decoration:none;color:var(--ink);">&larr;</a>
+render_plan_week.py:    <a href="/plan-week" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:0.82em;text-decoration:none;color:var(--ink);">This week</a>
+render_plan_week.py:    <a href="/plan-week?week={escape(next_key)}" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:0.82em;text-decoration:none;color:var(--ink);">&rarr;</a>
+render_plan_week.py:    <a href="/plan-quarter" style="font-size:0.9em;font-weight:600;color:var(--brown);text-decoration:none;text-transform:none;">Manage goals &rarr;</a>
+render_plan_week.py:    <a href="/kids-week?week={escape(week_key)}" style="font-size:0.75em;color:var(--brown);font-weight:600;text-decoration:none;display:block;margin-top:8px;">Full planner &rarr;</a>
+render_plan_week.py:    <a href="/meals" style="font-size:0.75em;color:var(--brown);font-weight:600;text-decoration:none;display:block;margin-top:8px;">Meal planner &rarr;</a>
+render_plan_week.py:  <a href="/plan-month" style="font-size:0.82em;color:var(--brown);font-weight:700;text-decoration:none;">Monthly plan &rarr;</a>
+render_plan_week.py:  <a href="/plan-year" style="font-size:0.82em;color:var(--ink-muted);text-decoration:none;">Annual overview &rarr;</a>
+render_plan_week.py:  <a href="/plan-quarter" style="font-size:0.82em;color:var(--ink-muted);text-decoration:none;">Quarterly goals &rarr;</a>
+render_plan_week.py:  fetch('/plan-week-save', {{
+render_plan_week.py:  fetch('/quarter-save-step',{{
+render_plan_week.py:  fetch('/quarter-checkin',{{
+render_plan_week.py:  fetch('/ai-week-brief',{{
+render_plan_week.py:  fetch('/add-task',{{
+render_plan_week.py:      +'&assigned_to='+encodeURIComponent(assign)+'&priority=MEDIUM&return_url=/plan-week'
+render_plan_week.py:  fetch('/ai-weekly-review', {{
+render_plan_year.py:      <a href="/plan-quarter?quarter={escape(qk)}"
+render_plan_year.py:            '<a href="/plan-quarter" style="font-size:0.72em;color:var(--brown);font-weight:600;'
+render_plan_year.py:    <a href="/plan-year?year={prev_year}"
+render_plan_year.py:    <a href="/plan-year?year={next_year}"
+render_plan_year.py:    <a href="/plan-quarter" style="font-size:0.9em;color:var(--brown);font-weight:600;
+render_plan_year.py:  <a href="/plan-quarter" style="font-size:0.82em;color:var(--brown);font-weight:700;text-decoration:none;">Quarterly goals &rarr;</a>
+render_plan_year.py:  <a href="/plan-month" style="font-size:0.82em;color:var(--ink-muted);text-decoration:none;">This month &rarr;</a>
+render_plan_year.py:  <a href="/plan-week" style="font-size:0.82em;color:var(--ink-muted);text-decoration:none;">This week &rarr;</a>
+render_plan_year.py:  fetch('/ai-year-brief', {{
+render_prayer.py:  GET  /prayer-intentions              — full list
+render_prayer.py:  GET  /prayer-intention/ID            — detail modal/page
+render_prayer.py:  GET  /prayer-intention/share/TOKEN   — public share card
+render_prayer.py:  POST /prayer-intention-add           — add intention (multipart, optional photo)
+render_prayer.py:  POST /prayer-intention-delete        — delete intention
+render_prayer.py:  POST /prayer-intention-log           — add a prayer log entry
+render_prayer.py:  POST /prayer-intention-complete      — mark answered / archive
+render_prayer.py:  data/prayer/intentions.json          — list of all intentions
+render_prayer.py:  data/prayer/photos/ID.jpg            — uploaded photos
+render_prayer.py:PRAYER_DIR   = "data/prayer"
+render_prayer.py:PHOTOS_DIR   = "data/prayer/photos"
+render_prayer.py:INTENTS_FILE = "data/prayer/intentions.json"
+render_prayer.py:        return f"/prayer-photo/{photo_filename}"
+render_prayer.py:    share_url = f"/prayer-intention/share/{token}"
+render_prayer.py:    fetch('/lucy-prayer-brief/' + slug)
+render_prayer.py:  fetch('/prayer-intention-log', {{
+render_prayer.py:  fetch('/prayer-intention-log', {{
+render_prayer.py:  fetch('/prayer-intention-complete', {{
+render_prayer.py:  fetch('/prayer-intention-add', {{
+render_prayer.py:    window.location.href = '/prayer-intentions';
+render_prayer.py:  fetch('/prayer-intention-delete', {{
+render_prayer.py:    window.location.href = '/prayer-intentions';
+render_prayer.py:    window.location.href = '/prayer-intentions';
+render_prayer.py:  fetch('/ai-intention-prayer', {{
+render_prayer.py:            f'<a href="/prayer-intentions" style="font-size:0.9em;color:var(--brown);'
+render_prayer.py:            '<a href="/prayer-intentions" '
+render_prayer.py:        f'<a href="/prayer-intentions" style="font-size:0.9em;color:var(--brown);'
+render_programs.py:all in one browseable page reachable from each person's POD card on /today.
+render_programs.py:    status badge, view/edit/delete controls). Anchored so /programs#person-Joseph
+render_programs.py:        f'  <form method="POST" action="/programs-edit" style="margin-top:8px;'
+render_programs.py:        f'<form method="POST" action="/programs-delete" style="display:inline;margin:0;" '
+render_programs.py:        f'  <form method="POST" action="/programs-save" style="margin-top:8px;'
+render_programs.py:            anchor     = f'/programs#prog-{escape(pid_raw)}'
+render_programs.py:        <a href="/today" style="font-size:.82em;color:#888;text-decoration:none;">&larr; Today</a>
+render_programs.py:          <a href="/calendar" style="font-size:.82em;color:#888;text-decoration:none;">Calendar</a>
+render_programs.py:          <a href="/coach" style="font-size:.82em;color:{ACCENT};text-decoration:none;font-weight:600;">
+render_readings.py:READINGS_CACHE_DIR = "data/readings_cache"
+render_readings.py:        f"https://bible.usccb.org/bible/readings/{for_date.strftime('%m%d%y')}.cfm"
+render_readings.py:        <a href="/readings?date={prev_date}"
+render_readings.py:        <a href="/readings?date={next_date}"
+render_schedule.py:render_schedule.py — Schedule cards, task lists, print pages, today/week views.
+render_schedule.py:    posts to /exercise-log. Pre-fills with any previously-saved entry.
+render_schedule.py:        f'<form method="POST" action="/exercise-log"'
+render_schedule.py:        f'<input type="hidden" name="return_url" value="/schedule/{_e(child)}?date={_e(iso)}">'
+render_schedule.py:    workout is visible right here — no need to click through to /programs.
+render_schedule.py:            f'<a href="/programs" style="font-size:0.72em;color:{c_bg};'
+render_schedule.py:            f'<a href="/programs" style="color:#666;text-decoration:none;">'
+render_schedule.py:def _ty_pod_strip(due_list: list, accent: str = "#8b5a3c", return_url: str = "/today") -> str:
+render_schedule.py:            f'<form method="POST" action="/thankyou-done" style="margin:0;flex-shrink:0;">'
+render_schedule.py:        f'<a href="/thankyou-reminders" style="font-size:.7em;color:#8b5a3c;'
+render_schedule.py:# ── Thank-you card Suggested-Tasks widget (Lauren's /today POD) ───────────────
+render_schedule.py:def _ty_suggested_tasks_widget(due_list: list, return_url: str = "/today") -> str:
+render_schedule.py:            + f'<form method="POST" action="/thankyou-suggest" style="margin:0;">'
+render_schedule.py:        f'<a href="/thankyou-reminders" style="font-size:.72em;color:#8b5a3c;'
+render_schedule.py:                   onchange="toggleTask(this,'{tid_js}','/schedule/{_js_attr(child)}?date={_js_attr(iso)}')">
+render_schedule.py:                    f'<form method="POST" action="/calendar-event-delete"'
+render_schedule.py:                    f' value="/schedule/{ch_esc}?date={iso_esc}">'
+render_schedule.py:  <form method="POST" action="/schedule-template-save" id="tmpl-form-{child_esc.lower()}">
+render_schedule.py:    _ty_sec         = _collapsible_wrap(f"{c_id}-thankyou",  "&#9993; Thank-You Cards",       _ty_pod_strip(due_thankyou_reminders_for(child), c_bg, f"/schedule/{child}"), accent="#92400e")
+render_schedule.py:            <div class="no-print">{render_day_nav(f"/schedule/{child}", iso)}</div>
+render_schedule.py:                <a class="link-button" href="/print/day/{escape(child)}?date={escape(iso)}">Print Day List</a>
+render_schedule.py:        {'<div style="background:#fef9c3;border:1px solid #fde047;border-radius:10px;padding:12px 16px;margin-bottom:10px;font-size:0.88em;color:#854d0e;">&#128197; <strong>No ' + escape(weekday) + ' schedule yet</strong> for ' + escape(child) + '. Ask Mom to build the ' + escape(weekday) + ' template in <a href="/settings#s-systems" style="color:#92400e;font-weight:600;">Settings → Rule of Life</a>.</div>' if _frol_missing else ''}
+render_schedule.py:            <form method="POST" action="/add-task"
+render_schedule.py:                       value="/schedule/{escape(child)}">
+render_schedule.py:    fetch('/lucy-child-brief/' + child)
+render_schedule.py:        fetch('/api/today-progress?date=' + _iso)
+render_schedule.py:        # Pencil edit affordance — manual tasks only (not chores/school/events/carryover/done).
+render_schedule.py:                f'<a href="/schedule/{escape(child)}?date={escape(iso)}"'
+render_schedule.py:        f'<a href="/schedule/{escape(child)}?date={escape(iso)}"'
+render_schedule.py:        f'<a href="/schedule/{escape(child)}?date={escape(iso)}"'
+render_schedule.py:        + _ty_pod_strip(due_thankyou_reminders_for(child), c_bg, "/today")
+render_schedule.py:             +encodeURIComponent('/today?date='+t.iso)
+render_schedule.py:              '&return_url=' + encodeURIComponent('/today?date=' + iso)
+render_schedule.py:    fetch('/task-override', {method:'POST', headers:_TOV_HDR, body:params})
+render_schedule.py:    fetch('/task-update', {
+render_schedule.py:   proven /toggle-task + undo-snack flow. /task-done returns a 303
+render_schedule.py:        fetch('/add-to-plan-quick', {
+render_schedule.py:    day_nav   = render_day_nav("/today", normalized_date)
+render_schedule.py:        f'&nbsp;&nbsp;<a href="/now" style="font-size:.78em;font-weight:400;'
+render_schedule.py:        f'<a href="/now" style="font-size:.78em;color:var(--brown);">Family now →</a></div>'
+render_schedule.py:                f'<a href="/set-school-mode?mode=normal" style="font-size:.75em;'
+render_schedule.py:                f'<a href="/set-school-mode?mode=normal" style="font-size:.75em;'
+render_schedule.py:    _family_ty_strip = _ty_suggested_tasks_widget(due_thankyou_reminders_for("Family"), "/today")
+render_schedule.py:                <a class="link-button" href="/print/day?date={escape(iso)}">Print This Day</a>
+render_schedule.py:                    <a class="link-button" href="/schedule/{escape(child)}?date={escape(iso)}">Open This Day</a>
+render_schedule_support.py:            <a class="link-button" href="/settings#s-systems">Rule of Life</a>
+render_schedule_support.py:            <a class="link-button" href="/settings#s-systems">Edit schedule</a>
+render_schedule_support.py:                <a class="link-button" href="/settings#s-systems">Edit Rule of Life →</a>
+render_schedule_support.py:                <a class="link-button" href="/frol-pdf"
+render_schedule_support.py:                <a class="link-button" href="/school-week-pdf"
+render_school_pdf.py:        # so the PDF shows the same lesson as the POD/today view (which also
+render_settings.py:    ("ascension_press",  "Ascension Press",   "https://ascensionpress.com/pages/daily-mass"),
+render_settings.py:    ("word_on_fire",     "Word on Fire",      "https://www.wordonfire.org/daily-mass/"),
+render_settings.py:    # on the Mom dashboard (/mom#grid), which is the single editor the More
+render_settings.py:                <form method="POST" action="/apply-laundry" style="display:inline;">
+render_settings.py:                <form method="POST" action="/apply-van-rotation" style="display:inline;">
+render_settings.py:                <a class="link-button" href="/van-roles" style="margin-left:8px;">View Upcoming Rotation</a>
+render_settings.py:                <a class="link-button" href="/mom#grid"
+render_settings.py:    cache        = ensure_file("data/calendar_cache.json", {"events":[],"fetched_at":""})
+render_settings.py:                <form method="POST" action="/subscribed-cal-toggle" style="display:inline;">
+render_settings.py:                <form method="POST" action="/subscribed-cal-delete" style="display:inline;">
+render_settings.py:        sub_rows += f'<div style="font-size:0.72em;color:#aaa;padding:4px 0;">Last synced: {cache_label} &middot; <a href="/calendar-refresh" style="color:var(--brown);">Sync now</a></div>'
+render_settings.py:                <form method="POST" action="/calendar-save-config">
+render_settings.py:                <form method="POST" action="/calendar-refresh" style="margin-top:8px;display:inline;">
+render_settings.py:                <form method="POST" action="/subscribed-cal-add">
+render_settings.py:            fetch('/lucy-rule-save', {{
+render_settings.py:<form method="POST" action="/settings-save" id="form-systems">
+render_settings.py:    # Group 5 — SCHOOL (settings moved to /school page)
+render_settings.py:  <a href="/school"
+render_settings.py:                "<a href='/meals' style='color:var(--brown);'>Meal Planner</a> · "
+render_settings.py:                "<a href='/recipes' style='color:var(--brown);'>Recipe Library</a>."
+render_settings.py:        content_html='<div style="padding:16px;"><p style="color:#888;font-size:0.9em;">Cycle tracking has moved to your profile page.</p><a href="/mom-profile" style="display:inline-block;margin-top:8px;padding:8px 18px;background:#8e44ad;color:white;border-radius:8px;text-decoration:none;font-size:0.9em;font-weight:600;">Go to Lauren\u2019s Profile \u2192</a></div>',
+render_settings.py:                "See also: <a href='/chores' style='color:var(--brown);'>Chores</a> · "
+render_settings.py:                "<a href='/tasks' style='color:var(--brown);'>Tasks</a>"
+render_settings.py:  <a href="/plan-quarter" style="padding:7px 14px;background:var(--ink);color:var(--gold-light);
+render_settings.py:  <a href="/virtues" style="padding:7px 14px;background:var(--ink);color:var(--gold-light);
+render_settings.py:  <a href="/5am" style="padding:7px 14px;background:var(--ink);color:var(--gold-light);
+render_settings.py:  <a href="/kids-week" style="padding:7px 14px;background:var(--ink);color:var(--gold-light);
+render_settings.py:  <a href="/tasks" style="padding:7px 14px;background:var(--parchment);color:var(--ink);
+render_settings.py:  <a href="/chores" style="padding:7px 14px;background:var(--parchment);color:var(--ink);
+render_settings.py:  <a href="/recipes" style="padding:7px 14px;background:var(--parchment);color:var(--ink);
+render_settings.py://  lives only on /mom#grid, which has its own save wiring.)
+render_settings.py:    if (el.closest('form[action="/calendar-save-config"]')) return;
+render_settings.py:    if (el.closest('form[action="/subscribed-cal-add"]')) return;
+render_settings.py:    if (el.closest('form[action="/subscribed-cal-delete"]')) return;
+render_settings.py:    if (el.closest('form[action="/meal-rule-add"]')) return;
+render_settings.py:    if (el.closest('form[action="/meal-rule-delete"]')) return;
+render_settings.py:  fetch('/settings-save-ajax', {
+render_settings.py:    if (el.closest('form[action="/calendar-save-config"]')) return;
+render_settings.py:    if (el.closest('form[action="/subscribed-cal-add"]')) return;
+render_settings.py:    if (el.closest('form[action="/subscribed-cal-delete"]')) return;
+render_settings.py:    if (el.closest('form[action="/meal-rule-add"]')) return;
+render_settings.py:    if (el.closest('form[action="/meal-rule-delete"]')) return;
+render_settings.py:    <a href="/liturgy-hours" onclick="event.stopPropagation()"
+render_settings.py:def _section_cycle(settings: dict = None, return_url: str = "/settings#s-cycle") -> str:
+render_settings.py:            f'<form method="POST" action="/cycle-log-delete" style="display:inline;">'
+render_settings.py:        <form method="POST" action="/settings-save" style="margin-bottom:20px;padding:14px;
+render_settings.py:        <form method="POST" action="/cycle-log-add" style="margin-bottom:24px;">
+render_settings.py:            f'<form method="POST" action="/meal-rule-delete" style="display:inline;flex-shrink:0;">'
+render_settings.py:            <a href="/meals" style="padding:9px 18px;background:var(--ink);color:var(--gold-light);
+render_settings.py:            <a href="/recipes" style="padding:9px 18px;background:var(--parchment);color:var(--ink);
+render_settings.py:            <a href="/meal-print" style="padding:9px 18px;background:var(--parchment);color:var(--ink);
+render_settings.py:        <form method="POST" action="/meal-rule-add" style="margin-bottom:16px;">
+render_signup.py:Stores responses in data/waitlist.json
+render_signup.py:Accessible at /signup (public) and /waitlist (admin, password-protected)
+render_signup.py:WAITLIST_FILE = "data/waitlist.json"
+render_signup.py:  <form method="POST" action="/signup-submit">
+render_signup.py:  <a href="/signup" class="btn">Submit another response</a>
+render_signup.py:  <form method="POST" action="/waitlist">
+render_signup.py:    <div class="stat"><a href="/signup">View signup form</a></div>
+render_sister_mary.py:API: GET /sister-mary, POST /sister-mary-chat (streaming).
+render_sister_mary.py:        '<form method="POST" action="/sister-mary-clear-history" style="display:inline;">'
+render_sister_mary.py:    fetch('/sister-mary-chat', {{
+render_student.py:    """Read data/grades.json and return the child's most recent entries
+render_student.py:        subj_url = "/subject?" + _ue({"child": child, "subject": subj})
+render_student.py:    /schedule/ route's ?date= contract).
+render_student.py:    <a href="/schedule/{escape(child)}"
+render_student.py:# ─── Phase 4: Read-only gradebook view (/grades/<child>) ──────────────────────
+render_student.py:    grades (data/gradebook.json) with Father Gregory's AI grades
+render_student.py:    (data/grades.json), de-duped by analysis_id (D3). Current school
+render_student.py:  <a href="/student/{escape(child.lower())}" style="color:var(--ink-muted);
+render_subject.py:  data/grades.json    — grades, links, documents
+render_subject.py:  uploads/grades/<child>/<subject_slug>/<file>   — graded test images
+render_subject.py:GRADES_PATH = "data/grades.json"
+render_subject.py:        with open("data/curriculum.json") as f:
+render_subject.py:    return "/subject?" + urlencode({"child": child, "subject": subject})
+render_subject.py:                f'<p><a href="/curriculum">Back to Curriculum</a></p>')
+render_subject.py:    <a href="/grades" style="color:var(--gold);">← Grades summary</a> ·
+render_subject.py:    <a href="/curriculum" style="color:var(--gold);">Curriculum</a>
+render_subject.py:                f'<form method="post" action="/subject-send-to-mom" style="display:inline;">'
+render_subject.py:            f'<form method="post" action="/subject-grade-delete" style="display:inline;">'
+render_subject.py:                f'<form method="post" action="/subject-link-delete" style="display:inline;">'
+render_subject.py:                f'<form method="post" action="/subject-doc-delete" style="display:inline;">'
+render_subject.py:            f'<form method="post" action="/subject-link-add" style="margin-top:8px;display:grid;gap:6px;">'
+render_subject.py:            f'<form method="post" action="/subject-link-add" style="margin-top:8px;display:grid;gap:6px;">'
+render_subject.py:            f'<form method="post" action="/subject-doc-upload" enctype="multipart/form-data" '
+render_subject.py:  <form method="post" action="/subject-upload-image" enctype="multipart/form-data"
+render_subject.py:  <form method="post" action="/subject-grade-add"
+render_subject.py:          <a href="/hour-report?child={_e(child)}&subject={_e(subject)}&period=semester1"
+render_subject.py:          <a href="/hour-report?child={_e(child)}&subject={_e(subject)}&period=semester2"
+render_subject.py:          <a href="/hour-report?child={_e(child)}&subject={_e(subject)}&period=year"
+render_subject.py:      <form method="POST" action="/hour-log-add" style="background:#fff;
+render_subject.py:                <form method="POST" action="/hour-log-edit"
+render_subject.py:              <form method="POST" action="/hour-log-delete" style="display:inline;"
+render_subject.py:        <a href="/student/{_e(child)}" style="margin-left:14px;color:#33507e;">← Back to student</a>
+render_subject.py:    # Auto cross-link to Lauren's /assignment-analyzer queue (D2: cross-link
+render_subject.py:            f"see /assignment-analyzer"
+render_timeblock.py:# Keys are lowercase substring matches against the saint/devotion name.
+render_timeblock.py:_NOVENAS_FALLBACK_URL = "https://www.ewtn.com/catholicism/devotions/novenas"
+render_timeblock.py:        '<form method="POST" action="/timeblock-add-intention" '
+render_timeblock.py:        '<a href="/sister-mary" style="color:#2d4a78;font-size:0.85em;'
+render_timeblock.py:            f'<form method="POST" action="/timeblock-add-novena" style="display:inline;">'
+render_timeblock.py:            f'<a href="/lorenzo" style="color:#2d4a78;text-decoration:none;'
+render_timeblock.py:                 '<a href="/lorenzo" style="color:#2d4a78;font-size:0.85em;'
+render_timeblock.py:        _usccb_url = escape(f"https://bible.usccb.org/bible/readings/{_mmddyy}.cfm",
+render_timeblock.py:                f'<a href="/frol-seasonal-view?id={_pid}" '
+render_timeblock.py:            '<form method="POST" action="/pod-dismiss-season" '
+render_timeblock.py:            f'data-cta="/frol-wizard">'
+render_timeblock.py:            f'<a href="/frol-wizard" '
+render_timeblock.py:        f'<form method="POST" action="/pod-toggle-traveling" '
+render_timeblock.py:        '<a href="/today" style="color:rgba(255,255,255,0.7);font-size:0.82em;'
+render_timeblock.py:<div class="tb-nav"><a href="/today">Tasks &rarr;</a></div>
+render_virtues.py:  /virtues              — family dashboard
+render_virtues.py:  /virtues/me           — Mom's personal virtue focus
+render_virtues.py:  /virtues/family       — family virtue of the month
+render_virtues.py:  /virtues/child/NAME   — per-child virtue (age-adapted)
+render_virtues.py:  data/virtues/personal.json
+render_virtues.py:  data/virtues/family.json
+render_virtues.py:  data/virtues/children/CHILD.json
+render_virtues.py:VIRTUE_DIR    = "data/virtues"
+render_virtues.py:CHILDREN_DIR  = "data/virtues/children"
+render_virtues.py:        f'<a href="/virtues/{escape(who_id)}" '
+render_virtues.py:            f'<a href="/virtues/family" style="font-size:0.7em;color:var(--ink-faint);text-decoration:none;">view &rarr;</a>'
+render_virtues.py:            f'<a href="/virtues/me" style="font-size:0.7em;color:var(--ink-faint);text-decoration:none;">view &rarr;</a>'
+render_virtues.py:                f'<a href="/virtues/child/{escape(c_id)}" '
+render_virtues.py:        f'<a href="/virtues" style="font-size:0.9em;color:var(--brown);'
+render_virtues.py:# ── Main dashboard (/virtues) ─────────────────────────────────────────────────
+render_virtues.py:            f'<a href="/virtues/family" style="padding:7px 14px;background:var(--ink);'
+render_virtues.py:            f'<a href="/virtues/family" style="font-size:0.85em;color:var(--brown);font-weight:700;text-decoration:none;">'
+render_virtues.py:            f'<a href="/virtues/me" style="padding:7px 14px;background:var(--ink);'
+render_virtues.py:            f'<a href="/virtues/me" style="font-size:0.85em;color:var(--brown);font-weight:700;text-decoration:none;">'
+render_virtues.py:                f'<a href="/virtues/child/{escape(c_id)}" style="padding:7px 14px;background:var(--ink);'
+render_virtues.py:                f'<a href="/virtues/child/{escape(c_id)}" '
+render_virtues.py:        f'<a href="/virtues/me?virtue={escape(v)}" '
+render_virtues.py:    <a href="/virtues/me" style="padding:8px 16px;background:var(--ink);color:var(--gold-light);
+render_virtues.py:    <a href="/virtues/family" style="padding:8px 16px;background:var(--ink);color:var(--gold-light);
+render_virtues.py:        '<a href="/virtues/child/' + child.replace(" ","_") + '" style="padding:8px 16px;'
+render_virtues.py:# ── Mom personal page (/virtues/me) ──────────────────────────────────────────
+render_virtues.py:  <a href="/virtues" style="font-size:0.82em;color:var(--ink-faint);text-decoration:none;">&larr; All virtues</a>
+render_virtues.py:  window.location.href = '/virtues/' + (who === 'me' ? 'me' : who) + '?virtue=' + encodeURIComponent(sel.value);
+render_virtues.py:  fetch('/virtue-checkin', {{
+render_virtues.py:# ── Family page (/virtues/family) ─────────────────────────────────────────────
+render_virtues.py:  <a href="/virtues" style="font-size:0.82em;color:var(--ink-faint);text-decoration:none;">&larr; All virtues</a>
+render_virtues.py:  window.location.href = '/virtues/family?virtue=' + encodeURIComponent(sel.value);
+render_virtues.py:  fetch('/virtue-checkin', {{
+render_virtues.py:# ── Child page (/virtues/child/NAME) ─────────────────────────────────────────
+render_virtues.py:  <a href="/virtues" style="font-size:0.82em;color:var(--ink-faint);text-decoration:none;">&larr; All virtues</a>
+render_virtues.py:  window.location.href = '/virtues/child/' + encodeURIComponent(_childId) + '?virtue=' + encodeURIComponent(sel.value);
+render_virtues.py:  fetch('/virtue-checkin', {{
+render_week_school.py:Weekly school progress page — /week-school
+render_week_school.py:                  " title="{_e(subj)}"><a href="/subject?child={_e(child)}&amp;subject={_e(quote(subj))}" style="color:inherit;text-decoration:none;">{_e(subj)}</a></div>'''
+render_week_school.py:  fetch('/poetry-passage-save', {{
+render_week_school.py:  <a href="/week-school?date={prev_monday.isoformat()}"
+render_week_school.py:  <a href="/week-school?date={next_monday.isoformat()}"
+render_week_view.py:            f'<a href="/schedule/{escape(child)}" '
+render_week_view.py:    <a href="/week?week={escape(prev_key)}"
+render_week_view.py:    <a href="/week?week={escape(next_key)}"
+render_week_view.py:    <a href="/plan-week?week={escape(week_key)}"
+app.py:# lifetime. Used by /dev-write and /dev-apply to enforce the rule:
+app.py:    back = f"/schedule/{viewer}" if not _auth.is_admin(viewer) else "/"
+app.py:# /plan-import-apply files a placement. The registry is in-memory only:
+app.py:                dest = "/" if _auth.is_admin(existing) else f"/schedule/{existing}"
+app.py:        # Lauren now sets the week manually via /curriculum (a "Set
+app.py:        # Mondays). The /regenerate-school-week POST route still exists
+app.py:        elif path == "/today":           body = render_today_all(query.get("date",[""])[0])
+app.py:        elif path == "/programs":
+app.py:        elif path == "/set-school-mode":
+app.py:            # Quick toggle: /set-school-mode?mode=normal|light_week|custom_pause
+app.py:            self.send_header("Location", query.get("next",["/today"])[0])
+app.py:        elif path == "/now":             body = render_now_page()
+app.py:        elif path == "/week":
+app.py:        elif path == "/week-school":     body = render_week_school_page(iso=clean_text(query.get("date",[""])[0]) or None)
+app.py:        elif path == "/school":          body = render_school_page(status_message=clean_text(query.get("msg",[""])[0]))
+app.py:        elif path == "/api/today-progress":
+app.py:        elif path == "/api/boys-tasks":
+app.py:        elif path == "/api/child-tasks":
+app.py:        elif path == "/gdrive-files":
+app.py:        elif path == "/kids-week":
+app.py:        elif path == "/plan-tomorrow":
+app.py:        elif path == "/plan-today":
+app.py:        elif path == "/plan-week":
+app.py:        elif path == "/plan-month":
+app.py:        elif path == "/plan-year":
+app.py:        elif path == "/plan-quarter":
+app.py:        elif path == "/virtues":
+app.py:        elif path == "/5am":
+app.py:        elif path == "/liturgy-hours":
+app.py:        elif path == "/prayer-intentions":
+app.py:        elif path.startswith("/prayer-photo/"):
+app.py:            filename = path[len("/prayer-photo/"):]
+app.py:            photo_path = f"data/prayer/photos/{filename}"
+app.py:        elif path.startswith("/prayer-intention/share/"):
+app.py:            token = path[len("/prayer-intention/share/"):]
+app.py:        elif path == "/virtues/me":
+app.py:        elif path == "/virtues/family":
+app.py:        elif path.startswith("/virtues/child/"):
+app.py:            child_id = path[len("/virtues/child/"):]
+app.py:        elif path == "/school/edit":     body = render_school_edit_page(clean_child(query.get("child",[""])[0]))
+app.py:        elif path == "/chores":          body = render_chores_page(status_message=query.get("msg",[""])[0])
+app.py:        elif path == "/van-roles":       body = render_van_roles_page()
+app.py:        elif path.startswith("/print/day/"):
+app.py:            child_slug = path.split("/print/day/", 1)[1].strip("/")
+app.py:        elif path == "/print/day":
+app.py:        elif path == "/print/week":      body = render_print_week()
+app.py:        elif path == "/notes":           body = render_notes()
+app.py:        elif path == "/tasks":           body = render_tasks()
+app.py:        elif path == "/thankyou-reminders": body = render_thankyou_page()
+app.py:        elif path == "/mom":             body = render_mom_page(target_date_str=query.get("date",[""])[0])
+app.py:        elif path == "/mom-profile":
+app.py:        elif path == "/john":
+app.py:        elif path == "/friends":
+app.py:        elif path == "/roadmap":         body = render_roadmap_page()
+app.py:        elif path == "/signup":           body = render_signup_page()
+app.py:        elif path == "/waitlist":         body = render_waitlist_admin(False)
+app.py:        elif path == "/family-schedule":
+app.py:        elif path == "/frol-pdf":
+app.py:        elif path == "/school-week-pdf":
+app.py:        elif path == "/calendar":        body = render_calendar_page()
+app.py:        elif path == "/planner":         body = render_planner_page()
+app.py:        elif path == "/readings":         body = render_readings_page(date_str=query.get("date",[""])[0])
+app.py:        elif path == "/lucy":
+app.py:        elif path == "/lorenzo-plan-state":
+app.py:        elif path == "/lorenzo":
+app.py:        elif path == "/headmaster":
+app.py:        elif path == "/coach":
+app.py:        elif path == "/dr-monica":
+app.py:        elif path == "/companions":
+app.py:        elif path == "/sister-mary":
+app.py:        elif path == "/frol-grid-fragment":
+app.py:        elif path == "/frol-seasonal-view":
+app.py:        elif path == "/frol-wizard":
+app.py:                self.send_response(302); self.send_header("Location","/frol-wizard"); self.end_headers(); return
+app.py:        elif path == "/daily-mass":
+app.py:        elif path == "/plan-import-history":
+app.py:        elif path == "/grades":
+app.py:        elif path == "/subject":
+app.py:        elif path == "/hour-report":
+app.py:        elif path.startswith("/uploads/recipes/"):
+app.py:            rel = "data" + path  # actual file lives at data/uploads/recipes/<file>
+app.py:        elif path.startswith("/uploads/grades/") or path.startswith("/uploads/grade_docs/"):
+app.py:        elif path == "/curriculum":
+app.py:        elif path == "/gradebook":
+app.py:        elif path == "/assignment-analyzer":
+app.py:        elif path == "/assignment-image":
+app.py:        elif path == "/plan-import":
+app.py:        elif path == "/dev":
+app.py:        elif path == "/dev-logs":
+app.py:        elif path == "/dev-health":
+app.py:        elif path == "/dev-diag":
+app.py:        elif path == "/dev-read-file":
+app.py:        elif path == "/dev-grep-files":
+app.py:        elif path == "/dev-git-log":
+app.py:        elif path == "/dev-git-diff":
+app.py:        elif path == "/memory-book":      body = render_memory_book_page()
+app.py:        elif path == "/liturgical":      body = render_liturgical_page()
+app.py:        elif path == "/prayer":           body = render_liturgical_page()
+app.py:        elif path == "/liturgical/edit": body = render_liturgical_edit_page(query.get("date",[""])[0])
+app.py:        elif path == "/settings":        body = render_settings_page(status_message=query.get("msg",[""])[0])
+app.py:        elif path == "/history":         body = render_history_page(status_message=query.get("msg",[""])[0])
+app.py:        elif path == "/history/preview":
+app.py:                body_html = f"<h2>Snapshot Preview</h2><p class='small'>{_esc(key)}</p><pre style='white-space:pre-wrap;'>{_esc(pretty)}</pre><p><a href='/history'>← Back to History</a></p>"
+app.py:        elif path == "/plan-fragment":
+app.py:        elif path == "/grid-print":
+app.py:        elif path == "/mom-step":
+app.py:        elif path == "/meals":
+app.py:        elif path == "/meal-print":
+app.py:        elif path == "/recipes":
+app.py:        elif path == "/api-key":
+app.py:        elif path.startswith("/schedule/"):
+app.py:            child = path[len("/schedule/"):]
+app.py:        elif path.startswith("/student/"):
+app.py:            child_slug = path[len("/student/"):].split("?")[0].lower()
+app.py:        elif path.startswith("/grades/"):
+app.py:            child_slug = path[len("/grades/"):].split("?")[0].lower()
+app.py:        elif path == "/calendar/refresh":
+app.py:            self.send_response(303); self.send_header("Location","/calendar"); self.end_headers(); return
+app.py:        elif path.startswith("/lucy-child-brief/"):
+app.py:            child_slug = path[len("/lucy-child-brief/"):].strip().lower()
+app.py:        elif path.startswith("/lucy-prayer-brief/"):
+app.py:            _person_slug = path[len("/lucy-prayer-brief/"):].strip().lower()
+app.py:                    dest = f"/schedule/{uid}"
+app.py:            self._redirect(f"/student/{_kid}" if _kid else f"/schedule/{user}")
+app.py:            self._redirect(f"/schedule/{user}" if not _auth.is_admin(user) else "/")
+app.py:                self._redirect("/settings#group-app"); return
+app.py:        if path == "/plan-import-save-session":
+app.py:        if path == "/plan-import-history-delete":
+app.py:            self.send_header("Location", "/plan-import-history")
+app.py:        if path in ("/subject-upload-image", "/subject-doc-upload"):
+app.py:            if path == "/subject-upload-image":
+app.py:                    f"/subject?child={_url_q(child)}&subject={_url_q(subject)}")
+app.py:                    f"/subject?child={_url_q(child)}&subject={_url_q(subject)}")
+app.py:        if path == "/subject-send-to-mom":
+app.py:                f"/subject?child={_url_q(child)}&subject={_url_q(subject)}")
+app.py:        if path in ("/subject-grade-add", "/subject-grade-delete",
+app.py:                    "/subject-link-add", "/subject-link-delete",
+app.py:                    "/subject-doc-delete"):
+app.py:            if path in ("/subject-grade-delete","/subject-link-delete",
+app.py:                        "/subject-doc-delete","/subject-grade-add") and not is_adm:
+app.py:            if path == "/subject-link-add" and not (is_adm or child_owner):
+app.py:            if path == "/subject-grade-add":
+app.py:            elif path == "/subject-grade-delete":
+app.py:            elif path == "/subject-link-add":
+app.py:            elif path == "/subject-link-delete":
+app.py:            elif path == "/subject-doc-delete":
+app.py:                f"/subject?child={_url_q(child)}&subject={_url_q(subject)}")
+app.py:        if path in ("/school-upload", "/prayer-intention-add", "/recipe-import",
+app.py:                    "/assignment-analyze", "/assignment-update", "/assignment-delete",
+app.py:                    "/assignment-reply",
+app.py:                    "/gradebook-add", "/gradebook-update", "/gradebook-delete"):
+app.py:            elif path == "/assignment-update":
+app.py:            elif path == "/assignment-delete":
+app.py:            elif path == "/assignment-reply":
+app.py:                self._redirect(f"/assignment-analyzer#card-{_aid}" if _aid
+app.py:                               else "/assignment-analyzer")
+app.py:            elif path == "/gradebook-add":
+app.py:            elif path == "/gradebook-update":
+app.py:            elif path == "/gradebook-delete":
+app.py:            if path == "/school-upload":
+app.py:                redirect = "/school?msg=" + _up.quote(upload_msg) + "#top"
+app.py:            elif path == "/prayer-intention-add":
+app.py:                # and write it to data/uploads/recipes/. Returns ("/uploads/recipes/<file>", bytes, mime, name).
+app.py:                    _ros.makedirs("data/uploads/recipes", exist_ok=True)
+app.py:                    fpath = f"data/uploads/recipes/{fname}"
+app.py:                    return f"/uploads/recipes/{fname}"
+app.py:                self.send_header("Location", "/recipes?msg=Recipe+saved")
+app.py:            # /plan-import-apply reads its own raw JSON body — don't consume it with URL form parse
+app.py:            _JSON_PATHS = {"/plan-import-apply", "/plan-import-undo-placement", "/curriculum-save", "/curriculum-minutes", "/poetry-passage-save"}
+app.py:            elif path == "/schedule-template-save":
+app.py:                redirect = f"/schedule/{_child}?date={date.today().isoformat()}&msg=saved"
+app.py:            elif path == "/add-note":
+app.py:                redirect = "/notes#top"
+app.py:            elif path == "/archive-note":
+app.py:                archive_note(data.get("id",[""])[0]); redirect = "/notes#top"
+app.py:            elif path == "/convert-note":
+app.py:                save_manual_tasks(tasks); save_notes(notes); redirect="/notes"
+app.py:            elif path == "/add-task":
+app.py:                ru=data.get("return_url",["/tasks"])[0]
+app.py:                _pod_pat = _reu.compile(r'^/schedule/[A-Za-z]{1,30}$')
+app.py:                if ru in ("/tasks","/mom","/mom-profile") or _pod_pat.match(ru):
+app.py:                    redirect = "/tasks#top"
+app.py:            elif path == "/task-update":
+app.py:            elif path == "/task-done":
+app.py:                redirect=data.get("return_url",["/tasks"])[0] + "#top"
+app.py:            elif path == "/task-delete":
+app.py:                redirect="/tasks#top"
+app.py:            elif path == "/task-hard-delete":
+app.py:                redirect="/tasks#top"
+app.py:            elif path == "/task-purge-inactive":
+app.py:                redirect="/tasks#top"
+app.py:            elif path == "/task-override":
+app.py:                _to_ret   = data.get("return_url", ["/mom-profile"])[0].strip()
+app.py:            elif path == "/thankyou-add":
+app.py:                redirect = "/thankyou-reminders#top"
+app.py:            elif path == "/exercise-log":
+app.py:                _r = data.get("return_url",[f"/schedule/{_person}" if _ok_person else "/today"])[0]
+app.py:                if not _r.startswith("/schedule/") and _r not in ("/today",):
+app.py:                    _r = f"/schedule/{_person}" if _ok_person else "/today"
+app.py:            elif path == "/thankyou-done":
+app.py:                redirect = data.get("return_url",["/thankyou-reminders"])[0]
+app.py:                _ty_allowed = ("/thankyou-reminders", "/tasks", "/today", "/mom-profile",
+app.py:                               "/schedule/JP", "/schedule/Joseph", "/schedule/Michael",
+app.py:                               "/schedule/John")
+app.py:                    redirect = "/thankyou-reminders"
+app.py:            elif path == "/thankyou-dismiss":
+app.py:                redirect = data.get("return_url",["/thankyou-reminders"])[0]
+app.py:                _ty_allowed = ("/thankyou-reminders", "/tasks", "/today", "/mom-profile",
+app.py:                               "/schedule/JP", "/schedule/Joseph", "/schedule/Michael",
+app.py:                               "/schedule/John")
+app.py:                    redirect = "/thankyou-reminders"
+app.py:            elif path == "/thankyou-suggest":
+app.py:                _ret       = data.get("return_url", ["/today"])[0]
+app.py:                if _ret not in ("/today", "/tasks", "/mom-profile", "/thankyou-reminders",
+app.py:                                "/schedule/JP", "/schedule/Joseph", "/schedule/Michael",
+app.py:                                "/schedule/John"):
+app.py:                    _ret = "/today"
+app.py:            elif path == "/approve-school-preview":
+app.py:                redirect="/school#top"
+app.py:            elif path == "/approve-school-week":
+app.py:            elif path == "/regenerate-school-week":
+app.py:            elif path == "/reparse-school-preview":
+app.py:                redirect=f"/school/edit?child={child}"
+app.py:            elif path == "/save-school-preview-edits":
+app.py:                redirect=f"/school/edit?child={child}"
+app.py:            elif path == "/save-chores":
+app.py:                    redirect = "/chores?msg=error:Save+failed+%E2%80%94+form+data+was+empty.+Please+try+again.#top"
+app.py:                        redirect="/chores?msg=Chores+saved#top"
+app.py:                        redirect="/chores?msg=error:Save+failed+%E2%80%94+could+not+write+to+disk.+Please+try+again.#top"
+app.py:            elif path == "/apply-laundry":
+app.py:                redirect="/chores?msg=Laundry+schedule+applied+to+weekly+chores#top"
+app.py:            elif path == "/signup-submit":
+app.py:            elif path == "/waitlist":
+app.py:            elif path == "/apply-van-rotation":
+app.py:                save_chores_data(apply_van_rotation(load_chores_data())); redirect="/van-roles#top"
+app.py:            elif path == "/mom-add-note":
+app.py:                redirect="/mom#top"
+app.py:            elif path == "/history-restore":
+app.py:                    redirect = "/history?msg=" + _q("No snapshot specified.")
+app.py:                    redirect = "/history?msg=" + _q(msg if ok else f"Restore failed: {msg}")
+app.py:            elif path == "/plan-add-item":
+app.py:            elif path == "/plan-toggle-item":
+app.py:            elif path == "/plan-item-update":
+app.py:            elif path == "/anchor-save":
+app.py:            elif path == "/grid-save-template":
+app.py:            elif path == "/grid-push-weekly":
+app.py:            elif path == "/grid-cell-save":
+app.py:            elif path == "/grid-publish":
+app.py:            elif path == "/grid-reset":
+app.py:            elif path == "/plan-ai-suggest":
+app.py:            elif path == "/memory-book-save":
+app.py:            elif path == "/memory-book-delete":
+app.py:            elif path == "/lucy-tts":
+app.py:            elif path == "/lucy-rule-save":
+app.py:            elif path == "/lucy-chat":
+app.py:                    r'<settings_update\b([^>]*)>([\s\S]*?)</settings_update>',
+app.py:                    r'<prayer_add\b([^>]*)(?:/>|>([\s\S]*?)</prayer_add>)',
+app.py:                        _PRAYER_FILE = "data/prayer/intentions.json"
+app.py:                        _REC_FILE = "data/recipes.json"
+app.py:                    "jp":        ("child", "jp",      "/schedule/JP",      "JP"),
+app.py:                    "john paul": ("child", "jp",      "/schedule/JP",      "JP"),
+app.py:                    "joseph":    ("child", "joseph",  "/schedule/Joseph",  "Joseph"),
+app.py:                    "michael":   ("child", "michael", "/schedule/Michael", "Michael"),
+app.py:                    "james":     ("child", "james",   "/schedule/James",   "James"),
+app.py:                    "mom":       ("mom",   "mom",     "/mom-profile",      "Mom"),
+app.py:                    "lauren":    ("mom",   "mom",     "/mom-profile",      "Mom"),
+app.py:                    "john":      ("john",  "john",    "/john",             "John"),
+app.py:                    "dad":       ("john",  "john",    "/john",             "Dad"),
+app.py:            elif path == "/lucy-clear-history":
+app.py:                redirect = "/lucy"
+app.py:            elif path == "/lorenzo-chat":
+app.py:            elif path == "/lorenzo-rule-save":
+app.py:            elif path == "/lorenzo-plan-start":
+app.py:            elif path == "/lorenzo-plan-end":
+app.py:            elif path == "/lorenzo-clear-history":
+app.py:                redirect = "/lorenzo"
+app.py:            elif path == "/headmaster-chat":
+app.py:            elif path == "/headmaster-clear-history":
+app.py:                redirect = "/headmaster"
+app.py:            elif path == "/coach-chat":
+app.py:            elif path == "/coach-clear-history":
+app.py:                redirect = "/coach"
+app.py:            elif path == "/programs-save":
+app.py:                redirect = "/programs?focus=" + _q(person) + "&msg=" + _q(f"Saved \u201c{title}\u201d for {person}.")
+app.py:            elif path == "/programs-delete":
+app.py:                redirect = "/programs?focus=" + _q(person) + "&msg=" + _q("Deleted.")
+app.py:            elif path == "/programs-edit":
+app.py:                    redirect = "/programs?focus=" + _q(person) + "&msg=" + _q(f"Updated \u201c{_hit.get('title','')}\u201d.")
+app.py:                    redirect = "/programs?focus=" + _q(person) + "&msg=" + _q("Program not found.")
+app.py:            elif path == "/dev-chat":
+app.py:            elif path == "/dev-apply":
+app.py:            elif path == "/dev-write":
+app.py:            elif path == "/dev-undo":
+app.py:            elif path == "/dev-restart":
+app.py:            elif path == "/dev-clear":
+app.py:                    redirect = "/dev"
+app.py:            elif path == "/dr-monica-chat":
+app.py:            elif path == "/dr-monica-clear-history":
+app.py:                redirect = "/dr-monica"
+app.py:            elif path == "/hour-log-add":
+app.py:                redirect = f"/subject?child={child}&subject={subject}"
+app.py:            elif path == "/hour-log-edit":
+app.py:                redirect = f"/subject?child={child}&subject={subject}"
+app.py:            elif path == "/hour-log-delete":
+app.py:                redirect = f"/subject?child={child}&subject={subject}"
+app.py:            elif path == "/sister-mary-chat":
+app.py:            elif path == "/frol-save-seasonal":
+app.py:                self.send_response(302); self.send_header("Location","/frol-wizard"); self.end_headers(); return
+app.py:            elif path == "/frol-seasonal-use":
+app.py:                self.send_response(302); self.send_header("Location","/frol-wizard"); self.end_headers(); return
+app.py:            elif path == "/frol-seasonal-delete":
+app.py:                self.send_response(302); self.send_header("Location","/frol-wizard"); self.end_headers(); return
+app.py:            elif path == "/frol-overlay-toggle":
+app.py:                _ref = self.headers.get("Referer") or "/frol-wizard"
+app.py:            elif path == "/frol-overlay-set":
+app.py:                self.send_response(302); self.send_header("Location","/frol-wizard"); self.end_headers(); return
+app.py:            elif path == "/frol-overlay-clear":
+app.py:                _ref = self.headers.get("Referer") or "/frol-wizard"
+app.py:            elif path == "/pod-dismiss-season":
+app.py:            elif path == "/frol-wizard":
+app.py:                    self.send_header("Location", f"/frol-wizard?step=13&mode={_mode}")
+app.py:                    self.send_header("Location", f"/frol-wizard?step=13&mode={_mode}")
+app.py:                    self.send_header("Location", f"/frol-wizard?step=13&mode={_mode}")
+app.py:                    self.send_header("Location", f"/frol-wizard?step=13&mode={_mode}")
+app.py:                        self.send_header("Location", f"/frol-wizard?step=13&mode={_mode}")
+app.py:                        self.send_header("Location", f"/frol-wizard?step=13&mode={_mode}")
+app.py:                        self.send_header("Location", f"/frol-wizard?step=14&mode={_mode}")
+app.py:                        self.send_header("Location", f"/frol-wizard?step=13&mode={_mode}")
+app.py:                    self.send_header("Location", f"/frol-wizard?step={_next}&mode={_mode}")
+app.py:                        _loc = f"/frol-wizard?step=15&mode={_mode}"
+app.py:                    self.send_header("Location", f"/frol-wizard?step=15&mode={_mode}")
+app.py:                    redirect = f"/frol-wizard?step={_next}&mode={_mode}"
+app.py:                    redirect = "/frol-wizard"
+app.py:            elif path == "/frol-wizard-chat":
+app.py:            elif path == "/frol-wizard-finalize":
+app.py:                redirect = "/frol-wizard"
+app.py:            elif path == "/frol-set-variant":
+app.py:                _dest = (f"/frol-wizard?step={_vsec_i}&mode={_vmode}"
+app.py:                         if _vsec_i else "/frol-wizard")
+app.py:            elif path == "/frol-rollback-v3":
+app.py:                    self.send_header("Location", "/frol-wizard?rollback_pin_failed=1")
+app.py:                    "/frol-wizard" + ("?rolled_back=1" if _ok else "?rollback_failed=1"))
+app.py:                _redirect_back = (f"/frol-wizard?step={_sec_i}&mode={_mode_a}"
+app.py:            elif path == "/sister-mary-clear-history":
+app.py:                redirect = "/sister-mary"
+app.py:            elif path == "/timeblock-add-intention":
+app.py:            elif path == "/timeblock-add-novena":
+app.py:            elif path == "/memory-update":
+app.py:            elif path == "/curriculum-parse":
+app.py:            elif path == "/curriculum-save":
+app.py:            elif path == "/curriculum-minutes":
+app.py:            elif path == "/poetry-passage-save":
+app.py:            elif path == "/curriculum-week":
+app.py:            elif path == "/curriculum-subject-week":
+app.py:                                # back to /curriculum.  Mirrors _pi_append_note.
+app.py:                                        _csw_np = "data/notes.json"
+app.py:                                            "suggested_destination": "/curriculum",
+app.py:            elif path == "/curriculum-subject-day":
+app.py:            elif path == "/curriculum-delete":
+app.py:            elif path == "/plan-import-analyze":
+app.py:            elif path == "/plan-import-apply":
+app.py:                        """Add a note to data/notes.json with suggested_destination.
+app.py:                        notes_path = "data/notes.json"
+app.py:                            {"kind": "notes_fallback", "path": "data/notes.json", "note_id": nid},
+app.py:                                fr_path = "data/friends.json"
+app.py:                                pi_path = "data/prayer/intentions.json"
+app.py:            elif path == "/plan-import-undo-placement":
+app.py:                        nd = _u_load(meta.get("path") or "data/notes.json", None)
+app.py:                        ok = safe_save_json(meta.get("path") or "data/notes.json", nd)
+app.py:            elif path == "/plan-import-consult":
+app.py:            elif path == "/plan-import-group-consult":
+app.py:            elif path == "/api/extract-suggestions":
+app.py:            elif path in ("/calendar-config-save","/calendar-save-config"):
+app.py:                if path=="/calendar-config-save": refresh_calendar(force=True)
+app.py:                redirect="/calendar#top"
+app.py:            elif path == "/planner-add-task":
+app.py:                redirect="/planner#top"
+app.py:            elif path == "/subscribed-cal-add":
+app.py:                redirect="/calendar#top"
+app.py:            elif path == "/subscribed-cal-toggle":
+app.py:                redirect = "/settings#s-integrations"
+app.py:            elif path == "/subscribed-cal-delete":
+app.py:                save_subscribed_calendars(cals); redirect="/calendar#top"
+app.py:            elif path == "/calendar-refresh":
+app.py:                redirect="/calendar#top"
+app.py:            elif path in ("/family-schedule-save", "/settings-schedule-save"):
+app.py:                redirect="/settings?msg=Schedule+saved#s-systems"
+app.py:            elif path == "/roadmap-add":
+app.py:                redirect="/roadmap#top"
+app.py:            elif path == "/roadmap-update":
+app.py:                save_roadmap(ideas); redirect="/roadmap#top"
+app.py:            elif path == "/roadmap-delete":
+app.py:                save_roadmap([i for i in load_roadmap() if str(i.get("id",""))!=idea_id]); redirect="/roadmap#top"
+app.py:            elif path == "/liturgical-save":
+app.py:                redirect="/liturgical#top"
+app.py:            elif path == "/liturgical-delete":
+app.py:                ds=clean_text(data.get("date",[""])[0]); custom=load_liturgical_custom(); custom.pop(ds,None); save_liturgical_custom(custom); redirect="/liturgical#top"
+app.py:            elif path == "/liturgical-note":
+app.py:                redirect="/liturgical#top"
+app.py:            elif path == "/settings-save-ajax":
+app.py:            elif path == "/settings-save":
+app.py:                redirect = _ret_ss if _ret_ss else "/settings?msg=Settings+saved#top"
+app.py:            elif path == "/school-settings-save":
+app.py:            elif path == "/child-goal-add":
+app.py:            elif path == "/child-goal-archive":
+app.py:            elif path == "/child-substep-add":
+app.py:            elif path == "/child-substep-toggle":
+app.py:            elif path == "/child-substep-delete":
+app.py:            elif path == "/calendar-add-event":
+app.py:                redirect = "/mom#calendar"
+app.py:            elif path == "/calendar-event-delete":
+app.py:            elif path == "/cycle-log-add":
+app.py:                _ret = clean_text(data.get("_return",[""])[0]) or "/settings#s-cycle"
+app.py:            elif path == "/cycle-log-delete":
+app.py:                _ret2 = clean_text(data.get("_return",[""])[0]) or "/settings#s-cycle"
+app.py:            elif path == "/add-to-plan-quick":
+app.py:            elif path == "/cycle-ai-suggest":
+app.py:            elif path == "/cycle-save":
+app.py:            elif path == "/meal-save-plan":
+app.py:            elif path == "/kids-week-save":
+app.py:            elif path == "/meal-rule-add":
+app.py:                redirect = "/settings?msg=Rule+added#s-meals"
+app.py:            elif path == "/meal-rule-delete":
+app.py:                redirect = "/settings?msg=Rule+removed#s-meals"
+app.py:            elif path == "/meal-save-inventory":
+app.py:            elif path == "/meal-generate":
+app.py:            elif path == "/meal-save-constraints":
+app.py:            elif path == "/meal-edit":
+app.py:                    "(Lauren/mom, John/dad, JP 14, Joseph 12, Michael 5, James 13mo).\n\n"
+app.py:            elif path == "/recipe-delete":
+app.py:                redirect = "/recipes"
+app.py:            elif path == "/plan-week-save":
+app.py:            elif path == "/plan-month-save":
+app.py:            elif path == "/quarter-save-goals":
+app.py:            elif path == "/save-mom-profile":
+app.py:            elif path == "/save-john-profile":
+app.py:            elif path == "/save-friend":
+app.py:            elif path == "/delete-friend":
+app.py:            elif path == "/save-child-profile":
+app.py:            elif path == "/quarter-journal-save":
+app.py:            elif path == "/quarter-save-step":
+app.py:            elif path == "/quarter-checkin":
+app.py:            elif path == "/goal-add":
+app.py:                redirect = ("/plan-quarter?quarter=" + qk_in if qk_in else "/plan-quarter") + "&msg=Goal+added"
+app.py:            elif path == "/virtue-checkin":
+app.py:            elif path == "/prayer-intention-delete":
+app.py:            elif path == "/prayer-intention-log":
+app.py:            elif path == "/prayer-intention-complete":
+app.py:            elif path == "/liturgy-hours-save":
+app.py:            elif path == "/5am-save":
+app.py:            elif path == "/plan-tomorrow-questions":
+app.py:            elif path == "/plan-tomorrow-generate":
+app.py:            elif path == "/plan-tomorrow-push":
+app.py:            elif path == "/ai-daily-schedule":
+app.py:            elif path == "/ai-meal-plan":
+app.py:            elif path == "/ai-school-plan":
+app.py:            elif path == "/ai-evening-examen":
+app.py:            elif path == "/ai-weekly-review":
+app.py:            elif path == "/ai-chore-adjust":
+app.py:            elif path == "/ai-intention-prayer":
+app.py:            elif path == "/ai-capacity-preview":
+app.py:                        f"{{\"html\": \"<p>1-2 warm sentences of reasoning, then list the 3 suggestions as clickable links using the format <a href='/virtues/TYPE?virtue=VIRTUE_NAME'>VIRTUE_NAME</a> where TYPE is 'me', 'family', or 'child/CHILD_ID'</p>\"}}"
+app.py:            elif path == "/ai-week-brief":
+app.py:            elif path == "/ai-month-brief":
+app.py:            elif path == "/ai-year-brief":
+app.py:            elif path == "/ai-suggest-goals":
+app.py:            elif path == "/ai-generate-steps":
+app.py:            elif path == "/preview-keep":
+app.py:                    print(f"[/preview-keep] {_pk_exc}", flush=True)
+app.py:            elif path == "/preview-discard":
+app.py:                    print(f"[/preview-discard] {_pd_exc}", flush=True)
+app.py:            elif path == "/pod-toggle-traveling":
+app.py:                    print(f"[/pod-toggle-traveling] {_jt_exc}", flush=True)
+app.py:    os.makedirs("data",exist_ok=True); os.makedirs("data/history",exist_ok=True); os.makedirs("data/daily_plans",exist_ok=True); os.makedirs("data/day_templates",exist_ok=True); os.makedirs("data/day_grids",exist_ok=True); os.makedirs("data/meal_plan",exist_ok=True); os.makedirs("data/saint_cache",exist_ok=True)
+app.py:        "data/chores.json":{"boys":{}},"data/manual_tasks.json":[],"data/notes.json":[],"data/mom_notes.json":[],
+app.py:        "data/progress.json":{},"data/task_registry.json":{},"data/school_previews.json":{},"data/school_weeks.json":{"approved":{}},
+app.py:        "data/roadmap.json":[],"data/liturgical.json":{},
+app.py:        "data/calendar_config.json":{},"data/calendar_cache.json":{"events":[],"fetched_at":""},
+app.py:        "data/calendar_rules.json":{"rules":{}},"data/subscribed_calendars.json":[],"data/monthly_planner.json":{},
+static/js/frol_wizard.js: * - Auto-saves every field/checkbox change to POST /frol-wizard
+static/js/frol_wizard.js:    fetch("/frol-wizard", { method: "POST", body: fd, credentials: "same-origin" })
+static/js/frol_wizard.js:    fetch("/frol-wizard", { method: "POST", body: fd, credentials: "same-origin" })
+static/js/frol_wizard.js:   * hints in response to /frol-wizard-chat replies; UI just slots them in. */
+static/js/frol_wizard.js:      fetch("/frol-wizard", { method: "POST", body: fd, credentials: "same-origin" });
+static/js/frol_wizard.js:    fetch("/frol-wizard", { method: "POST", body: fd, credentials: "same-origin" });
+static/js/frol_wizard.js:    return fetch("/frol-wizard", { method: "POST", body: fd, credentials: "same-origin" })
+static/js/frol_wizard.js:      fetch("/frol-wizard", { method: "POST", body: fd, credentials: "same-origin", redirect: "manual" })
+static/js/frol_wizard.js:          window.location.href = "/frol-wizard?step=" + next + modeQs;
+static/js/frol_wizard.js:    fetch("/frol-set-variant", { method: "POST", body: fd, credentials: "same-origin", redirect: "manual" })
+static/js/frol_wizard.js:    fetch("/frol-wizard-chat", { method: "POST", body: fd, credentials: "same-origin" })
+static/js/frol_wizard.js://   - Person pill toggles (persisted via /frol-wizard save_field)
+static/js/frol_wizard.js:    var url = '/frol-grid-fragment?section=' + encodeURIComponent(sec) +
+static/js/frol_wizard.js:    fetch('/frol-wizard', { method: 'POST', body: fd, credentials: 'same-origin' })
+static/js/plan_importer_consult.js:// Companion consultation, council, and suggestion logic for /plan-import.
+static/js/plan_importer_consult.js:    const resp = await fetch('/api/extract-suggestions', {method:'POST', body});
+static/js/plan_importer_consult.js:    const r = await fetch('/plan-import-group-consult', {method:'POST', body});
+static/js/plan_importer_consult.js:    const resp = await fetch('/plan-import-consult', {method:'POST', body});
+static/js/plan_importer_core.js:// Core results rendering, apply, receipt, and undo logic for /plan-import.
+static/js/plan_importer_core.js:    const resp = await fetch('/plan-import-save-session', {
+static/js/plan_importer_core.js:      resp = await fetch('/plan-import-analyze', {method:'POST', body: fd, signal: _abortCtrl.signal});
+static/js/plan_importer_core.js:      resp = await fetch('/plan-import-analyze', {method:'POST', body, signal: _abortCtrl.signal});
+static/js/plan_importer_core.js:    const resp = await fetch('/plan-import-analyze', {method:'POST', body, signal: _abortCtrl.signal});
+static/js/plan_importer_core.js:// both the in-memory task object AND the visible date/notes inputs so the
+static/js/plan_importer_core.js:  'profiles/mom.json':        '&#128105; Mom’s Profile',
+static/js/plan_importer_core.js:  'profiles/john.json':       '&#128100; John’s Profile',
+static/js/plan_importer_core.js:    const resp = await fetch('/plan-import-apply', {
+static/js/plan_importer_core.js:    const resp = await fetch('/plan-import-undo-placement', {
