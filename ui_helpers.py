@@ -1345,7 +1345,7 @@ document.addEventListener('click', function(e) {{
   }});
   /* Highlight More btn if on a "more" page */
   var morePaths = ['/mom-profile','/john','/friends','/calendar','/notes','/planner',
-                   '/school','/chores','/meals','/recipes','/family-schedule','/roadmap',
+                   '/school','/chores','/meals','/recipes','/family-schedule','/roadmap','/plan-import',
                    '/settings','/mom','/dev','/lucy','/lorenzo','/headmaster','/coach','/dr-monica',
                    '/thankyou-reminders'];
   if (morePaths.indexOf(path) > -1) {{
