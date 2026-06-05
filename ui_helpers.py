@@ -468,6 +468,11 @@ def _build_mobile_more_sheet_inner(viewer, is_child: bool) -> str:
                   border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
           &#128197; Monthly Planner
         </a>
+        <a href="/plan-import" onclick="closeMobileMore()"
+           style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
+                  border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
+          &#128229; Plan Importer
+        </a>
         <a href="/mom#grid" onclick="closeMobileMore()"
            style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#fafafa;
                   border-radius:12px;text-decoration:none;color:#374151;font-size:0.9em;">
