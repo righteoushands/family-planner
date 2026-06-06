@@ -248,6 +248,7 @@ from render_school_pdf import generate_school_pdf
 from render_frol_pdf import generate_frol_pdf
 from render_coach import render_coach_page, build_coach_context
 from render_monica import render_monica_page, build_monica_context
+from render_wizards import render_wizards_page
 from render_plan_importer import (
     render_plan_import_page, build_analysis_system_prompt,
     _load_upcoming_events, _format_events_summary,
@@ -1245,6 +1246,16 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/companions":
             from render_companions import render_companions_page
             html = render_companions_page()
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header("Pragma","no-cache")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
+        elif path == "/wizards":
+            html = render_wizards_page(viewer)
             self.send_response(200)
             self.send_header("Content-Type","text/html; charset=utf-8")
             self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")

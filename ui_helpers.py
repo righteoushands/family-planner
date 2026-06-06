@@ -1347,7 +1347,7 @@ document.addEventListener('click', function(e) {{
   var morePaths = ['/mom-profile','/john','/friends','/calendar','/notes','/planner',
                    '/school','/chores','/meals','/recipes','/family-schedule','/roadmap','/plan-import',
                    '/settings','/mom','/dev','/lucy','/lorenzo','/headmaster','/coach','/dr-monica',
-                   '/thankyou-reminders'];
+                   '/wizards','/thankyou-reminders'];
   if (morePaths.indexOf(path) > -1) {{
     var btn = document.getElementById('mobile-more-btn');
     if (btn) {{
