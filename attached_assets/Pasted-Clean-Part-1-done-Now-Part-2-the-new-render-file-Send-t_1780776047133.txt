@@ -1,0 +1,50 @@
+Clean. Part 1 done.
+
+Now Part 2 — the new render file. Send this to Replit:
+
+Read claud.md and paste back all 19 rules. Then tell me which rules apply to today’s task before you begin.
+
+Task: Meal Planning Wizard Phase B, Part 2 of 3 — create render_wizards.py.
+
+Create a new file render_wizards.py. This file renders the Wizards page at /wizards.
+
+The page shows all wizards as cards in a clean list. For now, only the Meal Planning Wizard is launchable. All others show as Coming Soon.
+
+The render function signature:
+
+def render_wizards_page(user: str) -> str:
+
+
+The page must include the standard page chrome (header, bottom nav) by calling the existing page wrapper used by other render files. Check how render_lucy.py or render_lorenzo.py wraps their page and match that pattern exactly — do not invent a new wrapper.
+
+Wizard cards to show (in this order):
+
+	1.	Meal Planning Wizard — “Plan the week’s meals with Lorenzo” — status: active — links to /meal-wizard (not yet built, but the link goes there)
+	2.	Rule of Life Wizard — “Build your family’s daily rhythm” — status: active — links to /frol-wizard
+	3.	Plan My Day Wizard — “Plan your day, step by step” — status: coming soon
+	4.	Weekly Planning Wizard — “Plan the week ahead” — status: coming soon
+	5.	End of Day Debrief — “Close out the day” — status: coming soon
+	6.	School Year Setup — “Set up the new school year” — status: coming soon
+	7.	Event Planning Wizard — “Plan a feast day or gathering” — status: coming soon
+
+Card design:
+
+	•	Active wizards: tappable card with a clear Launch button, wand icon, name, description
+	•	Coming Soon wizards: greyed out, “Coming Soon” badge, not tappable
+	•	Match the visual style of the existing app (use existing CSS variables — var(--ink), var(--gold-mid), var(--cream) etc — don’t invent new colors)
+	•	Mobile-first — cards stack vertically, full width, easy to tap
+
+Page title: “Wizards”
+
+Constraints:
+
+	•	No JS in this file unless strictly necessary — this is a static list page
+	•	If any JS is needed and it sits inside a Python f-string, Rules 7 and 12 apply
+	•	Keep the file under 200 lines
+	•	No data reads needed — this is a static page for now
+
+After creating the file:
+
+	1.	Run py_compile on render_wizards.py and paste the result
+	2.	No smoke test or harness needed — static render, no data touched
+	3.	Paste the full file contents so I can review
