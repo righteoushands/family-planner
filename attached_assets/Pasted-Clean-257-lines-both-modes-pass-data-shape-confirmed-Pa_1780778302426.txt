@@ -1,0 +1,60 @@
+Clean. 257 lines, both modes pass, data shape confirmed. Part 1 done.
+
+Data shape to honor in Part 2: {"setup_complete": bool, "items": [str], "custom": [str], "running_low": [str]}
+
+Send this to Replit — Part 2:
+
+Read claud.md and paste back all 19 rules. Then tell me which rules apply to today’s task before you begin.
+
+Task: Meal Planning Wizard Phase C, Part 2 of 3 — app.py only.
+
+Add two new routes to app.py.
+
+Change 1 — GET /pantry-staples in do_GET.
+
+Find the /wizards route added recently. Add the new elif branch immediately after it:
+
+elif path == "/pantry-staples":
+    html = render_pantry_staples_page(viewer)
+    self.send_response(200)
+    self.send_header("Content-Type", "text/html; charset=utf-8")
+    self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+    self.send_header("Pragma", "no-cache")
+    self.end_headers()
+    try:
+        self.wfile.write(html.encode())
+    except BrokenPipeError:
+        pass
+    return
+
+
+Change 2 — POST /pantry-staples-save in do_POST.
+
+Add a new elif branch in do_POST. This handler:
+
+	1.	Parses the form body (urlencoded)
+	2.	Reads staple values (list of checked staple names)
+	3.	Reads custom_item values (list of custom additions)
+	4.	Reads running_low values (list of items flagged as running low)
+	5.	Reads setup_complete (boolean — “true” string means True)
+	6.	Builds a dict: {"setup_complete": True, "items": staples_list, "custom": custom_list, "running_low": running_low_list}
+	7.	Saves via save_pantry_staples(data) from data_helpers
+	8.	Redirects to /pantry-staples on success
+
+Change 3 — Add import.
+
+Add from render_meal_wizard import render_pantry_staples_page to the imports at the top of app.py with the other render imports.
+
+Constraints:
+
+	•	The POST handler must handle the case where staple, custom_item, or running_low fields are missing (user unchecked everything) — default to empty list, not an error
+	•	Use the existing form-parsing pattern in do_POST — check how other simple form handlers parse urlencoded bodies and match exactly
+	•	Do not touch any existing route
+	•	/pantry-staples-save does NOT receive a JSON body — do not add it to _JSON_PATHS
+
+After the changes:
+
+	1.	Run py_compile on app.py and paste the result
+	2.	Run an in-process smoke test confirming the POST handler builds the correct dict from sample form data
+	3.	No verify harness needed — no shared data paths touched beyond the new pantry staples file
+	4.	Paste the diff

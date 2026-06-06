@@ -249,6 +249,7 @@ from render_frol_pdf import generate_frol_pdf
 from render_coach import render_coach_page, build_coach_context
 from render_monica import render_monica_page, build_monica_context
 from render_wizards import render_wizards_page
+from render_meal_wizard import render_pantry_staples_page
 from render_plan_importer import (
     render_plan_import_page, build_analysis_system_prompt,
     _load_upcoming_events, _format_events_summary,
@@ -279,6 +280,7 @@ from render_meals import (
     _build_meal_prompt, _week_key, _planning_week_key,
 )
 from data_helpers import load_recipes, save_recipe, save_recipes
+from data_helpers import save_pantry_staples
 from render_daily_plan import (
     get_or_seed_plan, add_item_to_plan, toggle_plan_item,
     delete_plan_item, reorder_plan_items, update_item_time,
@@ -1256,6 +1258,16 @@ class Handler(BaseHTTPRequestHandler):
             return
         elif path == "/wizards":
             html = render_wizards_page(viewer)
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header("Pragma","no-cache")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
+        elif path == "/pantry-staples":
+            html = render_pantry_staples_page(viewer)
             self.send_response(200)
             self.send_header("Content-Type","text/html; charset=utf-8")
             self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
@@ -2339,6 +2351,23 @@ class Handler(BaseHTTPRequestHandler):
         # ── Auth gate for all other POST routes ───────────────────────────────
         _post_user = self._require_post_auth(path)
         if _post_user is None:
+            return
+
+        if path == "/pantry-staples-save":
+            cl  = int(self.headers.get("Content-Length", 0))
+            raw = self.rfile.read(cl).decode("utf-8", errors="ignore") if cl else ""
+            params = parse_qs(raw)
+            staples_list     = [s.strip() for s in params.get("staple", []) if s.strip()]
+            custom_list      = [c.strip() for c in params.get("custom_item", []) if c.strip()]
+            running_low_list = [r.strip() for r in params.get("running_low", []) if r.strip()]
+            data = {
+                "setup_complete": True,
+                "items": staples_list,
+                "custom": custom_list,
+                "running_low": running_low_list,
+            }
+            save_pantry_staples(data)
+            self._redirect("/pantry-staples")
             return
 
         if path == "/plan-import-save-session":
