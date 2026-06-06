@@ -23,8 +23,11 @@ Michael (5, kindergarten), James (13 months, toddler — cannot be assigned task
 ## Python 3.11 hard rules — never violate these
 1. No backslashes inside f-strings
 2. No nested quotes inside f-strings — use a variable outside the f-string instead
-3. All POST routing uses elif chains — never if/elif with a missing first if,
-   never nested if blocks for routing
+3. All GET routing uses elif chains in do_GET — never a bare if, never nested
+   if blocks for routing. POST routing in do_POST uses standalone
+   if path == ...: ... return blocks at the top level — this is the real
+   convention in this codebase and must be matched exactly. Never use nested
+   if blocks for routing in either handler.
 4. Never put import statements inside if blocks or functions
 5. All file writes use safe_save_json (tmp file + os.replace) — never open(f, 'w') directly
 6. No walrus operator (:=)
