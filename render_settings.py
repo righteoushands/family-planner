@@ -2217,6 +2217,20 @@ def _section_meals() -> str:
             </a>
         </div>
 
+        <div style="background:var(--parchment);border:1px solid var(--border);
+                    border-radius:12px;padding:16px 18px;margin-bottom:18px;">
+            <h3 style="margin:0 0 4px;">Pantry Staples</h3>
+            <p class="small" style="margin:0 0 12px;">
+                Set up the items you always keep on hand &mdash; they'll never
+                appear on your grocery list.
+            </p>
+            <a href="/pantry-staples" style="display:inline-block;padding:9px 18px;
+               background:var(--gold-mid);color:var(--ink);border-radius:10px;
+               font-size:0.85em;font-weight:700;text-decoration:none;">
+               Manage Pantry Staples &rarr;
+            </a>
+        </div>
+
         <h3>Meal Rules
             <span style="font-weight:400;font-size:0.85em;color:#888;">
                 &mdash; {len(rules)} rules
