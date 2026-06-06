@@ -411,11 +411,11 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       background:#f5f7fc;color:#1a1a1a;min-height:100vh;}}
 .gr-bubble-user{{
     background:#1e3566;color:white;padding:10px 14px;border-radius:16px 16px 4px 16px;
-    font-size:0.9em;line-height:1.55;max-width:75%;align-self:flex-end;margin-left:auto;
+    font-size:1em;line-height:1.55;max-width:75%;align-self:flex-end;margin-left:auto;
 }}
 .gr-bubble-gr{{
     background:white;border:1px solid #d0daf0;padding:12px 16px;
-    border-radius:4px 16px 16px 16px;font-size:0.9em;line-height:1.65;
+    border-radius:4px 16px 16px 16px;font-size:1em;line-height:1.65;
     max-width:85%;white-space:pre-wrap;color:#1a1a1a;
 }}
 .gr-bubble-wrap{{display:flex;flex-direction:column;gap:12px;}}
@@ -483,7 +483,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 </div>
 
 <!-- Floating input -->
-<div style="position:fixed;bottom:0;left:0;right:0;background:white;
+<div style="position:fixed;bottom:64px;left:0;right:0;background:white;
             border-top:1px solid #d0daf0;padding:12px 16px;z-index:100;">
     <div style="max-width:760px;margin:0 auto;display:flex;gap:10px;align-items:flex-end;">
         <textarea id="gr-input" rows="1" placeholder="Ask Father Gregory…"
@@ -510,7 +510,7 @@ var _grIso      = {_ej(iso)};
         if (m.role === 'user')      _renderUserBubble(m.content);
         else if (m.role === 'assistant') _renderBubble(m.content);
     }}
-    if (_grHistory.length) window.scrollTo(0, document.body.scrollHeight);
+    if (_grHistory.length) {{ var msgs = document.querySelectorAll('.gr-bubble-user, .gr-bubble-gr'); if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}}); }}
 }})();
 
 function _renderBubble(text) {{
@@ -522,7 +522,8 @@ function _renderBubble(text) {{
     row.appendChild(bub);
     _renderHandoffBtns(text, row);
     wrap.appendChild(row);
-    window.scrollTo(0, document.body.scrollHeight);
+    var msgs = document.querySelectorAll('.gr-bubble-user, .gr-bubble-gr');
+    if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
     return bub;
 }}
 
@@ -535,7 +536,8 @@ function _renderUserBubble(text) {{
     bub.textContent = text;
     row.appendChild(bub);
     wrap.appendChild(row);
-    window.scrollTo(0, document.body.scrollHeight);
+    var msgs = document.querySelectorAll('.gr-bubble-user, .gr-bubble-gr');
+    if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
 }}
 
 function grQuick(prompt) {{
@@ -555,7 +557,8 @@ function grSend() {{
     _renderUserBubble(msg);
 
     document.getElementById('gr-thinking').style.display = '';
-    window.scrollTo(0, document.body.scrollHeight);
+    var msgs = document.querySelectorAll('.gr-bubble-user, .gr-bubble-gr');
+    if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
 
     var params = 'iso='     + encodeURIComponent(new Date().toISOString().split('T')[0])
         + '&message=' + encodeURIComponent(msg);
@@ -584,7 +587,8 @@ function grSend() {{
                 }}
                 full += decoder.decode(res.value, {{stream: true}});
                 bubble.innerHTML = _linkify(_stripHandoffTags(full));
-                window.scrollTo(0, document.body.scrollHeight);
+                var msgs = document.querySelectorAll('.gr-bubble-user, .gr-bubble-gr');
+                if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
                 return read();
             }});
         }}

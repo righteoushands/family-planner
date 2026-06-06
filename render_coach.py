@@ -408,11 +408,11 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       background:#f2faf6;color:#1a1a1a;min-height:100vh;}}
 .co-bubble-user{{
     background:#1a6e3e;color:white;padding:10px 14px;border-radius:16px 16px 4px 16px;
-    font-size:0.9em;line-height:1.55;max-width:75%;align-self:flex-end;margin-left:auto;
+    font-size:1em;line-height:1.55;max-width:75%;align-self:flex-end;margin-left:auto;
 }}
 .co-bubble-co{{
     background:white;border:1px solid #b8dcc8;padding:12px 16px;
-    border-radius:4px 16px 16px 16px;font-size:0.9em;line-height:1.65;
+    border-radius:4px 16px 16px 16px;font-size:1em;line-height:1.65;
     max-width:85%;white-space:pre-wrap;color:#1a1a1a;
 }}
 .co-bubble-wrap{{display:flex;flex-direction:column;gap:12px;}}
@@ -472,7 +472,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 </div>
 
 <!-- Floating input -->
-<div style="position:fixed;bottom:0;left:0;right:0;background:white;
+<div style="position:fixed;bottom:64px;left:0;right:0;background:white;
             border-top:1px solid #b8dcc8;padding:12px 16px;z-index:100;">
     <div style="max-width:760px;margin:0 auto;display:flex;gap:10px;align-items:flex-end;">
         <textarea id="co-input" rows="1" placeholder="Ask Coach…"
@@ -498,7 +498,7 @@ var _coIso     = {_ej(iso)};
         if (m.role === 'user')           _coRenderUser(m.content);
         else if (m.role === 'assistant') _coRenderBubble(m.content);
     }}
-    if (_coHistory.length) window.scrollTo(0, document.body.scrollHeight);
+    if (_coHistory.length) {{ var msgs = document.querySelectorAll('.co-bubble-user, .co-bubble-co'); if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}}); }}
 }})();
 
 function _coRenderBubble(text) {{
@@ -510,7 +510,8 @@ function _coRenderBubble(text) {{
     row.appendChild(bub);
     _renderHandoffBtns(text, row);
     wrap.appendChild(row);
-    window.scrollTo(0, document.body.scrollHeight);
+    var msgs = document.querySelectorAll('.co-bubble-user, .co-bubble-co');
+    if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
     return bub;
 }}
 
@@ -523,7 +524,8 @@ function _coRenderUser(text) {{
     bub.textContent = text;
     row.appendChild(bub);
     wrap.appendChild(row);
-    window.scrollTo(0, document.body.scrollHeight);
+    var msgs = document.querySelectorAll('.co-bubble-user, .co-bubble-co');
+    if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
 }}
 
 function coachQuick(prompt) {{
@@ -541,7 +543,8 @@ function coachSend() {{
     _coHistory.push({{role:'user', content: msg}});
     _coRenderUser(msg);
     document.getElementById('co-thinking').style.display = '';
-    window.scrollTo(0, document.body.scrollHeight);
+    var msgs = document.querySelectorAll('.co-bubble-user, .co-bubble-co');
+    if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
 
     fetch('/coach-chat', {{
         method: 'POST',
@@ -568,7 +571,8 @@ function coachSend() {{
                 }}
                 full += decoder.decode(res.value, {{stream: true}});
                 bubble.innerHTML = _linkify(_stripHandoffTags(full));
-                window.scrollTo(0, document.body.scrollHeight);
+                var msgs = document.querySelectorAll('.co-bubble-user, .co-bubble-co');
+                if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
                 return read();
             }});
         }}

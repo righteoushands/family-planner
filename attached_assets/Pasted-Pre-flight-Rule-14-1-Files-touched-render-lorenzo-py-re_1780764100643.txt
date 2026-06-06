@@ -1,0 +1,45 @@
+Pre-flight (Rule 14):
+
+	1.	Files touched: render_lorenzo.py, render_sister_mary.py, render_gregory.py, render_coach.py, render_monica.py — five files, same change in each, directly related. Rule 17 permits this as one instruction.
+	2.	JS in f-strings: YES on all five — Rule 12 applies. Replit must inspect each occurrence’s f-string context before editing, same as Lucy. Braces inside f-strings must be doubled {{ }}. No '\n' in JS strings.
+	3.	Form handling: no
+	4.	Root cause confirmed: yes — from diagnosis: all five at 0.9em, four of five at bottom:0 (Sister Mary, Gregory, Coach, Monica need bottom:64px), all five using instant window.scrollTo
+	5.	Multiple files: yes — same change, sequential per file, py_compile after each
+	6.	Data shape changes: no
+
+Read claud.md and paste back all 19 rules. Then tell me which rules apply to today’s task before you begin.
+
+Task: Companion chat UI fixes — five files. Same three changes as Lucy, applied to render_lorenzo.py, render_sister_mary.py, render_gregory.py, render_coach.py, render_monica.py.
+
+Pre-flight answers supplied:
+
+	•	Five files, same change in each, directly related — Rule 17 permits one instruction
+	•	JS in f-strings: YES on all five — Rules 7 and 12 apply
+	•	No form handling, no data shape changes, root cause confirmed from prior diagnosis
+
+For each file, make these three changes:
+
+Change 1 — Font size.
+Find every CSS rule setting font-size on chat message bubbles (user and assistant bubbles). Change all instances from 0.9em to 1em. Sister Mary’s assistant bubble is 0.92em — change that to 1em too. Message bubble text only — do not touch font sizes on buttons, headers, timestamps, or any other element.
+
+Change 2 — Input bar bottom offset.
+For render_lorenzo.py: bottom:64px is already correct — confirm and do not change.
+For render_sister_mary.py, render_gregory.py, render_coach.py, render_monica.py: change bottom:0 to bottom:64px on the fixed input bar. Do not change any other positioning.
+
+Change 3 — Scroll to new message.
+Find every instance of window.scrollTo(0, document.body.scrollHeight) in each file. Replace each with the scrollIntoView pattern, using the correct class names for that companion’s message bubbles (they differ per file — check before editing). Pattern:
+
+var msgs = document.querySelectorAll('.USER-CLASS, .ASSISTANT-CLASS');
+if (msgs.length) msgs[msgs.length - 1].scrollIntoView({behavior: 'smooth', block: 'end'});
+
+
+Before editing each file, read the actual bubble class names and the f-string context of each scrollTo occurrence. If the occurrence is inside an f-string, braces must be doubled {{ }}. Never use '\n' inside a JS string within a Python string — use '\\n'.
+
+Process:
+Edit one file at a time. After each file: run py_compile and paste the result before moving to the next file. Do not move to the next file if py_compile fails.
+
+After all five files:
+
+	1.	Run an in-process smoke test across all five companions and paste the result
+	2.	No verify harness needed — no data files touched
+	3.	Paste the combined diff

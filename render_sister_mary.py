@@ -351,11 +351,11 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       background:#f4f7fc;color:#1a1a1a;min-height:100vh;}}
 .sm-bubble-user{{
     background:{accent};color:white;padding:10px 14px;border-radius:16px 16px 4px 16px;
-    font-size:0.9em;line-height:1.55;max-width:75%;align-self:flex-end;margin-left:auto;
+    font-size:1em;line-height:1.55;max-width:75%;align-self:flex-end;margin-left:auto;
 }}
 .sm-bubble-sm{{
     background:white;border:1px solid #c8d4e8;padding:12px 16px;
-    border-radius:4px 16px 16px 16px;font-size:0.92em;line-height:1.7;
+    border-radius:4px 16px 16px 16px;font-size:1em;line-height:1.7;
     max-width:85%;white-space:pre-wrap;color:#1a1a1a;
     font-family:Georgia, 'Times New Roman', serif;
 }}
@@ -372,7 +372,7 @@ header.sm-head .sub{{font-size:0.82em;opacity:0.92;font-style:italic;margin-top:
 .sm-quick{{display:flex;flex-wrap:wrap;gap:8px;padding:10px 16px;background:#fbfcff;border-bottom:1px solid #e4eaf3;}}
 #sm-msgs{{padding:18px 16px 110px;display:flex;flex-direction:column;gap:14px;max-width:760px;margin:0 auto;}}
 .sm-input-bar{{
-    position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #c8d4e8;
+    position:fixed;bottom:64px;left:0;right:0;background:white;border-top:1px solid #c8d4e8;
     padding:10px 12px 14px;display:flex;gap:8px;align-items:flex-end;
 }}
 #sm-input{{flex:1;border:1px solid #c8d4e8;border-radius:18px;padding:10px 14px;font-size:0.95em;
@@ -471,7 +471,8 @@ function smSend() {{
     _smHistory.push({{role:'user', content: msg}});
     _smRenderUser(msg);
     document.getElementById('sm-thinking').style.display = '';
-    window.scrollTo(0, document.body.scrollHeight);
+    var msgs = document.querySelectorAll('.sm-bubble-user, .sm-bubble-sm');
+    if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
 
     fetch('/sister-mary-chat', {{
         method: 'POST',
@@ -498,7 +499,8 @@ function smSend() {{
                 }}
                 full += decoder.decode(res.value, {{stream: true}});
                 bubble.innerHTML = _linkify(_stripHandoffTags(full));
-                window.scrollTo(0, document.body.scrollHeight);
+                var msgs = document.querySelectorAll('.sm-bubble-user, .sm-bubble-sm');
+                if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
                 return read();
             }});
         }}

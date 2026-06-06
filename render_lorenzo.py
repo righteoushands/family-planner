@@ -1131,11 +1131,11 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       background:#faf8f5;color:#1a1a1a;min-height:100vh;}}
 .lz-bubble-user{{
     background:#3b2a1a;color:white;padding:10px 14px;border-radius:16px 16px 4px 16px;
-    font-size:0.9em;line-height:1.55;max-width:75%;align-self:flex-end;margin-left:auto;
+    font-size:1em;line-height:1.55;max-width:75%;align-self:flex-end;margin-left:auto;
 }}
 .lz-bubble-lz{{
     background:white;border:1px solid #e4dbd2;padding:12px 16px;
-    border-radius:4px 16px 16px 16px;font-size:0.9em;line-height:1.65;
+    border-radius:4px 16px 16px 16px;font-size:1em;line-height:1.65;
     max-width:85%;white-space:pre-wrap;color:#1a1a1a;
 }}
 .lz-bubble-wrap{{display:flex;flex-direction:column;gap:12px;}}
@@ -1827,7 +1827,8 @@ function lzSend() {{
     lzClearAttach();
 
     document.getElementById('lz-thinking').style.display = '';
-    window.scrollTo(0, document.body.scrollHeight);
+    var msgs = document.querySelectorAll('.lz-bubble-user, .lz-bubble-lz');
+    if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
 
     var params = 'iso=' + encodeURIComponent(_lzIso)
         + '&capacity='   + encodeURIComponent(_lzCapacity)
@@ -2080,7 +2081,8 @@ function lzSend() {{
                     // Refresh planning banner if session is active
                     if (_lzPlanActive) lzRefreshPlanBanner();
 
-                    window.scrollTo(0, document.body.scrollHeight);
+                    var msgs = document.querySelectorAll('.lz-bubble-user, .lz-bubble-lz');
+                    if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
                     return;
                 }}
                 full += decoder.decode(res.value, {{stream:true}});
@@ -2111,7 +2113,8 @@ function lzSend() {{
                         }}
                     }}
                 }}
-                window.scrollTo(0, document.body.scrollHeight);
+                var msgs = document.querySelectorAll('.lz-bubble-user, .lz-bubble-lz');
+                if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
                 return read();
             }});
         }}
@@ -2227,7 +2230,8 @@ window.addEventListener('load', function() {{
                 _lzRenderBubble('lz', content);
             }}
         }}
-        window.scrollTo(0, document.body.scrollHeight);
+        var msgs = document.querySelectorAll('.lz-bubble-user, .lz-bubble-lz');
+        if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
     }} else {{
         input.value = {_ej(opener_prompt)};
         input.style.height = 'auto';

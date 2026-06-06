@@ -378,11 +378,11 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       background:#fdf5f9;color:#1a1a1a;min-height:100vh;}}
 .mo-bubble-user{{
     background:#8b3a5c;color:white;padding:10px 14px;border-radius:16px 16px 4px 16px;
-    font-size:0.9em;line-height:1.55;max-width:75%;align-self:flex-end;margin-left:auto;
+    font-size:1em;line-height:1.55;max-width:75%;align-self:flex-end;margin-left:auto;
 }}
 .mo-bubble-mo{{
     background:white;border:1px solid #e0b8cc;padding:12px 16px;
-    border-radius:4px 16px 16px 16px;font-size:0.9em;line-height:1.65;
+    border-radius:4px 16px 16px 16px;font-size:1em;line-height:1.65;
     max-width:85%;white-space:pre-wrap;color:#1a1a1a;
 }}
 .mo-bubble-wrap{{display:flex;flex-direction:column;gap:12px;}}
@@ -451,7 +451,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 </div>
 
 <!-- Floating input -->
-<div style="position:fixed;bottom:0;left:0;right:0;background:white;
+<div style="position:fixed;bottom:64px;left:0;right:0;background:white;
             border-top:1px solid #e0b8cc;padding:12px 16px;z-index:100;">
     <div style="max-width:760px;margin:0 auto;display:flex;gap:10px;align-items:flex-end;">
         <textarea id="mo-input" rows="1" placeholder="Ask Dr. Monica…"
@@ -477,7 +477,7 @@ var _moIso     = {_ej(iso)};
         if (m.role === 'user')           _moRenderUser(m.content);
         else if (m.role === 'assistant') _moRenderBubble(m.content);
     }}
-    if (_moHistory.length) window.scrollTo(0, document.body.scrollHeight);
+    if (_moHistory.length) {{ var msgs = document.querySelectorAll('.mo-bubble-user, .mo-bubble-mo'); if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}}); }}
 }})();
 
 function _moRenderBubble(text) {{
@@ -489,7 +489,8 @@ function _moRenderBubble(text) {{
     row.appendChild(bub);
     _renderHandoffBtns(text, row);
     wrap.appendChild(row);
-    window.scrollTo(0, document.body.scrollHeight);
+    var msgs = document.querySelectorAll('.mo-bubble-user, .mo-bubble-mo');
+    if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
     return bub;
 }}
 
@@ -502,7 +503,8 @@ function _moRenderUser(text) {{
     bub.textContent = text;
     row.appendChild(bub);
     wrap.appendChild(row);
-    window.scrollTo(0, document.body.scrollHeight);
+    var msgs = document.querySelectorAll('.mo-bubble-user, .mo-bubble-mo');
+    if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
 }}
 
 function monicaQuick(prompt) {{
@@ -520,7 +522,8 @@ function monicaSend() {{
     _moHistory.push({{role:'user', content: msg}});
     _moRenderUser(msg);
     document.getElementById('mo-thinking').style.display = '';
-    window.scrollTo(0, document.body.scrollHeight);
+    var msgs = document.querySelectorAll('.mo-bubble-user, .mo-bubble-mo');
+    if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
 
     fetch('/dr-monica-chat', {{
         method: 'POST',
@@ -547,7 +550,8 @@ function monicaSend() {{
                 }}
                 full += decoder.decode(res.value, {{stream: true}});
                 bubble.innerHTML = _linkify(_stripHandoffTags(full));
-                window.scrollTo(0, document.body.scrollHeight);
+                var msgs = document.querySelectorAll('.mo-bubble-user, .mo-bubble-mo');
+                if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
                 return read();
             }});
         }}
