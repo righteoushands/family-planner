@@ -2,6 +2,7 @@
 data_helpers.py — All data loading, saving, and utility functions.
 Imports from: config, safe_utils, daily_schedule_engine, notes_router
 """
+import json
 from datetime import date, timedelta
 from safe_utils import (
     ensure_file, safe_save_json, debug_log,
@@ -21,6 +22,7 @@ from config import (
     PRAYER_INTENTIONS_FILE, SISTER_MARY_HISTORY_FILE, POPE_INTENTIONS_FILE,
     HOUR_TRACKING_FILE, FROL_ACTIVITIES_FILE, SEASONAL_SCHEDULES_FILE,
     DAY_TEMPLATES_DIR,
+    PANTRY_STAPLES_FILE, MEAL_HISTORY_FILE, MEAL_WIZARD_SESSION_FILE,
 )
 
 
@@ -3169,3 +3171,76 @@ def append_sister_mary_messages(msgs: list) -> list:
 
 def clear_sister_mary_history() -> bool:
     return _safe_clear(SISTER_MARY_HISTORY_FILE)
+
+
+# ── Meal Planning Wizard: pantry staples ─────────────────────────────────────
+def load_pantry_staples() -> dict:
+    """Load pantry staples from PANTRY_STAPLES_FILE. Returns {} if missing."""
+    try:
+        with open(PANTRY_STAPLES_FILE, "r") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def save_pantry_staples(data: dict) -> None:
+    """Persist pantry staples via safe_save_json."""
+    safe_save_json(PANTRY_STAPLES_FILE, data)
+
+
+# ── Meal Planning Wizard: meal history ───────────────────────────────────────
+def load_meal_history() -> list:
+    """Load meal history from MEAL_HISTORY_FILE. Returns [] if missing."""
+    try:
+        with open(MEAL_HISTORY_FILE, "r") as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+
+def save_meal_history(history: list) -> None:
+    """Persist meal history via safe_save_json."""
+    safe_save_json(MEAL_HISTORY_FILE, history)
+
+
+def add_meal_history_entry(entry: dict) -> None:
+    """Append one entry to meal history and save. Entry shape:
+    {recipe_id, recipe_name, day, week_start, served_at}."""
+    history = load_meal_history()
+    history.append(entry)
+    save_meal_history(history)
+
+
+def get_recent_meals(weeks: int = 8) -> list:
+    """Return meal history entries from the last N weeks, newest first."""
+    history = load_meal_history()
+    history.sort(key=lambda x: x.get("served_at", ""), reverse=True)
+    return history[:weeks * 7]
+
+
+# ── Meal Planning Wizard: session state ──────────────────────────────────────
+def load_meal_wizard_session() -> dict:
+    """Load current meal wizard session state. Returns {} if no active session."""
+    try:
+        with open(MEAL_WIZARD_SESSION_FILE, "r") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def save_meal_wizard_session(session: dict) -> None:
+    """Persist meal wizard session state via safe_save_json."""
+    safe_save_json(MEAL_WIZARD_SESSION_FILE, session)
+
+
+def clear_meal_wizard_session() -> None:
+    """Wipe the meal wizard session file (called when plan is locked or abandoned)."""
+    safe_save_json(MEAL_WIZARD_SESSION_FILE, {})
+
+
+def update_meal_wizard_session(updates: dict) -> dict:
+    """Merge updates into current session state and save. Returns updated session."""
+    session = load_meal_wizard_session()
+    session.update(updates)
+    save_meal_wizard_session(session)
+    return session

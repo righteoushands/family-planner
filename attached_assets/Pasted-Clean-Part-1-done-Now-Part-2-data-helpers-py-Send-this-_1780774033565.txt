@@ -1,0 +1,96 @@
+Clean. Part 1 done.
+
+Now Part 2 — data_helpers.py. Send this to Replit:
+
+Read claud.md and paste back all 19 rules. Then tell me which rules apply to today’s task before you begin.
+
+Task: Meal Planning Wizard Phase A, Part 2 of 2 — data_helpers.py only.
+
+Background: Phase A Part 1 added constants to config.py. This part adds new helpers to data_helpers.py for the three new data files: pantry_staples.json, meal_history.json, and meal_wizard_session.json. Do not touch render_meals.py or the existing meal plan helpers there.
+
+Before writing any code, read the bottom of data_helpers.py and paste the last 20 lines. I need to confirm the correct insertion point and that no similar helpers already exist.
+
+Change 1 — Pantry staples helpers.
+
+Add to data_helpers.py:
+
+def load_pantry_staples() -> dict:
+    """Load pantry staples from PANTRY_STAPLES_FILE. Returns {} if missing."""
+    try:
+        with open(PANTRY_STAPLES_FILE, "r") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def save_pantry_staples(data: dict) -> None:
+    """Persist pantry staples via safe_save_json."""
+    safe_save_json(PANTRY_STAPLES_FILE, data)
+
+
+Change 2 — Meal history helpers.
+
+def load_meal_history() -> list:
+    """Load meal history from MEAL_HISTORY_FILE. Returns [] if missing."""
+    try:
+        with open(MEAL_HISTORY_FILE, "r") as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+def save_meal_history(history: list) -> None:
+    """Persist meal history via safe_save_json."""
+    safe_save_json(MEAL_HISTORY_FILE, history)
+
+def add_meal_history_entry(entry: dict) -> None:
+    """Append one entry to meal history and save. Entry shape:
+    {recipe_id, recipe_name, day, week_start, served_at}."""
+    history = load_meal_history()
+    history.append(entry)
+    save_meal_history(history)
+
+def get_recent_meals(weeks: int = 8) -> list:
+    """Return meal history entries from the last N weeks, newest first."""
+    history = load_meal_history()
+    history.sort(key=lambda x: x.get("served_at", ""), reverse=True)
+    return history[:weeks * 7]
+
+
+Change 3 — Meal wizard session helpers.
+
+def load_meal_wizard_session() -> dict:
+    """Load current meal wizard session state. Returns {} if no active session."""
+    try:
+        with open(MEAL_WIZARD_SESSION_FILE, "r") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def save_meal_wizard_session(session: dict) -> None:
+    """Persist meal wizard session state via safe_save_json."""
+    safe_save_json(MEAL_WIZARD_SESSION_FILE, session)
+
+def clear_meal_wizard_session() -> None:
+    """Wipe the meal wizard session file (called when plan is locked or abandoned)."""
+    safe_save_json(MEAL_WIZARD_SESSION_FILE, {})
+
+def update_meal_wizard_session(updates: dict) -> dict:
+    """Merge updates into current session state and save. Returns updated session."""
+    session = load_meal_wizard_session()
+    session.update(updates)
+    save_meal_wizard_session(session)
+    return session
+
+
+Constraints:
+
+	•	Import PANTRY_STAPLES_FILE, MEAL_HISTORY_FILE, MEAL_WIZARD_SESSION_FILE from config at the top of data_helpers.py — check that the import line already imports from config and add these three names to it
+	•	Use safe_save_json for all writes — never open(f, ‘w’) directly
+	•	Do not touch any existing helper
+	•	Do not touch render_meals.py
+
+After the change:
+
+	1.	Run py_compile on data_helpers.py and paste the result
+	2.	Run an in-process smoke test confirming all 8 new helpers import and execute without error on empty/missing files
+	3.	Run verify_phase_a.py and paste the result — this harness covers data_helpers.py changes
+	4.	Paste the diff
