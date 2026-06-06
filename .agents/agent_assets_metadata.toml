@@ -71,3 +71,9 @@ id = "4iMP4tbJLszsbg1sds0wf"
 uri = "file://.local/state/lorenzo_transcript_2026-05-30.md"
 type = "text"
 title = "Lorenzo ↔ Lauren — full verbatim transcript (2026-05-30)"
+
+[[outputs]]
+id = "bRTgto2v7Yxmlz47XNGc6"
+uri = "file://outputs/Lorenzo_Session_June6.txt"
+type = "text"
+title = "Lorenzo Session — June 6, 2026"
