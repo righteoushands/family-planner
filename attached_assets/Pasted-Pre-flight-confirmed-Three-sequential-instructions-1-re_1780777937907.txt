@@ -1,0 +1,71 @@
+Pre-flight confirmed. Three sequential instructions:
+
+	1.	render_meal_wizard.py — create new file with pantry staples page UI
+	2.	app.py — add GET /pantry-staples and POST /pantry-staples-save routes
+	3.	render_settings.py — add a link to /pantry-staples in the meal rules section
+
+Send this to Replit — Part 1:
+
+Read claud.md and paste back all 19 rules. Then tell me which rules apply to today’s task before you begin.
+
+Task: Meal Planning Wizard Phase C, Part 1 of 3 — create render_meal_wizard.py.
+
+Create a new file render_meal_wizard.py. This is the first file in the Meal Planning Wizard build. For now it contains only one function — the pantry staples page. More functions will be added in later phases.
+
+Function to add:
+
+def render_pantry_staples_page(user: str) -> str:
+
+
+This page has two modes determined by whether data/pantry_staples.json exists and has setup_complete: true:
+
+FIRST RUN MODE (setup_complete missing or false):
+
+Page title: “Pantry Staples Setup”
+
+Intro text: “Tell Lorenzo what you always keep on hand. These items will never appear on your grocery list unless you flag them as running low.”
+
+A Skip for now link at the top right (links to /meal-wizard).
+
+A checklist of common staples, pre-checked, organized into these groups:
+
+	•	Oils and fats: olive oil, vegetable oil, butter, coconut oil
+	•	Seasonings: salt, pepper, garlic powder, onion powder, paprika, cumin, oregano, basil, bay leaves, red pepper flakes, cinnamon
+	•	Baking: flour, sugar, brown sugar, baking powder, baking soda, vanilla extract, cornstarch
+	•	Grains and pasta: rice, pasta, oats, breadcrumbs
+	•	Canned and jarred: canned tomatoes, tomato paste, chicken broth, beef broth, soy sauce, Worcestershire sauce, vinegar, honey
+	•	Produce staples: onions, garlic, lemons
+	•	Dairy: eggs (note — Lauren almost always has eggs)
+
+Each item is a checkbox. All pre-checked. Lauren unchecks anything she doesn’t keep.
+
+Below the checklist: a free text field labeled “Anything else you always keep on hand?” with an Add button that adds custom items as chips below the field.
+
+A large Save My Staples button at the bottom that POSTs to /pantry-staples-save.
+
+RETURNING USER MODE (setup_complete is true):
+
+Page title: “Pantry Staples”
+
+Shows the current staples list organized by the same groups.
+
+Each item has a checkbox labeled “Running low” — checking it adds it to the next grocery list.
+
+An Edit Staples button that switches to first-run mode UI so Lauren can add or remove items.
+
+A Save Changes button that POSTs to /pantry-staples-save.
+
+Technical requirements:
+
+	•	Use html_page() from ui_helpers for page chrome — match the pattern in render_wizards.py
+	•	Load pantry staples data using load_pantry_staples() from data_helpers
+	•	All form POSTs go to /pantry-staples-save
+	•	If any JS is needed and sits inside a Python f-string, Rules 7 and 12 apply — use \n not \n, double braces {{ }} in f-string bodies
+	•	Keep the file under 300 lines
+	•	No direct file access — use data_helpers functions only
+
+After creating the file:
+
+	1.	Run py_compile on render_meal_wizard.py and paste the result
+	2.	Run an in-process smoke test — call render_pantry_staples_page(“Lauren”) in both modes (with and without existing staples data) and confirm it returns an HTML string without error
+	3.	Paste the full file contents for review
