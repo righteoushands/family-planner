@@ -1299,9 +1299,9 @@ document.addEventListener('click', function(e) {{
     <span class="mobile-nav-icon">&#128197;</span>
     <span class="mobile-nav-label">Today</span>
   </a>
-  <a href="/prayer" class="mobile-nav-item">
-    <span class="mobile-nav-icon">&#10011;</span>
-    <span class="mobile-nav-label">Prayer</span>
+  <a href="/wizards" class="mobile-nav-item">
+    <span class="mobile-nav-icon">&#129668;</span>
+    <span class="mobile-nav-label">Wizards</span>
   </a>
   <button class="mobile-nav-item" onclick="toggleMobileMore()" id="mobile-more-btn"
           style="background:none;border:none;cursor:pointer;font-family:inherit;width:100%;">
