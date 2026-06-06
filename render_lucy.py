@@ -1548,11 +1548,11 @@ def render_lucy_page(iso: str = "", q: str = "", from_: str = "") -> str:
 <style>
 .lucy-bubble-user {{
     background:#3b2a1a;color:white;padding:10px 14px;border-radius:16px 16px 4px 16px;
-    font-size:0.9em;line-height:1.55;max-width:75%;align-self:flex-end;margin-left:auto;
+    font-size:1em;line-height:1.55;max-width:75%;align-self:flex-end;margin-left:auto;
 }}
 .lucy-bubble-lucy {{
     background:white;border:1px solid #e4dbd2;padding:12px 16px;
-    border-radius:4px 16px 16px 16px;font-size:0.9em;line-height:1.65;
+    border-radius:4px 16px 16px 16px;font-size:1em;line-height:1.65;
     max-width:85%;white-space:pre-wrap;color:#1a1a1a;
 }}
 .lucy-bubble-wrap {{ display:flex;flex-direction:column;gap:12px; }}
@@ -1869,7 +1869,8 @@ function lucySend() {{
 
     // Show typing
     document.getElementById('lucy-typing').style.display = '';
-    window.scrollTo(0, document.body.scrollHeight);
+    var msgs = document.querySelectorAll('.lucy-bubble-user, .lucy-bubble-lucy');
+    if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
 
     fetch('/lucy-chat', {{
         method: 'POST',
@@ -2308,7 +2309,8 @@ function lucySend() {{
                     }}
                     // Render companion handoff buttons for all [TAG]...[/TAG] patterns
                     _renderHandoffBtns(full, bubble._wrap);
-                    window.scrollTo(0, document.body.scrollHeight);
+                    var msgs = document.querySelectorAll('.lucy-bubble-user, .lucy-bubble-lucy');
+                    if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
                     return;
                 }}
                 full += decoder.decode(res.value, {{stream: true}});
@@ -2340,7 +2342,8 @@ function lucySend() {{
                         }}
                     }}
                 }}
-                window.scrollTo(0, document.body.scrollHeight);
+                var msgs = document.querySelectorAll('.lucy-bubble-user, .lucy-bubble-lucy');
+                if (msgs.length) msgs[msgs.length - 1].scrollIntoView({{behavior: 'smooth', block: 'end'}});
                 return read();
             }});
         }}
@@ -2400,7 +2403,7 @@ function _renderBubble(role, text) {{
 window.addEventListener('load', function() {{
     var input = document.getElementById('lucy-input');
     {'// Continuing conversation — scroll to bottom, leave input clear' if _has_history else '// Fresh start — pre-fill opener prompt'}
-    {'window.scrollTo(0, document.body.scrollHeight);' if _has_history else (
+    {'var msgs = document.querySelectorAll(".lucy-bubble-user, .lucy-bubble-lucy"); if (msgs.length) msgs[msgs.length - 1].scrollIntoView({behavior: "smooth", block: "end"});' if _has_history else (
         'var openerPrompt = ' + escape_js(opener_prompt) + ';'
         + ' input.value = openerPrompt;'
         + ' input.style.height = "auto";'

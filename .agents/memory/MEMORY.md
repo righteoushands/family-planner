@@ -1,0 +1,1 @@
+- [JS-in-f-string braces](js-in-fstring-braces.md) — render_*.py: f-string BODY needs doubled {{ }}; replacement fields need single braces + double-quoted JS + single-quoted Python string (Py3.11).
