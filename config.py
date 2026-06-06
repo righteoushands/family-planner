@@ -52,6 +52,18 @@ DAY_TEMPLATES_BACKUP_DIR  = "data/day_templates_backups"
 # tagged with one of the 11 season labels (8 fixed + 3 moveable).
 SEASONAL_SCHEDULES_FILE   = "data/seasonal_schedules.json"
 
+# ── Meal Planning Wizard ─────────────────────────────────────────────────────
+# Existing meal paths (currently also hardcoded in render_meals.py — moved here
+# additively per the config.py-owns-all-paths rule; render_meals.py cleanup
+# happens in a later phase once this path is confirmed working).
+MEALS_DIR                = "data/meal_plan"
+MEAL_RULES_FILE          = "data/meal_rules.json"
+MEAL_INVENTORY_FILE      = "data/meal_inventory.json"
+# New Meal Planning Wizard data files (Phase A data layer).
+PANTRY_STAPLES_FILE      = "data/pantry_staples.json"
+MEAL_HISTORY_FILE        = "data/meal_history.json"
+MEAL_WIZARD_SESSION_FILE = "data/meal_wizard_session.json"
+
 # ── Validation sets ──────────────────────────────────────────────────────────
 VALID_PRIORITIES = {"HIGH", "MEDIUM", "LOW"}
 VALID_STATUSES   = {"active", "done", "inactive"}
