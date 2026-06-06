@@ -474,16 +474,16 @@ TASK TIMING RULES:
 
 OUTPUT FORMAT (JSON only, no other text):
 {
-  "Monday":    { "breakfast": "...", "lunch": "...", "dinner": "...", "snacks": "...", "dad_lunch": "...", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" },
-  "Tuesday":   { "breakfast": "...", "lunch": "leftovers from [specify]", "dinner": "...", "snacks": "...", "dad_lunch": "...", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" },
-  "Wednesday": { "breakfast": "...", "lunch": "...", "dinner": "...", "snacks": "...", "dad_lunch": "...", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" },
-  "Thursday":  { "breakfast": "...", "lunch": "...", "dinner": "...", "snacks": "...", "dad_lunch": "...", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" },
-  "Friday":    { "breakfast": "...", "lunch": "sardine sandwiches or soup", "dinner": "Fish fry", "snacks": "...", "dad_lunch": "...", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" },
-  "Saturday":  { "breakfast": "...", "lunch": "...", "dinner": "...", "snacks": "...", "dad_lunch": "N/A", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" },
-  "Sunday":    { "breakfast": "...", "lunch": "...", "dinner": "Ziplock Buffet (leftovers)", "snacks": "...", "dad_lunch": "N/A", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" }
+  "Monday":    { "breakfast": "...", "lunch": "...", "dinner": "...", "dessert": "...", "snacks": "...", "dad_lunch": "...", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" },
+  "Tuesday":   { "breakfast": "...", "lunch": "leftovers from [specify]", "dinner": "...", "dessert": "...", "snacks": "...", "dad_lunch": "...", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" },
+  "Wednesday": { "breakfast": "...", "lunch": "...", "dinner": "...", "dessert": "...", "snacks": "...", "dad_lunch": "...", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" },
+  "Thursday":  { "breakfast": "...", "lunch": "...", "dinner": "...", "dessert": "...", "snacks": "...", "dad_lunch": "...", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" },
+  "Friday":    { "breakfast": "...", "lunch": "sardine sandwiches or soup", "dinner": "Fish fry", "dessert": "...", "snacks": "...", "dad_lunch": "...", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" },
+  "Saturday":  { "breakfast": "...", "lunch": "...", "dinner": "...", "dessert": "...", "snacks": "...", "dad_lunch": "N/A", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" },
+  "Sunday":    { "breakfast": "...", "lunch": "...", "dinner": "Ziplock Buffet (leftovers)", "dessert": "...", "snacks": "...", "dad_lunch": "N/A", "boys_help": "JP: [task] · Joseph: [task] · Michael: [task]" }
 }
 
-Also include a "grocery_gaps" array listing ingredients NOT in the inventory that are needed,
+Also include a "grocery_gaps" array: a complete ingredient list of everything needed to execute this exact meal plan that is NOT already in the inventory. You must enumerate every planned dish across ALL slots (breakfast, lunch, dinner, snacks, dad_lunch, dessert) for ALL seven days, PLUS every batch-cook item, prep item, and any travel or send-off food. For each dish, list every ingredient it requires. Then subtract anything confirmed in the inventory. If a planned dish has no ingredients listed against it, that is an error — every dish must contribute at least one ingredient or explicitly note it is fully covered by inventory. Do not omit any slot or any day.
 and a "use_soon_used" array listing which use-soon items you incorporated and when.
 And a "prep_notes" object with one prep note per day (what to defrost/start early).
 """
