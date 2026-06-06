@@ -1,0 +1,41 @@
+Pre-flight (Rule 14):
+
+	1.	Files touched: render_lorenzo.py — but the Lorenzo Fixes doc says to confirm which store holds the authoritative full plan before writing any grocery logic. That confirmation came out of Fix B diagnosis: the authoritative store is data/meal_plan/{Monday}.json, read via load_meal_plan(). We have that.
+	2.	JS in f-strings: render_lorenzo.py is named in Rule 12 — applies as guardrail
+	3.	Form handling: no
+	4.	Root cause confirmed: yes — grocery generator only enumerates dinners, misses all other slots and batch-cook items
+	5.	Multiple files: no
+	6.	Data shape changes: no — reading existing meal plan structure, no new fields
+
+Read claud.md and paste back all 19 rules. Then tell me which rules apply to today’s task before you begin.
+
+Task: Lorenzo Fix C — grocery list completeness. render_lorenzo.py only.
+
+Background: The grocery list generator currently only enumerates dinner slots, missing breakfasts, lunches, dad’s lunch, desserts, snacks, batch-cook items, and travel/send-off food. The authoritative meal plan store is data/meal_plan/{Monday}.json, read via load_meal_plan(). On-hand inventory is in meal_inventory.json, read via load_meal_inventory() (or equivalent — confirm the exact helper name before writing).
+
+Step 1 — Read before writing.
+Find the grocery list generation function in render_lorenzo.py. Paste it verbatim. Also confirm the exact name of the helper that reads meal_inventory.json. Do not write any code until you have pasted both.
+
+Step 2 — Write the fix (only after Step 1).
+Modify the grocery list generator to:
+
+	1.	Load the full meal plan from the authoritative store via load_meal_plan()
+	2.	Enumerate ALL meal slots across all seven days — breakfast, lunch, dinner, dad_lunch, dessert, snacks — plus any batch_cook or prep items stored in the plan
+	3.	For each dish, check against on-hand inventory via the meal inventory loader and subtract confirmed on-hand items
+	4.	Add a verification step: flag any planned dish that has zero associated grocery or pantry items so nothing silently lacks ingredients
+	5.	Return the complete list
+
+Constraints:
+
+	•	Do not change the output format — only the completeness of what feeds it
+	•	Do not modify data_helpers.py
+	•	render_lorenzo.py contains inline JS — do not touch any JS string lines
+	•	Handle empty or missing slots gracefully — no crash on a day with no breakfast entry
+
+After the change:
+
+	1.	Run py_compile on render_lorenzo.py and paste the result
+	2.	Run an in-process smoke test confirming the generator covers all slots and does not crash on empty days
+	3.	No verify harness needed — no data files written, no save paths touched
+	4.	Paste the before/after slot coverage (how many slots enumerated before vs after)
+	5.	Paste the diff
