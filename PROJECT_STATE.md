@@ -1,838 +1,766 @@
 # PROJECT_STATE.md — Sancta Familia
 Technical snapshot of the current codebase. Read at the start of future
-sessions for a fast orientation. Generated 2026-05-27.
+sessions for a fast orientation. Generated 2026-06-06.
+
+> Counts as of this snapshot: 96 exact-match GET routes + 15 prefix
+> (`startswith`) GET routes in `do_GET`; ~200 POST routes in `do_POST`;
+> 57 render modules; 216 functions in `data_helpers.py`.
 
 ---
 
 ## Section 1 — GET routes (defined in app.py do_GET)
 
-110 routes total.
+### 1a. Exact-match routes (`path == "…"`)
 
 | Path | Renders / returns |
 |---|---|
-| `/` | Login screen (when unauthenticated) or family dashboard |
-| `/5am` | 5AM Club personal-discipline tracker page |
+| `/` | Family dashboard (when authenticated) / login screen (when not) |
+| `/login` | Family login screen (PIN entry) |
+| `/logout` | Clears session, redirects to login |
+| `/quest-sso` | Single sign-on handoff into Family Quest |
+| `/change-pin` | Change-PIN form |
+| `/today` | Personalized per-child task dashboard for today |
+| `/programs` | Coach's saved programs + weekly exercise assignments |
+| `/set-school-mode` | Toggles school-mode setting, redirects |
+| `/now` | Now/Next strip — current and upcoming schedule item |
+| `/week` | Family week-at-a-glance view |
+| `/week-school` | Weekly school progress page |
+| `/school` | School overview page |
+| `/api/today-progress` | JSON: completion ratios per person for today |
 | `/api/boys-tasks` | JSON: today's task list for JP/Joseph/Michael |
 | `/api/child-tasks` | JSON: today's task list for a single child (?child=…) |
-| `/api/today-progress` | JSON: completion ratios per person for today |
-| `/api-key` | Settings page for entering Anthropic API key |
-| `/assignment-analyzer` | Assignment Analyzer upload/parse UI |
-| `/assignment-image` | Serves uploaded assignment images from data/assignment_uploads/ |
-| `/calendar` | Family calendar page (events + liturgical overlay) |
-| `/calendar/refresh` | Force-refresh subscribed calendar caches, redirect back |
-| `/chores` | Chores + laundry + van rotation page |
-| `/coach` | Coach (family fitness companion) page |
-| `/companions` | Directory of the six AI companions |
-| `/curriculum` | Curriculum library + subject-by-subject planner |
-| `/daily-mass` | Today's daily Mass readings page |
-| `/dev` | Isidore (Izzy) dev help-desk console |
-| `/dev-diag` | Detailed diagnostics (system, processes, ports) |
-| `/dev-git-diff` | Git diff viewer |
-| `/dev-git-log` | Git log viewer |
-| `/dev-grep-files` | Grep across project files (dev tool) |
-| `/dev-health` | Workflow health-check summary |
-| `/dev-logs` | Recent workflow + console logs |
-| `/dev-read-file` | Read a project file (dev tool, path-restricted) |
-| `/dr-monica` | Dr. Monica (pediatric / child-development companion) page |
-| `/family-schedule` | Editable family Rule-of-Life schedule by weekday |
-| `/friends` | Friends & Families directory page |
-| `/frol-grid-fragment` | HTMX-style fragment: just the FROL grid table |
-| `/frol-pdf` | Printable PDF of the Family Rule of Life |
-| `/frol-seasonal-view` | Read-only view of a saved seasonal schedule snapshot |
-| `/frol-wizard` | Rule-of-Life Wizard (multi-section guided builder) |
-| `/gdrive-files` | Google Drive file browser (lists + import) |
-| `/gradebook` | Per-child gradebook of recorded assignment scores |
-| `/grades` | Grades index / overview page |
-| `/grid-print` | Printable view of a day's family schedule grid |
-| `/headmaster` | Father Gregory (academic headmaster) companion page |
-| `/history` | History page with restore points |
-| `/history/preview` | Preview of a historic state before restore |
-| `/hour-report` | Generated hour-tracking report for a person/subject |
-| `/john` | John's personal profile page |
-| `/kids-week` | Kids' weekly planning page |
-| `/liturgical` | Liturgical calendar page |
-| `/liturgical/edit` | Editor for a single liturgical-day entry |
+| `/gdrive-files` | Google Drive file browser/import UI |
+| `/kids-week` | Kids' week planning page |
+| `/plan-tomorrow` | AI-powered tomorrow planning page |
+| `/plan-today` | Daily plan editor |
+| `/plan-week` | Plan My Week |
+| `/plan-month` | Plan My Month |
+| `/plan-year` | Plan My Year |
+| `/plan-quarter` | Quarterly goal planning |
+| `/virtues` | Virtue tracker |
+| `/5am` | 5AM Club personal-discipline tracker |
 | `/liturgy-hours` | Liturgy of the Hours page |
-| `/lorenzo` | Lorenzo (personal chef) companion page |
-| `/lorenzo-plan-state` | JSON: current Lorenzo meal-planning session state |
-| `/lucy` | Lucy (Catholic day-guide) companion page |
-| `/meal-print` | Printable weekly meal plan |
-| `/meals` | Weekly meal planning page |
-| `/memory-book` | Family memory book page |
-| `/mom` | Lauren's mom dashboard for a given date |
-| `/mom-profile` | Lauren's personal profile page |
-| `/mom-step` | One step of Lauren's morning anchor workflow |
+| `/prayer-intentions` | Prayer intentions list |
+| `/virtues/me` | Personal virtue view |
+| `/virtues/family` | Family virtue view |
+| `/school/edit` | School settings editor |
+| `/chores` | Chores, laundry system, van rotation |
+| `/van-roles` | Van rotation roles page |
+| `/print/day` | Printable day schedule |
+| `/print/week` | Printable week schedule |
 | `/notes` | Notes page |
-| `/now` | "What's now / what's next" strip |
-| `/plan-fragment` | HTMX-style fragment: a sub-section of the planner |
-| `/plan-import` | Plan-Importer tool (paste text → AI extract) |
-| `/plan-import-history` | History of past Plan-Importer applies, with undo |
-| `/plan-month` | Plan-My-Month tool |
-| `/plan-quarter` | Plan-My-Quarter tool |
-| `/plan-today` | AI-powered plan-today tool |
-| `/plan-tomorrow` | AI-powered plan-tomorrow tool |
-| `/plan-week` | Plan-My-Week tool |
-| `/plan-year` | Plan-My-Year tool |
-| `/planner` | Single-day planner page |
-| `/prayer` | Liturgical / prayer page (alias of /liturgical) |
-| `/prayer-intention/share/` | Public share URL for a prayer intention |
-| `/prayer-intentions` | Prayer intentions list page |
-| `/prayer-photo/` | Serves uploaded prayer-intention photos |
-| `/print/day` | Printable single-day schedule |
-| `/print/day/` | Printable single-day schedule (with trailing path arg) |
-| `/print/week` | Printable weekly schedule |
-| `/programs` | Coach's saved exercise programs + weekly assignments |
-| `/quest` | Family Quest landing (proxied via fq_bridge) |
-| `/quest/` | Family Quest sub-paths (proxied) |
-| `/quest-sso` | Single-sign-on bridge into Family Quest |
-| `/readings` | Daily Mass readings for a given date |
-| `/recipes` | Recipe library page |
-| `/roadmap` | Project roadmap page |
-| `/schedule/` | Per-person schedule pages |
-| `/school` | School/homeschool dashboard |
-| `/school/edit` | Editor for a single child's school assignment |
-| `/school-week-pdf` | Printable PDF of the weekly school plan |
-| `/set-school-mode` | Toggle "school mode" flag for today |
-| `/settings` | Settings page (single source of truth UI) |
-| `/signup` | Beta waitlist signup survey |
-| `/sister-mary` | Sister Mary (contemplative Marian companion) page |
-| `/static/` | Static asset server (CSS, JS, images) |
-| `/static/images/` | Static-image server |
-| `/static/js/` | Static-JS server |
-| `/student/` | Student portal (per-child read-only view) |
-| `/subject` | Per-subject curriculum review page |
-| `/subscribed-cal-…` | (covered under POST) |
 | `/tasks` | Tasks page |
-| `/thankyou-reminders` | Thank-you-note reminder page |
-| `/today` | "Today" dashboard — compact per-child task cards |
-| `/uploads/grade_docs/` | Serves uploaded gradebook documents |
-| `/uploads/grades/` | Serves uploaded grade-related files |
-| `/uploads/recipes/` | Serves uploaded recipe images |
-| `/van-roles` | Van-rotation role assignments page |
-| `/virtues` | Virtue tracker landing |
-| `/virtues/child/` | Per-child virtue tracker |
-| `/virtues/family` | Family virtue tracker |
-| `/virtues/me` | Personal virtue tracker (current viewer) |
-| `/waitlist` | Beta waitlist admin viewer |
-| `/week` | Family weekly schedule grid |
-| `/week-school` | Weekly school progress page |
+| `/thankyou-reminders` | Thank-you reminders page |
+| `/mom` | Mom dashboard page |
+| `/mom-profile` | Mom's personal profile page |
+| `/john` | John's (dad) personal profile page |
+| `/friends` | Friends & families directory |
+| `/roadmap` | Family roadmap page |
+| `/signup` | Beta waitlist signup survey |
+| `/waitlist` | Waitlist page |
+| `/family-schedule` | Family schedule engine view |
+| `/frol-pdf` | FROL printable PDF |
+| `/school-week-pdf` | School week printable PDF |
+| `/calendar` | Calendar page |
+| `/planner` | Planner page |
+| `/readings` | Daily Mass readings |
+| `/lucy` | Lucy AI companion (day guide) |
+| `/lorenzo-plan-state` | JSON: Lorenzo meal-plan session state |
+| `/lorenzo` | Lorenzo AI companion (personal chef) |
+| `/headmaster` | Father Gregory AI companion (academic headmaster) |
+| `/coach` | Coach AI companion (family fitness) |
+| `/dr-monica` | Dr. Monica AI companion (child development/health) |
+| `/companions` | AI companions hub |
+| `/wizards` | Wizards hub page |
+| `/pantry-staples` | **NEW** — Pantry Staples setup/management page |
+| `/sister-mary` | Sister Mary contemplative Marian companion |
+| `/frol-grid-fragment` | HTML fragment: FROL day grid |
+| `/frol-seasonal-view` | FROL seasonal schedule view |
+| `/frol-wizard` | Rule of Life Wizard |
+| `/daily-mass` | Daily Mass readings/video page |
+| `/plan-import-history` | Plan import history list |
+| `/grades` | Grades overview |
+| `/subject` | Per-subject curriculum review |
+| `/hour-report` | Homeschool hour report |
+| `/curriculum` | Curriculum management system |
+| `/gradebook` | Per-child gradebook |
+| `/assignment-analyzer` | Assignment Analyzer upload/parse UI |
+| `/assignment-image` | Serves uploaded assignment images |
+| `/plan-import` | Plan Import tool |
+| `/dev` | Izzy dev help-desk assistant |
+| `/dev-logs` | Dev: log viewer |
+| `/dev-health` | Dev: health check |
+| `/dev-diag` | Dev: diagnostics |
+| `/dev-read-file` | Dev: read a file |
+| `/dev-grep-files` | Dev: grep across files |
+| `/dev-git-log` | Dev: git log |
+| `/dev-git-diff` | Dev: git diff |
+| `/memory-book` | Family memory book |
+| `/liturgical` | Liturgical calendar page |
+| `/prayer` | Prayer page |
+| `/liturgical/edit` | Liturgical calendar editor |
+| `/settings` | Settings page (General · Children · Systems · Integrations) |
+| `/history` | History page |
+| `/history/preview` | History preview |
+| `/plan-fragment` | HTML fragment: daily plan |
+| `/grid-print` | Printable schedule grid |
+| `/mom-step` | Mom morning/evening anchor step |
+| `/meals` | Weekly meal planner |
+| `/meal-print` | Printable meal card |
+| `/recipes` | Recipe library |
+| `/api-key` | Anthropic API key settings page |
+| `/calendar/refresh` | Forces calendar cache refresh, redirects |
+
+### 1b. Prefix routes (`path.startswith("…")`)
+
+| Prefix | Serves / renders |
+|---|---|
+| `/quest` | Family Quest sub-application (delegated) |
+| `/static/js/*.js` | Static JavaScript assets |
+| `/static/images/` | Static image assets |
+| `/static/` | Other static assets |
+| `/prayer-photo/` | Serves prayer intention photos |
+| `/prayer-intention/share/` | Shared prayer intention view |
+| `/virtues/child/` | Per-child virtue view |
+| `/print/day/` | Printable day schedule for a person/date |
+| `/uploads/recipes/` | Serves uploaded recipe/dish photos |
+| `/uploads/grades/`, `/uploads/grade_docs/` | Serves uploaded grade documents |
+| `/schedule/` | Per-person/date schedule card |
+| `/student/` | Student portal |
+| `/grades/` | Per-child grade detail |
+| `/lucy-child-brief/` | Lucy child brief fragment |
+| `/lucy-prayer-brief/` | Lucy prayer brief fragment |
 
 ---
 
 ## Section 2 — POST routes (defined in app.py do_POST)
 
-227 routes total. Path → effect.
+> **Routing convention (claud.md Rule 3):** top-level `do_POST` routing uses
+> standalone `if path == "…": … return` blocks (not an elif chain). Some
+> handlers are nested inside grouped sections (school, subject, gradebook,
+> recipes, etc.). `_JSON_PATHS = {"/plan-import-apply",
+> "/plan-import-undo-placement", "/curriculum-save", "/curriculum-minutes",
+> "/poetry-passage-save"}` — these receive JSON bodies.
 
+### Auth & messaging
 | Path | Effect |
 |---|---|
-| `/5am-save` | Save a 5AM-Club entry for today |
-| `/add-note` | Add a new note |
-| `/add-task` | Add a new manual task |
-| `/add-to-plan-quick` | Quick-add an item to today's daily plan |
-| `/ai-capacity-preview` | Preview AI capacity estimate for a workload |
-| `/ai-chore-adjust` | AI-adjust chore distribution |
-| `/ai-daily-schedule` | AI-generate today's family schedule |
-| `/ai-evening-examen` | AI-generate the evening examen prompt |
-| `/ai-generate-steps` | AI-generate substeps for a goal |
-| `/ai-intention-prayer` | AI-generate a written prayer for an intention |
-| `/ai-meal-plan` | AI-generate a weekly meal plan |
-| `/ai-month-brief` | AI-generate a month-ahead brief |
-| `/ai-school-plan` | AI-generate a weekly school plan |
-| `/ai-suggest-goals` | AI-suggest goals for a child or person |
-| `/ai-week-brief` | AI-generate a week-ahead brief |
-| `/ai-weekly-review` | AI-generate a weekly review summary |
-| `/ai-year-brief` | AI-generate a year-ahead brief |
-| `/anchor-save` | Save morning-anchor or evening-anchor responses |
-| `/api/extract-suggestions` | JSON API: AI-extract suggestion items from text |
-| `/apply-laundry` | Apply laundry rotation for the week |
-| `/apply-van-rotation` | Apply van rotation for the week |
-| `/approve-school-preview` | Approve a generated school-preview into school_weeks |
-| `/approve-school-week` | Mark a school-week plan as approved |
-| `/archive-note` | Archive a note |
-| `/assignment-analyze` | Run AI assignment analyzer on uploaded content |
-| `/assignment-analyzer` | (POST upload entry) Upload + analyze assignment |
-| `/assignment-delete` | Delete an assignment record |
-| `/assignment-reply` | Submit a reply on an assignment |
-| `/assignment-update` | Update an assignment record |
-| `/calendar-add-event` | Add a local calendar event |
-| `/calendar-config-save` | Save calendar configuration |
-| `/calendar-event-delete` | Delete a local calendar event |
-| `/calendar-refresh` | Force-refresh calendar caches |
-| `/calendar-save-config` | (alias) Save calendar configuration |
-| `/change-pin` | Change a user's auth PIN |
-| `/child-goal-add` | Add a child-level goal |
-| `/child-goal-archive` | Archive a child-level goal |
-| `/child-substep-add` | Add a substep under a child goal |
-| `/child-substep-delete` | Delete a substep |
-| `/child-substep-toggle` | Toggle substep completion |
-| `/coach` | (POST entry) Coach companion form post |
-| `/coach-chat` | Send a chat message to Coach |
-| `/coach-clear-history` | Wipe Coach chat history (with archive) |
-| `/convert-note` | Convert a note into a task |
-| `/curriculum` | (POST entry) Curriculum form post |
-| `/curriculum-delete` | Delete a curriculum entry |
-| `/curriculum-minutes` | Save curriculum minutes-per-week target |
-| `/curriculum-parse` | AI-parse a pasted curriculum syllabus |
-| `/curriculum-save` | Save curriculum edits |
-| `/curriculum-subject-day` | Save per-day curriculum cell |
-| `/curriculum-subject-week` | Save a week's curriculum text for a subject |
-| `/curriculum-week` | Save curriculum week pointer |
-| `/cycle-ai-suggest` | AI-suggest cycle-tracking insights |
-| `/cycle-log-add` | Add a cycle-log entry |
-| `/cycle-log-delete` | Delete a cycle-log entry |
-| `/cycle-save` | Save cycle-tracking data |
-| `/delete-friend` | Delete a friend record |
-| `/dev` | (POST entry) Izzy dev-console form post |
-| `/dev-apply` | Apply a dev-suggested change |
-| `/dev-chat` | Send a chat message to Izzy |
-| `/dev-clear` | Wipe Izzy chat history |
-| `/dev-restart` | Restart the app workflow |
-| `/dev-undo` | Undo the most recent dev write |
-| `/dev-write` | Write a file via the dev tool |
-| `/dr-monica` | (POST entry) Dr. Monica form post |
-| `/dr-monica-chat` | Send a chat message to Dr. Monica |
-| `/dr-monica-clear-history` | Wipe Dr. Monica chat history |
-| `/exercise-log` | Save a post-workout log |
-| `/family-schedule-save` | Save the family Rule-of-Life schedule |
-| `/frol-add-activity` | Add a FROL activity (wizard or settings) |
-| `/frol-delete-activity` | Delete a FROL activity |
-| `/frol-edit-activity` | Edit a FROL activity |
-| `/frol-overlay-clear` | Clear the year-over-year overlay state |
-| `/frol-overlay-set` | Set overlay source for the grid preview |
-| `/frol-overlay-toggle` | Toggle overlay visibility |
-| `/frol-rollback-v3` | Roll back FROL data from v3 backup |
-| `/frol-save-seasonal` | Save current schedule to seasonal library (Phase F) |
-| `/frol-seasonal-delete` | Delete a saved seasonal schedule entry |
-| `/frol-seasonal-use` | Load saved seasonal entry as starting point |
-| `/frol-set-variant` | Switch FROL variant tab (weekday/weekend/etc.) |
-| `/frol-wizard` | Wizard "Save & Continue" handler (advance step) |
-| `/frol-wizard-chat` | Send a chat message inside the wizard |
-| `/frol-wizard-finalize` | Finalize the wizard → write live templates |
-| `/goal-add` | Add a personal/family goal |
-| `/gradebook-add` | Add a gradebook entry |
-| `/gradebook-delete` | Delete a gradebook entry |
-| `/gradebook-update` | Update a gradebook entry |
-| `/grid-cell-save` | Save a single cell of the schedule grid |
-| `/grid-publish` | Publish a previewed grid as live templates |
-| `/grid-push-weekly` | Push grid edits to weekly templates |
-| `/grid-reset` | Reset grid to template defaults |
-| `/grid-save-template` | Save a grid as a reusable template |
-| `/headmaster` | (POST entry) Father Gregory form post |
-| `/headmaster-chat` | Send a chat message to Father Gregory |
-| `/headmaster-clear-history` | Wipe Father Gregory chat history |
-| `/history-restore` | Restore a historic snapshot |
-| `/hour-log-add` | Add an hour-tracking log entry |
-| `/hour-log-delete` | Delete an hour-tracking log entry |
-| `/hour-log-edit` | Edit an hour-tracking log entry |
-| `/john` | (POST entry) John profile form post |
-| `/kids-week-save` | Save the kids' weekly plan |
-| `/liturgical-delete` | Delete a liturgical-day custom entry |
-| `/liturgical-note` | Save a note on a liturgical day |
-| `/liturgical-save` | Save liturgical-day customisation |
-| `/liturgy-hours-save` | Save Liturgy-of-the-Hours entry |
-| `/login` | Submit login PIN |
-| `/lorenzo` | (POST entry) Lorenzo form post |
-| `/lorenzo-chat` | Send a chat message to Lorenzo |
-| `/lorenzo-clear-history` | Wipe Lorenzo chat history |
-| `/lorenzo-plan-end` | End the current Lorenzo meal-plan session |
-| `/lorenzo-plan-start` | Start a Lorenzo meal-plan session |
-| `/lorenzo-rule-save` | Save a Lorenzo system-rule edit |
-| `/lucy` | (POST entry) Lucy form post |
-| `/lucy-chat` | Send a chat message to Lucy |
-| `/lucy-clear-history` | Wipe Lucy chat history |
-| `/lucy-rule-save` | Save a Lucy system-rule edit |
-| `/lucy-tts` | Generate text-to-speech audio via Lucy |
-| `/meal-edit` | Edit a meal-plan cell |
-| `/meal-generate` | Generate a meal plan (non-AI helper) |
-| `/meal-rule-add` | Add a meal-planning rule |
-| `/meal-rule-delete` | Delete a meal-planning rule |
-| `/meal-save-constraints` | Save meal-plan dietary constraints |
-| `/meal-save-inventory` | Save pantry inventory |
-| `/meal-save-plan` | Save the current meal plan |
-| `/memory-book-delete` | Delete a memory-book entry |
-| `/memory-book-save` | Save a memory-book entry |
-| `/memory-update` | Update a family-memory item |
-| `/message-mom` | Send a message to Mom |
-| `/messages-read` | Mark mom-inbox messages as read |
-| `/mom` | (POST entry) Mom dashboard form post |
-| `/mom-add-note` | Add a quick note from the mom dashboard |
-| `/mom-profile` | (POST entry) Mom profile form post |
-| `/notes` | (POST entry) Notes form post |
-| `/plan-add-item` | Add an item to a daily plan |
-| `/plan-ai-suggest` | AI-suggest items for a daily plan |
-| `/plan-import-analyze` | Plan-Importer step 1: AI analyze pasted text |
-| `/plan-import-apply` | Plan-Importer step 3: apply approved placements |
-| `/plan-import-consult` | Plan-Importer: consult AI about one placement |
-| `/plan-import-group-consult` | Plan-Importer: consult AI about a placement group |
-| `/plan-import-history` | (POST entry) Plan-Importer history form post |
-| `/plan-import-history-delete` | Delete a Plan-Importer history entry |
-| `/plan-import-save-session` | Save current Plan-Importer session draft |
-| `/plan-import-undo-placement` | Undo a single applied placement |
-| `/plan-item-update` | Update an item in a daily plan |
-| `/plan-month-save` | Save monthly-plan edits |
-| `/planner-add-task` | Add a task from the planner page |
-| `/plan-quarter` | (POST entry) Plan-quarter form post |
-| `/plan-toggle-item` | Toggle a daily-plan item complete |
-| `/plan-tomorrow-generate` | AI-generate tomorrow's plan |
-| `/plan-tomorrow-push` | Push tomorrow's plan into the schedule |
-| `/plan-tomorrow-questions` | Generate clarifying questions for plan-tomorrow |
-| `/plan-week-save` | Save weekly-plan edits |
-| `/pod-dismiss-season` | Dismiss the POD seasonal-prompt card (Phase F) |
-| `/pod-toggle-traveling` | Toggle "John traveling" flag on the POD |
-| `/poetry-passage-save` | Save a poetry passage |
-| `/prayer-intention-add` | Add a prayer intention |
-| `/prayer-intention-complete` | Mark a prayer intention complete |
-| `/prayer-intention-delete` | Delete a prayer intention |
-| `/prayer-intention-log` | Log a prayer event against an intention |
-| `/preview-discard` | Discard a generated preview |
-| `/preview-keep` | Keep / promote a generated preview |
-| `/programs-delete` | Delete a Coach program |
-| `/programs-edit` | Edit a Coach program |
-| `/programs-save` | Save a Coach program |
-| `/quarter-checkin` | Submit a quarter check-in |
-| `/quarter-journal-save` | Save a quarter-journal entry |
-| `/quarter-save-goals` | Save quarter goals |
-| `/quarter-save-step` | Save a quarter-step record |
-| `/quest` | (POST entry) Family Quest bridge POST |
-| `/recipe-delete` | Delete a recipe |
-| `/recipe-import` | Import a recipe (URL or paste) |
-| `/recipes` | (POST entry) Recipe form post |
-| `/recipe-save` | Save a recipe |
-| `/regenerate-school-week` | Regenerate the weekly school plan |
-| `/reparse-school-preview` | Re-parse a school-week preview |
-| `/roadmap-add` | Add a roadmap item |
-| `/roadmap-delete` | Delete a roadmap item |
-| `/roadmap-update` | Update a roadmap item |
-| `/save-child-profile` | Save a child profile |
-| `/save-chores` | Save chores |
-| `/save-friend` | Save a friend record |
-| `/save-john-profile` | Save John's profile |
-| `/save-mom-profile` | Save Lauren's profile |
-| `/save-pins` | Save / rotate auth PINs |
-| `/save-school-preview-edits` | Save edits to a school-week preview |
-| `/schedule/` | Per-person schedule POST handler |
-| `/schedule-template-save` | Save a schedule template |
-| `/school-settings-save` | Save school-related settings |
-| `/school-upload` | Upload school-related document |
-| `/settings-save` | Save settings (full reload) |
-| `/settings-save-ajax` | Save settings (XHR, no reload) |
-| `/settings-schedule-save` | Save schedule-related settings |
-| `/signup-submit` | Submit beta waitlist signup |
-| `/sister-mary` | (POST entry) Sister Mary form post |
-| `/sister-mary-chat` | Send a chat message to Sister Mary |
-| `/sister-mary-clear-history` | Wipe Sister Mary chat history |
-| `/student-message-read` | Mark student-portal message as read |
-| `/subject-doc-delete` | Delete a subject reference document |
-| `/subject-doc-upload` | Upload a subject reference document |
-| `/subject-grade-add` | Add a grade for a subject |
-| `/subject-grade-delete` | Delete a grade |
-| `/subject-link-add` | Add a reference link to a subject |
-| `/subject-link-delete` | Delete a reference link |
-| `/subject-send-to-mom` | Send subject info to Mom inbox |
-| `/subject-upload-image` | Upload an image to a subject |
-| `/subscribed-cal-add` | Add a subscribed iCal calendar |
-| `/subscribed-cal-delete` | Delete a subscribed calendar |
-| `/subscribed-cal-toggle` | Enable/disable a subscribed calendar |
-| `/task-delete` | Soft-delete a task (mark inactive) |
-| `/task-done` | Mark a task done |
-| `/task-hard-delete` | Hard-delete a task |
-| `/task-override` | Apply an override (skip/postpone/edit) to a task on a day |
-| `/task-purge-inactive` | Purge inactive tasks |
-| `/tasks` | (POST entry) Tasks form post |
-| `/task-update` | Update task fields |
-| `/thankyou-add` | Add a thank-you reminder |
-| `/thankyou-dismiss` | Dismiss a thank-you reminder |
-| `/thankyou-done` | Mark thank-you reminder done |
-| `/thankyou-reminders` | (POST entry) Thank-you form post |
-| `/thankyou-suggest` | AI-suggest thank-you reminders |
-| `/timeblock-add-intention` | Add an intention from the POD time-block view |
-| `/timeblock-add-novena` | Start a novena from the POD time-block view |
-| `/today` | (POST entry) Today dashboard form post |
-| `/toggle-task` | Toggle a task done/undone |
-| `/v1/audio/speech` | OpenAI-compatible TTS endpoint (used by Lucy) |
-| `/virtue-checkin` | Submit a virtue-tracker check-in |
-| `/waitlist` | (POST entry) Waitlist form post |
+| `/login` | Authenticates a PIN, sets session |
+| `/change-pin` | Updates a user's PIN |
+| `/save-pins` | Admin: saves PINs (JSON) |
+| `/messages-read` | Marks admin messages read |
+| `/student-message-read` | Marks a student message read |
+| `/message-mom` | Sends a message to Mom |
+| `/mom-add-note` | Adds a Mom note |
+
+### Pantry / meals / recipes
+| Path | Effect |
+|---|---|
+| `/pantry-staples-save` | **NEW** — saves pantry staples + running-low flags |
+| `/meal-rule-add` | Adds a meal rule |
+| `/meal-rule-delete` | Deletes a meal rule |
+| `/meal-save-constraints` | Saves meal constraints |
+| `/meal-save-inventory` | Saves meal inventory |
+| `/meal-save-plan` | Saves the weekly meal plan |
+| `/meal-edit` | Edits a planned meal |
+| `/meal-generate` | AI-generates a meal plan |
+| `/recipe-save` | Creates/edits a recipe (multipart, photo upload) |
+| `/recipe-import` | Imports a recipe (URL/text/photo/PDF) |
+| `/recipe-delete` | Deletes a recipe |
+
+### Lorenzo (chef companion)
+| Path | Effect |
+|---|---|
+| `/lorenzo-chat` | Lorenzo chat turn |
+| `/lorenzo-clear-history` | Clears Lorenzo history |
+| `/lorenzo-plan-start` | Starts a Lorenzo planning session |
+| `/lorenzo-plan-end` | Ends a Lorenzo planning session |
+| `/lorenzo-rule-save` | Saves a Lorenzo meal rule |
+
+### Other AI companions
+| Path | Effect |
+|---|---|
+| `/lucy-chat`, `/lucy-clear-history`, `/lucy-rule-save`, `/lucy-tts` | Lucy chat / clear / rule / text-to-speech |
+| `/headmaster-chat`, `/headmaster-clear-history` | Father Gregory chat / clear |
+| `/coach-chat`, `/coach-clear-history` | Coach chat / clear |
+| `/dr-monica-chat`, `/dr-monica-clear-history` | Dr. Monica chat / clear |
+| `/sister-mary-chat`, `/sister-mary-clear-history` | Sister Mary chat / clear |
+| `/dev-chat`, `/dev-clear`, `/dev-apply`, `/dev-write`, `/dev-undo`, `/dev-restart` | Izzy dev assistant chat / clear / apply / write / undo / restart |
+
+### AI generation endpoints
+| Path | Effect |
+|---|---|
+| `/ai-daily-schedule`, `/ai-capacity-preview`, `/ai-chore-adjust` | AI daily schedule / capacity / chore adjustment |
+| `/ai-meal-plan`, `/ai-school-plan`, `/ai-suggest-goals` | AI meal / school / goal suggestions |
+| `/ai-week-brief`, `/ai-month-brief`, `/ai-year-brief` | AI period briefs |
+| `/ai-weekly-review`, `/ai-evening-examen`, `/ai-intention-prayer` | AI review / examen / intention prayer |
+| `/ai-generate-steps`, `/api/extract-suggestions` | AI step generation / suggestion extraction |
+
+### Tasks & notes
+| Path | Effect |
+|---|---|
+| `/add-task`, `/task-update`, `/task-done`, `/task-delete`, `/task-hard-delete`, `/task-override`, `/task-purge-inactive`, `/toggle-task` | Task CRUD, overrides, completion, purge |
+| `/add-note`, `/archive-note`, `/convert-note` | Note CRUD |
+| `/planner-add-task`, `/add-to-plan-quick` | Quick task/plan additions |
+
+### Daily plan
+| Path | Effect |
+|---|---|
+| `/plan-add-item`, `/plan-item-update`, `/plan-toggle-item`, `/plan-ai-suggest` | Daily plan item CRUD + AI suggest |
+| `/anchor-save` | Saves morning/evening anchor |
+
+### Plan / period planning
+| Path | Effect |
+|---|---|
+| `/plan-week-save`, `/plan-month-save` | Save week/month plans |
+| `/plan-tomorrow-generate`, `/plan-tomorrow-push`, `/plan-tomorrow-questions` | Tomorrow planning flow |
+| `/quarter-checkin`, `/quarter-journal-save`, `/quarter-save-goals`, `/quarter-save-step` | Quarter planning |
+| `/kids-week-save` | Saves kids' week plan |
+
+### Plan importer
+| Path | Effect |
+|---|---|
+| `/plan-import-analyze`, `/plan-import-consult`, `/plan-import-group-consult` | Analyze / consult on imported plans |
+| `/plan-import-apply` (JSON) | Applies parsed events/tasks/placements |
+| `/plan-import-undo-placement` (JSON) | Undoes a placement |
+| `/plan-import-save-session`, `/plan-import-history-delete` | Session save / history delete |
+
+### School / curriculum / gradebook
+| Path | Effect |
+|---|---|
+| `/school-upload`, `/school-settings-save` | School file upload / settings |
+| `/approve-school-preview`, `/approve-school-week`, `/regenerate-school-week`, `/reparse-school-preview`, `/save-school-preview-edits`, `/preview-keep`, `/preview-discard` | School week preview/approval workflow |
+| `/curriculum-save` (JSON), `/curriculum-minutes` (JSON), `/curriculum-parse`, `/curriculum-delete`, `/curriculum-week`, `/curriculum-subject-day`, `/curriculum-subject-week` | Curriculum CRUD & scheduling |
+| `/assignment-analyze`, `/assignment-update`, `/assignment-delete`, `/assignment-reply` | Assignment analyzer CRUD |
+| `/gradebook-add`, `/gradebook-update`, `/gradebook-delete` | Gradebook CRUD |
+| `/subject-grade-add`, `/subject-grade-delete`, `/subject-link-add`, `/subject-link-delete`, `/subject-doc-delete`, `/subject-doc-upload`, `/subject-upload-image`, `/subject-send-to-mom` | Subject page CRUD |
+| `/hour-log-add`, `/hour-log-edit`, `/hour-log-delete` | Homeschool hour tracking |
+| `/poetry-passage-save` (JSON) | Saves a poetry passage |
+
+### FROL (Rule of Life) wizard & grid
+| Path | Effect |
+|---|---|
+| `/frol-wizard`, `/frol-wizard-chat`, `/frol-wizard-finalize` | Wizard step save / chat / finalize |
+| `/frol-add-activity`, `/frol-set-variant`, `/frol-edit-activity`, `/frol-delete-activity` | Activity add/variant/edit/delete |
+| `/frol-save-seasonal`, `/frol-seasonal-use`, `/frol-seasonal-delete` | Seasonal schedule CRUD |
+| `/frol-overlay-set`, `/frol-overlay-clear`, `/frol-overlay-toggle` | Schedule overlays |
+| `/frol-rollback-v3` | Rolls back FROL data version |
+| `/grid-cell-save`, `/grid-publish`, `/grid-push-weekly`, `/grid-reset`, `/grid-save-template`, `/schedule-template-save` | Day-grid editing & publishing |
+| `/pod-dismiss-season`, `/pod-toggle-traveling` | Plan-of-day controls |
+
+### Chores / van / programs / fitness
+| Path | Effect |
+|---|---|
+| `/save-chores`, `/apply-laundry`, `/apply-van-rotation` | Chores save, laundry, van rotation |
+| `/programs-save`, `/programs-edit`, `/programs-delete` | Coach program CRUD |
+| `/exercise-log` | Logs an exercise |
+| `/5am-save` | Saves 5AM Club tracker entry |
+
+### Goals / virtues / roadmap
+| Path | Effect |
+|---|---|
+| `/goal-add`, `/child-goal-add`, `/child-goal-archive`, `/child-substep-add`, `/child-substep-toggle`, `/child-substep-delete` | Goal & substep CRUD |
+| `/virtue-checkin` | Records a virtue check-in |
+| `/roadmap-add`, `/roadmap-update`, `/roadmap-delete` | Roadmap CRUD |
+
+### Prayer / liturgical / memory
+| Path | Effect |
+|---|---|
+| `/prayer-intention-add`, `/prayer-intention-complete`, `/prayer-intention-delete`, `/prayer-intention-log` | Prayer intention CRUD/log |
+| `/timeblock-add-intention`, `/timeblock-add-novena` | Adds intention/novena to a time block |
+| `/liturgical-save`, `/liturgical-note`, `/liturgical-delete` | Liturgical calendar CRUD |
+| `/liturgy-hours-save` | Saves Liturgy of the Hours |
+| `/memory-book-save`, `/memory-book-delete`, `/memory-update` | Memory book / family memory CRUD |
+| `/thankyou-add`, `/thankyou-done`, `/thankyou-dismiss`, `/thankyou-suggest` | Thank-you reminder CRUD |
+
+### Profiles / friends / calendar / settings / cycle / signup
+| Path | Effect |
+|---|---|
+| `/save-child-profile`, `/save-mom-profile`, `/save-john-profile` | Profile saves |
+| `/save-friend`, `/delete-friend` | Friends directory CRUD |
+| `/calendar-add-event`, `/calendar-event-delete`, `/calendar-refresh` | Local calendar event CRUD + refresh |
+| `/calendar-config-save`, `/calendar-save-config` | Saves calendar configuration |
+| `/subscribed-cal-add`, `/subscribed-cal-delete`, `/subscribed-cal-toggle` | Subscribed calendar CRUD |
+| `/family-schedule-save`, `/settings-schedule-save` | Saves family schedule settings |
+| `/settings-save`, `/settings-save-ajax` | Settings save (form / AJAX) |
+| `/cycle-save`, `/cycle-log-add`, `/cycle-log-delete`, `/cycle-ai-suggest` | Cycle tracking CRUD + AI |
+| `/history-restore` | Restores a history snapshot |
+| `/signup-submit`, `/waitlist` | Beta signup / waitlist submission |
+| `/quest*` (prefix) | Family Quest POST handlers (delegated) |
 
 ---
 
 ## Section 3 — Data files (data/)
 
-Sizes in bytes as of generation time. Files of size 2 are empty JSON `[]` or `{}`.
+> All persistent data is JSON. Files of size `2` bytes are empty (`{}` or `[]`).
+> Sizes below are bytes at snapshot time.
 
-### Top-level data/*.json
+| File | Size (B) | Stores |
+|---|---|---|
+| `app_settings.json` | 2,569 | Global settings, AI keys, family identity, colors |
+| `assignment_analyses.json` | 17,085 | Analyzed assignment records |
+| `calendar_cache.json` | 2,402 | Cached external calendar events |
+| `calendar_config.json` | 62 | Calendar configuration |
+| `calendar_rules.json` | 64 | Calendar display rules |
+| `chores.json` | 9,049 | Chore definitions & buckets |
+| `coach_history.json` | 47,809 | Coach chat history |
+| `coach_last_writes.json` | 106 | Coach undo state |
+| `coach_programs.json` | 3,516 | Saved fitness programs |
+| `curriculum.json` | 423,328 | Curriculum data (largest file) |
+| `cycle_log.json` | 236 | Cycle tracking log |
+| `dev_history.json` | 16,675 | Izzy dev assistant history |
+| `events.json` | 30,710 | Local calendar events |
+| `exercise_assignments.json` | 2,214 | Weekly exercise assignments |
+| `exercise_logs.json` | 665 | Logged exercises |
+| `family_memory.json` | 2 | Family memory store (empty) |
+| `felix_undo.json` | 137,831 | Undo journal |
+| `friends.json` | 1,195 | Friends & families directory |
+| `frol_activities.json` | 15,933 | FROL activity definitions (v3) |
+| `frol_activities.v2_backup.json` | 5,443 | FROL activities v2 backup |
+| `frol_wizard_progress.json` | 16,156 | FROL wizard progress |
+| `frol_wizard_progress.v2_backup.json` | 138 | FROL wizard progress backup |
+| `gradebook.json` | 934 | Per-child grade entries |
+| `grades.json` | 99 | Grades overview |
+| `gregory_history.json` | 49,281 | Father Gregory chat history |
+| `gregory_last_writes.json` | 272 | Gregory undo state |
+| `hour_tracking.json` | 138 | Homeschool hour tracking |
+| `kid_messages.json` | 2 | Kid messages (empty) |
+| `liturgical.json` | 2 | Custom liturgical entries (empty) |
+| `lorenzo_history.json` | 28,919 | Lorenzo chat history |
+| `lorenzo_last_writes.json` | 114 | Lorenzo undo state |
+| `lucy_history.json` | 38,734 | Lucy chat history |
+| `lucy_last_writes.json` | 98 | Lucy undo state |
+| `manual_tasks.json` | 32,195 | Manually created tasks |
+| `meal_inventory.json` | 917 | Meal/pantry inventory |
+| `meal_rules.json` | 3,316 | Meal rules & capacity labels |
+| `memory_book.json` | 789 | Family memory book entries |
+| `mom_notes.json` | 236 | Mom's notes |
+| `monica_history.json` | 18,696 | Dr. Monica chat history |
+| `monthly_planner.json` | 10,127 | Monthly planner data |
+| `notes.json` | 3,999 | Notes |
+| `plan_import_history.json` | 193,577 | Plan import history (large) |
+| `planning_session.json` | 21 | Active planning session state |
+| `poetry_passages.json` | 152 | Saved poetry passages |
+| `pope_intentions.json` | 1,654 | Monthly papal prayer intentions |
+| `prayer_intentions.json` | 1,116 | Prayer intentions |
+| `progress.json` | 203,939 | Task completion progress (compound keys) |
+| `recipes.json` | 44,517 | Recipe library |
+| `roadmap.json` | 1,121 | Family roadmap |
+| `school_previews.json` | 52,442 | School week previews |
+| `school_week_plan.json` | 58,290 | Approved school week plan |
+| `school_weeks.json` | 99,033 | School week data |
+| `seasonal_schedules.json` | 2 | Seasonal schedule library (empty) |
+| `sister_mary_history.json` | 9,298 | Sister Mary chat history |
+| `subscribed_calendar_cache.json` | 64 | Subscribed calendar cache |
+| `subscribed_calendars.json` | 2 | Subscribed calendars (empty) |
+| `task_overrides.json` | 15,844 | Per-day task overrides |
+| `task_registry.json` | 11,096 | Task registry |
+| `thankyou_reminders.json` | 259 | Thank-you reminders |
+| `_undo_smoke_test.json` | 21 | Test fixture (undo smoke test) |
 
-| Path | Size | Stores |
-|---|---:|---|
-| data/app_settings.json | 2,485 | Global app settings (child colors, van epoch, API keys, timezone) |
-| data/assignment_analyses.json | 12,381 | Assignment-Analyzer AI parse results |
-| data/calendar_cache.json | 2,193 | Cached events from Google Calendar |
-| data/calendar_config.json | 62 | iCal/Google-Calendar source configuration |
-| data/calendar_rules.json | 64 | Calendar event-filter / recoloring rules |
-| data/chores.json | 9,049 | Chore definitions per person, with buckets (daily/weekly/…) |
-| data/coach_history.json | 47,217 | Coach chat history |
-| data/coach_last_writes.json | 106 | Most-recent Coach data-altering action (for undo) |
-| data/coach_programs.json | 3,516 | Coach's saved exercise programs |
-| data/curriculum.json | 423,328 | Full curriculum store (subjects, units, assignments) |
-| data/cycle_log.json | 236 | Cycle-tracking log entries |
-| data/dev_history.json | 13,958 | Izzy (dev assistant) chat history |
-| data/events.json | 30,710 | Local-calendar events |
-| data/exercise_assignments.json | 2,214 | Per-week per-person exercise assignments |
-| data/exercise_logs.json | 665 | Post-workout logs |
-| data/family_memory.json | 2 | Family memory items (currently empty) |
-| data/felix_undo.json | 137,831 | Lucy/companion undo journal |
-| data/friends.json | 390 | Friends & families directory |
-| data/frol_activities.json | 19,535 | FROL activities in v3 shape |
-| data/frol_activities.v2_backup.json | 5,443 | One-shot backup of legacy v2 activities |
-| data/frol_wizard_progress.json | 1,483 | FROL wizard saved progress (per-section answers) |
-| data/frol_wizard_progress.v2_backup.json | 138 | Backup of legacy wizard progress |
-| data/gradebook.json | 934 | Gradebook entries |
-| data/grades.json | 99 | Per-child grade summary |
-| data/gregory_history.json | 49,281 | Father Gregory chat history |
-| data/gregory_last_writes.json | 272 | Most-recent Gregory data-altering action |
-| data/hour_tracking.json | 138 | Hour-tracking logs |
-| data/kid_messages.json | 2 | Kids' inter-family messages (empty) |
-| data/liturgical.json | 2 | Custom liturgical-day overrides (empty) |
-| data/lorenzo_history.json | 34,203 | Lorenzo chat history |
-| data/lorenzo_last_writes.json | 101 | Most-recent Lorenzo data-altering action |
-| data/lucy_history.json | 42,287 | Lucy chat history |
-| data/manual_tasks.json | 25,474 | Manually-entered tasks |
-| data/meal_inventory.json | 917 | Pantry / fridge inventory for meal planning |
-| data/meal_rules.json | 3,316 | Meal-planning rules and constraints |
-| data/memory_book.json | 789 | Family memory-book entries |
-| data/mom_notes.json | 236 | Mom's quick notes |
-| data/monica_history.json | 18,696 | Dr. Monica chat history |
-| data/monthly_planner.json | 10,127 | Monthly-planner entries |
-| data/notes.json | 3,999 | Notes |
-| data/plan_import_history.json | 156,252 | Past Plan-Importer apply records (with undo data) |
-| data/planning_session.json | 21 | Current Plan-Importer / planning session state |
-| data/poetry_passages.json | 152 | Saved poetry passages |
-| data/pope_intentions.json | 1,654 | Pope's monthly prayer intentions |
-| data/prayer_intentions.json | 1,116 | Family prayer intentions |
-| data/progress.json | 201,581 | Task-completion map keyed "YYYY-MM-DD::Person::task text" |
-| data/recipes.json | 44,517 | Recipe library |
-| data/roadmap.json | 1,121 | Project roadmap items |
-| data/school_previews.json | 52,442 | Pending school-week AI previews |
-| data/school_week_plan.json | 58,290 | Currently-approved weekly school plan |
-| data/school_weeks.json | 99,033 | Historical approved school-week plans |
-| data/seasonal_schedules.json | 2 | Phase F: saved seasonal schedule snapshots (currently empty) |
-| data/sister_mary_history.json | 9,298 | Sister Mary chat history |
-| data/subscribed_calendar_cache.json | 64 | Cached iCal events from subscribed feeds |
-| data/subscribed_calendars.json | 2 | Subscribed iCal sources (empty) |
-| data/task_overrides.json | 15,639 | Per-day task overrides (skip/postpone/edit) |
-| data/task_registry.json | 195,883 | Stable task-id registry (FROL + manual) |
-| data/thankyou_reminders.json | 259 | Thank-you-note reminders |
-| data/_undo_smoke_test.json | 21 | Test fixture for undo system |
+**Not yet created (config paths declared, file absent until first save):**
+`pantry_staples.json`, `meal_history.json`, `meal_wizard_session.json`.
 
-### Verification harnesses (data/*.py)
-
-| Path | Size | Stores |
-|---|---:|---|
-| data/verify_phase_a.py | 13,400 | Phase A regression checks |
-| data/verify_phase_b.py | 16,606 | Phase B regression checks |
-| data/verify_phase_c.py | 7,287 | Phase C regression checks |
-| data/verify_phase_d.py | 10,093 | Phase D regression checks |
-| data/verify_phase_e.py | 11,295 | Phase E regression checks |
-| data/verify_phase_f.py | 8,722 | Phase F (seasonal library) regression checks |
-| data/verify_phase_g.py | 7,901 | Phase G (companion seasonal awareness) regression checks |
-| data/verify_task_42.py | 6,034 | Task-42 follow-up regression checks |
-
-### Subdirectories (one-line summaries)
-
-| Path | Stores |
-|---|---|
-| data/5am/ | Per-date 5AM-Club entries (`YYYY-MM-DD.json`) |
-| data/assignment_uploads/ | Uploaded assignment images / PDFs |
-| data/auth/ | `pins.json` (per-user PINs) + `sessions.json` (active sessions) |
-| data/cycle/ | Per-month cycle-tracking JSON (`YYYY-MM.json`) |
-| data/daily_plans/ | Per-date daily plan blobs (`YYYY-MM-DD.json`) |
-| data/day_grids/ | Per-date materialised schedule grids + `_meta.json` siblings |
-| data/day_templates/ | Live FROL weekday templates (`Monday.json`…`Sunday.json`, `JohnTraveling.json`) — single source of truth |
-| data/day_templates_preview/ | Wizard "Preview this week" temp templates (consumed when present) |
-| data/day_templates_backups/ | Timestamped backups created before destructive writes to day_templates |
-| data/hour_reports/ | Saved hour-tracking report snapshots |
-| data/prayer/ | `intentions.json` (alternate prayer-intentions store) |
-| data/profiles/ | Per-person profile JSON (`jp.json`, `joseph.json`, etc. — lowercase keys) |
-| data/readings_cache/ | Cached daily Mass readings by date |
-| data/saint_cache/ | Cached saint-of-the-day blobs by date |
-| data/sister_mary_history.json.archive/ | Archived Sister Mary conversation rollovers |
-| data/virtues/ | `personal.json` (virtue tracker data) |
-| data/weekly_school_plan/ | Per-week approved school plan (`YYYY-WW.json`) |
-| data/__pycache__/ | Python bytecode cache (auto-managed) |
+**Subdirectories:** `5am/`, `assignment_uploads/`, `auth/`, `cycle/`,
+`daily_plans/`, `day_grids/`, `day_templates/`, `day_templates_backups/`,
+`dev_history.json.archive/`, `goals/`, `history/`, `hour_reports/`,
+`liturgy_hours/`, `lorenzo_history.json.archive/`, `meal_plan/`, `prayer/`,
+`profiles/`, `readings_cache/`, `saint_cache/`, `sister_mary_history.json.archive/`,
+`virtues/`, `weekly_school_plan/`, `__pycache__/`.
 
 ---
 
 ## Section 4 — Render modules (render_*.py)
 
-| Path | Renders |
+| Module | Renders |
 |---|---|
-| render_5am.py | 5AM Club page (personal discipline tracker) |
-| render_ai_daily.py | AI-powered daily assistance fragments |
-| render_ai_planner.py | AI scheduling-assistant page |
-| render_assignment_analyzer.py | AI Assignment Analyzer page |
-| render_calendar.py | Calendar fetching, event display, calendar page |
-| render_child_goals.py | Per-child goals with substeps and deadlines |
-| render_child_profile.py | Per-child profile card |
-| render_chores.py | Chores page, laundry system, van rotation |
-| render_coach.py | Coach (McAdams family fitness guide) page |
-| render_companions.py | Standalone /companions directory of the six AI companions |
-| render_curriculum.py | Curriculum management system |
-| render_daily_bar.py | Daily info bar (weather, saint, gospel, events) |
-| render_daily_plan.py | Daily plan editor, family grid, dashboard views |
-| render_dev.py | Isidore (Izzy) help-desk diagnostic assistant |
-| render_friends.py | Friends & Families directory |
-| render_frol_pdf.py | FROL printable PDF generator |
-| render_frol_wizard.py | Rule of Life Wizard (Phase 1) — the §1–§16 wizard |
-| render_goals.py | Goal-system data helpers |
-| render_gradebook.py | Per-child gradebook of recorded assignment scores |
-| render_gregory.py | Father Gregory (Headmaster & Academic Director) |
-| render_john.py | John's (husband/dad) personal profile page |
-| render_kids_week.py | Kids' weekly planning page |
-| render_liturgical.py | Liturgical-calendar engine and page renderers |
-| render_liturgy_hours.py | Liturgy of the Hours page |
-| render_login.py | Family login screen |
-| render_lorenzo.py | Lorenzo (AI personal chef) |
-| render_lucy.py | Lucy (AI day guide) |
-| render_meals.py | Weekly meal planning system |
-| render_memory_book.py | Family memory book |
-| render_misc.py | Dashboard, Mom, Notes, Tasks, Roadmap, Planner, School, History |
-| render_mom_profile.py | Mom's personal profile page |
-| render_monica.py | Dr. Monica (Child Development & Pediatric Health) |
-| render_morning_anchor.py | Morning Anchor (Step 0) and Evening Anchor (Step 5) |
-| render_plan_importer.py | Plan-Import tool (paste→AI extract→approve→apply) |
-| render_plan_month.py | Plan-My-Month |
-| render_plan_quarter.py | Quarterly goal planning |
-| render_plan_tomorrow.py | AI-powered tomorrow planning page |
-| render_plan_week.py | Plan-My-Week |
-| render_plan_year.py | Plan-My-Year |
-| render_prayer.py | Prayer Intentions page |
-| render_programs.py | Coach's saved programs + weekly exercise assignments |
-| render_readings.py | Daily Mass readings page |
-| render_schedule.py | Schedule cards, task lists, print pages, today/week views |
-| render_schedule_support.py | Family schedule engine, now/next strip, timeline |
-| render_school_pdf.py | School-week printable PDF generator |
-| render_seasons.py | Phase F season detection helper (11 labels + upcoming_season) |
-| render_settings.py | Settings page — single source of truth UI |
-| render_signup.py | Beta waitlist signup survey |
-| render_sister_mary.py | Sister Mary (contemplative Marian companion) |
-| render_student.py | Student Portal (Phase 1) |
-| render_subject.py | Per-subject curriculum review pages |
-| render_timeblock.py | Lauren's time-block homepage (POD) |
-| render_virtues.py | Virtue Tracker |
-| render_week_school.py | Weekly school progress page (/week-school) |
-| render_week_view.py | Family Week at a Glance |
-
-Notable size: `render_frol_wizard.py` 372KB, `render_misc.py` 287KB, `render_lucy.py` 180KB, `render_schedule.py` 136KB — the four largest renderers.
+| `render_5am.py` | 5AM Club personal-discipline tracker |
+| `render_ai_daily.py` | AI-powered daily assistance features |
+| `render_ai_planner.py` | AI scheduling assistant |
+| `render_assignment_analyzer.py` | AI Assignment Analyzer |
+| `render_calendar.py` | Calendar fetching, event display, calendar page |
+| `render_child_goals.py` | Per-child goals with substeps & review |
+| `render_child_profile.py` | Per-child profile card |
+| `render_chores.py` | Chores page, laundry system, van rotation |
+| `render_coach.py` | Coach family fitness companion |
+| `render_companions.py` | AI companions hub |
+| `render_curriculum.py` | Curriculum management system |
+| `render_daily_bar.py` | Daily info bar (weather, saint, gospel, events) |
+| `render_daily_plan.py` | Daily plan editor, family grid, dashboard views |
+| `render_dev.py` | Izzy (Isidore) dev help-desk diagnostic assistant |
+| `render_friends.py` | Friends & families directory |
+| `render_frol_pdf.py` | FROL printable PDF generator |
+| `render_frol_wizard.py` | Rule of Life Wizard |
+| `render_goals.py` | Goal system data helpers |
+| `render_gradebook.py` | Per-child gradebook |
+| `render_gregory.py` | Father Gregory (headmaster) companion |
+| `render_john.py` | John's (dad) personal profile page |
+| `render_kids_week.py` | Kids' week planning page |
+| `render_liturgical.py` | Liturgical calendar engine + page renderers |
+| `render_liturgy_hours.py` | Liturgy of the Hours |
+| `render_login.py` | Family login screen |
+| `render_lorenzo.py` | Lorenzo AI personal chef |
+| `render_lucy.py` | Lucy AI day guide |
+| `render_meals.py` | Weekly meal planning system |
+| `render_meal_wizard.py` | **NEW** — Meal Planning Wizard (Pantry Staples page) |
+| `render_memory_book.py` | Family memory book |
+| `render_misc.py` | Dashboard, Mom, Notes, Tasks, Roadmap, Planner, School, History |
+| `render_mom_profile.py` | Mom's personal profile page |
+| `render_monica.py` | Dr. Monica child development/health companion |
+| `render_morning_anchor.py` | Morning Anchor (Step 0) & Evening Anchor (Step 5) |
+| `render_plan_importer.py` | Plan Import tool (JS in static/js/plan_importer_*.js) |
+| `render_plan_month.py` | Plan My Month |
+| `render_plan_quarter.py` | Quarterly goal planning |
+| `render_plan_tomorrow.py` | AI-powered tomorrow planning |
+| `render_plan_week.py` | Plan My Week |
+| `render_plan_year.py` | Plan My Year |
+| `render_prayer.py` | Prayer intentions |
+| `render_programs.py` | Coach's saved programs + weekly exercise assignments |
+| `render_readings.py` | Daily Mass readings |
+| `render_schedule.py` | Schedule cards, task lists, print pages, today/week |
+| `render_schedule_support.py` | Family schedule engine, now/next strip, timeline |
+| `render_school_pdf.py` | School Week printable PDF generator |
+| `render_seasons.py` | Phase F season detection helper |
+| `render_settings.py` | Single source of truth for all configuration |
+| `render_signup.py` | Beta waitlist signup survey |
+| `render_sister_mary.py` | Sister Mary contemplative Marian companion |
+| `render_student.py` | Student portal |
+| `render_subject.py` | Per-subject curriculum review pages |
+| `render_timeblock.py` | Lauren's time-block homepage |
+| `render_virtues.py` | Virtue tracker |
+| `render_week_school.py` | Weekly school progress page (/week-school) |
+| `render_week_view.py` | Family week at a glance |
+| `render_wizards.py` | Wizards hub page (/wizards) |
 
 ---
 
-## Section 5 — data_helpers.py functions
+## Section 5 — data_helpers.py functions (216 total)
 
-| Name | One-liner |
-|---|---|
-| list_snapshots | List restore-snapshot names |
-| restore_snapshot | Restore a named snapshot |
-| load_snapshot_data | Load raw snapshot contents |
-| today_iso | Return today's date as ISO string |
-| tomorrow_iso | Return tomorrow's date as ISO string |
-| monday_iso_for | Return the ISO Monday of the week containing `iso` |
-| load_school_week_plan | Return current weekly school plan blob ({} if empty) |
-| save_school_week_plan | Persist the weekly school plan |
-| generate_weekly_school_plan | Generate a draft weekly school plan for JP/Joseph |
-| get_approved_school_week_plan | Return plan only when approved AND for given week |
-| normalize_date_query | Normalize a ?date= query string |
-| safe_int | Coerce to int with default fallback |
-| clean_priority | Validate/clean a task-priority string |
-| clean_status | Validate/clean a task-status string |
-| clean_child | Validate/clean a child name |
-| clean_text | Strip/escape user-entered text |
-| clean_weekday | Validate/clean a weekday name |
-| lines_to_list | Split textarea contents into list of lines |
-| count_school_check_items | Count school checklist items in a string |
-| is_math_subject | True if subject name is a math subject |
-| is_math_test_text | True if assignment text reads as a math test |
-| sort_school_days | Sort school-day strings into weekday order |
-| load_progress | Load progress.json → maps task_id → {done: bool} |
-| load_manual_tasks | Load manually-entered tasks |
-| save_manual_tasks | Persist manual tasks |
-| active_manual_tasks | Filter manual tasks to status='active' |
-| ensure_manual_task_ids | Idempotent backfill of uuid4 ids on manual tasks |
-| _nth_weekday_of_month | Return date of Nth weekday in given month/year |
-| _add_months | Add N calendar months, clamping day |
-| _next_specific_weekday | Next date strictly after `base` matching given weekdays |
-| _next_monthly_day | Next occurrence on day `month_day` of the month |
-| format_recurrence_label | Human-readable one-line recurrence summary |
-| advance_recurring_task | Reset a completed recurring task to its next due date |
-| _ensure_chore_buckets | Idempotent backfill of daily/weekly/monthly buckets per person |
-| load_chores_data | Load chores.json |
-| save_chores_data | Persist chores.json |
-| _resolve_chore_person | Case-insensitive chore-bucket lookup for a person |
-| get_chores_due_today | Chore entries due for `person` on the given date |
-| get_due_grooming | Per-person grooming entries due |
-| load_hour_tracking | Load hour-tracking logs |
-| save_hour_tracking | Persist hour-tracking logs |
-| add_hour_log | Append a single hour-log entry; return saved record |
-| save_hour_report_snapshot | Persist an hour-report snapshot under HOUR_REPORTS_DIR |
-| get_hour_totals | Return totals + categories for a person/subject |
-| _activity_new_id | Stable-ish short id for a new FROL activity |
-| _file_has_legacy_activities | True iff on-disk activities file has v2 entries |
-| _ensure_activities_backup | Write one-shot backup of activities file (guard) |
-| _upgrade_activity_v2_to_v3 | Convert one legacy activity dict to v3 shape (idempotent) |
-| load_frol_activities | Return activities list in v3 shape (auto-upgrades v2) |
-| save_frol_activities | Persist activities in v3 shape (auto-migrates legacy) |
-| load_seasonal_schedules | Return all saved seasonal-schedule snapshots (Phase F) |
-| _seasonal_snapshot_day_templates | Snapshot every day_templates JSON keyed by stem |
-| save_seasonal_schedule | Persist current activities + day_templates under a season label |
-| get_seasonal_schedule | Return one seasonal entry by id (or None) |
-| find_seasonal_schedule_for | Most recent saved entry for (label, year) |
-| _summarize_prior_seasonal_entry | One-line summary of a prior seasonal entry's notes |
-| delete_seasonal_schedule | Remove a seasonal entry by id |
-| get_seasonal_context | Season-aware dict the companions consume |
-| get_companion_seasonal_block | Role-specific seasonal context block (list of lines) |
-| load_roadmap | Load roadmap items |
-| save_roadmap | Persist roadmap |
-| load_mom_notes | Load Lauren's quick notes |
-| save_mom_notes | Persist Lauren's quick notes |
-| load_liturgical_custom | Load liturgical-day customisations |
-| save_liturgical_custom | Persist liturgical customisations |
-| load_calendar_config | Load calendar source config |
-| save_calendar_config | Persist calendar config |
-| load_calendar_cache | Load cached calendar events |
-| save_calendar_cache | Persist calendar cache |
-| load_subscribed_calendar_cache | Load cached iCal-subscribed events |
-| save_subscribed_calendar_cache | Persist subscribed-calendar cache |
-| load_calendar_rules | Load calendar filter / recolor rules |
-| save_calendar_rules | Persist calendar rules |
-| load_subscribed_calendars | Load subscribed iCal sources |
-| save_subscribed_calendars | Persist subscribed calendars |
-| load_family_schedule | Load family Rule-of-Life schedule (legacy) |
-| save_family_schedule | Persist family schedule |
-| get_frol_day_slots | Return FROL time slots {time:label} for person/weekday |
-| load_day_template | Load a single day-template JSON from `base_dir` |
-| get_frol_times | Canonical ordered half-hour FROL slots |
-| load_exercise_assignments | Load per-week exercise assignments |
-| save_exercise_assignments | Persist exercise assignments |
-| load_coach_programs | Load Coach programs |
-| save_coach_program | Append a Coach program; return saved entry with id |
-| load_exercise_logs | Load post-workout logs |
-| save_exercise_log | Save (or replace) post-workout log for (person, iso) |
-| delete_coach_program | Delete a Coach program by id |
-| get_family_rule_of_life_text | Plain-text FROL for given weekday |
-| get_full_frol_context | Complete formatted FROL view for all 7 days |
-| _archive_history_file | Copy a history file into <path>.archive/<ts>.json |
-| load_lucy_history | Return list of Lucy {role, content, ts} dicts |
-| save_lucy_history | Persist full Lucy history (capped) |
-| append_lucy_messages | Append one or more Lucy messages and save |
-| _safe_clear | Archive then wipe a history file (fail-closed) |
-| clear_lucy_history | Archive + wipe Lucy history (False on failure) |
-| load_lorenzo_history | Lorenzo chat history list |
-| save_lorenzo_history | Persist Lorenzo history |
-| append_lorenzo_messages | Append + save Lorenzo messages |
-| clear_lorenzo_history | Archive + wipe Lorenzo history |
-| load_gregory_history | Gregory chat history list |
-| save_gregory_history | Persist Gregory history |
-| append_gregory_messages | Append + save Gregory messages |
-| clear_gregory_history | Archive + wipe Gregory history |
-| load_coach_history | Coach chat history |
-| save_coach_history | Persist Coach history |
-| append_coach_messages | Append + save Coach messages |
-| clear_coach_history | Archive + wipe Coach history |
-| load_dev_history | Izzy chat history |
-| save_dev_history | Persist Izzy history |
-| append_dev_messages | Append + save Izzy messages |
-| clear_dev_history | Archive + wipe Izzy history |
-| load_monica_history | Dr. Monica chat history |
-| save_monica_history | Persist Dr. Monica history |
-| append_monica_messages | Append + save Dr. Monica messages |
-| clear_monica_history | Archive + wipe Dr. Monica history |
-| load_thankyou_reminders | Load thank-you-note reminders |
-| save_thankyou_reminders | Persist thank-you reminders |
-| pending_thankyou_reminders | Pending reminders sorted by date |
-| due_thankyou_reminders | Pending reminders due today or earlier |
-| due_thankyou_reminders_for | Due reminders for a specific person or 'Family' |
-| load_assignment_analyses | List of analyzed assignments (newest first) |
-| save_assignment_analyses | Persist analyses |
-| add_assignment_analysis | Insert new analysis; return saved record |
-| update_assignment_analysis | Update an analysis by id |
-| delete_assignment_analysis | Delete an analysis by id |
-| percent_to_letter | Convert numeric % to letter grade |
-| letter_to_gpa | Convert letter grade to GPA points |
-| school_year_for_date | McAdams homeschool year (Aug 1–Jul 31) for ISO date |
-| load_gradebook | Load gradebook entries list |
-| save_gradebook | Persist gradebook |
-| add_gradebook_entry | Insert new gradebook entry with id |
-| update_gradebook_entry | Update a gradebook entry |
-| delete_gradebook_entry | Delete a gradebook entry |
-| gradebook_for_child | Entries for a child (optional year filter), newest first |
-| as_text | Normalize ingredients/instructions to single string |
-| load_recipes | Load recipe library |
-| save_recipes | Persist recipes |
-| get_recipe_by_id | Return recipe dict by id (or None) |
-| save_recipe | Append a new recipe (always new id, no replace) |
-| add_recipe | Add or update recipe by case-insensitive name match |
-| delete_recipe | Delete recipe by id |
-| search_recipes | Find recipes by name/ingredient substring |
-| load_planning_session | Load current planning-session state |
-| save_planning_session | Persist planning-session state |
-| start_planning_session | Initialise a new planning session |
-| advance_planning_session | Advance to the next slot after the one just filled |
-| clear_planning_session | Wipe planning-session state |
-| planning_session_summary | Client-facing summary dict |
-| load_monthly_planner | Load monthly planner |
-| load_curriculum | Load curriculum store |
-| save_curriculum | Persist curriculum |
-| get_curriculum_week | Current school-week number (1-indexed) |
-| get_curriculum_subjects | {subject: {week_str: assignment}} for a child |
-| week_day_segments | Per-day breakdown for a week's stored value |
-| resolve_week_text | Assignment text for (week, day) in subject |
-| get_curriculum_week_assignments | {subject: assignment_text} for child on a week |
-| subject_meeting_days | Weekday names this subject meets on |
-| subject_day_index | 1-based position of today within meeting_days |
-| advance_curriculum_cursor | Advance a subject's _current_day cursor |
-| load_local_events | Raw events from data/events.json |
-| save_local_events | Persist events |
-| expand_local_events_for_range | Expand events into calendar-shape dicts for a date range |
-| load_task_overrides | {child:{iso:{task_id:override}}} map |
-| save_task_overrides | Persist task overrides |
-| set_task_override | Store an override for a task on a day |
-| clear_task_override | Remove an override |
-| get_day_overrides | {task_id:override} for a (person, iso) |
-| get_postponed_for_day | Task labels postponed TO this day from earlier |
-| load_curriculum_library | Load subjects/units/assignments library |
-| save_curriculum_library | Persist curriculum library |
-| get_subject_by_id | Return a subject by id |
-| get_assignments_for_student | All assignments for a student across subjects |
-| load_student_submissions | Load student-work submissions |
-| save_student_submissions | Persist submissions |
-| add_student_submission | Add a new submission |
-| get_submissions_for_grading | Submissions pending review |
-| get_submissions_by_student | All submissions for a student |
-| load_grading_history | Load completed grading records |
-| save_grading_history | Persist grading history |
-| add_grade_record | Add a completed grade + update submission status |
-| load_curriculum_documents | Load curriculum reference docs |
-| save_curriculum_documents | Persist curriculum documents |
-| add_curriculum_document | Add a curriculum reference document |
-| load_family_memory | Family memory list (empty if missing) |
-| save_family_memory | Persist family memory list |
-| _now_ts | Current ISO timestamp helper |
-| add_memory | Append a new memory; return saved record |
-| update_memory | Replace text of an existing memory |
-| delete_memory | Remove a memory by id |
-| _tokenize_memory | Lowercase alphanumeric tokens (≥2 chars, stopwords removed) |
-| find_memory_conflicts | Memories whose Jaccard token overlap exceeds threshold |
-| get_memory_context_block | FAMILY MEMORY system-prompt section |
-| load_prayer_intentions | Load prayer intentions |
-| save_prayer_intentions | Persist prayer intentions |
-| add_daily_intention | Add a one-time daily intention |
-| add_repeating_intention | Add a repeating intention |
-| add_novena | Start a 9-day novena |
-| get_active_intentions_for_date | Intentions active on a given date |
-| check_upcoming_novenas | Feasts in next 9 days without an active novena |
-| load_pope_intentions | Pope's monthly intentions cache |
-| save_pope_intentions | Persist Pope's intentions |
-| get_pope_intention_for_month | Pope intention for a given (year, month) |
-| load_sister_mary_history | Sister Mary chat history |
-| save_sister_mary_history | Persist Sister Mary history |
-| append_sister_mary_messages | Append + save Sister Mary messages |
-| clear_sister_mary_history | Archive + wipe Sister Mary history |
+> `data_helpers.py` is the only module that reads/writes JSON. Grouped by area.
+
+**Dates & utilities:** `today_iso`, `tomorrow_iso`, `monday_iso_for`,
+`normalize_date_query`, `safe_int`, `clean_priority`, `clean_status`,
+`clean_child`, `clean_text`, `clean_weekday`, `lines_to_list`, `as_text`,
+`_now_ts`.
+
+**Snapshots / history:** `list_snapshots`, `restore_snapshot`,
+`load_snapshot_data`, `_archive_history_file`.
+
+**Tasks:** `load_progress`, `load_manual_tasks`, `save_manual_tasks`,
+`active_manual_tasks`, `ensure_manual_task_ids`, `format_recurrence_label`,
+`advance_recurring_task`, `_nth_weekday_of_month`, `_add_months`,
+`_next_specific_weekday`, `_next_monthly_day`, `load_task_overrides`,
+`save_task_overrides`, `set_task_override`, `clear_task_override`,
+`get_day_overrides`, `get_postponed_for_day`.
+
+**Chores:** `_ensure_chore_buckets`, `load_chores_data`, `save_chores_data`,
+`_resolve_chore_person`, `get_chores_due_today`, `get_due_grooming`.
+
+**Hour tracking:** `load_hour_tracking`, `save_hour_tracking`, `add_hour_log`,
+`save_hour_report_snapshot`, `get_hour_totals`.
+
+**FROL activities / seasonal:** `_activity_new_id`, `_file_has_legacy_activities`,
+`_ensure_activities_backup`, `_upgrade_activity_v2_to_v3`, `load_frol_activities`,
+`save_frol_activities`, `load_seasonal_schedules`, `_seasonal_snapshot_day_templates`,
+`save_seasonal_schedule`, `get_seasonal_schedule`, `find_seasonal_schedule_for`,
+`_summarize_prior_seasonal_entry`, `delete_seasonal_schedule`,
+`get_seasonal_context`, `get_companion_seasonal_block`, `get_frol_day_slots`,
+`load_day_template`, `get_frol_times`, `get_family_rule_of_life_text`,
+`get_full_frol_context`.
+
+**Roadmap / notes / liturgical:** `load_roadmap`, `save_roadmap`,
+`load_mom_notes`, `save_mom_notes`, `load_liturgical_custom`,
+`save_liturgical_custom`.
+
+**Calendars:** `load_calendar_config`, `save_calendar_config`,
+`load_calendar_cache`, `save_calendar_cache`, `load_subscribed_calendar_cache`,
+`save_subscribed_calendar_cache`, `load_calendar_rules`, `save_calendar_rules`,
+`load_subscribed_calendars`, `save_subscribed_calendars`, `load_family_schedule`,
+`save_family_schedule`, `load_local_events`, `save_local_events`,
+`expand_local_events_for_range`.
+
+**Exercise / coach:** `load_exercise_assignments`, `save_exercise_assignments`,
+`load_coach_programs`, `save_coach_program`, `load_exercise_logs`,
+`save_exercise_log`, `delete_coach_program`.
+
+**Companion histories:** `load_lucy_history`/`save_lucy_history`/
+`append_lucy_messages`/`clear_lucy_history`, `load_lorenzo_history`/`save…`/
+`append…`/`clear…`, `load_gregory_history`/…, `load_coach_history`/…,
+`load_dev_history`/…, `load_monica_history`/…, `load_sister_mary_history`/
+`save_sister_mary_history`/`append_sister_mary_messages`/`clear_sister_mary_history`,
+plus `_safe_clear`.
+
+**Thank-you reminders:** `load_thankyou_reminders`, `save_thankyou_reminders`,
+`pending_thankyou_reminders`, `due_thankyou_reminders`,
+`due_thankyou_reminders_for`.
+
+**Assignments & gradebook:** `load_assignment_analyses`,
+`save_assignment_analyses`, `add_assignment_analysis`,
+`update_assignment_analysis`, `delete_assignment_analysis`, `percent_to_letter`,
+`letter_to_gpa`, `school_year_for_date`, `load_gradebook`, `save_gradebook`,
+`add_gradebook_entry`, `update_gradebook_entry`, `delete_gradebook_entry`,
+`gradebook_for_child`.
+
+**Recipes:** `load_recipes`, `save_recipes`, `get_recipe_by_id`, `save_recipe`,
+`add_recipe`, `delete_recipe`, `search_recipes`.
+
+**Planning sessions:** `load_planning_session`, `save_planning_session`,
+`start_planning_session`, `advance_planning_session`, `clear_planning_session`,
+`planning_session_summary`, `load_monthly_planner`.
+
+**Curriculum:** `load_curriculum`, `save_curriculum`, `get_curriculum_week`,
+`get_curriculum_subjects`, `week_day_segments`, `resolve_week_text`,
+`get_curriculum_week_assignments`, `subject_meeting_days`, `subject_day_index`,
+`advance_curriculum_cursor`, `count_school_check_items`, `is_math_subject`,
+`is_math_test_text`, `sort_school_days`.
+
+**School week plans:** `load_school_week_plan`, `save_school_week_plan`,
+`generate_weekly_school_plan`, `get_approved_school_week_plan`.
+
+**Student portal / curriculum library:** `load_curriculum_library`,
+`save_curriculum_library`, `get_subject_by_id`, `get_assignments_for_student`,
+`load_student_submissions`, `save_student_submissions`, `add_student_submission`,
+`get_submissions_for_grading`, `get_submissions_by_student`,
+`load_grading_history`, `save_grading_history`, `add_grade_record`,
+`load_curriculum_documents`, `save_curriculum_documents`, `add_curriculum_document`.
+
+**Family memory:** `load_family_memory`, `save_family_memory`, `add_memory`,
+`update_memory`, `delete_memory`, `_tokenize_memory`, `find_memory_conflicts`,
+`get_memory_context_block`.
+
+**Prayer / intentions:** `load_prayer_intentions`, `save_prayer_intentions`,
+`add_daily_intention`, `add_repeating_intention`, `add_novena`,
+`get_active_intentions_for_date`, `check_upcoming_novenas`,
+`load_pope_intentions`, `save_pope_intentions`, `get_pope_intention_for_month`.
+
+**Meal Planning Wizard:** `load_pantry_staples`, `save_pantry_staples`,
+`load_meal_history`, `save_meal_history`, `add_meal_history_entry`,
+`get_recent_meals`, `load_meal_wizard_session`, `save_meal_wizard_session`,
+`clear_meal_wizard_session`, `update_meal_wizard_session`.
 
 ---
 
 ## Section 6 — config.py constants
 
-| Name | Value |
-|---|---|
-| HOST | `"0.0.0.0"` |
-| PORT | `int(os.environ.get("PORT", 8000))` |
-| MANUAL_TASKS_FILE | `"data/manual_tasks.json"` |
-| CHORES_FILE | `"data/chores.json"` |
-| MOM_NOTES_FILE | `"data/mom_notes.json"` |
-| ROADMAP_FILE | `"data/roadmap.json"` |
-| LITURGICAL_FILE | `"data/liturgical.json"` |
-| FAMILY_SCHEDULE_FILE | `"data/family_schedule.json"` |
-| CALENDAR_CONFIG_FILE | `"data/calendar_config.json"` |
-| CALENDAR_CACHE_FILE | `"data/calendar_cache.json"` |
-| MONTHLY_PLANNER_FILE | `"data/monthly_planner.json"` |
-| CALENDAR_RULES_FILE | `"data/calendar_rules.json"` |
-| SUBSCRIBED_CALS_FILE | `"data/subscribed_calendars.json"` |
-| SUBSCRIBED_CACHE_FILE | `"data/subscribed_calendar_cache.json"` |
-| APP_SETTINGS_FILE | `"data/app_settings.json"` |
-| CURRICULUM_FILE | `"data/curriculum.json"` |
-| TASK_OVERRIDES_FILE | `"data/task_overrides.json"` |
-| COACH_PROGRAMS_FILE | `"data/coach_programs.json"` |
-| EXERCISE_LOGS_FILE | `"data/exercise_logs.json"` |
-| SCHOOL_WEEK_PLAN_FILE | `"data/school_week_plan.json"` |
-| FAMILY_MEMORY_FILE | `"data/family_memory.json"` |
-| PRAYER_INTENTIONS_FILE | `"data/prayer_intentions.json"` |
-| SISTER_MARY_HISTORY_FILE | `"data/sister_mary_history.json"` |
-| POPE_INTENTIONS_FILE | `"data/pope_intentions.json"` |
-| FROL_WIZARD_PROGRESS_FILE | `"data/frol_wizard_progress.json"` |
-| HOUR_TRACKING_FILE | `"data/hour_tracking.json"` |
-| HOUR_REPORTS_DIR | `"data/hour_reports"` |
-| FROL_ACTIVITIES_FILE | `"data/frol_activities.json"` |
-| DAY_TEMPLATES_DIR | `"data/day_templates"` |
-| DAY_TEMPLATES_PREVIEW_DIR | `"data/day_templates_preview"` |
-| DAY_TEMPLATES_BACKUP_DIR | `"data/day_templates_backups"` |
-| SEASONAL_SCHEDULES_FILE | `"data/seasonal_schedules.json"` |
-| VALID_PRIORITIES | `{"HIGH", "MEDIUM", "LOW"}` |
-| VALID_STATUSES | `{"active", "done", "inactive"}` |
-| WEEKDAYS | `["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]` |
-| WEEKDAY_ORDER | `{day: i for i,day in enumerate(WEEKDAYS)}` |
-| SCHEDULE_DAYS | `["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]` |
-| MONTH_NAMES | `["January","February",…,"December"]` (12 items) |
-| ROADMAP_STATUSES | `["Someday","Ready","In Progress","Done"]` |
-| ASSIGNABLE_TO | `["Mom"] + list(CHILDREN)` |
-| _DEFAULT_CHILD_COLORS | `{JP:{bg:#c0392b,text:#fff,light:#fdf0ef}, Joseph:{bg:#27ae60,…}, Michael:{bg:#e67e22,…}, James:{bg:#2980b9,…}}` |
-| CHILD_COLORS | `_load_child_colors()` (merged from app_settings.json) |
-| _DEFAULT_PARENT_COLORS | `{Lauren:{bg:#7c3aed,light:#f5f3ff}, John:{bg:#2563eb,light:#eff6ff}}` |
-| VAN_ROTATION_EPOCH | `_load_van_epoch()` (default `date(2025,1,6)`) |
-| VAN_ROLE_A | `"Interior Reset Lead"` |
-| VAN_ROLE_B | `"Bin & Organization Lead"` |
+> `config.py` owns all file paths (claud.md gotcha — never hardcode paths).
+> Several identity/color/epoch values default here but are overridden at
+> runtime from `app_settings.json` (Rule 19 — keep family identity in settings).
 
-Module-level helper functions in config.py (not strictly constants but exposed at module scope): `_load_child_colors`, `child_color`, `parent_color`, `_load_van_epoch`, `get_van_epoch`, `get_app_setting`, `get_family_name`, `get_timezone`, `get_schedule_hours`.
+**Server:**
+- `HOST = "0.0.0.0"`
+- `PORT = int(os.environ.get("PORT", 8000))`
+
+**Core data file paths:**
+- `MANUAL_TASKS_FILE = "data/manual_tasks.json"`
+- `CHORES_FILE = "data/chores.json"`
+- `MOM_NOTES_FILE = "data/mom_notes.json"`
+- `ROADMAP_FILE = "data/roadmap.json"`
+- `LITURGICAL_FILE = "data/liturgical.json"`
+- `FAMILY_SCHEDULE_FILE = "data/family_schedule.json"`
+- `CALENDAR_CONFIG_FILE = "data/calendar_config.json"`
+- `CALENDAR_CACHE_FILE = "data/calendar_cache.json"`
+- `MONTHLY_PLANNER_FILE = "data/monthly_planner.json"`
+- `CALENDAR_RULES_FILE = "data/calendar_rules.json"`
+- `SUBSCRIBED_CALS_FILE = "data/subscribed_calendars.json"`
+- `SUBSCRIBED_CACHE_FILE = "data/subscribed_calendar_cache.json"`
+- `APP_SETTINGS_FILE = "data/app_settings.json"`
+- `CURRICULUM_FILE = "data/curriculum.json"`
+- `TASK_OVERRIDES_FILE = "data/task_overrides.json"`
+- `COACH_PROGRAMS_FILE = "data/coach_programs.json"`
+- `EXERCISE_LOGS_FILE = "data/exercise_logs.json"`
+- `SCHOOL_WEEK_PLAN_FILE = "data/school_week_plan.json"`
+- `FAMILY_MEMORY_FILE = "data/family_memory.json"`
+- `PRAYER_INTENTIONS_FILE = "data/prayer_intentions.json"`
+- `SISTER_MARY_HISTORY_FILE = "data/sister_mary_history.json"`
+- `POPE_INTENTIONS_FILE = "data/pope_intentions.json"`
+- `FROL_WIZARD_PROGRESS_FILE = "data/frol_wizard_progress.json"`
+- `HOUR_TRACKING_FILE = "data/hour_tracking.json"`
+- `HOUR_REPORTS_DIR = "data/hour_reports"`
+- `FROL_ACTIVITIES_FILE = "data/frol_activities.json"`
+
+**FROL day-template paths (Phase E):**
+- `DAY_TEMPLATES_DIR = "data/day_templates"`
+- `DAY_TEMPLATES_PREVIEW_DIR = "data/day_templates_preview"`
+- `DAY_TEMPLATES_BACKUP_DIR = "data/day_templates_backups"`
+
+**Seasonal (Phase F):**
+- `SEASONAL_SCHEDULES_FILE = "data/seasonal_schedules.json"`
+
+**Meal Planning Wizard:**
+- `MEALS_DIR = "data/meal_plan"`
+- `MEAL_RULES_FILE = "data/meal_rules.json"`
+- `MEAL_INVENTORY_FILE = "data/meal_inventory.json"`
+- `PANTRY_STAPLES_FILE = "data/pantry_staples.json"`
+- `MEAL_HISTORY_FILE = "data/meal_history.json"`
+- `MEAL_WIZARD_SESSION_FILE = "data/meal_wizard_session.json"`
+
+**Validation sets:**
+- `VALID_PRIORITIES = {"HIGH", "MEDIUM", "LOW"}`
+- `VALID_STATUSES = {"active", "done", "inactive"}`
+
+**Calendar / scheduling constants:**
+- `WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]`
+- `WEEKDAY_ORDER = {day: i for i, day in enumerate(WEEKDAYS)}`
+- `SCHEDULE_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]`
+- `MONTH_NAMES = ["January" … "December"]` (12 entries)
+- `ROADMAP_STATUSES = ["Someday", "Ready", "In Progress", "Done"]`
+- `ASSIGNABLE_TO = ["Mom"] + list(CHILDREN)` → `["Mom", "JP", "Joseph", "Michael", "James"]`
+- `CHILDREN = ["JP", "Joseph", "Michael", "James"]` (imported from `daily_schedule_engine`)
+
+**Identity / colors / epoch (defaults; runtime-overridden from app_settings.json):**
+- `_DEFAULT_CHILD_COLORS` → JP `#c0392b`, Joseph `#27ae60`, Michael `#e67e22`, James `#2980b9`
+- `CHILD_COLORS = _load_child_colors()` (merges settings over defaults; `child_color(child, key)` re-reads each call)
+- `_DEFAULT_PARENT_COLORS` → Lauren `#7c3aed`, John `#2563eb`; accessor `parent_color(name, key)`
+- `VAN_ROTATION_EPOCH = _load_van_epoch()` (defaults to `date(2025, 1, 6)`; `get_van_epoch()` re-reads)
+- `VAN_ROLE_A = "Interior Reset Lead"`
+- `VAN_ROLE_B = "Bin & Organization Lead"`
+- `get_app_setting(key, default=None)` — reads a single value from app_settings.json
 
 ---
 
-## Section 7 — Current claud.md rules (full text)
+## Section 7 — Current claud.md rules (full text, verbatim on disk)
 
 ### Python 3.11 hard rules — never violate these
 
 1. No backslashes inside f-strings
 2. No nested quotes inside f-strings — use a variable outside the f-string instead
-3. All POST routing uses elif chains — never if/elif with a missing first if, never nested if blocks for routing
+3. All GET routing uses elif chains in do_GET — never a bare if, never nested
+   if blocks for routing. POST routing in do_POST uses standalone
+   if path == ...: ... return blocks at the top level — this is the real
+   convention in this codebase and must be matched exactly. Never use nested
+   if blocks for routing in either handler.
 4. Never put import statements inside if blocks or functions
 5. All file writes use safe_save_json (tmp file + os.replace) — never open(f, 'w') directly
-6. No walrus operator (`:=`)
-7. Never use `'\n'` inside a JS string within a Python string literal — use `'\\n'` so the browser receives the escape sequence, not a raw newline
-8. **multipart/form-data parsing** — when fetch POSTs use FormData the server receives multipart/form-data not urlencoded. The do_POST handler must sniff Content-Type and parse accordingly using cgi.FieldStorage for multipart. If a POST handler receives empty data check the Content-Type first.
-9. **py_compile passes but runtime fails** — py_compile only validates syntax not runtime correctness. Always run an in-process smoke test after py_compile to catch NameError, missing variable definitions, and import failures.
-10. **test fixtures must never write to live data** — verification harnesses must always operate on a temp copy of live data files. Never call save_progress, safe_save_json, or any write helper on live data during testing. Always restore from backup after any test that touches data files.
-11. **double-escaping HTML entities** — never pass a string that is already HTML-escaped through escape() again. If a string contains literal ampersands for display use plain ampersands in the source string and let escape() handle it once. Strings pre-escaped with `&amp;` will render as visible `&amp;` in the browser if escaped again.
-12. **JS newline in Python f-strings applies everywhere** — rule 7 applies to ALL files containing JS embedded in Python, not just render_frol_wizard.py. This includes render_schedule.py, render_timeblock.py, render_lucy.py, render_lorenzo.py, and any other render file with inline JavaScript.
+6. No walrus operator (:=)
+7. Never use '\n' inside a JS string within a Python string literal — use '\\n' so the browser receives the escape sequence, not a raw newline
+8. multipart/form-data parsing: when fetch POSTs use FormData the server
+   receives multipart/form-data not urlencoded. The do_POST handler must
+   sniff Content-Type and parse accordingly using cgi.FieldStorage for
+   multipart. If a POST handler receives empty data check the
+   Content-Type first.
+9. py_compile passes but runtime fails: py_compile only validates syntax
+   not runtime correctness. Always run an in-process smoke test after
+   py_compile to catch NameError, missing variable definitions, and
+   import failures. After the in-process smoke test, also run the relevant
+   existing verify_phase_*.py harness for the area touched and paste the
+   result — the smoke test confirms the changed function works, but the
+   harness catches regressions in nearby functionality. Do not skip the
+   harness run for changes that touch shared data files, save paths, or any
+   function called from more than one place.
+10. test fixtures must never write to live data: verification harnesses
+    must always operate on a temp copy of live data files. Never call
+    save_progress, safe_save_json, or any write helper on live data
+    during testing. Always restore from backup after any test that
+    touches data files.
+11. double-escaping HTML entities: never pass a string that is already
+    HTML-escaped through escape() again. If a string contains literal
+    ampersands for display use plain ampersands in the source string
+    and let escape() handle it once. Strings pre-escaped with &amp;
+    will render as visible &amp; in the browser if escaped again.
+12. JS newline in Python f-strings applies everywhere: rule 7 (never
+    use backslash-n in JS strings inside Python f-strings) applies to
+    ALL files containing JS embedded in Python, not just
+    render_frol_wizard.py. This includes render_schedule.py,
+    render_timeblock.py, render_lucy.py, render_lorenzo.py, and any
+    other render file with inline JavaScript.
 
-### Additional rules (13–18)
+### Additional rules (13–19)
 
-13. **FROL WIZARD NESTED FORM ADDENDUM** — The _body_has_form check in _section_chrome looks for `action="/frol-wizard"` in the body string. Any form inside a section body posting to /frol-wizard will suppress the Save and Continue button. Variant tab forms posting to /frol-set-variant are safe. Activity builder forms posting to /frol-add-activity are safe. Before adding any form to a section body confirm its action attribute. This is a recurring bug — document before fixing if it appears again.
+13. **FROL WIZARD NESTED FORM ADDENDUM** — The _body_has_form check in
+    _section_chrome looks for action="/frol-wizard" in the body string.
+    Any form inside a section body posting to /frol-wizard will suppress
+    the Save and Continue button. Variant tab forms posting to
+    /frol-set-variant are safe. Activity builder forms posting to
+    /frol-add-activity are safe. Before adding any form to a section body
+    confirm its action attribute. This is a recurring bug — document
+    before fixing if it appears again.
 
-14. **PRE-FLIGHT CHECKLIST** — Before writing any spec answer these questions. One — how many files does this touch, list them, if unknown that is a diagnosis step first. Two — does it involve JavaScript inside Python f-strings, if yes flag the backslash-n rule explicitly in the spec. Three — does it touch form handling, if yes confirm no nested forms posting to /frol-wizard. Four — is the root cause confirmed or assumed, if assumed run diagnosis first never draft a fix on an assumed cause. Five — does it touch multiple files at once, if yes break into separate single-purpose instructions. Six — does it involve data shape changes or migration, if yes confirm before and after data structure explicitly before writing the spec.
+14. **PRE-FLIGHT CHECKLIST** — Before writing any spec answer these
+    questions. One — how many files does this touch, list them, if
+    unknown that is a diagnosis step first. Two — does it involve
+    JavaScript inside Python f-strings, if yes flag the backslash-n rule
+    explicitly in the spec. Three — does it touch form handling, if yes
+    confirm no nested forms posting to /frol-wizard. Four — is the root
+    cause confirmed or assumed, if assumed run diagnosis first never
+    draft a fix on an assumed cause. Five — does it touch multiple files
+    at once, if yes break into separate single-purpose instructions.
+    Six — does it involve data shape changes or migration, if yes
+    confirm before and after data structure explicitly before writing
+    the spec.
 
-15. **CLAUD.MD READ-BACK REQUIRED** — At the start of every session read claud.md and paste back every rule found. Then identify which rules apply to today's task. If you cannot paste the rules back accurately stop and ask Lauren to re-paste claud.md before proceeding.
+15. **CLAUD.MD READ-BACK REQUIRED** — At the start of every session read
+    claud.md and paste back every rule found. Then identify which rules
+    apply to today's task. If you cannot paste the rules back accurately
+    stop and ask Lauren to re-paste claud.md before proceeding.
 
-16. **MAGNIFICA HUMANITAS DESIGN PRINCIPLES** — Every feature built must reflect these principles. One — the app is a tool not an authority. Every AI suggestion is framed as a suggestion never a prescription. Language uses "here is one way to think about this" never "you should" or "the optimal schedule is." Two — companions serve real relationships they do not replace them. Every companion orients toward real people, real community, and real pastoral support. Sister Mary never replaces a confessor. Father Gregory never replaces real mentors. Lucy regularly suggests real conversations over app conversations. Three — AI supports thinking it does not replace it. Ask before suggesting. Boys build their own plans before seeing AI suggestions. Father Gregory asks questions more than he gives answers. Four — be transparent about what AI is. Companions never make theological claims with personal authority. Prayer texts come from verified Catholic sources only never AI generated. Five — language of grace not performance. No gamification no streaks no scores that shame. A hard day is never framed as failure. Sick Day Mode is relief not defeat. Six — subsidiarity. The family governs itself. Lauren is always the authority. The app serves the family's discernment it does not replace it. Seven — formation in digital wisdom. Father Gregory teaches the boys to think critically about AI. The explicit goal is that JP finishes high school able to plan his day without the app.
+16. **MAGNIFICA HUMANITAS DESIGN PRINCIPLES** — Every feature must reflect
+    these. The deepest danger to guard against, named by the encyclical:
+    that people come to see themselves and one another as projects to be
+    optimized rather than persons called to relationship and communion. The
+    app must never become an optimization engine; it reduces friction so the
+    family has more room for prayer, presence, love, rest, and formation.
+    One — the app is a tool not an authority; every AI suggestion is framed
+    as a suggestion never a prescription; use "here is one way to think about
+    this" never "you should" or "the optimal schedule is." Two — companions
+    serve real relationships, never replace them; Sister Mary points to a
+    real confessor, Father Gregory to real mentors and to John, Lucy to real
+    conversation. Three — AI supports thinking, it does not replace it; ask
+    before suggesting; boys build their own plans before seeing AI
+    suggestions. Four — be transparent about what AI is; no system can create
+    a heart that gives itself or a conscience that discerns good from evil,
+    so companions never make theological claims with personal authority and
+    never quietly assume a decision that belongs to Lauren; prayer texts come
+    from verified Catholic sources only, never AI-generated. Five — language
+    of grace not performance; no gamification, streaks, or shaming scores; a
+    hard day is never framed as failure; human limits like illness,
+    exhaustion, and a plan that falls apart are not defects to correct or
+    shame, because people often flourish through their limitations not despite
+    them; Sick Day Mode is relief not defeat. Six — subsidiarity; the family
+    governs itself; Lauren is always the authority; the app serves the
+    family's discernment. Seven — formation in digital wisdom; the explicit
+    goal is that JP finishes high school able to plan his day without the app.
+    Every feature should answer yes to at least one of these four questions
+    and harm none: does it help the family remain faithful to the truth; does
+    it help them learn and teach one another; does it help them cultivate real
+    closeness and protect physical presence; does it help them live justice
+    and peace in their home.
 
-17. **ONE FIX PER INSTRUCTION** — Never bundle multiple fixes into one Agent instruction unless they are in the same file and directly related. Complex multi-file builds must be broken into sequential single-purpose phases with a compile check and report between each phase.
+17. **ONE FIX PER INSTRUCTION** — Never bundle multiple fixes into one
+    Agent instruction unless they are in the same file and directly
+    related. Complex multi-file builds must be broken into sequential
+    single-purpose phases with a compile check and report between each
+    phase.
 
-18. **AUGUST 15TH BUILD PLAN IS THE PRIORITY FILTER** — Between June 1st and August 15th 2026 every build request must be checked against the August 15th build plan before proceeding. If a requested build is not on the must-have or should-have list for the current week flag it to Lauren before starting. New feature ideas go on the post-September list unless they directly enable one of the 14 goals in the August 15th plan. Scope is the first thing to cut not quality.
+18. **AUGUST 15TH BUILD PLAN IS THE PRIORITY FILTER** — Between June 1st
+    and August 15th 2026 every build request must be checked against the
+    August 15th build plan before proceeding. If a requested build is
+    not on the must-have or should-have list for the current week flag
+    it to Lauren before starting. New feature ideas go on the
+    post-September list unless they directly enable one of the 14 goals
+    in the August 15th plan. Scope is the first thing to cut not quality.
 
-### Additional sections of claud.md (not numbered as rules but binding context)
+19. **BUILD FOR A FUTURE SECOND FAMILY** — This app will eventually be
+    shared with and possibly sold to other families using a hosted
+    multi-family model. Every feature must be written as if a second family
+    will use it. Never hardcode McAdams or any single family's specifics
+    into code as if it is the only family — keep family identity and config
+    in app_settings.json. Keep all data reads and writes flowing through
+    data_helpers.py with no direct file access in route handlers, so the
+    eventual swap from JSON files to a database happens in one place. Do not
+    bake in single-user assumptions in new feature logic where it is cheap
+    to avoid them. This is design hygiene that costs nothing now and
+    prevents a full rewrite later; it does NOT mean building multi-user
+    features before August 15th.
 
-- **What this app is** — Catholic homeschool family management web app, Python on Replit, single-file HTTP server pattern (app.py + render_*.py), no framework.
-- **Stack** — Python 3.11; no Flask/Django/FastAPI; JSON files only; plain HTML/CSS/JS rendered as strings; Anthropic via urllib (no SDK).
-- **People** — Lauren (Mom), John (Dad), JP (14, 9th), Joseph (12, 7th), Michael (5, K), James (13 months, excluded from school/gradebook). Title-case names; Lauren/Mom same person; lowercase keys in auth/pins.json and profiles/.
-- **Data file patterns** — Most data in data/*.json; person keys title-case in progress/chores/events, lowercase in auth/profiles; progress keys `YYYY-MM-DD::Person::task text`; date keys YYYY-MM-DD (most), YYYY-Www (meal_plan), YYYY-MM (cycle).
-- **Route patterns** — GET routes call render_*.py functions; POST routes chained as `elif path == "/route":` in do_POST; JSON POST bodies must be in `_JSON_PATHS` set or the form-parser eats them.
-- **Anchor-tag navigation** — Plain `<a href>` can't POST; state must travel in query string OR be persisted before click; destination handler must accept those params AND persist them on arrival. Counter-pattern that bit us: FROL wizard landing anchors `/frol-wizard?step=1&mode=structured`. If a button must trigger persistent state, use `<form method="POST">` styled as a link.
-- **AI calls** — Model `claude-sonnet-4-20250514`, urllib.request (no SDK), API key from app_settings.json, all responses through `_repair_and_parse_json()`.
-- **Change discipline** — Additive unless told otherwise; don't modify existing behavior beyond task scope; if a task requires editing out-of-scope files, stop and flag; modules under 800 lines where possible; `render_plan_importer.py` is 1,114 lines (JS lives in `static/js/plan_importer_core.js` / `plan_importer_consult.js`).
-- **FROL Wizard form bypass trap** — `_section_chrome` suppresses "Save and Continue" when `_body_has_form` detects a form with `action="/frol-wizard"`. Utility forms posting to other routes (`/frol-set-variant`, `/frol-add-activity`, `/frol-delete-activity`) are safe. When adding new forms to section bodies, check the action — if it's `/frol-wizard`, use a different route or handle the advance separately.
-- **Current major features** — `/plan-import` paste→AI→approve→apply with receipt and per-placement undo; six AI companions (Lucy, Lorenzo, Gregory, Monica, Coach, Izzy); liturgical calendar engine with auto-computed Easter and moveable feasts; per-person daily schedule grids; gradebook with assignment analyzer; meal planner with Lorenzo.
+---
+
+## Recent changes (this session — Meal Planning Wizard Phase C)
+
+- **`render_meal_wizard.py`** (new, 257 lines) — Pantry Staples page with
+  first-run and returning-user modes.
+- **`app.py`** — added GET `/pantry-staples` and POST `/pantry-staples-save`,
+  plus imports for `render_pantry_staples_page` and `save_pantry_staples`.
+- **`render_settings.py`** — added a Pantry Staples link card in the meal
+  rules section.
+- **`claud.md`** — clarified Rule 3 (GET = elif chains; POST = standalone
+  `if path == …: … return` blocks).
