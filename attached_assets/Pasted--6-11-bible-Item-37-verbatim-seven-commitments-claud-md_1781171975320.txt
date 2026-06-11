@@ -1,0 +1,22 @@
+
+
+	•	6_11 bible (Item 37 + verbatim seven commitments)
+	•	claud.md (Rule 3 fix)
+	•	PROJECT_STATE.md (regenerated)
+	•	working agreement
+	•	Item 26 meal wizard spec
+
+Per the start-of-session ritual: we’re building Phase D — Step 1 of the Meal Planning Wizard, “Week at a Glance.”
+
+Before I draft anything, this phase needs a diagnosis first. Step 1 reads and merges all three calendar sources, surfaces feast days, shows rules chips, and indicates boy availability. I don’t know the current shape of what those sources return or what calendar-merge logic already exists — and the spec’s pre-flight notes flag exactly this. Per the build process (diagnosis before fixing, and Rule 14), I shouldn’t draft the Phase D instruction on assumptions about the calendar functions.
+
+Recall from the June 1 work: Lorenzo Fix A already built a calendar merge in render_lorenzo._get_calendar_this_week() using expand_local_events_for_range, load_calendar_cache, and load_subscribed_calendar_cache. Phase D should reuse that proven merge, not rebuild it. But I need to confirm what’s actually there before drafting.
+
+Send this to Replit in a fresh session:
+
+Diagnosis only — no changes. I’m about to build Step 1 of the Meal Planning Wizard (“Week at a Glance”) which needs to merge all calendar sources, surface feast days, and show which boys are free each evening. Before I draft anything, answer these:
+
+	1.	Calendar merge: render_lorenzo.py has a _get_calendar_this_week() function that merges three calendar sources (events.json, calendar_cache.json, subscribed_calendar_cache.json). Paste that function verbatim. I want to see the exact merge, dedup, and normalization logic so the wizard can reuse it rather than rebuild it.
+	2.	Feast days / liturgical: What function returns the liturgical season and the feast days for a given date or date range? Name the function, its file, and what it returns (paste its signature and return shape).
+	3.	Boy availability: Is there any existing function that determines which children are free or committed on a given day/evening based on calendar events? If yes, name it and paste its signature. If no, say so plainly.
+	4.	Meal rules: Where are Lorenzo’s meal rules stored and what function loads them? I need to see how rules like “Friday abstinence” or “early dinner Monday” would be read so Step 1 can show them as chips. Paste the loader and a sample of the rules data shape.
