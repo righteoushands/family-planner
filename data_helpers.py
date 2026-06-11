@@ -2557,6 +2557,77 @@ def expand_local_events_for_range(start_iso: str, end_iso: str) -> list:
     return out
 
 
+def get_merged_calendar_events(start_iso: str, days: int = 7) -> list:
+    """Merge calendar sources into one structured, deduped, sorted event list.
+
+    Sources merged:
+      1. Local events.json (via expand_local_events_for_range), carrying the
+         assigned_to -> who string.
+      2. The Google / CalDAV cache (load_calendar_cache) — no people field.
+      3. Subscribed iCal feeds (load_subscribed_calendar_cache) — no people field.
+
+    Each returned dict has exactly: {"title", "start", "end", "who"}.
+    Events are filtered to the [start_iso .. start_iso + days-1] window by
+    date-prefix match, deduplicated by (title, start) regardless of source, and
+    sorted chronologically by start. Returns [] only when there are genuinely no
+    events in the window.
+
+    This function does NOT swallow errors: malformed input or a loader failure
+    raises, so an empty list never masks a real failure. Callers needing a soft
+    fallback handle the exception themselves — _get_calendar_this_week keeps its
+    own try/except so a failure still renders 'Calendar unavailable.' exactly as
+    before this was extracted."""
+    _today = date.fromisoformat(start_iso)
+    _end   = _today + timedelta(days=days - 1)
+    _window = {(_today + timedelta(days=o)).isoformat() for o in range(days)}
+
+    def _norm(ev, who):
+        return {
+            "title": (ev.get("title") or "").strip(),
+            "start": ev.get("start", "") or "",
+            "end":   ev.get("end", "") or "",
+            "who":   who or "",
+        }
+
+    merged = []
+    # 1. Local events.json (already expanded across the range)
+    for e in (expand_local_events_for_range(_today.isoformat(), _end.isoformat()) or []):
+        _assigned = e.get("assigned_to") or []
+        if isinstance(_assigned, list):
+            _who = ", ".join(str(x) for x in _assigned if str(x).strip())
+        else:
+            _who = str(_assigned).strip()
+        merged.append(_norm(e, _who))
+    # 2. Google / CalDAV cache  +  3. Subscribed iCal feeds (no people field)
+    for _loader in (load_calendar_cache, load_subscribed_calendar_cache):
+        _cache = _loader() or {}
+        _cache_evs = _cache.get("events") if isinstance(_cache, dict) else []
+        if not isinstance(_cache_evs, list):
+            _cache_evs = []
+        for e in _cache_evs:
+            if isinstance(e, dict):
+                merged.append(_norm(e, ""))
+
+    # Keep only events inside the window
+    merged = [m for m in merged if m["start"][:10] in _window]
+    if not merged:
+        return []
+
+    # Deduplicate by (title, start) regardless of source
+    _seen = set()
+    _deduped = []
+    for m in merged:
+        _key = (m["title"], m["start"])
+        if _key in _seen:
+            continue
+        _seen.add(_key)
+        _deduped.append(m)
+
+    # Sort chronologically by start
+    _deduped.sort(key=lambda m: m["start"])
+    return _deduped
+
+
 # ── Task Overrides (dismiss / postpone / set time) ───────────────────────────
 
 def load_task_overrides() -> dict:

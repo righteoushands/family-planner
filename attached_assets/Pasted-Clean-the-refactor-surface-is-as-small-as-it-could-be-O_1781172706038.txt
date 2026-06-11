@@ -1,0 +1,58 @@
+Clean — the refactor surface is as small as it could be. One call site, no circular import risk, and a clear convention to follow (lazy in-function import).
+
+One note: the diagnosis recommends keeping the lazy in-function import to match Lorenzo’s existing style. But that conflicts with claud.md Rule 4 (imports at top, never inside functions). This is a genuine conflict between an existing codebase convention and a documented rule.
+
+The resolution: Rule 4 applies to new code we write. The helper goes in data_helpers.py, where imports already live at the top — so the helper itself follows Rule 4. The call site in render_lorenzo.py already uses a lazy import (that’s pre-existing code), and we’re only changing what it imports, not introducing a new pattern. I’ll have Replit keep render_lorenzo’s existing lazy-import style at the call site (not our code to reform right now) while the new helper in data_helpers.py follows Rule 4 properly. That’s consistent with “additive, don’t reform unrelated existing code.”
+
+Now Part 1. Pre-flight (Rule 14):
+
+	1.	Files touched: data_helpers.py (new helper) and render_lorenzo.py (call the new helper) — two files, directly related (same refactor), permitted as one instruction per Rule 17
+	2.	JS in f-strings: no
+	3.	Form handling: no
+	4.	Root cause confirmed: yes — diagnosis complete, one call site, no circular import
+	5.	Multiple files: yes — directly related refactor
+	6.	Data shape changes: no new stored data; the helper returns an in-memory list that already exists inside the function today
+
+Read claud.md and paste back all 19 rules. Then tell me which rules apply to today’s task before you begin.
+
+Task: Meal Planning Wizard Phase D, Part 1 of 3 — refactor the calendar merge into a shared helper. Two files: data_helpers.py and render_lorenzo.py.
+
+Goal: Extract the merge/dedup/normalize core from _get_calendar_this_week() in render_lorenzo.py into a reusable helper in data_helpers.py that returns STRUCTURED data (a list of event dicts). Then have the existing Lorenzo function call the new helper and format its output exactly as before. Lorenzo’s text output must stay byte-identical — this is the safety requirement.
+
+Pre-flight answers supplied:
+
+	•	Two files, directly related (one refactor), permitted as one instruction
+	•	No JS, no forms, no new stored data shape
+	•	One call site confirmed, no circular import risk (data_helpers does not import render_lorenzo)
+
+Change 1 — Add a new helper to data_helpers.py.
+
+Add a function get_merged_calendar_events(start_iso, days=7) that contains the merge/dedup/normalize logic currently inside _get_calendar_this_week. It returns the structured, deduplicated, chronologically sorted list of event dicts (each {title, start, end, who}) — NOT formatted text.
+
+The logic to move (currently lines ~357-392 of render_lorenzo.py):
+
+	•	Build the date window
+	•	Normalize local events from expand_local_events_for_range (including the assigned_to → who string logic)
+	•	Normalize cache events from load_calendar_cache and load_subscribed_calendar_cache (who = “”)
+	•	Filter to the window by date-prefix match
+	•	Deduplicate by (title, start)
+	•	Sort chronologically by start
+	•	Return the list (empty list if none)
+
+This helper goes in data_helpers.py with its imports at the top of the file per Rule 4 — the three loaders (expand_local_events_for_range, load_calendar_cache, load_subscribed_calendar_cache) are already available in data_helpers.py, so confirm they’re accessible and add nothing that creates a cycle.
+
+Change 2 — Rewrite _get_calendar_this_week in render_lorenzo.py to call the helper.
+
+Replace the merge/dedup/normalize core with a call to get_merged_calendar_events(iso, 7), then keep the EXACT existing text-formatting logic (the by_date grouping, the Today/Tomorrow/weekday labels, the time-string formatting, the — for {who} suffix) unchanged. The function still returns the same text blob.
+
+Keep render_lorenzo’s existing lazy in-function import style at this call site — change it to from data_helpers import get_merged_calendar_events. Do not add a top-level import to render_lorenzo.py and do not reform the other lazy imports — that’s pre-existing code out of scope for this task.
+
+The safety check that matters most:
+Before and after this change, _get_calendar_this_week(iso) must return the EXACT same string for the same data. Prove it.
+
+After the changes:
+
+	1.	Run py_compile on both files and paste the result
+	2.	Run an in-process smoke test that calls _get_calendar_this_week for the current week and confirms it returns a properly formatted string; AND separately calls get_merged_calendar_events and confirms it returns a list of dicts
+	3.	If any verify harness covers Lorenzo or calendar merge, run it and paste the result
+	4.	Paste the diff
