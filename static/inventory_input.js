@@ -188,4 +188,19 @@
     });
   };
 
+  /* ── Clear inventory (client-side only — no server call, no stored data) ── */
+  window.clearInventory = function () {
+    var ids = ["inv-paste-raw", "inv-fridge", "inv-freezer", "inv-pantry", "inv-use-soon"];
+    ids.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+    var st = document.getElementById("inv-status");
+    if (st) {
+      st.style.color = "#27ae60";
+      st.textContent = "Cleared \u2014 type or dictate, then Save";
+      setTimeout(function () { st.textContent = ""; }, 3000);
+    }
+  };
+
 })();

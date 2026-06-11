@@ -487,6 +487,10 @@ _S2_BTN_MIC = ("padding:10px 18px;border:1px solid var(--border,#e6e0d4);"
                "color:var(--ink);font-weight:600;cursor:pointer;font-size:0.95em;")
 _S2_STATUS = ("color:var(--accent-green,#27ae60);font-size:0.9em;margin:6px 0 0;"
               "min-height:1.2em;")
+_S2_CLEAR_ROW = "display:flex;justify-content:flex-end;margin:0 0 6px;"
+_S2_CLEAR_BTN = ("padding:7px 14px;border:1px solid var(--border,#e6e0d4);"
+                 "border-radius:var(--radius-sm,8px);background:transparent;"
+                 "color:var(--ink-muted);font-weight:600;cursor:pointer;font-size:0.85em;")
 _S2_SAVE_BTN = ("display:inline-block;width:100%;box-sizing:border-box;margin-top:8px;"
                 "padding:14px 18px;border:none;border-radius:var(--radius-md,12px);"
                 "background:var(--gold-light,#f3ead2);color:var(--ink);font-weight:700;"
@@ -540,6 +544,13 @@ def render_meal_wizard_step2(user: str) -> str:
         f'</div>'
     )
 
+    clear_row = (
+        f'<div style="{_S2_CLEAR_ROW}">'
+        f'<button type="button" onclick="clearInventory()" '
+        f'style="{_S2_CLEAR_BTN}">Clear all</button>'
+        f'</div>'
+    )
+
     fields = (
         f'{_s2_field("inv-fridge", "Fridge", fridge, 3)}'
         f'{_s2_field("inv-freezer", "Freezer", freezer, 3)}'
@@ -566,6 +577,7 @@ def render_meal_wizard_step2(user: str) -> str:
         f'<p style="{_WG_SUBTITLE}">{_S2_SUBTITLE_TEXT}</p>'
         f'<p style="{_S2_INTRO}">{_S2_INTRO_TEXT}</p>'
         f'{dictate_box}'
+        f'{clear_row}'
         f'{fields}'
         f'{save_block}'
         f'{nav}'

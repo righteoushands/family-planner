@@ -1,0 +1,58 @@
+Good. Client-side clear of all five boxes, function in the shared file so both pages get it.
+
+This is a two-part change: add the function to static/inventory_input.js (Part A), then add the button to the Step 2 page wired to it (Part B). Per Rule 17, technically two files — but they’re one directly-related feature (a function and the button that calls it), same pattern we’ve used. I’ll do them as one instruction since the button is useless without the function and vice versa, and both are tiny.
+
+Pre-flight (Rule 14):
+
+	1.	Files touched: static/inventory_input.js (new clearInventory function) and render_meal_wizard.py (the button) — two files, one directly-related feature
+	2.	JS in f-strings: the button is an onclick="clearInventory()" attribute only; the actual function lives in the static .js file. Rules 7/12 apply only to the onclick attribute (no newlines/backslashes there)
+	3.	Form handling: no
+	4.	Root cause confirmed: yes — pre-fill leaves old text, need a clear
+	5.	Multiple files: yes — but one feature, function + its button
+	6.	Data shape changes: no — client-side only, touches no stored data
+
+Read claud.md and paste back all 19 rules. Then tell me which rules apply to today’s task before you begin.
+
+Task: Meal Wizard Step 2 — add a client-side “Clear inventory” button. Two files: static/inventory_input.js (the function) and render_meal_wizard.py (the button).
+
+Pre-flight answers supplied:
+
+	•	Two files, one directly-related feature (a function + the button that calls it)
+	•	Client-side only — clears the on-screen textareas, touches NO stored data, makes NO server call
+	•	The button is an onclick="clearInventory()" attribute; the function lives in the shared static .js file
+	•	No data shape change
+
+Change 1 — Add clearInventory() to static/inventory_input.js.
+
+Add a new function window.clearInventory = function () { ... } to the shared file (the same IIFE that owns toggleMic/parseInventory/saveInventory). It empties all five inventory textareas by setting their .value = "":
+
+	•	inv-paste-raw (the raw dictation box)
+	•	inv-fridge
+	•	inv-freezer
+	•	inv-pantry
+	•	inv-use-soon
+
+Guard every element access (var el = document.getElementById(...); if (el) el.value = "";) so a missing element degrades gracefully — matching the existing guarded style in that file.
+
+It should NOT make any server call and NOT touch saved data — purely clears the visible fields. Optionally, if there’s an inv-status element, set its text to a brief confirmation like “Cleared — type or dictate, then Save” (guard it). Keep it consistent with how the other functions write status.
+
+This is client-side only: after clearing, the saved inventory on the server is unchanged until the user hits Save. That’s intended — clear lets them start fresh, and Save persists the cleared state if they choose.
+
+Change 2 — Add the “Clear inventory” button to render_meal_wizard_step2 in render_meal_wizard.py.
+
+Add a button near the inventory fields (sensible placement: near the Save inventory button, or just above the four category boxes). onclick="clearInventory()", labeled something like “Clear all”. Style it as a secondary/less-prominent action (not the primary action — Save and Continue stay primary). Match the existing button style constants in the file. The onclick attribute must contain no newlines or backslashes (Rules 7, 12).
+
+Constraints:
+
+	•	The function goes in the shared file so the meals page benefits too (one source of truth)
+	•	Do not change toggleMic, parseInventory, or saveInventory
+	•	Do not add a server call or touch stored data
+	•	Keep escape-once and the existing style-constant patterns
+
+After the change:
+
+	1.	node –check (or equivalent) on static/inventory_input.js — paste result; if node isn’t available, eyeball and say so
+	2.	Run py_compile on render_meal_wizard.py and paste the result
+	3.	In-process smoke test: confirm render_meal_wizard_step2("Lauren") returns HTML containing the Clear button wired to clearInventory(), and confirm the static file now defines window.clearInventory
+	4.	Confirm no \n or backslashes inside any f-string in the render change
+	5.	Paste the diff for both files
