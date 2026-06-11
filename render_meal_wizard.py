@@ -278,6 +278,12 @@ _WG_QUIET = "color:var(--ink-muted);font-size:0.9em;font-style:italic;padding:3p
 _WG_RULE_CHIP = ("display:inline-block;background:var(--parchment,#faf6ec);"
                  "border:1px solid var(--border-light,#ece6d8);border-radius:999px;"
                  "padding:6px 12px;margin:0 6px 6px 0;font-size:0.9em;color:var(--ink);")
+_WG_RULES_SUMMARY = ("font-family:" + _HEADING_FONT + ";font-size:1.15em;font-weight:600;"
+                     "color:var(--ink);cursor:pointer;list-style:none;margin:0;"
+                     "display:flex;align-items:center;justify-content:space-between;gap:8px;")
+_WG_RULES_LIST = "list-style:none;margin:12px 0 0;padding:0;"
+_WG_RULE_ITEM = ("color:var(--ink);font-size:0.95em;line-height:1.45;padding:10px 0;"
+                 "border-top:1px solid var(--border-light,#ece6d8);")
 _WG_BTN_LINK = ("display:block;width:100%;box-sizing:border-box;margin-top:20px;"
                 "padding:15px 18px;border-radius:var(--radius-md,12px);"
                 "background:var(--gold-mid,#c9a84a);color:var(--ink);font-weight:700;"
@@ -326,18 +332,23 @@ def _wg_rules_panel() -> str:
         for r in rules
         if isinstance(r, dict) and r.get("rule", "").strip()
     ]
-    if texts:
-        chips = "".join(
-            f'<span style="{_WG_RULE_CHIP}">{escape(t)}</span>' for t in texts
+    if not texts:
+        return (
+            f'<div style="{_GROUP_BOX}">'
+            f'<h3 style="{_GROUP_TITLE}">This week\u2019s meal rules</h3>'
+            f'<p style="color:var(--ink-muted);margin:0;">No meal rules set yet.</p>'
+            f'</div>'
         )
-        inner = f'<div style="display:flex;flex-wrap:wrap;">{chips}</div>'
-    else:
-        inner = f'<p style="color:var(--ink-muted);margin:0;">No meal rules set yet.</p>'
+    count = len(texts)
+    items = "".join(
+        f'<li style="{_WG_RULE_ITEM}">{escape(t)}</li>' for t in texts
+    )
+    summary = f'This week\u2019s meal rules ({count})'
     return (
-        f'<div style="{_GROUP_BOX}">'
-        f'<h3 style="{_GROUP_TITLE}">This week\u2019s meal rules</h3>'
-        f'{inner}'
-        f'</div>'
+        f'<details style="{_GROUP_BOX}">'
+        f'<summary style="{_WG_RULES_SUMMARY}">{summary}</summary>'
+        f'<ul style="{_WG_RULES_LIST}">{items}</ul>'
+        f'</details>'
     )
 
 

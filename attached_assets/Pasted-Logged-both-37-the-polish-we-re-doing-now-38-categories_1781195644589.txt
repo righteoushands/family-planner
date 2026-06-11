@@ -1,0 +1,42 @@
+Logged both (37 = the polish we’re doing now, 38 = categories for later). Now the instruction.
+
+Pre-flight (Rule 14):
+
+	1.	Files touched: render_meal_wizard.py only — modify the rules panel section of render_meal_wizard_week_glance
+	2.	JS in f-strings: yes — a collapsible needs a small toggle. Rules 7 and 12 apply. Use the <details>/<summary> HTML element if possible to avoid JS entirely
+	3.	Form handling: no
+	4.	Root cause confirmed: yes — rules panel is a flat busy block
+	5.	Multiple files: no
+	6.	Data shape changes: no — same load_meal_rules() data, just presented collapsibly
+
+Read claud.md and paste back all 19 rules. Then tell me which rules apply to today’s task before you begin.
+
+Task: Meal Wizard Step 1 polish — make the meal rules panel collapsible and cleaner. render_meal_wizard.py only.
+
+Background: In render_meal_wizard_week_glance, the meal rules panel currently renders the full flat list of rules at the top of the page. It’s long and hard to read. Make it collapsible (collapsed by default) with cleaner list formatting.
+
+Pre-flight answers supplied:
+
+	•	One file: render_meal_wizard.py
+	•	No data shape change — same load_meal_rules() data, presented collapsibly
+	•	No form handling
+
+The change — meal rules panel only. Do not touch the day cards or any other part of the function.
+
+	1.	Make the panel collapsible, collapsed by default. Strongly prefer the native HTML <details> / <summary> element so NO JavaScript is needed — this avoids the JS-in-f-string brace/backslash hazards entirely. The <summary> shows a heading like “This week’s meal rules ({count})” so Lauren can see how many rules there are without expanding. The <details> stays closed by default (do not add the open attribute).
+	2.	Clean up the list formatting inside. Render each rule as a distinct list item with comfortable spacing — not a dense run-together block. A simple styled <ul>/<li> or stacked divs with vertical spacing between rules. Each rule’s text escaped exactly once (Rule 11).
+	3.	Keep the existing behavior: still load via load_meal_rules(), still guard the non-list shape, still show the “No meal rules set yet” line if empty (that case needs no collapsible — just show the line, or an empty collapsed panel, your judgment for what reads best).
+
+Constraints:
+
+	•	If you can do this with <details>/<summary> and no JavaScript, do that — it’s the cleanest and sidesteps Rules 7/12 entirely. Only if <details> somehow won’t work, fall back to minimal JS and then Rules 7/12 apply (use '\\n' not '\n', double braces in f-strings).
+	•	Match the existing style-constant pattern in the file (pull style strings into constants, Rules 1/2)
+	•	Do not change the day cards, the chips, the calendar events, or the Continue button
+	•	Keep escape-once discipline (Rule 11)
+
+After the change:
+
+	1.	Run py_compile on render_meal_wizard.py and paste the result
+	2.	Run an in-process smoke test: call render_meal_wizard_week_glance("Lauren") and confirm it returns HTML containing a <details> element with the rules inside, and that the day cards are still present and unchanged
+	3.	Confirm whether you used <details> (no JS) or fell back to JS — state which
+	4.	Paste the diff
