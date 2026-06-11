@@ -1,0 +1,18 @@
+
+
+Problem 1 — no other calendars listed. This matters. If the app’s calendar settings page only shows the one calendar you just added, then either (a) the other calendar subscriptions were never actually stored where the settings page reads from, or (b) the settings page only reads from one of the two storage locations. Remember the June 1 audit found competing storage in several places — it’s plausible the subscribed-calendar config and the cache are out of sync, or there are two different lists. This is worth diagnosing because if the settings page can’t see existing subscriptions, you can’t manage them.
+
+Problem 2 — CAP still not showing. This one might not be a bug at all, and I want to flag the most likely innocent explanation before we treat it as broken: Proton’s feed refresh lag. From the search: Proton subscribed calendars refresh every 8–16 hours, and the app has its own cache on top of that (last fetched June 8). So the chain is — your CAP event → Proton publishes it to the feed (up to 16 hrs) → the app fetches the feed into its cache (on whatever schedule the app runs). If you just created the link minutes ago, CAP almost certainly hasn’t propagated yet through either layer. It may simply need time.
+
+But there’s also a real possibility it’s a genuine bug — the app may not be re-fetching the feed at all, which would explain why the cache has been stuck since June 8.
+
+So before assuming anything, diagnosis. Send this to Replit:
+
+Diagnosis only — no changes. I added a new subscribed calendar to the app’s settings, but (1) no other previously-subscribed calendars appear in the calendar settings list, and (2) a known event (CAP) from the new calendar still isn’t showing. I need to understand the subscribed-calendar storage and fetch mechanism.
+
+	1.	Where are subscribed calendars stored? Find the config/data that holds subscribed calendar URLs. Paste the file’s current contents (REDACT any full URLs — show only the calendar label/name and whether a URL is present, not the actual URL string with its keys). How many subscribed calendars are currently stored?
+	2.	What does the settings page read from? Show the code in render_settings.py (or wherever) that lists subscribed calendars. Does it read from the same place the URLs are stored, or a different source? This is to find out why only one calendar shows.
+	3.	The fetch mechanism: What code fetches the subscribed iCal feeds and writes subscribed_calendar_cache.json? Paste the function. Critically: WHEN does it run — on a schedule, on app startup, on a manual trigger, or only when some specific action happens? The cache’s fetched_at is June 8 — I need to know why it hasn’t refreshed.
+	4.	Is there a manual “refresh calendars now” action anywhere in the app? If yes, name the route. If no, say so.
+
+No changes. Paste all four answers.
