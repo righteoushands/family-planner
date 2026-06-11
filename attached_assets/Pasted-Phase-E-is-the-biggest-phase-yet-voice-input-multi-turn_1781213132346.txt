@@ -1,0 +1,18 @@
+Phase E is the biggest phase yet — voice input, multi-turn inventory, an AI parser, manual entry, use-soon flags, and pantry confirm. That’s far too much for one instruction. Before anything else, I want to break it into sub-phases so each is a single buildable piece. But first, diagnosis — I need to see what already exists so we reuse rather than rebuild.
+
+Two things already exist that Phase E must build on, and I need their current shape:
+
+	1.	Inventory storage — load_inventory/save_inventory in render_meals.py, and meal_inventory.json (the diagnosis earlier showed it’s 917 bytes, already in use). Phase E’s inventory step must read/write the same store, not create a competing one. I need to see its exact shape.
+	2.	Session state — the meal_wizard_session.json helpers from Phase A (load/save/update_meal_wizard_session). Step 2 needs to write confirmed_inventory and use_soon_items into session state per the spec. I need to confirm those helpers are ready to use as-is.
+	3.	The AI parser pattern — voice/manual inventory parsing needs an AI call. The codebase already calls Claude in several places (render_ai_daily, the companions). I need to see the established pattern so Phase E matches it rather than inventing a new one.
+
+Send this to Replit — diagnosis only:
+
+Diagnosis only — no changes. I’m about to build Step 2 of the Meal Planning Wizard (“What’s on hand” — inventory input). Before I draft anything, I need to see what already exists so I reuse it.
+
+	1.	Inventory store: Paste load_inventory and save_inventory from render_meals.py verbatim. Then paste the current raw contents of data/meal_inventory.json so I can see the exact data shape (what keys, what structure — is it categorized by location like fridge/freezer/pantry, or a flat list?).
+	2.	Meal wizard session helpers: Paste load_meal_wizard_session, save_meal_wizard_session, and update_meal_wizard_session from data_helpers.py verbatim, so I can confirm the exact write pattern for storing confirmed_inventory and use_soon_items into session state.
+	3.	AI call pattern: Show me how the codebase makes an AI call that parses free text into structured JSON. Pick one good example (e.g. from render_ai_daily.py or render_plan_importer.py) and paste the function that calls Claude — I need to see how the API key is read, how the request is made, and how the response is parsed (the diagnosis earlier mentioned _repair_and_parse_json). I want Step 2’s inventory parser to match this exact pattern.
+	4.	Voice input: Does any existing page in the app use voice input / speech-to-text (the Web Speech API or a microphone button)? Search for “webkitSpeechRecognition”, “SpeechRecognition”, “mediaRecorder”, or “microphone”. If yes, name the file and paste how it’s done. If no, say so plainly — that tells me whether voice is a new pattern we’d be introducing.
+
+No changes. Paste all four answers.
