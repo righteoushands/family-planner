@@ -1,0 +1,45 @@
+Good — one source of truth. Extraction it is, done additive-first so the meals page is proven still working before we build anything new on it.
+
+Part 1 — extract the inventory trio into a shared file. Pre-flight (Rule 14):
+
+	1.	Files touched: new static/inventory_input.js (extracted functions), static/meals.js (remove the extracted functions, keep everything else), render_meals.py (load the new file alongside or before meals.js). Three files, but one directly-related refactor.
+	2.	JS in f-strings: the JS lives in a static .js file, not in Python f-strings — so Rules 7/12 mostly don’t apply to the JS itself. The script-tag line in render_meals.py is the only Python touch.
+	3.	Form handling: no
+	4.	Root cause confirmed: yes — diagnosis complete, functions and IDs mapped
+	5.	Multiple files: yes — sequenced as one refactor
+	6.	Data shape changes: no
+
+Read claud.md and paste back all 19 rules. Then tell me which rules apply to today’s task before you begin.
+
+Task: Meal Wizard Phase E, Part 1 of 4 — extract the inventory input functions into a shared JS file. Additive-first: the meals page must keep working.
+
+Goal: Move the three inventory functions (toggleMic, parseInventory, saveInventory) out of static/meals.js into a new shared file static/inventory_input.js, so both the meals page and the upcoming wizard Step 2 can use them. The meals page must behave identically after this change.
+
+Pre-flight answers supplied:
+
+	•	Three files: new static/inventory_input.js, static/meals.js (remove the three functions), render_meals.py (load the new script)
+	•	The three functions are window.toggleMic, window.parseInventory, window.saveInventory plus any shared module-level vars they depend on (e.g. _micActive, _micRecog, requestWakeLock)
+	•	No data shape change, no form handling
+
+Important first step — check shared dependencies before moving anything. The three functions reference module-level variables and helpers inside the meals.js IIFE: _micActive, _micRecog, and requestWakeLock(). Before extracting, identify every variable and helper the three functions depend on that currently lives in the meals.js IIFE. Paste that list. Those dependencies must travel with the functions or be available to them — otherwise the extracted file breaks. Do NOT proceed with the move until you’ve confirmed exactly what they need.
+
+The change:
+
+	1.	Create static/inventory_input.js containing the three functions (toggleMic, parseInventory, saveInventory) plus whatever shared state/helpers they need (mic vars, wake-lock helper). Define them on window.* exactly as they are now, so existing inline handlers (onclick="toggleMic()" etc.) still find them. Wrap in its own IIFE if it needs private module state, but keep the same window-level function names.
+	2.	Remove those three functions (and any now-orphaned helpers that ONLY they used) from static/meals.js. Leave every other function in meals.js untouched. If a helper like requestWakeLock is used by BOTH the inventory functions AND other meals.js code, do NOT remove it from meals.js — instead duplicate it into inventory_input.js OR keep it in a load-order that works. Tell me which you did and why.
+	3.	Update render_meals.py to load static/inventory_input.js. It must load BEFORE static/meals.js if there’s any dependency, or order-independent if not. Add the script tag near the existing <script src="/static/meals.js"></script> line.
+
+Constraints:
+
+	•	The meals page must work identically afterward — dictate, parse, and save inventory all still function
+	•	Do not change any function’s behavior — this is a pure move
+	•	The saveInventory POST target (/meal-save-inventory) stays exactly as is for now — Part 3 handles session-state saving separately
+	•	Additive discipline: prove the meals page still works before we build the wizard page on this
+
+After the change:
+
+	1.	Run py_compile on render_meals.py and paste the result
+	2.	Confirm static/inventory_input.js and static/meals.js are both valid JS (node –check or equivalent if available; if not, eyeball for syntax and say so)
+	3.	In-process smoke test: render the meals page and confirm it still includes both script tags and the eight inventory element IDs are still present in the HTML
+	4.	State explicitly: what shared dependencies did the three functions have, and how did you handle each (moved / duplicated / kept in place)?
+	5.	Paste the diff

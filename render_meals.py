@@ -904,7 +904,8 @@ def render_meal_planner_page(status: str = "", week_key: str = None) -> str:
         f'{{"week":{json.dumps(wk)},"grocery_gaps":{grocery_raw},"prep_notes":{prep_notes_raw},"constraints":{json.dumps(constraints_val)}}}'
         f'</script>'
 
-        # External JS — all logic lives in static/meals.js
+        # External JS — shared inventory input must load before meals.js
+        '<script src="/static/inventory_input.js"></script>'
         '<script src="/static/meals.js"></script>'
 
     )
