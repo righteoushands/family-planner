@@ -1,0 +1,21 @@
+Good catch, and your instinct to verify before acting is right. The screenshot shows the symptom clearly: “PM SkyZone with Rhys?” and “Mom drives boys to drill” each appear twice — once with a blue dot (no calendar label) and once with a purple dot labeled “Lauren’s Apple Calendar.” The same event is arriving through two different paths and not being deduplicated.
+
+Your hypothesis — a second Apple calendar competing with the one in settings — is plausible, but there’s at least one other explanation I’d want ruled out before you act on it. So let me frame this as a diagnosis, not a conclusion.
+
+The two most likely causes:
+
+	1.	Two calendar sources carrying the same events — the iCloud CalDAV connection AND a separate subscribed-calendar entry both pulling the same Apple calendar, so every event lands twice.
+	2.	The dedup is failing — the merge dedupes by (title, start), but if the same event has a slightly different start-time format from two sources (one with a T time, one all-day), the keys don’t match and both survive.
+
+The blue-dot/no-label vs purple-dot/“Apple Calendar” pattern strongly suggests cause #1 — two distinct sources — but I don’t want to confirm your hypothesis from a screenshot. Replit should check the actual data.
+
+Send this to Replit:
+
+Diagnosis only — no changes. In the app’s calendar view, some events appear twice — once with no calendar label, once labeled “Lauren’s Apple Calendar” (different colored dots). Examples: “PM SkyZone with Rhys?” on Fri June 12, and “Mom drives boys to drill” on Sat June 13. I need to find why the same event appears twice.
+
+	1.	List every calendar source the app pulls from. There’s local events.json, the iCloud/CalDAV cache (calendar_cache.json), and the subscribed-calendar cache (subscribed_calendar_cache.json). For each of the duplicated events (“PM SkyZone with Rhys?” and “Mom drives boys to drill”), search ALL THREE sources and tell me which source(s) each event appears in. Paste the raw entry from each source it’s found in — especially the exact title and start values. REDACT any URLs.
+	2.	Is the same Apple calendar connected through two paths? Check whether the iCloud CalDAV connection and any subscribed-calendar entry could both be pulling the same underlying Apple calendar. Is there a subscribed calendar whose events overlap with the CalDAV cache? How many subscribed calendars are stored now, and what are their names (no URLs)?
+	3.	Why isn’t dedup catching these? The merge in get_merged_calendar_events dedupes by (title, start). For the two duplicated events, compare the exact start string from each source they appear in — are the start strings byte-identical, or do they differ (e.g. one is “2026-06-12” all-day and the other is “2026-06-12T15:00”)? If they differ, that’s why dedup misses them.
+	4.	Confirm or refute this hypothesis plainly: is there a SECOND Apple calendar source feeding the app, separate from the one in calendar settings? Yes or no, with evidence.
+
+No changes. Paste all four answers.
