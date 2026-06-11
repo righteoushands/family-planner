@@ -1,0 +1,62 @@
+Pre-fill it is — edit-not-retype, matching the exhaustion standard. Drafting Part 2.
+
+Read claud.md and paste back all 19 rules. Then tell me which rules apply to today’s task before you begin.
+
+Task: Meal Wizard Phase E, Part 2 of 4 — add the Step 2 “What’s on hand” render function to render_meal_wizard.py.
+
+Pre-flight answers supplied:
+
+	•	One file: render_meal_wizard.py
+	•	Inline JS is only onclick="funcName()" attributes wiring to the shared functions in static/inventory_input.js — Rules 7/12 apply; use plain onclick attributes with no newlines/backslashes
+	•	No data shape change — reads load_inventory(), same blob shape (fridge/freezer/pantry/use_soon strings)
+	•	Pre-fill the fields with current saved inventory (edit-not-retype)
+
+Add a new function:
+
+def render_meal_wizard_step2(user: str) -> str:
+
+
+What the page shows:
+
+Page title: “Plan This Week’s Meals” with subtitle “Step 2 of 6 — What’s on hand”
+
+A short intro line: something like “Tell Lorenzo what you have. Speak it or type it — he’ll sort it into fridge, freezer, and pantry.”
+
+Load current inventory: call load_inventory() from render_meals (returns the dict with fridge/freezer/pantry/use_soon strings). Pre-fill the fields with these current values so Lauren edits rather than re-enters.
+
+The inventory input UI — must use these EXACT element IDs (the shared JS in static/inventory_input.js depends on them):
+
+	•	A raw dictation textarea with id inv-paste-raw (empty to start — this is where voice/free-text goes)
+	•	A mic button with id mic-btn, onclick toggleMic(), labeled “🌄 Dictate”
+	•	A “Sort into categories” button with onclick parseInventory() (parses inv-paste-raw into the four fields)
+	•	A status line with id inv-parse-status
+	•	Four labeled textareas, pre-filled from load_inventory():
+	•	id inv-fridge — “Fridge” — pre-filled with the fridge value
+	•	id inv-freezer — “Freezer” — pre-filled with the freezer value
+	•	id inv-pantry — “Pantry” — pre-filled with the pantry value
+	•	id inv-use-soon — “Use soon” — pre-filled with the use_soon value
+	•	A save status line with id inv-status
+
+Buttons at the bottom:
+
+	•	A “Save inventory” button with onclick saveInventory() (the shared function POSTs to /meal-save-inventory)
+	•	A “Continue” button/link to /meal-wizard-step3 (not built yet — that’s a later phase; the link can point there for now)
+	•	A “Back” link to /meal-wizard (Step 1)
+
+Load the shared script: include <script src="/static/inventory_input.js"></script> on the page so the onclick handlers resolve.
+
+Technical requirements:
+
+	•	Use html_page() for chrome, matching the pattern in render_meal_wizard.py (render_pantry_staples_page and render_meal_wizard_week_glance)
+	•	Match the existing style-constant pattern — pull font/color strings into module constants (Rules 1, 2)
+	•	escape() the pre-filled inventory values exactly once before putting them in the textareas (Rule 11) — they’re user free-text and must be escaped
+	•	Inline JS is only onclick="..." attribute handlers — no \n, no backslashes inside any f-string (Rules 7, 12). If you need any actual script logic beyond onclick attributes, stop and tell me first.
+	•	Do NOT add session-state saving here — that’s Part 3. This part just reuses the existing saveInventory (blob store).
+	•	Keep the function focused; if the file would exceed 800 lines, stop and tell me before splitting
+
+After the change:
+
+	1.	Run py_compile on render_meal_wizard.py and paste the result
+	2.	In-process smoke test: call render_meal_wizard_step2("Lauren") and confirm it returns HTML containing all eight required element IDs, the script tag for inventory_input.js, and that the four fields are pre-filled with the current inventory values
+	3.	Confirm no \n or backslashes ended up inside any f-string JS
+	4.	Paste the full new function and any new constants for review

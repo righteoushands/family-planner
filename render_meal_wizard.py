@@ -11,7 +11,7 @@ from html import escape
 from ui_helpers import html_page
 from data_helpers import load_pantry_staples, get_merged_calendar_events
 from render_liturgical import get_day_info
-from render_meals import load_meal_rules
+from render_meals import load_meal_rules, load_inventory
 
 # Pulled out of f-strings to avoid nested quotes (Rule 2) / backslashes (Rule 1).
 _HEADING_FONT = "'Cormorant Garamond', serif"
@@ -450,3 +450,130 @@ def render_meal_wizard_week_glance(user: str, start_iso: str = None) -> str:
         f'</div>'
     )
     return html_page("Plan This Week\u2019s Meals", body)
+
+
+# ── Step 2: What's on hand ──────────────────────────────────────────────────
+# Inventory dictate/parse/save UI. All client logic lives in the shared
+# static/inventory_input.js (loaded at the bottom); this page only wires the
+# exact element IDs that script depends on. No <script> logic here beyond the
+# include and onclick="..." attributes (Rules 7 & 12).
+#
+# Human-readable strings that contain non-ASCII punctuation live in plain
+# (non-f) constants so no backslash ever lands inside an f-string (Rule 1).
+_S2_TITLE = "Plan This Week\u2019s Meals"
+_S2_SUBTITLE_TEXT = "Step 2 of 6 \u2014 What\u2019s on hand"
+_S2_INTRO_TEXT = ("Tell Lorenzo what you have. Speak it or type it \u2014 "
+                  "he\u2019ll sort it into fridge, freezer, and pantry.")
+_S2_MIC_LABEL = "\U0001F304 Dictate"
+_S2_BACK_LABEL = "\u2190 Back"
+_S2_CONTINUE_LABEL = "Continue \u2192"
+_S2_RAW_PLACEHOLDER = ("e.g. In the fridge I have eggs and milk. Freezer has "
+                       "ground beef. Pantry: rice and pasta.")
+
+_S2_INTRO = "color:var(--ink-muted);font-size:0.95em;margin:0 0 22px;line-height:1.5;"
+_S2_FIELD_BOX = ("background:var(--warm-white,#fff);border:1px solid var(--border,#e6e0d4);"
+                 "border-radius:var(--radius-md,12px);padding:14px 16px;margin-bottom:14px;")
+_S2_LABEL = ("font-family:" + _HEADING_FONT + ";font-size:1.1em;font-weight:600;"
+             "color:var(--ink);margin:0 0 8px;display:block;")
+_S2_TEXTAREA = ("width:100%;box-sizing:border-box;padding:10px 12px;"
+                "border:1px solid var(--border,#e6e0d4);border-radius:var(--radius-sm,8px);"
+                "font-size:0.95em;font-family:inherit;resize:vertical;color:var(--ink);")
+_S2_BTN_ROW = "display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0 4px;"
+_S2_BTN = ("padding:10px 18px;border:none;border-radius:var(--radius-sm,8px);"
+           "background:var(--ink,#3a3324);color:#fff;font-weight:600;cursor:pointer;"
+           "font-size:0.95em;")
+_S2_BTN_MIC = ("padding:10px 18px;border:1px solid var(--border,#e6e0d4);"
+               "border-radius:var(--radius-sm,8px);background:var(--warm-white,#fff);"
+               "color:var(--ink);font-weight:600;cursor:pointer;font-size:0.95em;")
+_S2_STATUS = ("color:var(--accent-green,#27ae60);font-size:0.9em;margin:6px 0 0;"
+              "min-height:1.2em;")
+_S2_SAVE_BTN = ("display:inline-block;width:100%;box-sizing:border-box;margin-top:8px;"
+                "padding:14px 18px;border:none;border-radius:var(--radius-md,12px);"
+                "background:var(--gold-light,#f3ead2);color:var(--ink);font-weight:700;"
+                "font-size:1em;cursor:pointer;")
+_S2_NAV_ROW = ("display:flex;justify-content:space-between;align-items:center;"
+               "margin-top:24px;gap:12px;")
+_S2_BACK = "color:var(--ink-muted);font-size:0.95em;text-decoration:none;"
+_S2_CONTINUE = ("display:inline-block;padding:13px 26px;border-radius:var(--radius-md,12px);"
+                "background:var(--gold-mid,#c9a84a);color:var(--ink);font-weight:700;"
+                "font-size:1.02em;text-decoration:none;text-align:center;")
+
+
+def _s2_field(field_id: str, label: str, value: str, rows: int) -> str:
+    """One labelled, pre-filled textarea. `value` is already escape()d once by
+    the caller; `label` is plain trusted text."""
+    return (
+        f'<div style="{_S2_FIELD_BOX}">'
+        f'<label for="{field_id}" style="{_S2_LABEL}">{label}</label>'
+        f'<textarea id="{field_id}" rows="{rows}" style="{_S2_TEXTAREA}">{value}</textarea>'
+        f'</div>'
+    )
+
+
+def render_meal_wizard_step2(user: str) -> str:
+    """Step 2 of the Meal Planning Wizard \u2014 "What's on hand".
+
+    Pre-fills the four inventory fields with the current saved blob so Lauren
+    edits rather than re-types. Dictate / sort / save are handled entirely by
+    the shared static/inventory_input.js via the exact element IDs below; this
+    part does NOT add session-state saving (that is Part 3) \u2014 Save inventory
+    reuses the existing blob store at /meal-save-inventory.
+    """
+    inv = load_inventory() or {}
+    fridge = escape(inv.get("fridge", "") or "")
+    freezer = escape(inv.get("freezer", "") or "")
+    pantry = escape(inv.get("pantry", "") or "")
+    use_soon = escape(inv.get("use_soon", "") or "")
+
+    dictate_box = (
+        f'<div style="{_S2_FIELD_BOX}">'
+        f'<label for="inv-paste-raw" style="{_S2_LABEL}">Speak or paste, then sort</label>'
+        f'<textarea id="inv-paste-raw" rows="3" style="{_S2_TEXTAREA}" '
+        f'placeholder="{_S2_RAW_PLACEHOLDER}"></textarea>'
+        f'<div style="{_S2_BTN_ROW}">'
+        f'<button type="button" id="mic-btn" onclick="toggleMic()" '
+        f'style="{_S2_BTN_MIC}">{_S2_MIC_LABEL}</button>'
+        f'<button type="button" onclick="parseInventory()" '
+        f'style="{_S2_BTN}">Sort into categories</button>'
+        f'</div>'
+        f'<p id="inv-parse-status" style="{_S2_STATUS}"></p>'
+        f'</div>'
+    )
+
+    fields = (
+        f'{_s2_field("inv-fridge", "Fridge", fridge, 3)}'
+        f'{_s2_field("inv-freezer", "Freezer", freezer, 3)}'
+        f'{_s2_field("inv-pantry", "Pantry", pantry, 3)}'
+        f'{_s2_field("inv-use-soon", "Use soon", use_soon, 2)}'
+    )
+
+    save_block = (
+        f'<button type="button" onclick="saveInventory()" '
+        f'style="{_S2_SAVE_BTN}">Save inventory</button>'
+        f'<p id="inv-status" style="{_S2_STATUS}"></p>'
+    )
+
+    nav = (
+        f'<div style="{_S2_NAV_ROW}">'
+        f'<a href="/meal-wizard" style="{_S2_BACK}">{_S2_BACK_LABEL}</a>'
+        f'<a href="/meal-wizard-step3" style="{_S2_CONTINUE}">{_S2_CONTINUE_LABEL}</a>'
+        f'</div>'
+    )
+
+    inner = (
+        f'<h1 style="font-family:{_HEADING_FONT};font-size:2em;font-weight:600;'
+        f'color:var(--ink);margin:0 0 2px;">{_S2_TITLE}</h1>'
+        f'<p style="{_WG_SUBTITLE}">{_S2_SUBTITLE_TEXT}</p>'
+        f'<p style="{_S2_INTRO}">{_S2_INTRO_TEXT}</p>'
+        f'{dictate_box}'
+        f'{fields}'
+        f'{save_block}'
+        f'{nav}'
+    )
+    body = (
+        f'<div style="max-width:680px;margin:0 auto;padding:24px 16px 96px;">'
+        f'{inner}'
+        f'</div>'
+        f'<script src="/static/inventory_input.js"></script>'
+    )
+    return html_page(_S2_TITLE, body)
