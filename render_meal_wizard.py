@@ -5,9 +5,13 @@ Phase C, Part 1: the Pantry Staples page only. More wizard steps are added
 in later phases. All data access goes through data_helpers (Rule 19); all
 file chrome comes from ui_helpers.html_page (matches render_wizards.py).
 """
+import re
+from datetime import date, timedelta
 from html import escape
 from ui_helpers import html_page
-from data_helpers import load_pantry_staples
+from data_helpers import load_pantry_staples, get_merged_calendar_events
+from render_liturgical import get_day_info
+from render_meals import load_meal_rules
 
 # Pulled out of f-strings to avoid nested quotes (Rule 2) / backslashes (Rule 1).
 _HEADING_FONT = "'Cormorant Garamond', serif"
@@ -255,3 +259,183 @@ def render_pantry_staples_page(user: str) -> str:
         f'{_PAGE_JS}'
     )
     return html_page("Pantry Staples", body)
+
+
+# ── Step 1: Week at a Glance ────────────────────────────────────────────────
+# Style strings pulled out of f-strings to keep Rules 1 & 2 satisfied.
+_WG_SUBTITLE = "color:var(--ink-muted);font-size:0.95em;margin:2px 0 22px;"
+_WG_DAY_CARD = ("background:var(--warm-white,#fff);border:1px solid var(--border,#e6e0d4);"
+                "border-radius:var(--radius-md,12px);padding:0 0 12px;margin-bottom:14px;"
+                "overflow:hidden;")
+_WG_DAY_HEADER = ("font-family:" + _HEADING_FONT + ";font-size:1.15em;font-weight:600;"
+                  "color:var(--ink);margin:0;padding:12px 16px 2px;")
+_WG_SEASON_DOT = ("display:inline-block;width:10px;height:10px;border-radius:50%;"
+                  "margin-right:8px;vertical-align:middle;")
+_WG_SEASON_LABEL = "color:var(--ink-muted);font-size:0.82em;padding:0 16px 8px;"
+_WG_CHIP_ROW = "padding:0 16px 4px;display:flex;flex-wrap:wrap;gap:6px;"
+_WG_EVENT_ROW = "color:var(--ink);font-size:0.92em;padding:3px 16px;"
+_WG_QUIET = "color:var(--ink-muted);font-size:0.9em;font-style:italic;padding:3px 16px;"
+_WG_RULE_CHIP = ("display:inline-block;background:var(--parchment,#faf6ec);"
+                 "border:1px solid var(--border-light,#ece6d8);border-radius:999px;"
+                 "padding:6px 12px;margin:0 6px 6px 0;font-size:0.9em;color:var(--ink);")
+_WG_BTN_LINK = ("display:block;width:100%;box-sizing:border-box;margin-top:20px;"
+                "padding:15px 18px;border-radius:var(--radius-md,12px);"
+                "background:var(--gold-mid,#c9a84a);color:var(--ink);font-weight:700;"
+                "font-size:1.05em;text-align:center;text-decoration:none;")
+
+# Fixed chip palettes (label/background/foreground) for the liturgical markers.
+_WG_FEAST_DEFAULT_BG = "#6b4f9e"
+_WG_ABSTINENCE_BG = "#b23b3b"
+_WG_FAST_BG = "#c98a2e"
+
+# Colors flow in from liturgical data INCLUDING user-editable custom overrides
+# (/liturgical/edit), so they must be allowlisted before going into a style
+# attribute — escape() does not neutralize CSS/attribute-breaking payloads.
+_WG_HEX_RE = re.compile(r"^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")
+_WG_NAMED_COLORS = {
+    "purple", "violet", "white", "red", "green", "gold", "rose", "pink",
+    "blue", "black", "gray", "grey", "amber", "orange", "yellow", "brown",
+}
+
+
+def _wg_safe_color(value, fallback: str) -> str:
+    """Return `value` only if it is a hex color or a vetted named color;
+    otherwise the safe `fallback`. Prevents style-attribute breakout."""
+    v = (value or "").strip()
+    if _WG_HEX_RE.match(v):
+        return v
+    if v.lower() in _WG_NAMED_COLORS:
+        return v.lower()
+    return fallback
+
+
+def _wg_marker_chip(label: str, bg: str, fg: str = "#ffffff") -> str:
+    """Render a small liturgical marker chip. `label` is escaped once."""
+    return (f'<span style="display:inline-block;border-radius:999px;'
+            f'padding:3px 11px;font-size:0.8em;font-weight:600;'
+            f'background:{bg};color:{fg};">{escape(label)}</span>')
+
+
+def _wg_rules_panel() -> str:
+    """Week-level meal rules panel. Rules have no day field, so they live once
+    at the top. Guards the loader returning a non-list (Rule: defensive shape)."""
+    raw = load_meal_rules()
+    rules = raw if isinstance(raw, list) else []
+    texts = [
+        r.get("rule", "").strip()
+        for r in rules
+        if isinstance(r, dict) and r.get("rule", "").strip()
+    ]
+    if texts:
+        chips = "".join(
+            f'<span style="{_WG_RULE_CHIP}">{escape(t)}</span>' for t in texts
+        )
+        inner = f'<div style="display:flex;flex-wrap:wrap;">{chips}</div>'
+    else:
+        inner = f'<p style="color:var(--ink-muted);margin:0;">No meal rules set yet.</p>'
+    return (
+        f'<div style="{_GROUP_BOX}">'
+        f'<h3 style="{_GROUP_TITLE}">This week\u2019s meal rules</h3>'
+        f'{inner}'
+        f'</div>'
+    )
+
+
+def _wg_event_line(ev: dict) -> str:
+    """Format one merged calendar event like Lorenzo's formatter: split start/end
+    on the T, guard the all-day no-T case, append the who suffix when present."""
+    title = escape(ev.get("title") or "(untitled)")
+    start = ev.get("start") or ""
+    end = ev.get("end") or ""
+    st = start.split("T", 1)[1][:5] if "T" in start else ""
+    et = end.split("T", 1)[1][:5] if "T" in end else ""
+    if st and et:
+        time_str = f"{st}-{et}"
+    elif st:
+        time_str = st
+    else:
+        time_str = "All day"
+    who = (ev.get("who") or "").strip()
+    who_str = f" \u2014 {escape(who)}" if who else ""
+    return f'<div style="{_WG_EVENT_ROW}">{escape(time_str)}  {title}{who_str}</div>'
+
+
+def _wg_day_card(d: date, day_events: list) -> str:
+    """Render one day card: liturgical header + marker chips + commitments."""
+    info = get_day_info(d)
+    weekday = escape(info.get("weekday", ""))
+    date_label = escape(info.get("date_label", ""))
+    season = info.get("season", "")
+    season_color = _wg_safe_color(info.get("season_color"), "#888")
+
+    header = (
+        f'<h3 style="{_WG_DAY_HEADER}">'
+        f'<span style="{_WG_SEASON_DOT}background:{season_color};"></span>'
+        f'{weekday} \u2014 {date_label}</h3>'
+    )
+    season_label = (
+        f'<div style="{_WG_SEASON_LABEL}">{escape(season)}</div>' if season else ""
+    )
+
+    chips = []
+    feast_name = info.get("feast_name") or ""
+    if feast_name:
+        feast_bg = _wg_safe_color(info.get("feast_color"), _WG_FEAST_DEFAULT_BG)
+        chips.append(_wg_marker_chip(feast_name, feast_bg))
+    if info.get("is_abstinence"):
+        chips.append(_wg_marker_chip("Abstinence \u2014 no meat", _WG_ABSTINENCE_BG))
+    if info.get("is_fast"):
+        chips.append(_wg_marker_chip("Fast day", _WG_FAST_BG))
+    chip_row = (
+        f'<div style="{_WG_CHIP_ROW}">{"".join(chips)}</div>' if chips else ""
+    )
+
+    if day_events:
+        events_html = "".join(_wg_event_line(ev) for ev in day_events)
+    else:
+        events_html = f'<div style="{_WG_QUIET}">No commitments</div>'
+
+    return (
+        f'<div style="{_WG_DAY_CARD}">'
+        f'{header}{season_label}{chip_row}{events_html}'
+        f'</div>'
+    )
+
+
+def render_meal_wizard_week_glance(user: str, start_iso: str = None) -> str:
+    """Step 1 of the Meal Planning Wizard — a read-only orientation view of the
+    coming week: this week's meal rules, then 7 day cards each showing the
+    liturgical season/feast/fast/abstinence markers and that day's commitments."""
+    if not start_iso:
+        start_iso = date.today().isoformat()
+    start_d = date.fromisoformat(start_iso)
+
+    # One merged fetch for the whole week, grouped by ISO date. Degrade quietly
+    # to "no commitments" if the calendar sources are unavailable.
+    events_by_date = {}
+    try:
+        for ev in get_merged_calendar_events(start_iso, 7):
+            key = (ev.get("start") or "")[:10]
+            events_by_date.setdefault(key, []).append(ev)
+    except Exception:
+        events_by_date = {}
+
+    day_cards = []
+    for offset in range(7):
+        d = start_d + timedelta(days=offset)
+        day_cards.append(_wg_day_card(d, events_by_date.get(d.isoformat(), [])))
+
+    inner = (
+        f'<h1 style="font-family:{_HEADING_FONT};font-size:2em;font-weight:600;'
+        f'color:var(--ink);margin:0 0 2px;">Plan This Week\u2019s Meals</h1>'
+        f'<p style="{_WG_SUBTITLE}">Step 1 of 6 \u2014 Your week at a glance</p>'
+        f'{_wg_rules_panel()}'
+        f'{"".join(day_cards)}'
+        f'<a href="/meal-wizard-step2" style="{_WG_BTN_LINK}">Continue</a>'
+    )
+    body = (
+        f'<div style="max-width:680px;margin:0 auto;padding:24px 16px 96px;">'
+        f'{inner}'
+        f'</div>'
+    )
+    return html_page("Plan This Week\u2019s Meals", body)

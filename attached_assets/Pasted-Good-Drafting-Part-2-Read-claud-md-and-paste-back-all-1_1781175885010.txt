@@ -1,0 +1,59 @@
+Good. Drafting Part 2.
+
+Read claud.md and paste back all 19 rules. Then tell me which rules apply to today’s task before you begin.
+
+Task: Meal Planning Wizard Phase D, Part 2 of 3 — add the Step 1 “Week at a Glance” render function to render_meal_wizard.py.
+
+Pre-flight answers supplied:
+
+	•	One file: render_meal_wizard.py
+	•	Reads existing data only (get_merged_calendar_events, get_day_info, load_meal_rules) — no new stored data, no migration
+	•	No form handling — Step 1 is display plus a Continue link
+	•	If any JS is used inside a Python f-string, Rules 7 and 12 apply
+	•	Match the existing patterns in render_meal_wizard.py (html_page wrapper, style constants pulled out of f-strings, escape-once)
+
+Add a new function:
+
+def render_meal_wizard_week_glance(user: str, start_iso: str = None) -> str:
+
+
+If start_iso is None, default to today (use the same date approach already used elsewhere in the file or date.today().isoformat()).
+
+What the page shows:
+
+Page title: “Plan This Week’s Meals” with a subtitle “Step 1 of 6 — Your week at a glance”
+
+A week-level meal rules panel at the top (because meal rules have no day field):
+
+	•	Heading: “This week’s meal rules”
+	•	Load rules via load_meal_rules() from render_meals (returns a list of {"rule": "..."} dicts — guard for the list shape, and guard the case where it returns a non-list)
+	•	Render each rule’s text as a chip or simple list item
+	•	If no rules, show a gentle “No meal rules set yet” line
+
+Then 7 day cards, one per day starting from start_iso. For each day:
+
+	•	Call get_day_info(d) for that date (import from render_liturgical)
+	•	Day header: weekday + date_label (e.g. “Thursday — June 11, 2026”)
+	•	Season shown subtly (use season_color as a small accent, not a loud background)
+	•	Feast chip (purple-ish, use feast_color if present) — only if feast_name is truthy
+	•	Abstinence chip (red) — only if is_abstinence is True — label “Abstinence — no meat”
+	•	Fast chip (amber) — only if is_fast is True — label “Fast day”
+	•	Calendar events for that day: filter the merged events list to this date. Get the full week’s events once via get_merged_calendar_events(start_iso, 7), then group by event["start"][:10] matching the day’s ISO date. For each event show the time (parse like Lorenzo’s formatter: split on “T”, guard the all-day no-T case) and title. If who is non-empty, show “— {who}”. If no events that day, show a quiet “No commitments” line.
+	•	Do NOT show any boy-availability indicator — that is deferred.
+
+At the bottom: a “Continue” button/link. For now it can link to /meal-wizard-step2 (not yet built — that’s a later phase). Style it as the primary action.
+
+Technical requirements:
+
+	•	Match the existing style-constant pattern in the file — pull any font/color strings out of f-strings into module constants (Rules 1, 2)
+	•	Import get_day_info from render_liturgical and get_merged_calendar_events from data_helpers and load_meal_rules from render_meals — at the top of the file per Rule 4, unless the file’s existing convention is lazy imports, in which case match the file’s existing convention and say which you used
+	•	escape() all dynamic text exactly once (Rule 11) — event titles, feast names, rule text, who
+	•	Keep the function focused; if the file would exceed 800 lines, stop and tell me before splitting
+	•	This is display only — no new routes in this instruction (the route is Part 3)
+
+After the change:
+
+	1.	Run py_compile on render_meal_wizard.py and paste the result
+	2.	Run an in-process smoke test: call render_meal_wizard_week_glance("Lauren") for the current week and confirm it returns an HTML string without error; also call it for a known feast day and a known Friday to confirm the feast and abstinence chips render
+	3.	No verify harness needed unless one covers render_meal_wizard.py — if one exists, run it
+	4.	Paste the full new function and the import lines for review

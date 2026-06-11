@@ -1,2 +1,3 @@
 - [JS-in-f-string braces](js-in-fstring-braces.md) — render_*.py: f-string BODY needs doubled {{ }}; replacement fields need single braces + double-quoted JS + single-quoted Python string (Py3.11).
 - [Companion/page route + nav wiring](companion-page-route-pattern.md) — new authed HTML routes: render via html_page, elif branch mirroring /companions, global _require_auth gate, pass `viewer`, add to morePaths.
+- [Liturgical colors in style attrs](liturgical-color-style-injection.md) — season_color/feast_color are user-editable; allowlist (hex/named) before inlining into style="" or it's stored XSS.
