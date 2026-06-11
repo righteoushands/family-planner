@@ -1,0 +1,18 @@
+
+
+So this is a diagnosis. The merge is dropping events that should appear. The most likely culprits, in order:
+
+	1.	Recurrence not expanding — if CAP is a weekly recurring event, expand_local_events_for_range may not be expanding it across the window, so it shows on its seed date only (or not at all within this week).
+	2.	The synced cache is stale or not being read — if CAP lives in a Google/CalDAV or subscribed calendar, the cache may be empty or old.
+	3.	The window date-prefix filter is dropping it — the merge filters by m["start"][:10], which assumes a clean ISO YYYY-MM-DD prefix. If CAP’s start string is formatted differently in its source, it gets filtered out silently.
+
+I shouldn’t guess which. Send this to Replit — diagnosis only:
+
+Diagnosis only — no changes. A known recurring event (CAP on Mondays) is not appearing in the meal wizard’s calendar, and it should be. CAP, Bible Study, and Sea Cadet Drills are real events on the calendar this summer. I need to find why the merge is dropping them.
+
+	1.	Find CAP in the raw data. Search events.json, calendar_cache.json, and subscribed_calendar_cache.json for “CAP” (and “Sea Cadet” and “Bible”). For each match, paste the raw event entry verbatim — I need to see its exact start string format and whether it has a recurrence rule.
+	2.	Recurrence expansion: Show me expand_local_events_for_range. Does it expand recurring events (weekly, etc.) across the date range, or does it only return events whose stored date falls in the range? Paste the function.
+	3.	For one specific test: call get_merged_calendar_events("2026-06-15", 7) (the week of Monday June 15) and paste the raw returned list. I want to see exactly what it returns for a week that should contain a Monday CAP event.
+	4.	Start-string format check: for any CAP/Bible/Sea Cadet event found in step 1, does its start value begin with a clean YYYY-MM-DD (10-char ISO prefix)? If the format differs (e.g. has a leading weekday, a different date format, or a time-only value), flag it — the merge filters by the first 10 characters of start.
+
+No changes. Paste all four answers.
