@@ -249,7 +249,7 @@ from render_frol_pdf import generate_frol_pdf
 from render_coach import render_coach_page, build_coach_context
 from render_monica import render_monica_page, build_monica_context
 from render_wizards import render_wizards_page
-from render_meal_wizard import render_pantry_staples_page
+from render_meal_wizard import render_pantry_staples_page, render_meal_wizard_week_glance
 from render_plan_importer import (
     render_plan_import_page, build_analysis_system_prompt,
     _load_upcoming_events, _format_events_summary,
@@ -1268,6 +1268,25 @@ class Handler(BaseHTTPRequestHandler):
             return
         elif path == "/pantry-staples":
             html = render_pantry_staples_page(viewer)
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header("Pragma","no-cache")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
+        elif path == "/meal-wizard":
+            # Optional ?start=YYYY-MM-DD. Validate via fromisoformat; any
+            # missing/malformed value falls back to None so the renderer
+            # defaults to today (the guard Part 2 review flagged).
+            _qs_raw = clean_text(query.get("start", [""])[0])
+            try:
+                date.fromisoformat(_qs_raw)
+                _qs_start_iso = _qs_raw
+            except (ValueError, TypeError):
+                _qs_start_iso = None
+            html = render_meal_wizard_week_glance(viewer, _qs_start_iso)
             self.send_response(200)
             self.send_header("Content-Type","text/html; charset=utf-8")
             self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
