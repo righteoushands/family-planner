@@ -1,0 +1,49 @@
+Drafting the route. This also makes Step 2 reachable so you can QA it.
+
+Pre-flight (Rule 14):
+
+	1.	Files touched: app.py only (new GET route + import)
+	2.	JS in f-strings: no
+	3.	Form handling: no — GET route
+	4.	Root cause confirmed: yes — /meal-wizard-step2 doesn’t exist, render function ready, Step 1 Continue already points to it
+	5.	Multiple files: no
+	6.	Data shape changes: no
+
+Read claud.md and paste back all 19 rules. Then tell me which rules apply to today’s task before you begin.
+
+Task: Meal Wizard Phase E, Part 3 of 4 — add the /meal-wizard-step2 GET route to app.py.
+
+Change 1 — Add /meal-wizard-step2 GET route in do_GET.
+
+Find the /meal-wizard route added in Phase D. Add the new elif branch near it, matching the exact same chrome pattern (no-store cache headers, BrokenPipe guard):
+
+elif path == "/meal-wizard-step2":
+    html = render_meal_wizard_step2(viewer)
+    self.send_response(200)
+    self.send_header("Content-Type", "text/html; charset=utf-8")
+    self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+    self.send_header("Pragma", "no-cache")
+    self.end_headers()
+    try:
+        self.wfile.write(html.encode())
+    except BrokenPipeError:
+        pass
+    return
+
+
+Change 2 — Add import.
+
+Add render_meal_wizard_step2 to the existing render_meal_wizard import line in app.py. Phase C/D already import from render_meal_wizard (render_pantry_staples_page, render_meal_wizard_week_glance) — add render_meal_wizard_step2 to that same line, matching the existing style.
+
+Constraints:
+
+	•	Require auth — same global viewer/_require_auth gate as /meal-wizard and other pages
+	•	Do not change any existing route
+	•	This makes Step 1’s existing Continue link (→ /meal-wizard-step2) resolve instead of 404
+
+After the changes:
+
+	1.	Run py_compile on app.py and paste the result
+	2.	Run an in-process smoke test confirming /meal-wizard-step2 renders without error (app imports cleanly, the route resolves, the render function is reachable)
+	3.	No verify harness needed unless one covers this area
+	4.	Paste the diff
