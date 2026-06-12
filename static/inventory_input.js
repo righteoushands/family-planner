@@ -188,6 +188,28 @@
     });
   };
 
+  /* ── Save inventory (wizard) — same payload, posts to the wizard route ── */
+  window.saveInventoryWizard = function () {
+    var elF = document.getElementById("inv-fridge");
+    var elZ = document.getElementById("inv-freezer");
+    var elP = document.getElementById("inv-pantry");
+    var elS = document.getElementById("inv-use-soon");
+    var inv = {
+      fridge:   elF ? elF.value : "",
+      freezer:  elZ ? elZ.value : "",
+      pantry:   elP ? elP.value : "",
+      use_soon: elS ? elS.value : ""
+    };
+    fetch("/meal-wizard-step2-save", {
+      method:  "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body:    "data=" + encodeURIComponent(JSON.stringify(inv))
+    }).then(function () {
+      var el = document.getElementById("inv-status");
+      if (el) { el.textContent = "Saved \u2713"; setTimeout(function () { el.textContent = ""; }, 2000); }
+    });
+  };
+
   /* ── Clear inventory (client-side only — no server call, no stored data) ── */
   window.clearInventory = function () {
     var ids = ["inv-paste-raw", "inv-fridge", "inv-freezer", "inv-pantry", "inv-use-soon"];

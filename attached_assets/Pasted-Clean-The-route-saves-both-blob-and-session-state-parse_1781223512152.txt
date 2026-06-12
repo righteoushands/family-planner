@@ -1,0 +1,55 @@
+Clean. The route saves both blob and session state, parses identically to the existing route, no f-string hazards. Part 4a done.
+
+Part 4a scorecard:
+
+	•	✅ /meal-wizard-step2-save POST route — saves the blob identically to /meal-save-inventory AND writes session state
+	•	✅ confirmed_inventory = all three locations combined into a labeled plain-text block; use_soon_items = the use-soon value
+	•	✅ Combined string built with plain concatenation (a _nl = "\n" constant), no f-string anywhere in the route — clean
+	•	✅ Not in _JSON_PATHS, matching the existing route’s urlencoded parsing
+	•	✅ /meal-save-inventory untouched; session write is additive shallow-merge
+	•	✅ py_compile + temp-copy smoke test (Rule 10 honored — live data restored, no pollution); architect review clean
+
+Now Part 4b — the last piece: point Step 2’s Save button at the new wizard route instead of the shared one. Per our design, this is a separate wizard save function so the shared saveInventory stays untouched for the meals page.
+
+Pre-flight (Rule 14):
+
+	1.	Files touched: static/inventory_input.js (new saveInventoryWizard function) and render_meal_wizard.py (Step 2’s Save button points to it) — two files, one directly-related feature
+	2.	JS in f-strings: the button is an onclick attribute only; function lives in the static file
+	3.	Form handling: the JS POSTs to the new route (same payload shape as saveInventory)
+	4.	Root cause confirmed: yes
+	5.	Multiple files: two, one feature
+	6.	Data shape changes: no new shape — same payload
+
+Read claud.md and paste back all 19 rules. Then tell me which rules apply to today’s task before you begin.
+
+Task: Meal Wizard Phase E, Part 4b — wire Step 2’s Save to the wizard save route. Two files: static/inventory_input.js (new function) and render_meal_wizard.py (button target).
+
+Pre-flight answers supplied:
+
+	•	Two files, one directly-related feature (a wizard save function + the button that calls it)
+	•	The new function mirrors the existing saveInventory exactly but POSTs to /meal-wizard-step2-save instead of /meal-save-inventory
+	•	Same payload shape (data=<urlencoded JSON> with fridge/freezer/pantry/use_soon)
+	•	No data shape change
+
+Change 1 — Add saveInventoryWizard() to static/inventory_input.js.
+
+Add window.saveInventoryWizard = function () { ... } to the shared IIFE. It is a near-copy of the existing saveInventory — it reads the same four field textareas (inv-fridge/inv-freezer/inv-pantry/inv-use-soon), builds the same {fridge, freezer, pantry, use_soon} object, and POSTs data=<json> urlencoded — BUT to /meal-wizard-step2-save instead of /meal-save-inventory. On success, write the same kind of confirmation to inv-status (e.g. “Saved ✓”). Guard every element access, matching the existing style.
+
+Do NOT modify the existing saveInventory — the meals page still uses it. This is a separate parallel function.
+
+Change 2 — Point Step 2’s Save button at the new function.
+
+In render_meal_wizard_step2 in render_meal_wizard.py, change the Save button’s onclick from saveInventory() to saveInventoryWizard(). That’s the only change to the button. The onclick attribute must contain no newlines or backslashes (Rules 7, 12). Leave Clear, Dictate, Sort, Continue, and Back exactly as they are.
+
+Constraints:
+
+	•	Do NOT modify saveInventory, toggleMic, parseInventory, or clearInventory
+	•	The meals page must be unaffected (it uses the original saveInventory)
+	•	Same payload shape, just a different endpoint
+	•	One source of truth: the new function lives in the shared file alongside the others
+
+After the changes:
+
+	1.	node –check (or equivalent) on static/inventory_input.js — paste result; if node isn’t available, eyeball and say so
+	2.	Run py_compile on render_meal_wizard.py and paste the result
+	3.	In

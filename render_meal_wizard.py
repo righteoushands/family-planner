@@ -559,7 +559,7 @@ def render_meal_wizard_step2(user: str) -> str:
     )
 
     save_block = (
-        f'<button type="button" onclick="saveInventory()" '
+        f'<button type="button" onclick="saveInventoryWizard()" '
         f'style="{_S2_SAVE_BTN}">Save inventory</button>'
         f'<p id="inv-status" style="{_S2_STATUS}"></p>'
     )
