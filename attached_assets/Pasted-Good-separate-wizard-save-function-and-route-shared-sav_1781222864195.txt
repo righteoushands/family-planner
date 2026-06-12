@@ -1,0 +1,54 @@
+Good — separate wizard save function and route, shared save untouched. I’ll do the route first (Part 4a), then wire Step 2’s save to it (Part 4b). Route first so the endpoint exists before anything calls it.
+
+Drafting Part 4a — the wizard save route.
+
+Read claud.md and paste back all 19 rules. Then tell me which rules apply to today’s task before you begin.
+
+Task: Meal Wizard Phase E, Part 4a — add the /meal-wizard-step2-save POST route to app.py. This route saves the inventory blob AND writes session state.
+
+Pre-flight answers supplied:
+
+	•	One file: app.py (new POST route, plus add the route to _JSON_PATHS if the payload is JSON)
+	•	Form handling: yes — a POST handler; the payload is the same shape the existing saveInventory sends (data=<urlencoded JSON> with fridge/freezer/pantry/use_soon strings)
+	•	Data shape change: additive — writes two new top-level keys (confirmed_inventory, use_soon_items) into meal wizard session state via the shallow-merge update_meal_wizard_session. No migration.
+
+Background: The existing /meal-save-inventory route (used by both the meals page and Step 2) saves the inventory blob to meal_inventory.json. We do NOT touch it. This new wizard-only route does the SAME blob save AND additionally writes session state — so it’s only used from the wizard, keeping the shared route clean.
+
+Change 1 — Add the /meal-wizard-step2-save POST route in do_POST.
+
+Place it near the existing /meal-save-inventory handler. It must:
+
+	1.	Parse the payload the same way /meal-save-inventory does — read the data field, JSON-parse it (guard with try/except → {} on failure), giving a dict with fridge/freezer/pantry/use_soon string keys. Mirror the existing handler’s parsing exactly (check whether it reads from the urlencoded data field or from _JSON_PATHS — match what /meal-save-inventory does).
+	2.	Save the blob — exactly as /meal-save-inventory does: load_inventory(), overwrite the four keys (run each through clean_text), stamp last_updated with today’s date, save_inventory(inv). (Reuse the same logic so the blob save behaves identically.)
+	3.	Write session state — after the blob save, call:
+
+update_meal_wizard_session({
+    "confirmed_inventory": <the full inventory: fridge + freezer + pantry combined>,
+    "use_soon_items": <the use_soon value>,
+})
+
+
+For confirmed_inventory, combine the three location blobs (fridge, freezer, pantry) into one text value so later steps see everything on hand. Use a clear separator — label each section so Lorenzo can tell them apart, e.g. a plain text block like “Fridge:\n{fridge}\n\nFreezer:\n{freezer}\n\nPantry:\n{pantry}”. IMPORTANT (Rule 7): if you build this combined string, do NOT put raw backslash-n inside a Python f-string for the JS — but this is server-side Python building a plain string, not JS, so use normal Python string construction (e.g. join a list with actual newlines using chr(10) or a non-f-string concatenation) to avoid any f-string backslash issue. Confirm how you built it.
+
+	•	use_soon_items = the use_soon value as-is (cleaned).
+	•	Import update_meal_wizard_session from data_helpers at the top of app.py if not already imported (Rule 4).
+	4.	Respond — return a small JSON success response the same way /meal-save-inventory does ({"ok":true}), with the BrokenPipe guard.
+
+Change 2 — _JSON_PATHS check.
+
+The existing /meal-save-inventory is NOT in _JSON_PATHS (it uses the urlencoded data field parser). Match that — this new route should parse the same way, so likely also NOT in _JSON_PATHS. Confirm which you did and why, matching the existing handler.
+
+Constraints:
+
+	•	Do NOT modify /meal-save-inventory — it stays exactly as is
+	•	The blob-save behavior must be identical to the existing route
+	•	Session write is additive — uses the shallow-merge helper, doesn’t disturb other session keys
+	•	Import at top (Rule 4)
+
+After the changes:
+
+	1.	Run py_compile on app.py and paste the result
+	2.	In-process smoke test: simulate a POST to /meal-wizard-step2-save with a sample payload (fridge/freezer/pantry/use_soon), confirm (a) the blob was written to meal_inventory.json with last_updated stamped, AND (b) session state now contains confirmed_inventory (with all three locations) and use_soon_items. Use a TEMP copy of the data files per Rule 10 — do NOT write the test payload to live meal_inventory.json or live session state; restore after.
+	3.	Confirm how you built the combined confirmed_inventory string (no f-string backslash-n)
+	4.	Confirm whether the route is in _JSON_PATHS and why
+	5.	Paste the diff

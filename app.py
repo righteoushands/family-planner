@@ -232,6 +232,7 @@ from data_helpers import (
     list_snapshots, restore_snapshot, load_snapshot_data,
     load_frol_activities, save_frol_activities,
     _activity_new_id, _DEFAULT_WEEKDAYS,
+    update_meal_wizard_session,
 )
 from ui_helpers import parse_urlencoded_body, parse_multipart_form
 from render_schedule import render_child_schedule, render_today_all, render_week, render_print_day, render_print_week, render_print_child_day_list
@@ -10599,6 +10600,38 @@ class Handler(BaseHTTPRequestHandler):
                 from datetime import date as _date
                 inv["last_updated"] = _date.today().isoformat()
                 save_inventory(inv)
+                self.send_response(200)
+                self.send_header("Content-Type","application/json")
+                self.end_headers()
+                try: self.wfile.write(b'{"ok":true}')
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/meal-wizard-step2-save":
+                import json as _json
+                raw = data.get("data",["{}"])[0]
+                try:   inv_in = _json.loads(raw)
+                except: inv_in = {}
+                inv = load_inventory()
+                for k in ("fridge","freezer","pantry","use_soon"):
+                    if k in inv_in: inv[k] = clean_text(inv_in[k])
+                from datetime import date as _date
+                inv["last_updated"] = _date.today().isoformat()
+                save_inventory(inv)
+                # Combine the three location blobs into one labeled text block
+                # so later wizard steps see everything on hand. Built with plain
+                # string concatenation (Rule 7: no backslash inside an f-string).
+                _nl = "\n"
+                _fridge  = inv.get("fridge","")
+                _freezer = inv.get("freezer","")
+                _pantry  = inv.get("pantry","")
+                _combined = ("Fridge:" + _nl + _fridge + _nl + _nl
+                             + "Freezer:" + _nl + _freezer + _nl + _nl
+                             + "Pantry:" + _nl + _pantry)
+                update_meal_wizard_session({
+                    "confirmed_inventory": _combined,
+                    "use_soon_items": inv.get("use_soon",""),
+                })
                 self.send_response(200)
                 self.send_header("Content-Type","application/json")
                 self.end_headers()
