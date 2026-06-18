@@ -204,9 +204,17 @@
       method:  "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body:    "data=" + encodeURIComponent(JSON.stringify(inv))
-    }).then(function () {
+    }).then(function (r) {
       var el = document.getElementById("inv-status");
-      if (el) { el.textContent = "Saved \u2713"; setTimeout(function () { el.textContent = ""; }, 2000); }
+      if (r && r.ok) {
+        if (el) { el.textContent = "Saved \u2713"; }
+        window.location.href = "/meal-wizard-step3";
+      } else {
+        if (el) { el.textContent = "Could not save. Please try again."; }
+      }
+    }).catch(function () {
+      var el = document.getElementById("inv-status");
+      if (el) { el.textContent = "Could not save. Please try again."; }
     });
   };
 

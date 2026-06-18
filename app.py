@@ -146,6 +146,7 @@ os.environ.setdefault("TZ", "America/New_York")
 _time.tzset()
 
 from datetime import date, datetime, timedelta
+import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import socketserver
 import cgi as _cgi
@@ -232,7 +233,7 @@ from data_helpers import (
     list_snapshots, restore_snapshot, load_snapshot_data,
     load_frol_activities, save_frol_activities,
     _activity_new_id, _DEFAULT_WEEKDAYS,
-    update_meal_wizard_session,
+    update_meal_wizard_session, load_meal_wizard_session,
 )
 from ui_helpers import parse_urlencoded_body, parse_multipart_form
 from render_schedule import render_child_schedule, render_today_all, render_week, render_print_day, render_print_week, render_print_child_day_list
@@ -250,7 +251,8 @@ from render_frol_pdf import generate_frol_pdf
 from render_coach import render_coach_page, build_coach_context
 from render_monica import render_monica_page, build_monica_context
 from render_wizards import render_wizards_page
-from render_meal_wizard import render_pantry_staples_page, render_meal_wizard_week_glance, render_meal_wizard_step2
+from render_meal_wizard import render_pantry_staples_page, render_meal_wizard_week_glance, render_meal_wizard_step2, render_meal_wizard_step3
+from render_meal_wizard_step3 import _feast_in_window as _s3_feast_in_window, _has_sunday_batch as _s3_has_sunday_batch
 from render_plan_importer import (
     render_plan_import_page, build_analysis_system_prompt,
     _load_upcoming_events, _format_events_summary,
@@ -1298,6 +1300,17 @@ class Handler(BaseHTTPRequestHandler):
             return
         elif path == "/meal-wizard-step2":
             html = render_meal_wizard_step2(viewer)
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header("Pragma","no-cache")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
+        elif path == "/meal-wizard-step3":
+            _s3_saved = bool(query.get("saved"))
+            html = render_meal_wizard_step3(viewer, _s3_saved)
             self.send_response(200)
             self.send_header("Content-Type","text/html; charset=utf-8")
             self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
@@ -3520,7 +3533,7 @@ class Handler(BaseHTTPRequestHandler):
 
         else:
             # /plan-import-apply reads its own raw JSON body — don't consume it with URL form parse
-            _JSON_PATHS = {"/plan-import-apply", "/plan-import-undo-placement", "/curriculum-save", "/curriculum-minutes", "/poetry-passage-save"}
+            _JSON_PATHS = {"/plan-import-apply", "/plan-import-undo-placement", "/curriculum-save", "/curriculum-minutes", "/poetry-passage-save", "/meal-wizard-step3-save"}
             if path in _JSON_PATHS:
                 data = {}
             else:
@@ -10631,6 +10644,82 @@ class Handler(BaseHTTPRequestHandler):
                 update_meal_wizard_session({
                     "confirmed_inventory": _combined,
                     "use_soon_items": inv.get("use_soon",""),
+                })
+                self.send_response(200)
+                self.send_header("Content-Type","application/json")
+                self.end_headers()
+                try: self.wfile.write(b'{"ok":true}')
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/meal-wizard-step3-save":
+                # JSON body (registered in _JSON_PATHS so the form-parser leaves
+                # it alone); read and parse the raw body like /plan-import-apply.
+                _s3_cl  = int(self.headers.get("Content-Length","0") or 0)
+                _s3_raw = self.rfile.read(_s3_cl).decode("utf-8","ignore") if _s3_cl else ""
+                try:    _s3_payload = json.loads(_s3_raw)
+                except Exception: _s3_payload = {}
+                _S3_PLAN_KEYS  = {"breakfast","lunch","dinner","johns_lunch",
+                                  "snacks","dessert","feast_meal","batch_cook"}
+                _S3_SLOTS      = {"breakfast","lunch","dinner","johns_lunch"}
+                _S3_CX_KEYS    = {"full_effort","normal","simple"}
+                # Meal types — allowlist filtered (the UI gates which appear).
+                _wtp_in = _s3_payload.get("what_to_plan") or []
+                _what_to_plan = [k for k in _wtp_in if k in _S3_PLAN_KEYS] \
+                    if isinstance(_wtp_in, list) else []
+                # Complexity — allowlisted single value.
+                _cx_in = _s3_payload.get("complexity","")
+                _complexity = _cx_in if _cx_in in _S3_CX_KEYS else ""
+                # Planning window — each end validated via fromisoformat.
+                def _s3_valid_iso(_v):
+                    try:    date.fromisoformat(_v); return _v
+                    except Exception: return ""
+                _win_in    = _s3_payload.get("planning_window") or {}
+                _start_iso = _s3_valid_iso(str(_win_in.get("start_iso","")))
+                _end_iso   = _s3_valid_iso(str(_win_in.get("end_iso","")))
+                _planning_window = {"start_iso": _start_iso, "end_iso": _end_iso}
+                # Server-side enforce the conditional meal types so they cannot
+                # be persisted out of context via a crafted request: feast_meal
+                # only with a feast in the window, batch_cook only when a meal
+                # rule mentions batching (mirrors the UI gating).
+                if "feast_meal" in _what_to_plan and not _s3_feast_in_window(_start_iso, _end_iso):
+                    _what_to_plan = [_k for _k in _what_to_plan if _k != "feast_meal"]
+                if "batch_cook" in _what_to_plan and not _s3_has_sunday_batch():
+                    _what_to_plan = [_k for _k in _what_to_plan if _k != "batch_cook"]
+                # Pre-filled past meals -> confirmed_meals. These are locked,
+                # kept off the grocery list, and never generate recipe cards.
+                _prefill_in = _s3_payload.get("prefill") or {}
+                _new_prefill = {}
+                if isinstance(_prefill_in, dict):
+                    for _pk, _pv in _prefill_in.items():
+                        _name = clean_text(_pv)
+                        if not _name:
+                            continue
+                        _parts = str(_pk).split("::")
+                        if len(_parts) != 2:
+                            continue
+                        _pd, _pslot = _parts[0], _parts[1]
+                        if _pslot not in _S3_SLOTS:
+                            continue
+                        if not _s3_valid_iso(_pd):
+                            continue
+                        _new_prefill[_pd + "::" + _pslot] = {
+                            "name": _name, "locked": True, "source": "prefill",
+                            "skip_shopping": True, "recipe_on_request": True,
+                        }
+                # Preserve any non-prefill confirmed meals (future steps); refresh
+                # the prefill-sourced entries from this save.
+                _existing_meals = load_meal_wizard_session().get("confirmed_meals") or {}
+                _confirmed_meals = {
+                    _ek: _ev for _ek, _ev in _existing_meals.items()
+                    if not (isinstance(_ev, dict) and _ev.get("source") == "prefill")
+                }
+                _confirmed_meals.update(_new_prefill)
+                update_meal_wizard_session({
+                    "confirmed_what_to_plan": _what_to_plan,
+                    "confirmed_complexity": _complexity,
+                    "planning_window": _planning_window,
+                    "confirmed_meals": _confirmed_meals,
                 })
                 self.send_response(200)
                 self.send_header("Content-Type","application/json")

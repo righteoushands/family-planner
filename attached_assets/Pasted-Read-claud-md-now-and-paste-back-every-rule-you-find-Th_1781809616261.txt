@@ -1,0 +1,32 @@
+Read claud.md now and paste back every rule you find. Then tell me which rules apply to today's task before we begin. Do not start building until you have done this.
+
+Once that read-back is done, build the following — and only the following.
+
+=== PHASE F — MEAL PLANNING WIZARD, STEP 3: "WHAT ARE WE PLANNING THIS WEEK" ===
+
+One phase only (Rule 17). Additive — do not touch Steps 1, 2, or any existing meal/Lorenzo code. Stop and report when done.
+
+SCOPE — three changes:
+1. New GET route /meal-wizard-step3 -> new function render_meal_wizard_step3() in render_meal_wizard.py.
+2. New POST route /meal-wizard-step3-save -> saves to session state via the existing update_meal_wizard_session (meal_wizard_session.json). JSON body — add this route to _JSON_PATHS.
+3. Wire Step 2's Save button to advance to /meal-wizard-step3.
+
+THE PAGE RENDERS AND SAVES:
+- Meal-type checkboxes: breakfast, lunch, dinner, John's lunch, snacks, dessert, feast meal (only if a feast is this week), batch-cook (only if Sunday batch is in rules) -> confirmed_what_to_plan (list).
+  Snacks and dessert are FLAGS ONLY here. Do not generate or ask about their contents — that enforcement is Phase G.
+- Complexity: three tap-select buttons (full_effort / normal / simple) -> confirmed_complexity.
+- Planning window: default today through next Saturday, start and end adjustable -> planning_window {start_iso, end_iso}.
+- Pre-fill past days: for any day before today in the window, let Lauren type a meal per slot. Each pre-filled meal writes to confirmed_meals, keyed "YYYY-MM-DD::slot", value:
+    {name, locked: true, source: "prefill", skip_shopping: true, recipe_on_request: true}
+  These must NOT trigger Rule 3 recipe cards or Rule 11 grocery items. A "Pull recipe" action stays available on request.
+
+NOTES:
+- Step 4 is not built yet. Step 3's "Save and continue" persists state and returns to a saved-confirmation view. Do not link to a Step 4 that does not exist.
+- Inline JS in a Python f-string -> Rules 7 and 12 apply (use \\n, no nested quotes inside the f-string).
+- Keep render_meal_wizard.py under 800 lines; split at a logical boundary if it exceeds.
+
+AFTER BUILD:
+- Run py_compile on every touched file and paste the result.
+- Run an in-process smoke test (not just py_compile) and paste the result.
+- Run the relevant verify harness (this touches session-state helpers) and paste the result.
+- Confirm which claud.md rules applied and whether any were at risk of being violated.

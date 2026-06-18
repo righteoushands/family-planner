@@ -12,6 +12,10 @@ from ui_helpers import html_page
 from data_helpers import load_pantry_staples, get_merged_calendar_events
 from render_liturgical import get_day_info
 from render_meals import load_meal_rules, load_inventory
+# Step 3 lives in its own module to keep this file under 800 lines (claud.md
+# change discipline); re-exported so the public surface stays "in
+# render_meal_wizard".
+from render_meal_wizard_step3 import render_meal_wizard_step3  # noqa: F401
 
 # Pulled out of f-strings to avoid nested quotes (Rule 2) / backslashes (Rule 1).
 _HEADING_FONT = "'Cormorant Garamond', serif"
