@@ -1,0 +1,29 @@
+Here's the opening prompt for Replit to start the next session. It does the session-start ritual (claud.md read-back) and the one task that must happen first — regenerating PROJECT_STATE so it reflects Phase E.
+
+---
+
+Read claud.md and paste back all 19 rules. Then tell me which rules apply to today's task before you begin.
+
+**Task: Regenerate PROJECT_STATE.md — documentation only. No changes to any application file.**
+
+The current PROJECT_STATE.md is from June 11 and is now out of date. Since then, Meal Planning Wizard Phase E was completed, which added new routes, a new static file, and new functions. Regenerate PROJECT_STATE.md to reflect the current codebase.
+
+Produce an updated PROJECT_STATE.md covering all seven sections:
+
+1. **GET routes** — full table of all GET routes in do_GET. Confirm /meal-wizard and /meal-wizard-step2 are both present.
+2. **POST routes** — full table of all POST routes in do_POST. Confirm /pantry-staples-save, /meal-save-inventory, and the new /meal-wizard-step2-save are present.
+3. **Data files** — all files in data/ with sizes and what they store. Note whether pantry_staples.json, meal_history.json, and meal_wizard_session.json exist on disk yet.
+4. **Render modules** — all render_*.py with their functions. Confirm render_meal_wizard.py includes render_pantry_staples_page, render_meal_wizard_week_glance, and render_meal_wizard_step2.
+5. **data_helpers.py functions** — all functions with one-line descriptions. Confirm get_merged_calendar_events and the meal-wizard session/history/pantry helpers are present.
+6. **config.py constants** — all constants and values. Confirm the six meal-wizard constants (MEALS_DIR, MEAL_RULES_FILE, MEAL_INVENTORY_FILE, PANTRY_STAPLES_FILE, MEAL_HISTORY_FILE, MEAL_WIZARD_SESSION_FILE).
+7. **Current claud.md rules** — full text of all 19 rules as they stand on disk.
+
+Also confirm these Phase E additions exist in the codebase:
+- static/inventory_input.js defines window.toggleMic, window.parseInventory, window.saveInventory, window.clearInventory, and window.saveInventoryWizard
+- The Step 2 Save button calls saveInventoryWizard() (posts to /meal-wizard-step2-save), and the meals page still uses the original saveInventory() (posts to /meal-save-inventory)
+
+Write the completed document to PROJECT_STATE.md, overwriting the existing file. Then paste confirmation that the file was written and its size in bytes.
+
+---
+
+After that comes back clean, the new session is oriented and you can pick the next piece of work — Phase F (Step 3 of the meal wizard), or one of the deferred items if you'd rather tackle a bug first. Your call when you get there.
