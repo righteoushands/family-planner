@@ -1,0 +1,38 @@
+Read claud.md and paste back the rules, then note which apply. This is a
+READ-ONLY documentation task — no app code changes, no build, no data
+writes. The rules that bind here are change discipline (only the snapshot
+file is written) and the no-live-data-writes rule (inspect only).
+
+TASK: Regenerate PROJECT_STATE.md so it reflects the CURRENT codebase.
+
+CRITICAL: Derive everything from the actual repository by inspecting the
+code — enumerate the real routes, files, and helpers as they exist now.
+Do NOT reproduce the previous snapshot from memory and do NOT carry
+forward any entry you cannot confirm in the code. An inaccurate snapshot
+is worse than a missing one.
+
+Keep the same sections/structure as the existing PROJECT_STATE.md. For
+each section, rebuild from the real code:
+- Every GET and POST route actually registered in app.py, and which
+  routes are in _JSON_PATHS.
+- Every render_*.py and other module, each with a one-line purpose and
+  its current line count. Flag any file over 800 lines.
+- Every helper in data_helpers.py and the data/*.json files it owns.
+- Current feature status per major feature.
+
+CORRECTNESS CHECK (derive these from the code, not from this list — I am
+naming them only so you confirm the snapshot is current, since the prior
+one predates this work): the most recent build was Phase F, Meal Wizard
+Step 3. Confirm the regenerated snapshot includes:
+- render_meal_wizard_step3.py and its re-export from render_meal_wizard.py
+- routes /meal-wizard-step3 (GET) and /meal-wizard-step3-save (POST),
+  with the POST route in _JSON_PATHS
+- the session-state keys Step 3 writes: confirmed_what_to_plan,
+  confirmed_complexity, planning_window, and confirmed_meals (prefill
+  entries with skip_shopping / recipe_on_request)
+- the harness data/verify_meal_wizard_step3.py
+If any of these is missing from what you find in the code, stop and tell
+me — that would mean Phase F did not land as reported.
+
+Set the "last updated" line to June 19 2026. Write PROJECT_STATE.md in the
+repo, commit it, and paste the full contents back so I have the current copy.
