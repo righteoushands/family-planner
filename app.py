@@ -282,6 +282,7 @@ from render_meals import (
     render_meal_planner_page, render_meal_print_page,
     load_meal_plan, save_meal_plan, load_inventory, save_inventory,
     _build_meal_prompt, _week_key, _planning_week_key,
+    apply_confirmed_meals_to_store,
 )
 from data_helpers import load_recipes, save_recipe, save_recipes
 from data_helpers import save_pantry_staples
@@ -3544,7 +3545,7 @@ class Handler(BaseHTTPRequestHandler):
 
         else:
             # /plan-import-apply reads its own raw JSON body — don't consume it with URL form parse
-            _JSON_PATHS = {"/plan-import-apply", "/plan-import-undo-placement", "/curriculum-save", "/curriculum-minutes", "/poetry-passage-save", "/meal-wizard-step3-save", "/meal-wizard-step4-confirm", "/meal-wizard-step4-remove"}
+            _JSON_PATHS = {"/plan-import-apply", "/plan-import-undo-placement", "/curriculum-save", "/curriculum-minutes", "/poetry-passage-save", "/meal-wizard-step3-save", "/meal-wizard-step4-confirm", "/meal-wizard-step4-remove", "/meal-wizard-step4-lock"}
             if path in _JSON_PATHS:
                 data = {}
             else:
@@ -10843,6 +10844,29 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header("Content-Type","application/json")
                 self.end_headers()
                 try: self.wfile.write(b'{"ok":true}')
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/meal-wizard-step4-lock":
+                # "Set this plan" — copy whatever is confirmed in the session
+                # into the canonical meal store so the homepage card shows it.
+                # No input needed; read and discard any body (route is in
+                # _JSON_PATHS so the form-parser already left it alone). The
+                # session is KEPT intact (revisitable) — only Lauren triggers
+                # this, and the server never clears her plan on its own (Rule 16).
+                _lk_cl = int(self.headers.get("Content-Length","0") or 0)
+                if _lk_cl:
+                    try: self.rfile.read(_lk_cl)
+                    except Exception: pass
+                _lk_confirmed = load_meal_wizard_session().get("confirmed_meals") or {}
+                _lk_summary   = apply_confirmed_meals_to_store(_lk_confirmed)
+                # Mark that Lauren locked (for the banner); do NOT clear the session.
+                update_meal_wizard_session({"plan_locked_at": date.today().isoformat()})
+                self.send_response(200)
+                self.send_header("Content-Type","application/json")
+                self.end_headers()
+                _lk_body = json.dumps({"ok": True, **_lk_summary}).encode()
+                try: self.wfile.write(_lk_body)
                 except BrokenPipeError: pass
                 return
 

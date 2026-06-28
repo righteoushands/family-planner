@@ -107,3 +107,9 @@ id = "W6AByuR3j39L_daavm6pQ"
 uri = "file://MEAL_WIZARD_LOCK_STEP_DIAGNOSIS.md"
 type = "text"
 title = "Meal Wizard — Lock Step Diagnosis (read-only, for Claude)"
+
+[[outputs]]
+id = "EkcXH7mbIc7PgOFF15t55"
+uri = "file://MEAL_WIZARD_G1_LOCK_BUILD_REPORT.md"
+type = "text"
+title = "Meal Wizard G1 LOCK — Build Report"

@@ -1,0 +1,210 @@
+MEAL WIZARD — G1 LOCK BUILD INSTRUCTION  ***FOR REPLIT***
+"Set this plan" -> write the confirmed wizard meals into the meal store so they
+show on the homepage. Session stays REVISITABLE (not cleared). Single capability
+per Rule 17. June 28 2026. Run AFTER G1b-2a (complete). Built on the Lock Step
+Diagnosis (June 28).
+
+================================================================
+WHO THIS IS FOR / WHAT IT IS
+================================================================
+You paste this into Replit. It adds a "Set this plan" action to Step 4 that
+copies the wizard session's confirmed meals into the canonical meal store
+(data/meal_plan/<Monday-ISO>.json), so the homepage meal card shows them. The
+wizard session is KEPT intact afterward (Lauren can reopen Step 4 and keep
+editing — "revisitable", her decision). This does NOT generate, does NOT touch
+Lorenzo, does NOT build the grocery list.
+
+================================================================
+DECISIONS BAKED IN (approved/surfaced to Lauren)
+================================================================
+- REVISITABLE: lock does NOT clear the session. confirmed_meals stays so the
+  plan can be reopened/edited and so the grocery-list phase (H/I) still has the
+  rich per-meal data (the store only holds names).
+- SLOT MAPPING: breakfast, lunch, dinner, snacks, dessert -> same store slot;
+  johns_lunch -> dad_lunch (same meal — John is Dad). feast_meal and batch_cook
+  have NO store slot -> SKIPPED (kept wizard-only; not written to the store).
+- PREFILL SKIPPED: entries with source == "prefill" (past/context meals) are NOT
+  written to the store.
+- ADDITIVE, PER-SLOT: lock writes only the slots the wizard planned; it does NOT
+  clear other slots already in a week file. A planned slot overwrites that same
+  date+slot in the store (intended — Lauren is setting her plan).
+- REAL DATES / CROSS-MONDAY: each meal is written to ITS date's week file
+  (Monday of that date). A window spanning a Monday writes to TWO week files.
+- generated LEFT UNCHANGED (do not set True — it would mislabel a hand-built
+  plan as AI-generated in Lorenzo's context). No plan-level "locked" flag is
+  created (nothing reads one; the homepage gates on non-empty slot text only).
+  A session marker plan_locked_at records that Lauren locked, for the banner.
+
+================================================================
+RULE 15 — READ-BACK FIRST
+================================================================
+Read claud.md, paste back every rule, state which apply. Expected: Rule 5
+(persist via save_meal_plan -> safe_save_json — never write the plan file
+directly), Rule 3 + Route patterns + _JSON_PATHS (the lock is a state-mutating
+POST -> elif branch in do_POST; add it to the LOCAL _JSON_PATHS set), Rule 4
+(imports at module top — import the new helper at app.py top), Rule 6 (data-shape:
+copying confirmed_meals -> days[Weekday][store_slot]; before/after below), Rule 7
+& 12 (the "Set this plan" button adds a little JS — concatenated string literals
+like s4Keep, no backslash-n in JS strings), Rule 11 (escape the banner text),
+Rule 16 (this is Lauren's committed plan — "Your plan is set", no scores/streaks;
+lock writes only what she planned and never silently wipes the rest), Rule 17
+(one capability: write-to-store + the button + banner), Rule 19 (write through
+render_meals' save_meal_plan; no hardcoded family specifics). NOT applicable: 8
+(no multipart), 13 (no forms).
+
+================================================================
+PRE-FLIGHT (Rule 14)
+================================================================
+1. Files touched: render_meals.py (one new helper next to save_meal_plan);
+   app.py (one new elif route + one _JSON_PATHS entry + import the helper at top);
+   render_meal_wizard_step4.py (the "Set this plan" button, its JS, and the
+   "plan set" banner). Three files, one capability.
+2. JS in Python f-strings? YES — a small lock button + s4Lock(); concatenated
+   literals, no backslash-n (Rules 7/12).
+3. Forms / nested /frol-wizard forms? NO — button + fetch only.
+4. Root cause confirmed? N/A — additive new action on a proven screen.
+5. Multiple files? Three, directly related (store-write helper + its route + its
+   button/banner).
+6. Data-shape change? The meal-store shape is UNCHANGED (existing
+   days[Weekday][slot] = name | {"display","recipe_id"}). New: a session key
+   plan_locked_at (ISO date string). No migration — additive.
+
+================================================================
+BUILD STEPS
+================================================================
+STEP 1 — render_meals.py: new helper next to save_meal_plan (imports at top;
+  date/timedelta already imported there):
+    _WIZARD_TO_STORE_SLOT = {
+        "breakfast":"breakfast", "lunch":"lunch", "dinner":"dinner",
+        "snacks":"snacks", "dessert":"dessert", "johns_lunch":"dad_lunch",
+    }   # feast_meal / batch_cook intentionally absent -> skipped
+
+    def apply_confirmed_meals_to_store(confirmed_meals: dict) -> dict:
+        """Write the wizard's confirmed meals into the canonical meal store.
+        Maps "YYYY-MM-DD::slot" -> (Monday-week file, WeekdayName, store_slot).
+        Skips source=='prefill' and any slot with no store home (feast_meal,
+        batch_cook). Groups by week so each week file is loaded+saved once
+        (a window crossing a Monday writes two files). Writes ONLY the planned
+        slots, additively; leaves other slots and 'generated' untouched.
+        Returns {'weeks_written': [...], 'slots_written': int, 'skipped': [...]}.
+        """
+    Logic:
+      - skipped = []; by_week = {}   # week_key -> list of (weekday, store_slot, value)
+      - for key, entry in confirmed_meals.items():
+          * if not isinstance(entry, dict): continue
+          * if entry.get("source") == "prefill": continue
+          * date_str, sep, slot = key.partition("::"); if not sep: continue
+          * store_slot = _WIZARD_TO_STORE_SLOT.get(slot)
+            if store_slot is None: skipped.append(key); continue   # feast/batch
+          * try d = date.fromisoformat(date_str) except: continue
+          * name = (entry.get("name") or "").strip(); if not name: continue
+          * wk = (d - timedelta(days=d.weekday())).isoformat()
+          * weekday = d.strftime("%A")
+          * rid = (entry.get("recipe_id") or "").strip()
+          * value = {"display": name, "recipe_id": rid} if rid else name
+          * by_week.setdefault(wk, []).append((weekday, store_slot, value))
+      - weeks_written = []; slots_written = 0
+      - for wk, writes in by_week.items():
+          * plan = load_meal_plan(wk)
+          * plan.setdefault("days", {})
+          * for weekday, store_slot, value in writes:
+              plan["days"].setdefault(weekday, {})[store_slot] = value
+              slots_written += 1
+          * plan["week"] = wk; plan["start"] = wk   # do NOT touch generated
+          * save_meal_plan(plan)                      # auto-backup + safe_save_json
+          * weeks_written.append(wk)
+      - return {"weeks_written": weeks_written, "slots_written": slots_written,
+                "skipped": skipped}
+
+STEP 2 — app.py: import the helper at the top with the other render_meals
+  imports (e.g. add apply_confirmed_meals_to_store to the existing
+  `from render_meals import ...` line). Then add the route as an elif in do_POST
+  and add "/meal-wizard-step4-lock" to the LOCAL _JSON_PATHS set:
+    elif path == "/meal-wizard-step4-lock":
+        # No input needed — locks whatever is confirmed in the session. Read and
+        # discard any body (route is in _JSON_PATHS so the form-parser is bypassed).
+        _lk_cl = int(self.headers.get("Content-Length","0") or 0)
+        if _lk_cl:
+            try: self.rfile.read(_lk_cl)
+            except Exception: pass
+        _lk_session   = load_meal_wizard_session()
+        _lk_confirmed = _lk_session.get("confirmed_meals") or {}
+        _lk_summary   = apply_confirmed_meals_to_store(_lk_confirmed)
+        # Keep the session (revisitable); just mark that Lauren locked.
+        update_meal_wizard_session({"plan_locked_at": date.today().isoformat()})
+        self.send_response(200)
+        self.send_header("Content-Type","application/json")
+        self.end_headers()
+        _lk_body = json.dumps({"ok": True, **_lk_summary}).encode()
+        try: self.wfile.write(_lk_body)
+        except BrokenPipeError: pass
+        return
+  (No walrus. Imports at top. Do NOT clear the session.)
+
+STEP 3 — render_meal_wizard_step4.py:
+  a. BANNER: if session.get("plan_locked_at") is set, show a calm banner at the
+     top of the normal (non-gate) render: "Your plan is set - showing on your
+     homepage for this week." (escape once). Meals remain editable below it
+     (revisitable). No scores/streaks (Rule 16).
+  b. BUTTON: at the BOTTOM of the day cards, if there is at least one non-prefill
+     confirmed meal in a mappable slot, show a "Set this plan" button
+     (onclick="s4Lock()"). If nothing is confirmed yet, show a muted hint instead
+     ("Confirm at least one meal to set your plan") — no button.
+  c. JS (concatenated literals, NOT f-string; no backslash-n in JS strings):
+       window.s4Lock = function(){
+         fetch('/meal-wizard-step4-lock', {method:'POST',
+           headers:{'Content-Type':'application/json'}, body:'{}'})
+           .then(function(r){return r.json();})
+           .then(function(j){ if(j && j.ok){ window.location.href =
+             '/meal-wizard-step4'; } else { <inline error message> } })
+           .catch(function(){ <inline error message> });
+       };
+     On success the page reloads and the banner appears.
+
+================================================================
+EXPLICITLY OUT OF SCOPE (do not build)
+================================================================
+- No feast_meal / batch_cook store write (kept wizard-only — no store home).
+- No clearing of the session (revisitable).
+- No plan-level "locked" flag, no generated change.
+- No green/red, no recipe-attach, no Lorenzo, no grocery list.
+- No Step 3->4 nav wiring, no un-lock UI (re-locking after edits just re-runs
+  the same write, which is fine and idempotent per slot).
+
+================================================================
+VALIDATION (Rules 9/10) — AUTHENTICATED ROUND-TRIP REQUIRED
+================================================================
+This step WRITES LIVE meal_plan files, so the harness MUST snapshot and restore
+every meal_plan week file it touches AND the session file (Rule 10). Use real
+dates so the cross-Monday path is exercised.
+
+1. py_compile render_meals.py, app.py, render_meal_wizard_step4.py.
+2. Unit: apply_confirmed_meals_to_store on a crafted confirmed_meals dict that
+   includes: a dinner this week, a dinner in the NEXT Monday-week (cross-Monday),
+   a johns_lunch, a feast_meal, and a source=="prefill" entry. Assert: two week
+   keys in weeks_written; johns_lunch landed in dad_lunch; feast_meal and prefill
+   are in skipped / not written; slots_written counts only the real writes.
+3. AUTHENTICATED ROUND-TRIP (required): snapshot the two target week files (if
+   present) + the session. Seed the session with the same mix. Mint a Lauren
+   session and POST /meal-wizard-step4-lock. Then:
+     - Read both week files: assert each planned meal is at
+       days[<Weekday>][<store_slot>] with the right name; assert a pre-existing
+       UNRELATED slot you set in one file beforehand is STILL there (additive,
+       not wiped); assert generated is unchanged.
+     - Assert the session STILL has confirmed_meals (not cleared) and now has
+       plan_locked_at.
+     - GET / (homepage) authenticated for a day whose dinner you locked in the
+       CURRENT week: assert that dinner name appears on the meals card.
+     - GET /meal-wizard-step4: assert the "Your plan is set" banner shows and
+       meals are still editable.
+   Restore the week files and the session.
+4. Re-run verify_meal_wizard_step3.py and verify_meal_wizard_step4.py — assert
+   no regression.
+5. Report: rules applied; confirm JS is concatenated literals (no backslash-n);
+   paste the round-trip assertions including the cross-Monday two-file write and
+   the homepage hit; confirm feast_meal/batch_cook/prefill were skipped and the
+   session was NOT cleared. Stop.
+
+================================================================
+End — G1 Lock instruction, June 28 2026
+================================================================

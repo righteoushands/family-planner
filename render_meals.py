@@ -180,6 +180,80 @@ def save_meal_plan(plan: dict):
 
 
 # ---------------------------------------------------------------------------
+# Meal Wizard lock: copy confirmed wizard meals into the canonical store
+# ---------------------------------------------------------------------------
+
+# Wizard slot -> store slot. johns_lunch is the same meal as the store's
+# dad_lunch (John is Dad). feast_meal / batch_cook are intentionally ABSENT:
+# they have no store slot, so they are kept wizard-only and skipped here.
+_WIZARD_TO_STORE_SLOT = {
+    "breakfast": "breakfast",
+    "lunch":     "lunch",
+    "dinner":    "dinner",
+    "snacks":    "snacks",
+    "dessert":   "dessert",
+    "johns_lunch": "dad_lunch",
+}
+
+
+def apply_confirmed_meals_to_store(confirmed_meals: dict) -> dict:
+    """Write the wizard's confirmed meals into the canonical meal store.
+
+    Maps each "YYYY-MM-DD::slot" entry to (Monday-week file, WeekdayName,
+    store_slot). Skips source=='prefill' (past/context meals) and any slot with
+    no store home (feast_meal, batch_cook). Groups by week so each week file is
+    loaded+saved once (a window crossing a Monday writes two files). Writes ONLY
+    the planned slots, additively — other slots and 'generated' are left
+    untouched. Returns a summary dict for the caller / harness.
+    """
+    skipped = []
+    by_week = {}  # week_key -> list of (weekday, store_slot, value)
+    for k, entry in (confirmed_meals or {}).items():
+        if not isinstance(entry, dict):
+            continue
+        if (entry.get("source") or "").strip().lower() == "prefill":
+            continue
+        date_str, sep, slot = k.partition("::")
+        if not sep:
+            continue
+        store_slot = _WIZARD_TO_STORE_SLOT.get(slot)
+        if store_slot is None:  # feast_meal / batch_cook -> no store home
+            skipped.append(k)
+            continue
+        try:
+            d = date.fromisoformat(date_str)
+        except (ValueError, TypeError):
+            continue
+        name = (entry.get("name") or "").strip()
+        if not name:
+            continue
+        wk = (d - timedelta(days=d.weekday())).isoformat()
+        weekday = d.strftime("%A")
+        rid = (entry.get("recipe_id") or "").strip()
+        value = {"display": name, "recipe_id": rid} if rid else name
+        by_week.setdefault(wk, []).append((weekday, store_slot, value))
+
+    weeks_written = []
+    slots_written = 0
+    for wk, writes in by_week.items():
+        plan = load_meal_plan(wk)
+        plan.setdefault("days", {})
+        for weekday, store_slot, value in writes:
+            plan["days"].setdefault(weekday, {})[store_slot] = value
+            slots_written += 1
+        plan["week"] = wk
+        plan["start"] = wk  # do NOT touch 'generated'
+        save_meal_plan(plan)  # auto-backup + safe_save_json
+        weeks_written.append(wk)
+
+    return {
+        "weeks_written": weeks_written,
+        "slots_written": slots_written,
+        "skipped": skipped,
+    }
+
+
+# ---------------------------------------------------------------------------
 # Cook-start calculation
 # ---------------------------------------------------------------------------
 

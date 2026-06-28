@@ -91,6 +91,24 @@ _S4_CHANGE_BTN = ("margin-top:6px;padding:6px 12px;border:1px solid var(--border
                   "color:var(--ink-muted);font-size:0.85em;cursor:pointer;")
 _S4_MSG = "color:#b23b3b;font-size:0.85em;margin-top:6px;min-height:1em;"
 
+# G1 lock ("Set this plan"): banner + button styling.
+_S4_BANNER = ("background:var(--parchment,#faf6ec);"
+              "border:1px solid var(--border-light,#ece6d8);"
+              "border-radius:var(--radius-md,12px);padding:12px 16px;margin:0 0 16px;"
+              "color:var(--ink);font-size:0.95em;line-height:1.5;")
+_S4_LOCK_WRAP = "margin-top:20px;text-align:center;"
+_S4_LOCK_BTN = ("padding:12px 22px;border:none;border-radius:var(--radius-md,12px);"
+                "background:var(--gold-mid,#c9a84a);color:var(--ink);font-weight:700;"
+                "font-size:1em;cursor:pointer;")
+_S4_LOCK_HINT = "color:var(--ink-muted);font-size:0.9em;font-style:italic;"
+_S4_LOCK_MSG = ("color:#b23b3b;font-size:0.85em;margin-top:8px;min-height:1em;"
+                "text-align:center;")
+
+# Wizard slots that have a store home (mirror render_meals._WIZARD_TO_STORE_SLOT):
+# only these count toward "there is something to set". feast_meal / batch_cook
+# are wizard-only (no store slot) so they do NOT enable the button on their own.
+_S4_LOCKABLE_SLOTS = {"breakfast", "lunch", "dinner", "snacks", "dessert", "johns_lunch"}
+
 _S4_GATE_BOX = ("background:var(--warm-white,#fff);border:1px solid var(--border,#e6e0d4);"
                 "border-radius:var(--radius-md,12px);padding:18px 20px;margin-bottom:14px;")
 _S4_GATE_TEXT = "color:var(--ink);font-size:0.98em;line-height:1.5;margin:0 0 14px;"
@@ -204,6 +222,16 @@ _S4_JS = (
     "      .then(function(j){ if(j && j.ok){ window.location.href = '/meal-wizard-step4'; }"
     "        else { setMsg(msgId, 'Could not change. Please try again.'); } })"
     "      .catch(function(){ setMsg(msgId, 'Could not change. Please try again.'); });"
+    "  };"
+    "  window.s4Lock = function(){"
+    "    var msg = elById('s4-lock-msg');"
+    "    if(msg){ msg.textContent = ''; }"
+    "    fetch('/meal-wizard-step4-lock', { method:'POST',"
+    "      headers:{'Content-Type':'application/json'}, body: '{}' })"
+    "      .then(function(r){ return r.json(); })"
+    "      .then(function(j){ if(j && j.ok){ window.location.href = '/meal-wizard-step4'; }"
+    "        else if(msg){ msg.textContent = 'Could not set your plan. Please try again.'; } })"
+    "      .catch(function(){ if(msg){ msg.textContent = 'Could not set your plan. Please try again.'; } });"
     "  };"
     "})();"
     "</script>"
@@ -394,6 +422,44 @@ def render_meal_wizard_step4(user: str, start_iso: str = None) -> str:
             _s4_day_card(d, events_by_date.get(d.isoformat(), []), to_plan, confirmed)
         )
 
+    # G1 lock state. The banner shows once Lauren has set her plan (revisitable —
+    # meals stay editable below it). The "Set this plan" button appears only when
+    # at least one non-prefill confirmed meal sits in a slot that has a store home
+    # (feast_meal / batch_cook do not count); otherwise a calm hint shows instead.
+    locked_at = (session.get("plan_locked_at") or "").strip()
+    has_lockable = False
+    for _ck, _ce in confirmed.items():
+        if not isinstance(_ce, dict):
+            continue
+        if (_ce.get("source") or "").strip().lower() == "prefill":
+            continue
+        _cslot = _ck.partition("::")[2]
+        if _cslot in _S4_LOCKABLE_SLOTS and (_ce.get("name") or "").strip():
+            has_lockable = True
+            break
+
+    if locked_at:
+        banner_text = "Your plan is set \u2014 showing on your homepage for this week."
+        banner_html = f'<div style="{_S4_BANNER}">{escape(banner_text)}</div>'
+    else:
+        banner_html = ""
+
+    if has_lockable:
+        lock_html = (
+            f'<div style="{_S4_LOCK_WRAP}">'
+            f'<button type="button" style="{_S4_LOCK_BTN}" '
+            f'onclick="s4Lock()">Set this plan</button>'
+            f'<div id="s4-lock-msg" style="{_S4_LOCK_MSG}"></div>'
+            f'</div>'
+        )
+    else:
+        hint = "Confirm at least one meal to set your plan"
+        lock_html = (
+            f'<div style="{_S4_LOCK_WRAP}">'
+            f'<div style="{_S4_LOCK_HINT}">{escape(hint)}</div>'
+            f'</div>'
+        )
+
     nav = (
         f'<div style="{_S4_NAV_ROW}">'
         f'<a href="/meal-wizard-step3" style="{_S4_BACK}">\u2190 Back</a>'
@@ -403,7 +469,9 @@ def render_meal_wizard_step4(user: str, start_iso: str = None) -> str:
         f'<h1 style="font-family:{_HEADING_FONT};font-size:2em;font-weight:600;'
         f'color:var(--ink);margin:0 0 2px;">{_S4_TITLE}</h1>'
         f'<p style="{_S4_SUBTITLE}">Step 4 of 6 \u2014 Build the menu</p>'
+        f'{banner_html}'
         f'{"".join(day_cards)}'
+        f'{lock_html}'
         f'{nav}'
     )
     body = (
