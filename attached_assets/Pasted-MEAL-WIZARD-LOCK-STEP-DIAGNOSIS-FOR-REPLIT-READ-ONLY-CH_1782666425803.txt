@@ -1,0 +1,46 @@
+MEAL WIZARD — LOCK STEP DIAGNOSIS  ***FOR REPLIT — READ ONLY, CHANGE NOTHING***
+Scoping the "lock the plan -> it shows on the homepage" step. I need to read the
+meal-store + homepage internals before any lock instruction is written.
+
+1. Per Rule 15: read claud.md and paste back every rule, then say which apply to
+   a step that writes the wizard's confirmed meals into the meal store and makes
+   the plan show on the homepage.
+
+2. Paste back VERBATIM (do not summarize). If a named item doesn't exist or lives
+   elsewhere, say so — that is useful.
+
+STORE SHAPE / CONSTANTS
+- config.py (or render_meals.py, wherever they live): MEAL_SLOTS and DAYS — the
+  exact slot list and day-name list the meal store uses.
+- render_meals.py: _planning_week_key and _week_start (verbatim) — and _plan_path
+  and _backup_meal_plan if short.
+- Confirm: is data/meal_plan keyed ONLY by Monday-week, with days keyed by
+  weekday NAME ("Monday".."Sunday")? Is there ANY date-keyed meal-plan variant?
+
+WHICH SESSION SLOTS HAVE A STORE HOME
+- From MEAL_SLOTS above: state plainly which of the wizard's slots
+  (breakfast, lunch, dinner, johns_lunch, snacks, dessert, feast_meal, batch_cook)
+  EXIST as store slots and which do NOT. (I need to know what the store can and
+  cannot hold before mapping.)
+
+HOMEPAGE DISPLAY (what "shows on the homepage" actually requires)
+- render_timeblock.py: the function(s) that read the meal plan and render the
+  meal card / meals snapshot on the homepage. Paste the part that:
+    * loads the plan (which week key does it use — today's week? _planning_week_key?),
+    * decides what to show (which slots; today only or the week),
+    * and whether it gates on plan.get("generated") or any "locked" flag (i.e.
+      does an un-"generated" plan render differently or not at all?).
+
+LOCK / GENERATED SEMANTICS
+- Grep the repo for "generated" and "locked" as they relate to meal plans: where
+  are they written, where are they read, and does anything branch on them?
+- Grep for every call site of load_meal_plan (which views read the store), so a
+  lock write is seen consistently by all of them.
+
+CANONICAL WRITE PATH (so lock matches convention)
+- render_meals.py: render_meal_planner_page — the part that builds and saves the
+  days{Day}{slot}=name structure (this is the existing manual editor). Confirm a
+  lock should write the SAME shape via save_meal_plan, and whether it should set
+  generated=True (or a locked flag) when it does.
+
+Paste each under a clear heading. Read only — change nothing.
