@@ -252,7 +252,7 @@ from render_frol_pdf import generate_frol_pdf
 from render_coach import render_coach_page, build_coach_context
 from render_monica import render_monica_page, build_monica_context
 from render_wizards import render_wizards_page
-from render_meal_wizard import render_pantry_staples_page, render_meal_wizard_week_glance, render_meal_wizard_step2, render_meal_wizard_step3
+from render_meal_wizard import render_pantry_staples_page, render_meal_wizard_week_glance, render_meal_wizard_step2, render_meal_wizard_step3, render_meal_wizard_step4
 from render_meal_wizard_step3 import _feast_in_window as _s3_feast_in_window, _has_sunday_batch as _s3_has_sunday_batch
 from render_plan_importer import (
     render_plan_import_page, build_analysis_system_prompt,
@@ -1312,6 +1312,16 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/meal-wizard-step3":
             _s3_saved = bool(query.get("saved"))
             html = render_meal_wizard_step3(viewer, _s3_saved)
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header("Pragma","no-cache")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
+        elif path == "/meal-wizard-step4":
+            html = render_meal_wizard_step4(viewer)
             self.send_response(200)
             self.send_header("Content-Type","text/html; charset=utf-8")
             self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")

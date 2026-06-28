@@ -16,6 +16,7 @@ from render_meals import load_meal_rules, load_inventory
 # change discipline); re-exported so the public surface stays "in
 # render_meal_wizard".
 from render_meal_wizard_step3 import render_meal_wizard_step3  # noqa: F401
+from render_meal_wizard_step4 import render_meal_wizard_step4  # noqa: F401
 
 # Pulled out of f-strings to avoid nested quotes (Rule 2) / backslashes (Rule 1).
 _HEADING_FONT = "'Cormorant Garamond', serif"

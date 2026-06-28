@@ -1,0 +1,160 @@
+MEAL WIZARD — PHASE G1b-1 BUILD INSTRUCTION  ***FOR REPLIT***
+The read-only Step 4 SCREEN. Single-purpose per Rule 17. NO JavaScript.
+June 28 2026. Run AFTER G1a (complete).
+
+================================================================
+WHO THIS IS FOR / WHAT IT IS
+================================================================
+This is an instruction you paste into Replit. It builds the Step 4 page as a
+READ-ONLY screen: it shows the planning week as day cards (liturgical header +
+calendar events) with the meal slots for each day, displaying any meals already
+confirmed in the wizard session. It does NOT let Lauren enter, confirm, change,
+or attach anything yet — that is G1b-2. Keeping G1b-1 display-only means it
+contains ZERO JavaScript, which keeps Rules 7/12 (the JS-in-Python-f-string
+traps) out of this step entirely.
+
+================================================================
+LOCKED FOR G1b-2 — DO NOT BUILD HERE (recorded so they aren't lost)
+================================================================
+These were approved by Lauren and belong to the WRITE side (G1b-2), not this
+screen:
+- RECIPE DEFAULT: when a meal is confirmed with no recipe_id, the confirm
+  payload must send recipe_on_request = true, so a meal never lands in the
+  half-confirmed "no recipe AND not marked no-recipe-needed" state.
+- SERVER GUARD: in the existing /meal-wizard-step4-confirm handler, if recipe_id
+  is empty AND recipe_on_request was not sent true, auto-set it true server-side
+  (one line) so a buggy/crafted request can't persist a half-confirmed meal.
+- Ingredient green/red check, manual entry, recipe attach: all G1b-2.
+Build NONE of these now.
+
+================================================================
+RULE 15 — READ-BACK FIRST
+================================================================
+Read claud.md and paste back every rule. Then state which apply to G1b-1.
+Expected to apply: Rule 1 & 2 (f-string discipline in the new render file),
+Rule 3 (the new GET route is an elif branch in do_GET), Rule 11 (escape once),
+Known Issue #2 (use the existing _wg_safe_color sanitizer for any liturgical
+color interpolated into a style attribute — do NOT interpolate raw colors),
+Route patterns, Rule 14 (pre-flight), Rule 16 (the screen presents the plan as
+Lauren's; no prescriptive language), Rule 17 (display only — no write side),
+Rule 19 (read family/window data via data_helpers; no hardcoded specifics).
+NOTE: Rules 7 and 12 (JS newline) should NOT apply because G1b-1 has no JS. If
+you find yourself adding any inline JavaScript, STOP — that belongs in G1b-2.
+
+================================================================
+PRE-FLIGHT (Rule 14)
+================================================================
+1. Files touched: NEW render_meal_wizard_step4.py; render_meal_wizard.py (one
+   re-export line, mirroring how it re-exports render_meal_wizard_step3);
+   app.py (one new elif GET route in do_GET). Three files, tightly related.
+2. JS in Python f-strings? NO — and it must stay no for G1b-1.
+3. Form handling / nested /frol-wizard forms? NO.
+4. Root cause confirmed/assumed? N/A — additive new screen.
+5. Multiple files? Three, directly related (render file + its re-export + its route).
+6. Data shape change? NO — G1b-1 only READS existing session keys
+   (planning_window, confirmed_what_to_plan, confirmed_meals, confirmed_inventory,
+   use_soon_items). It writes nothing.
+
+================================================================
+BUILD STEPS
+================================================================
+STEP 1 — NEW FILE render_meal_wizard_step4.py
+  Define: def render_meal_wizard_step4(user, start_iso=None) -> str
+
+  Data it reads (all via existing helpers — no direct file access):
+    - session   = load_meal_wizard_session()
+    - window    = session.get("planning_window") or {}   # {start_iso, end_iso}
+    - to_plan   = session.get("confirmed_what_to_plan") or []  # slot keys
+    - confirmed = session.get("confirmed_meals") or {}   # "YYYY-MM-DD::slot" -> entry
+    - inventory = session.get("confirmed_inventory") or ""   # read but NOT yet
+                  parsed for green/red (that is G1b-2) — ignore for now
+  Reuse the SAME data helpers Step 1 uses (do not duplicate their logic):
+    - get_merged_calendar_events(start_iso, days) for events (already deduped)
+    - get_day_info(d) for the liturgical header (weekday, date_label, season,
+      season_color, feast_name, feast_color, is_fast, is_abstinence)
+    - _wg_safe_color(...) for ANY color before it goes into a style attribute
+      (Known Issue #2 — never interpolate season_color/feast_color raw)
+
+  GATE STATE (empty session): if window has no start_iso/end_iso, render a calm
+  message — "Finish Step 3 first to choose what to plan and the week" with a link
+  back to /meal-wizard-step3 — and return. Do not crash on an empty session.
+
+  NORMAL RENDER: iterate each date from window.start_iso through window.end_iso
+  inclusive. For each date build a DAY CARD:
+    (a) Liturgical header + event lines: reuse the Step-1 day-card chrome. If
+        render_meal_wizard.py's _wg_day_card is importable and produces the
+        header+events you need, reuse it; otherwise replicate ONLY the minimal
+        header+events markup using get_day_info + the merged events, running
+        colors through _wg_safe_color. Report which you did.
+    (b) MEAL SLOTS section: for each slot in to_plan, in a stable order
+        (breakfast, lunch, dinner, johns_lunch, snacks, dessert, feast_meal,
+        batch_cook), look up confirmed["YYYY-MM-DD::slot"]:
+          - If present: show the meal name (escape once), and its recipe state:
+              * recipe_id non-empty  -> "Recipe attached" (plain text label for
+                now; the link to /recipes is G1b-2)
+              * recipe_on_request true -> "No recipe needed"
+              * neither -> a quiet "Recipe: not set yet" (this is the half-
+                confirmed state the G1b-2 recipe default will prevent; surface
+                it plainly, do not hide it)
+            Also show source as a small muted tag (manual / lorenzo / prefill)
+            and, if skip_shopping is true, a muted "off shopping list" note.
+          - If absent: show an empty slot — the slot label and a muted "Not
+            planned yet" placeholder. NO input, NO button (entry is G1b-2).
+    Do not render James as a cook or assignee anywhere (he is excluded).
+  Page chrome: title "Plan This Week's Meals", subtitle "Step 4 of 6 - Build the
+  menu", max-width container consistent with Step 1/2/3. A plain back link to
+  /meal-wizard-step3. NO "continue" forward action yet (locking is a later phase).
+  Wrap with html_page(...) like the other wizard renderers.
+
+STEP 2 — render_meal_wizard.py: add the re-export line, mirroring the existing
+  Step 3 re-export:
+    from render_meal_wizard_step4 import render_meal_wizard_step4
+  (Place it next to the render_meal_wizard_step3 re-export. Additive only.)
+
+STEP 3 — app.py do_GET: add the GET route as an elif branch (match the
+  /meal-wizard-step3 route exactly for auth + call shape):
+    elif path == "/meal-wizard-step4":
+        ... viewer = _require_auth(path) gate as the neighbors do ...
+        html = render_meal_wizard_step4(viewer)
+        ... send 200 text/html, write html ...
+        return
+  For reachability while testing, you may reach /meal-wizard-step4 directly in
+  the browser. Do NOT wire the Step 3 -> Step 4 "continue" navigation yet; that
+  is confirmed in G1b-2 once the write side exists.
+
+================================================================
+EXPLICITLY OUT OF SCOPE FOR G1b-1 (do not build)
+================================================================
+- No JavaScript of any kind.
+- No manual meal entry inputs, no confirm button, no change/remove button.
+- No fetch to /meal-wizard-step4-confirm or /meal-wizard-step4-remove.
+- No ingredient green/red parsing of confirmed_inventory.
+- No recipe-attach link/flow, no cook assignment, no cook conflict hint.
+- No change to the G1a confirm/remove handlers (the server guard is G1b-2).
+- No write to the meal store, no plan lock, no Step 3->4 nav wiring.
+
+================================================================
+VALIDATION (Rule 9/10) — paste results back
+================================================================
+1. py_compile render_meal_wizard_step4.py, render_meal_wizard.py, app.py.
+2. In-process smoke test (no live-data writes — render only reads; per Rule 10
+   if you seed a session to test, snapshot and restore the live session file):
+     - Call render_meal_wizard_step4("Lauren") with an EMPTY session -> assert it
+       returns the gate state (contains the "Finish Step 3" message) and does not
+       raise.
+     - Seed a temp session with a planning_window, a couple of to_plan slots, and
+       two confirmed_meals (one with recipe_id, one with recipe_on_request true,
+       and optionally one with neither) -> assert the returned HTML contains each
+       day label, each slot, the meal names, "Recipe attached", "No recipe needed",
+       and "Recipe: not set yet" for the half-confirmed one. Restore the session.
+3. Run the step3 verify harness (verify_meal_wizard_step3.py) to confirm no
+   regression to session reads.
+4. App boot check: restart and confirm GET /meal-wizard-step4 returns 200 (or 302
+   to login when unauthenticated), and the page renders without a traceback.
+5. Report: which claud.md rules applied, whether you reused _wg_day_card or
+   replicated the header, and all results. Confirm NO JavaScript was added. Stop —
+   do not start G1b-2.
+
+================================================================
+End — Phase G1b-1 instruction (read-only Step 4 screen), June 28 2026
+================================================================

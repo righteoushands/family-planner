@@ -89,3 +89,9 @@ id = "sz303291xwd8GnK2QEiff"
 uri = "file://MEAL_WIZARD_G1a_BUILD_REPORT.md"
 type = "text"
 title = "Meal Wizard — Phase G1a Build Report (for Claude)"
+
+[[outputs]]
+id = "LbKAh8iUqyTdibMr3AHaW"
+uri = "file://MEAL_WIZARD_G1b1_BUILD_REPORT.md"
+type = "text"
+title = "Meal Wizard — Phase G1b-1 Build Report (for Claude)"
