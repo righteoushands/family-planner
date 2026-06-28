@@ -77,3 +77,9 @@ id = "bRTgto2v7Yxmlz47XNGc6"
 uri = "file://outputs/Lorenzo_Session_June6.txt"
 type = "text"
 title = "Lorenzo Session — June 6, 2026"
+
+[[outputs]]
+id = "gfJj37pTHa2oszPe0MPDA"
+uri = "file://MEAL_WIZARD_G1_DIAGNOSIS.md"
+type = "text"
+title = "Meal Wizard G1 (Step 4) Diagnosis — full copy-paste"
