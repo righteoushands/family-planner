@@ -3315,3 +3315,31 @@ def update_meal_wizard_session(updates: dict) -> dict:
     session.update(updates)
     save_meal_wizard_session(session)
     return session
+
+
+def get_confirmed_meals() -> dict:
+    """Return the wizard session's confirmed_meals dict (keyed 'YYYY-MM-DD::slot').
+    Returns {} when there is no session or no confirmed meals yet. Read helper
+    so route handlers and the (later) Step 4 renderer stay thin."""
+    return load_meal_wizard_session().get("confirmed_meals") or {}
+
+
+def recompute_used_proteins(confirmed_meals: dict) -> list:
+    """Recompute the de-duplicated, lowercased used_proteins list from
+    confirmed_meals so it can never drift from the meals themselves.
+
+    Reads ONLY each entry's 'protein' field. Separate food cooked just for the
+    littles (James/Michael) lives in the free-text 'ingredients' field, never in
+    'protein', so it is excluded here automatically and won't trip the repeat
+    flag. Strips and lowercases each protein and preserves first-seen order."""
+    used = []
+    seen = set()
+    if isinstance(confirmed_meals, dict):
+        for _entry in confirmed_meals.values():
+            if not isinstance(_entry, dict):
+                continue
+            _p = (_entry.get("protein") or "").strip().lower()
+            if _p and _p not in seen:
+                seen.add(_p)
+                used.append(_p)
+    return used

@@ -234,6 +234,7 @@ from data_helpers import (
     load_frol_activities, save_frol_activities,
     _activity_new_id, _DEFAULT_WEEKDAYS,
     update_meal_wizard_session, load_meal_wizard_session,
+    get_confirmed_meals, recompute_used_proteins,
 )
 from ui_helpers import parse_urlencoded_body, parse_multipart_form
 from render_schedule import render_child_schedule, render_today_all, render_week, render_print_day, render_print_week, render_print_child_day_list
@@ -3533,7 +3534,7 @@ class Handler(BaseHTTPRequestHandler):
 
         else:
             # /plan-import-apply reads its own raw JSON body — don't consume it with URL form parse
-            _JSON_PATHS = {"/plan-import-apply", "/plan-import-undo-placement", "/curriculum-save", "/curriculum-minutes", "/poetry-passage-save", "/meal-wizard-step3-save"}
+            _JSON_PATHS = {"/plan-import-apply", "/plan-import-undo-placement", "/curriculum-save", "/curriculum-minutes", "/poetry-passage-save", "/meal-wizard-step3-save", "/meal-wizard-step4-confirm", "/meal-wizard-step4-remove"}
             if path in _JSON_PATHS:
                 data = {}
             else:
@@ -10720,6 +10721,104 @@ class Handler(BaseHTTPRequestHandler):
                     "confirmed_complexity": _complexity,
                     "planning_window": _planning_window,
                     "confirmed_meals": _confirmed_meals,
+                })
+                self.send_response(200)
+                self.send_header("Content-Type","application/json")
+                self.end_headers()
+                try: self.wfile.write(b'{"ok":true}')
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/meal-wizard-step4-confirm":
+                # JSON body (registered in _JSON_PATHS so the form-parser leaves
+                # it alone); read and parse the raw body like step3-save.
+                # Writes ONE confirmed meal into the wizard session and keeps
+                # used_proteins in sync. Server only persists what Lauren sends;
+                # it never invents a meal (Rule 16).
+                _s4_cl  = int(self.headers.get("Content-Length","0") or 0)
+                _s4_raw = self.rfile.read(_s4_cl).decode("utf-8","ignore") if _s4_cl else ""
+                try:    _s4_payload = json.loads(_s4_raw)
+                except Exception: _s4_payload = {}
+                _S4_SLOTS    = {"breakfast","lunch","dinner","johns_lunch",
+                                "snacks","dessert","feast_meal","batch_cook"}
+                _S4_SOURCES  = {"manual","lorenzo","prefill"}
+                def _s4_valid_iso(_v):
+                    try:    date.fromisoformat(_v); return _v
+                    except Exception: return ""
+                _s4_date = _s4_valid_iso(str(_s4_payload.get("date","")))
+                _s4_slot = str(_s4_payload.get("slot","")).strip().lower()
+                _s4_name = clean_text(_s4_payload.get("name",""))
+                # Reject anything that can't form a valid date::slot entry.
+                if (not _s4_date) or (_s4_slot not in _S4_SLOTS) or (not _s4_name):
+                    self.send_response(400)
+                    self.send_header("Content-Type","application/json")
+                    self.end_headers()
+                    try: self.wfile.write(b'{"ok":false}')
+                    except BrokenPipeError: pass
+                    return
+                _s4_source = _s4_payload.get("source","manual")
+                if _s4_source not in _S4_SOURCES:
+                    _s4_source = "manual"
+                # Coerce booleans explicitly: a real JSON bool passes through, but
+                # string forms ("false"/"0"/"no") must NOT all read as truthy the
+                # way bare bool("false") would, or a meal could silently persist
+                # the wrong shopping/recipe flag.
+                def _s4_as_bool(_v):
+                    if isinstance(_v, bool): return _v
+                    if isinstance(_v, (int, float)): return _v != 0
+                    if isinstance(_v, str): return _v.strip().lower() in ("true","1","yes","on")
+                    return False
+                _s4_entry = {
+                    "name":              _s4_name,
+                    "source":            _s4_source,
+                    "locked":            True,
+                    "ingredients":       clean_text(_s4_payload.get("ingredients","")),
+                    "recipe_id":         clean_text(_s4_payload.get("recipe_id","")),
+                    "recipe_on_request": _s4_as_bool(_s4_payload.get("recipe_on_request")),
+                    "skip_shopping":     _s4_as_bool(_s4_payload.get("skip_shopping")),
+                    "protein":           clean_text(_s4_payload.get("protein","")),
+                }
+                _s4_meals = load_meal_wizard_session().get("confirmed_meals") or {}
+                _s4_meals[_s4_date + "::" + _s4_slot] = _s4_entry
+                update_meal_wizard_session({
+                    "confirmed_meals": _s4_meals,
+                    "used_proteins":   recompute_used_proteins(_s4_meals),
+                })
+                self.send_response(200)
+                self.send_header("Content-Type","application/json")
+                self.end_headers()
+                try: self.wfile.write(b'{"ok":true}')
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/meal-wizard-step4-remove":
+                # Idempotent removal of ONE confirmed meal (the "Change this
+                # meal" backing op). Only Lauren triggers this from the UI; the
+                # server never removes a meal on its own (Rule 16). Responds
+                # {"ok":true} even when the slot was already absent.
+                _s4r_cl  = int(self.headers.get("Content-Length","0") or 0)
+                _s4r_raw = self.rfile.read(_s4r_cl).decode("utf-8","ignore") if _s4r_cl else ""
+                try:    _s4r_payload = json.loads(_s4r_raw)
+                except Exception: _s4r_payload = {}
+                _S4R_SLOTS = {"breakfast","lunch","dinner","johns_lunch",
+                              "snacks","dessert","feast_meal","batch_cook"}
+                def _s4r_valid_iso(_v):
+                    try:    date.fromisoformat(_v); return _v
+                    except Exception: return ""
+                _s4r_date = _s4r_valid_iso(str(_s4r_payload.get("date","")))
+                _s4r_slot = str(_s4r_payload.get("slot","")).strip().lower()
+                if (not _s4r_date) or (_s4r_slot not in _S4R_SLOTS):
+                    self.send_response(400)
+                    self.send_header("Content-Type","application/json")
+                    self.end_headers()
+                    try: self.wfile.write(b'{"ok":false}')
+                    except BrokenPipeError: pass
+                    return
+                _s4r_meals = load_meal_wizard_session().get("confirmed_meals") or {}
+                _s4r_meals.pop(_s4r_date + "::" + _s4r_slot, None)
+                update_meal_wizard_session({
+                    "confirmed_meals": _s4r_meals,
+                    "used_proteins":   recompute_used_proteins(_s4r_meals),
                 })
                 self.send_response(200)
                 self.send_header("Content-Type","application/json")

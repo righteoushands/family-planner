@@ -1,0 +1,170 @@
+MEAL WIZARD — PHASE G1a BUILD INSTRUCTION (data foundation only)
+For Replit. Single-purpose per Rule 17. Lorenzo-independent. June 28 2026.
+
+================================================================
+BEFORE YOU PASTE THIS TO REPLIT
+================================================================
+1. Upload the CORRECTED claud.md to the repo first (the model line, Rule 3,
+   and the _repair_and_parse_json note were fixed June 28). The read-back
+   below must reflect the corrected file.
+2. This is ONE phase. Do not start G1b (the Step 4 screen) or anything
+   Lorenzo. Stop and report when G1a's checks pass.
+
+================================================================
+WHAT G1a IS
+================================================================
+The data foundation for Step 4: the contract for a confirmed meal, and the
+server routes that write/remove ONE confirmed meal in the wizard session.
+No screen, no Lorenzo, no plan-lock. After G1a, a confirmed meal persists
+in session state and survives reload — that's all.
+
+This is built on the as-built code (diagnosis June 28):
+- meal_wizard_session.json is created lazily; load returns {} when absent.
+- confirmed_meals is already keyed "YYYY-MM-DD::slot"; /meal-wizard-step3-save
+  already PRESERVES non-prefill confirmed_meals across re-saves.
+- update_meal_wizard_session(updates) shallow-merges + saves via safe_save_json.
+- The JSON-route pattern to copy is /meal-wizard-step3-save (in _JSON_PATHS,
+  raw body via Content-Length + self.rfile.read + json.loads, returns
+  b'{"ok":true}'). Do NOT copy /recipe-save (multipart, 302 redirect).
+
+================================================================
+THE MEAL-ENTRY CONTRACT (locked — this is the shape both manual entry and,
+later, Lorenzo write into confirmed_meals; Lauren has approved it)
+================================================================
+confirmed_meals is a dict keyed "YYYY-MM-DD::slot". slot is one of:
+breakfast, lunch, dinner, johns_lunch, snacks, dessert, feast_meal, batch_cook.
+
+Each value is a dict:
+  {
+    "name":              <str, required, non-empty>,
+    "source":            "manual" | "lorenzo" | "prefill",
+    "locked":            true,            # confirmed meals are locked
+    "ingredients":       <str, may be ""> # free text for now; green/red check
+                                          # in G1b compares against confirmed_inventory
+    "recipe_id":         <str or "">,     # links an existing library recipe
+    "recipe_on_request": <bool>,          # true = "no recipe needed" path
+    "skip_shopping":     <bool>,          # prefill past meals = true
+    "protein":           <str or "">      # the MAIN/FAMILY protein only — drives
+                                          # used_proteins + the Rule 13 repeat
+                                          # flag. NOT for separate littles' food
+                                          # (see note below).
+  }
+
+Session also gains ONE new top-level key:
+  "used_proteins": <list of str>  # de-duplicated, lowercased; updated on every
+                                  # confirm/remove so G1b/G2 can flag repeats.
+
+SEPARATE FOOD FOR THE LITTLES (James / Michael): when Lauren cooks a different
+protein just for the toddler/preschooler, it does NOT go in "protein" and is
+NOT added to used_proteins — otherwise the repeat flag would nag about the
+littles' near-constant food. It is not a second family protein. For G1a,
+capture it (if at all) in the free-text "ingredients" field (e.g. "+ chicken
+nuggets for James") so it survives to the grocery list in Phases H/I. A
+dedicated littles'-meal field is a later decision, not G1a. recompute_used_
+proteins reads ONLY the "protein" field, so this exclusion is automatic.
+
+NOTE: this EXTENDS the existing prefill entry shape (which already has name,
+locked, source, skip_shopping, recipe_on_request). New fields are additive —
+existing prefill entries remain valid; treat missing fields as defaults
+(ingredients "", recipe_id "", protein "").
+
+================================================================
+RULE 15 — READ-BACK FIRST
+================================================================
+Read claud.md and paste back every rule. Then state which apply to G1a.
+Expected to apply: Rule 3 (elif chain for the new POST route), Rule 5
+(safe_save_json — already handled by update_meal_wizard_session), Rule 6
+(no walrus), Rule 9/10 (smoke + verify harness on a TEMP copy of data),
+Route patterns + _JSON_PATHS, Rule 14 (pre-flight), Rule 16 (a confirmed
+meal is Lauren's decision — the server only persists what she sends; it
+never invents a meal), Rule 17 (this is one phase), Rule 19 (no new
+hardcoded family specifics; route through data_helpers).
+
+================================================================
+PRE-FLIGHT (Rule 14)
+================================================================
+1. Files touched: data_helpers.py (one small helper + used_proteins update
+   logic) and app.py (two new elif branches in do_POST + two _JSON_PATHS
+   entries). Two files, tightly related — within Rule 17.
+2. JS in Python f-strings? NO. G1a is server-only. (JS comes in G1b.)
+3. Form handling / nested forms posting to /frol-wizard? NO.
+4. Root cause confirmed? N/A — this is additive new structure, not a fix.
+5. Multiple files? Two, directly related (a data contract and its routes).
+6. Data shape change? YES — adds fields to confirmed_meals entries and a new
+   used_proteins session key. Before/after shape is specified above. Additive;
+   no migration of existing data needed (missing fields default).
+
+================================================================
+BUILD STEPS
+================================================================
+STEP 1 — data_helpers.py, additive:
+  a. Add a helper:
+       def get_confirmed_meals() -> dict
+         return load_meal_wizard_session().get("confirmed_meals") or {}
+     (Read helper the G1b renderer will use; keeps route handlers thin.)
+  b. Add a helper that recomputes used_proteins from confirmed_meals so the
+     list can never drift from the meals:
+       def recompute_used_proteins(confirmed_meals: dict) -> list
+         # collect non-empty .get("protein") values, strip+lower, de-dup,
+         # preserve first-seen order; return the list.
+     Route ALL reads/writes through the existing meal-wizard session helpers
+     (load/update_meal_wizard_session). No direct file access. No new file.
+
+STEP 2 — app.py do_POST, add /meal-wizard-step4-confirm (copy the
+  /meal-wizard-step3-save pattern exactly):
+  - Add "/meal-wizard-step4-confirm" to the _JSON_PATHS set (app.py ~3536).
+  - Add an elif branch in do_POST: read raw JSON body via Content-Length +
+    self.rfile.read(...).decode("utf-8","ignore") + json.loads (guard with
+    try/except → {} on failure).
+  - Validate server-side, allowlist style (mirror step3-save):
+      * date: must pass date.fromisoformat — else reject (400-style {"ok":false}).
+      * slot: must be in the slot allowlist above — else reject.
+      * name: clean_text; if empty, reject.
+      * source: coerce to "manual" if not one of manual/lorenzo/prefill.
+      * ingredients: clean_text (allow "").
+      * recipe_id: clean_text (allow ""); do NOT trust it points to a real
+        recipe here — G1b/lock can verify via get_recipe_by_id.
+      * recipe_on_request, skip_shopping: coerce to bool.
+      * protein: clean_text (allow "").
+  - Load session; set confirmed_meals[date::slot] = the validated entry dict
+    with locked=true; recompute used_proteins from the updated confirmed_meals;
+    update_meal_wizard_session({"confirmed_meals": ..., "used_proteins": ...}).
+  - Respond b'{"ok":true}' guarded by except BrokenPipeError; return.
+
+STEP 3 — app.py do_POST, add /meal-wizard-step4-remove (same pattern):
+  - Add "/meal-wizard-step4-remove" to _JSON_PATHS.
+  - Body: {date, slot}. Validate date + slot as above.
+  - Load session; pop confirmed_meals[date::slot] if present; recompute
+    used_proteins; save. Respond {"ok":true} even if the key was absent
+    (idempotent). This is the "Change this meal" backing operation — only
+    Lauren triggers it from the UI (Rule 16: server never removes on its own).
+
+================================================================
+EXPLICITLY OUT OF SCOPE FOR G1a (do not build)
+================================================================
+- No Step 4 renderer / screen (that is G1b).
+- No Lorenzo generation call (that is G1c, parked).
+- No write to the meal store (data/meal_plan/{Monday}.json) and no plan lock
+  — the date::slot → (Monday week-key, Day name, slot) mapping happens at the
+  LOCK step later, not here. G1a only touches the wizard SESSION.
+- No new render file, no JS, no _JSON_PATHS entries other than the two above.
+
+================================================================
+VALIDATION (Rule 9/10) — paste results back
+================================================================
+1. py_compile data_helpers.py and app.py.
+2. In-process smoke test (do NOT touch live data — operate on a temp copy
+   per Rule 10): build a temp session dict, call the confirm path's logic
+   with a valid entry, assert confirmed_meals["2026-06-29::dinner"] exists,
+   locked is true, and used_proteins reflects the protein; call remove and
+   assert the slot is gone and used_proteins updated; confirm a bad slot and
+   a bad date are both rejected.
+3. Run the relevant verify harness (the meal-wizard step3 harness is the
+   nearest — confirm it still passes, i.e. G1a did not regress step3's
+   confirmed_meals preservation). Restore any temp data from backup.
+4. Report: which claud.md rules applied, the before/after session shape, and
+   all four results. Do not proceed to G1b.
+
+================================================================
+End — Phase G1a instruction, June 28 2026
+================================================================

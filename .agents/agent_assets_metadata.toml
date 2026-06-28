@@ -83,3 +83,9 @@ id = "gfJj37pTHa2oszPe0MPDA"
 uri = "file://MEAL_WIZARD_G1_DIAGNOSIS.md"
 type = "text"
 title = "Meal Wizard G1 (Step 4) Diagnosis — full copy-paste"
+
+[[outputs]]
+id = "sz303291xwd8GnK2QEiff"
+uri = "file://MEAL_WIZARD_G1a_BUILD_REPORT.md"
+type = "text"
+title = "Meal Wizard — Phase G1a Build Report (for Claude)"
