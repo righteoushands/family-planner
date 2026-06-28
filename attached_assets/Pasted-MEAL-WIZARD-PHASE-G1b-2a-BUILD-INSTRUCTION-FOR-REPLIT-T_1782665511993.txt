@@ -1,0 +1,169 @@
+MEAL WIZARD — PHASE G1b-2a BUILD INSTRUCTION  ***FOR REPLIT***
+The manual WRITE LOOP for Step 4: enter -> Keep this meal (confirm) -> Change
+(remove). Plus the server-side recipe guard. Single capability per Rule 17.
+June 28 2026. Run AFTER G1b-1 (complete).
+
+================================================================
+WHO THIS IS FOR / WHAT IT IS
+================================================================
+You paste this into Replit. It makes the read-only Step 4 screen from G1b-1
+INTERACTIVE for manual planning: each empty slot gets a small entry affordance;
+"Keep this meal" confirms it into the wizard session; "Change" removes it so
+Lauren can re-enter. It also adds a one-line server guard so a meal can never
+persist in the half-confirmed "no recipe AND not marked no-recipe-needed" state.
+
+This is the FIRST JavaScript in Step 4. It is the loop-prone zone (Rules 7/12).
+Keep the JS small, build it as CONCATENATED STRING LITERALS like
+render_meal_wizard_step3.py's s3Save (NOT f-strings), and reload the page on
+success rather than doing client-side DOM surgery — the session is the source
+of truth and a reload re-renders from it.
+
+GREEN/RED ingredient checks and the RECIPE-ATTACH link are NOT in this step —
+they are G1b-2b. Build neither here.
+
+================================================================
+KEY DECISIONS BAKED IN (approved by Lauren)
+================================================================
+- RECIPE DEFAULT (client): a manually entered meal has no recipe_id, so the
+  confirm payload sends recipe_on_request = true. This is the intentional
+  "No recipe needed" default Lauren chose — the flow never stops to build a
+  recipe. It is reversible later (attaching a recipe in G1b-2b sets recipe_id).
+- SERVER GUARD (belt-and-suspenders): in the existing /meal-wizard-step4-confirm
+  handler, if recipe_id is empty AND recipe_on_request was not sent true,
+  auto-set recipe_on_request = true server-side. So a buggy or crafted request
+  also cannot persist a half-confirmed meal. Auto-set, do NOT reject (rejecting
+  would stop the flow, which violates the chosen default).
+- CHANGE = REMOVE for now: "Change" removes the meal (back to the entry state)
+  so Lauren re-enters. In-place editing is a later refinement, not 2a.
+- PREFILL MEALS ARE LOCKED: entries with source == "prefill" are past meals;
+  show them read-only with NO "Change" button. The write loop applies to
+  non-prefill slots only.
+
+================================================================
+RULE 15 — READ-BACK FIRST
+================================================================
+Read claud.md and paste back every rule. Then state which apply to G1b-2a.
+Expected to apply: Rule 1 & 2 (f-string discipline), Rule 3 (no route changes
+here except the guard inside the EXISTING confirm elif — do not add routes),
+Rule 5 (writes via update_meal_wizard_session only), Rule 6 (no walrus),
+Rule 7 & 12 (THIS STEP HAS JS — every JS string built as concatenated literals;
+never a literal backslash-n inside a JS string in a Python literal; use '\\n'),
+Rule 11 (escape once), Rule 14 (pre-flight), Rule 16 (buttons read as Lauren's
+choices: "Keep this meal" / "Change"; no streaks/scores/prescriptions),
+Rule 17 (one capability: the manual write loop), Route patterns (the two POST
+routes already exist + are in _JSON_PATHS from G1a — do not re-add them).
+Confirm there are NO <form> elements posting to /frol-wizard (Rule 13) — this
+uses buttons + fetch, no forms at all.
+
+================================================================
+PRE-FLIGHT (Rule 14)
+================================================================
+1. Files touched: render_meal_wizard_step4.py (entry UI + the JS for keep/
+   change) and app.py (the one-line guard INSIDE the existing
+   /meal-wizard-step4-confirm handler). Two files, one capability.
+2. JS in Python f-strings? YES — first JS in Step 4. Build as concatenated
+   string literals like s3Save; flag and honor Rules 7/12.
+3. Form handling / nested /frol-wizard forms? NO forms — buttons + fetch only.
+4. Root cause confirmed/assumed? N/A — additive interactivity on a proven screen.
+5. Multiple files? Two, directly related (the loop's UI + its server guard).
+6. Data shape change? NO new shape — writes the SAME confirmed_meals entry
+   shape G1a defined, via the EXISTING /meal-wizard-step4-confirm route.
+
+================================================================
+BUILD STEPS
+================================================================
+STEP 1 — app.py, the server guard (inside the EXISTING
+  /meal-wizard-step4-confirm elif, do NOT create a new route):
+  After _s4_entry is built and before it is written to confirmed_meals, add:
+      if (not _s4_entry["recipe_id"]) and (not _s4_entry["recipe_on_request"]):
+          _s4_entry["recipe_on_request"] = True
+  That is the whole guard. Leave the rest of the handler unchanged. (Imports at
+  module top per Rule 4; no walrus.)
+
+STEP 2 — render_meal_wizard_step4.py, make slots interactive:
+  For each NON-prefill slot in a day card:
+    - ABSENT (empty slot): render a small entry affordance — a text input for
+      the meal name (required), and (optional) a second text input for
+      ingredients free-text (this is where "+ chicken nuggets for James" goes)
+      and an optional protein text input (the MAIN/family protein only). A
+      "Keep this meal" button. Use data-attributes to tie the inputs to their
+      date and slot (mirror the step3 pf-input pattern:
+      data-date="YYYY-MM-DD" data-slot="dinner").
+    - PRESENT and source != "prefill": show the meal (as G1b-1 does) PLUS a
+      "Change" button carrying the same data-date/data-slot.
+    - PRESENT and source == "prefill": unchanged from G1b-1 (locked, no button).
+  Keep all existing G1b-1 display (recipe state labels, source tag, off-shopping
+  note, liturgical header, events). Do not remove anything additive.
+
+STEP 3 — render_meal_wizard_step4.py, the JS (concatenated string literals, like
+  s3Save; NOT an f-string; '\\n' for any JS newline; no nested quotes pulled
+  into the Python f-string):
+    window.s4Keep = function(date, slot){
+      - read the name/ingredients/protein inputs for that date::slot via the
+        data-attributes; if name is empty, show an inline message and return
+        (do not POST an empty meal).
+      - build payload = { date: date, slot: slot, name: <name>, source: "manual",
+        ingredients: <ingredients or "">, protein: <protein or "">,
+        recipe_id: "", recipe_on_request: true };   // recipe default
+      - fetch('/meal-wizard-step4-confirm', {method:'POST',
+        headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)})
+        .then(r=>r.json()).then(j=>{ if(j&&j.ok){ window.location.href =
+        '/meal-wizard-step4'; } else { <inline error> } }).catch(<inline error>);
+    };
+    window.s4Change = function(date, slot){
+      - payload = { date: date, slot: slot };
+      - fetch('/meal-wizard-step4-remove', {method:'POST',
+        headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)})
+        .then(r=>r.json()).then(j=>{ if(j&&j.ok){ window.location.href =
+        '/meal-wizard-step4'; } else { <inline error> } }).catch(<inline error>);
+    };
+  Wire the buttons with onclick="s4Keep('YYYY-MM-DD','dinner')" /
+  onclick="s4Change('YYYY-MM-DD','dinner')". Reload-on-success keeps the page in
+  sync with the session with no client-side state to drift.
+
+================================================================
+EXPLICITLY OUT OF SCOPE FOR G1b-2a (do not build)
+================================================================
+- No ingredient green/red parsing of confirmed_inventory (G1b-2b).
+- No recipe-attach link/flow (G1b-2b).
+- No in-place editing (Change = remove + re-enter for now).
+- No cook assignment / cook-conflict hint.
+- No new routes, no _JSON_PATHS edits (the two routes already exist from G1a).
+- No write to the meal store, no plan lock, no Step 3->4 nav wiring.
+- No Lorenzo.
+
+================================================================
+VALIDATION (Rule 9/10) — paste results back. THE ROUND-TRIP IS REQUIRED.
+================================================================
+The G1b-1 import bug hid behind the unauth 302 because the route body never ran.
+A page load does NOT prove the write loop. So this step REQUIRES an authenticated
+HTTP round-trip that actually POSTs, using the same authenticated-session
+mechanism that produced the G1b-1 authenticated 200. Operate on a snapshotted
+session and restore it after (Rule 10).
+
+1. py_compile render_meal_wizard_step4.py and app.py.
+2. In-process unit checks: the guard sets recipe_on_request true when recipe_id
+   is "" and the flag was not sent true; leaves it untouched when recipe_id is
+   present or the flag was already true.
+3. AUTHENTICATED ROUND-TRIP (required):
+   a. POST /meal-wizard-step4-confirm as a logged-in user with
+      {date, slot:"dinner", name:"Chicken Parm", source:"manual",
+       ingredients:"", protein:"chicken"} and recipe fields omitted.
+      Then read the session back: assert confirmed_meals["<date>::dinner"]
+      exists, locked is true, AND recipe_on_request is true (guard worked even
+      though the client omitted it).
+   b. GET /meal-wizard-step4 (authenticated): assert the page now shows "Chicken
+      Parm" with a "Change" button and "No recipe needed".
+   c. POST /meal-wizard-step4-remove {date, slot:"dinner"}: read session back,
+      assert the slot is gone; GET the page and assert the slot is back to the
+      empty entry state.
+   d. Confirm a prefill (past) entry still renders locked with NO "Change".
+4. Re-run verify_meal_wizard_step3.py and the G1b-1 step4 read smoke
+   (verify_meal_wizard_step4.py) — assert no regression.
+5. Report: rules applied, confirm the JS was built as concatenated literals
+   (no backslash-n in JS strings), paste the round-trip assertions, and confirm
+   NO green/red and NO recipe-attach were added. Stop — do not start G1b-2b.
+
+================================================================
+End — Phase G1b-2a instruction (manual write loop + server guard), June 28 2026
+================================================================

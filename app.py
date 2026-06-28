@@ -10788,6 +10788,15 @@ class Handler(BaseHTTPRequestHandler):
                     "skip_shopping":     _s4_as_bool(_s4_payload.get("skip_shopping")),
                     "protein":           clean_text(_s4_payload.get("protein","")),
                 }
+                # G1b-2a server guard (belt-and-suspenders): a manually entered
+                # meal has no recipe_id; if the client also did not send
+                # recipe_on_request true, auto-set it true so a meal can never
+                # persist in the half-confirmed "no recipe AND not marked
+                # no-recipe-needed" state. Auto-set, never reject — rejecting
+                # would stop the flow, which contradicts the chosen no-recipe
+                # default (Rule 16).
+                if (not _s4_entry["recipe_id"]) and (not _s4_entry["recipe_on_request"]):
+                    _s4_entry["recipe_on_request"] = True
                 _s4_meals = load_meal_wizard_session().get("confirmed_meals") or {}
                 _s4_meals[_s4_date + "::" + _s4_slot] = _s4_entry
                 update_meal_wizard_session({

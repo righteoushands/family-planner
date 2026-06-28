@@ -3,9 +3,16 @@ render_meal_wizard_step4.py — Meal Planning Wizard, Step 4 (READ-ONLY screen).
 
 Phase G1b-1: shows the planning week as day cards (liturgical header +
 commitments) with each day's selected meal slots, displaying any meals already
-confirmed in the wizard session. It is DISPLAY ONLY — no entry, no confirm, no
-change/remove, NO JavaScript. The write side (manual entry, confirm/remove
-wiring, ingredient checks, recipe attach, server guard) is Phase G1b-2.
+confirmed in the wizard session.
+
+Phase G1b-2a (current): the manual WRITE LOOP. Each empty, non-prefill slot
+gets an entry affordance (meal name + optional ingredients + optional main
+protein) and a "Keep this meal" button that confirms it into the wizard session
+via /meal-wizard-step4-confirm; each confirmed non-prefill meal gets a "Change"
+button that removes it via /meal-wizard-step4-remove so Lauren can re-enter.
+Prefill (past) meals stay locked with no button. On success the page reloads so
+the session remains the single source of truth. Still OUT OF SCOPE here:
+ingredient green/red checks and the recipe-attach flow (both G1b-2b).
 
 All data access goes through data_helpers (Rule 19); page chrome comes from
 ui_helpers.html_page. The liturgical color sanitizer and the minimal day-card
@@ -71,6 +78,18 @@ _S4_TAG_ROW = "margin-top:5px;display:flex;flex-wrap:wrap;gap:6px;"
 _S4_TAG = ("display:inline-block;background:var(--parchment,#faf6ec);"
            "border:1px solid var(--border-light,#ece6d8);border-radius:999px;"
            "padding:2px 9px;font-size:0.78em;color:var(--ink-muted);")
+
+# G1b-2a: entry-affordance / write-loop styling.
+_S4_INPUT = ("width:100%;box-sizing:border-box;padding:8px 10px;margin-top:6px;"
+             "border:1px solid var(--border,#e6e0d4);border-radius:8px;"
+             "font-size:0.92em;color:var(--ink);background:var(--warm-white,#fff);")
+_S4_KEEP_BTN = ("margin-top:8px;padding:8px 14px;border:none;border-radius:8px;"
+                "background:var(--gold-mid,#c9a84a);color:var(--ink);font-weight:700;"
+                "font-size:0.9em;cursor:pointer;")
+_S4_CHANGE_BTN = ("margin-top:6px;padding:6px 12px;border:1px solid var(--border,#e6e0d4);"
+                  "border-radius:8px;background:var(--warm-white,#fff);"
+                  "color:var(--ink-muted);font-size:0.85em;cursor:pointer;")
+_S4_MSG = "color:#b23b3b;font-size:0.85em;margin-top:6px;min-height:1em;"
 
 _S4_GATE_BOX = ("background:var(--warm-white,#fff);border:1px solid var(--border,#e6e0d4);"
                 "border-radius:var(--radius-md,12px);padding:18px 20px;margin-bottom:14px;")
@@ -145,13 +164,82 @@ def _s4_recipe_label(entry: dict) -> str:
     return "Recipe: not set yet"
 
 
-def _s4_slot_block(label: str, entry) -> str:
-    """One slot row: the meal (name + recipe state + tags) when confirmed, or a
-    quiet 'Not planned yet' placeholder when empty. No inputs, no buttons."""
+# G1b-2a inline JS — the manual write loop. Built as CONCATENATED STRING
+# LITERALS (not an f-string) like render_meal_wizard_step3.py's s3Save, so there
+# are no Python-side brace or quote conflicts (Rules 1, 2). No backslash-n ever
+# appears inside a JS string here (Rules 7, 12). Inputs/buttons are addressed by
+# unique element id (s4-<field>--<date>--<slot>); on success the page RELOADS so
+# the session stays the single source of truth — no client-side state to drift.
+_S4_JS = (
+    "<script>"
+    "(function(){"
+    "  function elById(id){ return document.getElementById(id); }"
+    "  function valOf(id){ var el = elById(id); return el ? (el.value || '').trim() : ''; }"
+    "  function setMsg(id, text){ var el = elById(id); if(el){ el.textContent = text; } }"
+    "  window.s4Keep = function(date, slot){"
+    "    var key = date + '--' + slot;"
+    "    var msgId = 's4-msg--' + key;"
+    "    setMsg(msgId, '');"
+    "    var name = valOf('s4-name--' + key);"
+    "    if(!name){ setMsg(msgId, 'Add a meal name first.'); return; }"
+    "    var ing = valOf('s4-ing--' + key);"
+    "    var prot = valOf('s4-prot--' + key);"
+    "    var payload = { date: date, slot: slot, name: name, source: 'manual',"
+    "      ingredients: ing, protein: prot, recipe_id: '', recipe_on_request: true };"
+    "    fetch('/meal-wizard-step4-confirm', { method:'POST',"
+    "      headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })"
+    "      .then(function(r){ return r.json(); })"
+    "      .then(function(j){ if(j && j.ok){ window.location.href = '/meal-wizard-step4'; }"
+    "        else { setMsg(msgId, 'Could not save. Please try again.'); } })"
+    "      .catch(function(){ setMsg(msgId, 'Could not save. Please try again.'); });"
+    "  };"
+    "  window.s4Change = function(date, slot){"
+    "    var key = date + '--' + slot;"
+    "    var msgId = 's4-msg--' + key;"
+    "    setMsg(msgId, '');"
+    "    var payload = { date: date, slot: slot };"
+    "    fetch('/meal-wizard-step4-remove', { method:'POST',"
+    "      headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })"
+    "      .then(function(r){ return r.json(); })"
+    "      .then(function(j){ if(j && j.ok){ window.location.href = '/meal-wizard-step4'; }"
+    "        else { setMsg(msgId, 'Could not change. Please try again.'); } })"
+    "      .catch(function(){ setMsg(msgId, 'Could not change. Please try again.'); });"
+    "  };"
+    "})();"
+    "</script>"
+)
+
+
+def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry) -> str:
+    """One slot row. EMPTY (non-prefill by definition — an empty slot has no
+    source) gets an entry affordance: meal name (required) + optional ingredients
+    + optional main-protein inputs and a 'Keep this meal' button. A CONFIRMED,
+    non-prefill meal keeps the G1b-1 display plus a 'Change' button (Change =
+    remove for now). A CONFIRMED PREFILL (past) meal is locked: G1b-1 display
+    only, NO button. Inputs/buttons are keyed by date::slot via unique ids."""
     label_html = f'<div style="{_S4_SLOT_LABEL}">{escape(label)}</div>'
+    key = date_iso + "--" + slot_key
+    msg_id = "s4-msg--" + key
     if not isinstance(entry, dict):
-        return (f'<div style="{_S4_SLOT_ROW}">{label_html}'
-                f'<div style="{_S4_EMPTY}">Not planned yet</div></div>')
+        name_id = "s4-name--" + key
+        ing_id = "s4-ing--" + key
+        prot_id = "s4-prot--" + key
+        # onclick value pulled into a variable to avoid nested quotes in the
+        # f-string (Rule 2). date_iso is a validated ISO date and slot_key comes
+        # from the fixed _S4_SLOT_ORDER allowlist, so both are safe to inline.
+        keep_call = "s4Keep('" + date_iso + "','" + slot_key + "')"
+        ing_ph = "Ingredients (optional) \u2014 e.g. + chicken nuggets for James"
+        return (
+            f'<div style="{_S4_SLOT_ROW}">{label_html}'
+            f'<input type="text" id="{name_id}" style="{_S4_INPUT}" placeholder="Meal name">'
+            f'<input type="text" id="{ing_id}" style="{_S4_INPUT}" placeholder="{ing_ph}">'
+            f'<input type="text" id="{prot_id}" style="{_S4_INPUT}" '
+            f'placeholder="Main protein (optional)">'
+            f'<div><button type="button" style="{_S4_KEEP_BTN}" '
+            f'onclick="{keep_call}">Keep this meal</button></div>'
+            f'<div id="{msg_id}" style="{_S4_MSG}"></div>'
+            f'</div>'
+        )
     name = escape(entry.get("name") or "")
     recipe = escape(_s4_recipe_label(entry))
     source = (entry.get("source") or "").strip().lower()
@@ -161,10 +249,21 @@ def _s4_slot_block(label: str, entry) -> str:
     if entry.get("skip_shopping"):
         tags.append(f'<span style="{_S4_TAG}">off shopping list</span>')
     tags_html = (f'<div style="{_S4_TAG_ROW}">{"".join(tags)}</div>') if tags else ""
+    # Prefill (past) meals are locked: no Change button. Every other confirmed
+    # meal gets one.
+    if source == "prefill":
+        change_html = ""
+    else:
+        change_call = "s4Change('" + date_iso + "','" + slot_key + "')"
+        change_html = (
+            f'<div><button type="button" style="{_S4_CHANGE_BTN}" '
+            f'onclick="{change_call}">Change</button></div>'
+            f'<div id="{msg_id}" style="{_S4_MSG}"></div>'
+        )
     return (f'<div style="{_S4_SLOT_ROW}">{label_html}'
             f'<div style="{_S4_MEAL_NAME}">{name}</div>'
             f'<div style="{_S4_META}">{recipe}</div>'
-            f'{tags_html}</div>')
+            f'{tags_html}{change_html}</div>')
 
 
 def _s4_day_card(d: date, day_events: list, to_plan, confirmed: dict) -> str:
@@ -208,7 +307,9 @@ def _s4_day_card(d: date, day_events: list, to_plan, confirmed: dict) -> str:
     for (slot_key, slot_label) in _S4_SLOT_ORDER:
         if slot_key not in to_plan:
             continue
-        slot_blocks.append(_s4_slot_block(slot_label, confirmed.get(iso + "::" + slot_key)))
+        slot_blocks.append(
+            _s4_slot_block(iso, slot_key, slot_label, confirmed.get(iso + "::" + slot_key))
+        )
     if slot_blocks:
         slots_html = f'<div style="{_S4_SLOTS_WRAP}">{"".join(slot_blocks)}</div>'
     else:
@@ -309,5 +410,6 @@ def render_meal_wizard_step4(user: str, start_iso: str = None) -> str:
         f'<div style="max-width:680px;margin:0 auto;padding:24px 16px 96px;">'
         f'{inner}'
         f'</div>'
+        f'{_S4_JS}'
     )
     return html_page(_S4_TITLE, body)

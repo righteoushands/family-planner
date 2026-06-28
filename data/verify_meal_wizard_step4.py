@@ -8,7 +8,8 @@ Covers the read-only Step 4 screen:
      one with recipe_id, one with recipe_on_request, one with neither) -> HTML
      contains each day label, each selected slot, the meal names, and the three
      recipe states ("Recipe attached", "No recipe needed", "Recipe: not set yet").
-  3. No <script> tag is emitted (G1b-1 is display-only, zero JavaScript).
+  3. Gate state carries zero JS; the seeded render now ships exactly the
+     G1b-2a write-loop script (s4Keep/s4Change), one <script> beyond chrome.
 
 Rule 10: operates ONLY on a temp copy of the session. The live
 meal_wizard_session.json is snapshotted and restored on exit (pass or fail);
@@ -105,9 +106,13 @@ def main():
         })
         html = render_meal_wizard_step4("Lauren")
 
-        _check(html.lower().count("<script") == _CHROME_SCRIPTS,
-               "seeded render adds no <script> beyond page chrome (zero JavaScript)",
-               "seeded render added a <script> beyond page chrome", failures)
+        # G1b-2a contract change: the seeded render now ships exactly the
+        # write-loop script (one <script> beyond chrome) exposing s4Keep/s4Change.
+        # The gate state above still carries zero JS.
+        _check(html.lower().count("<script") == _CHROME_SCRIPTS + 1
+               and "window.s4Keep" in html and "window.s4Change" in html,
+               "seeded render includes the G1b-2a write-loop script (s4Keep/s4Change)",
+               "seeded render missing the G1b-2a write-loop script", failures)
 
         # Day labels (get_day_info weekday/date_label). Both dates should appear
         # by weekday name; assert the weekday names render.

@@ -1,0 +1,209 @@
+"""Meal Wizard Phase G1b-2a verification harness (manual write loop + guard).
+
+Run from project root (the "Start application" workflow must be up on :5000):
+    PYTHONPATH=. python data/verify_meal_wizard_step4_writeloop.py
+
+This is an AUTHENTICATED HTTP ROUND-TRIP — the G1b-1 import bug hid behind the
+unauth 302 because the route body never ran, so a page load alone proves
+nothing. Here we mint a real Lauren session and actually POST through the live
+handlers, then read the session back.
+
+Covers:
+  GUARD (server-side, /meal-wizard-step4-confirm):
+    1. recipe_id "" and recipe_on_request omitted  -> auto-set True.
+    2. recipe_id present, flag omitted             -> left False (no fire).
+    3. recipe_on_request already True              -> left True.
+  WRITE LOOP:
+    a. confirm a manual meal -> session has it, locked True, recipe_on_request
+       True (guard) even though the client omitted it.
+    b. GET /meal-wizard-step4 -> shows the meal, a "Change" button, "No recipe
+       needed".
+    c. remove it -> session slot gone; GET shows the empty entry state again.
+    d. a prefill (past) entry renders locked with NO "Change" button.
+
+Rule 10: the live meal_wizard_session.json is snapshotted and restored on exit
+(pass or fail). The minted auth session token is destroyed in finally.
+"""
+import json
+import os
+import shutil
+import sys
+import tempfile
+import traceback
+import urllib.request
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_ROOT = os.path.dirname(_HERE)
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+
+import config  # noqa: E402
+import data_helpers as dh  # noqa: E402
+import auth  # noqa: E402
+
+PASS = "\033[32mPASS\033[0m"
+FAIL = "\033[31mFAIL\033[0m"
+BASE = "http://localhost:5000"
+
+_D1 = "2026-06-29"  # Monday
+_D2 = "2026-06-30"  # Tuesday
+
+
+def _check(cond, ok_msg, fail_msg, failures):
+    if cond:
+        print(PASS, ok_msg)
+    else:
+        failures.append(fail_msg)
+        print(FAIL, fail_msg)
+
+
+def _post(path, payload, token):
+    body = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(BASE + path, data=body, method="POST")
+    req.add_header("Content-Type", "application/json")
+    req.add_header("Cookie", "session=" + token)
+    with urllib.request.urlopen(req, timeout=10) as resp:
+        return resp.status, resp.read().decode("utf-8", "ignore")
+
+
+def _get(path, token):
+    req = urllib.request.Request(BASE + path, method="GET")
+    req.add_header("Cookie", "session=" + token)
+    with urllib.request.urlopen(req, timeout=10) as resp:
+        return resp.status, resp.read().decode("utf-8", "ignore")
+
+
+def _entry(date_iso, slot):
+    meals = dh.load_meal_wizard_session().get("confirmed_meals") or {}
+    return meals.get(date_iso + "::" + slot)
+
+
+def main():
+    failures = []
+
+    live_path = config.MEAL_WIZARD_SESSION_FILE
+    existed = os.path.exists(live_path)
+    backup = None
+    if existed:
+        fd, backup = tempfile.mkstemp(suffix=".json")
+        os.close(fd)
+        shutil.copy2(live_path, backup)
+
+    token = None
+    try:
+        token = auth.create_session("lauren")
+
+        # Seed a window + slots to plan; start with no confirmed meals.
+        dh.clear_meal_wizard_session()
+        dh.update_meal_wizard_session({
+            "planning_window": {"start_iso": _D1, "end_iso": _D2},
+            "confirmed_what_to_plan": ["breakfast", "lunch", "dinner"],
+            "confirmed_meals": {},
+        })
+
+        # ── GUARD branch 1 + write-loop (a): confirm with recipe fields OMITTED
+        st, raw = _post("/meal-wizard-step4-confirm", {
+            "date": _D1, "slot": "dinner", "name": "Chicken Parm",
+            "source": "manual", "ingredients": "", "protein": "chicken",
+        }, token)
+        ok = (st == 200) and (json.loads(raw).get("ok") is True)
+        _check(ok, "confirm POST returns 200 {ok:true}",
+               "confirm POST did not return ok", failures)
+        e = _entry(_D1, "dinner")
+        _check(isinstance(e, dict),
+               "confirmed meal persisted to session",
+               "confirmed meal missing from session", failures)
+        _check(isinstance(e, dict) and e.get("locked") is True,
+               "confirmed meal is locked", "confirmed meal not locked", failures)
+        _check(isinstance(e, dict) and e.get("recipe_on_request") is True,
+               "GUARD 1: recipe_on_request auto-set True (client omitted it)",
+               "GUARD 1 failed: recipe_on_request not auto-set", failures)
+        _check(isinstance(e, dict) and (e.get("recipe_id") or "") == "",
+               "confirmed meal has empty recipe_id", "recipe_id unexpectedly set",
+               failures)
+
+        # ── write-loop (b): GET shows the meal + Change + "No recipe needed"
+        st, html = _get("/meal-wizard-step4", token)
+        change_call = "s4Change('" + _D1 + "','dinner')"
+        _check(st == 200 and "Chicken Parm" in html,
+               "GET page shows the confirmed meal", "meal not shown on page",
+               failures)
+        _check(change_call in html,
+               "confirmed meal shows a 'Change' button",
+               "Change button missing for confirmed meal", failures)
+        _check("No recipe needed" in html,
+               "confirmed meal shows 'No recipe needed'",
+               "'No recipe needed' missing", failures)
+
+        # ── GUARD branch 2: recipe_id present, flag omitted -> stays False
+        _post("/meal-wizard-step4-confirm", {
+            "date": _D1, "slot": "lunch", "name": "Turkey wrap",
+            "source": "manual", "recipe_id": "r-9",
+        }, token)
+        e2 = _entry(_D1, "lunch")
+        _check(isinstance(e2, dict) and e2.get("recipe_id") == "r-9"
+               and e2.get("recipe_on_request") is False,
+               "GUARD 2: recipe_id present -> recipe_on_request left False",
+               "GUARD 2 failed: flag changed when recipe_id present", failures)
+
+        # ── GUARD branch 3: recipe_on_request already True -> stays True
+        _post("/meal-wizard-step4-confirm", {
+            "date": _D2, "slot": "lunch", "name": "Soup",
+            "source": "manual", "recipe_on_request": True,
+        }, token)
+        e3 = _entry(_D2, "lunch")
+        _check(isinstance(e3, dict) and e3.get("recipe_on_request") is True,
+               "GUARD 3: recipe_on_request already True -> left True",
+               "GUARD 3 failed: True flag was altered", failures)
+
+        # ── write-loop (c): remove -> slot gone; page back to entry state
+        st, raw = _post("/meal-wizard-step4-remove",
+                        {"date": _D1, "slot": "dinner"}, token)
+        ok = (st == 200) and (json.loads(raw).get("ok") is True)
+        _check(ok and _entry(_D1, "dinner") is None,
+               "remove POST clears the slot from the session",
+               "remove did not clear the slot", failures)
+        st, html = _get("/meal-wizard-step4", token)
+        name_id = "s4-name--" + _D1 + "--dinner"
+        _check(st == 200 and (name_id in html) and ("Chicken Parm" not in html),
+               "removed slot returns to the empty entry state",
+               "removed slot did not return to entry state", failures)
+
+        # ── write-loop (d): a prefill (past) entry is locked, NO Change button
+        meals = dh.load_meal_wizard_session().get("confirmed_meals") or {}
+        meals[_D2 + "::breakfast"] = {
+            "name": "Oatmeal", "source": "prefill", "locked": True,
+            "ingredients": "oats", "recipe_id": "", "recipe_on_request": True,
+            "skip_shopping": False, "protein": "",
+        }
+        dh.update_meal_wizard_session({"confirmed_meals": meals})
+        st, html = _get("/meal-wizard-step4", token)
+        prefill_change = "s4Change('" + _D2 + "','breakfast')"
+        _check(st == 200 and "Oatmeal" in html and prefill_change not in html,
+               "prefill (past) meal renders locked with NO 'Change' button",
+               "prefill meal incorrectly got a Change button", failures)
+
+    except Exception:
+        failures.append("exception")
+        traceback.print_exc()
+    finally:
+        if token:
+            try:
+                auth.destroy_session(token)
+            except Exception:
+                pass
+        if existed and backup:
+            shutil.copy2(backup, live_path)
+            os.remove(backup)
+        elif not existed and os.path.exists(live_path):
+            os.remove(live_path)
+
+    print()
+    if failures:
+        print(FAIL, str(len(failures)), "check(s) failed")
+        sys.exit(1)
+    print(PASS, "all G1b-2a write-loop + guard checks passed")
+
+
+if __name__ == "__main__":
+    main()
