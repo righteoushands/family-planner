@@ -125,3 +125,9 @@ id = "Ty5_EJR0AZOKz6pAi1sT0"
 uri = "file://MEAL_WIZARD_G1c_LORENZO_GENERATION_DIAGNOSIS.md"
 type = "text"
 title = "G1c — Lorenzo One-Pass Generation Diagnosis (read-only)"
+
+[[outputs]]
+id = "9cZ_KPowCEtcB9Z3wUCsJ"
+uri = "file://meal_wizard_G1c-1b_report.md"
+type = "text"
+title = "Meal Wizard G1c-1b — Build Report (copy-paste to Claude)"

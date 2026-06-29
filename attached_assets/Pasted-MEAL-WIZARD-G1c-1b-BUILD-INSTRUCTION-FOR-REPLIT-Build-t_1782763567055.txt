@@ -1,0 +1,228 @@
+MEAL WIZARD — G1c-1b BUILD INSTRUCTION  ***FOR REPLIT***
+Build the generation prompt and the live endpoint: assemble a prompt from the
+wizard session, call Sonnet (mirroring /meal-generate), parse with G1c-1a's
+parser, and write the result to the session's `suggested_meals` (the editable
+draft layer). One capability per Rule 17: "generate a draft week into the
+session." June 28 2026. Runs after G1c-1a (complete).
+
+================================================================
+WHAT THIS IS / WHY
+================================================================
+G1c-1a built the data contract (wizard_target_slot_keys + parse_wizard_meal_
+response in render_meal_wizard_gen.py). This phase adds (1) the prompt builder
+and (2) the POST endpoint that does the live call and writes `suggested_meals`.
+NO render/UI yet (the "Generate" button + pre-filling the boxes is G1c-2). The
+goal of this phase is to SEE a real generated week and judge its quality.
+
+DRAFT LAYER (confirmed by Lauren): the generation writes ONLY to the session key
+`suggested_meals` — never confirmed_meals, never the meal store, never
+used_proteins. Nothing is confirmed or locked here.
+
+REUSE: mirror /meal-generate's call + parse pattern (Sonnet, 4096 tokens, 90s
+timeout, requests.post, api key from app_settings). Do NOT reuse its prompt
+(legacy store shape) or its write target. Use G1c-1a's parser, not a new one.
+
+================================================================
+RULE 15 — READ-BACK FIRST
+================================================================
+Read claud.md, paste back every rule, state which apply. Expected: Rule 1/2/7
+(the prompt is a large string — BUILD IT AS A LIST OF LINES JOINED WITH "\n",
+like build_lorenzo_context, to avoid f-string backslash/nested-quote problems),
+Rule 3 + Route patterns + _JSON_PATHS (new POST route, register it in the LOCAL
+_JSON_PATHS set), Rule 4 (imports at module top; generate only for empty slots —
+enforced by reusing wizard_target_slot_keys), Rule 5 (session write via
+update_meal_wizard_session only), Rule 9/10 (smoke + ONE real call on a snapshot
+session, restored after), Rule 16 (a DRAFT Lauren edits — never auto-confirm;
+only the slot kinds she chose; suggestions, not decisions), Rule 19 (CRITICAL —
+pull any family facts from app_settings / the meal rules; do NOT hardcode names/
+ages or copy build_lorenzo_context's hardcoded roster). NOT applicable: 8 (no
+multipart), 13 (no forms), 11/12 (no HTML/JS rendered this phase).
+
+================================================================
+PRE-FLIGHT (Rule 14)
+================================================================
+1. Files touched: render_meal_wizard_gen.py (add build_wizard_meal_prompt), and
+   app.py (one import addition + one _JSON_PATHS entry + one elif route). Two
+   files. The harness data/verify_meal_wizard_gen.py gains the prompt + one
+   real-call check.
+2. JS in f-strings? NO (no rendering this phase).
+3. Forms / nested frol forms? NO.
+4. Root cause confirmed? N/A — new generation pipeline; the call/parse pattern
+   is taken from the proven /meal-generate (G1c diagnosis Part A/C).
+5. Multiple files? Two, directly related (prompt builder + the endpoint that
+   calls it). Single capability.
+6. Data-shape change? Writes the `suggested_meals` session key (additive; the
+   entry shape is G1c-1a's). No migration. confirmed_meals/store unchanged.
+
+================================================================
+BUILD STEP 1 — render_meal_wizard_gen.py: build_wizard_meal_prompt
+================================================================
+    def build_wizard_meal_prompt(session: dict, target_keys: list) -> str:
+        """Assemble the one-pass generation prompt from the wizard session.
+        Returns a single string. Built as a list of lines joined with newline
+        (Rule 1/2/7 — no f-string backslash/quote hazards). Family-agnostic:
+        any family facts come from app_settings / meal rules, never hardcoded
+        (Rule 19)."""
+
+Inputs to pull (all fail-soft; default to "" / [] when missing):
+  - dates+slots: from target_keys — group into a human list "YYYY-MM-DD — slot".
+  - inventory: session.get("confirmed_inventory","")  (what Lauren entered in the
+    wizard — NOT the legacy _get_inventory).
+  - use_soon: session.get("use_soon_items","").
+  - used_proteins: session.get("used_proteins",[]).
+  - complexity: session.get("confirmed_complexity","normal").
+  - confirmed_meals: session.get("confirmed_meals",{}) — list the ones whose date
+    falls in this window so the model can plan a COHERENT week around them
+    (it must NOT fill or change them).
+  - meal rules / dietary: reuse render_lorenzo._get_meal_constraints() if it is
+    importable at module level; if importing causes a circular import, replicate
+    its minimal read of data/meal_rules.json. (Family dietary facts live here and
+    in app_settings — Rule 19.)
+  - calendar: reuse render_lorenzo._get_calendar_this_week(<window start iso>)
+    for busy-night context (already merged/deduped per the diagnosis). Same
+    circular-import fallback rule.
+  - saved recipes: optional — reuse render_lorenzo._get_saved_recipes() so the
+    model can prefer dishes Lauren already has recipes for. Optional context.
+
+Prompt content (assemble these as lines; condensed from Lauren's 5/31 Lorenzo-
+fixes corrections + item 44 + protein rotation):
+  - Role: a Catholic homeschool family's meal planner producing a DRAFT week the
+    mother will review and edit.
+  - "Fill EXACTLY these meal cells, and ONLY these:" + the grouped date—slot list.
+    "Do not add any day or meal type that is not in this list." (Correction 5 /
+    Rule 16 — only the categories Lauren chose.)
+  - "These meals are ALREADY decided by Lauren — do NOT propose or change them;
+    plan a coherent week around them:" + the in-window confirmed list (or "none
+    yet"). (Correction 4.)
+  - "USE-SOON items — each MUST be used in at least one meal this week:" +
+    use_soon. "Do not ignore them." (Correction 2 / Issue 13 — the ignored
+    bananas.)
+  - "On-hand inventory (note the FORM — fresh / canned / frozen / dried):" +
+    inventory. "Respect the form exactly: if an item is canned, do not plan a
+    dish that needs it fresh, and vice versa; treat the canned/frozen form as
+    usable as-is." (Item 44.)
+  - "Do NOT repeat a main protein already used this week:" + used_proteins +
+    "and rotate proteins across the days you plan (no protein twice unless
+    unavoidable)."
+  - "Standing meal rules — follow exactly, including any meatless-Friday /
+    liturgical rules:" + the rules string.
+  - "Calendar for the week (keep meals quick on busy days):" + the calendar
+    string.
+  - "Effort level for this week: " + complexity + " — match it."
+  - IF any target slot is dad_lunch: "John's (Dad's) lunch must NEVER be the same
+    as that day's family dinner; he prefers meat over salad or rice." (Correction
+    9.)
+  - "Suggest real, makeable dishes. You may include meals that need a few
+    shopping items, but never claim an ingredient is on hand unless it is in the
+    inventory above." (Anti-fabrication — the diseases.)
+  - OUTPUT CONTRACT (must match G1c-1a's parser): "Return ONLY a JSON object, no
+    prose before or after, in EXACTLY this shape:"
+        {"meals": {"YYYY-MM-DD": {"slot": {"name": "...", "protein": "...",
+         "ingredients": "...", "note": "..."}}}}
+    "Include only the date/slot cells listed above. protein = the single main
+    protein, or empty string if meatless. ingredients = brief comma-separated
+    list. note = optional, <= 8 words."
+
+================================================================
+BUILD STEP 2 — app.py: the /meal-wizard-generate endpoint
+================================================================
+- Add build_wizard_meal_prompt (and parse_wizard_meal_response,
+  wizard_target_slot_keys if not already) to the top-of-file import from
+  render_meal_wizard_gen.
+- Add "/meal-wizard-generate" to the LOCAL _JSON_PATHS set.
+- Add the elif route. No input needed (reads the session). Mirror /meal-generate
+  for the call + the robust handling:
+    elif path == "/meal-wizard-generate":
+        # read/discard any body (in _JSON_PATHS)
+        _g_cl = int(self.headers.get("Content-Length","0") or 0)
+        if _g_cl:
+            try: self.rfile.read(_g_cl)
+            except Exception: pass
+        try:
+            _g_session = load_meal_wizard_session()
+            _g_targets = wizard_target_slot_keys(_g_session)
+            if not _g_targets:
+                _g_result = {"ok": True, "generated": 0, "target": 0,
+                             "message": "No empty slots to generate."}
+            else:
+                _g_prompt   = build_wizard_meal_prompt(_g_session, _g_targets)
+                _g_settings = load_app_settings()
+                _g_key = (_g_settings.get("anthropic_api_key","")
+                          or _g_settings.get("family_constraints",{}).get("anthropic_api_key",""))
+                if not _g_key:
+                    _g_result = {"error": "No API key set in Settings"}
+                else:
+                    _g_resp = requests.post(
+                        "https://api.anthropic.com/v1/messages",
+                        headers={"x-api-key": _g_key,
+                                 "anthropic-version": "2023-06-01",
+                                 "content-type": "application/json"},
+                        json={"model": <SAME MODEL STRING /meal-generate USES>,
+                              "max_tokens": 4096,
+                              "messages": [{"role":"user","content": _g_prompt}]},
+                        timeout=90)
+                    _g_resp.raise_for_status()
+                    _g_text = "".join(b.get("text","") for b in _g_resp.json().get("content",[])
+                                      if b.get("type") == "text")
+                    _g_suggestions = parse_wizard_meal_response(_g_text, _g_targets)
+                    update_meal_wizard_session({"suggested_meals": _g_suggestions})
+                    _g_result = {"ok": True, "generated": len(_g_suggestions),
+                                 "target": len(_g_targets),
+                                 "suggested_meals": _g_suggestions}
+        except Exception as _ge:
+            _g_result = {"error": str(_ge)}
+        self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
+        try: self.wfile.write(json.dumps(_g_result).encode())
+        except BrokenPipeError: pass
+        return
+- Imports (`requests`, `json`) at module top per Rule 4 (json is already top;
+  add requests at top if not present).
+
+MODEL STRING: use the SAME string /meal-generate uses today
+(claude-sonnet-4-20250514). The real call in validation will confirm it resolves.
+IF that call returns a model-not-found / invalid-model error, switch the string
+to "claude-sonnet-4-6" (current Sonnet) and re-run — and report which one worked.
+
+================================================================
+OUT OF SCOPE (do not build this phase)
+================================================================
+- No "Generate" button, no Step 4 render change, no pre-filling boxes (G1c-2).
+- No write to confirmed_meals, the meal store, or used_proteins.
+- No recipe-loop / grocery / whole-plan-reconciliation (later phases).
+- No prompt tuning beyond the guardrails above — we tune in G1c-3 from what the
+  first real generations actually get wrong.
+
+================================================================
+VALIDATION (Rules 9/10)
+================================================================
+1. py_compile render_meal_wizard_gen.py, app.py.
+2. SMOKE (offline, no network): call build_wizard_meal_prompt with a fixture
+   session (window 2026-06-29..2026-07-02, what_to_plan ["dinner"], a use-soon
+   item "old bananas", an inventory line "green beans (canned)", used_proteins
+   ["chicken"], complexity "simple"). Assert the returned prompt STRING contains:
+   each target date, the word "dinner", "old bananas", "canned", "chicken", the
+   complexity word, and the JSON output-contract shape. (Proves the inputs reach
+   the prompt — Correction 2 / item 44 / rotation are present.)
+3. ONE REAL AUTHENTICATED CALL (Rule 10 — snapshot + restore the session file):
+   snapshot the live wizard session. Seed a realistic session (a real-ish
+   window, what_to_plan ["dinner"], an inventory with at least one canned item,
+   one use-soon item, used_proteins with one protein). Mint a Lauren session and
+   POST /meal-wizard-generate. Then PASTE INTO THE REPORT:
+     - the raw model text returned, AND
+     - the resulting suggested_meals dict.
+   Assert: result.ok true; every key in suggested_meals is in the target set
+   (no confirmed/out-of-window/extra-slot keys); confirmed_meals and the meal
+   store are UNTOUCHED. Restore the session from the snapshot.
+   (We will eyeball the pasted week for quality: only requested cells filled, the
+   use-soon item actually used, the canned form respected, no repeated protein.)
+   If the call returns an error, paste the exact error (incl. any model error)
+   and the model-string fallback result.
+4. Regression: verify_meal_wizard_gen.py (G1c-1a checks still pass),
+   verify_meal_wizard_step3.py, verify_meal_wizard_step4.py — all PASS.
+5. Report: rules applied; the smoke assertions; the FULL raw generation + parsed
+   suggested_meals; which model string worked; confirmation the session was
+   restored and confirmed_meals/store untouched. Stop.
+
+================================================================
+End — G1c-1b, June 28 2026
+================================================================

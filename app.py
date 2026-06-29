@@ -147,6 +147,7 @@ _time.tzset()
 
 from datetime import date, datetime, timedelta
 import json
+import requests
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import socketserver
 import cgi as _cgi
@@ -254,6 +255,7 @@ from render_monica import render_monica_page, build_monica_context
 from render_wizards import render_wizards_page
 from render_meal_wizard import render_pantry_staples_page, render_meal_wizard_week_glance, render_meal_wizard_step2, render_meal_wizard_step3, render_meal_wizard_step4
 from render_meal_wizard_step3 import _feast_in_window as _s3_feast_in_window, _has_sunday_batch as _s3_has_sunday_batch
+from render_meal_wizard_gen import wizard_target_slot_keys, parse_wizard_meal_response, build_wizard_meal_prompt
 from render_plan_importer import (
     render_plan_import_page, build_analysis_system_prompt,
     _load_upcoming_events, _format_events_summary,
@@ -3545,7 +3547,7 @@ class Handler(BaseHTTPRequestHandler):
 
         else:
             # /plan-import-apply reads its own raw JSON body — don't consume it with URL form parse
-            _JSON_PATHS = {"/plan-import-apply", "/plan-import-undo-placement", "/curriculum-save", "/curriculum-minutes", "/poetry-passage-save", "/meal-wizard-step3-save", "/meal-wizard-step4-confirm", "/meal-wizard-step4-remove", "/meal-wizard-step4-lock"}
+            _JSON_PATHS = {"/plan-import-apply", "/plan-import-undo-placement", "/curriculum-save", "/curriculum-minutes", "/poetry-passage-save", "/meal-wizard-step3-save", "/meal-wizard-step4-confirm", "/meal-wizard-step4-remove", "/meal-wizard-step4-lock", "/meal-wizard-generate"}
             if path in _JSON_PATHS:
                 data = {}
             else:
@@ -10867,6 +10869,57 @@ class Handler(BaseHTTPRequestHandler):
                 self.end_headers()
                 _lk_body = json.dumps({"ok": True, **_lk_summary}).encode()
                 try: self.wfile.write(_lk_body)
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/meal-wizard-generate":
+                # Lorenzo generates a DRAFT week into the session's suggested_meals
+                # layer — never confirmed_meals, never the meal store, never
+                # used_proteins (Rule 16: a draft Lauren edits). Generates ONLY
+                # for empty slots she chose (Rule 4 — wizard_target_slot_keys).
+                # Route is in _JSON_PATHS so the form-parser left the body alone;
+                # read/discard it (no input needed — reads the session).
+                _g_cl = int(self.headers.get("Content-Length", "0") or 0)
+                if _g_cl:
+                    try: self.rfile.read(_g_cl)
+                    except Exception: pass
+                try:
+                    _g_session = load_meal_wizard_session()
+                    _g_targets = wizard_target_slot_keys(_g_session)
+                    if not _g_targets:
+                        _g_result = {"ok": True, "generated": 0, "target": 0,
+                                     "message": "No empty slots to generate."}
+                    else:
+                        _g_prompt   = build_wizard_meal_prompt(_g_session, _g_targets)
+                        _g_settings = load_app_settings()
+                        _g_key = (_g_settings.get("anthropic_api_key", "")
+                                  or _g_settings.get("family_constraints", {}).get("anthropic_api_key", ""))
+                        if not _g_key:
+                            _g_result = {"error": "No API key set in Settings"}
+                        else:
+                            _g_resp = requests.post(
+                                "https://api.anthropic.com/v1/messages",
+                                headers={"x-api-key": _g_key,
+                                         "anthropic-version": "2023-06-01",
+                                         "content-type": "application/json"},
+                                json={"model": "claude-sonnet-4-6",
+                                      "max_tokens": 4096,
+                                      "messages": [{"role": "user", "content": _g_prompt}]},
+                                timeout=90)
+                            _g_resp.raise_for_status()
+                            _g_text = "".join(b.get("text", "") for b in _g_resp.json().get("content", [])
+                                              if b.get("type") == "text")
+                            _g_suggestions = parse_wizard_meal_response(_g_text, _g_targets)
+                            update_meal_wizard_session({"suggested_meals": _g_suggestions})
+                            _g_result = {"ok": True, "generated": len(_g_suggestions),
+                                         "target": len(_g_targets),
+                                         "suggested_meals": _g_suggestions}
+                except Exception as _ge:
+                    _g_result = {"error": str(_ge)}
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                try: self.wfile.write(json.dumps(_g_result).encode())
                 except BrokenPipeError: pass
                 return
 

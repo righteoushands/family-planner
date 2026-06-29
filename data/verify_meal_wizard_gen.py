@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from render_meal_wizard_gen import (  # noqa: E402
     wizard_target_slot_keys,
     parse_wizard_meal_response,
+    build_wizard_meal_prompt,
 )
 
 _failures = []
@@ -112,6 +113,33 @@ check("bare-string value -> empty protein", _so.get("2026-06-30::dinner", {}).ge
 
 # empty target -> nothing maps
 check("empty target -> {}", parse_wizard_meal_response(_fenced, []) == {})
+
+# ── build_wizard_meal_prompt (G1c-1b smoke — offline, no network) ─────────────
+_p_session = {
+    "planning_window": {"start_iso": "2026-06-29", "end_iso": "2026-07-02"},
+    "confirmed_what_to_plan": ["dinner"],
+    "use_soon_items": "old bananas",
+    "confirmed_inventory": "green beans (canned)",
+    "used_proteins": ["chicken"],
+    "confirmed_complexity": "simple",
+    "confirmed_meals": {},
+}
+_p_targets = wizard_target_slot_keys(_p_session)
+_prompt = build_wizard_meal_prompt(_p_session, _p_targets)
+check("prompt is a non-empty string", isinstance(_prompt, str) and bool(_prompt))
+for _d in ("2026-06-29", "2026-06-30", "2026-07-01", "2026-07-02"):
+    check("prompt contains target date " + _d, _d in _prompt)
+check("prompt contains slot word 'dinner'", "dinner" in _prompt)
+check("prompt contains use-soon 'old bananas'", "old bananas" in _prompt)
+check("prompt notes the form 'canned'", "canned" in _prompt)
+check("prompt lists used protein 'chicken'", "chicken" in _prompt)
+check("prompt contains complexity word 'simple'", "simple" in _prompt)
+check("prompt contains JSON output-contract shape",
+      '{"meals": {"YYYY-MM-DD": {"slot":' in _prompt)
+check("prompt forbids extra cells",
+      "Do not add any day or meal type" in _prompt)
+check("prompt protects confirmed meals",
+      "ALREADY decided" in _prompt)
 
 print("")
 if _failures:
