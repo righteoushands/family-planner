@@ -1,0 +1,181 @@
+MEAL WIZARD — G1c-1a BUILD INSTRUCTION  ***FOR REPLIT***
+The data contract for Lorenzo's week generation: (1) which empty slots to
+generate for (never touching confirmed meals), and (2) how a model JSON response
+maps into clean suggestion entries. PURE LOGIC ONLY — no AI call, no prompt, no
+UI. One capability per Rule 17. June 28 2026. First sub-phase of G1c.
+
+================================================================
+WHAT THIS IS / WHY PURE-LOGIC-FIRST
+================================================================
+G1c (Lorenzo generates the week) reuses /meal-generate's proven call+parse
+engine but targets the WIZARD SESSION, not the legacy store. The riskiest part
+is correctness, not the model: it must generate ONLY for empty slots and NEVER
+overwrite an already-confirmed meal (Rule 4), and map responses into the exact
+suggestion-entry shape. That logic is deterministic and testable with a fixture
+response — so we build and prove it with NO network call first. The prompt and
+the live Sonnet call come in G1c-1b.
+
+DECISION (confirmed by Lauren): generated meals are an EDITABLE DRAFT. They live
+in a SEPARATE session key `suggested_meals` — NOT `confirmed_meals`, NOT the
+meal store. Nothing is confirmed until Lauren keeps it (G1c-2). So this phase
+only produces the suggestions dict; it does not confirm or lock anything.
+
+================================================================
+RULE 15 — READ-BACK FIRST
+================================================================
+Read claud.md, paste back every rule, state which apply. Expected: Rule 4
+(CRITICAL — generate only for slots NOT already in confirmed_meals; imports at
+module top), Rule 6 (no walrus), Rule 19 (CRITICAL — this logic must contain NO
+hardcoded family specifics: no names, ages, or roster; it works purely off the
+session's window/slots/confirmed data), Rule 9/10 (unit tests on fixtures, no
+live data). NOT applicable: 1/2/7/11/12 (no HTML/JS rendered here), 3/Route
+patterns (no route added this phase), 8 (no multipart), 13 (no forms), 5 (no
+file writes this phase — pure functions returning dicts).
+
+================================================================
+PRE-FLIGHT (Rule 14)
+================================================================
+1. Files touched: ONE new module render_meal_wizard_gen.py (two pure functions),
+   plus one new harness data/verify_meal_wizard_gen.py. No app.py change, no
+   route, no render file. (The endpoint + prompt + network call are G1c-1b.)
+2. JS in f-strings? NO.
+3. Forms / nested frol forms? NO.
+4. Root cause confirmed? N/A — new pure logic; the contract comes straight from
+   the G1c diagnosis (confirmed_meals keyed "YYYY-MM-DD::slot"; suggestion shape
+   mirrors a confirmed entry minus the lock).
+5. Multiple files? One new module + its harness. Single capability.
+6. Data-shape change? Introduces the suggestion-entry shape (returned in memory,
+   not persisted this phase) and the future `suggested_meals` session key. No
+   migration — additive, and nothing is written to disk this phase.
+
+================================================================
+BUILD — render_meal_wizard_gen.py (new module)
+================================================================
+Imports at top: `from datetime import date, timedelta`, `import json`, `import re`.
+No family specifics anywhere in this file (Rule 19).
+
+FUNCTION 1 — which empty slots to generate for (Rule 4):
+
+    def wizard_target_slot_keys(session: dict) -> list:
+        """Return the "YYYY-MM-DD::slot" keys the generator should fill:
+        every date in the planning window x every slot kind Lauren is planning,
+        MINUS any key already present in confirmed_meals (never overwrite a
+        confirmed/locked meal — Rule 4). Returns a sorted list; [] if the
+        window or slot kinds are missing."""
+    Logic:
+      - win   = session.get("planning_window") or {}
+      - start = win.get("start_iso"); end = win.get("end_iso")
+      - slots = session.get("confirmed_what_to_plan") or []
+      - confirmed = session.get("confirmed_meals") or {}
+      - if not (start and end and slots): return []
+      - try: d0 = date.fromisoformat(start); d1 = date.fromisoformat(end)
+        except: return []
+      - if d1 < d0: return []   # guard inverted window
+      - keys = []
+      - d = d0
+      - while d <= d1:
+          for slot in slots:
+              k = d.isoformat() + "::" + str(slot)
+              if k not in confirmed:
+                  keys.append(k)
+          d = d + timedelta(days=1)
+      - return sorted(keys)
+
+FUNCTION 2 — map a model response into suggestion entries:
+
+    def parse_wizard_meal_response(text: str, target_keys) -> dict:
+        """Parse the model's JSON week and map it into suggestion entries,
+        keyed "YYYY-MM-DD::slot". Includes ONLY keys in target_keys (never a
+        confirmed slot, never an out-of-window date, never an unrequested slot
+        kind). Returns {} if nothing parses. Each entry mirrors a confirmed
+        entry minus the lock, tagged source 'lorenzo'."""
+    Parse (copy /meal-generate's 3-strategy, self-contained):
+      - candidates = []
+      - fence = re.search(r'```json\s*([\s\S]*?)\s*```', text); if fence: candidates.append(fence.group(1))
+      - brace = re.search(r'\{[\s\S]*\}', text); if brace: candidates.append(brace.group())
+      - parsed = {}
+      - for cand in candidates:
+            try: parsed = json.loads(cand); break
+            except json.JSONDecodeError:
+                cleaned = re.sub(r',\s*([}\]])', r'\1', cand)
+                try: parsed = json.loads(cleaned); break
+                except Exception: pass
+      - if not isinstance(parsed, dict) or not parsed: return {}
+    Locate the meals map (be lenient about the wrapper):
+      - meals = parsed.get("meals") if isinstance(parsed.get("meals"), dict) else parsed
+        (i.e. accept either {"meals": {date: {...}}} or a bare {date: {...}})
+    Map into suggestions:
+      - target = set(target_keys or [])
+      - out = {}
+      - for day_key, slots in meals.items():
+            if not isinstance(slots, dict): continue
+            for slot_key, val in slots.items():
+                key = str(day_key) + "::" + str(slot_key)
+                if key not in target: continue          # only requested empties
+                # val may be a dict {name,protein,ingredients,note} or a bare string
+                if isinstance(val, dict):
+                    name = str(val.get("name","") or "").strip()
+                    protein = str(val.get("protein","") or "").strip()
+                    ingredients = str(val.get("ingredients","") or "").strip()
+                    note = str(val.get("note","") or "").strip()
+                else:
+                    name = str(val or "").strip(); protein = ""; ingredients = ""; note = ""
+                if not name: continue                    # skip empty suggestions
+                out[key] = {
+                    "name": name,
+                    "protein": protein,
+                    "ingredients": ingredients,
+                    "note": note,
+                    "source": "lorenzo",
+                    "recipe_id": "",
+                    "recipe_on_request": True,
+                    "skip_shopping": False,
+                }
+      - return out
+
+(Entry shape mirrors a confirmed_meals entry minus `locked`; G1c-2 will copy an
+entry and set locked:True when Lauren keeps it. No `protein` goes into
+used_proteins here — suggestions are not confirmed.)
+
+================================================================
+OUT OF SCOPE (do not build this phase)
+================================================================
+- No prompt builder, no Anthropic call, no /meal-wizard-generate route.
+- No write to the session (no suggested_meals persisted yet), no render, no
+  "Generate" button. (All G1c-1b / G1c-2.)
+- Do not touch confirmed_meals, the meal store, or used_proteins.
+
+================================================================
+VALIDATION (Rules 9/10) — OFFLINE, NO NETWORK
+================================================================
+New harness data/verify_meal_wizard_gen.py, fixtures only (no live AI call, no
+live data writes):
+
+1. py_compile render_meal_wizard_gen.py.
+2. wizard_target_slot_keys:
+   - Session: window 2026-06-29..2026-07-01, confirmed_what_to_plan
+     ["dinner","breakfast"], confirmed_meals has "2026-06-29::dinner".
+     Assert: result EXCLUDES "2026-06-29::dinner", includes the other 5 keys
+     (3 days x 2 slots minus the 1 confirmed); result is sorted.
+   - Missing window -> []. Missing slots -> []. Inverted window (end<start) -> [].
+3. parse_wizard_meal_response (feed canned strings — NO network):
+   - A fenced ```json block with meals for those dates incl. (a) a target slot,
+     (b) the already-confirmed "2026-06-29::dinner", (c) an out-of-window date.
+     Assert: output contains ONLY target keys; the confirmed key and the
+     out-of-window date are ABSENT; each entry has source "lorenzo",
+     recipe_on_request True, recipe_id "", skip_shopping False, and the right
+     name/protein/ingredients.
+   - Trailing-comma JSON still parses (assert non-empty).
+   - Garbage / non-JSON text -> {} (no exception).
+   - A bare {date:{slot:...}} with no "meals" wrapper still maps correctly.
+   - A slot value given as a bare string (not a dict) -> entry with that name
+     and empty protein/ingredients.
+4. Regression: verify_meal_wizard_step3.py and verify_meal_wizard_step4.py ->
+   assert still PASS (this phase touches neither).
+5. Report: rules applied; paste the harness output; confirm NO network call and
+   NO file writes occurred; confirm the module contains no family specifics
+   (Rule 19). Stop.
+
+================================================================
+End — G1c-1a, June 28 2026
+================================================================
