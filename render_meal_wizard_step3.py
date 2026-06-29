@@ -418,7 +418,8 @@ def _saved_confirmation_body(user):
         f'<p style="{_S3_HINT}">{escape(note)}</p>'
         f'{summary}'
         f'<a href="/meal-wizard-step3" style="{_S3_LINK_GHOST}">Edit these choices</a>'
-        f'<a href="/meal-wizard" style="{_S3_LINK_BTN}">Back to the wizard</a>'
+        f'<a href="/meal-wizard-step4" style="{_S3_LINK_BTN}">Continue to Step 4</a>'
+        f'<a href="/meal-wizard" style="{_S3_LINK_GHOST}">Back to the wizard</a>'
     )
     body = (
         f'<div style="max-width:680px;margin:0 auto;padding:24px 16px 96px;">'

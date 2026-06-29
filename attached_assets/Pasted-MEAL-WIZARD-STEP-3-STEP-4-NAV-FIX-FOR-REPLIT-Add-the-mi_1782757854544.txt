@@ -1,0 +1,87 @@
+MEAL WIZARD — STEP 3 -> STEP 4 NAV FIX  ***FOR REPLIT***
+Add the missing "Continue to Step 4" link on the Step 3 "Saved" screen so the
+wizard stops dead-ending. One file, one fix per Rule 17. June 28 2026.
+
+================================================================
+WHAT THIS IS / WHY
+================================================================
+The wizard currently dead-ends at the Step 3 "Saved" screen: its two buttons
+("Edit these choices" -> /meal-wizard-step3, "Back to the wizard" ->
+/meal-wizard) both go BACKWARD, and nothing anywhere links forward to
+/meal-wizard-step4. Step 4 is only reachable by typing the URL. This adds the
+forward link so the flow connects: Step 1 -> 2 -> 3 -> (saved) -> Step 4.
+
+A plain <a href="/meal-wizard-step4"> is correct here (Anchor-tag rule): Step 4
+reads its state (planning_window, confirmed_what_to_plan, confirmed_meals) from
+the wizard session, which Step 3's save already persisted. No state needs to
+travel in the URL; no form is needed.
+
+================================================================
+RULE 15 — READ-BACK FIRST
+================================================================
+Read claud.md, paste back the rules, state which apply. Expected: Rule 1/2
+(f-string discipline for the new anchor — pull the style into the existing
+_S3_LINK_* constants, no nested quotes in the f-string), Rule 11 (no new
+dynamic text to escape — the label is static), Rule 17 (one fix, one file),
+Anchor-tag navigation (plain href is fine because Step 4 reads persisted
+session state). NOT applicable: no JS (Rules 7/12), no forms (Rule 13), no
+route or data-shape change.
+
+================================================================
+PRE-FLIGHT (Rule 14)
+================================================================
+1. Files touched: render_meal_wizard_step3.py ONLY (the _saved_confirmation_body
+   button block, ~lines 414-422).
+2. JS in f-strings? NO.
+3. Forms / nested /frol-wizard forms? NO — anchors only.
+4. Root cause confirmed? YES — the read showed the saved screen has no forward
+   link and nothing in the wizard points to /meal-wizard-step4.
+5. Multiple files? NO — one file.
+6. Data-shape change? NO.
+
+================================================================
+THE CHANGE
+================================================================
+In render_meal_wizard_step3.py, _saved_confirmation_body, the inner button block
+currently ends with:
+
+    f'<a href="/meal-wizard-step3" style="{_S3_LINK_GHOST}">Edit these choices</a>'
+    f'<a href="/meal-wizard" style="{_S3_LINK_BTN}">Back to the wizard</a>'
+
+Change it so the PRIMARY action is going forward to Step 4, and the two backward
+links are secondary:
+
+    f'<a href="/meal-wizard-step3" style="{_S3_LINK_GHOST}">Edit these choices</a>'
+    f'<a href="/meal-wizard-step4" style="{_S3_LINK_BTN}">Continue to Step 4</a>'
+    f'<a href="/meal-wizard" style="{_S3_LINK_GHOST}">Back to the wizard</a>'
+
+That is the whole change: add the "Continue to Step 4" anchor using the primary
+button style (_S3_LINK_BTN), and demote "Back to the wizard" from _S3_LINK_BTN to
+_S3_LINK_GHOST so there is exactly one clear primary (forward) action. "Edit
+these choices" stays ghost as-is. Do not touch anything else.
+
+================================================================
+OUT OF SCOPE (do not build)
+================================================================
+- No changes to Step 4 itself, no changes to the editable Step 3 form, no route
+  changes, no styling beyond swapping the two style constants above.
+- Do not add a "continue" to the editable form view — only the saved-confirmation
+  view (the one users land on after saving) needs the forward link.
+
+================================================================
+VALIDATION (Rules 9/10) — proportionate to a one-link change
+================================================================
+1. py_compile render_meal_wizard_step3.py.
+2. Smoke: call render_meal_wizard_step3("Lauren", saved=True) and assert the
+   returned HTML contains href="/meal-wizard-step4" and the text "Continue to
+   Step 4"; assert "Back to the wizard" now uses the ghost style.
+3. Confirm GET /meal-wizard-step4 still returns 200 (authenticated) / 302
+   (unauth) — unchanged, just confirming the link target is live.
+4. Re-run verify_meal_wizard_step3.py and verify_meal_wizard_step4.py — assert
+   no regression.
+5. Report: rules applied, the smoke assertions, confirm only the one file
+   changed. Stop.
+
+================================================================
+End — Step 3 -> Step 4 nav fix, June 28 2026
+================================================================
