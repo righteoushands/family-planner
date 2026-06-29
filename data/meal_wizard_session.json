@@ -1,0 +1,19 @@
+{
+  "confirmed_inventory": "Fridge:\nwhat needs to be eaten soon include about 2 pounds of cooked ground beef\nrotisserie chicken\nraw\nbacon\nfruits and vegetables\nFruits and vegetables include two remain lettuce\nthree green bell peppers\none bag of fresh green beans\none bag of brussels sprouts\ngreen\ngrapes\nblueberries\nstrawberries\nAlso\nis a can of green beans\nshredded cheese for tacos\nor other things\nwhole milk\nyogurt\nfor the little kids\nsourdough bread\nfrench fries\nrefried beans\ncarrots\neggs\nleftover Chick-fil-A\nmacaroni\ncheese that needs to be eaten soon\nground flax seeds and Chia seeds\n2 pounds of raw chicken\nfour patties of hamburger\n2 pounds of raw\nground beef\nkimchi\ntwo dozen eggs\n2% milk\nwhole milk\nsoy milk\napples\noranges\nDiet Coke\nSprite\nbeer\nwine\n\nFreezer:\nmixed vegetables\nfrench fries\npulled pork a pound\nfour Cajun sausages\ncorn\nham hock\nin the garage\nwhich includes \ntwo pizzas\none bag of spinach and \ntwo pie crust\nIn the garage\n\nPantry:\ntwo white onions\nsix small sweet potatoes\nbag of parboiled rice\nbag of small red potatoes\nbaking mix for pancakes and waffles\ncrispix cereal\ncoffee\nrotini\npasta\nwide egg noodles\ncan of evaporated milk\npumpkin\nfruit\ncocktail\npeaches\npork\nbeans\npear slices\nvegetable soup\nsweet peas\ncream of mushroom soup\nsliced carrots\npetite\ndiced tomatoes\ncrushed tomatoes purée\ngreen beans\npink salmon\nwhole corn\ncans of tuna\ncans of sardines\nTo be clear\nthere are two cans of tuna and three cans of sardines\nContinuing what’s\nsalsa Verde\njars of spaghetti sauce\nhoney\nfruit cocktail\nfor kids and little tubes\npeanut butter\nbox of macaroni and cheese\nbox of small pasta\nshells\nrolled oats\nchocolate cake\nmix\nsugar\ncones for ice cream\nbreadcrumbs\npopcorn\nkernels\nbags of movie\npopcorn\ndried mixed beans\nContinuing in a\nsmall bag of mashed potatoes\npearl barley\ntwo more boxes of macaroni and cheese\nbag of red lentils\ntwo to go containers of mashed potatoes\nlinguine\ntwo loaf of breads\nhamburger buns\ntortillas\nquinoa\ncoconut oil\nfew dates\nunsweet\ncoconut\ndifferent packets of seasoning\nincluding taco and chili and gumbo and meatloaf spaghetti brown gravy\nContinuing\nvarious staples\nincluding flour\nsugar\nunsweetened\ncocoa\nbrown sugar\npowdered milk\nmolasses\nbakers\nyeast\nregular yeast\ngelatin\nContinuing",
+  "use_soon_items": "",
+  "confirmed_what_to_plan": [
+    "breakfast",
+    "lunch",
+    "dinner",
+    "snacks",
+    "dessert",
+    "feast_meal",
+    "batch_cook"
+  ],
+  "confirmed_complexity": "normal",
+  "planning_window": {
+    "start_iso": "2026-06-29",
+    "end_iso": "2026-07-06"
+  },
+  "confirmed_meals": {}
+}

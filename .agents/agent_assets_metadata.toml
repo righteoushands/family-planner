@@ -113,3 +113,9 @@ id = "EkcXH7mbIc7PgOFF15t55"
 uri = "file://MEAL_WIZARD_G1_LOCK_BUILD_REPORT.md"
 type = "text"
 title = "Meal Wizard G1 LOCK — Build Report"
+
+[[outputs]]
+id = "KHDEjG15WgFOemNjA32Tp"
+uri = "file://MEAL_WIZARD_STEP3_NAV_AND_INVENTORY_SCOPING.md"
+type = "text"
+title = "Step 3 Nav + Step 2 Inventory Parser Scoping (read-only)"
