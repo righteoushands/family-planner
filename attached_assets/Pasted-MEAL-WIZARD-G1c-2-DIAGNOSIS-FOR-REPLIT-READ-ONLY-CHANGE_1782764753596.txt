@@ -1,0 +1,46 @@
+MEAL WIZARD — G1c-2 DIAGNOSIS  ***FOR REPLIT — READ ONLY, CHANGE NOTHING***
+
+Scoping G1c-2: add a "Generate my week with Lorenzo" button and PRE-FILL the
+Step 4 input boxes from the session's `suggested_meals` (the draft layer
+G1c-1b writes), so Lauren edits a draft instead of typing from scratch. Before
+writing it I need to see exactly how Step 4 renders each slot today.
+
+1. Per Rule 15: read claud.md, paste back every rule, then say which apply to a
+   render change that pre-fills Step 4's meal inputs from suggested_meals and
+   adds a generate button (a POST trigger).
+
+2. Paste back VERBATIM (do not summarize). If something isn't where I expect,
+   say so.
+
+== A — PER-SLOT RENDER ==
+In render_meal_wizard_step4.py, the code that renders ONE slot's row: the part
+that decides whether a slot shows (a) the editable input boxes (meal name /
+ingredients / protein) for an EMPTY slot, vs (b) the confirmed card with the
+"Change" button for a slot already in confirmed_meals. Paste that branch in full,
+including the exact element ids/names of the three input boxes and the "Keep this
+meal" button for a slot.
+
+== B — HOW "EMPTY VS CONFIRMED" IS DECIDED ==
+Show the line(s) that test whether a slot is confirmed (presence of the
+"YYYY-MM-DD::slot" key in confirmed_meals). I need to know where to add a THIRD
+case: empty AND a matching key exists in suggested_meals -> pre-fill the boxes
+from the suggestion (still editable, still requires "Keep this meal" to confirm).
+
+== C — THE KEEP / CHANGE JS ==
+Paste window.s4Keep and window.s4Change (or whatever the confirm/remove handlers
+are called) verbatim — specifically how s4Keep reads the input box values and
+what it POSTs to /meal-wizard-step4-confirm. (I need to confirm that a pre-filled
+box flows through the EXISTING keep path unchanged, so promoting a suggestion is
+just "the box already has text.")
+
+== D — SESSION READ IN THE RENDER ==
+Confirm how the render function gets the session (does it call
+load_meal_wizard_session itself, or is it passed in?), so the pre-fill can read
+session.get("suggested_meals", {}) the same way.
+
+== E — IS THERE A NATURAL SPOT FOR THE BUTTON? ==
+Show the top-of-Step-4 area (after the gate check, before/around the day cards)
+where a "Generate my week with Lorenzo" button would sit, and confirm whether
+Step 4 already has a JS block (like _S4_JS) the new generate handler can join.
+
+Paste each under a clear heading. Read only — change nothing.
