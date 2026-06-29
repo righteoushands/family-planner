@@ -1,0 +1,68 @@
+MEAL WIZARD — G1c (LORENZO ONE-PASS GENERATION) DIAGNOSIS
+***FOR REPLIT — READ ONLY, CHANGE NOTHING***
+
+Scoping the step where Lorenzo generates the week's meals in one pass and pre-
+fills the Step 4 slots (which Lauren then edits/confirms). Before any build, I
+must see what generation already exists and how Lorenzo is actually wired.
+
+1. Per Rule 15: read claud.md, paste back every rule, then say which apply to a
+   one-pass whole-week AI generation that fills the wizard's confirmed_meals
+   slots (NOT the chat flow).
+
+2. Paste back VERBATIM (do not summarize). If something doesn't exist or lives
+   elsewhere, say so.
+
+== PART A — THE MOST IMPORTANT QUESTION: WHAT GENERATION ALREADY EXISTS? ==
+The June 1 audit flagged competing meal paths. I must NOT build a second
+generator if one exists. Show me, in full:
+- app.py: the ENTIRE /meal-generate POST handler (prompt assembly, the AI call,
+  the parse, what it writes to the store, days_out / grocery_gaps / prep_notes /
+  use_soon_used / generated). I want the whole thing.
+- render_ai_daily.py: ai_meal_plan (and any /ai-meal-plan route in app.py that
+  calls it) — full function: prompt, model, output shape, what it returns/writes.
+- Any OTHER place that asks an AI to produce meals for a day or week (grep for
+  "meal" near the Anthropic call sites). List each with file:line and one line
+  on what it does.
+- For each generator found: does it WRITE THE STORE directly, or RETURN
+  structured data a caller could redirect into the wizard session? This is the
+  reuse-vs-rebuild decision — be explicit.
+
+== PART B — LORENZO'S SYSTEM PROMPT (so I can write a generation prompt) ==
+- render_lorenzo.py: the TAIL of build_lorenzo_context — the literal system-
+  prompt body after the knowledge stack: the write-tag protocol
+  ([MEAL_UPDATE], [RECIPE_CARD:add], etc.), the "forbidden fake patterns" /
+  never-fake-a-save text, and the "5 HARD RULES" block. Verbatim. (I need to see
+  exactly what Lorenzo is already told before adding generation behavior.)
+
+== PART C — OUTPUT PARSING (JSON vs bracket-tags decision) ==
+- app.py /lorenzo-chat: the _meal_rx regex and the block that extracts/applies
+  Lorenzo's bracket/XML save-tags after a reply. Verbatim.
+- Confirm _repair_and_parse_json is still ONLY the nested local in the plan-
+  import handler (app.py ~8412) — i.e. there is no module-level JSON-repair
+  helper a new generation call could reuse.
+- Is there ANY existing code that asks an Anthropic call for JSON and parses a
+  structured object back? If so, show the cleanest example (it's the pattern a
+  week-generation would follow).
+
+== PART D — KNOWLEDGE-STACK HELPER OUTPUT SHAPES ==
+For each, paste the function AND one realistic example of the STRING/стructure
+it returns (so I know what the generation prompt can lean on):
+- render_lorenzo.py: _get_inventory, _get_saved_recipes, _get_meal_constraints,
+  _get_current_meal_plan, _get_calendar_this_week.
+
+== PART E — THE AI CALL PLUMBING ==
+- Is every Anthropic call inline (urllib.request) at each site, or is there ANY
+  shared "call the model" helper anywhere in the codebase? If shared, show it.
+- For the existing generator(s) in Part A: model name, max_tokens, timeout. (A
+  whole-week generation needs a bigger max_tokens than the 1500 the chat uses —
+  I need the real numbers in use.)
+
+== PART F — SESSION INPUTS THE GENERATION WILL CONSUME ==
+- Confirm these wizard-session keys are readable and show a current example of
+  each: confirmed_what_to_plan, confirmed_complexity, planning_window,
+  confirmed_inventory, use_soon_items, confirmed_meals (the already-confirmed
+  ones the generation must NOT overwrite — Rule 4), used_proteins.
+- Confirm how to tell which slots are ALREADY confirmed (so generation fills
+  only the empty ones and never clobbers a locked/confirmed meal).
+
+Paste each part under a clear heading. Read only — change nothing.
