@@ -1,0 +1,74 @@
+G1c-2 — Generate button + Step 4 pre-fill. ONE FILE: render_meal_wizard_step4.py.
+Additive only. Diagnosis is done — do NOT re-diagnose. Do NOT touch app.py,
+/meal-wizard-generate, /meal-wizard-step4-confirm, or window.s4Keep.
+
+Rules in play: 1, 2, 7, 11, 12 (JS-in-f-string + escape-once), 16 (result stays an
+editable draft, never auto-confirmed), 17 (one file, related), 19 (add no roster logic).
+
+CONFIRM THESE ANCHORS BEFORE EDITING. If any function name / id / area does not
+match the live file, STOP and report the mismatch — do not guess:
+- render reads confirmed via session.get("confirmed_meals") or {} ~line 382.
+- _s4_day_card resolves per-slot confirmed via confirmed.get(iso + "::" + slot_key)
+  and passes the entry to _s4_slot_block.
+- _s4_slot_block(date_iso, slot_key, label, entry): EMPTY vs confirmed decided by
+  `if not isinstance(entry, dict)`. EMPTY branch renders inputs id="s4-name--{key}",
+  "s4-ing--{key}", "s4-prot--{key}", msg "s4-msg--{key}", Keep button
+  onclick="s4Keep('{date_iso}','{slot_key}')", key = date_iso + "--" + slot_key.
+  Those inputs currently have NO value=.
+- _S4_JS IIFE (~191-238) defines window.s4Lock. _S4_LOCK_WRAP/_S4_LOCK_BTN style the
+  lock button; s4-lock-msg is its error div. inner (~468-483) places content after the
+  "Step 4 of 6" subtitle and {banner_html}, before {"".join(day_cards)}.
+
+PART 1 — plumb suggested_meals and pre-fill empty boxes:
+1. In render, beside the confirmed read (~382): suggested = session.get("suggested_meals")
+   or {}. Same accessor style as confirmed. No new import.
+2. Thread it: _s4_day_card(..., confirmed, suggested). Per slot, also compute
+   suggestion = suggested.get(iso + "::" + slot_key) and pass to
+   _s4_slot_block(..., entry, suggestion).
+   *** KEY CONVENTION — the bug to avoid: suggested_meals is looked up with "::"
+   (iso + "::" + slot_key), SAME as confirmed. The DOM id uses "--". Do NOT use the
+   "--" key to look up suggested_meals — it will silently miss and leave boxes blank. ***
+3. In _s4_slot_block add a param suggestion=None. ONLY in the EMPTY branch (entry not a
+   dict): if isinstance(suggestion, dict), set the three input value= attributes from
+   suggestion's name / ingredients / protein. Confirm those exact key names against what
+   the generator writes (parse_wizard_meal_response in render_meal_wizard_gen.py).
+   - Escape each value EXACTLY ONCE with the same escape helper already used in this file
+     (Rule 11 — no second escape pass). Escaping must cover double-quotes, since value=
+     is double-quoted, so e.g. Mac "n" Cheese cannot break out of the attribute.
+   - Input ids, msg id, and the Keep button (s4Keep) stay byte-for-byte identical. Only
+     value= is added.
+   - Confirmed branch unchanged. If a slot has both, confirmed wins (we're in the else
+     branch; ignore suggestion).
+
+PART 2 — Generate button + s4Generate:
+4. In inner (~468-483), after the "Step 4 of 6" subtitle and {banner_html}, BEFORE
+   {"".join(day_cards)}: a wrapper styled like _S4_LOCK_WRAP with a button styled like
+   _S4_LOCK_BTN labeled "Generate my week with Lorenzo", plus an error div mirroring
+   s4-lock-msg (id="s4-gen-msg", empty by default).
+5. In the _S4_JS IIFE add window.s4Generate, following the window.s4Lock idiom:
+   fetch('/meal-wizard-generate', { method:'POST',
+   headers:{'Content-Type':'application/json'}, body:'{}' }); on ok reload
+   '/meal-wizard-step4'; on non-ok/error show s4-gen-msg with a short message.
+   Rules 1/2/7/12: no backslashes, no nested quotes, no raw newlines in any JS string.
+   [OPTIONAL — flag if s4Lock doesn't already do this] At the top of s4Generate, disable
+   the clicked button before the fetch to prevent a double-fire (live AI call, several
+   seconds); re-enable on error. Mirror s4Lock if it already does this; otherwise this
+   guard is the ONLY deviation from the s4Lock idiom.
+6. Do NOT change window.s4Keep or the confirm POST body. A pre-filled box flows through
+   the unchanged Keep path — the box already has text, Lauren clicks Keep, it posts
+   source:'manual' as today. A kept Lorenzo suggestion is therefore tagged manual.
+   Intended.
+
+VALIDATE:
+7. py_compile render_meal_wizard_step4.py.
+8. In-process smoke test, NO live-data writes (Rule 10): call _s4_slot_block directly
+   with an EMPTY entry (not a dict) and a fake suggestion
+   {"name": 'Mac "n" Cheese', "ingredients": "macaroni, cheddar", "protein": "none"}.
+   Assert: all three boxes have value=" populated; the name's double-quote renders as
+   &quot; (not a raw "); the Keep onclick and the three input ids are unchanged. Then
+   call with entry = a confirmed dict + the same suggestion and assert the suggestion is
+   ignored. Print PASS/FAIL per assertion.
+9. Identify and run the existing verify_phase_*.py harness covering Step 4 / Phase G on a
+   temp copy of data (Rule 10); paste the result.
+10. Report in order: compile result; the three smoke assertions; harness result. Nothing
+    else bundled in.

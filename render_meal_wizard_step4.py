@@ -233,12 +233,24 @@ _S4_JS = (
     "        else if(msg){ msg.textContent = 'Could not set your plan. Please try again.'; } })"
     "      .catch(function(){ if(msg){ msg.textContent = 'Could not set your plan. Please try again.'; } });"
     "  };"
+    "  window.s4Generate = function(btn){"
+    "    var msg = elById('s4-gen-msg');"
+    "    if(msg){ msg.textContent = ''; }"
+    "    if(btn){ btn.disabled = true; }"
+    "    fetch('/meal-wizard-generate', { method:'POST',"
+    "      headers:{'Content-Type':'application/json'}, body: '{}' })"
+    "      .then(function(r){ return r.json(); })"
+    "      .then(function(j){ if(j && j.ok){ window.location.href = '/meal-wizard-step4'; }"
+    "        else { if(btn){ btn.disabled = false; } if(msg){ msg.textContent = 'Could not generate. Please try again.'; } } })"
+    "      .catch(function(){ if(btn){ btn.disabled = false; } if(msg){ msg.textContent = 'Could not generate. Please try again.'; } });"
+    "  };"
     "})();"
     "</script>"
 )
 
 
-def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry) -> str:
+def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry,
+                   suggestion=None) -> str:
     """One slot row. EMPTY (non-prefill by definition — an empty slot has no
     source) gets an entry affordance: meal name (required) + optional ingredients
     + optional main-protein inputs and a 'Keep this meal' button. A CONFIRMED,
@@ -257,11 +269,24 @@ def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry) -> str:
         # from the fixed _S4_SLOT_ORDER allowlist, so both are safe to inline.
         keep_call = "s4Keep('" + date_iso + "','" + slot_key + "')"
         ing_ph = "Ingredients (optional) \u2014 e.g. + chicken nuggets for James"
+        # Pre-fill from a Lorenzo draft suggestion when one exists for this slot.
+        # value= is built outside the f-string (Rule 2) and escaped exactly once
+        # (Rule 11); escape() covers the double-quote that delimits value="...".
+        name_val = ""
+        ing_val = ""
+        prot_val = ""
+        if isinstance(suggestion, dict):
+            sug_name = escape(suggestion.get("name") or "")
+            sug_ing = escape(suggestion.get("ingredients") or "")
+            sug_prot = escape(suggestion.get("protein") or "")
+            name_val = ' value="' + sug_name + '"'
+            ing_val = ' value="' + sug_ing + '"'
+            prot_val = ' value="' + sug_prot + '"'
         return (
             f'<div style="{_S4_SLOT_ROW}">{label_html}'
-            f'<input type="text" id="{name_id}" style="{_S4_INPUT}" placeholder="Meal name">'
-            f'<input type="text" id="{ing_id}" style="{_S4_INPUT}" placeholder="{ing_ph}">'
-            f'<input type="text" id="{prot_id}" style="{_S4_INPUT}" '
+            f'<input type="text" id="{name_id}"{name_val} style="{_S4_INPUT}" placeholder="Meal name">'
+            f'<input type="text" id="{ing_id}"{ing_val} style="{_S4_INPUT}" placeholder="{ing_ph}">'
+            f'<input type="text" id="{prot_id}"{prot_val} style="{_S4_INPUT}" '
             f'placeholder="Main protein (optional)">'
             f'<div><button type="button" style="{_S4_KEEP_BTN}" '
             f'onclick="{keep_call}">Keep this meal</button></div>'
@@ -294,7 +319,8 @@ def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry) -> str:
             f'{tags_html}{change_html}</div>')
 
 
-def _s4_day_card(d: date, day_events: list, to_plan, confirmed: dict) -> str:
+def _s4_day_card(d: date, day_events: list, to_plan, confirmed: dict,
+                 suggested: dict) -> str:
     """One day card: replicated liturgical header + commitments, then the meal
     slots selected for this week with any confirmed meals shown."""
     info = get_day_info(d)
@@ -335,8 +361,11 @@ def _s4_day_card(d: date, day_events: list, to_plan, confirmed: dict) -> str:
     for (slot_key, slot_label) in _S4_SLOT_ORDER:
         if slot_key not in to_plan:
             continue
+        slot_key_full = iso + "::" + slot_key
         slot_blocks.append(
-            _s4_slot_block(iso, slot_key, slot_label, confirmed.get(iso + "::" + slot_key))
+            _s4_slot_block(iso, slot_key, slot_label,
+                           confirmed.get(slot_key_full),
+                           suggested.get(slot_key_full))
         )
     if slot_blocks:
         slots_html = f'<div style="{_S4_SLOTS_WRAP}">{"".join(slot_blocks)}</div>'
@@ -383,6 +412,7 @@ def render_meal_wizard_step4(user: str, start_iso: str = None) -> str:
     window = session.get("planning_window") or {}
     to_plan = session.get("confirmed_what_to_plan") or []
     confirmed = session.get("confirmed_meals") or {}
+    suggested = session.get("suggested_meals") or {}
     # confirmed_inventory is intentionally read-but-unused here; green/red
     # ingredient parsing is G1b-2.
     _inventory = session.get("confirmed_inventory") or ""
@@ -419,7 +449,8 @@ def render_meal_wizard_step4(user: str, start_iso: str = None) -> str:
     for offset in range(span + 1):
         d = start_d + timedelta(days=offset)
         day_cards.append(
-            _s4_day_card(d, events_by_date.get(d.isoformat(), []), to_plan, confirmed)
+            _s4_day_card(d, events_by_date.get(d.isoformat(), []), to_plan,
+                         confirmed, suggested)
         )
 
     # G1 lock state. The banner shows once Lauren has set her plan (revisitable —
@@ -465,11 +496,22 @@ def render_meal_wizard_step4(user: str, start_iso: str = None) -> str:
         f'<a href="/meal-wizard-step3" style="{_S4_BACK}">\u2190 Back</a>'
         f'</div>'
     )
+    # Draft generator: kicks off /meal-wizard-generate (G1c-1b) then reloads so the
+    # empty slots come back pre-filled with Lorenzo's editable suggestions (Rule 16
+    # \u2014 a draft to edit, never auto-confirmed).
+    generate_html = (
+        f'<div style="{_S4_LOCK_WRAP}">'
+        f'<button type="button" id="s4-gen-btn" style="{_S4_LOCK_BTN}" '
+        f'onclick="s4Generate(this)">Generate my week with Lorenzo</button>'
+        f'<div id="s4-gen-msg" style="{_S4_LOCK_MSG}"></div>'
+        f'</div>'
+    )
     inner = (
         f'<h1 style="font-family:{_HEADING_FONT};font-size:2em;font-weight:600;'
         f'color:var(--ink);margin:0 0 2px;">{_S4_TITLE}</h1>'
         f'<p style="{_S4_SUBTITLE}">Step 4 of 6 \u2014 Build the menu</p>'
         f'{banner_html}'
+        f'{generate_html}'
         f'{"".join(day_cards)}'
         f'{lock_html}'
         f'{nav}'
