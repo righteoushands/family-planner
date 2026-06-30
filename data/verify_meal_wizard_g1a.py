@@ -59,14 +59,17 @@ def _confirm(payload):
     if source_v not in _SOURCES:
         source_v = "manual"
     entry = {
-        "name": name_v,
+        "dishes": [{
+            "category": "main",
+            "name": name_v,
+            "ingredients": dh.clean_text(payload.get("ingredients", "")),
+            "protein": dh.clean_text(payload.get("protein", "")),
+        }],
         "source": source_v,
         "locked": True,
-        "ingredients": dh.clean_text(payload.get("ingredients", "")),
         "recipe_id": dh.clean_text(payload.get("recipe_id", "")),
         "recipe_on_request": bool(payload.get("recipe_on_request")),
         "skip_shopping": bool(payload.get("skip_shopping")),
-        "protein": dh.clean_text(payload.get("protein", "")),
     }
     meals = dh.load_meal_wizard_session().get("confirmed_meals") or {}
     meals[date_v + "::" + slot_v] = entry
@@ -109,16 +112,22 @@ def main():
 
         # ── Test 1: recompute_used_proteins behavior ────────────────────────
         sample = {
+            # OLD flat entries (migration path).
             "2026-06-29::dinner": {"protein": "Chicken"},
             "2026-06-30::dinner": {"protein": "chicken"},          # dup (case)
             "2026-07-01::dinner": {"protein": "Beef",
                                    "ingredients": "+ nuggets for James"},
             "2026-07-02::lunch": {"protein": ""},                   # empty -> skip
             "2026-07-03::lunch": {"ingredients": "chicken nuggets for James"},  # no protein
-            "2026-07-04::dinner": "not a dict",                     # ignored
+            "2026-07-04::dinner": "not a dict",                     # migrates to empty-protein dish -> skip
+            # NEW dishes[] entry: protein read per-dish; the side has none.
+            "2026-07-05::dinner": {"dishes": [
+                {"category": "main", "name": "Pork chops", "protein": "Pork"},
+                {"category": "side", "name": "apples", "protein": ""},
+            ]},
         }
         up = dh.recompute_used_proteins(sample)
-        if up == ["chicken", "beef"]:
+        if up == ["chicken", "beef", "pork"]:
             print(PASS, "recompute_used_proteins: deduped/lowercased/first-seen, littles excluded")
         else:
             failures.append("recompute_used_proteins wrong: " + str(up))
@@ -134,10 +143,13 @@ def main():
         sess = dh.load_meal_wizard_session()
         cm = sess.get("confirmed_meals") or {}
         entry = cm.get("2026-06-29::dinner") or {}
-        if (ok and entry.get("name") == "Sheet-pan chicken"
+        _e_dishes = dh.slot_dishes(entry)
+        if (ok and _e_dishes and _e_dishes[0].get("name") == "Sheet-pan chicken"
+                and _e_dishes[0].get("category") == "main"
+                and "name" not in entry
                 and entry.get("locked") is True
                 and entry.get("source") == "manual"):
-            print(PASS, "confirm: entry persisted, locked, correct source")
+            print(PASS, "confirm: entry persisted in dishes[] shape, locked, correct source")
         else:
             failures.append("confirm entry shape wrong: " + str(entry))
             print(FAIL, "confirm entry:", entry)

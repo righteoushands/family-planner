@@ -121,6 +121,12 @@ def main():
         _check(isinstance(e, dict) and (e.get("recipe_id") or "") == "",
                "confirmed meal has empty recipe_id", "recipe_id unexpectedly set",
                failures)
+        _ed = dh.slot_dishes(e) if isinstance(e, dict) else []
+        _check(bool(_ed) and _ed[0].get("name") == "Chicken Parm"
+               and _ed[0].get("category") == "main"
+               and isinstance(e, dict) and "name" not in e,
+               "confirmed entry stored in dishes[] shape (no flat name key)",
+               "confirmed entry not stored in dishes[] shape", failures)
 
         # ── write-loop (b): GET shows the meal + Change + "No recipe needed"
         st, html = _get("/meal-wizard-step4", token)
@@ -172,9 +178,10 @@ def main():
         # ── write-loop (d): a prefill (past) entry is locked, NO Change button
         meals = dh.load_meal_wizard_session().get("confirmed_meals") or {}
         meals[_D2 + "::breakfast"] = {
-            "name": "Oatmeal", "source": "prefill", "locked": True,
-            "ingredients": "oats", "recipe_id": "", "recipe_on_request": True,
-            "skip_shopping": False, "protein": "",
+            "dishes": [{"category": "main", "name": "Oatmeal",
+                        "ingredients": "oats", "protein": ""}],
+            "source": "prefill", "locked": True, "recipe_id": "",
+            "recipe_on_request": True, "skip_shopping": False,
         }
         dh.update_meal_wizard_session({"confirmed_meals": meals})
         st, html = _get("/meal-wizard-step4", token)

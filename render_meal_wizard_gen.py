@@ -23,6 +23,7 @@ from render_lorenzo import (
     _get_calendar_this_week,
     _get_saved_recipes,
 )
+from data_helpers import slot_dishes
 
 
 _WIZARD_GEN_SLOT_CAP = 14  # conservative placeholder (2 meal types x 7 days).
@@ -113,9 +114,12 @@ def parse_wizard_meal_response(text: str, target_keys) -> dict:
             if not name:
                 continue
             out[key] = {
-                "name": name,
-                "protein": protein,
-                "ingredients": ingredients,
+                "dishes": [{
+                    "category": "main",
+                    "name": name,
+                    "ingredients": ingredients,
+                    "protein": protein,
+                }],
                 "note": note,
                 "source": "lorenzo",
                 "recipe_id": "",
@@ -170,10 +174,8 @@ def build_wizard_meal_prompt(session: dict, target_keys: list) -> str:
                 c_date, c_slot = ck, ""
             if start and end and not (start <= c_date <= end):
                 continue
-            if isinstance(cv, dict):
-                c_name = str(cv.get("name", "") or "").strip()
-            else:
-                c_name = str(cv or "").strip()
+            _cv_dishes = slot_dishes(cv)
+            c_name = str((_cv_dishes[0].get("name", "") if _cv_dishes else "") or "").strip()
             if c_name:
                 confirmed_lines.append("  - " + c_date + " — " + c_slot + ": " + c_name)
     confirmed_block = "\n".join(confirmed_lines) if confirmed_lines else "  (none yet)"

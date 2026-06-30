@@ -3317,6 +3317,35 @@ def update_meal_wizard_session(updates: dict) -> dict:
     return session
 
 
+def slot_dishes(entry) -> list:
+    """Read-time migration for a meal-wizard slot entry's dishes.
+
+    The canonical slot shape carries a 'dishes' key: a list of
+    {category, name, ingredients, protein} dicts. Older entries on disk use the
+    flat name/ingredients/protein keys; for those a single 'main' dish is
+    synthesized ON READ ONLY — the stored data is never rewritten here. A bare
+    string value (legacy "name only" form) becomes one 'main' dish too. Always
+    returns a list (possibly empty) so every caller can iterate safely."""
+    if isinstance(entry, dict):
+        _dishes = entry.get("dishes")
+        if isinstance(_dishes, list):
+            return _dishes
+        return [{
+            "category": "main",
+            "name": (entry.get("name", "") or ""),
+            "ingredients": (entry.get("ingredients", "") or ""),
+            "protein": (entry.get("protein", "") or ""),
+        }]
+    if isinstance(entry, str):
+        return [{
+            "category": "main",
+            "name": entry.strip(),
+            "ingredients": "",
+            "protein": "",
+        }]
+    return []
+
+
 def get_confirmed_meals() -> dict:
     """Return the wizard session's confirmed_meals dict (keyed 'YYYY-MM-DD::slot').
     Returns {} when there is no session or no confirmed meals yet. Read helper
@@ -3328,18 +3357,20 @@ def recompute_used_proteins(confirmed_meals: dict) -> list:
     """Recompute the de-duplicated, lowercased used_proteins list from
     confirmed_meals so it can never drift from the meals themselves.
 
-    Reads ONLY each entry's 'protein' field. Separate food cooked just for the
-    littles (James/Michael) lives in the free-text 'ingredients' field, never in
-    'protein', so it is excluded here automatically and won't trip the repeat
+    Walks each entry's dishes (via slot_dishes, which read-migrates old flat
+    entries) and collects EVERY dish's 'protein'. Separate food cooked just for
+    the littles (James/Michael) lives in the free-text 'ingredients' field, never
+    in 'protein', so it is excluded here automatically and won't trip the repeat
     flag. Strips and lowercases each protein and preserves first-seen order."""
     used = []
     seen = set()
     if isinstance(confirmed_meals, dict):
         for _entry in confirmed_meals.values():
-            if not isinstance(_entry, dict):
-                continue
-            _p = (_entry.get("protein") or "").strip().lower()
-            if _p and _p not in seen:
-                seen.add(_p)
-                used.append(_p)
+            for _dish in slot_dishes(_entry):
+                if not isinstance(_dish, dict):
+                    continue
+                _p = (_dish.get("protein") or "").strip().lower()
+                if _p and _p not in seen:
+                    seen.add(_p)
+                    used.append(_p)
     return used

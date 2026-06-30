@@ -10738,7 +10738,9 @@ class Handler(BaseHTTPRequestHandler):
                         if not _s3_valid_iso(_pd):
                             continue
                         _new_prefill[_pd + "::" + _pslot] = {
-                            "name": _name, "locked": True, "source": "prefill",
+                            "dishes": [{"category": "main", "name": _name,
+                                        "ingredients": "", "protein": ""}],
+                            "locked": True, "source": "prefill",
                             "skip_shopping": True, "recipe_on_request": True,
                         }
                 # Preserve any non-prefill confirmed meals (future steps); refresh
@@ -10802,14 +10804,17 @@ class Handler(BaseHTTPRequestHandler):
                     if isinstance(_v, str): return _v.strip().lower() in ("true","1","yes","on")
                     return False
                 _s4_entry = {
-                    "name":              _s4_name,
+                    "dishes": [{
+                        "category":    "main",
+                        "name":        _s4_name,
+                        "ingredients": clean_text(_s4_payload.get("ingredients","")),
+                        "protein":     clean_text(_s4_payload.get("protein","")),
+                    }],
                     "source":            _s4_source,
                     "locked":            True,
-                    "ingredients":       clean_text(_s4_payload.get("ingredients","")),
                     "recipe_id":         clean_text(_s4_payload.get("recipe_id","")),
                     "recipe_on_request": _s4_as_bool(_s4_payload.get("recipe_on_request")),
                     "skip_shopping":     _s4_as_bool(_s4_payload.get("skip_shopping")),
-                    "protein":           clean_text(_s4_payload.get("protein","")),
                 }
                 # G1b-2a server guard (belt-and-suspenders): a manually entered
                 # meal has no recipe_id; if the client also did not send

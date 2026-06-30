@@ -80,22 +80,25 @@ def main():
             "planning_window": {"start_iso": "2026-06-29", "end_iso": "2026-06-30"},
             "confirmed_what_to_plan": ["breakfast", "dinner"],
             "confirmed_inventory": "chicken, rice, broccoli",
+            # A MIX of shapes: the first two use the new dishes[] shape; the
+            # third is an OLD flat entry to exercise the read-time migration on
+            # Step 4's confirmed-display read (name must still render).
             "confirmed_meals": {
-                # has recipe_id -> "Recipe attached"
+                # dishes[] shape, has recipe_id -> "Recipe attached"
                 "2026-06-29::dinner": {
-                    "name": "Sheet-pan chicken", "source": "manual", "locked": True,
-                    "ingredients": "thighs, broccoli", "recipe_id": "r-123",
+                    "dishes": [{"category": "main", "name": "Sheet-pan chicken",
+                                "ingredients": "thighs, broccoli", "protein": "chicken"}],
+                    "source": "manual", "locked": True, "recipe_id": "r-123",
                     "recipe_on_request": False, "skip_shopping": False,
-                    "protein": "chicken",
                 },
-                # recipe_on_request true -> "No recipe needed"
+                # dishes[] shape, recipe_on_request true -> "No recipe needed"
                 "2026-06-29::breakfast": {
-                    "name": "Oatmeal and fruit", "source": "prefill", "locked": True,
-                    "ingredients": "oats, banana", "recipe_id": "",
+                    "dishes": [{"category": "main", "name": "Oatmeal and fruit",
+                                "ingredients": "oats, banana", "protein": ""}],
+                    "source": "prefill", "locked": True, "recipe_id": "",
                     "recipe_on_request": True, "skip_shopping": True,
-                    "protein": "",
                 },
-                # neither -> "Recipe: not set yet" (half-confirmed state)
+                # OLD FLAT shape (migration path) -> "Recipe: not set yet"
                 "2026-06-30::dinner": {
                     "name": "Leftovers night", "source": "lorenzo", "locked": True,
                     "ingredients": "", "recipe_id": "",

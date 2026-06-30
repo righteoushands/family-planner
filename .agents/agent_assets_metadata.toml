@@ -269,3 +269,9 @@ id = "Gdiv5R4iJEMe7fTMx9pjb"
 uri = "file://responses/diagnosis_meal_dishes_shape_inventory.md"
 type = "text"
 title = "DIAGNOSIS — dishes[] shape blast radius (6 app files + 5 harnesses; key is `name` not `meal_name`)"
+
+[[outputs]]
+id = "4F4aUpG7SJYgZL2J89IFh"
+uri = "file://responses/meal_slot_dishes_migration_complete.md"
+type = "text"
+title = "Meal slots dishes[] migration — complete & verified"

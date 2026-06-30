@@ -12,7 +12,7 @@ import os, json, uuid
 from datetime import date, timedelta
 from html import escape
 from safe_utils import ensure_file, safe_save_json
-from data_helpers import load_recipes, save_recipes, save_recipe
+from data_helpers import load_recipes, save_recipes, save_recipe, slot_dishes
 
 MEALS_DIR     = "data/meal_plan"
 RULES_FILE    = "data/meal_rules.json"
@@ -196,6 +196,62 @@ _WIZARD_TO_STORE_SLOT = {
 }
 
 
+def _dish_name(dish) -> str:
+    """The display name of a single dish (dict or bare string), stripped."""
+    if isinstance(dish, dict):
+        return (dish.get("name") or "").strip()
+    return str(dish or "").strip()
+
+
+def _join_no_oxford(names: list) -> str:
+    """Join names as a human list with NO Oxford comma:
+    0 -> ""; 1 -> "X"; 2 -> "X and Y"; 3+ -> "X, Y and Z"."""
+    names = [n for n in names if n]
+    if not names:
+        return ""
+    if len(names) == 1:
+        return names[0]
+    if len(names) == 2:
+        return names[0] + " and " + names[1]
+    return ", ".join(names[:-1]) + " and " + names[-1]
+
+
+def format_dish_list(dishes) -> str:
+    """Collapse a slot's dishes list into ONE human display string for the
+    canonical meal store (which holds a single string per slot).
+
+    Lead = all 'main' dishes if any, else all 'soup' dishes if any, else none.
+    Rest = every other dish, in entry order (lead excluded). Lead names join
+    with ' and '; rest names join as a no-Oxford-comma list. Combined as
+    'lead with rest', or just lead, or just rest. Empty dishes -> ''."""
+    dishes = dishes if isinstance(dishes, list) else []
+    main_idx = [i for i, d in enumerate(dishes)
+                if isinstance(d, dict)
+                and (d.get("category") or "").strip().lower() == "main"]
+    soup_idx = [i for i, d in enumerate(dishes)
+                if isinstance(d, dict)
+                and (d.get("category") or "").strip().lower() == "soup"]
+    if main_idx:
+        lead_idx = set(main_idx)
+        lead = [dishes[i] for i in main_idx]
+    elif soup_idx:
+        lead_idx = set(soup_idx)
+        lead = [dishes[i] for i in soup_idx]
+    else:
+        lead_idx = set()
+        lead = []
+    rest = [d for i, d in enumerate(dishes) if i not in lead_idx]
+    lead_text = " and ".join(n for n in (_dish_name(d) for d in lead) if n)
+    rest_text = _join_no_oxford([_dish_name(d) for d in rest])
+    if lead_text and rest_text:
+        return lead_text + " with " + rest_text
+    if lead_text:
+        return lead_text
+    if rest_text:
+        return rest_text
+    return ""
+
+
 def apply_confirmed_meals_to_store(confirmed_meals: dict) -> dict:
     """Write the wizard's confirmed meals into the canonical meal store.
 
@@ -224,13 +280,13 @@ def apply_confirmed_meals_to_store(confirmed_meals: dict) -> dict:
             d = date.fromisoformat(date_str)
         except (ValueError, TypeError):
             continue
-        name = (entry.get("name") or "").strip()
-        if not name:
+        display = format_dish_list(slot_dishes(entry))
+        if not display:
             continue
         wk = (d - timedelta(days=d.weekday())).isoformat()
         weekday = d.strftime("%A")
         rid = (entry.get("recipe_id") or "").strip()
-        value = {"display": name, "recipe_id": rid} if rid else name
+        value = {"display": display, "recipe_id": rid} if rid else display
         by_week.setdefault(wk, []).append((weekday, store_slot, value))
 
     weeks_written = []

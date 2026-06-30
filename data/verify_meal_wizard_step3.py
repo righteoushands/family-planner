@@ -66,7 +66,9 @@ def _build_confirmed_meals(prefill_in, existing_meals):
             except Exception:
                 continue
             new_prefill[pd + "::" + pslot] = {
-                "name": name, "locked": True, "source": "prefill",
+                "dishes": [{"category": "main", "name": name,
+                            "ingredients": "", "protein": ""}],
+                "locked": True, "source": "prefill",
                 "skip_shopping": True, "recipe_on_request": True,
             }
     confirmed = {
@@ -133,10 +135,13 @@ def main():
             print(FAIL, "prefill keys:", set(cm.keys()))
 
         one = cm.get("2026-06-15::dinner") or {}
-        if (one.get("name") == "Leftover lasagna" and one.get("locked") is True
+        _one_dishes = dh.slot_dishes(one)
+        if (_one_dishes and _one_dishes[0].get("name") == "Leftover lasagna"
+                and _one_dishes[0].get("category") == "main" and "name" not in one
+                and one.get("locked") is True
                 and one.get("source") == "prefill" and one.get("skip_shopping") is True
                 and one.get("recipe_on_request") is True):
-            print(PASS, "prefilled meal has correct locked/off-shopping shape")
+            print(PASS, "prefilled meal has correct dishes[]/locked/off-shopping shape")
         else:
             failures.append("prefill value shape wrong: " + str(one))
             print(FAIL, "prefill value shape:", one)
@@ -156,7 +161,8 @@ def main():
         else:
             failures.append("generated meal not preserved")
             print(FAIL, "generated meal not preserved:", after.get("2026-06-19::dinner"))
-        if (after.get("2026-06-15::dinner", {}).get("name") == "Changed to soup"
+        _changed = dh.slot_dishes(after.get("2026-06-15::dinner", {}))
+        if (_changed and _changed[0].get("name") == "Changed to soup"
                 and "2026-06-16::breakfast" not in after):
             print(PASS, "prefill entries refreshed (old prefill cleared, new applied)")
         else:

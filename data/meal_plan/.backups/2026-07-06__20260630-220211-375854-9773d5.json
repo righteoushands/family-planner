@@ -1,0 +1,63 @@
+{
+  "start": "2026-07-06",
+  "week": "2026-07-06",
+  "generated": false,
+  "days": {
+    "Monday": {
+      "breakfast": "",
+      "lunch": "Lentil Soup Thermos with Sourdough",
+      "dinner": "Salmon Patties with Mashed Potatoes and Sautéed Brussels Sprouts",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Tuesday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Wednesday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Thursday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Friday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Saturday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": ""
+    },
+    "Sunday": {
+      "breakfast": "",
+      "lunch": "",
+      "dinner": "",
+      "dessert": "",
+      "snacks": "",
+      "dad_lunch": ""
+    }
+  }
+}

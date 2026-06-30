@@ -110,7 +110,10 @@ def main():
 
     # ── 1. UNIT TEST: pure function, no live writes yet. -----------------------
     unit_confirmed = {
-        this_wk + "::dinner":      {"name": "Unit Dinner A", "source": "manual"},
+        # dishes[]-shaped (new contract); the rest stay flat to exercise migration.
+        this_wk + "::dinner":      {"dishes": [{"category": "main", "name": "Unit Dinner A",
+                                                "ingredients": "", "protein": ""}],
+                                    "source": "manual"},
         next_wk + "::dinner":      {"name": "Unit Dinner B", "source": "manual"},
         this_wk + "::johns_lunch": {"name": "Leftovers for John", "source": "manual"},
         this_wk + "::feast_meal":  {"name": "Feast Roast", "source": "manual"},
@@ -195,14 +198,21 @@ def main():
         # and a prefill (skipped).
         dh.clear_meal_wizard_session()
         seeded = {
-            this_wk + "::dinner":      {"name": "Locked Dinner Here", "source": "manual",
+            # dishes[]-shaped lockable entry (new contract) drives the lockability
+            # gate + store write; flat entries below exercise read-time migration.
+            this_wk + "::dinner":      {"dishes": [{"category": "main",
+                                                    "name": "Locked Dinner Here",
+                                                    "ingredients": "", "protein": ""}],
+                                        "source": "manual",
                                         "recipe_id": "", "recipe_on_request": True},
             next_wk + "::dinner":      {"name": "Next Week Dinner", "source": "manual",
                                         "recipe_id": "", "recipe_on_request": True},
             this_wk + "::johns_lunch": {"name": "John Leftovers", "source": "manual"},
             this_wk + "::feast_meal":  {"name": "Skip Feast", "source": "manual"},
             next_wk + "::breakfast":   {"name": "Skip Prefill", "source": "prefill"},
-            hp_date_iso + "::" + hp_slot: {"name": hp_name, "source": "manual",
+            hp_date_iso + "::" + hp_slot: {"dishes": [{"category": "main", "name": hp_name,
+                                                      "ingredients": "", "protein": ""}],
+                                          "source": "manual",
                                           "recipe_id": "", "recipe_on_request": True},
         }
         dh.update_meal_wizard_session({

@@ -1,0 +1,116 @@
+Read claud.md first and paste back all rules, then confirm which apply
+— Rule 14 (data-shape change), Rule 9, Rule 19.
+
+BACKEND DATA-CONTRACT CHANGE ONLY — no Step 4 UI changes, no Lorenzo
+prompt changes this phase. Lorenzo still proposes one dish per slot;
+it is simply wrapped in the new shape.
+
+NEW CANONICAL SLOT SHAPE — both confirmed_meals and suggested_meals
+entries gain a "dishes" key:
+  "dishes": [ {"category": str, "name": str, "ingredients": str,
+               "protein": str}, ... ]
+"category" defaults to "main" when not otherwise specified. The
+top-level slot keeps source, locked, recipe_id, recipe_on_request,
+skip_shopping as today — those stay slot-level, not per-dish.
+
+READ-TIME MIGRATION (no data file rewritten): anywhere a slot entry
+is read, if "dishes" is absent, synthesize
+  dishes = [{"category": "main", "name": entry.get("name",""),
+             "ingredients": entry.get("ingredients",""),
+             "protein": entry.get("protein","")}]
+from the old flat name/ingredients/protein keys. Old entries on disk
+are never modified.
+
+SITE-BY-SITE CHANGES (per the prior diagnosis report):
+
+1. render_meal_wizard_gen.py
+   - parse_wizard_meal_response: wrap its parsed output as
+     dishes:[{"category":"main", "name":..., "ingredients":...,
+     "protein":...}] instead of flat keys.
+   - build_wizard_meal_prompt (line ~174, the "already decided"
+     read): read dishes[0].name (with the migration fallback above)
+     instead of cv.get("name").
+
+2. app.py
+   - /meal-wizard-step4-confirm: build the confirmed slot entry as
+     dishes:[{category:"main", name, ingredients, protein}] from the
+     posted payload (payload still sends one dish's worth of fields
+     this phase — wrap it).
+   - /meal-wizard-step3-save prefill builder: wrap the existing
+     name-only prefill as dishes:[{"category":"main", "name":...,
+     "ingredients":"", "protein":""}].
+   - /meal-wizard-generate: store parser output (already dishes[]
+     shape from gen.py) as-is.
+
+3. data_helpers.py — recompute_used_proteins: iterate
+   entry.get("dishes", <migrated>) and collect every dish's
+   "protein" (skip empty strings), instead of reading entry["protein"]
+   directly. Update the docstring.
+
+4. render_meals.py — apply_confirmed_meals_to_store (line ~233): read
+   dishes[] (with migration fallback). Replace the current name-only
+   "display" string with a new join function, e.g.
+   format_dish_list(dishes):
+
+   JOIN LOGIC (exact spec, write this as its own small testable
+   function, not inline):
+   - Partition dishes into "lead" and "rest":
+     - lead = every dish with category == "main", if any exist
+     - else lead = every dish with category == "soup", if any exist
+     - else lead = [] (no lead at all)
+     - rest = every other dish, in entry order, lead dishes excluded
+   - Join lead dishes with " and " (e.g. "Roast Chicken and
+     Meatloaf"). If lead is empty, lead_text = "".
+   - Join rest dishes as a list with commas, NO Oxford comma: zero
+     items -> ""; one item -> that name; two items ->
+     "X and Y"; three+ items -> "X, Y, and Z" minus the Oxford
+     comma, i.e. "X, Y and Z".
+
+     WAIT — clarify with Lauren's actual confirmed example before
+     implementing: 3+ items reads "Mashed Potatoes, Green Beans, and
+     Dinner Rolls" was Lauren's own example WITH a comma before
+     "and" rejected in favor of NO Oxford comma. Implement NO Oxford
+     comma: three items = "X, Y and Z" (comma after X, "and" before
+     Z, no comma before "and"). Confirm this matches
+     verify_meal_wizard fixtures once written.
+
+   - Combine: if lead_text and rest_text: lead_text + " with " +
+     rest_text. If lead_text only: lead_text. If rest_text only (no
+     lead): rest_text. If neither (empty dishes list, shouldn't
+     happen but guard it): "".
+   - Single-dish case (e.g. just "Roast Chicken", nothing else) must
+     produce exactly "Roast Chicken" — no trailing "with" or comma.
+
+   recipe_id handling unchanged.
+
+5. Update fixtures/assertions in verify_meal_wizard_gen.py,
+   verify_meal_wizard_step4.py, verify_meal_wizard_step4_writeloop.py,
+   verify_meal_wizard_g1a.py, verify_meal_wizard_step3.py to the new
+   dishes[] shape, including a fixture that exercises the read-time
+   migration path on an old flat entry.
+
+6. NEW test cases required for format_dish_list specifically (add to
+   whichever harness covers render_meals.py, or create
+   verify_meal_wizard_dish_join.py if none exists):
+   - single main only -> "Roast Chicken"
+   - main + 1 side -> "Roast Chicken with Mashed Potatoes"
+   - main + 2 sides -> "Roast Chicken with Mashed Potatoes and Green
+     Beans"
+   - main + 3 sides -> "Roast Chicken with Mashed Potatoes, Green
+     Beans and Dinner Rolls"
+   - 2 mains + 2 sides -> "Roast Chicken and Meatloaf with Mashed
+     Potatoes and Green Beans"
+   - no main, soup present, 2 others -> "Tomato Soup with Salad and
+     Bread"
+   - no main, no soup, 2 dishes -> "Mashed Potatoes and Salad" (no
+     "with" at all)
+   - no main, no soup, 1 dish -> just that dish's name
+
+VALIDATION: py_compile, in-process smoke test, then ALL FIVE harnesses
+above plus the new dish-join test cases — paste every result. Do not
+skip any; Rule 9 requires it since this touches a function
+(recompute_used_proteins) called from more than one place and a shared
+data shape used by both confirm and generate.
+
+Single phase, backend only. Do not touch render_meal_wizard_step4.py's
+HTML/JS input rendering — that's a separate phase.

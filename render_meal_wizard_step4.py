@@ -31,7 +31,7 @@ import re
 from datetime import date, timedelta
 from html import escape
 from ui_helpers import html_page
-from data_helpers import load_meal_wizard_session, get_merged_calendar_events
+from data_helpers import load_meal_wizard_session, get_merged_calendar_events, slot_dishes
 from render_liturgical import get_day_info
 from render_meal_wizard_gen import wizard_target_slot_keys, _WIZARD_GEN_SLOT_CAP
 
@@ -298,9 +298,14 @@ def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry,
         prot_val = ""
         ing_open = ""
         if isinstance(suggestion, dict):
-            name_body = escape(suggestion.get("name") or "")
-            ing_body = escape(suggestion.get("ingredients") or "")
-            sug_prot = escape(suggestion.get("protein") or "")
+            # Suggestions now carry the dishes[] shape (older drafts may still be
+            # flat); read the lead dish through the migration helper so prefill
+            # works for both. Step 4's single-name input maps to the first dish.
+            _sug_dishes = slot_dishes(suggestion)
+            _sug0 = _sug_dishes[0] if _sug_dishes else {}
+            name_body = escape(_sug0.get("name") or "")
+            ing_body = escape(_sug0.get("ingredients") or "")
+            sug_prot = escape(_sug0.get("protein") or "")
             prot_val = ' value="' + sug_prot + '"'
             # A fresh Lorenzo suggestion: open the ingredients box for review.
             ing_open = " open"
@@ -320,7 +325,8 @@ def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry,
             f'<div id="{msg_id}" style="{_S4_MSG}"></div>'
             f'</div>'
         )
-    name = escape(entry.get("name") or "")
+    _entry_dishes = slot_dishes(entry)
+    name = escape((_entry_dishes[0].get("name", "") if _entry_dishes else "") or "")
     recipe = escape(_s4_recipe_label(entry))
     source = (entry.get("source") or "").strip().lower()
     tags = []
@@ -494,9 +500,13 @@ def render_meal_wizard_step4(user: str, start_iso: str = None) -> str:
         if (_ce.get("source") or "").strip().lower() == "prefill":
             continue
         _cslot = _ck.partition("::")[2]
-        if _cslot in _S4_LOCKABLE_SLOTS and (_ce.get("name") or "").strip():
-            has_lockable = True
-            break
+        if _cslot in _S4_LOCKABLE_SLOTS:
+            # Confirmed entries are dishes[]-shaped (flat legacy entries migrate
+            # on read); a meal counts as lockable once its lead dish has a name.
+            _cd = slot_dishes(_ce)
+            if _cd and (_cd[0].get("name") or "").strip():
+                has_lockable = True
+                break
 
     if locked_at:
         banner_text = "Your plan is set \u2014 showing on your homepage for this week."
