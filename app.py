@@ -255,7 +255,7 @@ from render_monica import render_monica_page, build_monica_context
 from render_wizards import render_wizards_page
 from render_meal_wizard import render_pantry_staples_page, render_meal_wizard_week_glance, render_meal_wizard_step2, render_meal_wizard_step3, render_meal_wizard_step4
 from render_meal_wizard_step3 import _feast_in_window as _s3_feast_in_window, _has_sunday_batch as _s3_has_sunday_batch
-from render_meal_wizard_gen import wizard_target_slot_keys, parse_wizard_meal_response, build_wizard_meal_prompt
+from render_meal_wizard_gen import wizard_target_slot_keys, parse_wizard_meal_response, build_wizard_meal_prompt, _WIZARD_GEN_SLOT_CAP
 from render_plan_importer import (
     render_plan_import_page, build_analysis_system_prompt,
     _load_upcoming_events, _format_events_summary,
@@ -661,10 +661,8 @@ _placement_undo_registry: dict = {}
 _placement_undo_order: list = []
 _PLACEMENT_UNDO_CAP = 50
 
-_WIZARD_GEN_SLOT_CAP = 14  # conservative placeholder (2 meal types x 7 days).
-# NOT measured — the known-good point is ~7 slots (1 type/week), the known-bad
-# point is 55. Tune this from the log below once real stop_reason data exists.
-# Added 2026-06-30.
+# _WIZARD_GEN_SLOT_CAP is the single source of truth in render_meal_wizard_gen.py
+# (imported above) — also imported by render_meal_wizard_step4.py. Do not redefine.
 _WIZARD_GEN_LOG = "data/meal_wizard_gen.log"
 
 

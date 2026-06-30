@@ -25,6 +25,13 @@ from render_lorenzo import (
 )
 
 
+_WIZARD_GEN_SLOT_CAP = 14  # conservative placeholder (2 meal types x 7 days).
+# NOT measured — the known-good point is ~7 slots (1 type/week), the known-bad
+# point is 55. Tune this from the gen log once real stop_reason data exists.
+# Single source of truth — also imported by app.py and
+# render_meal_wizard_step4.py. Change once here. Added 2026-06-30.
+
+
 def wizard_target_slot_keys(session: dict) -> list:
     """Return the "YYYY-MM-DD::slot" keys the generator should fill:
     every date in the planning window x every slot kind being planned,

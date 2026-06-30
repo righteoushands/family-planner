@@ -1,0 +1,39 @@
+BUILD — touches two files: render_meal_wizard_gen.py and app.py. Additive/refactor,
+no behavior change. Phase 1 of 2 (Phase 2 updates render_meal_wizard_step4.py
+separately — do not touch that file in this phase).
+
+Context: app.py and render_meal_wizard_step4.py currently each define their own
+copy of _WIZARD_GEN_SLOT_CAP = 14, duplicated because of a circular-import
+constraint (app.py -> render_meal_wizard_step4.py, and app.py also can't be
+imported back into step4). render_meal_wizard_gen.py has no such conflict with
+either file, so it's the correct single home for the constant. This phase moves
+the definition there and updates app.py to import it instead of defining it.
+
+Pre-flight: 2 files; no JS-in-f-strings; no form handling; root cause already
+confirmed (duplication = drift risk); data shape unchanged.
+
+Changes:
+
+1. In render_meal_wizard_gen.py, add the constant (with its existing explanatory
+   comment, unchanged) near wizard_target_slot_keys:
+       _WIZARD_GEN_SLOT_CAP = 14  # conservative placeholder (2 meal types x 7 days).
+       # NOT measured — the known-good point is ~7 slots (1 type/week), the known-bad
+       # point is 55. Tune this from the gen log once real stop_reason data exists.
+       # Single source of truth — also imported by app.py and
+       # render_meal_wizard_step4.py. Change once here. Added 2026-06-30.
+
+2. In app.py, remove the local _WIZARD_GEN_SLOT_CAP definition and instead import
+   it from render_meal_wizard_gen.py (app.py already imports other symbols from
+   this module — add to that existing import line, don't create a new one).
+   Do not change the cap-check logic itself, only where the constant comes from.
+
+Validate, in order, paste each result:
+1. py_compile render_meal_wizard_gen.py and app.py
+2. in-process smoke test: confirm app.py's cap check still refuses a 20-slot
+   request and proceeds for a 5-slot request, exactly as before — behavior must
+   be unchanged, only the constant's source changed.
+3. run verify_meal_wizard_gen.py and the other meal-wizard harnesses already
+   used for Build 1, paste results.
+
+Report only after all three pass. Make no other changes — do not touch
+render_meal_wizard_step4.py in this phase.
