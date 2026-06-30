@@ -275,3 +275,9 @@ id = "4F4aUpG7SJYgZL2J89IFh"
 uri = "file://responses/meal_slot_dishes_migration_complete.md"
 type = "text"
 title = "Meal slots dishes[] migration — complete & verified"
+
+[[outputs]]
+id = "b7y0nUMSL6dy1_bB9ALMt"
+uri = "file://responses/step4_blink_diagnosis.md"
+type = "text"
+title = "Step 4 blink — diagnosis (no code changed)"

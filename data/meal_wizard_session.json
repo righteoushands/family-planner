@@ -11,8 +11,8 @@
   ],
   "confirmed_complexity": "normal",
   "planning_window": {
-    "start_iso": "2026-06-30",
-    "end_iso": "2026-07-05"
+    "start_iso": "2026-07-01",
+    "end_iso": "2026-07-02"
   },
   "confirmed_meals": {
     "2026-06-29::breakfast": {
@@ -24,144 +24,244 @@
       "recipe_on_request": true,
       "skip_shopping": false,
       "protein": "Eggs"
-    }
-  },
-  "suggested_meals": {
-    "2026-06-30::lunch": {
-      "name": "Rotisserie Chicken Tacos",
-      "protein": "chicken",
-      "ingredients": "rotisserie chicken, tortillas, shredded cheese, salsa verde, refried beans",
-      "note": "Quick assembly; use rotisserie before it turns",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
     },
-    "2026-06-30::dinner": {
-      "name": "Ground Beef Pasta with Spaghetti Sauce",
-      "protein": "ground beef",
-      "ingredients": "2 lbs cooked ground beef, jar spaghetti sauce, rotini, canned diced tomatoes, shredded cheese",
-      "note": "[MEAL_UPDATE:2026-06-30:dinner|recipe=fdb4bc62]Ground Beef Pasta[/MEAL_UPDATE] Uses cooked beef; fast weeknight",
-      "source": "lorenzo",
+    "2026-07-01::breakfast": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Pancakes with Fresh Berries",
+          "ingredients": "baking mix, eggs, whole milk, blueberries, strawberries, honey",
+          "protein": "eggs"
+        }
+      ],
+      "source": "manual",
+      "locked": true,
       "recipe_id": "",
       "recipe_on_request": true,
       "skip_shopping": false
     },
     "2026-07-01::lunch": {
-      "name": "Chicken Fried Rice",
-      "protein": "chicken",
-      "ingredients": "rotisserie chicken (leftover), parboiled rice, eggs, frozen mixed vegetables, soy sauce",
-      "note": "[MEAL_UPDATE:2026-07-01:lunch|recipe=77024add]Chicken Fried Rice[/MEAL_UPDATE] Higher-carb; lifting day",
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Rotisserie Chicken Tacos",
+          "ingredients": "rotisserie chicken, flour tortillas, shredded cheese, salsa verde, refried beans, romaine lettuce",
+          "protein": "rotisserie chicken"
+        }
+      ],
+      "source": "manual",
+      "locked": true,
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-02::lunch": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Lentil Soup with Sourdough Bread",
+          "ingredients": "leftover lentil soup from batch cook, sourdough bread, butter",
+          "protein": "red lentils"
+        }
+      ],
+      "source": "manual",
+      "locked": true,
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-02::dinner": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Cajun Sausages with Wild Rice and Sautéed Mixed Vegetables",
+          "ingredients": "four Cajun sausages, parboiled rice, frozen mixed vegetables, onion, bell pepper, Cajun seasoning, butter",
+          "protein": "Cajun sausage"
+        }
+      ],
+      "source": "manual",
+      "locked": true,
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    }
+  },
+  "suggested_meals": {
+    "2026-07-01::batch_cook": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Lentil Soup (Batch)",
+          "ingredients": "red lentils, canned diced tomatoes, onion, carrots, cumin, garlic, olive oil",
+          "protein": "red lentils"
+        }
+      ],
+      "note": "Use r006; backup lunch/dinner all week",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-01::breakfast": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Pancakes with Fresh Berries",
+          "ingredients": "baking mix, eggs, whole milk, blueberries, strawberries, honey",
+          "protein": "eggs"
+        }
+      ],
+      "note": "John's birthday morning; kids help",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-01::dessert": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Chocolate Birthday Cake",
+          "ingredients": "chocolate cake mix, eggs, oil, sugar, powdered sugar for frosting",
+          "protein": ""
+        }
+      ],
+      "note": "Birthday celebration for John",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
       "skip_shopping": false
     },
     "2026-07-01::dinner": {
-      "name": "Brined Roast Chicken with Sweet Potatoes and Green Beans",
-      "protein": "chicken",
-      "ingredients": "2 lbs raw chicken, kosher salt, sugar, garlic, sweet potatoes, fresh green beans, olive oil",
-      "note": "[MEAL_UPDATE:2026-07-01:dinner|recipe=90f98712]Brined Roast Chicken[/MEAL_UPDATE] Anchor meal; date night prep-ahead",
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Ground Beef Pasta with Spaghetti Sauce",
+          "ingredients": "2 lbs cooked ground beef, jar spaghetti sauce, canned diced tomatoes, rotini pasta, shredded cheese",
+          "protein": "ground beef"
+        }
+      ],
+      "note": "Use fdb4bc62; quick before date night",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
       "skip_shopping": false
     },
-    "2026-07-02::lunch": {
-      "name": "Lentil Soup (Batch)",
-      "protein": "lentils",
-      "ingredients": "red lentils, canned diced tomatoes, white onion, carrots, canned sliced carrots, cumin, garlic, parboiled rice",
-      "note": "[MEAL_UPDATE:2026-07-02:lunch|recipe=r006]Lentil Soup[/MEAL_UPDATE] Higher-carb; lifting day; batch for week",
+    "2026-07-01::lunch": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Rotisserie Chicken Tacos",
+          "ingredients": "rotisserie chicken, flour tortillas, shredded cheese, salsa verde, refried beans, romaine lettuce",
+          "protein": "rotisserie chicken"
+        }
+      ],
+      "note": "Use r014; quick post-workout lunch",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-01::snacks": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Fruit & Yogurt Cups",
+          "ingredients": "whole milk yogurt, green grapes, strawberries, honey, ground flax seeds",
+          "protein": ""
+        }
+      ],
+      "note": "Light post-run snack",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-02::batch_cook": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Hard-Boiled Eggs (Batch)",
+          "ingredients": "one dozen eggs, water",
+          "protein": "eggs"
+        }
+      ],
+      "note": "Prep for lunches and snacks",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-02::breakfast": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Overnight Oats with Fruit",
+          "ingredients": "rolled oats, whole milk, chia seeds, blueberries, honey, ground flax seeds",
+          "protein": ""
+        }
+      ],
+      "note": "Use r013; no-cook morning prep",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-02::dessert": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Canned Peaches with Cream",
+          "ingredients": "canned peaches, whole milk yogurt, honey",
+          "protein": ""
+        }
+      ],
+      "note": "Simple pantry dessert",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
       "skip_shopping": false
     },
     "2026-07-02::dinner": {
-      "name": "Cajun Sausages with Wild Rice and Sautéed Mixed Vegetables",
-      "protein": "sausage",
-      "ingredients": "4 Cajun sausages, parboiled rice, frozen mixed vegetables, white onion, green bell pepper, butter",
-      "note": "[MEAL_UPDATE:2026-07-02:dinner|recipe=774b15bb]Cajun Sausage dinner[/MEAL_UPDATE] Use freezer sausages",
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Cajun Sausages with Wild Rice and Sautéed Mixed Vegetables",
+          "ingredients": "four Cajun sausages, parboiled rice, frozen mixed vegetables, onion, bell pepper, Cajun seasoning, butter",
+          "protein": "Cajun sausage"
+        }
+      ],
+      "note": "Use r774b15bb; Lauren counseling — easy cook",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
       "skip_shopping": false
     },
-    "2026-07-03::lunch": {
-      "name": "Sardine Sandwiches with Fruit",
-      "protein": "sardines",
-      "ingredients": "canned sardines, sourdough bread, mayo, Dijon mustard, romaine lettuce, apples",
-      "note": "[MEAL_UPDATE:2026-07-03:lunch|recipe=r009]Sardine Sandwiches[/MEAL_UPDATE] Meatless Friday; fast after PT",
+    "2026-07-02::lunch": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Lentil Soup with Sourdough Bread",
+          "ingredients": "leftover lentil soup from batch cook, sourdough bread, butter",
+          "protein": "red lentils"
+        }
+      ],
+      "note": "Draw from Wednesday batch; quick lunch",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
       "skip_shopping": false
     },
-    "2026-07-03::dinner": {
-      "name": "Spinach Pie with Caesar Salad",
-      "protein": "",
-      "ingredients": "frozen pie crust, frozen spinach, eggs, feta cheese (grocery), white onion, romaine lettuce, Caesar dressing",
-      "note": "[MEAL_UPDATE:2026-07-03:dinner|recipe=a42827d4]Spinach Pie[/MEAL_UPDATE] Meatless Friday anchor; needs feta",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
-    },
-    "2026-07-04::lunch": {
-      "name": "Hamburgers with French Fries and Fruit",
-      "protein": "beef",
-      "ingredients": "4 hamburger patties, hamburger buns, shredded cheese, romaine lettuce, frozen french fries, strawberries",
-      "note": "4th of July cookout; simple and festive",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
-    },
-    "2026-07-04::dinner": {
-      "name": "Pulled Pork over Rice with Canned Green Beans",
-      "protein": "pork",
-      "ingredients": "1 lb frozen pulled pork, parboiled rice, canned green beans, butter, brown sugar, salsa verde",
-      "note": "Use freezer pulled pork; patriotic cookout feel",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
-    },
-    "2026-07-05::lunch": {
-      "name": "Ziplock Buffet — Leftover Soup and Sandwiches",
-      "protein": "",
-      "ingredients": "leftover lentil soup, sourdough bread, peanut butter, canned fruit cocktail, green grapes",
-      "note": "Sunday leftover buffet; clear fridge before Mass",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
-    },
-    "2026-07-05::dinner": {
-      "name": "Sheet Pan Chicken Thighs with Brussels Sprouts and Small Red Potatoes",
-      "protein": "chicken",
-      "ingredients": "2 lbs raw chicken, brussels sprouts, small red potatoes, olive oil, garlic, seasoning packets",
-      "note": "[MEAL_UPDATE:2026-07-05:dinner|recipe=r010]Sheet Pan Chicken[/MEAL_UPDATE] Sunday batch cook; hands-off oven",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
-    },
-    "2026-07-06::lunch": {
-      "name": "Tuna Salad on Sourdough with Blueberries",
-      "protein": "tuna",
-      "ingredients": "canned tuna, mayo, Dijon mustard, sourdough bread, romaine lettuce, blueberries",
-      "note": "Packable dad lunch; use canned tuna",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
-    },
-    "2026-07-06::dinner": {
-      "name": "Beef Enchilada Bake",
-      "protein": "beef",
-      "ingredients": "2 lbs raw ground beef, white onion, tortillas, shredded cheese, crushed tomato purée, seasoning, refried beans",
-      "note": "[MEAL_UPDATE:2026-07-06:dinner|recipe=2076dbd8]Beef Enchilada Bake[/MEAL_UPDATE] Red meat anchor; use raw beef",
+    "2026-07-02::snacks": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Apples, Carrots, and Peanut Butter",
+          "ingredients": "apples, carrots, peanut butter",
+          "protein": "peanut butter"
+        }
+      ],
+      "note": "Easy post-run whole-food snack",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -169,7 +269,10 @@
     }
   },
   "used_proteins": [
-    "eggs"
+    "eggs",
+    "rotisserie chicken",
+    "red lentils",
+    "cajun sausage"
   ],
   "plan_locked_at": "2026-06-30"
 }
