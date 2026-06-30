@@ -251,3 +251,9 @@ id = "BfmNh294XB9ifhSWyj2yD"
 uri = "file://responses/verify_step4_writeloop_result.md"
 type = "text"
 title = "Step 4 write-loop harness — PASS (all 14 checks, exit 0)"
+
+[[outputs]]
+id = "DScJd0CuHsyId8dThW4f6"
+uri = "file://responses/claudmd_rule20_scroll_preservation.md"
+type = "text"
+title = "claud.md Rule 20 added — preserve scroll on same-page reloads"

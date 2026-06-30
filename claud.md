@@ -4,22 +4,22 @@ A Catholic homeschool family management web app built in Python on Replit.
 Single-file HTTP server pattern (app.py + render_*.py modules).
 No framework. Raw http.server with a custom do_GET / do_POST handler.
 Stack
-	•	Python 3.11
-	•	No Flask, no Django, no FastAPI
-	•	Data stored as JSON files in data/
-	•	No database
-	•	Frontend: plain HTML/CSS/JS rendered as strings in Python render functions
-	•	Anthropic API called directly via urllib.request (no SDK)
+        •       Python 3.11
+        •       No Flask, no Django, no FastAPI
+        •       Data stored as JSON files in data/
+        •       No database
+        •       Frontend: plain HTML/CSS/JS rendered as strings in Python render functions
+        •       Anthropic API called directly via urllib.request (no SDK)
 People
 Lauren (Mom), John (Dad), JP (14, 9th grade), Joseph (12, 7th grade),
 Michael (5, kindergarten), James (13 months, toddler — cannot be assigned tasks)
-	•	Always title-case: Mom/Lauren, JP, Joseph, Michael, James
-	•	Mom and Lauren are the same person
-	•	James is excluded from school renderers and gradebook
+        •       Always title-case: Mom/Lauren, JP, Joseph, Michael, James
+        •       Mom and Lauren are the same person
+        •       James is excluded from school renderers and gradebook
 Python 3.11 hard rules — never violate these
-	1.	No backslashes inside f-strings
-	2.	No nested quotes inside f-strings — use a variable outside the f-string instead
-	3.	All GET routing uses elif chains in do_GET — never a bare if, never nested
+        1.      No backslashes inside f-strings
+        2.      No nested quotes inside f-strings — use a variable outside the f-string instead
+        3.      All GET routing uses elif chains in do_GET — never a bare if, never nested
 if blocks for routing. POST routing in do_POST ALSO uses elif chains
 (elif path == “/route-name”: … return) — this is the real convention in
 the live code, verified June 28 2026 against the meal POST handlers and the
@@ -31,19 +31,19 @@ form routes — match the plain elif chain.
 [CORRECTED June 28 2026: a June 10 note had claimed do_POST uses “standalone
 if blocks at the top level.” The live code uses elif chains. Code wins; this
 also matches the Route patterns section and the project bible’s own summary.]
-	4.	Never put import statements inside if blocks or functions
+        4.      Never put import statements inside if blocks or functions
 [KNOWN DEVIATION, not a license: several live do_POST handlers use an inline
 import json as _json etc. New code should keep imports at module top; when
 editing an existing handler, be aware the local convention already deviates.]
-	5.	All file writes use safe_save_json (tmp file + os.replace) — never open(f, ‘w’) directly
-	6.	No walrus operator (:=)
-	7.	Never use ‘\n’ inside a JS string within a Python string literal — use ‘\n’ so the browser receives the escape sequence, not a raw newline
-	8.	multipart/form-data parsing: when fetch POSTs use FormData the server
+        5.      All file writes use safe_save_json (tmp file + os.replace) — never open(f, ‘w’) directly
+        6.      No walrus operator (:=)
+        7.      Never use ‘\n’ inside a JS string within a Python string literal — use ‘\n’ so the browser receives the escape sequence, not a raw newline
+        8.      multipart/form-data parsing: when fetch POSTs use FormData the server
 receives multipart/form-data not urlencoded. The do_POST handler must
 sniff Content-Type and parse accordingly using cgi.FieldStorage for
 multipart. If a POST handler receives empty data check the
 Content-Type first.
-	9.	py_compile passes but runtime fails: py_compile only validates syntax
+        9.      py_compile passes but runtime fails: py_compile only validates syntax
 not runtime correctness. Always run an in-process smoke test after
 py_compile to catch NameError, missing variable definitions, and
 import failures. After the in-process smoke test, also run the relevant
@@ -52,36 +52,36 @@ result — the smoke test confirms the changed function works, but the
 harness catches regressions in nearby functionality. Do not skip the
 harness run for changes that touch shared data files, save paths, or any
 function called from more than one place.
-	10.	test fixtures must never write to live data: verification harnesses
+        10.     test fixtures must never write to live data: verification harnesses
 must always operate on a temp copy of live data files. Never call
 save_progress, safe_save_json, or any write helper on live data
 during testing. Always restore from backup after any test that
 touches data files.
-	11.	double-escaping HTML entities: never pass a string that is already
+        11.     double-escaping HTML entities: never pass a string that is already
 HTML-escaped through escape() again. If a string contains literal
 ampersands for display use plain ampersands in the source string
 and let escape() handle it once. Strings pre-escaped with &
 will render as visible & in the browser if escaped again.
-	12.	JS newline in Python f-strings applies everywhere: rule 7 (never
+        12.     JS newline in Python f-strings applies everywhere: rule 7 (never
 use backslash-n in JS strings inside Python f-strings) applies to
 ALL files containing JS embedded in Python, not just
 render_frol_wizard.py. This includes render_schedule.py,
 render_timeblock.py, render_lucy.py, render_lorenzo.py, and any
 other render file with inline JavaScript.
 Data file patterns
-	•	Most data lives in data/*.json as flat dicts or lists
-	•	Person keys are title-case in progress.json, chores.json, events.json
-	•	Person keys are lowercase in auth/pins.json and profiles/ (jp.json not JP.json)
-	•	Progress keys are compound strings: “YYYY-MM-DD::Person::task text”
-	•	Date keys: YYYY-MM-DD (most), YYYY-Www (meal_plan), YYYY-MM (cycle)
+        •       Most data lives in data/*.json as flat dicts or lists
+        •       Person keys are title-case in progress.json, chores.json, events.json
+        •       Person keys are lowercase in auth/pins.json and profiles/ (jp.json not JP.json)
+        •       Progress keys are compound strings: “YYYY-MM-DD::Person::task text”
+        •       Date keys: YYYY-MM-DD (most), YYYY-Www (meal_plan), YYYY-MM (cycle)
 Route patterns
-	•	GET routes call render_*.py functions that return HTML strings
-	•	POST routes live in app.py do_POST, chained as elif path == “/route-name”:
+        •       GET routes call render_*.py functions that return HTML strings
+        •       POST routes live in app.py do_POST, chained as elif path == “/route-name”:
 (this is the verified live convention — see Rule 3)
-	•	JSON POST bodies must be registered in _JSON_PATHS set or the form-parser
+        •       JSON POST bodies must be registered in _JSON_PATHS set or the form-parser
 will consume the payload silently. NOTE: _JSON_PATHS is a LOCAL set defined
 inside do_POST (app.py ~3536), not module-level.
-	•	New routes that receive JSON bodies must be added to _JSON_PATHS
+        •       New routes that receive JSON bodies must be added to _JSON_PATHS
 Anchor-tag navigation
 Plain <a href="..."> links cannot POST and cannot mutate server state on
 their own. Any state the destination page needs must either travel in the
@@ -95,14 +95,14 @@ the landing screen and the wizard appeared unreachable. If a button must
 trigger persistent state without the destination handler doing the write,
 use a <form method="POST"> with a submit button styled as a link instead.
 AI calls
-	•	Model: NOT uniform across the app. Lorenzo’s live call uses
+        •       Model: NOT uniform across the app. Lorenzo’s live call uses
 claude-haiku-4-5-20251001 (verified June 28 2026 from the /lorenzo-chat
 handler in app.py; replit.md agrees). The previously-documented
 claude-sonnet-4-20250514 is STALE/UNVERIFIED for other AI calls — confirm
 the model per call before relying on a single value here.
-	•	Called via urllib.request directly, not the Anthropic SDK
-	•	API key read from app_settings.json
-	•	_repair_and_parse_json() is NOT universal. It is a NESTED LOCAL function
+        •       Called via urllib.request directly, not the Anthropic SDK
+        •       API key read from app_settings.json
+        •       _repair_and_parse_json() is NOT universal. It is a NESTED LOCAL function
 inside the plan-import POST handler (app.py ~8412) and is used ONLY by the
 plan importer. Lorenzo does NOT use it — Lorenzo emits bracket/XML save-tags
 parsed by regex and reads result.content[0].text directly. Do not assume a
@@ -111,11 +111,11 @@ module level deliberately (Rule 17 sign-off).
 [CORRECTED June 28 2026: prior text said “All AI responses go through
 _repair_and_parse_json() before use” — that is not true in the code.]
 Change discipline
-	•	All changes are additive unless explicitly told otherwise
-	•	Never delete or modify existing behavior unless the task specifically requires it
-	•	If a task requires editing a file not in the stated scope, stop and flag it
-	•	Keep modules under 800 lines where possible
-	•	render_plan_importer.py is 1,114 lines (JS lives in static/js/plan_importer_core.js and static/js/plan_importer_consult.js — edit those, not the Python file, for JS changes)
+        •       All changes are additive unless explicitly told otherwise
+        •       Never delete or modify existing behavior unless the task specifically requires it
+        •       If a task requires editing a file not in the stated scope, stop and flag it
+        •       Keep modules under 800 lines where possible
+        •       render_plan_importer.py is 1,114 lines (JS lives in static/js/plan_importer_core.js and static/js/plan_importer_consult.js — edit those, not the Python file, for JS changes)
 FROL Wizard form bypass trap
 The _section_chrome function in render_frol_wizard.py suppresses the
 Save and Continue button when it detects a form in the body via the
@@ -128,7 +128,7 @@ the bypass. When adding new forms to section bodies always check whether
 they post to /frol-wizard and if so either use a different route or
 handle the advance separately in the section body itself.
 Additional rules (13–19)
-	13.	FROL WIZARD NESTED FORM ADDENDUM — The _body_has_form check in
+        13.     FROL WIZARD NESTED FORM ADDENDUM — The _body_has_form check in
 _section_chrome looks for action=”/frol-wizard” in the body string.
 Any form inside a section body posting to /frol-wizard will suppress
 the Save and Continue button. Variant tab forms posting to
@@ -136,7 +136,7 @@ the Save and Continue button. Variant tab forms posting to
 /frol-add-activity are safe. Before adding any form to a section body
 confirm its action attribute. This is a recurring bug — document
 before fixing if it appears again.
-	14.	PRE-FLIGHT CHECKLIST — Before writing any spec answer these
+        14.     PRE-FLIGHT CHECKLIST — Before writing any spec answer these
 questions. One — how many files does this touch, list them, if
 unknown that is a diagnosis step first. Two — does it involve
 JavaScript inside Python f-strings, if yes flag the backslash-n rule
@@ -148,11 +148,11 @@ at once, if yes break into separate single-purpose instructions.
 Six — does it involve data shape changes or migration, if yes
 confirm before and after data structure explicitly before writing
 the spec.
-	15.	CLAUD.MD READ-BACK REQUIRED — At the start of every session read
+        15.     CLAUD.MD READ-BACK REQUIRED — At the start of every session read
 claud.md and paste back every rule found. Then identify which rules
 apply to today’s task. If you cannot paste the rules back accurately
 stop and ask Lauren to re-paste claud.md before proceeding.
-	16.	MAGNIFICA HUMANITAS DESIGN PRINCIPLES — Every feature must reflect
+        16.     MAGNIFICA HUMANITAS DESIGN PRINCIPLES — Every feature must reflect
 these. The deepest danger to guard against, named by the encyclical:
 that people come to see themselves and one another as projects to be
 optimized rather than persons called to relationship and communion. The
@@ -183,19 +183,19 @@ and harm none: does it help the family remain faithful to the truth; does
 it help them learn and teach one another; does it help them cultivate real
 closeness and protect physical presence; does it help them live justice
 and peace in their home.
-	17.	ONE FIX PER INSTRUCTION — Never bundle multiple fixes into one
+        17.     ONE FIX PER INSTRUCTION — Never bundle multiple fixes into one
 Agent instruction unless they are in the same file and directly
 related. Complex multi-file builds must be broken into sequential
 single-purpose phases with a compile check and report between each
 phase.
-	18.	AUGUST 15TH BUILD PLAN IS THE PRIORITY FILTER — Between June 1st
+        18.     AUGUST 15TH BUILD PLAN IS THE PRIORITY FILTER — Between June 1st
 and August 15th 2026 every build request must be checked against the
 August 15th build plan before proceeding. If a requested build is
 not on the must-have or should-have list for the current week flag
 it to Lauren before starting. New feature ideas go on the
 post-September list unless they directly enable one of the 14 goals
 in the August 15th plan. Scope is the first thing to cut not quality.
-	19.	BUILD FOR A FUTURE SECOND FAMILY — This app will eventually be
+        19.     BUILD FOR A FUTURE SECOND FAMILY — This app will eventually be
 shared with and possibly sold to other families using a hosted
 multi-family model. Every feature must be written as if a second family
 will use it. Never hardcode McAdams or any single family’s specifics
@@ -211,17 +211,30 @@ features before August 15th.
 render_lorenzo.py hardcodes the family roster (names, ages, kitchen
 roles) rather than reading app_settings.json. New Step 4 / Lorenzo work
 must NOT deepen this; ideally route the roster through data_helpers.]
+        20.     PRESERVE SCROLL ON SAME-PAGE RELOADS — Any fetch() POST that, on
+success, navigates via window.location.href to the SAME page (a full
+reload of the page the user is already on, not a forward navigation to a
+different step or a different page) MUST save window.scrollY to
+sessionStorage immediately before setting window.location.href, then on
+the next page load restore the position with window.scrollTo and clear
+the sessionStorage key (read → scrollTo → removeItem, gated on
+document.readyState / DOMContentLoaded). This stops multi-item list pages
+from jumping to the top after an action. Forward navigations to a
+different page/step are exempt (jumping to the top is correct there).
+render_meal_wizard_step4.py is the reference implementation (the s4Keep /
+s4Change / s4Lock / s4Generate navigations + s4RestoreScroll). Keep this
+client-side only and obey Rules 7 & 12 (no raw newline in embedded JS).
 Current major features
-	•	/plan-import — paste text → AI extracts events, tasks, placements → approve → apply
-	•	Placements route information to existing records (events, profiles, friends, pantry, etc.)
-	•	Receipt + undo after apply (/plan-import-undo-placement)
-	•	Six AI companions: Lucy, Lorenzo, Gregory, Monica, Coach, Izzy (dev)
-	•	Liturgical calendar engine with auto-computed Easter and moveable feasts
-	•	Daily schedule grids per person, per date
-	•	Gradebook with assignment analyzer
-	•	Meal planner with Lorenzo as meal companion
+        •       /plan-import — paste text → AI extracts events, tasks, placements → approve → apply
+        •       Placements route information to existing records (events, profiles, friends, pantry, etc.)
+        •       Receipt + undo after apply (/plan-import-undo-placement)
+        •       Six AI companions: Lucy, Lorenzo, Gregory, Monica, Coach, Izzy (dev)
+        •       Liturgical calendar engine with auto-computed Easter and moveable feasts
+        •       Daily schedule grids per person, per date
+        •       Gradebook with assignment analyzer
+        •       Meal planner with Lorenzo as meal companion
 DOC CORRECTION LOG
-	•	June 28 2026: Rule 3 (do_POST is elif, not standalone-if), the AI-calls
+        •       June 28 2026: Rule 3 (do_POST is elif, not standalone-if), the AI-calls
 model line (Lorenzo = Haiku; Sonnet value stale/unverified), and the
 _repair_and_parse_json universality claim (plan-importer only) were
 corrected against the live code, surfaced by the Phase G1 diagnosis pass.
