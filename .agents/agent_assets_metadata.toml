@@ -227,3 +227,9 @@ id = "OZabNT0_qVcEP49VJhVkb"
 uri = "file://responses/build_cap_single_source_of_truth_phase2.md"
 type = "text"
 title = "BUILD complete — cap single source of truth, Phase 2 (all 4 checks pass)"
+
+[[outputs]]
+id = "-C2E7j356y-oBwF6vydns"
+uri = "file://responses/diagnosis_step4_scroll_jump_to_top.md"
+type = "text"
+title = "DIAGNOSIS — Step 4 slot-action buttons & jump-to-top root cause"
