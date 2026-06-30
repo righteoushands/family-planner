@@ -33,15 +33,7 @@ from html import escape
 from ui_helpers import html_page
 from data_helpers import load_meal_wizard_session, get_merged_calendar_events
 from render_liturgical import get_day_info
-from render_meal_wizard_gen import wizard_target_slot_keys
-
-# MUST stay in lockstep with app.py's _WIZARD_GEN_SLOT_CAP (the server-side cap
-# enforced by /meal-wizard-generate). It is duplicated here rather than imported
-# because app.py imports this module, so importing the constant back would be a
-# circular import. FLAG: if these two values drift apart, this button could
-# enable a request the server then refuses (or disable one the server allows).
-# Change both together. Added 2026-06-30.
-_WIZARD_GEN_SLOT_CAP = 14
+from render_meal_wizard_gen import wizard_target_slot_keys, _WIZARD_GEN_SLOT_CAP
 
 _HEADING_FONT = "'Cormorant Garamond', serif"
 
