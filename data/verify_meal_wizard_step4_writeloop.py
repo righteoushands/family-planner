@@ -109,6 +109,19 @@ def main():
         ok = (st == 200) and (json.loads(raw).get("ok") is True)
         _check(ok, "confirm POST returns 200 {ok:true}",
                "confirm POST did not return ok", failures)
+        # No-reload contract: confirm now returns the rendered CONFIRMED slot
+        # fragment + lock control for in-place DOM injection (not a reload).
+        _cj = json.loads(raw)
+        _conf_change_call = "s4Change('" + _D1 + "','dinner')"
+        _check("slot_html" in _cj and "Chicken Parm" in _cj["slot_html"]
+               and _conf_change_call in _cj["slot_html"]
+               and ("s4-row--" + _D1 + "--dinner") in _cj["slot_html"],
+               "confirm response returns the confirmed slot fragment (row id + Change)",
+               "confirm response missing the confirmed slot fragment", failures)
+        _check(_cj.get("lockable") is True
+               and "lock_html" in _cj and "s4-lock-control" in _cj["lock_html"],
+               "confirm response reports lock-eligibility True + lock-control HTML",
+               "confirm response lock-eligibility payload wrong", failures)
         e = _entry(_D1, "dinner")
         _check(isinstance(e, dict),
                "confirmed meal persisted to session",
@@ -169,6 +182,15 @@ def main():
         _check(ok and _entry(_D1, "dinner") is None,
                "remove POST clears the slot from the session",
                "remove did not clear the slot", failures)
+        # No-reload contract: remove now returns the reverted ENTRY-state slot
+        # fragment for in-place DOM injection (not a reload).
+        _rj = json.loads(raw)
+        _rm_name_id = "s4-name--" + _D1 + "--dinner"
+        _check("slot_html" in _rj and _rm_name_id in _rj["slot_html"]
+               and "Chicken Parm" not in _rj["slot_html"]
+               and "lock_html" in _rj and "s4-lock-control" in _rj["lock_html"],
+               "remove response returns the reverted entry-state slot fragment",
+               "remove response missing the reverted slot fragment", failures)
         st, html = _get("/meal-wizard-step4", token)
         name_id = "s4-name--" + _D1 + "--dinner"
         _check(st == 200 and (name_id in html) and ("Chicken Parm" not in html),

@@ -281,3 +281,9 @@ id = "b7y0nUMSL6dy1_bB9ALMt"
 uri = "file://responses/step4_blink_diagnosis.md"
 type = "text"
 title = "Step 4 blink — diagnosis (no code changed)"
+
+[[outputs]]
+id = "VybKRscVs-LGcfORAMXHD"
+uri = "file://responses/step4_keepchange_noreload_done.md"
+type = "text"
+title = "Step 4 Keep/Change no-reload — done"

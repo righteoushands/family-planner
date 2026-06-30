@@ -158,6 +158,14 @@ def main():
                "back link to Step 3 present",
                "back link to Step 3 missing", failures)
 
+        # No-reload swap contract: every slot row carries a stable id and the
+        # lock control carries id="s4-lock-control", so Keep/Change can patch
+        # just that row (and the lock button) in place without a page reload.
+        _check("s4-row--2026-06-29--dinner" in html
+               and 'id="s4-lock-control"' in html,
+               "render exposes per-slot row ids + lock-control id (no-reload hooks)",
+               "no-reload DOM hooks (s4-row--*, s4-lock-control) missing", failures)
+
     except Exception:
         failures.append("exception")
         traceback.print_exc()

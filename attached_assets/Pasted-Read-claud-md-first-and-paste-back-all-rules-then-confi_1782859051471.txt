@@ -1,0 +1,45 @@
+Read claud.md first and paste back all rules, then confirm which apply
+— Rule 20 interacts here (no-navigation buttons don't need scroll
+restore), Rule 16 (Generate untouched, stays a reload — out of scope).
+
+SCOPE: render_meal_wizard_step4.py's Keep (s4Keep) and Change
+(s4Change) buttons only. Set this plan and Generate are unchanged
+this phase.
+
+GOAL: remove the full-page reload/flash on Keep and Change. Server
+remains the single source of truth — no client-side markup
+reconstruction.
+
+APPROACH (mirrors toggleDashTask's optimistic-update pattern, adapted
+since this needs server-rendered content, not just a state flip):
+1. /meal-wizard-step4-confirm and /meal-wizard-step4-remove, on
+   success, return the SAME rendered row fragment for that slot that
+   a full page load would have produced (entry affordance <-> 
+   confirmed display, via the existing _s4_slot_block /
+   format_dish_list logic — do not duplicate that rendering logic in
+   JS).
+2. s4Keep / s4Change: on success, inject the returned fragment into
+   that slot's row element (replace its innerHTML or the row itself),
+   instead of window.location.href.
+3. Re-evaluate the lock control after the swap: if this was the first
+   lockable confirmed meal, the page needs to reflect that (e.g. swap
+   a hint message for the "Set this plan" button) WITHOUT a reload —
+   this likely also needs to come back in the response payload (a
+   flag the lock-eligibility changed) since a single row swap can't
+   compute that from the DOM alone.
+4. On failure: leave the row as-is, show the existing error message
+   div (s4-msg--<key>) — same as today, untouched.
+5. Rule 20 no longer applies to these two buttons (no navigation) —
+   remove their scroll-save calls, but leave Set this plan and
+   Generate's untouched.
+6. Rules 7/12: new JS embedded in the Python string, no raw newline.
+
+VALIDATION: py_compile, in-process smoke test, then
+verify_meal_wizard_step4.py, verify_meal_wizard_step4_writeloop.py,
+verify_meal_wizard_step4_lock.py — paste all results. These harnesses
+currently assume reload-based behavior; update their assertions to
+check the returned fragment / DOM-injection result instead of a full
+page reload where needed, per Rule 9.
+
+Single phase: Keep + Change only. Set this plan and Generate stay as
+full reloads — do not touch them this instruction.

@@ -198,8 +198,13 @@ def _s4_recipe_label(entry: dict) -> str:
 # LITERALS (not an f-string) like render_meal_wizard_step3.py's s3Save, so there
 # are no Python-side brace or quote conflicts (Rules 1, 2). No backslash-n ever
 # appears inside a JS string here (Rules 7, 12). Inputs/buttons are addressed by
-# unique element id (s4-<field>--<date>--<slot>); on success the page RELOADS so
-# the session stays the single source of truth — no client-side state to drift.
+# unique element id (s4-<field>--<date>--<slot>). Keep (s4Keep) and Change
+# (s4Change) do NOT reload: on success they inject the server-rendered slot row
+# (s4-row--<key>) and lock control (s4-lock-control) returned by the handler, so
+# the session stays the single source of truth with no client-side markup
+# rebuild and no full-page flash (Rule 20 scroll-restore is therefore not needed
+# for them). Set this plan (s4Lock) and Generate (s4Generate) still RELOAD on
+# success and keep their scroll-save (Rule 20).
 _S4_JS = (
     "<script>"
     "(function(){"
@@ -219,7 +224,9 @@ _S4_JS = (
     "    fetch('/meal-wizard-step4-confirm', { method:'POST',"
     "      headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })"
     "      .then(function(r){ return r.json(); })"
-    "      .then(function(j){ if(j && j.ok){ sessionStorage.setItem('s4ScrollY', String(window.scrollY)); window.location.href = '/meal-wizard-step4'; }"
+    "      .then(function(j){ if(j && j.ok && j.slot_html){"
+    "          var row = elById('s4-row--' + key); if(row){ row.outerHTML = j.slot_html; }"
+    "          var lock = elById('s4-lock-control'); if(lock && j.lock_html){ lock.outerHTML = j.lock_html; } }"
     "        else { setMsg(msgId, 'Could not save. Please try again.'); } })"
     "      .catch(function(){ setMsg(msgId, 'Could not save. Please try again.'); });"
     "  };"
@@ -231,7 +238,9 @@ _S4_JS = (
     "    fetch('/meal-wizard-step4-remove', { method:'POST',"
     "      headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })"
     "      .then(function(r){ return r.json(); })"
-    "      .then(function(j){ if(j && j.ok){ sessionStorage.setItem('s4ScrollY', String(window.scrollY)); window.location.href = '/meal-wizard-step4'; }"
+    "      .then(function(j){ if(j && j.ok && j.slot_html){"
+    "          var row = elById('s4-row--' + key); if(row){ row.outerHTML = j.slot_html; }"
+    "          var lock = elById('s4-lock-control'); if(lock && j.lock_html){ lock.outerHTML = j.lock_html; } }"
     "        else { setMsg(msgId, 'Could not change. Please try again.'); } })"
     "      .catch(function(){ setMsg(msgId, 'Could not change. Please try again.'); });"
     "  };"
@@ -310,7 +319,7 @@ def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry,
             # A fresh Lorenzo suggestion: open the ingredients box for review.
             ing_open = " open"
         return (
-            f'<div style="{_S4_SLOT_ROW}">{label_html}'
+            f'<div id="s4-row--{key}" style="{_S4_SLOT_ROW}">{label_html}'
             f'<textarea id="{name_id}" rows="2" style="{_S4_NAME_AREA}" '
             f'placeholder="Meal name">{name_body}</textarea>'
             f'<details{ing_open} style="{_S4_DETAILS}">'
@@ -346,7 +355,7 @@ def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry,
             f'onclick="{change_call}">Change</button></div>'
             f'<div id="{msg_id}" style="{_S4_MSG}"></div>'
         )
-    return (f'<div style="{_S4_SLOT_ROW}">{label_html}'
+    return (f'<div id="s4-row--{key}" style="{_S4_SLOT_ROW}">{label_html}'
             f'<div style="{_S4_MEAL_NAME}">{name}</div>'
             f'<div style="{_S4_META}">{recipe}</div>'
             f'{tags_html}{change_html}</div>')
@@ -435,6 +444,66 @@ def _s4_gate_body() -> str:
     )
 
 
+def _s4_has_lockable(confirmed: dict) -> bool:
+    """True when at least one non-prefill confirmed meal sits in a slot that has
+    a store home (feast_meal / batch_cook do not count) and its lead dish has a
+    name. Drives the 'Set this plan' button vs. the calm hint. Confirmed entries
+    are dishes[]-shaped (flat legacy entries migrate on read)."""
+    for _ck, _ce in (confirmed or {}).items():
+        if not isinstance(_ce, dict):
+            continue
+        if (_ce.get("source") or "").strip().lower() == "prefill":
+            continue
+        _cslot = _ck.partition("::")[2]
+        if _cslot in _S4_LOCKABLE_SLOTS:
+            _cd = slot_dishes(_ce)
+            if _cd and (_cd[0].get("name") or "").strip():
+                return True
+    return False
+
+
+def _s4_lock_control_html(has_lockable: bool) -> str:
+    """The 'Set this plan' control region. Carries a stable id (s4-lock-control)
+    so Keep/Change can swap it in place — without a page reload — when
+    lock-eligibility flips."""
+    if has_lockable:
+        inner = (
+            f'<button type="button" style="{_S4_LOCK_BTN}" '
+            f'onclick="s4Lock()">Set this plan</button>'
+            f'<div id="s4-lock-msg" style="{_S4_LOCK_MSG}"></div>'
+        )
+    else:
+        hint = "Confirm at least one meal to set your plan"
+        inner = f'<div style="{_S4_LOCK_HINT}">{escape(hint)}</div>'
+    return (
+        f'<div id="s4-lock-control" style="{_S4_LOCK_WRAP}">'
+        f'{inner}'
+        f'</div>'
+    )
+
+
+def render_step4_slot_and_lock(date_iso: str, slot_key: str) -> dict:
+    """Re-render ONE slot row plus the lock control from the CURRENT session, so
+    Keep/Change can patch just that row (and the lock button) in place — no full
+    page reload. The session stays the single source of truth: this reuses
+    _s4_slot_block / _s4_lock_control_html and never reconstructs markup in JS.
+    On a reverted (Change) slot the entry affordance carries any standing Lorenzo
+    suggestion, exactly as a full page load would render it."""
+    session = load_meal_wizard_session() or {}
+    confirmed = session.get("confirmed_meals") or {}
+    suggested = session.get("suggested_meals") or {}
+    label = dict(_S4_SLOT_ORDER).get(slot_key, slot_key)
+    full = date_iso + "::" + slot_key
+    slot_html = _s4_slot_block(date_iso, slot_key, label,
+                               confirmed.get(full), suggested.get(full))
+    lockable = _s4_has_lockable(confirmed)
+    return {
+        "slot_html": slot_html,
+        "lock_html": _s4_lock_control_html(lockable),
+        "lockable": lockable,
+    }
+
+
 def render_meal_wizard_step4(user: str, start_iso: str = None) -> str:
     """Step 4 of the Meal Planning Wizard — READ-ONLY. Reads the wizard session
     (planning_window, confirmed_what_to_plan, confirmed_meals) and renders the
@@ -493,20 +562,7 @@ def render_meal_wizard_step4(user: str, start_iso: str = None) -> str:
     # at least one non-prefill confirmed meal sits in a slot that has a store home
     # (feast_meal / batch_cook do not count); otherwise a calm hint shows instead.
     locked_at = (session.get("plan_locked_at") or "").strip()
-    has_lockable = False
-    for _ck, _ce in confirmed.items():
-        if not isinstance(_ce, dict):
-            continue
-        if (_ce.get("source") or "").strip().lower() == "prefill":
-            continue
-        _cslot = _ck.partition("::")[2]
-        if _cslot in _S4_LOCKABLE_SLOTS:
-            # Confirmed entries are dishes[]-shaped (flat legacy entries migrate
-            # on read); a meal counts as lockable once its lead dish has a name.
-            _cd = slot_dishes(_ce)
-            if _cd and (_cd[0].get("name") or "").strip():
-                has_lockable = True
-                break
+    has_lockable = _s4_has_lockable(confirmed)
 
     if locked_at:
         banner_text = "Your plan is set \u2014 showing on your homepage for this week."
@@ -514,21 +570,7 @@ def render_meal_wizard_step4(user: str, start_iso: str = None) -> str:
     else:
         banner_html = ""
 
-    if has_lockable:
-        lock_html = (
-            f'<div style="{_S4_LOCK_WRAP}">'
-            f'<button type="button" style="{_S4_LOCK_BTN}" '
-            f'onclick="s4Lock()">Set this plan</button>'
-            f'<div id="s4-lock-msg" style="{_S4_LOCK_MSG}"></div>'
-            f'</div>'
-        )
-    else:
-        hint = "Confirm at least one meal to set your plan"
-        lock_html = (
-            f'<div style="{_S4_LOCK_WRAP}">'
-            f'<div style="{_S4_LOCK_HINT}">{escape(hint)}</div>'
-            f'</div>'
-        )
+    lock_html = _s4_lock_control_html(has_lockable)
 
     nav = (
         f'<div style="{_S4_NAV_ROW}">'
