@@ -1,20 +1,24 @@
 # PROJECT_STATE.md — Sancta Familia
 Technical snapshot of the current codebase. Read at the start of future
-sessions for a fast orientation. Generated 2026-06-19.
+sessions for a fast orientation. Generated 2026-06-30.
 
 > Counts as of this snapshot (all derived from the current source, not carried
-> forward): **99 exact-match + 16 prefix (`startswith`) GET routes** in `do_GET`;
-> **203 exact-match + 1 prefix POST routes** in `do_POST`; **58 `render_*.py`
-> modules**; **217 top-level functions in `data_helpers.py`**; 60 `data/*.json`
+> forward): **100 exact-match + 16 prefix (`startswith`) GET routes** in `do_GET`;
+> **207 exact-match + 1 prefix POST routes** in `do_POST`; **60 `render_*.py`
+> modules**; **219 top-level functions in `data_helpers.py`**; 61 `data/*.json`
 > files on disk.
 >
-> **Phase F (Meal Planning Wizard — Step 3) is complete.** New since the Phase E
-> snapshot: GET `/meal-wizard-step3`; POST `/meal-wizard-step3-save` (registered
-> in `_JSON_PATHS`); new module `render_meal_wizard_step3.py` (435 lines),
-> re-exported from `render_meal_wizard.py`; the Step-3 session keys
-> `confirmed_what_to_plan`, `confirmed_complexity`, `planning_window`, and
-> `confirmed_meals` (prefill entries carry `skip_shopping` + `recipe_on_request`);
-> harness `data/verify_meal_wizard_step3.py`.
+> **Phase G (Meal Planning Wizard — Step 4) is complete.** New since the Phase F
+> snapshot: GET `/meal-wizard-step4`; POST `/meal-wizard-step4-confirm`,
+> `/meal-wizard-step4-remove`, `/meal-wizard-step4-lock`, and `/meal-wizard-generate`
+> (all four registered in `_JSON_PATHS`); new module `render_meal_wizard_step4.py`
+> (549 lines) plus the Lorenzo week-generator `render_meal_wizard_gen.py` (228 lines),
+> both re-exported / used via `render_meal_wizard.py`; the Step-4 session key
+> `suggested_meals` (Lorenzo drafts keyed `"iso::slot"`, pre-filled into empty Step 4
+> slot boxes); harnesses `verify_phase_g.py`, `verify_meal_wizard_g1a.py`,
+> `verify_meal_wizard_gen.py`, `verify_meal_wizard_step4.py`,
+> `verify_meal_wizard_step4_lock.py`, `verify_meal_wizard_step4_writeloop.py`.
+> `meal_wizard_session.json` (6.2 KB) is now on disk.
 
 ---
 
@@ -22,9 +26,9 @@ sessions for a fast orientation. Generated 2026-06-19.
 
 Per Rule 3, all GET routing uses `elif` chains in `do_GET`. Auth-gated routes
 pass through the global `viewer = _require_auth(path)` gate before rendering.
-`do_GET` spans app.py lines ~748–2232.
+`do_GET` spans app.py lines ~752–2224.
 
-### 1a. Exact-match routes (`path == "…"`) — 99
+### 1a. Exact-match routes (`path == "…"`) — 100
 
 | Path | Renders / returns |
 |---|---|
@@ -89,7 +93,8 @@ pass through the global `viewer = _require_auth(path)` gate before rendering.
 | `/pantry-staples` | render: render_pantry_staples_page() |
 | `/meal-wizard` | render: render_meal_wizard_week_glance() |
 | `/meal-wizard-step2` | render: render_meal_wizard_step2() ← Phase E |
-| `/meal-wizard-step3` | render: render_meal_wizard_step3() ← **Phase F** |
+| `/meal-wizard-step3` | render: render_meal_wizard_step3() ← Phase F |
+| `/meal-wizard-step4` | render: render_meal_wizard_step4() ← **Phase G** |
 | `/sister-mary` | render: render_sister_mary_page() |
 | `/frol-grid-fragment` | render: FROL grid fragment |
 | `/frol-seasonal-view` | render: render_seasonal_view_page() |
@@ -152,21 +157,28 @@ pass through the global `viewer = _require_auth(path)` gate before rendering.
 
 ## Section 2 — POST routes (defined in app.py `do_POST`)
 
-Per Rule 3, POST routing matches the codebase convention of top-level
-`if/elif path == "…":` blocks. `do_POST` begins at app.py line ~2233. There is
-exactly **one** prefix POST match: `path.startswith("/quest")` (Family Quest
-handoff); all other POST routes are exact matches (203 total).
+Per Rule 3 (corrected June 28 2026 against the live code), POST routing uses
+`elif path == "…":` chains in `do_POST`, the same convention as `do_GET`. The
+**one** exception is the multipart recipe routes (`/recipe-save`,
+`/recipe-import`), which share an outer `elif path in (...)` block with nested
+`if path == …` inner blocks solely to share upload-parsing setup — do not copy
+that nested pattern for ordinary routes. `do_POST` begins at app.py line ~2247.
+There is exactly **one** prefix POST match: `path.startswith("/quest")` (Family
+Quest handoff); all other POST routes are exact matches (207 total).
 
 **JSON-body routes** must be registered in `_JSON_PATHS` or the form-parser
-silently consumes the payload. Current `_JSON_PATHS` (app.py ~line 3536):
+silently consumes the payload. `_JSON_PATHS` is a **local** set defined inside
+`do_POST` (app.py ~line 3536), not module-level. Current members:
 `/plan-import-apply`, `/plan-import-undo-placement`, `/curriculum-save`,
-`/curriculum-minutes`, `/poetry-passage-save`, **`/meal-wizard-step3-save`**
-(← Phase F). All other POST handlers read the urlencoded `data`/form fields
-(multipart sniffed per Rule 8).
+`/curriculum-minutes`, `/poetry-passage-save`, `/meal-wizard-step3-save`
+(← Phase F), **`/meal-wizard-step4-confirm`**, **`/meal-wizard-step4-remove`**,
+**`/meal-wizard-step4-lock`**, **`/meal-wizard-generate`** (← Phase G). All other
+POST handlers read the urlencoded `data`/form fields (multipart sniffed per
+Rule 8).
 
 **Auth & messaging:** `/login`, `/student-message-read`, `/message-mom`, `/change-pin`, `/messages-read`, `/save-pins`
 
-**Meals & pantry:** `/pantry-staples-save`, `/meal-save-plan`, `/meal-rule-add`, `/meal-rule-delete`, `/meal-save-inventory`, `/meal-wizard-step2-save` ← Phase E, `/meal-wizard-step3-save` ← **Phase F (JSON)**, `/meal-generate`, `/meal-save-constraints`, `/meal-edit`, `/recipe-save`, `/recipe-import`, `/recipe-delete`
+**Meals & pantry:** `/pantry-staples-save`, `/meal-save-plan`, `/meal-rule-add`, `/meal-rule-delete`, `/meal-save-inventory`, `/meal-wizard-step2-save` ← Phase E, `/meal-wizard-step3-save` ← Phase F (JSON), `/meal-wizard-step4-confirm` ← **Phase G (JSON)**, `/meal-wizard-step4-remove` ← **Phase G (JSON)**, `/meal-wizard-step4-lock` ← **Phase G (JSON)**, `/meal-wizard-generate` ← **Phase G (JSON, Lorenzo week generator)**, `/meal-generate`, `/meal-save-constraints`, `/meal-edit`, `/recipe-save`, `/recipe-import`, `/recipe-delete`
 
 **Plan importer:** `/plan-import-save-session`, `/plan-import-history-delete`, `/plan-import-analyze`, `/plan-import-apply` (JSON), `/plan-import-undo-placement` (JSON), `/plan-import-consult`, `/plan-import-group-consult`, `/api/extract-suggestions`
 
@@ -205,23 +217,24 @@ silently consumes the payload. Current `_JSON_PATHS` (app.py ~line 3536):
 ## Section 3 — Data files (data/)
 
 All persistent data is JSON under `data/`. `config.py` owns all file paths;
-`data_helpers.py` is the only module that should read/write these files. 60
+`data_helpers.py` is the only module that should read/write these files. 61
 `data/*.json` files are currently on disk (sizes are bytes from disk).
 
-> **Lazily-created meal-wizard files:** `pantry_staples.json`, `meal_history.json`,
-> and `meal_wizard_session.json` are **not on disk yet** — they are created by
-> their `save_*` helpers on first write. Their absence is normal.
+> **Lazily-created meal-wizard files:** `pantry_staples.json` and
+> `meal_history.json` are **not on disk yet** — they are created by their `save_*`
+> helpers on first write. Their absence is normal. `meal_wizard_session.json` is
+> now present (created once Step 2–4 began writing session state).
 
 ### Meal-related
 | File | Size | Stores |
 |---|---|---|
-| `meal_inventory.json` | 917 B | Fridge/freezer/pantry/use-soon inventory blob + `last_updated` |
-| `meal_rules.json` | 3.3 KB | Meal planning rules/constraints |
+| `meal_inventory.json` | 2.1 KB | Fridge/freezer/pantry/use-soon inventory blob + `last_updated` |
+| `meal_rules.json` | 3.2 KB | Meal planning rules/constraints |
 | `meal_plan/` (dir) | — | Per-week meal plans (`YYYY-Www` keys) |
 | `recipes.json` | 46 KB | Recipe library |
+| `meal_wizard_session.json` | 6.2 KB | Wizard session state — see keys below |
 | `pantry_staples.json` | *absent* | Pantry staples checklist (created on first save) |
 | `meal_history.json` | *absent* | Recent-meals history (created on first save) |
-| `meal_wizard_session.json` | *absent* | Wizard session state — see keys below (created on first save) |
 
 **`meal_wizard_session.json` keys** (shallow-merged via `update_meal_wizard_session`):
 - Phase E (Step 2): `confirmed_inventory`, `use_soon_items`
@@ -230,6 +243,9 @@ All persistent data is JSON under `data/`. `config.py` owns all file paths;
   `confirmed_meals` (per-day prefill entries; pre-filled past meals carry
   `skip_shopping: true` + `recipe_on_request: true` so they stay off the grocery
   list and never auto-generate a recipe card).
+- Phase G (Step 4): `suggested_meals` — Lorenzo's draft meals keyed `"iso::slot"`,
+  pre-filled into empty Step 4 slot boxes; written by `/meal-wizard-generate` and
+  cleared/confirmed as the user keeps or removes each slot.
 
 ### Core app data
 | File | Size | Stores |
@@ -316,16 +332,19 @@ All persistent data is JSON under `data/`. `config.py` owns all file paths;
 | `planning_session.json` | 21 B | Lorenzo planning session |
 
 ### Verification harnesses (data/)
-`verify_phase_a.py` … `verify_phase_g.py`, **`verify_meal_wizard_step3.py`**
-(← Phase F), `verify_task_42.py` — per Rule 10, all operate on temp copies of
-live data and restore from backup; never run against live data. (Transient test
-artifacts such as `_undo_smoke_test.json` may also appear on disk.)
+`verify_phase_a.py` … `verify_phase_g.py` (Phase G added), plus the meal-wizard
+harnesses **`verify_meal_wizard_g1a.py`**, **`verify_meal_wizard_gen.py`**,
+**`verify_meal_wizard_step3.py`**, **`verify_meal_wizard_step4.py`**,
+**`verify_meal_wizard_step4_lock.py`**, **`verify_meal_wizard_step4_writeloop.py`**,
+and `verify_task_42.py`. Per Rule 10, all operate on temp copies of live data and
+restore from backup; never run against live data. (Transient test artifacts such
+as `_undo_smoke_test.json` may also appear on disk.)
 
 ---
 
 ## Section 4 — Modules and line counts
 
-58 `render_*.py` modules plus the supporting top-level modules below. Line
+60 `render_*.py` modules plus the supporting top-level modules below. Line
 counts are from disk. **Files over 800 lines are flagged ⚠️** (Rule: keep
 modules under 800 lines where possible — many predate that target).
 
@@ -337,7 +356,7 @@ modules under 800 lines where possible — many predate that target).
 - **render_settings.py** — 2291 ⚠️ — settings page + section builders + app-settings load/save
 - **render_lorenzo.py** — 2199 ⚠️ — Lorenzo chef companion page + inventory/recipe/constraint/context helpers
 - **render_timeblock.py** — 2134 ⚠️ — homepage time-block view (hours, saint/pope cards, meals/FROL snapshots, intentions widget)
-- **render_meals.py** — 1647 ⚠️ — meal planner page, meal print, plan/inventory load+save, prompt builder
+- **render_meals.py** — 1721 ⚠️ — meal planner page, meal print, plan/inventory load+save, prompt builder
 - **render_dev.py** — 1418 ⚠️ — Dev (Izzy/Felix) companion page + Felix context builder
 - **render_subject.py** — 1402 ⚠️ — subject page, grades summary, hour report, entry/link/doc CRUD, AI image grading
 - **render_plan_importer.py** — 1121 ⚠️ — plan-import page + analysis/consult/roundtable prompts (JS in static/js/plan_importer_{core,consult}.js)
@@ -358,11 +377,12 @@ modules under 800 lines where possible — many predate that target).
 - **render_plan_quarter.py** — 641 — quarter plan page
 - **render_gregory.py** — 617 — Father Gregory companion page + context builder
 - **render_coach.py** — 599 — Coach companion page + context builder
-- **render_meal_wizard.py** — 595 — pantry staples page, week-glance, Step 2 (`render_meal_wizard_step2`, `_s2_field`); **re-exports `render_meal_wizard_step3`** ← Phase F
+- **render_meal_wizard.py** — 596 — pantry staples page, week-glance, Step 2 (`render_meal_wizard_step2`, `_s2_field`); **re-exports `render_meal_wizard_step3` and `render_meal_wizard_step4`**
 - **render_liturgical.py** — 594 — liturgical engine (moveable feasts, seasons, fast/abstinence, vestment color), day card, page, edit page
 - **render_monica.py** — 578 — Dr. Monica companion page + context builder
 - **render_friends.py** — 570 — friends page + load/save
 - **render_week_school.py** — 567 — week-school page + poetry passages load/save
+- **render_meal_wizard_step4.py** — 549 — **Phase G: Meal Wizard Step 4** (per-day slot rows; empty slots get name textarea + collapsible ingredients textarea + protein input + Keep; "Generate my week with Lorenzo" button; confirm/remove/lock write-loop JS in `_S4_JS`)
 - **render_sister_mary.py** — 525 — Sister Mary companion page + context builder
 - **render_liturgy_hours.py** — 518 — liturgy-of-the-hours page + hour builders
 - **render_week_view.py** — 517 — week view (feast/event/task helpers)
@@ -370,7 +390,7 @@ modules under 800 lines where possible — many predate that target).
 - **render_ai_planner.py** — 461 — AI context packet + AI panel renderer
 - **render_programs.py** — 458 — Coach programs page (card/grid)
 - **render_kids_week.py** — 454 — kids-week page + week-plan load/save
-- **render_meal_wizard_step3.py** — 435 — **Phase F: Meal Wizard Step 3** ("what to plan" — meal-type picker, effort, planning window, past-day prefill rows; inline JS builds the JSON payload)
+- **render_meal_wizard_step3.py** — 436 — **Phase F: Meal Wizard Step 3** ("what to plan" — meal-type picker, effort, planning window, past-day prefill rows; inline JS builds the JSON payload)
 - **render_john.py** — 433 — John page
 - **render_gradebook.py** — 428 — gradebook page
 - **render_daily_bar.py** — 413 — daily info bar (weather, birthdays, special events, child ages)
@@ -382,6 +402,7 @@ modules under 800 lines where possible — many predate that target).
 - **render_plan_year.py** — 310 — yearly plan page
 - **render_readings.py** — 248 — daily Mass readings fetch + page
 - **render_goals.py** — 237 — quarter/goal helpers (quarters, master goals, check-ins, progress)
+- **render_meal_wizard_gen.py** — 228 — **Phase G: Lorenzo week generator** — builds the prompt + calls Anthropic, parses the response into per-slot `suggested_meals` written to the wizard session (backs `/meal-wizard-generate`)
 - **render_schedule_support.py** — 226 — now/next strip, timeline, litany block, family schedule page
 - **render_memory_book.py** — 210 — memory book load/save/add/delete + page
 - **render_frol_pdf.py** — 177 — FROL PDF generation
@@ -390,8 +411,8 @@ modules under 800 lines where possible — many predate that target).
 - **render_companions.py** — 54 — companions index page
 
 ### 4b. Non-render modules
-- **app.py** — 12092 ⚠️ — HTTP server, `do_GET`/`do_POST` routers, auth gate, AI dispatch
-- **data_helpers.py** — 3317 ⚠️ — sole JSON read/write layer (see Section 5)
+- **app.py** — 12287 ⚠️ — HTTP server, `do_GET`/`do_POST` routers, auth gate, AI dispatch
+- **data_helpers.py** — 3345 ⚠️ — sole JSON read/write layer (see Section 5)
 - **daily_schedule_engine.py** — 2642 ⚠️ — daily schedule building, task classification/carryover, `CHILDREN`
 - **ui_helpers.py** — 1801 ⚠️ — shared HTML chrome, nav, `html_page`, escaping helpers
 - **safe_utils.py** — 504 — `safe_save_json` (tmp + os.replace) and safe IO utilities
@@ -423,12 +444,17 @@ modules under 800 lines where possible — many predate that target).
 - **render_meal_wizard_step3.py** carries its **own inline JS** (Rule 7/12 compliant)
   that builds the `{what_to_plan, complexity, planning_window, prefill}` payload and
   POSTs JSON to `/meal-wizard-step3-save`.
+- **render_meal_wizard_step4.py** carries its **own inline JS** (`_S4_JS`, Rule 7/12
+  compliant): `window.s4Keep` / `window.s4Change` write-loop (confirm/remove a slot),
+  `window.s4Generate` (POSTs `/meal-wizard-generate`, shows "Generating… this can take
+  up to a minute" on the button, reloads on success). Empty slots pre-fill from the
+  session `suggested_meals` map keyed `"iso::slot"`.
 - **static/js/plan_importer_core.js**, **static/js/plan_importer_consult.js** — Plan
   Importer client logic.
 
 ---
 
-## Section 5 — data_helpers.py functions (217 top-level)
+## Section 5 — data_helpers.py functions (219 top-level)
 
 `data_helpers.py` is the single read/write layer for `data/*.json`. The complete
 list of top-level functions, grouped:
@@ -493,8 +519,8 @@ list of top-level functions, grouped:
 ### Prayer / pope / novenas
 `load_prayer_intentions`, `save_prayer_intentions`, `add_daily_intention`, `add_repeating_intention`, `add_novena`, `get_active_intentions_for_date`, `check_upcoming_novenas`, `load_pope_intentions`, `save_pope_intentions`, `get_pope_intention_for_month`
 
-### Meals (Phase E + Phase F)
-`load_pantry_staples`, `save_pantry_staples`, `load_meal_history`, `save_meal_history`, `add_meal_history_entry`, `get_recent_meals`, `load_meal_wizard_session`, `save_meal_wizard_session`, `clear_meal_wizard_session`, **`update_meal_wizard_session`** (shallow-merge; written by both Step 2 and Step 3)
+### Meals (Phase E + F + G)
+`load_pantry_staples`, `save_pantry_staples`, `load_meal_history`, `save_meal_history`, `add_meal_history_entry`, `get_recent_meals`, `load_meal_wizard_session`, `save_meal_wizard_session`, `clear_meal_wizard_session`, **`update_meal_wizard_session`** (shallow-merge; written by Steps 2, 3, and the Step-4 confirm/remove/lock + generate routes)
 
 ---
 
@@ -584,154 +610,166 @@ config, per Rule 19).
 
 ---
 
-## Section 7 — Current claud.md rules (full text, verbatim from disk)
+## Section 7 — Current claud.md rules (verbatim from disk)
 
-Reproduced verbatim from `claud.md`. Rules 1–12 are the "Python 3.11 hard
-rules"; rules 13–19 are the "Additional rules" section.
+Reproduced from `claud.md` (227 lines). Rules 1–12 are the "Python 3.11 hard
+rules"; rules 13–19 are the "Additional rules" section. The June 28 2026 doc
+corrections (Rule 3, the AI-calls model line, and the `_repair_and_parse_json`
+scope) are included inline as in the source.
 
 ```
-1. No backslashes inside f-strings
-2. No nested quotes inside f-strings — use a variable outside the f-string instead
-3. All GET routing uses elif chains in do_GET — never a bare if, never nested
-   if blocks for routing. POST routing in do_POST uses standalone
-   if path == ...: ... return blocks at the top level — this is the real
-   convention in this codebase and must be matched exactly. Never use nested
-   if blocks for routing in either handler.
-4. Never put import statements inside if blocks or functions
-5. All file writes use safe_save_json (tmp file + os.replace) — never open(f, 'w') directly
-6. No walrus operator (:=)
-7. Never use '\n' inside a JS string within a Python string literal — use '\\n' so the browser receives the escape sequence, not a raw newline
-8. multipart/form-data parsing: when fetch POSTs use FormData the server
-   receives multipart/form-data not urlencoded. The do_POST handler must
-   sniff Content-Type and parse accordingly using cgi.FieldStorage for
-   multipart. If a POST handler receives empty data check the
-   Content-Type first.
-9. py_compile passes but runtime fails: py_compile only validates syntax
-   not runtime correctness. Always run an in-process smoke test after
-   py_compile to catch NameError, missing variable definitions, and
-   import failures. After the in-process smoke test, also run the relevant
-   existing verify_phase_*.py harness for the area touched and paste the
-   result — the smoke test confirms the changed function works, but the
-   harness catches regressions in nearby functionality. Do not skip the
-   harness run for changes that touch shared data files, save paths, or any
-   function called from more than one place.
-10. test fixtures must never write to live data: verification harnesses
-    must always operate on a temp copy of live data files. Never call
-    save_progress, safe_save_json, or any write helper on live data
-    during testing. Always restore from backup after any test that
-    touches data files.
-11. double-escaping HTML entities: never pass a string that is already
-    HTML-escaped through escape() again. If a string contains literal
-    ampersands for display use plain ampersands in the source string
-    and let escape() handle it once. Strings pre-escaped with &amp;
-    will render as visible &amp; in the browser if escaped again.
-12. JS newline in Python f-strings applies everywhere: rule 7 (never
-    use backslash-n in JS strings inside Python f-strings) applies to
-    ALL files containing JS embedded in Python, not just
-    render_frol_wizard.py. This includes render_schedule.py,
-    render_timeblock.py, render_lucy.py, render_lorenzo.py, and any
-    other render file with inline JavaScript.
+1.  No backslashes inside f-strings
+2.  No nested quotes inside f-strings — use a variable outside the f-string instead
+3.  All GET routing uses elif chains in do_GET — never a bare if, never nested if
+    blocks for routing. POST routing in do_POST ALSO uses elif chains
+    (elif path == "/route-name": … return) — this is the real convention in the
+    live code, verified June 28 2026 against the meal POST handlers and the Route
+    patterns section. The ONE exception is the multipart recipe routes
+    (/recipe-save, /recipe-import): they share an elif path in (...) outer block
+    with nested if path == ... inner blocks ONLY to share upload-parsing setup. Do
+    NOT copy that nested pattern for ordinary JSON or form routes — match the plain
+    elif chain.
+    [CORRECTED June 28 2026: a June 10 note had claimed do_POST uses "standalone if
+    blocks at the top level." The live code uses elif chains. Code wins; this also
+    matches the Route patterns section and the project bible's own summary.]
+4.  Never put import statements inside if blocks or functions
+    [KNOWN DEVIATION, not a license: several live do_POST handlers use an inline
+    import json as _json etc. New code should keep imports at module top; when
+    editing an existing handler, be aware the local convention already deviates.]
+5.  All file writes use safe_save_json (tmp file + os.replace) — never open(f, 'w') directly
+6.  No walrus operator (:=)
+7.  Never use '\n' inside a JS string within a Python string literal — use '\\n' so
+    the browser receives the escape sequence, not a raw newline
+8.  multipart/form-data parsing: when fetch POSTs use FormData the server receives
+    multipart/form-data not urlencoded. The do_POST handler must sniff Content-Type
+    and parse accordingly using cgi.FieldStorage for multipart. If a POST handler
+    receives empty data check the Content-Type first.
+9.  py_compile passes but runtime fails: py_compile only validates syntax not
+    runtime correctness. Always run an in-process smoke test after py_compile to
+    catch NameError, missing variable definitions, and import failures. After the
+    in-process smoke test, also run the relevant existing verify_phase_*.py harness
+    for the area touched and paste the result — the smoke test confirms the changed
+    function works, but the harness catches regressions in nearby functionality. Do
+    not skip the harness run for changes that touch shared data files, save paths,
+    or any function called from more than one place.
+10. test fixtures must never write to live data: verification harnesses must always
+    operate on a temp copy of live data files. Never call save_progress,
+    safe_save_json, or any write helper on live data during testing. Always restore
+    from backup after any test that touches data files.
+11. double-escaping HTML entities: never pass a string that is already HTML-escaped
+    through escape() again. If a string contains literal ampersands for display use
+    plain ampersands in the source string and let escape() handle it once. Strings
+    pre-escaped with &amp; will render as visible &amp; in the browser if escaped
+    again.
+12. JS newline in Python f-strings applies everywhere: rule 7 (never use
+    backslash-n in JS strings inside Python f-strings) applies to ALL files
+    containing JS embedded in Python, not just render_frol_wizard.py. This includes
+    render_schedule.py, render_timeblock.py, render_lucy.py, render_lorenzo.py, and
+    any other render file with inline JavaScript.
 
-13. **FROL WIZARD NESTED FORM ADDENDUM** — The _body_has_form check in
-    _section_chrome looks for action=”/frol-wizard” in the body string.
-    Any form inside a section body posting to /frol-wizard will suppress
-    the Save and Continue button. Variant tab forms posting to
-    /frol-set-variant are safe. Activity builder forms posting to
-    /frol-add-activity are safe. Before adding any form to a section body
-    confirm its action attribute. This is a recurring bug — document
-    before fixing if it appears again.
-
-14. **PRE-FLIGHT CHECKLIST** — Before writing any spec answer these
-    questions. One — how many files does this touch, list them, if
-    unknown that is a diagnosis step first. Two — does it involve
-    JavaScript inside Python f-strings, if yes flag the backslash-n rule
-    explicitly in the spec. Three — does it touch form handling, if yes
-    confirm no nested forms posting to /frol-wizard. Four — is the root
-    cause confirmed or assumed, if assumed run diagnosis first never
-    draft a fix on an assumed cause. Five — does it touch multiple files
-    at once, if yes break into separate single-purpose instructions.
-    Six — does it involve data shape changes or migration, if yes
-    confirm before and after data structure explicitly before writing
-    the spec.
-
-15. **CLAUD.MD READ-BACK REQUIRED** — At the start of every session read
-    claud.md and paste back every rule found. Then identify which rules
-    apply to today’s task. If you cannot paste the rules back accurately
-    stop and ask Lauren to re-paste claud.md before proceeding.
-
-16. **MAGNIFICA HUMANITAS DESIGN PRINCIPLES** — Every feature must reflect
-    these. The deepest danger to guard against, named by the encyclical:
-    that people come to see themselves and one another as projects to be
-    optimized rather than persons called to relationship and communion. The
-    app must never become an optimization engine; it reduces friction so the
-    family has more room for prayer, presence, love, rest, and formation.
-    One — the app is a tool not an authority; every AI suggestion is framed
-    as a suggestion never a prescription; use “here is one way to think about
-    this” never “you should” or “the optimal schedule is.” Two — companions
-    serve real relationships, never replace them; Sister Mary points to a
+13. FROL WIZARD NESTED FORM ADDENDUM — The _body_has_form check in _section_chrome
+    looks for action="/frol-wizard" in the body string. Any form inside a section
+    body posting to /frol-wizard will suppress the Save and Continue button. Variant
+    tab forms posting to /frol-set-variant are safe. Activity builder forms posting
+    to /frol-add-activity are safe. Before adding any form to a section body confirm
+    its action attribute. This is a recurring bug — document before fixing if it
+    appears again.
+14. PRE-FLIGHT CHECKLIST — Before writing any spec answer these questions. One — how
+    many files does this touch, list them, if unknown that is a diagnosis step
+    first. Two — does it involve JavaScript inside Python f-strings, if yes flag the
+    backslash-n rule explicitly in the spec. Three — does it touch form handling, if
+    yes confirm no nested forms posting to /frol-wizard. Four — is the root cause
+    confirmed or assumed, if assumed run diagnosis first never draft a fix on an
+    assumed cause. Five — does it touch multiple files at once, if yes break into
+    separate single-purpose instructions. Six — does it involve data shape changes
+    or migration, if yes confirm before and after data structure explicitly before
+    writing the spec.
+15. CLAUD.MD READ-BACK REQUIRED — At the start of every session read claud.md and
+    paste back every rule found. Then identify which rules apply to today's task. If
+    you cannot paste the rules back accurately stop and ask Lauren to re-paste
+    claud.md before proceeding.
+16. MAGNIFICA HUMANITAS DESIGN PRINCIPLES — Every feature must reflect these. The
+    deepest danger to guard against, named by the encyclical: that people come to
+    see themselves and one another as projects to be optimized rather than persons
+    called to relationship and communion. The app must never become an optimization
+    engine; it reduces friction so the family has more room for prayer, presence,
+    love, rest, and formation. One — the app is a tool not an authority; every AI
+    suggestion is framed as a suggestion never a prescription; use "here is one way
+    to think about this" never "you should" or "the optimal schedule is." Two —
+    companions serve real relationships, never replace them; Sister Mary points to a
     real confessor, Father Gregory to real mentors and to John, Lucy to real
-    conversation. Three — AI supports thinking, it does not replace it; ask
-    before suggesting; boys build their own plans before seeing AI
-    suggestions. Four — be transparent about what AI is; no system can create
-    a heart that gives itself or a conscience that discerns good from evil,
-    so companions never make theological claims with personal authority and
-    never quietly assume a decision that belongs to Lauren; prayer texts come
-    from verified Catholic sources only, never AI-generated. Five — language
-    of grace not performance; no gamification, streaks, or shaming scores; a
-    hard day is never framed as failure; human limits like illness,
-    exhaustion, and a plan that falls apart are not defects to correct or
-    shame, because people often flourish through their limitations not despite
-    them; Sick Day Mode is relief not defeat. Six — subsidiarity; the family
-    governs itself; Lauren is always the authority; the app serves the
-    family’s discernment. Seven — formation in digital wisdom; the explicit
-    goal is that JP finishes high school able to plan his day without the app.
-    Every feature should answer yes to at least one of these four questions
-    and harm none: does it help the family remain faithful to the truth; does
-    it help them learn and teach one another; does it help them cultivate real
-    closeness and protect physical presence; does it help them live justice
-    and peace in their home.
-
-17. **ONE FIX PER INSTRUCTION** — Never bundle multiple fixes into one
-    Agent instruction unless they are in the same file and directly
-    related. Complex multi-file builds must be broken into sequential
-    single-purpose phases with a compile check and report between each
-    phase.
-
-18. **AUGUST 15TH BUILD PLAN IS THE PRIORITY FILTER** — Between June 1st
-    and August 15th 2026 every build request must be checked against the
-    August 15th build plan before proceeding. If a requested build is
-    not on the must-have or should-have list for the current week flag
-    it to Lauren before starting. New feature ideas go on the
-    post-September list unless they directly enable one of the 14 goals
-    in the August 15th plan. Scope is the first thing to cut not quality.
-
-19. **BUILD FOR A FUTURE SECOND FAMILY** — This app will eventually be
-    shared with and possibly sold to other families using a hosted
-    multi-family model. Every feature must be written as if a second family
-    will use it. Never hardcode McAdams or any single family’s specifics
-    into code as if it is the only family — keep family identity and config
-    in app_settings.json. Keep all data reads and writes flowing through
-    data_helpers.py with no direct file access in route handlers, so the
-    eventual swap from JSON files to a database happens in one place. Do not
-    bake in single-user assumptions in new feature logic where it is cheap
-    to avoid them. This is design hygiene that costs nothing now and
-    prevents a full rewrite later; it does NOT mean building multi-user
-    features before August 15th.
+    conversation. Three — AI supports thinking, it does not replace it; ask before
+    suggesting; boys build their own plans before seeing AI suggestions. Four — be
+    transparent about what AI is; no system can create a heart that gives itself or
+    a conscience that discerns good from evil, so companions never make theological
+    claims with personal authority and never quietly assume a decision that belongs
+    to Lauren; prayer texts come from verified Catholic sources only, never
+    AI-generated. Five — language of grace not performance; no gamification,
+    streaks, or shaming scores; a hard day is never framed as failure; human limits
+    like illness, exhaustion, and a plan that falls apart are not defects to correct
+    or shame, because people often flourish through their limitations not despite
+    them; Sick Day Mode is relief not defeat. Six — subsidiarity; the family governs
+    itself; Lauren is always the authority; the app serves the family's discernment.
+    Seven — formation in digital wisdom; the explicit goal is that JP finishes high
+    school able to plan his day without the app. Every feature should answer yes to
+    at least one of these four questions and harm none: does it help the family
+    remain faithful to the truth; does it help them learn and teach one another;
+    does it help them cultivate real closeness and protect physical presence; does
+    it help them live justice and peace in their home.
+17. ONE FIX PER INSTRUCTION — Never bundle multiple fixes into one Agent instruction
+    unless they are in the same file and directly related. Complex multi-file builds
+    must be broken into sequential single-purpose phases with a compile check and
+    report between each phase.
+18. AUGUST 15TH BUILD PLAN IS THE PRIORITY FILTER — Between June 1st and August 15th
+    2026 every build request must be checked against the August 15th build plan
+    before proceeding. If a requested build is not on the must-have or should-have
+    list for the current week flag it to Lauren before starting. New feature ideas
+    go on the post-September list unless they directly enable one of the 14 goals in
+    the August 15th plan. Scope is the first thing to cut not quality.
+19. BUILD FOR A FUTURE SECOND FAMILY — This app will eventually be shared with and
+    possibly sold to other families using a hosted multi-family model. Every feature
+    must be written as if a second family will use it. Never hardcode McAdams or any
+    single family's specifics into code as if it is the only family — keep family
+    identity and config in app_settings.json. Keep all data reads and writes flowing
+    through data_helpers.py with no direct file access in route handlers, so the
+    eventual swap from JSON files to a database happens in one place. Do not bake in
+    single-user assumptions in new feature logic where it is cheap to avoid them.
+    This is design hygiene that costs nothing now and prevents a full rewrite later;
+    it does NOT mean building multi-user features before August 15th.
+    [KNOWN DEBT, flagged June 28 2026: build_lorenzo_context in render_lorenzo.py
+    hardcodes the family roster (names, ages, kitchen roles) rather than reading
+    app_settings.json. New Step 4 / Lorenzo work must NOT deepen this; ideally route
+    the roster through data_helpers.]
 ```
+
+**Other claud.md sections of note (not numbered rules):**
+- **AI calls:** Model is NOT uniform across the app. Lorenzo's live call uses
+  `claude-haiku-4-5-20251001` (verified June 28 2026 from `/lorenzo-chat`; replit.md
+  agrees). The previously-documented `claude-sonnet-4-20250514` is STALE/UNVERIFIED
+  for other AI calls — confirm the model per call. Called via `urllib.request`
+  directly (no SDK); API key read from `app_settings.json`.
+- **`_repair_and_parse_json()` is NOT universal** — it is a nested local function
+  inside the plan-import POST handler (app.py ~8412) used ONLY by the plan importer.
+  Lorenzo does not use it (emits bracket/XML save-tags parsed by regex, reads
+  `result.content[0].text` directly).
+- **Anchor-tag navigation:** plain `<a href>` links cannot POST or mutate state;
+  state the destination needs must travel in the URL or be persisted before the
+  click, else use a `<form method="POST">` styled as a link.
 
 ---
 
-## Phase F confirmation checklist (Meal Wizard Step 3)
+## Phase G confirmation checklist (Meal Wizard Step 4)
 
-- ✅ `render_meal_wizard_step3.py` exists (435 lines) and defines `render_meal_wizard_step3`
-- ✅ `render_meal_wizard.py` re-exports it: `from render_meal_wizard_step3 import render_meal_wizard_step3`
-- ✅ GET `/meal-wizard-step3` present in `do_GET`; Step 2's "Save and continue" links to it
-- ✅ POST `/meal-wizard-step3-save` present in `do_POST` **and registered in `_JSON_PATHS`**
-- ✅ Step 3 writes session keys `confirmed_what_to_plan`, `confirmed_complexity`, `planning_window`, `confirmed_meals`
-- ✅ Pre-filled past-day entries carry `skip_shopping: true` + `recipe_on_request: true` (locked; off grocery list; no auto recipe card)
-- ✅ Harness `data/verify_meal_wizard_step3.py` present (temp-copy, restore-on-finish per Rule 10)
+- ✅ `render_meal_wizard_step4.py` exists (549 lines) and defines `render_meal_wizard_step4`
+- ✅ `render_meal_wizard_gen.py` exists (228 lines) — Lorenzo week generator backing `/meal-wizard-generate`
+- ✅ `render_meal_wizard.py` re-exports both: `render_meal_wizard_step3` and `render_meal_wizard_step4`
+- ✅ GET `/meal-wizard-step4` present in `do_GET`; Step 3's "Save and continue" links to it
+- ✅ POST `/meal-wizard-step4-confirm`, `/meal-wizard-step4-remove`, `/meal-wizard-step4-lock`, `/meal-wizard-generate` present in `do_POST` **and all four registered in `_JSON_PATHS`**
+- ✅ Step 4 reads/writes session key `suggested_meals` (Lorenzo drafts keyed `"iso::slot"`, pre-filled into empty slot boxes)
+- ✅ Empty slot UI: meal-name textarea + collapsible ingredients textarea (`<details>` open only for an unreviewed Lorenzo suggestion) + protein input + "Keep this meal"; "Generate my week with Lorenzo" button shows progress text during the call and only reloads on success
+- ✅ Harnesses present (temp-copy, restore-on-finish per Rule 10): `verify_phase_g.py`, `verify_meal_wizard_g1a.py`, `verify_meal_wizard_gen.py`, `verify_meal_wizard_step4.py`, `verify_meal_wizard_step4_lock.py`, `verify_meal_wizard_step4_writeloop.py`
 
-**Phase F landed as reported.** All Phase E deliverables remain in place
-(GET `/meal-wizard`, `/meal-wizard-step2`; POST `/pantry-staples-save`,
-`/meal-save-inventory`, `/meal-wizard-step2-save`; `static/inventory_input.js`;
-the six `config.py` meal constants; the meal-wizard `data_helpers` helpers).
+**Phase G landed.** All Phase E + F deliverables remain in place (GET `/meal-wizard`,
+`/meal-wizard-step2`, `/meal-wizard-step3`; the Step 2/3 save routes;
+`static/inventory_input.js`; the six `config.py` meal constants; the meal-wizard
+`data_helpers` helpers).

@@ -173,3 +173,9 @@ id = "qoJpVJoj2io9SjT14o0mP"
 uri = "file://responses/generating_feedback_g1c2.md"
 type = "text"
 title = "Generating feedback — button shows progress during the call"
+
+[[outputs]]
+id = "Y6WHiFgFmHasKPCEtaqi3"
+uri = "file://PROJECT_STATE.md"
+type = "text"
+title = "PROJECT_STATE.md — regenerated (Phase G snapshot, 2026-06-30)"
