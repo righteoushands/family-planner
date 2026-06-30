@@ -143,3 +143,9 @@ id = "2JuTw0y3TcMprJm-_NQIL"
 uri = "file://responses/diagnosis_g1c2_actual_failure.md"
 type = "text"
 title = "Diagnosis — /meal-wizard-generate actual failure"
+
+[[outputs]]
+id = "Hq1zOSotubENoNJgeMlxK"
+uri = "file://responses/safetynet_g1c2_zero_meal_visible.md"
+type = "text"
+title = "Safety net — zero-meal generation now visible"
