@@ -239,3 +239,9 @@ id = "ymobHj3smtWBymDjOFNZx"
 uri = "file://responses/fix_step4_scroll_preservation.md"
 type = "text"
 title = "FIX complete — Step 4 scroll preservation (py_compile + smoke + 2 harnesses pass)"
+
+[[outputs]]
+id = "YlIFpNgIgEOSQpjNXaEO9"
+uri = "file://responses/diagnosis_scroll_reload_antipattern_sweep.md"
+type = "text"
+title = "DIAGNOSIS — scroll-loss anti-pattern sweep (2 true matches, 4 reload variants, 6 clear)"
