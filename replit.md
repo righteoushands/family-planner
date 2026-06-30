@@ -52,6 +52,7 @@ A Catholic family dashboard for managing schedules, tasks, meals, and homeschool
 - **Google Drive Integration:** Browse and import files from Google Drive.
 
 ## User preferences
+- **Response Documents (ALWAYS):** Every single response must also be written to a Markdown file under `responses/` and surfaced via `present_asset`, so the user can copy-paste it to Claude. Do this for every reply, without exception, even short ones.
 - **Auto-Save Everything:** Any form, text input, textarea, or multi-step workflow must persist drafts to `localStorage` (or server-side if an endpoint exists) on `oninput`/`onchange`, auto-restore on page load, and only clear on explicit success or after 24 hours.
 - **Companion Undo:** All AI companions must support natural-language "undo" for their most recent data-altering actions.
 
