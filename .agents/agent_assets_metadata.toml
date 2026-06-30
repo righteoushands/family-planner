@@ -245,3 +245,9 @@ id = "YlIFpNgIgEOSQpjNXaEO9"
 uri = "file://responses/diagnosis_scroll_reload_antipattern_sweep.md"
 type = "text"
 title = "DIAGNOSIS — scroll-loss anti-pattern sweep (2 true matches, 4 reload variants, 6 clear)"
+
+[[outputs]]
+id = "BfmNh294XB9ifhSWyj2yD"
+uri = "file://responses/verify_step4_writeloop_result.md"
+type = "text"
+title = "Step 4 write-loop harness — PASS (all 14 checks, exit 0)"
