@@ -167,3 +167,9 @@ id = "xIoNpXjf4uEIiCbeL4e72"
 uri = "file://responses/wrap_ingredients_g1c2.md"
 type = "text"
 title = "Wrap ingredients — full text in a textarea, no truncation"
+
+[[outputs]]
+id = "qoJpVJoj2io9SjT14o0mP"
+uri = "file://responses/generating_feedback_g1c2.md"
+type = "text"
+title = "Generating feedback — button shows progress during the call"
