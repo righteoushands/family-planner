@@ -15,5 +15,20 @@
     "start_iso": "2026-06-29",
     "end_iso": "2026-07-06"
   },
-  "confirmed_meals": {}
+  "confirmed_meals": {
+    "2026-06-29::breakfast": {
+      "name": "Eggs and museli",
+      "source": "manual",
+      "locked": true,
+      "ingredients": "",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false,
+      "protein": "Eggs"
+    }
+  },
+  "suggested_meals": {},
+  "used_proteins": [
+    "eggs"
+  ]
 }
