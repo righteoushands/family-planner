@@ -203,3 +203,9 @@ id = "H0hISVo4tXhFuQHIseZsZ"
 uri = "file://responses/diagnosis_step4_generate_slotcount_render.md"
 type = "text"
 title = "DIAGNOSIS — Step 4 Generate button: slot-count knowable at render"
+
+[[outputs]]
+id = "vWxNxDxxlZEjvSCCmNEfg"
+uri = "file://responses/build_meal_generate_slotcap_and_log.md"
+type = "text"
+title = "BUILD complete — /meal-wizard-generate slot cap + observability log (all checks pass)"

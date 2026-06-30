@@ -661,6 +661,28 @@ _placement_undo_registry: dict = {}
 _placement_undo_order: list = []
 _PLACEMENT_UNDO_CAP = 50
 
+_WIZARD_GEN_SLOT_CAP = 14  # conservative placeholder (2 meal types x 7 days).
+# NOT measured — the known-good point is ~7 slots (1 type/week), the known-bad
+# point is 55. Tune this from the log below once real stop_reason data exists.
+# Added 2026-06-30.
+_WIZARD_GEN_LOG = "data/meal_wizard_gen.log"
+
+
+def _wizard_gen_log_line(n_targets, stop_reason):
+    """Append-only OBSERVABILITY log for /meal-wizard-generate (timestamp,
+    target count, model stop_reason). Deliberately uses a plain append (mode
+    "a"), NOT safe_save_json — this is a tunability/diagnostics log, not
+    canonical app state. Flagged 2026-06-30 for Lauren/Replit sign-off before
+    treating append-only logging as a precedent for other state. Fail-soft:
+    never raises into the handler."""
+    try:
+        rec = {"ts": datetime.now().isoformat(timespec="seconds"),
+               "targets": n_targets, "stop_reason": stop_reason}
+        with open(_WIZARD_GEN_LOG, "a", encoding="utf-8") as _fh:
+            _fh.write(json.dumps(rec) + "\n")
+    except Exception:
+        pass
+
 
 def _placement_undo_remember(undo_id: str, metadata: dict) -> None:
     _placement_undo_registry[undo_id] = metadata
@@ -10886,7 +10908,14 @@ class Handler(BaseHTTPRequestHandler):
                 try:
                     _g_session = load_meal_wizard_session()
                     _g_targets = wizard_target_slot_keys(_g_session)
-                    if not _g_targets:
+                    if len(_g_targets) > _WIZARD_GEN_SLOT_CAP:
+                        _g_cap_msg = ("Lorenzo plans best a couple of meal types at a time. "
+                                      "You've selected enough to fill " + str(len(_g_targets)) +
+                                      " meals at once — try fewer meal types or a shorter window, "
+                                      "then come back for the rest.")
+                        _g_result = {"ok": False, "generated": 0,
+                                     "target": len(_g_targets), "message": _g_cap_msg}
+                    elif not _g_targets:
                         _g_result = {"ok": True, "generated": 0, "target": 0,
                                      "message": "No empty slots to generate."}
                     else:
@@ -10907,7 +10936,10 @@ class Handler(BaseHTTPRequestHandler):
                                       "messages": [{"role": "user", "content": _g_prompt}]},
                                 timeout=90)
                             _g_resp.raise_for_status()
-                            _g_text = "".join(b.get("text", "") for b in _g_resp.json().get("content", [])
+                            _g_resp_json = _g_resp.json()
+                            _g_stop = _g_resp_json.get("stop_reason")
+                            _wizard_gen_log_line(len(_g_targets), _g_stop)
+                            _g_text = "".join(b.get("text", "") for b in _g_resp_json.get("content", [])
                                               if b.get("type") == "text")
                             _g_suggestions = parse_wizard_meal_response(_g_text, _g_targets)
                             update_meal_wizard_session({"suggested_meals": _g_suggestions})

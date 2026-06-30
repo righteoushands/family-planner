@@ -1,0 +1,51 @@
+BUILD — one change, one file: app.py, inside the /meal-wizard-generate handler.
+Additive only.
+
+Context: diagnosis (June 30) confirmed _g_targets = wizard_target_slot_keys(_g_session)
+at line 10888 is known before the API call at line 10900, with no existing slot-count
+or token-budget guard. A full-week, all-meal-types generation (~55 slots) truncates
+the model's output (max_tokens=4096) and silently returns 0 meals. This adds a
+hard cap that refuses before calling the API, plus logging on every call so the
+cap can be tuned from real numbers instead of a guess.
+
+Pre-flight: 1 file (app.py); no JS-in-f-strings; no form handling; root cause
+confirmed by prior diagnosis; single file; no data-shape change.
+
+Changes, in order:
+
+1. Near the top of app.py (module level, near other generation constants), add:
+   _WIZARD_GEN_SLOT_CAP = 14  # conservative placeholder (2 meal types x 7 days).
+   # NOT measured — the known-good point is ~7 slots (1 type/week), the known-bad
+   # point is 55. Tune this from the log below once real stop_reason data exists.
+   # Added 2026-06-30.
+
+2. Immediately after the existing line:
+       _g_targets = wizard_target_slot_keys(_g_session)
+   and BEFORE the existing "if not _g_targets" empty-target check, insert:
+       if len(_g_targets) > _WIZARD_GEN_SLOT_CAP:
+           [return the handler's normal ok:False JSON shape — match whatever
+            shape the existing "if not _g_targets" branch returns, do not invent
+            a new response shape]
+           error message: "Lorenzo plans best a couple of meal types at a time.
+           You've selected enough to fill {len(_g_targets)} meals at once — try
+           fewer meal types or a shorter window, then come back for the rest."
+       Do NOT call the API in this branch.
+
+3. On EVERY call that proceeds past this check (cap-respecting calls only,
+   success or failure), log one line: a timestamp, len(_g_targets), and the
+   API response's stop_reason once available. Use a plain append-only text or
+   JSONL log file (NOT the safe_save_json state-write path — this is an
+   observability log, not canonical app state). Flag for Lauren/Replit
+   judgment: confirm this distinction is acceptable before treating it as a
+   precedent for other logging.
+
+Validate, in order, and paste each result:
+1. py_compile app.py
+2. in-process smoke test: call the handler logic with a session that has 20
+   target slots selected and confirm it returns ok:False with the cap message
+   and makes NO network call; then with 5 target slots and confirm it proceeds
+   normally.
+3. run the relevant verify_phase_*.py harness for the meal wizard area and
+   paste the result.
+
+Report only after all three pass. Make no other changes.

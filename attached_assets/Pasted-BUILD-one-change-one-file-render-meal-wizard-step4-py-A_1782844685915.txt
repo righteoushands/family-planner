@@ -1,0 +1,48 @@
+BUILD — one change, one file: render_meal_wizard_step4.py. Additive only.
+Do this AFTER Build 1 is validated and live (the cap must exist before the
+button can warn about it).
+
+Context: diagnosis (June 30) confirmed planning_window, confirmed_what_to_plan,
+and confirmed_meals are already in session at Step 4 render time (lines
+435-439), but the Generate button (lines 526-532) is static with no
+render-time state — it only changes at click. This computes the target slot
+count at render and sets the button's initial state and label to match.
+
+Pre-flight: 1 file; the JS already inside this file's inline script must keep
+following the existing no-backslash-n convention; no new form handling; root
+cause confirmed; single file; no data shape change.
+
+Changes:
+
+1. Import wizard_target_slot_keys (from wherever Build 1's app.py code imports
+   it from / render_meal_wizard_gen.py) into render_meal_wizard_step4.py.
+
+2. Where session is already loaded (line ~435), call:
+       _s4_targets = wizard_target_slot_keys(session)
+       _s4_target_count = len(_s4_targets)
+   Also import _WIZARD_GEN_SLOT_CAP (or define the same constant value here —
+   pick whichever avoids a circular import; flag if neither is clean) so the
+   render-time check matches the server-side cap exactly. Do not let these two
+   numbers drift apart in two places.
+
+3. In the generate_html block (~526-532): if _s4_target_count is 0, leave
+   current behavior (nothing to generate). If 0 < _s4_target_count <=
+   _WIZARD_GEN_SLOT_CAP, render the button enabled with its current label,
+   but add a small line under it: "Will generate {_s4_target_count} meal(s)."
+   If _s4_target_count > _WIZARD_GEN_SLOT_CAP, render the button DISABLED
+   (disabled attribute, not just styled) with the line: "Too many meals
+   selected ({_s4_target_count}) — Lorenzo plans best a couple of meal types
+   at a time. Go back to Step 3 and select fewer, or shorten the window."
+   Match existing escape-once conventions for any interpolated count.
+
+4. Do not change s4Generate's click-time JS behavior (label swap, disable on
+   click) — this is additive to the render state, not a replacement of it.
+
+Validate, in order, and paste each result:
+1. py_compile render_meal_wizard_step4.py
+2. in-process smoke test: render Step 4 with a session at 5 target slots
+   (button enabled, count shown), and at 20 target slots (button disabled,
+   warning shown).
+3. run the relevant verify_phase_*.py harness and paste the result.
+
+Report only after all three pass. Make no other changes.
