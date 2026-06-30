@@ -137,3 +137,9 @@ id = "zsN-mpRyNy-ftWDLDtJuS"
 uri = "file://responses/diagnosis_g1c2_generate_button.md"
 type = "text"
 title = "Diagnosis — G1c-2 Generate button"
+
+[[outputs]]
+id = "2JuTw0y3TcMprJm-_NQIL"
+uri = "file://responses/diagnosis_g1c2_actual_failure.md"
+type = "text"
+title = "Diagnosis — /meal-wizard-generate actual failure"
