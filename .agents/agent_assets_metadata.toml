@@ -197,3 +197,9 @@ id = "eM4TtpWhLJwWHQLiTEsnS"
 uri = "file://responses/diagnosis_doc_staleness_repo_check.md"
 type = "text"
 title = "DIAGNOSIS — doc staleness: which of your 5 docs are in the repo"
+
+[[outputs]]
+id = "H0hISVo4tXhFuQHIseZsZ"
+uri = "file://responses/diagnosis_step4_generate_slotcount_render.md"
+type = "text"
+title = "DIAGNOSIS — Step 4 Generate button: slot-count knowable at render"

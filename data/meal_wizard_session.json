@@ -1,12 +1,13 @@
 {
-  "confirmed_inventory": "Fridge:\n2 pounds of cooked ground beef\nrotisserie chicken\nraw bacon\ntwo romaine lettuce\nthree green bell peppers\none bag of fresh green beans\none bag of brussels sprouts\ngreen grapes\nblueberries\nstrawberries\ngreen beans (canned)\nshredded cheese\nwhole milk yogurt\nsourdough bread\nfrench fries\nrefried beans\ncarrots\neggs\nleftover Chick-fil-A macaroni cheese \nground flax seeds\nChia seeds\n2 pounds of raw chicken\nfour patties of hamburger\n2 pounds of raw ground beef\nkimchi\ntwo dozen eggs\n2% milk\nwhole milk\nsoy milk\napples\noranges\nDiet Coke\nSprite\nbeer\nwine\n\nFreezer:\nmixed vegetables\nfrench fries\npulled pork one pound\nfour Cajun sausages\ncorn\nham hock\ntwo pizzas\none bag of spinach\ntwo pie crust\n\nPantry:\ntwo white onions\nsix small sweet potatoes\nbag of parboiled rice\nbag of small red potatoes\nbaking mix for pancakes and waffles\ncrispix cereal\ncoffee\nrotini\npasta\nwide egg noodles\ncan of evaporated milk\npumpkin  (canned)\nfruit cocktail  (canned)\npeaches  (canned)\npork and beans  (canned)\npear slices  (canned)\nvegetable soup  (canned)\nsweet peas  (canned)\ncream of mushroom soup  (canned)\nsliced carrots  (canned)  (canned)\npetite diced tomatoes  (canned)\ncrushed tomatoes purée  (canned)\ngreen beans  (canned)\npink salmon  (canned)\nwhole corn  (canned)\n3 cans of tuna\n3 cans of sardines\nsalsa Verde\njars of spaghetti sauce\nhoney\nfruit cocktail cups\npeanut butter\nbox of macaroni and cheese\nbox of small pasta shells\nrolled oats\nchocolate cake mix\nsugar\ncones for ice cream\nbreadcrumbs\npopcorn kernels\nbags of movie popcorn\ndried mixed beans\nsmall bag of mashed potatoes\npearl barley\ntwo more boxes of macaroni and cheese\nbag of red lentils\ntwo to go containers of mashed potatoes\nlinguine\ntwo loaf of breads\nhamburger buns\ntortillas\nquinoa\ncoconut oil\nfew dates\nunsweet coconut flakes\ndifferent packets of seasoning\nincluding taco and chili and gumbo and meatloaf spaghetti brown gravy\n flour\nsugar\nunsweetened cocoa\nbrown sugar\npowdered milk\nmolasses\nbakers yeast\nregular yeast\ngelatin",
+  "confirmed_inventory": "Fridge:\n2 pounds of cooked ground beef\nrotisserie chicken\nraw bacon\ntwo romaine lettuce\nthree green bell peppers\none bag of fresh green beans\none bag of brussels sprouts\ngreen grapes\nblueberries\nstrawberries\ngreen beans (canned)\nshredded cheese\nwhole milk yogurt\nsourdough bread\nfrench fries\nrefried beans\ncarrots\neggs\nleftover Chick-fil-A macaroni cheese \nground flax seeds\nChia seeds\n2 pounds of raw chicken\nfour patties of hamburger\n2 pounds of raw ground beef\nkimchi\ntwo dozen eggs\n2% milk\nwhole milk\nsoy milk\napples\noranges\nDiet Coke\nSprite\nbeer\nwine\n\nFreezer:\nmixed vegetables\nfrench fries\npulled pork one pound\nfour Cajun sausages\ncorn\nham hock\ntwo pizzas\none bag of spinach\ntwo pie crust\n\nPantry:\ntwo white onions\nsix small sweet potatoes\nbag of parboiled rice\nbag of small red potatoes\nbaking mix for pancakes and waffles\ncrispix cereal\ncoffee\nrotini\npasta\nwide egg noodles\ncan of evaporated milk\npumpkin  (canned)\nfruit cocktail  (canned)\npeaches  (canned)\npork and beans  (canned)\npear slices  (canned)\nvegetable soup  (canned)\nsweet peas  (canned)\ncream of mushroom soup  (canned)\nsliced carrots  (canned)\npetite diced tomatoes  (canned)\ncrushed tomatoes purée  (canned)\ngreen beans  (canned)\n1 pink salmon  (canned)\nwhole corn  (canned)\n3 cans of tuna\n3 cans of sardines\nsalsa Verde\njars of spaghetti sauce\nhoney\nfruit cocktail cups\npeanut butter\nbox of macaroni and cheese\nbox of small pasta shells\nrolled oats\nchocolate cake mix\nsugar\ncones for ice cream\nbreadcrumbs\npopcorn kernels\nbags of movie popcorn\ndried mixed beans\nsmall bag of mashed potatoes\npearl barley\ntwo more boxes of macaroni and cheese\nbag of red lentils\ntwo to go containers of mashed potatoes\nlinguine\ntwo loaf of breads\nhamburger buns\ntortillas\nquinoa\ncoconut oil\nfew dates\nunsweet coconut flakes\ndifferent packets of seasoning\nincluding taco and chili and gumbo and meatloaf spaghetti brown gravy\n flour\nsugar\nunsweetened cocoa\nbrown sugar\npowdered milk\nmolasses\nbakers yeast\nregular yeast\ngelatin",
   "use_soon_items": "",
   "confirmed_what_to_plan": [
+    "lunch",
     "dinner"
   ],
   "confirmed_complexity": "normal",
   "planning_window": {
-    "start_iso": "2026-06-29",
+    "start_iso": "2026-06-30",
     "end_iso": "2026-07-06"
   },
   "confirmed_meals": {
@@ -19,84 +20,254 @@
       "recipe_on_request": true,
       "skip_shopping": false,
       "protein": "Eggs"
-    }
-  },
-  "suggested_meals": {
-    "2026-06-29::dinner": {
-      "name": "Ground Beef Pasta with Spaghetti Sauce",
-      "protein": "ground beef",
-      "ingredients": "2 lbs cooked ground beef, jar spaghetti sauce, canned diced tomatoes, rotini pasta, shredded cheese",
-      "note": "Use cooked ground beef from fridge first",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
     },
     "2026-06-30::dinner": {
       "name": "Brined Roast Chicken with Roasted Green Beans and Red Potatoes",
-      "protein": "whole chicken (rotisserie stand-in: brine raw chicken)",
-      "ingredients": "2 lbs raw chicken, kosher salt, sugar, garlic, small red potatoes, fresh green beans, olive oil, seasoning packets",
-      "note": "Anchor roast chicken; brine morning of",
+      "source": "manual",
+      "locked": true,
+      "ingredients": "3 lbs raw chicken, kosher salt, sugar, garlic, small red potatoes, fresh green beans, olive oil, seasoning packets",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false,
+      "protein": "whole chicken (rotisserie stand-in: brine raw chicken)"
+    },
+    "2026-07-01::dinner": {
+      "name": "Shredded Chicken Tacos (Date Night — kids eat from leftovers)",
+      "source": "manual",
+      "locked": true,
+      "ingredients": "Roasted chicken shredded, flour tortillas, shredded cheese, refried beans, salsa verde, carrots as side",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false,
+      "protein": "Leftover roasted chicken"
+    },
+    "2026-07-04::dinner": {
+      "name": "Fourth of July Cookout — Hamburgers, Pulled Pork, and Corn on the Cob",
+      "source": "manual",
+      "locked": true,
+      "ingredients": "4 hamburger patties, 1 lb pulled pork (frozen thawed), hamburger buns, frozen corn, romaine lettuce, shredded cheese, condiments",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false,
+      "protein": "hamburger / pulled pork"
+    },
+    "2026-06-30::lunch": {
+      "name": "Egg Salad Finger Sandwiches with Fruit",
+      "source": "manual",
+      "locked": true,
+      "ingredients": "eggs, mayo, Dijon mustard, sourdough bread, romaine lettuce, green grapes, strawberries",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false,
+      "protein": "eggs"
+    },
+    "2026-07-01::lunch": {
+      "name": "Leftover Roast Chicken Rice Bowl",
+      "source": "manual",
+      "locked": true,
+      "ingredients": "leftover brined roast chicken, parboiled rice, canned green beans, shredded cheese, salsa verde",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false,
+      "protein": "chicken"
+    },
+    "2026-07-02::lunch": {
+      "name": "Ground Beef Pasta with Spaghetti Sauce\nRomaine salad",
+      "source": "manual",
+      "locked": true,
+      "ingredients": "cooked ground beef (from fridge), jar spaghetti sauce, rotini, petite diced tomatoes, shredded cheese. Romaine, parmigiana cheese, parsley",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false,
+      "protein": "ground beef"
+    },
+    "2026-07-03::lunch": {
+      "name": "Sardine Sandwiches with Carrots and Fruit",
+      "source": "manual",
+      "locked": true,
+      "ingredients": "canned sardines, mayo, Dijon mustard, sourdough bread, romaine lettuce, fresh carrots, apples",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false,
+      "protein": "sardines"
+    },
+    "2026-07-06::dinner": {
+      "name": "Salmon Patties with Mashed Potatoes and Sautéed Brussels Sprouts",
+      "source": "manual",
+      "locked": true,
+      "ingredients": "canned pink salmon, breadcrumbs, eggs, to-go mashed potatoes, fresh brussels sprouts, butter, seasoning",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false,
+      "protein": "salmon"
+    },
+    "2026-07-05::lunch": {
+      "name": "Ziplock Buffet — Leftover Cookout Plates",
+      "source": "manual",
+      "locked": true,
+      "ingredients": "leftover pulled pork, hamburger buns, leftover corn, canned pork and beans, fruit, pickles",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false,
+      "protein": "pulled pork"
+    },
+    "2026-07-02::dinner": {
+      "name": "Cajun Sausages with Wild Rice and Sautéed Mixed Vegetables",
+      "source": "manual",
+      "locked": true,
+      "ingredients": "four Cajun sausages (frozen), parboiled rice, frozen mixed vegetables, butter, onion, bell pepper, seasoning",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false,
+      "protein": "Cajun sausage"
+    },
+    "2026-07-03::dinner": {
+      "name": "Spinach Pie with Canned Green Beans",
+      "source": "manual",
+      "locked": true,
+      "ingredients": "frozen pie crust, frozen spinach, eggs, shredded cheese, white onion, canned green beans, butter",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false,
+      "protein": "eggs"
+    },
+    "2026-07-04::lunch": {
+      "name": "Tuna Salad on Bread with Fruit Cocktail",
+      "source": "manual",
+      "locked": true,
+      "ingredients": "canned tuna, mayo, sourdough bread, romaine lettuce, canned fruit cocktail, green grapes",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false,
+      "protein": "tuna"
+    },
+    "2026-07-05::dinner": {
+      "name": "Lentil Soup (Batch) with Bread",
+      "source": "manual",
+      "locked": true,
+      "ingredients": "red lentils, canned diced tomatoes, carrots, white onion, cumin, garlic, bread loaf, frozen spinach",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false,
+      "protein": "Beans"
+    },
+    "2026-07-06::lunch": {
+      "name": "Lentil Soup Thermos with Sourdough",
+      "source": "manual",
+      "locked": true,
+      "ingredients": "leftover lentil soup, sourdough bread, apples, yogurt",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false,
+      "protein": ""
+    }
+  },
+  "suggested_meals": {
+    "2026-06-30::lunch": {
+      "name": "Egg Salad Finger Sandwiches with Fruit",
+      "protein": "eggs",
+      "ingredients": "eggs, mayo, Dijon mustard, sourdough bread, romaine lettuce, green grapes, strawberries",
+      "note": "Use recipe [39bce65d]; simple pre-Bible Study prep",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
       "skip_shopping": false
     },
-    "2026-07-01::dinner": {
-      "name": "Shredded Chicken Tacos (Date Night — kids eat from leftovers)",
-      "protein": "rotisserie chicken",
-      "ingredients": "rotisserie chicken shredded, flour tortillas, shredded cheese, refried beans, salsa verde, carrots as side",
-      "note": "Quick kids dinner; parents out 5:30",
+    "2026-07-01::lunch": {
+      "name": "Leftover Roast Chicken Rice Bowl",
+      "protein": "chicken",
+      "ingredients": "leftover brined roast chicken, parboiled rice, canned green beans, shredded cheese, salsa verde",
+      "note": "Tuesday locked leftovers day; quick assembly",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-02::lunch": {
+      "name": "Ground Beef Pasta with Spaghetti Sauce",
+      "protein": "ground beef",
+      "ingredients": "cooked ground beef (from fridge), jar spaghetti sauce, rotini, petite diced tomatoes, shredded cheese",
+      "note": "Use recipe [fdb4bc62]; higher-carb for Thursday lifting",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
       "skip_shopping": false
     },
     "2026-07-02::dinner": {
-      "name": "Cajun Sausages with Parboiled Rice and Sautéed Mixed Vegetables",
+      "name": "Cajun Sausages with Wild Rice and Sautéed Mixed Vegetables",
       "protein": "Cajun sausage",
-      "ingredients": "4 Cajun sausages (frozen), parboiled rice, frozen mixed vegetables, butter, onion, bell pepper, gumbo seasoning",
-      "note": "High-carb Thursday lifting day",
+      "ingredients": "four Cajun sausages (frozen), parboiled rice, frozen mixed vegetables, butter, onion, bell pepper, seasoning",
+      "note": "Use recipe [774b15bb]; Lauren has counseling at 3pm",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-03::lunch": {
+      "name": "Sardine Sandwiches with Carrots and Fruit",
+      "protein": "sardines",
+      "ingredients": "canned sardines, mayo, Dijon mustard, sourdough bread, romaine lettuce, fresh carrots, apples",
+      "note": "Meatless Friday; use recipe [r009]",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
       "skip_shopping": false
     },
     "2026-07-03::dinner": {
-      "name": "Friday Fish Fry — Canned Salmon Patties with French Fries and Canned Green Beans",
-      "protein": "pink salmon",
-      "ingredients": "2 cans pink salmon, breadcrumbs, egg, flour, Old Bay, fridge french fries, canned green beans, butter",
-      "note": "Meatless Friday; use canned salmon on hand",
+      "name": "Spinach Pie with Canned Green Beans",
+      "protein": "eggs",
+      "ingredients": "frozen pie crust, frozen spinach, eggs, shredded cheese, white onion, canned green beans, butter",
+      "note": "Meatless Friday; use recipe [a42827d4]; busy PT day",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
       "skip_shopping": false
     },
-    "2026-07-04::dinner": {
-      "name": "Fourth of July Cookout — Hamburgers, Pulled Pork, and Corn on the Cob",
-      "protein": "hamburger / pulled pork",
-      "ingredients": "4 hamburger patties, 1 lb pulled pork (frozen thawed), hamburger buns, frozen corn, romaine lettuce, shredded cheese, condiments",
-      "note": "Festive cookout; use both proteins",
+    "2026-07-04::lunch": {
+      "name": "Tuna Salad on Bread with Fruit Cocktail",
+      "protein": "tuna",
+      "ingredients": "canned tuna, mayo, sourdough bread, romaine lettuce, canned fruit cocktail, green grapes",
+      "note": "Quick pre-cookout lunch; uses pantry staples",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-05::lunch": {
+      "name": "Ziplock Buffet — Leftover Cookout Plates",
+      "protein": "pulled pork",
+      "ingredients": "leftover pulled pork, hamburger buns, leftover corn, canned pork and beans, fruit, pickles",
+      "note": "Sunday leftover buffet; clear fridge before Mass",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
       "skip_shopping": false
     },
     "2026-07-05::dinner": {
-      "name": "Ziplock Buffet — Leftovers Cleared (Pasta, Chicken, Sausage, Salmon Patties)",
+      "name": "Lentil Soup (Batch) with Bread",
       "protein": "",
-      "ingredients": "all remaining leftovers from week, bread, sourdough, canned fruit cocktail, frozen mixed vegetables if needed",
-      "note": "Sunday leftover buffet; clear fridge",
+      "ingredients": "red lentils, canned diced tomatoes, carrots, white onion, cumin, garlic, bread loaf, frozen spinach",
+      "note": "Use recipe [r006]; Sunday batch cook post-Mass",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-06::lunch": {
+      "name": "Lentil Soup Thermos with Sourdough",
+      "protein": "",
+      "ingredients": "leftover lentil soup, sourdough bread, apples, yogurt",
+      "note": "Monday; pack Dad's thermos from Sunday batch",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
       "skip_shopping": false
     },
     "2026-07-06::dinner": {
-      "name": "Spinach Pie with Roasted Sweet Potatoes",
-      "protein": "",
-      "ingredients": "2 frozen pie crusts, frozen spinach, eggs, shredded cheese, white onion, sweet potatoes, olive oil, seasoning",
-      "note": "Legume-free meatless Monday anchor",
+      "name": "Salmon Patties with Mashed Potatoes and Sautéed Brussels Sprouts",
+      "protein": "salmon",
+      "ingredients": "canned pink salmon, breadcrumbs, eggs, to-go mashed potatoes, fresh brussels sprouts, butter, seasoning",
+      "note": "Clears canned salmon; use brussels before they turn",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -104,6 +275,18 @@
     }
   },
   "used_proteins": [
-    "eggs"
-  ]
+    "eggs",
+    "whole chicken (rotisserie stand-in: brine raw chicken)",
+    "leftover roasted chicken",
+    "hamburger / pulled pork",
+    "chicken",
+    "ground beef",
+    "sardines",
+    "salmon",
+    "pulled pork",
+    "cajun sausage",
+    "tuna",
+    "beans"
+  ],
+  "plan_locked_at": "2026-06-30"
 }
