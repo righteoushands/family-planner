@@ -161,3 +161,9 @@ id = "xTAvpQGL8qUNQOgmg7GQK"
 uri = "file://responses/collapse_ingredients_g1c2.md"
 type = "text"
 title = "Collapse ingredients — open only for unreviewed Lorenzo suggestion"
+
+[[outputs]]
+id = "xIoNpXjf4uEIiCbeL4e72"
+uri = "file://responses/wrap_ingredients_g1c2.md"
+type = "text"
+title = "Wrap ingredients — full text in a textarea, no truncation"

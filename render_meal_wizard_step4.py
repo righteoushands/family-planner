@@ -285,18 +285,18 @@ def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry,
         ing_ph = "Ingredients (optional) \u2014 e.g. + chicken nuggets for James"
         # Pre-fill from a Lorenzo draft suggestion when one exists for this slot.
         # Built outside the f-string (Rule 2) and escaped exactly once (Rule 11).
-        # name goes BETWEEN the textarea tags (no value= attr); ingredients and
-        # protein stay single-line inputs with a double-quoted value= attr, so
-        # escape() covering the double-quote prevents attribute breakout.
+        # name and ingredients go BETWEEN textarea tags (no value= attr) so long
+        # text wraps in full; protein stays a single-line input with a
+        # double-quoted value= attr, where escape() covering the double-quote
+        # prevents attribute breakout.
         name_body = ""
-        ing_val = ""
+        ing_body = ""
         prot_val = ""
         ing_open = ""
         if isinstance(suggestion, dict):
             name_body = escape(suggestion.get("name") or "")
-            sug_ing = escape(suggestion.get("ingredients") or "")
+            ing_body = escape(suggestion.get("ingredients") or "")
             sug_prot = escape(suggestion.get("protein") or "")
-            ing_val = ' value="' + sug_ing + '"'
             prot_val = ' value="' + sug_prot + '"'
             # A fresh Lorenzo suggestion: open the ingredients box for review.
             ing_open = " open"
@@ -306,7 +306,8 @@ def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry,
             f'placeholder="Meal name">{name_body}</textarea>'
             f'<details{ing_open} style="{_S4_DETAILS}">'
             f'<summary style="{_S4_SUMMARY}">Ingredients</summary>'
-            f'<input type="text" id="{ing_id}"{ing_val} style="{_S4_INPUT}" placeholder="{ing_ph}">'
+            f'<textarea id="{ing_id}" rows="2" style="{_S4_NAME_AREA}" '
+            f'placeholder="{ing_ph}">{ing_body}</textarea>'
             f'</details>'
             f'<input type="text" id="{prot_id}"{prot_val} style="{_S4_INPUT}" '
             f'placeholder="Main protein (optional)">'
