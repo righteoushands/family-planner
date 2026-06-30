@@ -1,0 +1,45 @@
+COLLAPSE INGREDIENTS — ingredients box collapsible; open only for an unreviewed
+Lorenzo suggestion. ONE FILE: render_meal_wizard_step4.py. Markup/CSS, additive.
+Do NOT touch app.py, window.s4Keep, window.s4Generate, the confirm route, or the
+meal-NAME textarea (just built — leave it fully visible). Diagnosis done.
+
+Rules 1/2/7/11/12 apply.
+
+CONFIRM FIRST, then build — two things, report before editing if either differs:
+A) In _s4_slot_block EMPTY branch, the ingredients field is the single-line
+   <input id="s4-ing--{key}"> with value= prefill. Confirm.
+B) Does the CONFIRMED branch (entry is a dict — kept meal) render an ingredients
+   INPUT box at all, or just display text / no ingredients? Report which. (From
+   observed behavior a kept meal shows name + tag + Change, no ingredients box —
+   confirm.) This decides whether "collapse on approved Lorenzo" needs any code or
+   is already satisfied because that branch has no ingredients box.
+
+BUILD (EMPTY branch only):
+1. Wrap the ingredients <input id="s4-ing--{key}"> in a native <details> element
+   with a <summary>Ingredients</summary> label. No JS — use HTML <details>/<summary>.
+2. OPEN vs CLOSED by default:
+   - If this slot HAS a Lorenzo suggestion (the `suggestion` dict is present — same
+     condition that drives the ingredients prefill), render <details open> so the
+     box is EXPANDED for review.
+   - Otherwise (empty slot, no suggestion) render <details> (CLOSED) so it's compact.
+3. CRITICAL — the input must stay readable by s4Keep even when collapsed: the
+   <input id="s4-ing--{key}"> stays in the DOM inside the closed <details> (collapsed
+   only hides display, the element and its value persist). Do NOT move, rename, or
+   conditionally omit the input. id stays byte-for-byte. s4Keep reads it at click
+   time unchanged.
+4. Leave the protein field and the Keep button exactly as they are. Name textarea
+   unchanged. Confirmed branch: only add a collapse if step B found it renders an
+   ingredients box; if it has none, change nothing there.
+
+VALIDATE:
+- py_compile.
+- node --check on _S4_JS -> JS syntax OK.
+- In-process smoke (no live writes, Rule 10):
+  (i) EMPTY entry WITH suggestion {"name":"x","ingredients":"diced tomatoes, rotini",
+      "protein":"y"} -> assert <details open> wraps the ingredients input, the input
+      still has id s4-ing--... and its prefilled value, name still renders.
+  (ii) EMPTY entry, NO suggestion -> assert <details> (no `open`) and the ingredients
+      input is still PRESENT in the markup (collapsed, not removed) with id intact.
+  (iii) double-quote in ingredients still escaped once (&quot;), no breakout.
+- Run data/verify_meal_wizard_step4.py; paste result.
+Report A/B findings, compile, node --check, the three smoke asserts, harness.

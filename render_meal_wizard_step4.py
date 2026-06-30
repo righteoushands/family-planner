@@ -88,6 +88,12 @@ _S4_INPUT = ("width:100%;box-sizing:border-box;padding:8px 10px;margin-top:6px;"
 # scroll. Reuses _S4_INPUT, adds wrapping + vertical resize. No JS auto-grow.
 _S4_NAME_AREA = (_S4_INPUT + "resize:vertical;overflow-wrap:break-word;"
                  "white-space:pre-wrap;font-family:inherit;line-height:1.3;")
+# Ingredients box is a native <details> (no JS). It renders <details open> when a
+# Lorenzo suggestion is present (so Lauren reviews it) and closed otherwise (calm,
+# compact). The input stays in the DOM either way so s4Keep can read it.
+_S4_DETAILS = "margin-top:6px;"
+_S4_SUMMARY = ("cursor:pointer;font-size:0.85em;color:var(--ink-muted);"
+               "user-select:none;")
 _S4_KEEP_BTN = ("margin-top:8px;padding:8px 14px;border:none;border-radius:8px;"
                 "background:var(--gold-mid,#c9a84a);color:var(--ink);font-weight:700;"
                 "font-size:0.9em;cursor:pointer;")
@@ -285,17 +291,23 @@ def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry,
         name_body = ""
         ing_val = ""
         prot_val = ""
+        ing_open = ""
         if isinstance(suggestion, dict):
             name_body = escape(suggestion.get("name") or "")
             sug_ing = escape(suggestion.get("ingredients") or "")
             sug_prot = escape(suggestion.get("protein") or "")
             ing_val = ' value="' + sug_ing + '"'
             prot_val = ' value="' + sug_prot + '"'
+            # A fresh Lorenzo suggestion: open the ingredients box for review.
+            ing_open = " open"
         return (
             f'<div style="{_S4_SLOT_ROW}">{label_html}'
             f'<textarea id="{name_id}" rows="2" style="{_S4_NAME_AREA}" '
             f'placeholder="Meal name">{name_body}</textarea>'
+            f'<details{ing_open} style="{_S4_DETAILS}">'
+            f'<summary style="{_S4_SUMMARY}">Ingredients</summary>'
             f'<input type="text" id="{ing_id}"{ing_val} style="{_S4_INPUT}" placeholder="{ing_ph}">'
+            f'</details>'
             f'<input type="text" id="{prot_id}"{prot_val} style="{_S4_INPUT}" '
             f'placeholder="Main protein (optional)">'
             f'<div><button type="button" style="{_S4_KEEP_BTN}" '

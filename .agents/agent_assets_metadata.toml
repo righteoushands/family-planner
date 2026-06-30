@@ -155,3 +155,9 @@ id = "VcRNHftwrGeKGPOR-XEJH"
 uri = "file://responses/namewrap_g1c2_meal_name_textarea.md"
 type = "text"
 title = "Name wrap — meal name now wraps in a textarea"
+
+[[outputs]]
+id = "xTAvpQGL8qUNQOgmg7GQK"
+uri = "file://responses/collapse_ingredients_g1c2.md"
+type = "text"
+title = "Collapse ingredients — open only for unreviewed Lorenzo suggestion"
