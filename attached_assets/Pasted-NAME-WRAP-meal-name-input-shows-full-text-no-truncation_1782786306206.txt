@@ -1,0 +1,39 @@
+NAME WRAP — meal name input shows full text, no truncation. ONE FILE:
+render_meal_wizard_step4.py. Additive, CSS/markup only. Do NOT touch app.py,
+window.s4Keep, window.s4Generate, or the confirm route. Diagnosis done.
+
+Rules 1/2/7/11/12 apply (JS-in-f-string: no backslashes/nested quotes/raw
+newlines; escape once).
+
+PROBLEM: in _s4_slot_block the EMPTY branch renders the meal NAME as a
+single-line <input id="s4-name--{key}">, so a long name like "Ground Beef
+Pasta with Spaghetti Sauce" is cut off and Lauren must scroll inside the box.
+
+CONFIRM FIRST, then build: locate the name field in the EMPTY branch of
+_s4_slot_block. Confirm it is an <input> (single-line). If it is already a
+<textarea>, STOP and report — the fix differs.
+
+CHANGE (name field only):
+- Convert the meal-NAME <input> to a <textarea> so the full name wraps and is
+  visible without horizontal scroll. KEEP id="s4-name--{key}" byte-for-byte
+  (s4Keep reads this id at click time — it must not change).
+- Pre-fill: today the value sits in the input's value= attribute. A <textarea>
+  has NO value attribute — the text goes BETWEEN the tags. Move the (already
+  html.escape-d, once) name into the textarea body. Do not double-escape.
+- Auto-size to content so the whole name shows with no inner scrollbar: set
+  rows so short names stay one line and long names grow. A small CSS approach
+  (e.g. rows="2" plus word wrapping) is fine; do NOT add a JS auto-grow library.
+- Leave the ingredients and protein fields EXACTLY as they are (ingredients
+  collapse is a SEPARATE later instruction — not now).
+- The Keep button, its onclick, and all three ids stay identical.
+
+VALIDATE:
+- py_compile render_meal_wizard_step4.py.
+- node --check on emitted _S4_JS -> JS syntax OK.
+- In-process smoke (no live writes, Rule 10): call _s4_slot_block with an EMPTY
+  entry and suggestion {"name": 'Ground Beef Pasta with Spaghetti Sauce',
+  "ingredients": "x", "protein": "y"}. Assert: the name renders inside the
+  <textarea> body (not a value= attr), id is still s4-name--..., and a name
+  containing a double-quote renders escaped (&quot;) with no attribute breakout.
+- Run data/verify_meal_wizard_step4.py; paste result.
+Report compile, node --check, smoke asserts, harness. Nothing else.

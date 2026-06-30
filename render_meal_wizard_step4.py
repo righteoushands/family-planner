@@ -83,6 +83,11 @@ _S4_TAG = ("display:inline-block;background:var(--parchment,#faf6ec);"
 _S4_INPUT = ("width:100%;box-sizing:border-box;padding:8px 10px;margin-top:6px;"
              "border:1px solid var(--border,#e6e0d4);border-radius:8px;"
              "font-size:0.92em;color:var(--ink);background:var(--warm-white,#fff);")
+# Meal NAME field is a wrapping textarea (not a single-line input) so long names
+# like "Ground Beef Pasta with Spaghetti Sauce" show in full with no horizontal
+# scroll. Reuses _S4_INPUT, adds wrapping + vertical resize. No JS auto-grow.
+_S4_NAME_AREA = (_S4_INPUT + "resize:vertical;overflow-wrap:break-word;"
+                 "white-space:pre-wrap;font-family:inherit;line-height:1.3;")
 _S4_KEEP_BTN = ("margin-top:8px;padding:8px 14px;border:none;border-radius:8px;"
                 "background:var(--gold-mid,#c9a84a);color:var(--ink);font-weight:700;"
                 "font-size:0.9em;cursor:pointer;")
@@ -273,21 +278,23 @@ def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry,
         keep_call = "s4Keep('" + date_iso + "','" + slot_key + "')"
         ing_ph = "Ingredients (optional) \u2014 e.g. + chicken nuggets for James"
         # Pre-fill from a Lorenzo draft suggestion when one exists for this slot.
-        # value= is built outside the f-string (Rule 2) and escaped exactly once
-        # (Rule 11); escape() covers the double-quote that delimits value="...".
-        name_val = ""
+        # Built outside the f-string (Rule 2) and escaped exactly once (Rule 11).
+        # name goes BETWEEN the textarea tags (no value= attr); ingredients and
+        # protein stay single-line inputs with a double-quoted value= attr, so
+        # escape() covering the double-quote prevents attribute breakout.
+        name_body = ""
         ing_val = ""
         prot_val = ""
         if isinstance(suggestion, dict):
-            sug_name = escape(suggestion.get("name") or "")
+            name_body = escape(suggestion.get("name") or "")
             sug_ing = escape(suggestion.get("ingredients") or "")
             sug_prot = escape(suggestion.get("protein") or "")
-            name_val = ' value="' + sug_name + '"'
             ing_val = ' value="' + sug_ing + '"'
             prot_val = ' value="' + sug_prot + '"'
         return (
             f'<div style="{_S4_SLOT_ROW}">{label_html}'
-            f'<input type="text" id="{name_id}"{name_val} style="{_S4_INPUT}" placeholder="Meal name">'
+            f'<textarea id="{name_id}" rows="2" style="{_S4_NAME_AREA}" '
+            f'placeholder="Meal name">{name_body}</textarea>'
             f'<input type="text" id="{ing_id}"{ing_val} style="{_S4_INPUT}" placeholder="{ing_ph}">'
             f'<input type="text" id="{prot_id}"{prot_val} style="{_S4_INPUT}" '
             f'placeholder="Main protein (optional)">'

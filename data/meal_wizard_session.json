@@ -2,13 +2,7 @@
   "confirmed_inventory": "Fridge:\n2 pounds of cooked ground beef\nrotisserie chicken\nraw bacon\ntwo romaine lettuce\nthree green bell peppers\none bag of fresh green beans\none bag of brussels sprouts\ngreen grapes\nblueberries\nstrawberries\ngreen beans (canned)\nshredded cheese\nwhole milk yogurt\nsourdough bread\nfrench fries\nrefried beans\ncarrots\neggs\nleftover Chick-fil-A macaroni cheese \nground flax seeds\nChia seeds\n2 pounds of raw chicken\nfour patties of hamburger\n2 pounds of raw ground beef\nkimchi\ntwo dozen eggs\n2% milk\nwhole milk\nsoy milk\napples\noranges\nDiet Coke\nSprite\nbeer\nwine\n\nFreezer:\nmixed vegetables\nfrench fries\npulled pork one pound\nfour Cajun sausages\ncorn\nham hock\ntwo pizzas\none bag of spinach\ntwo pie crust\n\nPantry:\ntwo white onions\nsix small sweet potatoes\nbag of parboiled rice\nbag of small red potatoes\nbaking mix for pancakes and waffles\ncrispix cereal\ncoffee\nrotini\npasta\nwide egg noodles\ncan of evaporated milk\npumpkin  (canned)\nfruit cocktail  (canned)\npeaches  (canned)\npork and beans  (canned)\npear slices  (canned)\nvegetable soup  (canned)\nsweet peas  (canned)\ncream of mushroom soup  (canned)\nsliced carrots  (canned)  (canned)\npetite diced tomatoes  (canned)\ncrushed tomatoes purée  (canned)\ngreen beans  (canned)\npink salmon  (canned)\nwhole corn  (canned)\n3 cans of tuna\n3 cans of sardines\nsalsa Verde\njars of spaghetti sauce\nhoney\nfruit cocktail cups\npeanut butter\nbox of macaroni and cheese\nbox of small pasta shells\nrolled oats\nchocolate cake mix\nsugar\ncones for ice cream\nbreadcrumbs\npopcorn kernels\nbags of movie popcorn\ndried mixed beans\nsmall bag of mashed potatoes\npearl barley\ntwo more boxes of macaroni and cheese\nbag of red lentils\ntwo to go containers of mashed potatoes\nlinguine\ntwo loaf of breads\nhamburger buns\ntortillas\nquinoa\ncoconut oil\nfew dates\nunsweet coconut flakes\ndifferent packets of seasoning\nincluding taco and chili and gumbo and meatloaf spaghetti brown gravy\n flour\nsugar\nunsweetened cocoa\nbrown sugar\npowdered milk\nmolasses\nbakers yeast\nregular yeast\ngelatin",
   "use_soon_items": "",
   "confirmed_what_to_plan": [
-    "breakfast",
-    "lunch",
-    "dinner",
-    "snacks",
-    "dessert",
-    "feast_meal",
-    "batch_cook"
+    "dinner"
   ],
   "confirmed_complexity": "normal",
   "planning_window": {
@@ -27,7 +21,88 @@
       "protein": "Eggs"
     }
   },
-  "suggested_meals": {},
+  "suggested_meals": {
+    "2026-06-29::dinner": {
+      "name": "Ground Beef Pasta with Spaghetti Sauce",
+      "protein": "ground beef",
+      "ingredients": "2 lbs cooked ground beef, jar spaghetti sauce, canned diced tomatoes, rotini pasta, shredded cheese",
+      "note": "Uses cooked ground beef; quick weeknight dinner",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-06-30::dinner": {
+      "name": "Brined Roast Chicken with Roasted Sweet Potatoes and Green Beans",
+      "protein": "whole chicken (rotisserie stand-in or raw chicken brined)",
+      "ingredients": "2 lbs raw chicken, kosher salt, sugar, garlic, sweet potatoes, fresh green beans, olive oil, seasoning",
+      "note": "Weekly anchor brined roast chicken",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-01::dinner": {
+      "name": "Cajun Sausage with Wild Rice and Sautéed Mixed Vegetables",
+      "protein": "Cajun sausage",
+      "ingredients": "4 Cajun sausages (frozen), parboiled rice, frozen mixed vegetables, butter, garlic, seasoning",
+      "note": "Date night — kids eat simple; easy prep",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-02::dinner": {
+      "name": "Chicken Fried Rice with Frozen Corn",
+      "protein": "rotisserie chicken",
+      "ingredients": "rotisserie chicken shredded, parboiled rice, eggs, frozen corn, green bell pepper, soy sauce, sesame oil, carrots",
+      "note": "Thursday lifting day; higher-carb rice meal",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-03::dinner": {
+      "name": "Spinach Pie (Frozen Crust) with Caesar Salad",
+      "protein": "",
+      "ingredients": "two pie crusts (frozen), frozen spinach, eggs, shredded cheese, white onion, romaine lettuce, Caesar dressing",
+      "note": "Friday meatless; uses both pie crusts",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-04::dinner": {
+      "name": "Fourth of July Hamburgers with French Fries and Pork and Beans",
+      "protein": "hamburger",
+      "ingredients": "4 hamburger patties, hamburger buns, shredded cheese, romaine lettuce, fridge french fries, canned pork and beans, green bell pepper",
+      "note": "Independence Day cookout; festive and simple",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-05::dinner": {
+      "name": "Ziplock Buffet — Leftover Spread with Rice and Canned Vegetables",
+      "protein": "",
+      "ingredients": "all dinner leftovers of the week, parboiled rice, canned green beans, canned sweet peas, sourdough bread",
+      "note": "Sunday leftover buffet; clear fridge before Monday",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-06::dinner": {
+      "name": "Lentil Soup with Sourdough Bread",
+      "protein": "",
+      "ingredients": "red lentils, canned diced tomatoes, carrots, white onion, cumin, garlic, olive oil, sourdough bread",
+      "note": "Legume anchor meal; batch for week lunches",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    }
+  },
   "used_proteins": [
     "eggs"
   ]
