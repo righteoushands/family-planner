@@ -175,7 +175,7 @@ _S3_JS = (
     "    fetch('/meal-wizard-step3-save', { method:'POST',"
     "      headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })"
     "      .then(function(r){ return r.json(); })"
-    "      .then(function(j){ if(j && j.ok){ window.location.href = '/meal-wizard-step3?saved=1'; }"
+    "      .then(function(j){ if(j && j.ok){ sessionStorage.setItem('s3ScrollY', String(window.scrollY)); window.location.href = '/meal-wizard-step3?saved=1'; }"
     "        else if(status){ status.textContent = 'Could not save. Please try again.'; } })"
     "      .catch(function(){ if(status){ status.textContent = 'Could not save. Please try again.'; } });"
     "  };"
@@ -190,6 +190,8 @@ _S3_JS = (
     "    for(var i=0;i<checks.length;i++){ checks[i].addEventListener('change', window.s3RebuildPrefill); }"
     "    window.s3RebuildPrefill();"
     "  });"
+    "  function s3RestoreScroll(){ var y = sessionStorage.getItem('s3ScrollY'); if(y !== null){ window.scrollTo(0, parseInt(y, 10)); sessionStorage.removeItem('s3ScrollY'); } }"
+    "  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', s3RestoreScroll); } else { s3RestoreScroll(); }"
     "})();"
     "</script>"
 )

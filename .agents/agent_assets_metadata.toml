@@ -257,3 +257,9 @@ id = "DScJd0CuHsyId8dThW4f6"
 uri = "file://responses/claudmd_rule20_scroll_preservation.md"
 type = "text"
 title = "claud.md Rule 20 added — preserve scroll on same-page reloads"
+
+[[outputs]]
+id = "vlZA6Ubj52aZtXMJURX22"
+uri = "file://responses/fix_step3_scroll_preservation.md"
+type = "text"
+title = "FIX — Rule 20 applied to Step 3 s3Save (py_compile + smoke + harness all pass)"
