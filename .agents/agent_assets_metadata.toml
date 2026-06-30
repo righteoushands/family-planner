@@ -191,3 +191,9 @@ id = "YjSCwdUhEmRbp1m7OrUY3"
 uri = "file://responses/softguard_g1c_inventory_doublespend.md"
 type = "text"
 title = "BUILD complete — inventory double-spend soft-guard (all 3 validations passed)"
+
+[[outputs]]
+id = "eM4TtpWhLJwWHQLiTEsnS"
+uri = "file://responses/diagnosis_doc_staleness_repo_check.md"
+type = "text"
+title = "DIAGNOSIS — doc staleness: which of your 5 docs are in the repo"
