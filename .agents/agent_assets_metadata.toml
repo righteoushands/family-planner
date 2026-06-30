@@ -233,3 +233,9 @@ id = "-C2E7j356y-oBwF6vydns"
 uri = "file://responses/diagnosis_step4_scroll_jump_to_top.md"
 type = "text"
 title = "DIAGNOSIS — Step 4 slot-action buttons & jump-to-top root cause"
+
+[[outputs]]
+id = "ymobHj3smtWBymDjOFNZx"
+uri = "file://responses/fix_step4_scroll_preservation.md"
+type = "text"
+title = "FIX complete — Step 4 scroll preservation (py_compile + smoke + 2 harnesses pass)"
