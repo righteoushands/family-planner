@@ -33,6 +33,15 @@ from html import escape
 from ui_helpers import html_page
 from data_helpers import load_meal_wizard_session, get_merged_calendar_events
 from render_liturgical import get_day_info
+from render_meal_wizard_gen import wizard_target_slot_keys
+
+# MUST stay in lockstep with app.py's _WIZARD_GEN_SLOT_CAP (the server-side cap
+# enforced by /meal-wizard-generate). It is duplicated here rather than imported
+# because app.py imports this module, so importing the constant back would be a
+# circular import. FLAG: if these two values drift apart, this button could
+# enable a request the server then refuses (or disable one the server allows).
+# Change both together. Added 2026-06-30.
+_WIZARD_GEN_SLOT_CAP = 14
 
 _HEADING_FONT = "'Cormorant Garamond', serif"
 
@@ -433,6 +442,8 @@ def render_meal_wizard_step4(user: str, start_iso: str = None) -> str:
     `start_iso` argument mirrors the Step 1 signature; the window always comes
     from the saved session, which is the source of truth for Step 4."""
     session = load_meal_wizard_session() or {}
+    _s4_targets = wizard_target_slot_keys(session)
+    _s4_target_count = len(_s4_targets)
     window = session.get("planning_window") or {}
     to_plan = session.get("confirmed_what_to_plan") or []
     confirmed = session.get("confirmed_meals") or {}
@@ -523,13 +534,37 @@ def render_meal_wizard_step4(user: str, start_iso: str = None) -> str:
     # Draft generator: kicks off /meal-wizard-generate (G1c-1b) then reloads so the
     # empty slots come back pre-filled with Lorenzo's editable suggestions (Rule 16
     # \u2014 a draft to edit, never auto-confirmed).
-    generate_html = (
-        f'<div style="{_S4_LOCK_WRAP}">'
-        f'<button type="button" id="s4-gen-btn" style="{_S4_LOCK_BTN}" '
-        f'onclick="s4Generate(this)">Generate my week with Lorenzo</button>'
-        f'<div id="s4-gen-msg" style="{_S4_LOCK_MSG}"></div>'
-        f'</div>'
-    )
+    _s4_btn_label = "Generate my week with Lorenzo"
+    if _s4_target_count > _WIZARD_GEN_SLOT_CAP:
+        _s4_gen_line = (
+            "Too many meals selected (" + escape(str(_s4_target_count)) +
+            ") \u2014 Lorenzo plans best a couple of meal types at a time. "
+            "Go back to Step 3 and select fewer, or shorten the window.")
+        generate_html = (
+            f'<div style="{_S4_LOCK_WRAP}">'
+            f'<button type="button" id="s4-gen-btn" disabled '
+            f'style="{_S4_LOCK_BTN};opacity:0.5;cursor:not-allowed" '
+            f'onclick="s4Generate(this)">{_s4_btn_label}</button>'
+            f'<div id="s4-gen-msg" style="{_S4_LOCK_MSG}">{_s4_gen_line}</div>'
+            f'</div>'
+        )
+    elif _s4_target_count > 0:
+        _s4_gen_line = "Will generate " + escape(str(_s4_target_count)) + " meal(s)."
+        generate_html = (
+            f'<div style="{_S4_LOCK_WRAP}">'
+            f'<button type="button" id="s4-gen-btn" style="{_S4_LOCK_BTN}" '
+            f'onclick="s4Generate(this)">{_s4_btn_label}</button>'
+            f'<div id="s4-gen-msg" style="{_S4_LOCK_MSG}">{_s4_gen_line}</div>'
+            f'</div>'
+        )
+    else:
+        generate_html = (
+            f'<div style="{_S4_LOCK_WRAP}">'
+            f'<button type="button" id="s4-gen-btn" style="{_S4_LOCK_BTN}" '
+            f'onclick="s4Generate(this)">{_s4_btn_label}</button>'
+            f'<div id="s4-gen-msg" style="{_S4_LOCK_MSG}"></div>'
+            f'</div>'
+        )
     inner = (
         f'<h1 style="font-family:{_HEADING_FONT};font-size:2em;font-weight:600;'
         f'color:var(--ink);margin:0 0 2px;">{_S4_TITLE}</h1>'

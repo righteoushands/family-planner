@@ -209,3 +209,9 @@ id = "vWxNxDxxlZEjvSCCmNEfg"
 uri = "file://responses/build_meal_generate_slotcap_and_log.md"
 type = "text"
 title = "BUILD complete — /meal-wizard-generate slot cap + observability log (all checks pass)"
+
+[[outputs]]
+id = "EwmSZ1CsiCnrg4j1ywYri"
+uri = "file://responses/build_step4_generate_button_render_state.md"
+type = "text"
+title = "BUILD complete — Step 4 Generate button render-time state (all 3 checks pass)"
