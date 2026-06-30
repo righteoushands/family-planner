@@ -200,6 +200,10 @@ def build_wizard_meal_prompt(session: dict, target_keys: list) -> str:
     lines.append("On-hand inventory (note the FORM — fresh / canned / frozen / dried):")
     lines.append("  " + (inventory if inventory else "(none recorded)"))
     lines.append("Respect the form exactly: if an item is canned, do not plan a dish that needs it fresh, and vice versa; treat the canned/frozen form as usable as-is.")
+    # TEMPORARY soft-guard, prompt-only — no real inventory depletion exists yet.
+    # Revisit/remove when structured inventory lands (TRACKER 40/44). Added 2026-06-30.
+    lines.append("The already-decided meals above draw from this same on-hand list.")
+    lines.append("Some on-hand items are a single package or a small fresh amount. Do not propose a new dish that relies on a limited fresh or perishable item that an already-decided meal already uses — treat that item as spent.")
     lines.append("")
     lines.append("Do NOT repeat a main protein already used this week:")
     lines.append("  " + (used_str if used_str else "(none yet)"))

@@ -185,3 +185,9 @@ id = "pofCHNQbCbWTXEtyEArf9"
 uri = "file://responses/permanent_memory_response_documents.md"
 type = "text"
 title = "Saved: Response Documents preference (permanent)"
+
+[[outputs]]
+id = "YjSCwdUhEmRbp1m7OrUY3"
+uri = "file://responses/softguard_g1c_inventory_doublespend.md"
+type = "text"
+title = "BUILD complete — inventory double-spend soft-guard (all 3 validations passed)"
