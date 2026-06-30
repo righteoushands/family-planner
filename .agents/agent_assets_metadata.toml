@@ -263,3 +263,9 @@ id = "vlZA6Ubj52aZtXMJURX22"
 uri = "file://responses/fix_step3_scroll_preservation.md"
 type = "text"
 title = "FIX — Rule 20 applied to Step 3 s3Save (py_compile + smoke + harness all pass)"
+
+[[outputs]]
+id = "Gdiv5R4iJEMe7fTMx9pjb"
+uri = "file://responses/diagnosis_meal_dishes_shape_inventory.md"
+type = "text"
+title = "DIAGNOSIS — dishes[] shape blast radius (6 app files + 5 harnesses; key is `name` not `meal_name`)"
