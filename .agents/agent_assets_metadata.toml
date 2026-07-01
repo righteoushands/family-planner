@@ -461,3 +461,9 @@ id = "SozLKkezepe8zX9iDFDZc"
 uri = "file://responses/step4_change_revert_diagnosis_2026-07-01.md"
 type = "text"
 title = "Change revert diagnosis — rows present, categories blank"
+
+[[outputs]]
+id = "wGvT7ivfzsbZ-j3hBKHUd"
+uri = "file://responses/step4_change_category_preselect_2026-07-01.md"
+type = "text"
+title = "Change revert: category pre-selection — 6/6 + 17/17 PASS"
