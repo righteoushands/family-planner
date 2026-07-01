@@ -407,3 +407,9 @@ id = "kK3K48fs3mALPZ7Y4rlf2"
 uri = "file://responses/step4_case3_jsdom_behavioral_2026-07-01.md"
 type = "text"
 title = "Case 3 — jsdom behavioral test result"
+
+[[outputs]]
+id = "krRPvCgkt6r3NFkTXz5XP"
+uri = "file://responses/step4_remove_floor_clone_integrity_2026-07-01.md"
+type = "text"
+title = "Step 4 jsdom Tests — Remove-floor & Clone-integrity (18/18 PASS)"
