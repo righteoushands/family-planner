@@ -323,3 +323,9 @@ id = "mZIU4Rh0GJYilcYOWDuu1"
 uri = "file://responses/rule10a_mechanical_import_order_check.md"
 type = "text"
 title = "Rule 10a — mechanical import-order check"
+
+[[outputs]]
+id = "MSDvUm-Ksn_JQGzEFOqoV"
+uri = "file://responses/project_state_regeneration_2026-07-01.md"
+type = "text"
+title = "PROJECT_STATE.md regeneration — 2026-07-01"

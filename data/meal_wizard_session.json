@@ -25,21 +25,6 @@
       "skip_shopping": false,
       "protein": "Eggs"
     },
-    "2026-07-01::lunch": {
-      "dishes": [
-        {
-          "category": "main",
-          "name": "Rotisserie Chicken Tacos",
-          "ingredients": "rotisserie chicken, flour tortillas, shredded cheese, salsa verde, refried beans, romaine lettuce",
-          "protein": "rotisserie chicken"
-        }
-      ],
-      "source": "manual",
-      "locked": true,
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
-    },
     "2026-07-02::lunch": {
       "dishes": [
         {
@@ -70,13 +55,28 @@
       "recipe_on_request": true,
       "skip_shopping": false
     },
-    "2026-07-01::breakfast": {
+    "2026-07-01::dinner": {
       "dishes": [
         {
           "category": "main",
-          "name": "Pancakes with Fresh Berries",
-          "ingredients": "baking mix, eggs, whole milk, blueberries, strawberries, honey",
-          "protein": "eggs"
+          "name": "Date Night — Leftovers Buffet for Kids",
+          "ingredients": "leftover Chick-fil-A mac and cheese, refried beans, tortillas, shredded cheese, fruit cocktail cups",
+          "protein": ""
+        }
+      ],
+      "source": "manual",
+      "locked": true,
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-01::snacks": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Apples with Peanut Butter and Green Grapes",
+          "ingredients": "apples, peanut butter, green grapes",
+          "protein": ""
         }
       ],
       "source": "manual",
@@ -91,27 +91,12 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Lentil Soup (Batch)",
-          "ingredients": "red lentils, canned diced tomatoes, onion, carrots, cumin, garlic, olive oil",
-          "protein": "red lentils"
+          "name": "Ground Beef Pasta Sauce (Batch)",
+          "ingredients": "2 lbs raw ground beef, jar spaghetti sauce, canned diced tomatoes, white onion, rotini or pasta",
+          "protein": "ground beef"
         }
       ],
-      "note": "Use r006; backup lunch/dinner all week",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
-    },
-    "2026-07-01::breakfast": {
-      "dishes": [
-        {
-          "category": "main",
-          "name": "Pancakes with Fresh Berries",
-          "ingredients": "baking mix, eggs, whole milk, blueberries, strawberries, honey",
-          "protein": "eggs"
-        }
-      ],
-      "note": "John's birthday morning; kids help",
+      "note": "Batch for week; use raw ground beef first",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -121,12 +106,12 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Chocolate Birthday Cake",
-          "ingredients": "chocolate cake mix, eggs, oil, sugar, powdered sugar for frosting",
+          "name": "Fresh Berry Parfait",
+          "ingredients": "whole milk yogurt, strawberries, blueberries, honey",
           "protein": ""
         }
       ],
-      "note": "Birthday celebration for John",
+      "note": "Birthday treat; quick and festive",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -136,27 +121,12 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Ground Beef Pasta with Spaghetti Sauce",
-          "ingredients": "2 lbs cooked ground beef, jar spaghetti sauce, canned diced tomatoes, rotini pasta, shredded cheese",
-          "protein": "ground beef"
+          "name": "Date Night — Leftovers Buffet for Kids",
+          "ingredients": "leftover Chick-fil-A mac and cheese, refried beans, tortillas, shredded cheese, fruit cocktail cups",
+          "protein": ""
         }
       ],
-      "note": "Use fdb4bc62; quick before date night",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
-    },
-    "2026-07-01::lunch": {
-      "dishes": [
-        {
-          "category": "main",
-          "name": "Rotisserie Chicken Tacos",
-          "ingredients": "rotisserie chicken, flour tortillas, shredded cheese, salsa verde, refried beans, romaine lettuce",
-          "protein": "rotisserie chicken"
-        }
-      ],
-      "note": "Use r014; quick post-workout lunch",
+      "note": "Parents on date; simple self-serve for kids",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -166,12 +136,12 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Fruit & Yogurt Cups",
-          "ingredients": "whole milk yogurt, green grapes, strawberries, honey, ground flax seeds",
+          "name": "Apples with Peanut Butter and Green Grapes",
+          "ingredients": "apples, peanut butter, green grapes",
           "protein": ""
         }
       ],
-      "note": "Light post-run snack",
+      "note": "Fresh fruit; no prep needed",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -181,12 +151,12 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Hard-Boiled Eggs (Batch)",
-          "ingredients": "one dozen eggs, water",
-          "protein": "eggs"
+          "name": "Lentil Soup (Batch Top-Up)",
+          "ingredients": "bag of red lentils, canned diced tomatoes, carrots, white onion, cumin, garlic, chicken broth",
+          "protein": "red lentils"
         }
       ],
-      "note": "Prep for lunches and snacks",
+      "note": "Supports today's lunch; extra for week",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -196,12 +166,12 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Overnight Oats with Fruit",
-          "ingredients": "rolled oats, whole milk, chia seeds, blueberries, honey, ground flax seeds",
+          "name": "Overnight Oats with Berries",
+          "ingredients": "rolled oats, whole milk, honey, strawberries, blueberries, chia seeds, ground flax seeds",
           "protein": ""
         }
       ],
-      "note": "Use r013; no-cook morning prep",
+      "note": "Prep night before; easy busy morning",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -212,41 +182,11 @@
         {
           "category": "main",
           "name": "Canned Peaches with Cream",
-          "ingredients": "canned peaches, whole milk yogurt, honey",
+          "ingredients": "canned peaches, whole milk or evaporated milk, honey",
           "protein": ""
         }
       ],
-      "note": "Simple pantry dessert",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
-    },
-    "2026-07-02::dinner": {
-      "dishes": [
-        {
-          "category": "main",
-          "name": "Cajun Sausages with Wild Rice and Sautéed Mixed Vegetables",
-          "ingredients": "four Cajun sausages, parboiled rice, frozen mixed vegetables, onion, bell pepper, Cajun seasoning, butter",
-          "protein": "Cajun sausage"
-        }
-      ],
-      "note": "Use r774b15bb; Lauren counseling — easy cook",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
-    },
-    "2026-07-02::lunch": {
-      "dishes": [
-        {
-          "category": "main",
-          "name": "Lentil Soup with Sourdough Bread",
-          "ingredients": "leftover lentil soup from batch cook, sourdough bread, butter",
-          "protein": "red lentils"
-        }
-      ],
-      "note": "Draw from Wednesday batch; quick lunch",
+      "note": "Simple pantry dessert; no baking",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -256,12 +196,12 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Apples, Carrots, and Peanut Butter",
-          "ingredients": "apples, carrots, peanut butter",
-          "protein": "peanut butter"
+          "name": "Carrots and Yogurt Dip with Oranges",
+          "ingredients": "carrots, whole milk yogurt, honey, oranges",
+          "protein": ""
         }
       ],
-      "note": "Easy post-run whole-food snack",
+      "note": "Fresh veg and fruit; counseling day",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -270,7 +210,6 @@
   },
   "used_proteins": [
     "eggs",
-    "rotisserie chicken",
     "red lentils",
     "cajun sausage"
   ],
