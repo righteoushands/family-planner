@@ -401,3 +401,9 @@ id = "P4qX-ws2nPIgtqYp-PHt0"
 uri = "file://responses/step4_phase_b_dish_rows_2026-07-01.md"
 type = "text"
 title = "Step 4 Phase B — repeatable dish rows"
+
+[[outputs]]
+id = "kK3K48fs3mALPZ7Y4rlf2"
+uri = "file://responses/step4_case3_jsdom_behavioral_2026-07-01.md"
+type = "text"
+title = "Case 3 — jsdom behavioral test result"
