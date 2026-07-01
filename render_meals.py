@@ -14,7 +14,7 @@ from html import escape
 from safe_utils import ensure_file, safe_save_json
 from data_helpers import load_recipes, save_recipes, save_recipe, slot_dishes
 
-MEALS_DIR     = "data/meal_plan"
+MEALS_DIR     = os.environ.get("MEAL_PLAN_DIR") or "data/meal_plan"
 RULES_FILE    = "data/meal_rules.json"
 INVENTORY_FILE = "data/meal_inventory.json"
 RECIPES_FILE  = "data/recipes.json"

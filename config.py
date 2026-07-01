@@ -56,7 +56,10 @@ SEASONAL_SCHEDULES_FILE   = "data/seasonal_schedules.json"
 # Existing meal paths (currently also hardcoded in render_meals.py — moved here
 # additively per the config.py-owns-all-paths rule; render_meals.py cleanup
 # happens in a later phase once this path is confirmed working).
-MEALS_DIR                = "data/meal_plan"
+# Test-only override: the standing meal-wizard harnesses set MEAL_PLAN_DIR to an
+# isolated temp dir so they never read or write the live meal_plan store
+# (Rule 10). render_meals.py reads the same env var. Unset in production.
+MEALS_DIR                = os.environ.get("MEAL_PLAN_DIR") or "data/meal_plan"
 MEAL_RULES_FILE          = "data/meal_rules.json"
 MEAL_INVENTORY_FILE      = "data/meal_inventory.json"
 # New Meal Planning Wizard data files (Phase A data layer).

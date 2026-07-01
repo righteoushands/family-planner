@@ -24,18 +24,17 @@ Covers:
     - GET /meal-wizard-step4 shows the "Your plan is set" banner and meals stay
       editable.
 
-Rule 10: `mw_test_isolation` (imported first) redirects the session file to a
-private temp path and this harness POSTs to an IN-PROCESS server it starts on an
-ephemeral port -- so the live meal_wizard_session.json and the live :5000 server
-are never touched. The meal_plan week files this harness writes (a separate
-concern) are still snapshotted and restored on exit. The minted auth session
-token is destroyed in finally.
+Rule 10: `mw_test_isolation` (imported first) redirects BOTH the session file
+AND the meal_plan store to private temp locations, and this harness POSTs to an
+IN-PROCESS server it starts on an ephemeral port -- so the live
+meal_wizard_session.json, the live data/meal_plan/* week files, and the live
+:5000 server are never touched. No snapshot/restore of live data is needed: the
+week files this harness writes live in the isolated temp dir and are removed
+wholesale at process exit. The minted auth session token is destroyed in finally.
 """
 import json
 import os
-import shutil
 import sys
-import tempfile
 import traceback
 import urllib.request
 from datetime import date, timedelta
@@ -128,59 +127,36 @@ def main():
         this_wk + "::feast_meal":  {"name": "Feast Roast", "source": "manual"},
         this_wk + "::breakfast":   {"name": "Past Oatmeal", "source": "prefill"},
     }
-    # Snapshot the two files the unit test will load+save, then restore after.
-    _unit_paths = [rm._plan_path(this_wk), rm._plan_path(next_wk)]
-    _unit_backups = {}
-    for p in _unit_paths:
-        if os.path.exists(p):
-            fd, b = tempfile.mkstemp(suffix=".json")
-            os.close(fd)
-            shutil.copy2(p, b)
-            _unit_backups[p] = b
-        else:
-            _unit_backups[p] = None
-    try:
-        summary = rm.apply_confirmed_meals_to_store(unit_confirmed)
-        _check(set(summary["weeks_written"]) == {this_wk, next_wk},
-               "UNIT: cross-Monday wrote exactly two week files",
-               "UNIT: weeks_written wrong: " + str(summary["weeks_written"]),
-               failures)
-        _check(summary["slots_written"] == 3,
-               "UNIT: slots_written counts only real writes (3)",
-               "UNIT: slots_written wrong: " + str(summary["slots_written"]),
-               failures)
-        _check((this_wk + "::feast_meal") in summary["skipped"]
-               and (this_wk + "::breakfast") not in summary["weeks_written"],
-               "UNIT: feast_meal skipped (no store home)",
-               "UNIT: feast_meal not skipped", failures)
-        plan_this = rm.load_meal_plan(this_wk)
-        _check(plan_this["days"].get(mon_weekday, {}).get("dad_lunch") == "Leftovers for John",
-               "UNIT: johns_lunch landed in store slot dad_lunch",
-               "UNIT: johns_lunch did not map to dad_lunch", failures)
-        _check(plan_this["days"].get(mon_weekday, {}).get("breakfast") != "Past Oatmeal",
-               "UNIT: prefill meal was NOT written to the store",
-               "UNIT: prefill meal leaked into the store", failures)
-    finally:
-        for p, b in _unit_backups.items():
-            if b is not None:
-                shutil.copy2(b, p)
-                os.remove(b)
-            elif os.path.exists(p):
-                os.remove(p)
+    # No snapshot/restore: MEAL_PLAN_DIR is the isolated temp dir (see
+    # mw_test_isolation), so these week files are throwaway and cleaned up at exit.
+    summary = rm.apply_confirmed_meals_to_store(unit_confirmed)
+    _check(set(summary["weeks_written"]) == {this_wk, next_wk},
+           "UNIT: cross-Monday wrote exactly two week files",
+           "UNIT: weeks_written wrong: " + str(summary["weeks_written"]),
+           failures)
+    _check(summary["slots_written"] == 3,
+           "UNIT: slots_written counts only real writes (3)",
+           "UNIT: slots_written wrong: " + str(summary["slots_written"]),
+           failures)
+    _check((this_wk + "::feast_meal") in summary["skipped"]
+           and (this_wk + "::breakfast") not in summary["weeks_written"],
+           "UNIT: feast_meal skipped (no store home)",
+           "UNIT: feast_meal not skipped", failures)
+    plan_this = rm.load_meal_plan(this_wk)
+    _check(plan_this["days"].get(mon_weekday, {}).get("dad_lunch") == "Leftovers for John",
+           "UNIT: johns_lunch landed in store slot dad_lunch",
+           "UNIT: johns_lunch did not map to dad_lunch", failures)
+    _check(plan_this["days"].get(mon_weekday, {}).get("breakfast") != "Past Oatmeal",
+           "UNIT: prefill meal was NOT written to the store",
+           "UNIT: prefill meal leaked into the store", failures)
+    # Reset the isolated store so the round-trip below starts clean (the unit
+    # test wrote into the same temp dir; no live data is involved).
+    for _wk in (this_wk, next_wk):
+        _p = rm._plan_path(_wk)
+        if os.path.exists(_p):
+            os.remove(_p)
 
     # ── 2. AUTHENTICATED ROUND-TRIP. ------------------------------------------
-    # Snapshot the two live week files we will lock into.
-    rt_paths = list({rm._plan_path(this_wk), rm._plan_path(next_wk)})
-    rt_backups = {}
-    for p in rt_paths:
-        if os.path.exists(p):
-            fd, b = tempfile.mkstemp(suffix=".json")
-            os.close(fd)
-            shutil.copy2(p, b)
-            rt_backups[p] = b
-        else:
-            rt_backups[p] = None
-
     # Pre-seed an UNRELATED slot in this week's file to prove the lock is
     # additive (does not wipe slots it didn't plan).
     pre = rm.load_meal_plan(this_wk)
@@ -293,14 +269,9 @@ def main():
                 auth.destroy_session(token)
             except Exception:
                 pass
-        # Restore the live week files (separate concern; session file is the
-        # isolated temp path and needs no restore).
-        for p, b in rt_backups.items():
-            if b is not None:
-                shutil.copy2(b, p)
-                os.remove(b)
-            elif os.path.exists(p):
-                os.remove(p)
+        # No live data to restore: the session file and the meal_plan store are
+        # both isolated temp paths (see mw_test_isolation) and are cleaned up
+        # wholesale at process exit.
         _shutdown_server()
 
     print()

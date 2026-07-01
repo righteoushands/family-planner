@@ -21,11 +21,11 @@ Covers:
     c. remove it -> session slot gone; GET shows the empty entry state again.
     d. a prefill (past) entry renders locked with NO "Change" button.
 
-Rule 10: `mw_test_isolation` (imported first) redirects the session file to a
-private temp path and this harness POSTs to an IN-PROCESS server it starts on an
-ephemeral port -- so the live meal_wizard_session.json and the live :5000 server
-are never touched (no snapshot/restore needed). The minted auth session token is
-destroyed in finally.
+Rule 10: `mw_test_isolation` (imported first) redirects the session file AND the
+meal_plan store to private temp locations and this harness POSTs to an IN-PROCESS
+server it starts on an ephemeral port -- so the live meal_wizard_session.json,
+data/meal_plan/*, and the live :5000 server are never touched (no snapshot/
+restore needed). The minted auth session token is destroyed in finally.
 """
 import json
 import os

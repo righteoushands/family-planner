@@ -29,3 +29,19 @@ snapshot/restore the session file. `meal_plan` week files are a separate concern
 and still need their own snapshot/restore. Beware: probing an in-process server
 BEFORE the config env-override exists will write live data (config falls back to
 the default path).
+
+## meal_plan store isolation (extends the session-file pattern)
+`render_meals.py` keeps its OWN `MEALS_DIR` (does not import config's), and
+`render_john.py` hardcodes `data/meal_plan/{wk}.json` inline. To isolate the
+lock harness's week-file writes, `MEALS_DIR` in BOTH `config.py` and
+`render_meals.py` reads env var `MEAL_PLAN_DIR` (default `data/meal_plan`);
+`mw_test_isolation` points it at a temp `mkdtemp` (cleaned via `shutil.rmtree`
+at exit) before those modules import. The lock harness then needs NO
+snapshot/restore of live week files. `.backups` rotation lands inside the temp
+dir and is discarded with it. `render_john` is intentionally left un-redirected:
+it's only hit on the `/john` route, which no harness calls (the homepage meal
+card reads via `render_meals`, so it honors the redirect). `assert_isolated()`
+guards all three sinks: session file, `render_meals.MEALS_DIR`, `config.MEALS_DIR`.
+**Why:** the lock harness previously touched live week files then restored them —
+same touch-then-restore pattern the session fix eliminated; full Rule 10 = never
+touch, not restore-after.

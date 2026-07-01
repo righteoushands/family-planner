@@ -299,3 +299,9 @@ id = "TOeGSr6vbEK7bScNBtdS1"
 uri = "file://responses/rule10_session_file_isolation.md"
 type = "text"
 title = "Rule 10 — Session-file isolation for meal-wizard harnesses"
+
+[[outputs]]
+id = "tomzHFv6L7Sp0gkshB_bS"
+uri = "file://responses/rule10_provenance_and_mealplan_isolation.md"
+type = "text"
+title = "Rule 10 — Provenance proof + meal_plan store isolation"

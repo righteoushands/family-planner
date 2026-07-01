@@ -11,10 +11,11 @@ Covers the read-only Step 4 screen:
   3. Gate state carries zero JS; the seeded render now ships exactly the
      G1b-2a write-loop script (s4Keep/s4Change), one <script> beyond chrome.
 
-Rule 10: `mw_test_isolation` (imported first) redirects the session file to a
-private temp path for this process, so the live meal_wizard_session.json is
-never read or written -- not even snapshotted/restored. The temp file is
-removed at process exit.
+Rule 10: `mw_test_isolation` (imported first) redirects the session file AND the
+meal_plan store to private temp locations for this process, so the live
+meal_wizard_session.json and data/meal_plan/* are never read or written -- not
+even snapshotted/restored. They are removed at process exit. (This harness only
+renders and touches the session; the meal_plan redirect is process-global.)
 """
 import os
 import sys
