@@ -7,3 +7,4 @@
 - [Anthropic model strings](anthropic-model-strings.md) — claude-sonnet-4-20250514 is DEAD (404); use claude-sonnet-4-6 for Sonnet. Probe before wiring; other 20250514 call sites are latent bugs.
 - [Meal store & homepage gating](meal-store-homepage-gating.md) — homepage meal card gates only on non-empty slot text (not generated/lock); no plan-level lock flag; wizard→store slot map skips feast_meal/batch_cook/prefill.
 - [Meal-wizard test isolation](meal-wizard-test-isolation.md) — session file redirected via env before config import; HTTP harnesses must use in-process app.Handler (app.py is a PID/port singleton), not a 2nd server.
+- [MW session shallow update](meal-wizard-session-shallow-update.md) — update_meal_wizard_session is top-level dict.update; writing a whole nested key (suggested_meals) wholesale-replaces it — read-merge-write to keep siblings.

@@ -10973,7 +10973,13 @@ class Handler(BaseHTTPRequestHandler):
                             _g_text = "".join(b.get("text", "") for b in _g_resp_json.get("content", [])
                                               if b.get("type") == "text")
                             _g_suggestions = parse_wizard_meal_response(_g_text, _g_targets)
-                            update_meal_wizard_session({"suggested_meals": _g_suggestions})
+                            # Merge onto (not replace) existing suggested_meals so
+                            # confirm-mirror entries for confirmed slots -- which
+                            # generate correctly excludes from its own targets --
+                            # survive a generate run instead of being wiped.
+                            _g_merged = _g_session.get("suggested_meals") or {}
+                            _g_merged.update(_g_suggestions)
+                            update_meal_wizard_session({"suggested_meals": _g_merged})
                             _g_result = {"ok": True, "generated": len(_g_suggestions),
                                          "target": len(_g_targets),
                                          "suggested_meals": _g_suggestions}
