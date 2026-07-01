@@ -104,6 +104,18 @@ _S4_CHANGE_BTN = ("margin-top:6px;padding:6px 12px;border:1px solid var(--border
                   "border-radius:8px;background:var(--warm-white,#fff);"
                   "color:var(--ink-muted);font-size:0.85em;cursor:pointer;")
 _S4_MSG = "color:#b23b3b;font-size:0.85em;margin-top:6px;min-height:1em;"
+# Phase B: per-dish-row controls.
+_S4_SELECT = _S4_INPUT + "cursor:pointer;"
+_S4_DISH_ROW_INNER = ("padding-top:8px;margin-top:8px;"
+                      "border-top:1px solid var(--border-light,#ece6d8);")
+_S4_REMOVE_BTN = ("margin-top:6px;padding:4px 10px;"
+                  "border:1px solid var(--border,#e6e0d4);"
+                  "border-radius:6px;background:var(--warm-white,#fff);"
+                  "color:var(--ink-muted);font-size:0.82em;cursor:pointer;")
+_S4_ADD_BTN = ("margin-top:8px;padding:5px 12px;"
+               "border:1px solid var(--gold-mid,#c9a84a);"
+               "border-radius:8px;background:var(--warm-white,#fff);"
+               "color:var(--ink);font-size:0.85em;cursor:pointer;")
 
 # G1 lock ("Set this plan"): banner + button styling.
 _S4_BANNER = ("background:var(--parchment,#faf6ec);"
@@ -145,6 +157,12 @@ _S4_NAMED_COLORS = {
     "purple", "violet", "white", "red", "green", "gold", "rose", "pink",
     "blue", "black", "gray", "grey", "amber", "orange", "yellow", "brown",
 }
+# Category <select> options — built once from CATEGORIES so JS template cloning
+# and the rendered first row both use the identical option list.
+_S4_CAT_OPTS_HTML = (
+    '<option value="">\u2014 category \u2014</option>'
+    + "".join('<option value="' + c + '">' + c + '</option>' for c in CATEGORIES)
+)
 
 
 def _s4_safe_color(value, fallback: str) -> str:
@@ -217,13 +235,27 @@ _S4_JS = (
     "    var key = date + '--' + slot;"
     "    var msgId = 's4-msg--' + key;"
     "    setMsg(msgId, '');"
-    "    var name = valOf('s4-name--' + key);"
-    "    if(!name){ setMsg(msgId, 'Add a meal name first.'); return; }"
-    "    var ing = valOf('s4-ing--' + key);"
-    "    var prot = valOf('s4-prot--' + key);"
-    "    var payload = { date: date, slot: slot,"
-    "      dishes: [{category: 'main', name: name, ingredients: ing, protein: prot}],"
-    "      source: 'manual', recipe_id: '', recipe_on_request: true };"
+    "    var container = elById('s4-dishes--' + key);"
+    "    var rows = container ? container.querySelectorAll('.s4dr') : [];"
+    "    var dishes = []; var blocked = null;"
+    "    for(var i = 0; i < rows.length; i++){"
+    "      var row = rows[i];"
+    "      var nameEl = row.querySelector('[data-role=\"name\"]');"
+    "      var catEl  = row.querySelector('[data-role=\"cat\"]');"
+    "      var ingEl  = row.querySelector('[data-role=\"ing\"]');"
+    "      var protEl = row.querySelector('[data-role=\"prot\"]');"
+    "      var n = (nameEl ? (nameEl.value||'').trim() : '');"
+    "      if(!n){ continue; }"
+    "      var cat = (catEl ? (catEl.value||'').trim() : '');"
+    "      if(!cat){ blocked = 'Pick a category for \u201c' + n + '\u201d.'; break; }"
+    "      dishes.push({ category:cat, name:n,"
+    "        ingredients:(ingEl?(ingEl.value||'').trim():''),"
+    "        protein:(protEl?(protEl.value||'').trim():'') });"
+    "    }"
+    "    if(blocked){ setMsg(msgId, blocked); return; }"
+    "    if(!dishes.length){ setMsg(msgId, 'Add a meal name first.'); return; }"
+    "    var payload = { date:date, slot:slot, dishes:dishes,"
+    "      source:'manual', recipe_id:'', recipe_on_request:true };"
     "    fetch('/meal-wizard-step4-confirm', { method:'POST',"
     "      headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })"
     "      .then(function(r){ return r.json(); })"
@@ -232,6 +264,28 @@ _S4_JS = (
     "          var lock = elById('s4-lock-control'); if(lock && j.lock_html){ lock.outerHTML = j.lock_html; } }"
     "        else { setMsg(msgId, 'Could not save. Please try again.'); } })"
     "      .catch(function(){ setMsg(msgId, 'Could not save. Please try again.'); });"
+    "  };"
+    "  window.s4AddDish = function(date, slot){"
+    "    var key = date + '--' + slot;"
+    "    var container = elById('s4-dishes--' + key);"
+    "    var tmpl = elById('s4-dish-template');"
+    "    if(!container || !tmpl){ return; }"
+    "    var proto = tmpl.querySelector('.s4dr');"
+    "    if(!proto){ return; }"
+    "    var newRow = proto.cloneNode(true);"
+    "    var inputs = newRow.querySelectorAll('input,textarea,select');"
+    "    for(var i = 0; i < inputs.length; i++){ inputs[i].value = ''; }"
+    "    var rm = newRow.querySelector('[data-role=\"rm\"]');"
+    "    if(rm){ rm.style.display = ''; }"
+    "    container.appendChild(newRow);"
+    "  };"
+    "  window.s4RemoveDish = function(btn){"
+    "    var row = btn ? btn.closest('.s4dr') : null;"
+    "    if(!row){ return; }"
+    "    var container = row.parentNode;"
+    "    if(container && container.querySelectorAll('.s4dr').length > 1){"
+    "      container.removeChild(row);"
+    "    }"
     "  };"
     "  window.s4Change = function(date, slot){"
     "    var key = date + '--' + slot;"
@@ -291,47 +345,54 @@ def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry,
     key = date_iso + "--" + slot_key
     msg_id = "s4-msg--" + key
     if not isinstance(entry, dict):
-        name_id = "s4-name--" + key
-        ing_id = "s4-ing--" + key
-        prot_id = "s4-prot--" + key
-        # onclick value pulled into a variable to avoid nested quotes in the
-        # f-string (Rule 2). date_iso is a validated ISO date and slot_key comes
-        # from the fixed _S4_SLOT_ORDER allowlist, so both are safe to inline.
+        # onclick values built outside the f-string (Rule 2). Both date_iso and
+        # slot_key are validated/allowlisted before reaching here, so safe to
+        # inline in the JS call string.
         keep_call = "s4Keep('" + date_iso + "','" + slot_key + "')"
+        add_call  = "s4AddDish('" + date_iso + "','" + slot_key + "')"
         ing_ph = "Ingredients (optional) \u2014 e.g. + chicken nuggets for James"
         # Pre-fill from a Lorenzo draft suggestion when one exists for this slot.
-        # Built outside the f-string (Rule 2) and escaped exactly once (Rule 11).
-        # name and ingredients go BETWEEN textarea tags (no value= attr) so long
-        # text wraps in full; protein stays a single-line input with a
-        # double-quoted value= attr, where escape() covering the double-quote
-        # prevents attribute breakout.
+        # Suggestions carry the dishes[] shape (older drafts may be flat); read
+        # through the migration helper. name/ingredients/protein are pre-filled;
+        # category is intentionally left unselected — Lauren picks it explicitly.
         name_body = ""
         ing_body = ""
         prot_val = ""
         ing_open = ""
         if isinstance(suggestion, dict):
-            # Suggestions now carry the dishes[] shape (older drafts may still be
-            # flat); read the lead dish through the migration helper so prefill
-            # works for both. Step 4's single-name input maps to the first dish.
             _sug_dishes = slot_dishes(suggestion)
             _sug0 = _sug_dishes[0] if _sug_dishes else {}
             name_body = escape(_sug0.get("name") or "")
             ing_body = escape(_sug0.get("ingredients") or "")
             sug_prot = escape(_sug0.get("protein") or "")
             prot_val = ' value="' + sug_prot + '"'
-            # A fresh Lorenzo suggestion: open the ingredients box for review.
             ing_open = " open"
+        # Row 0: Remove button hidden (enforce ≥ 1 row). s4AddDish clones
+        # #s4-dish-template (already in the page DOM) and un-hides the Remove
+        # button on every clone, so only added rows can be removed.
         return (
             f'<div id="s4-row--{key}" style="{_S4_SLOT_ROW}">{label_html}'
-            f'<textarea id="{name_id}" rows="2" style="{_S4_NAME_AREA}" '
+            f'<div id="s4-dishes--{key}">'
+            f'<div class="s4dr">'
+            f'<select data-role="cat" style="{_S4_SELECT}">'
+            f'{_S4_CAT_OPTS_HTML}'
+            f'</select>'
+            f'<textarea data-role="name" rows="2" style="{_S4_NAME_AREA}" '
             f'placeholder="Meal name">{name_body}</textarea>'
             f'<details{ing_open} style="{_S4_DETAILS}">'
             f'<summary style="{_S4_SUMMARY}">Ingredients</summary>'
-            f'<textarea id="{ing_id}" rows="2" style="{_S4_NAME_AREA}" '
+            f'<textarea data-role="ing" rows="2" style="{_S4_NAME_AREA}" '
             f'placeholder="{ing_ph}">{ing_body}</textarea>'
             f'</details>'
-            f'<input type="text" id="{prot_id}"{prot_val} style="{_S4_INPUT}" '
+            f'<input type="text" data-role="prot"{prot_val} style="{_S4_INPUT}" '
             f'placeholder="Main protein (optional)">'
+            f'<div><button type="button" data-role="rm" '
+            f'style="display:none;{_S4_REMOVE_BTN}" '
+            f'onclick="s4RemoveDish(this)">Remove</button></div>'
+            f'</div>'
+            f'</div>'
+            f'<div><button type="button" style="{_S4_ADD_BTN}" '
+            f'onclick="{add_call}">+ Add a dish</button></div>'
             f'<div><button type="button" style="{_S4_KEEP_BTN}" '
             f'onclick="{keep_call}">Keep this meal</button></div>'
             f'<div id="{msg_id}" style="{_S4_MSG}"></div>'
@@ -624,10 +685,35 @@ def render_meal_wizard_step4(user: str, start_iso: str = None) -> str:
         f'{lock_html}'
         f'{nav}'
     )
+    # #s4-dish-template: hidden; cloned by s4AddDish to append blank dish rows.
+    # Contains one .s4dr row with _S4_DISH_ROW_INNER styling (top border/padding
+    # for visual separation). The Remove button is VISIBLE in the template so
+    # every clone shows it — only the rendered first row sets display:none.
+    _s4_tmpl = (
+        f'<div id="s4-dish-template" style="display:none">'
+        f'<div class="s4dr" style="{_S4_DISH_ROW_INNER}">'
+        f'<select data-role="cat" style="{_S4_SELECT}">'
+        f'{_S4_CAT_OPTS_HTML}'
+        f'</select>'
+        f'<textarea data-role="name" rows="2" style="{_S4_NAME_AREA}" '
+        f'placeholder="Meal name"></textarea>'
+        f'<details style="{_S4_DETAILS}">'
+        f'<summary style="{_S4_SUMMARY}">Ingredients</summary>'
+        f'<textarea data-role="ing" rows="2" style="{_S4_NAME_AREA}" '
+        f'placeholder="Ingredients (optional)"></textarea>'
+        f'</details>'
+        f'<input type="text" data-role="prot" value="" style="{_S4_INPUT}" '
+        f'placeholder="Main protein (optional)">'
+        f'<div><button type="button" data-role="rm" style="{_S4_REMOVE_BTN}" '
+        f'onclick="s4RemoveDish(this)">Remove</button></div>'
+        f'</div>'
+        f'</div>'
+    )
     body = (
         f'<div style="max-width:680px;margin:0 auto;padding:24px 16px 96px;">'
         f'{inner}'
         f'</div>'
+        f'{_s4_tmpl}'
         f'{_S4_JS}'
     )
     return html_page(_S4_TITLE, body)

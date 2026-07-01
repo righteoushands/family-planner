@@ -1,0 +1,43 @@
+Phase B — client-side, repeatable dish rows (render_meal_wizard_step4.py)
+
+This replaces Phase A's hardcoded `category: 'main'` in the s4Keep payload —
+category becomes a real per-row field with no default. Say so in your diff
+notes so this isn't mistaken for an unfinished Phase A.
+
+- Replace the single name/ingredients/protein trio in the empty-slot branch of
+  _s4_slot_block with a repeatable row: category <select> (options = the
+  CATEGORIES constant added in Phase A; no default, starts unselected/
+  placeholder), name textarea, ingredients textarea (collapsible, as now),
+  protein input.
+- Category applies to EVERY row, including the first (pre-filled from a
+  Lorenzo suggestion) — the pre-fill sets name/ingredients/protein but NOT
+  category; row 1 starts unselected same as any added row.
+- "Add a dish" button appends a blank row, no category default. "Remove"
+  button on any row past the first; enforce at least one row always remains.
+- s4Keep collects all rows into a dishes[] array (superseding Phase A's
+  single-dish wrap). Validation, client-side, before the fetch fires:
+  - A row with a name but no category selected blocks Keep entirely with a
+    message ("Pick a category for [dish name]" or similar) — no request
+    sent.
+  - A row with no name is dropped silently and does not require a category
+    — matches the existing single-required-field pattern (a blank row was
+    never required to be filled).
+  - At least one dish must survive after dropping blank rows, or block Keep
+    with "Add a meal name first" (existing message, same trigger condition
+    as today).
+- Obeys Rules 7/12 explicitly — this touches _S4_JS directly, no raw
+  newlines in the embedded JS strings.
+
+Smoke test, four cases, paste all four:
+1. One row, category selected — current single-dish behavior, now through
+   the real UI.
+2. Three rows, all categorized — dishes[] payload has three entries.
+3. A row with a name but no category selected — Keep blocked, correct
+   message, no request sent.
+4. A blank unfilled row present alongside valid rows — dropped silently,
+   Keep succeeds with only the valid rows.
+
+Also re-run verify_meal_wizard_step4_writeloop.py — confirm 17/17 still
+holds. This phase changes what s4Keep sends; that harness POSTs to the same
+route and needs to still pass unmodified, since its payloads represent what
+a real single-dish confirm looks like today.

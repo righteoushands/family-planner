@@ -217,16 +217,21 @@ def main():
         # (a confirmed row shows the name in a static div), so its presence
         # together with the value proves "reverted to entry, showing last value".
         _rj = json.loads(raw)
-        _rm_name_id = "s4-name--" + _D1 + "--dinner"
-        _check("slot_html" in _rj and _rm_name_id in _rj["slot_html"]
+        # Phase B: entry state is now identified by the dish-container id
+        # (s4-dishes--{key}), not the old s4-name-- textarea id.  The
+        # container only renders in the entry affordance (never in the
+        # confirmed-row view), so its presence together with "Chicken Parm"
+        # proves "reverted to entry, pre-filled with the last-confirmed value".
+        _rm_dishes_id = "s4-dishes--" + _D1 + "--dinner"
+        _check("slot_html" in _rj and _rm_dishes_id in _rj["slot_html"]
                and "Chicken Parm" in _rj["slot_html"]
                and "lock_html" in _rj and "s4-lock-control" in _rj["lock_html"],
                "remove response reverts to entry state showing the last-confirmed value",
                "remove response did not show the last-confirmed value in entry state",
                failures)
         st, html = _get("/meal-wizard-step4", token)
-        name_id = "s4-name--" + _D1 + "--dinner"
-        _check(st == 200 and (name_id in html) and ("Chicken Parm" in html),
+        dishes_id = "s4-dishes--" + _D1 + "--dinner"
+        _check(st == 200 and (dishes_id in html) and ("Chicken Parm" in html),
                "removed slot returns to entry state showing the last-confirmed value",
                "removed slot did not show the last-confirmed value in entry state",
                failures)

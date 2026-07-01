@@ -395,3 +395,9 @@ id = "WGNsl7gAA3cFMl-2GezR4"
 uri = "file://responses/step4_dishes_wire_shape_2026-07-01.md"
 type = "text"
 title = "Step 4 dishes[] wire shape — complete"
+
+[[outputs]]
+id = "P4qX-ws2nPIgtqYp-PHt0"
+uri = "file://responses/step4_phase_b_dish_rows_2026-07-01.md"
+type = "text"
+title = "Step 4 Phase B — repeatable dish rows"
