@@ -287,3 +287,9 @@ id = "VybKRscVs-LGcfORAMXHD"
 uri = "file://responses/step4_keepchange_noreload_done.md"
 type = "text"
 title = "Step 4 Keep/Change no-reload — done"
+
+[[outputs]]
+id = "bOe_4ZxZQl09_oQM48i52"
+uri = "file://responses/rule10_smoke_test_incident_confirmation.md"
+type = "text"
+title = "Rule 10 incident — confirmation (no build started)"
