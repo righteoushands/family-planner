@@ -455,3 +455,9 @@ id = "xCowf6_wUe6ZKJH0_WH-1"
 uri = "file://responses/step4_snacks_category_exempt_2026-07-01.md"
 type = "text"
 title = "Snacks category exemption — 5 edits, 17/17 PASS"
+
+[[outputs]]
+id = "SozLKkezepe8zX9iDFDZc"
+uri = "file://responses/step4_change_revert_diagnosis_2026-07-01.md"
+type = "text"
+title = "Change revert diagnosis — rows present, categories blank"
