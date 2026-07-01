@@ -443,3 +443,9 @@ id = "QnYnLM0_9d57O7GEctVY0"
 uri = "file://responses/step4_keep_scroll_diagnosis_2026-07-01.md"
 type = "text"
 title = "Keep scroll-shift diagnosis — scroll anchoring + outerHTML height delta"
+
+[[outputs]]
+id = "q65Y-Dj-KE9VO_VHjujlr"
+uri = "file://responses/step4_keep_scroll_fix_2026-07-01.md"
+type = "text"
+title = "Keep scroll-shift fix — Option 1, 17/17 PASS"
