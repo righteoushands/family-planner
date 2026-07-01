@@ -341,3 +341,9 @@ id = "2V78O-Rrx6H4WcvtBODH2"
 uri = "file://responses/step4_clear_split_diagnosis_2026-07-01.md"
 type = "text"
 title = "Step 4 clear/Change split diagnosis"
+
+[[outputs]]
+id = "gb5hUF43EyzuVGzQfMIr1"
+uri = "file://responses/step4_clear_split_realdata_2026-07-01.md"
+type = "text"
+title = "Step 4 split — real session data (prefill hypothesis disproven)"
