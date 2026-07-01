@@ -45,3 +45,25 @@ guards all three sinks: session file, `render_meals.MEALS_DIR`, `config.MEALS_DI
 **Why:** the lock harness previously touched live week files then restored them —
 same touch-then-restore pattern the session fix eliminated; full Rule 10 = never
 touch, not restore-after.
+
+## Provenance standard for JSON data files (git is NOT sufficient)
+Writes via `safe_save_json` hit disk immediately; git commits only at Replit
+**checkpoints** (end of agent loop), so writes ≠ commits and a disk-vs-git window
+always exists (the live file routinely shows ` M` vs HEAD with legit uncommitted
+app data). Verifying a restore against **git HEAD only** has a blind spot: it
+cannot see legit runtime writes made after the last checkpoint. The correct,
+git-independent evidence is the app's own pre-overwrite snapshot trail:
+`safe_save_json` calls `snapshot_before_save` before every overwrite, archiving
+prior content to `data/history/<mirrored-path>__<ts>.json` (max 30/file; deny-list
+in `safe_utils.py` — session file is NOT denied). Use that trail, not git HEAD, to
+prove a value was a genuine app state. **Never revert a git-tracked data file to an
+older committed version to "clean up" a diff** — that destroys legit runtime state
+(the original incident's failure mode).
+
+## Durable /john route guard in the HTTP harnesses
+`render_john.py` is the one meal_plan reader NOT covered by `MEAL_PLAN_DIR` (it
+hardcodes the live path). Both HTTP harnesses now define
+`_forbid_unisolated_routes(path)` (blocks `/john`, `/john/…`, `/john?…`) called as
+the first line of `_get`/`_post`, so any future edit that requests `/john` fails
+loud instead of silently touching live data. Before ever testing `/john`, add
+`MEAL_PLAN_DIR` support to `render_john.py` first, then relax the guard.

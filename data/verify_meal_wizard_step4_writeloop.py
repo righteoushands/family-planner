@@ -60,7 +60,28 @@ def _check(cond, ok_msg, fail_msg, failures):
         print(FAIL, fail_msg)
 
 
+# Rule 10 guard: this harness isolates the meal_wizard session file AND the
+# meal_plan store (via MEAL_PLAN_DIR), but render_john.py reads a HARDCODED live
+# meal_plan path that the override does NOT cover. That code is only reachable via
+# the /john route, which this harness never calls. This makes that durable: if a
+# future edit ever points a request at /john, the run fails loudly instead of
+# silently touching live data.
+_UNISOLATED_ROUTES = ("/john",)
+
+
+def _forbid_unisolated_routes(path):
+    for r in _UNISOLATED_ROUTES:
+        if path == r or path.startswith(r + "/") or path.startswith(r + "?"):
+            raise AssertionError(
+                "Rule 10 guard: harness must not request " + repr(path) + " -- "
+                "render_john.py reads the live meal_plan path directly (not "
+                "MEAL_PLAN_DIR), so that route is NOT isolated. Redirect "
+                "render_john before removing this guard."
+            )
+
+
 def _post(path, payload, token):
+    _forbid_unisolated_routes(path)
     body = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(BASE + path, data=body, method="POST")
     req.add_header("Content-Type", "application/json")
@@ -70,6 +91,7 @@ def _post(path, payload, token):
 
 
 def _get(path, token):
+    _forbid_unisolated_routes(path)
     req = urllib.request.Request(BASE + path, method="GET")
     req.add_header("Cookie", "session=" + token)
     with urllib.request.urlopen(req, timeout=10) as resp:
