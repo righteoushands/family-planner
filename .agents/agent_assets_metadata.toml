@@ -425,3 +425,9 @@ id = "XDgoYBn7gYT10a8tq4S1Y"
 uri = "file://responses/step4_remove_diagnosis_2026-07-01.md"
 type = "text"
 title = "Step 4 Remove-row diagnosis — 30/30 PASS, bug identified"
+
+[[outputs]]
+id = "gJwqgcp5850CMjxYjYt68"
+uri = "file://responses/step4_johns_lunch_diagnosis_2026-07-01.md"
+type = "text"
+title = "John’s Lunch diagnosis — storage correct, render is the bug"
