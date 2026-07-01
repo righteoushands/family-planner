@@ -377,3 +377,9 @@ id = "saAg-QMEG3ffnVzVj7k-X"
 uri = "file://responses/step4_generate_freshread_2026-07-01.md"
 type = "text"
 title = "Fresh-read fix + mid-call race test (PASS) + claud.md Rules 21/22 + TRACKER KI-001/002"
+
+[[outputs]]
+id = "8Qkhe2EKTvRfD_Bti5EUm"
+uri = "file://responses/step4_tracker_cleanup_and_callsite_audit_2026-07-01.md"
+type = "text"
+title = "Tracker deleted + convention noted; call-site audit (generate was sole exposure); harness live-data proof (sha256 identical)"

@@ -126,6 +126,12 @@ Change discipline
         •       All changes are additive unless explicitly told otherwise
         •       Never delete or modify existing behavior unless the task specifically requires it
         •       If a task requires editing a file not in the stated scope, stop and flag it
+        •       Known-issues tracking is Lauren's, and lives OUTSIDE the repo: the
+canonical file is the dated TRACKER_Known_Issues_YYYY-MM-DD.txt she maintains
+(numbered entries, Working Agreement convention). NEVER create a tracker or
+known-issues file inside the repo (no TRACKER_Known_Issues.md etc.). If something
+needs logging, say so in the response and let Lauren add it to her canonical file
+herself.
         •       Keep modules under 800 lines where possible
         •       render_plan_importer.py is 1,114 lines (JS lives in static/js/plan_importer_core.js and static/js/plan_importer_consult.js — edit those, not the Python file, for JS changes)
 FROL Wizard form bypass trap
