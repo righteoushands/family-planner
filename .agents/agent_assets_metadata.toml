@@ -437,3 +437,9 @@ id = "mRhD1cofRASxCsHZcfBvF"
 uri = "file://responses/step4_phase_c2_prefill_multirow_2026-07-01.md"
 type = "text"
 title = "Step 4 prefill multi-row fix — Lauren’s sequence + 17/17 PASS"
+
+[[outputs]]
+id = "QnYnLM0_9d57O7GEctVY0"
+uri = "file://responses/step4_keep_scroll_diagnosis_2026-07-01.md"
+type = "text"
+title = "Keep scroll-shift diagnosis — scroll anchoring + outerHTML height delta"
