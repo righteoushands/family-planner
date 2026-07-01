@@ -203,20 +203,29 @@ def main():
         _check(ok and _entry(_D1, "dinner") is None,
                "remove POST clears the slot from the session",
                "remove did not clear the slot", failures)
-        # No-reload contract: remove now returns the reverted ENTRY-state slot
-        # fragment for in-place DOM injection (not a reload).
+        # No-reload contract: remove returns the reverted ENTRY-state slot
+        # fragment for in-place DOM injection (not a reload). Because
+        # /meal-wizard-step4-confirm now mirrors the saved dishes[] into
+        # suggested_meals, the reverted slot is back in the entry affordance
+        # (its s4-name textarea id is present) but PRE-FILLED with Lauren's
+        # LAST-CONFIRMED value ("Chicken Parm") -- never blank, never Lorenzo's
+        # older draft. The s4-name textarea id only renders in the entry state
+        # (a confirmed row shows the name in a static div), so its presence
+        # together with the value proves "reverted to entry, showing last value".
         _rj = json.loads(raw)
         _rm_name_id = "s4-name--" + _D1 + "--dinner"
         _check("slot_html" in _rj and _rm_name_id in _rj["slot_html"]
-               and "Chicken Parm" not in _rj["slot_html"]
+               and "Chicken Parm" in _rj["slot_html"]
                and "lock_html" in _rj and "s4-lock-control" in _rj["lock_html"],
-               "remove response returns the reverted entry-state slot fragment",
-               "remove response missing the reverted slot fragment", failures)
+               "remove response reverts to entry state showing the last-confirmed value",
+               "remove response did not show the last-confirmed value in entry state",
+               failures)
         st, html = _get("/meal-wizard-step4", token)
         name_id = "s4-name--" + _D1 + "--dinner"
-        _check(st == 200 and (name_id in html) and ("Chicken Parm" not in html),
-               "removed slot returns to the empty entry state",
-               "removed slot did not return to entry state", failures)
+        _check(st == 200 and (name_id in html) and ("Chicken Parm" in html),
+               "removed slot returns to entry state showing the last-confirmed value",
+               "removed slot did not show the last-confirmed value in entry state",
+               failures)
 
         # ── write-loop (d): a prefill (past) entry is locked, NO Change button
         meals = dh.load_meal_wizard_session().get("confirmed_meals") or {}
