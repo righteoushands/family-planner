@@ -383,3 +383,9 @@ id = "8Qkhe2EKTvRfD_Bti5EUm"
 uri = "file://responses/step4_tracker_cleanup_and_callsite_audit_2026-07-01.md"
 type = "text"
 title = "Tracker deleted + convention noted; call-site audit (generate was sole exposure); harness live-data proof (sha256 identical)"
+
+[[outputs]]
+id = "t21BHu_5N_LhaGgqYdSov"
+uri = "file://responses/step4_confirm_contract_verification_2026-07-01.md"
+type = "text"
+title = "step4-confirm contract check: server-write matches; client payload is flat single-dish, NOT dishes[]"
