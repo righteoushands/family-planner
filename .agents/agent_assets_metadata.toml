@@ -347,3 +347,9 @@ id = "gb5hUF43EyzuVGzQfMIr1"
 uri = "file://responses/step4_clear_split_realdata_2026-07-01.md"
 type = "text"
 title = "Step 4 split — real session data (prefill hypothesis disproven)"
+
+[[outputs]]
+id = "1dOzoZNyr-QmH-XQSlLxZ"
+uri = "file://responses/step4_confirm_mirror_suggested_2026-07-01.md"
+type = "text"
+title = "Step 4 confirm mirrors dishes[] into suggested_meals — diagnosis + verification"

@@ -10826,10 +10826,17 @@ class Handler(BaseHTTPRequestHandler):
                 # default (Rule 16).
                 if (not _s4_entry["recipe_id"]) and (not _s4_entry["recipe_on_request"]):
                     _s4_entry["recipe_on_request"] = True
-                _s4_meals = load_meal_wizard_session().get("confirmed_meals") or {}
+                _s4_session = load_meal_wizard_session()
+                _s4_meals = _s4_session.get("confirmed_meals") or {}
                 _s4_meals[_s4_date + "::" + _s4_slot] = _s4_entry
+                # Mirror the just-saved dishes[] into suggested_meals so a later
+                # Change reverts to Lauren's last-seen/typed version, never past it
+                # to Lorenzo's original draft (additive; confirmed write unchanged).
+                _s4_suggested = _s4_session.get("suggested_meals") or {}
+                _s4_suggested[_s4_date + "::" + _s4_slot] = {"dishes": _s4_entry["dishes"]}
                 update_meal_wizard_session({
                     "confirmed_meals": _s4_meals,
+                    "suggested_meals": _s4_suggested,
                     "used_proteins":   recompute_used_proteins(_s4_meals),
                 })
                 # No-reload swap: return the freshly rendered slot row + lock
