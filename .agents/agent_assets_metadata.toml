@@ -431,3 +431,9 @@ id = "gJwqgcp5850CMjxYjYt68"
 uri = "file://responses/step4_johns_lunch_diagnosis_2026-07-01.md"
 type = "text"
 title = "John’s Lunch diagnosis — storage correct, render is the bug"
+
+[[outputs]]
+id = "mRhD1cofRASxCsHZcfBvF"
+uri = "file://responses/step4_phase_c2_prefill_multirow_2026-07-01.md"
+type = "text"
+title = "Step 4 prefill multi-row fix — Lauren’s sequence + 17/17 PASS"

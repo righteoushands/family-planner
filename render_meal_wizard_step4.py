@@ -355,42 +355,70 @@ def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry,
         # Pre-fill from a Lorenzo draft suggestion when one exists for this slot.
         # Suggestions carry the dishes[] shape (older drafts may be flat); read
         # through the migration helper. name/ingredients/protein are pre-filled;
-        # category is intentionally left unselected — Lauren picks it explicitly.
-        name_body = ""
-        ing_body = ""
-        prot_val = ""
-        ing_open = ""
-        if isinstance(suggestion, dict):
-            _sug_dishes = slot_dishes(suggestion)
-            _sug0 = _sug_dishes[0] if _sug_dishes else {}
-            name_body = escape(_sug0.get("name") or "")
-            ing_body = escape(_sug0.get("ingredients") or "")
-            sug_prot = escape(_sug0.get("protein") or "")
-            prot_val = ' value="' + sug_prot + '"'
-            ing_open = " open"
-        # Row 0: Remove button hidden (enforce ≥ 1 row). s4AddDish clones
-        # #s4-dish-template (already in the page DOM) and un-hides the Remove
-        # button on every clone, so only added rows can be removed.
+        # category is intentionally left unselected per Lauren's rule — she always
+        # picks category explicitly, even on revert (not an exception).
+        _sug_dishes = slot_dishes(suggestion) if isinstance(suggestion, dict) else []
+        # Build one .s4dr row per dish in the suggestion. If there are no dishes
+        # (no suggestion at all), fall through to a single empty row.
+        # Remove-button visibility rule mirrors Add-a-dish's live behavior:
+        #   - 1 row total  → Remove hidden on row 0 (floor enforced).
+        #   - 2+ rows total → Remove visible on ALL rows including row 0, so a
+        #     reverted multi-dish meal is immediately editable like a manually-built
+        #     multi-dish meal (no special-cased first row).
+        _multi = len(_sug_dishes) > 1
+        _rm_hide = "" if _multi else "display:none;"
+        _dishes_html = ""
+        if _sug_dishes:
+            for _d in _sug_dishes:
+                _nb = escape(_d.get("name") or "")
+                _ib = escape(_d.get("ingredients") or "")
+                _sp = escape(_d.get("protein") or "")
+                _pv = ' value="' + _sp + '"'
+                _io = " open" if _ib else ""
+                _dishes_html += (
+                    f'<div class="s4dr">'
+                    f'<select data-role="cat" style="{_S4_SELECT}">'
+                    f'{_S4_CAT_OPTS_HTML}'
+                    f'</select>'
+                    f'<textarea data-role="name" rows="2" style="{_S4_NAME_AREA}" '
+                    f'placeholder="Meal name">{_nb}</textarea>'
+                    f'<details{_io} style="{_S4_DETAILS}">'
+                    f'<summary style="{_S4_SUMMARY}">Ingredients</summary>'
+                    f'<textarea data-role="ing" rows="2" style="{_S4_NAME_AREA}" '
+                    f'placeholder="{ing_ph}">{_ib}</textarea>'
+                    f'</details>'
+                    f'<input type="text" data-role="prot"{_pv} style="{_S4_INPUT}" '
+                    f'placeholder="Main protein (optional)">'
+                    f'<div><button type="button" data-role="rm" '
+                    f'style="{_rm_hide}{_S4_REMOVE_BTN}" '
+                    f'onclick="s4RemoveDish(this)">Remove</button></div>'
+                    f'</div>'
+                )
+        else:
+            # No suggestion: one blank row, Remove hidden (single-row floor).
+            _dishes_html = (
+                f'<div class="s4dr">'
+                f'<select data-role="cat" style="{_S4_SELECT}">'
+                f'{_S4_CAT_OPTS_HTML}'
+                f'</select>'
+                f'<textarea data-role="name" rows="2" style="{_S4_NAME_AREA}" '
+                f'placeholder="Meal name"></textarea>'
+                f'<details style="{_S4_DETAILS}">'
+                f'<summary style="{_S4_SUMMARY}">Ingredients</summary>'
+                f'<textarea data-role="ing" rows="2" style="{_S4_NAME_AREA}" '
+                f'placeholder="{ing_ph}"></textarea>'
+                f'</details>'
+                f'<input type="text" data-role="prot" style="{_S4_INPUT}" '
+                f'placeholder="Main protein (optional)">'
+                f'<div><button type="button" data-role="rm" '
+                f'style="display:none;{_S4_REMOVE_BTN}" '
+                f'onclick="s4RemoveDish(this)">Remove</button></div>'
+                f'</div>'
+            )
         return (
             f'<div id="s4-row--{key}" style="{_S4_SLOT_ROW}">{label_html}'
             f'<div id="s4-dishes--{key}">'
-            f'<div class="s4dr">'
-            f'<select data-role="cat" style="{_S4_SELECT}">'
-            f'{_S4_CAT_OPTS_HTML}'
-            f'</select>'
-            f'<textarea data-role="name" rows="2" style="{_S4_NAME_AREA}" '
-            f'placeholder="Meal name">{name_body}</textarea>'
-            f'<details{ing_open} style="{_S4_DETAILS}">'
-            f'<summary style="{_S4_SUMMARY}">Ingredients</summary>'
-            f'<textarea data-role="ing" rows="2" style="{_S4_NAME_AREA}" '
-            f'placeholder="{ing_ph}">{ing_body}</textarea>'
-            f'</details>'
-            f'<input type="text" data-role="prot"{prot_val} style="{_S4_INPUT}" '
-            f'placeholder="Main protein (optional)">'
-            f'<div><button type="button" data-role="rm" '
-            f'style="display:none;{_S4_REMOVE_BTN}" '
-            f'onclick="s4RemoveDish(this)">Remove</button></div>'
-            f'</div>'
+            f'{_dishes_html}'
             f'</div>'
             f'<div><button type="button" style="{_S4_ADD_BTN}" '
             f'onclick="{add_call}">+ Add a dish</button></div>'
