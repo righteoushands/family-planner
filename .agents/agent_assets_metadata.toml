@@ -413,3 +413,9 @@ id = "krRPvCgkt6r3NFkTXz5XP"
 uri = "file://responses/step4_remove_floor_clone_integrity_2026-07-01.md"
 type = "text"
 title = "Step 4 jsdom Tests — Remove-floor & Clone-integrity (18/18 PASS)"
+
+[[outputs]]
+id = "zRQBjM439zN7gau3Tn6bv"
+uri = "file://responses/step4_phase_c_format_dish_list_2026-07-01.md"
+type = "text"
+title = "Step 4 Phase C — format_dish_list wired (4/4 smoke + 17/17 writeloop PASS)"

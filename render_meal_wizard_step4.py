@@ -32,6 +32,7 @@ from datetime import date, timedelta
 from html import escape
 from ui_helpers import html_page
 from data_helpers import load_meal_wizard_session, get_merged_calendar_events, slot_dishes
+from render_meals import format_dish_list
 from render_liturgical import get_day_info
 from render_meal_wizard_gen import wizard_target_slot_keys, _WIZARD_GEN_SLOT_CAP
 
@@ -399,7 +400,7 @@ def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry,
             f'</div>'
         )
     _entry_dishes = slot_dishes(entry)
-    name = escape((_entry_dishes[0].get("name", "") if _entry_dishes else "") or "")
+    name = escape(format_dish_list(_entry_dishes))
     recipe = escape(_s4_recipe_label(entry))
     source = (entry.get("source") or "").strip().lower()
     tags = []
