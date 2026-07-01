@@ -21,14 +21,15 @@ Covers:
     c. remove it -> session slot gone; GET shows the empty entry state again.
     d. a prefill (past) entry renders locked with NO "Change" button.
 
-Rule 10: the live meal_wizard_session.json is snapshotted and restored on exit
-(pass or fail). The minted auth session token is destroyed in finally.
+Rule 10: `mw_test_isolation` (imported first) redirects the session file to a
+private temp path and this harness POSTs to an IN-PROCESS server it starts on an
+ephemeral port -- so the live meal_wizard_session.json and the live :5000 server
+are never touched (no snapshot/restore needed). The minted auth session token is
+destroyed in finally.
 """
 import json
 import os
-import shutil
 import sys
-import tempfile
 import traceback
 import urllib.request
 
@@ -37,13 +38,15 @@ _ROOT = os.path.dirname(_HERE)
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-import config  # noqa: E402
+import mw_test_isolation  # noqa: E402,F401  MUST precede config: sets the override
+
+import config  # noqa: E402,F401
 import data_helpers as dh  # noqa: E402
 import auth  # noqa: E402
 
 PASS = "\033[32mPASS\033[0m"
 FAIL = "\033[31mFAIL\033[0m"
-BASE = "http://localhost:5000"
+BASE = "http://localhost:5000"  # replaced at runtime with the in-process server
 
 _D1 = "2026-06-29"  # Monday
 _D2 = "2026-06-30"  # Tuesday
@@ -79,15 +82,11 @@ def _entry(date_iso, slot):
 
 
 def main():
+    global BASE
     failures = []
 
-    live_path = config.MEAL_WIZARD_SESSION_FILE
-    existed = os.path.exists(live_path)
-    backup = None
-    if existed:
-        fd, backup = tempfile.mkstemp(suffix=".json")
-        os.close(fd)
-        shutil.copy2(live_path, backup)
+    mw_test_isolation.assert_isolated()
+    BASE, _shutdown_server = mw_test_isolation.start_server()
 
     token = None
     try:
@@ -221,11 +220,7 @@ def main():
                 auth.destroy_session(token)
             except Exception:
                 pass
-        if existed and backup:
-            shutil.copy2(backup, live_path)
-            os.remove(backup)
-        elif not existed and os.path.exists(live_path):
-            os.remove(live_path)
+        _shutdown_server()
 
     print()
     if failures:

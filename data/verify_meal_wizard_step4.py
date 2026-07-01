@@ -11,14 +11,13 @@ Covers the read-only Step 4 screen:
   3. Gate state carries zero JS; the seeded render now ships exactly the
      G1b-2a write-loop script (s4Keep/s4Change), one <script> beyond chrome.
 
-Rule 10: operates ONLY on a temp copy of the session. The live
-meal_wizard_session.json is snapshotted and restored on exit (pass or fail);
-if it did not exist before, it is removed again.
+Rule 10: `mw_test_isolation` (imported first) redirects the session file to a
+private temp path for this process, so the live meal_wizard_session.json is
+never read or written -- not even snapshotted/restored. The temp file is
+removed at process exit.
 """
 import os
-import shutil
 import sys
-import tempfile
 import traceback
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -26,7 +25,9 @@ _ROOT = os.path.dirname(_HERE)
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-import config  # noqa: E402
+import mw_test_isolation  # noqa: E402,F401  MUST precede config: sets the override
+
+import config  # noqa: E402,F401
 import data_helpers as dh  # noqa: E402
 from ui_helpers import html_page  # noqa: E402
 from render_meal_wizard_step4 import render_meal_wizard_step4  # noqa: E402
@@ -50,13 +51,7 @@ def _check(cond, ok_msg, fail_msg, failures):
 def main():
     failures = []
 
-    live_path = config.MEAL_WIZARD_SESSION_FILE
-    existed = os.path.exists(live_path)
-    backup = None
-    if existed:
-        fd, backup = tempfile.mkstemp(suffix=".json")
-        os.close(fd)
-        shutil.copy2(live_path, backup)
+    mw_test_isolation.assert_isolated()
 
     try:
         # ── Test 1: empty session -> gate state ─────────────────────────────
@@ -169,12 +164,6 @@ def main():
     except Exception:
         failures.append("exception")
         traceback.print_exc()
-    finally:
-        if existed and backup:
-            shutil.copy2(backup, live_path)
-            os.remove(backup)
-        elif not existed and os.path.exists(live_path):
-            os.remove(live_path)
 
     print()
     if failures:

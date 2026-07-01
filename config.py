@@ -62,7 +62,10 @@ MEAL_INVENTORY_FILE      = "data/meal_inventory.json"
 # New Meal Planning Wizard data files (Phase A data layer).
 PANTRY_STAPLES_FILE      = "data/pantry_staples.json"
 MEAL_HISTORY_FILE        = "data/meal_history.json"
-MEAL_WIZARD_SESSION_FILE = "data/meal_wizard_session.json"
+# Test-only override: the standing meal-wizard harnesses set the env var
+# MEAL_WIZARD_SESSION_FILE to an isolated temp path so they never read or write
+# the live session file (Rule 10). Unset in production -> the live path below.
+MEAL_WIZARD_SESSION_FILE = os.environ.get("MEAL_WIZARD_SESSION_FILE") or "data/meal_wizard_session.json"
 
 # ── Validation sets ──────────────────────────────────────────────────────────
 VALID_PRIORITIES = {"HIGH", "MEDIUM", "LOW"}

@@ -293,3 +293,9 @@ id = "bOe_4ZxZQl09_oQM48i52"
 uri = "file://responses/rule10_smoke_test_incident_confirmation.md"
 type = "text"
 title = "Rule 10 incident — confirmation (no build started)"
+
+[[outputs]]
+id = "TOeGSr6vbEK7bScNBtdS1"
+uri = "file://responses/rule10_session_file_isolation.md"
+type = "text"
+title = "Rule 10 — Session-file isolation for meal-wizard harnesses"

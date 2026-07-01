@@ -24,9 +24,12 @@ Covers:
     - GET /meal-wizard-step4 shows the "Your plan is set" banner and meals stay
       editable.
 
-Rule 10: every meal_plan week file this harness touches AND the live session
-file are snapshotted and restored on exit (pass or fail). The minted auth
-session token is destroyed in finally.
+Rule 10: `mw_test_isolation` (imported first) redirects the session file to a
+private temp path and this harness POSTs to an IN-PROCESS server it starts on an
+ephemeral port -- so the live meal_wizard_session.json and the live :5000 server
+are never touched. The meal_plan week files this harness writes (a separate
+concern) are still snapshotted and restored on exit. The minted auth session
+token is destroyed in finally.
 """
 import json
 import os
@@ -42,7 +45,9 @@ _ROOT = os.path.dirname(_HERE)
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-import config  # noqa: E402
+import mw_test_isolation  # noqa: E402,F401  MUST precede config: sets the override
+
+import config  # noqa: E402,F401
 import data_helpers as dh  # noqa: E402
 import auth  # noqa: E402
 import render_meals as rm  # noqa: E402
@@ -50,7 +55,7 @@ from render_timeblock import _resolve_block, _now_eastern, _meal_keys_for_block 
 
 PASS = "\033[32mPASS\033[0m"
 FAIL = "\033[31mFAIL\033[0m"
-BASE = "http://localhost:5000"
+BASE = "http://localhost:5000"  # replaced at runtime with the in-process server
 
 
 def _check(cond, ok_msg, fail_msg, failures):
@@ -82,7 +87,11 @@ def _monday(d: date) -> str:
 
 
 def main():
+    global BASE
     failures = []
+
+    mw_test_isolation.assert_isolated()
+    BASE, _shutdown_server = mw_test_isolation.start_server()
 
     # ── Dates. Use TODAY so the homepage (which reads today's week) can see the
     # locked meal, plus a date in the NEXT Monday-week to exercise cross-Monday.
@@ -160,14 +169,6 @@ def main():
                 os.remove(p)
 
     # ── 2. AUTHENTICATED ROUND-TRIP. ------------------------------------------
-    live_session = config.MEAL_WIZARD_SESSION_FILE
-    sess_existed = os.path.exists(live_session)
-    sess_backup = None
-    if sess_existed:
-        fd, sess_backup = tempfile.mkstemp(suffix=".json")
-        os.close(fd)
-        shutil.copy2(live_session, sess_backup)
-
     # Snapshot the two live week files we will lock into.
     rt_paths = list({rm._plan_path(this_wk), rm._plan_path(next_wk)})
     rt_backups = {}
@@ -292,19 +293,15 @@ def main():
                 auth.destroy_session(token)
             except Exception:
                 pass
-        # Restore the live week files.
+        # Restore the live week files (separate concern; session file is the
+        # isolated temp path and needs no restore).
         for p, b in rt_backups.items():
             if b is not None:
                 shutil.copy2(b, p)
                 os.remove(b)
             elif os.path.exists(p):
                 os.remove(p)
-        # Restore the session file.
-        if sess_existed and sess_backup:
-            shutil.copy2(sess_backup, live_session)
-            os.remove(sess_backup)
-        elif not sess_existed and os.path.exists(live_session):
-            os.remove(live_session)
+        _shutdown_server()
 
     print()
     if failures:
