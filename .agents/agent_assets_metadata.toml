@@ -389,3 +389,9 @@ id = "t21BHu_5N_LhaGgqYdSov"
 uri = "file://responses/step4_confirm_contract_verification_2026-07-01.md"
 type = "text"
 title = "step4-confirm contract check: server-write matches; client payload is flat single-dish, NOT dishes[]"
+
+[[outputs]]
+id = "WGNsl7gAA3cFMl-2GezR4"
+uri = "file://responses/step4_dishes_wire_shape_2026-07-01.md"
+type = "text"
+title = "Step 4 dishes[] wire shape — complete"

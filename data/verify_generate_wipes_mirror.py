@@ -93,8 +93,10 @@ def main():
 
         # (1) confirm dinner -> mirror written
         st, raw = _post("/meal-wizard-step4-confirm", {
-            "date": _D1, "slot": "dinner", "name": "Chicken Parm",
-            "source": "manual", "ingredients": "", "protein": "chicken",
+            "date": _D1, "slot": "dinner",
+            "dishes": [{"category": "main", "name": "Chicken Parm",
+                        "ingredients": "", "protein": "chicken"}],
+            "source": "manual",
         }, token)
         print("(1) confirm dinner ->", st, json.loads(raw).get("ok"))
         _after_confirm = _sug()

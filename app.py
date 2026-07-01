@@ -254,7 +254,7 @@ from render_coach import render_coach_page, build_coach_context
 from render_monica import render_monica_page, build_monica_context
 from render_wizards import render_wizards_page
 from render_meal_wizard import render_pantry_staples_page, render_meal_wizard_week_glance, render_meal_wizard_step2, render_meal_wizard_step3, render_meal_wizard_step4
-from render_meal_wizard_step4 import render_step4_slot_and_lock
+from render_meal_wizard_step4 import render_step4_slot_and_lock, CATEGORIES as _S4_CATEGORIES
 from render_meal_wizard_step3 import _feast_in_window as _s3_feast_in_window, _has_sunday_batch as _s3_has_sunday_batch
 from render_meal_wizard_gen import wizard_target_slot_keys, parse_wizard_meal_response, build_wizard_meal_prompt, _WIZARD_GEN_SLOT_CAP
 from render_plan_importer import (
@@ -10783,9 +10783,21 @@ class Handler(BaseHTTPRequestHandler):
                     except Exception: return ""
                 _s4_date = _s4_valid_iso(str(_s4_payload.get("date","")))
                 _s4_slot = str(_s4_payload.get("slot","")).strip().lower()
-                _s4_name = clean_text(_s4_payload.get("name",""))
+                # Read dishes[] from the payload; validate list non-empty and
+                # every item has a non-empty name (400 if not). Category defaults
+                # to "main" when absent or outside the allowlist — same
+                # auto-correct pattern as recipe_on_request below; never reject.
+                _s4_dishes_raw = _s4_payload.get("dishes")
+                if isinstance(_s4_dishes_raw, list) and _s4_dishes_raw:
+                    _s4_dishes_ok = all(
+                        isinstance(_d, dict)
+                        and bool(clean_text(_d.get("name", "")))
+                        for _d in _s4_dishes_raw
+                    )
+                else:
+                    _s4_dishes_ok = False
                 # Reject anything that can't form a valid date::slot entry.
-                if (not _s4_date) or (_s4_slot not in _S4_SLOTS) or (not _s4_name):
+                if (not _s4_date) or (_s4_slot not in _S4_SLOTS) or (not _s4_dishes_ok):
                     self.send_response(400)
                     self.send_header("Content-Type","application/json")
                     self.end_headers()
@@ -10804,13 +10816,20 @@ class Handler(BaseHTTPRequestHandler):
                     if isinstance(_v, (int, float)): return _v != 0
                     if isinstance(_v, str): return _v.strip().lower() in ("true","1","yes","on")
                     return False
+                # Build validated dishes list; coerce invalid/absent category to "main".
+                _s4_dishes = []
+                for _d in _s4_dishes_raw:
+                    _dcat = str(_d.get("category") or "").strip().lower()
+                    if _dcat not in _S4_CATEGORIES:
+                        _dcat = "main"
+                    _s4_dishes.append({
+                        "category":    _dcat,
+                        "name":        clean_text(_d.get("name", "")),
+                        "ingredients": clean_text(_d.get("ingredients", "")),
+                        "protein":     clean_text(_d.get("protein", "")),
+                    })
                 _s4_entry = {
-                    "dishes": [{
-                        "category":    "main",
-                        "name":        _s4_name,
-                        "ingredients": clean_text(_s4_payload.get("ingredients","")),
-                        "protein":     clean_text(_s4_payload.get("protein","")),
-                    }],
+                    "dishes":            _s4_dishes,
                     "source":            _s4_source,
                     "locked":            True,
                     "recipe_id":         clean_text(_s4_payload.get("recipe_id","")),

@@ -52,19 +52,33 @@ def _confirm(payload):
     Returns True on accept, False on reject (no write)."""
     date_v = _valid_iso(str(payload.get("date", "")))
     slot_v = str(payload.get("slot", "")).strip().lower()
-    name_v = dh.clean_text(payload.get("name", ""))
-    if (not date_v) or (slot_v not in _SLOTS) or (not name_v):
+    dishes_raw = payload.get("dishes")
+    if isinstance(dishes_raw, list) and dishes_raw:
+        dishes_ok = all(
+            isinstance(_d, dict) and bool(dh.clean_text(_d.get("name", "")))
+            for _d in dishes_raw
+        )
+    else:
+        dishes_ok = False
+    if (not date_v) or (slot_v not in _SLOTS) or (not dishes_ok):
         return False
     source_v = payload.get("source", "manual")
     if source_v not in _SOURCES:
         source_v = "manual"
+    _CATS = ("main", "side", "soup", "bread", "salad", "appetizer", "dessert")
+    dishes = []
+    for _d in dishes_raw:
+        _cat = str(_d.get("category") or "").strip().lower()
+        if _cat not in _CATS:
+            _cat = "main"
+        dishes.append({
+            "category": _cat,
+            "name": dh.clean_text(_d.get("name", "")),
+            "ingredients": dh.clean_text(_d.get("ingredients", "")),
+            "protein": dh.clean_text(_d.get("protein", "")),
+        })
     entry = {
-        "dishes": [{
-            "category": "main",
-            "name": name_v,
-            "ingredients": dh.clean_text(payload.get("ingredients", "")),
-            "protein": dh.clean_text(payload.get("protein", "")),
-        }],
+        "dishes": dishes,
         "source": source_v,
         "locked": True,
         "recipe_id": dh.clean_text(payload.get("recipe_id", "")),
@@ -135,9 +149,10 @@ def main():
 
         # ── Test 2: confirm a valid entry ───────────────────────────────────
         ok = _confirm({
-            "date": "2026-06-29", "slot": "dinner", "name": "Sheet-pan chicken",
-            "source": "manual", "protein": "Chicken",
-            "ingredients": "thighs, broccoli", "recipe_id": "",
+            "date": "2026-06-29", "slot": "dinner",
+            "dishes": [{"category": "main", "name": "Sheet-pan chicken",
+                        "ingredients": "thighs, broccoli", "protein": "Chicken"}],
+            "source": "manual", "recipe_id": "",
             "recipe_on_request": True, "skip_shopping": False,
         })
         sess = dh.load_meal_wizard_session()
@@ -177,8 +192,10 @@ def main():
 
         # ── Test 4: validation rejects bad slot / bad date ──────────────────
         before = dh.load_meal_wizard_session().get("confirmed_meals") or {}
-        bad_slot = _confirm({"date": "2026-06-29", "slot": "elevenses", "name": "x"})
-        bad_date = _confirm({"date": "2026-13-40", "slot": "dinner", "name": "x"})
+        bad_slot = _confirm({"date": "2026-06-29", "slot": "elevenses",
+                             "dishes": [{"name": "x"}]})
+        bad_date = _confirm({"date": "2026-13-40", "slot": "dinner",
+                             "dishes": [{"name": "x"}]})
         after = dh.load_meal_wizard_session().get("confirmed_meals") or {}
         if bad_slot is False and bad_date is False and after == before:
             print(PASS, "validation: bad slot and bad date both rejected (no write)")

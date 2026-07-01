@@ -37,6 +37,8 @@ from render_meal_wizard_gen import wizard_target_slot_keys, _WIZARD_GEN_SLOT_CAP
 
 _HEADING_FONT = "'Cormorant Garamond', serif"
 
+CATEGORIES = ("main", "side", "soup", "bread", "salad", "appetizer", "dessert")
+
 _S4_TITLE = "Plan This Week\u2019s Meals"
 
 # Canonical slot order + labels (mirrors Step 3's labels; same stable order the
@@ -219,8 +221,9 @@ _S4_JS = (
     "    if(!name){ setMsg(msgId, 'Add a meal name first.'); return; }"
     "    var ing = valOf('s4-ing--' + key);"
     "    var prot = valOf('s4-prot--' + key);"
-    "    var payload = { date: date, slot: slot, name: name, source: 'manual',"
-    "      ingredients: ing, protein: prot, recipe_id: '', recipe_on_request: true };"
+    "    var payload = { date: date, slot: slot,"
+    "      dishes: [{category: 'main', name: name, ingredients: ing, protein: prot}],"
+    "      source: 'manual', recipe_id: '', recipe_on_request: true };"
     "    fetch('/meal-wizard-step4-confirm', { method:'POST',"
     "      headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })"
     "      .then(function(r){ return r.json(); })"

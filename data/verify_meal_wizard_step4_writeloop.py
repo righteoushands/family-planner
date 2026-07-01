@@ -124,8 +124,10 @@ def main():
 
         # ── GUARD branch 1 + write-loop (a): confirm with recipe fields OMITTED
         st, raw = _post("/meal-wizard-step4-confirm", {
-            "date": _D1, "slot": "dinner", "name": "Chicken Parm",
-            "source": "manual", "ingredients": "", "protein": "chicken",
+            "date": _D1, "slot": "dinner",
+            "dishes": [{"category": "main", "name": "Chicken Parm",
+                        "ingredients": "", "protein": "chicken"}],
+            "source": "manual",
         }, token)
         ok = (st == 200) and (json.loads(raw).get("ok") is True)
         _check(ok, "confirm POST returns 200 {ok:true}",
@@ -177,7 +179,8 @@ def main():
 
         # ── GUARD branch 2: recipe_id present, flag omitted -> stays False
         _post("/meal-wizard-step4-confirm", {
-            "date": _D1, "slot": "lunch", "name": "Turkey wrap",
+            "date": _D1, "slot": "lunch",
+            "dishes": [{"name": "Turkey wrap"}],
             "source": "manual", "recipe_id": "r-9",
         }, token)
         e2 = _entry(_D1, "lunch")
@@ -188,7 +191,8 @@ def main():
 
         # ── GUARD branch 3: recipe_on_request already True -> stays True
         _post("/meal-wizard-step4-confirm", {
-            "date": _D2, "slot": "lunch", "name": "Soup",
+            "date": _D2, "slot": "lunch",
+            "dishes": [{"name": "Soup"}],
             "source": "manual", "recipe_on_request": True,
         }, token)
         e3 = _entry(_D2, "lunch")
