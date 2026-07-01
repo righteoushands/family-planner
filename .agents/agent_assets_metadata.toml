@@ -317,3 +317,9 @@ id = "7V2-qkjyZB3KQLpxEXbx_"
 uri = "file://responses/claudmd_rule10_addendum_structural_isolation.md"
 type = "text"
 title = "claud.md — Rule 10 Addendum (structural isolation)"
+
+[[outputs]]
+id = "mZIU4Rh0GJYilcYOWDuu1"
+uri = "file://responses/rule10a_mechanical_import_order_check.md"
+type = "text"
+title = "Rule 10a — mechanical import-order check"

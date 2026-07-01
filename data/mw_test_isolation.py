@@ -30,9 +30,38 @@ Usage (must be the FIRST project import in a harness, before `config`):
 import atexit
 import os
 import shutil
+import sys
 import tempfile
 import threading
 from http.server import HTTPServer
+
+# ── Rule 10a enforcement: STRUCTURAL, not procedural ─────────────────────────
+# This module MUST be the first project import in a harness. The env-var
+# overrides set below only take effect if `config`/`data_helpers`/`render_*`
+# bind their live paths AFTER we run -- i.e. if none of them are imported yet.
+# We do not trust file layout or import-line ordering to guarantee that; we prove
+# it mechanically at import time. If any of those app modules is ALREADY in
+# sys.modules when this module is first imported, the harness imported them first
+# and isolation would be bound too late -- so we fail loudly (ImportError) NOW
+# instead of silently reading/writing live data. This makes Rule 10a impossible
+# to satisfy by accident of file layout, in every present and future harness that
+# imports mw_test_isolation.
+def _enforce_first_project_import():
+    offenders = []
+    for _name in list(sys.modules):
+        if _name == "config" or _name == "data_helpers" or _name.startswith("render_"):
+            offenders.append(_name)
+    if offenders:
+        raise ImportError(
+            "Rule 10a violation: mw_test_isolation must be imported BEFORE any "
+            "app module that binds a live data path, but these were already "
+            "imported first: " + ", ".join(sorted(offenders)) + ". Move "
+            "'import mw_test_isolation' above them (it must be the first project "
+            "import in the harness)."
+        )
+
+
+_enforce_first_project_import()
 
 _LIVE_SESSION = "data/meal_wizard_session.json"
 _LIVE_SESSION_REAL = os.path.realpath(_LIVE_SESSION)
