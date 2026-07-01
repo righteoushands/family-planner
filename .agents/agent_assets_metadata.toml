@@ -419,3 +419,9 @@ id = "zRQBjM439zN7gau3Tn6bv"
 uri = "file://responses/step4_phase_c_format_dish_list_2026-07-01.md"
 type = "text"
 title = "Step 4 Phase C — format_dish_list wired (4/4 smoke + 17/17 writeloop PASS)"
+
+[[outputs]]
+id = "XDgoYBn7gYT10a8tq4S1Y"
+uri = "file://responses/step4_remove_diagnosis_2026-07-01.md"
+type = "text"
+title = "Step 4 Remove-row diagnosis — 30/30 PASS, bug identified"

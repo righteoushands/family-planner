@@ -24,20 +24,18 @@
       "recipe_on_request": true,
       "skip_shopping": false,
       "protein": "Eggs"
-    }
-  },
-  "suggested_meals": {
+    },
     "2026-07-01::breakfast": {
       "dishes": [
         {
           "category": "main",
-          "name": "Pancakes with Fresh Strawberries and Yogurt",
-          "ingredients": "baking mix, whole milk, eggs, strawberries, whole milk yogurt, honey",
-          "protein": "whole milk yogurt"
+          "name": "Pancakes with Fresh Fruit",
+          "ingredients": "baking mix, eggs, whole milk, strawberries, blueberries, butter, honey",
+          "protein": "eggs"
         }
       ],
-      "note": "John's birthday — festive but quick",
-      "source": "lorenzo",
+      "source": "manual",
+      "locked": true,
       "recipe_id": "",
       "recipe_on_request": true,
       "skip_shopping": false
@@ -46,27 +44,85 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Rotisserie Chicken Wrap with Romaine and Shredded Cheese",
-          "ingredients": "rotisserie chicken, tortillas, romaine lettuce, shredded cheese, carrots",
+          "name": "Packed Rotisserie Chicken & Sourdough Sandwich with Grapes",
+          "ingredients": "rotisserie chicken, sourdough bread, shredded cheese, carrots, green grapes",
           "protein": "rotisserie chicken"
         }
       ],
-      "note": "Packable; easy to eat between classes",
-      "source": "lorenzo",
+      "source": "manual",
+      "locked": true,
       "recipe_id": "",
       "recipe_on_request": true,
       "skip_shopping": false
+    },
+    "2026-07-01::snacks": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Apple Slices with Peanut Butter & Green Grapes",
+          "ingredients": "apples, peanut butter, green grapes",
+          "protein": ""
+        }
+      ],
+      "source": "manual",
+      "locked": true,
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-02::johns_lunch": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Leftover Ground Beef Pasta Thermos",
+          "ingredients": "leftover ground beef pasta, spaghetti sauce, shredded cheese",
+          "protein": "ground beef"
+        },
+        {
+          "category": "bread",
+          "name": "Garlic bread",
+          "ingredients": "",
+          "protein": ""
+        }
+      ],
+      "source": "manual",
+      "locked": true,
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    }
+  },
+  "suggested_meals": {
+    "2026-07-01::breakfast": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Pancakes with Fresh Fruit",
+          "ingredients": "baking mix, eggs, whole milk, strawberries, blueberries, butter, honey",
+          "protein": "eggs"
+        }
+      ]
+    },
+    "2026-07-01::johns_lunch": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Packed Rotisserie Chicken & Sourdough Sandwich with Grapes",
+          "ingredients": "rotisserie chicken, sourdough bread, shredded cheese, carrots, green grapes",
+          "protein": "rotisserie chicken"
+        }
+      ]
     },
     "2026-07-01::lunch": {
       "dishes": [
         {
           "category": "main",
-          "name": "Rotisserie Chicken Rice Bowl with Canned Green Beans",
-          "ingredients": "rotisserie chicken, parboiled rice, canned green beans, butter, shredded cheese",
+          "name": "Rotisserie Chicken Tacos",
+          "ingredients": "rotisserie chicken, tortillas, shredded cheese, salsa verde, refried beans",
           "protein": "rotisserie chicken"
         }
       ],
-      "note": "Use rotisserie chicken before it turns",
+      "note": "Quick post-workout; use rotisserie chicken",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -77,11 +133,11 @@
         {
           "category": "main",
           "name": "Overnight Oats with Blueberries and Honey",
-          "ingredients": "rolled oats, 2% milk, blueberries, honey, chia seeds, ground flax seeds",
+          "ingredients": "rolled oats, whole milk, blueberries, honey, chia seeds, ground flax seeds",
           "protein": ""
         }
       ],
-      "note": "No-cook; prep night before",
+      "note": "Prep night before; Lauren counseling day",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -91,27 +147,28 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Ground Beef Tacos in Thermos Container",
-          "ingredients": "cooked ground beef, tortillas, refried beans, shredded cheese, salsa verde",
-          "protein": "cooked ground beef"
+          "name": "Leftover Ground Beef Pasta Thermos",
+          "ingredients": "leftover ground beef pasta, spaghetti sauce, shredded cheese",
+          "protein": "ground beef"
+        },
+        {
+          "category": "bread",
+          "name": "Garlic bread",
+          "ingredients": "",
+          "protein": ""
         }
-      ],
-      "note": "Packable; uses cooked ground beef on hand",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
+      ]
     },
     "2026-07-02::lunch": {
       "dishes": [
         {
           "category": "main",
-          "name": "Leftover Chick-fil-A Mac and Cheese with Romaine Salad",
-          "ingredients": "leftover Chick-fil-A macaroni cheese, romaine lettuce, carrots, shredded cheese",
+          "name": "Grilled Cheese on Sourdough with Canned Tomato Soup",
+          "ingredients": "sourdough bread, shredded cheese, butter, canned crushed tomatoes, white onion, seasoning",
           "protein": ""
         }
       ],
-      "note": "Use leftover mac before it spoils",
+      "note": "Meatless midday; simple post-workout lunch",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -121,12 +178,12 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Ground Beef Pasta with Spaghetti Sauce",
-          "ingredients": "2 lbs raw ground beef, jar spaghetti sauce, petite diced tomatoes, rotini, shredded cheese, white onion",
-          "protein": "ground beef"
+          "name": "Cajun Sausages with Wild Rice and Sautéed Mixed Vegetables",
+          "ingredients": "four Cajun sausages, parboiled rice, frozen mixed vegetables, white onion, butter, seasoning",
+          "protein": "Cajun sausage"
         }
       ],
-      "note": "Higher-carb; aligns with Thursday rhythm",
+      "note": "John on leave; family dinner; moderate carb",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -136,12 +193,12 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Chocolate Cake (Anniversary Celebration)",
-          "ingredients": "chocolate cake mix, eggs, whole milk, coconut oil",
+          "name": "Canned Peaches with Yogurt",
+          "ingredients": "canned peaches, whole milk yogurt, honey",
           "protein": ""
         }
       ],
-      "note": "Erin and Bill's anniversary — celebratory",
+      "note": "Anniversary treat; no shopping needed",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -151,12 +208,52 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Fruit Cocktail Cups and Popcorn",
-          "ingredients": "fruit cocktail cups, popcorn kernels or movie popcorn bags",
+          "name": "Carrots with Peanut Butter & Orange Slices",
+          "ingredients": "carrots, peanut butter, oranges",
           "protein": ""
         }
       ],
-      "note": "Simple; no prep needed",
+      "note": "Whole food; pre-counseling energy",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-01::snacks": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Apple Slices with Peanut Butter & Green Grapes",
+          "ingredients": "apples, peanut butter, green grapes",
+          "protein": ""
+        }
+      ]
+    },
+    "2026-07-01::dinner": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Ground Beef Pasta with Spaghetti Sauce",
+          "ingredients": "2 lbs cooked ground beef, jar spaghetti sauce, petite diced tomatoes, rotini, shredded cheese",
+          "protein": "ground beef"
+        }
+      ],
+      "note": "Use cooked ground beef; quick before date night",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-01::dessert": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Fresh Strawberries & Blueberries with Yogurt",
+          "ingredients": "strawberries, blueberries, whole milk yogurt, honey",
+          "protein": ""
+        }
+      ],
+      "note": "Simple; John's birthday treat at home",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -164,7 +261,9 @@
     }
   },
   "used_proteins": [
-    "eggs"
+    "eggs",
+    "rotisserie chicken",
+    "ground beef"
   ],
   "plan_locked_at": "2026-06-30"
 }
