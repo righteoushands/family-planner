@@ -57,6 +57,18 @@ must always operate on a temp copy of live data files. Never call
 save_progress, safe_save_json, or any write helper on live data
 during testing. Always restore from backup after any test that
 touches data files.
+        10a.    RULE 10 ADDENDUM — ISOLATION MUST BE STRUCTURAL, NOT
+PROCEDURAL. Any verify_*.py harness that reads or writes app data must import
+its isolation guard (e.g. mw_test_isolation.assert_isolated) as the literal
+first import in the file — before data_helpers, config, or any render_*.py
+module. The guard must be called before the first write, and must raise (not
+warn) if the write target still resolves to a live path. A harness that skips
+this ordering is non-compliant with Rule 10 regardless of whether it happens to
+include snapshot/restore logic — snapshot-and-restore-after is not equivalent to
+never touching live data. When isolating a new data store beyond the meal
+wizard, extend the existing isolation module's pattern (env-var override,
+defense-in-depth path normalization, assert_isolated) rather than writing a new
+one-off mechanism per feature.
         11.     double-escaping HTML entities: never pass a string that is already
 HTML-escaped through escape() again. If a string contains literal
 ampersands for display use plain ampersands in the source string

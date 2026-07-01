@@ -311,3 +311,9 @@ id = "KVm0a3uInoYAnKeIUKeJu"
 uri = "file://responses/rule10_followups_commit_cadence_and_john_guard.md"
 type = "text"
 title = "Rule 10 follow-ups — commit cadence / provenance + /john guard"
+
+[[outputs]]
+id = "7V2-qkjyZB3KQLpxEXbx_"
+uri = "file://responses/claudmd_rule10_addendum_structural_isolation.md"
+type = "text"
+title = "claud.md — Rule 10 Addendum (structural isolation)"
