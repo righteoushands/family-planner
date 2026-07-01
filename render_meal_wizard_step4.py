@@ -38,7 +38,7 @@ from render_meal_wizard_gen import wizard_target_slot_keys, _WIZARD_GEN_SLOT_CAP
 
 _HEADING_FONT = "'Cormorant Garamond', serif"
 
-CATEGORIES = ("main", "side", "soup", "bread", "salad", "appetizer", "dessert")
+CATEGORIES = ("main", "side", "soup", "bread", "salad", "appetizer", "dessert", "snack")
 
 _S4_TITLE = "Plan This Week\u2019s Meals"
 
@@ -248,7 +248,7 @@ _S4_JS = (
     "      var n = (nameEl ? (nameEl.value||'').trim() : '');"
     "      if(!n){ continue; }"
     "      var cat = (catEl ? (catEl.value||'').trim() : '');"
-    "      if(!cat){ blocked = 'Pick a category for \u201c' + n + '\u201d.'; break; }"
+    "      if(!cat){ if(slot === 'snacks'){ cat = 'snack'; } else { blocked = 'Pick a category for \u201c' + n + '\u201d.'; break; } }"
     "      dishes.push({ category:cat, name:n,"
     "        ingredients:(ingEl?(ingEl.value||'').trim():''),"
     "        protein:(protEl?(protEl.value||'').trim():'') });"
@@ -285,6 +285,10 @@ _S4_JS = (
     "    for(var i = 0; i < inputs.length; i++){ inputs[i].value = ''; }"
     "    var rm = newRow.querySelector('[data-role=\"rm\"]');"
     "    if(rm){ rm.style.display = ''; }"
+    "    if(slot === 'snacks'){"
+    "      var catSel = newRow.querySelector('[data-role=\"cat\"]');"
+    "      if(catSel){ catSel.style.display = 'none'; }"
+    "    }"
     "    container.appendChild(newRow);"
     "  };"
     "  window.s4RemoveDish = function(btn){"
@@ -352,6 +356,7 @@ def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry,
     label_html = f'<div style="{_S4_SLOT_LABEL}">{escape(label)}</div>'
     key = date_iso + "--" + slot_key
     msg_id = "s4-msg--" + key
+    _cat_display = "display:none;" if slot_key == "snacks" else ""
     if not isinstance(entry, dict):
         # onclick values built outside the f-string (Rule 2). Both date_iso and
         # slot_key are validated/allowlisted before reaching here, so safe to
@@ -384,7 +389,7 @@ def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry,
                 _io = " open" if _ib else ""
                 _dishes_html += (
                     f'<div class="s4dr">'
-                    f'<select data-role="cat" style="{_S4_SELECT}">'
+                    f'<select data-role="cat" style="{_cat_display}{_S4_SELECT}">'
                     f'{_S4_CAT_OPTS_HTML}'
                     f'</select>'
                     f'<textarea data-role="name" rows="2" style="{_S4_NAME_AREA}" '
@@ -405,7 +410,7 @@ def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry,
             # No suggestion: one blank row, Remove hidden (single-row floor).
             _dishes_html = (
                 f'<div class="s4dr">'
-                f'<select data-role="cat" style="{_S4_SELECT}">'
+                f'<select data-role="cat" style="{_cat_display}{_S4_SELECT}">'
                 f'{_S4_CAT_OPTS_HTML}'
                 f'</select>'
                 f'<textarea data-role="name" rows="2" style="{_S4_NAME_AREA}" '

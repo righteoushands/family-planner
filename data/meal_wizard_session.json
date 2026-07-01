@@ -120,13 +120,20 @@
           "name": "Rotisserie Chicken Tacos",
           "ingredients": "rotisserie chicken, tortillas, shredded cheese, salsa verde, refried beans",
           "protein": "rotisserie chicken"
+        },
+        {
+          "category": "bread",
+          "name": "Garlic bread",
+          "ingredients": "",
+          "protein": ""
+        },
+        {
+          "category": "dessert",
+          "name": "Ice cream",
+          "ingredients": "",
+          "protein": ""
         }
-      ],
-      "note": "Quick post-workout; use rotisserie chicken",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
+      ]
     },
     "2026-07-02::breakfast": {
       "dishes": [
