@@ -380,14 +380,25 @@ def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry,
         _multi = len(_sug_dishes) > 1
         _rm_hide = "" if _multi else "display:none;"
         _dishes_html = ""
+        _cat_opts_main = (
+            '<option value="">\u2014 category \u2014</option>'
+            + "".join(
+                '<option value="' + c + '"'
+                + (' selected' if c == 'main' else '')
+                + '>' + c + '</option>'
+                for c in CATEGORIES
+            )
+        )
         if _sug_dishes:
-            for _d in _sug_dishes:
+            for _i, _d in enumerate(_sug_dishes):
                 _nb = escape(_d.get("name") or "")
                 _ib = escape(_d.get("ingredients") or "")
                 _sp = escape(_d.get("protein") or "")
                 _pv = ' value="' + _sp + '"'
                 _io = " open" if _ib else ""
                 _dc = _d.get("category") or ""
+                if not _dc and _i == 0:
+                    _dc = "main"
                 _cat_opts = (
                     '<option value="">\u2014 category \u2014</option>'
                     + "".join(
@@ -418,10 +429,12 @@ def _s4_slot_block(date_iso: str, slot_key: str, label: str, entry,
                 )
         else:
             # No suggestion: one blank row, Remove hidden (single-row floor).
+            # Row 1 defaults to "main" selected so Lauren can Keep without
+            # an explicit category pick for the most common case.
             _dishes_html = (
                 f'<div class="s4dr">'
                 f'<select data-role="cat" style="{_cat_display}{_S4_SELECT}">'
-                f'{_S4_CAT_OPTS_HTML}'
+                f'{_cat_opts_main}'
                 f'</select>'
                 f'<textarea data-role="name" rows="2" style="{_S4_NAME_AREA}" '
                 f'placeholder="Meal name"></textarea>'

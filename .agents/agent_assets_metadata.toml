@@ -467,3 +467,9 @@ id = "wGvT7ivfzsbZ-j3hBKHUd"
 uri = "file://responses/step4_change_category_preselect_2026-07-01.md"
 type = "text"
 title = "Change revert: category pre-selection — 6/6 + 17/17 PASS"
+
+[[outputs]]
+id = "5wA8xwYT5Y_oi57tt4_qo"
+uri = "file://responses/step4_row1_main_default_2026-07-01.md"
+type = "text"
+title = "Row 1 defaults to main — 5/5 cases + 17/17 PASS"
