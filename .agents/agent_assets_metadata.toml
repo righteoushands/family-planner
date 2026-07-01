@@ -359,3 +359,9 @@ id = "f1rf4Zn6kWjcM4CfzPiTE"
 uri = "file://responses/step4_mirror_followups_2026-07-01.md"
 type = "text"
 title = "Step 4 mirror — 3 follow-ups (harness 17/17, generate/source, neighbor untouched)"
+
+[[outputs]]
+id = "AXbuH9l9aeJQ_fMan6dRa"
+uri = "file://responses/step4_generate_wipes_mirror_diagnosis_2026-07-01.md"
+type = "text"
+title = "Diagnosis: generate wholesale-replaces suggested_meals and wipes the confirm-mirror (FAIL)"
