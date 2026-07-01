@@ -371,3 +371,9 @@ id = "LniQrEC7IZMR2q_xFSDXL"
 uri = "file://responses/step4_meta_followups_2026-07-01.md"
 type = "text"
 title = "Meta follow-ups: architect mechanism, session race (predates change), memory location, no-prune tradeoff"
+
+[[outputs]]
+id = "saAg-QMEG3ffnVzVj7k-X"
+uri = "file://responses/step4_generate_freshread_2026-07-01.md"
+type = "text"
+title = "Fresh-read fix + mid-call race test (PASS) + claud.md Rules 21/22 + TRACKER KI-001/002"

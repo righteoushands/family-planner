@@ -10976,8 +10976,12 @@ class Handler(BaseHTTPRequestHandler):
                             # Merge onto (not replace) existing suggested_meals so
                             # confirm-mirror entries for confirmed slots -- which
                             # generate correctly excludes from its own targets --
-                            # survive a generate run instead of being wiped.
-                            _g_merged = _g_session.get("suggested_meals") or {}
+                            # survive a generate run instead of being wiped. Read
+                            # suggested_meals FRESH here (not from _g_session, taken
+                            # before the ~90s model call) so any confirm/remove that
+                            # landed mid-call is preserved rather than clobbered by a
+                            # stale snapshot.
+                            _g_merged = (load_meal_wizard_session().get("suggested_meals") or {})
                             _g_merged.update(_g_suggestions)
                             update_meal_wizard_session({"suggested_meals": _g_merged})
                             _g_result = {"ok": True, "generated": len(_g_suggestions),

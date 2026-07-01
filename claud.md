@@ -236,6 +236,28 @@ different page/step are exempt (jumping to the top is correct there).
 render_meal_wizard_step4.py is the reference implementation (the s4Keep /
 s4Change / s4Lock / s4Generate navigations + s4RestoreScroll). Keep this
 client-side only and obey Rules 7 & 12 (no raw newline in embedded JS).
+        21.     SESSION HELPER SHALLOW-MERGE — update_meal_wizard_session (and any
+load -> dict.update -> save session helper) merges ONLY at the top level. Passing
+a whole nested key such as {"suggested_meals": {...}} REPLACES that entire nested
+dict, silently dropping sibling inner keys (e.g. other date::slot entries). To
+preserve siblings, read the current value FRESH, .update() the new keys onto it,
+then write the merged dict. Read that snapshot immediately before the write — not
+before a long-running step (e.g. a ~90s AI call) — or a concurrent write landing
+mid-call is clobbered by the stale snapshot.
+[KNOWN DEVIATION, logged July 1 2026: this bit the Step 4 confirm-mirror —
+/meal-wizard-generate wrote {"suggested_meals": _g_suggestions} and wiped the
+mirror entries for confirmed slots. Fixed by fresh-read + merge in the generate
+handler.]
+        22.     MERGE-BASED GENERATE NO LONGER PRUNES — Because /meal-wizard-generate
+now merges into suggested_meals instead of replacing it, stale entries (slots
+dropped from confirmed_what_to_plan, or past-date keys) are never pruned and
+accumulate in the session file. Render is gated: the only readers look up
+suggested[date::slot] for dates in the planning window × slots in
+confirmed_what_to_plan, so stale entries are inert — EXCEPT a stale date::slot
+that later re-enters window×to_plan while unconfirmed will resurface its old
+suggestion as a prefill. Low severity; logged not fixed. If addressed, prune keys
+outside window×to_plan in the generate handler rather than reverting to wholesale
+replace. Cross-ref: TRACKER_Known_Issues.md KI-001 / KI-002.
 Current major features
         •       /plan-import — paste text → AI extracts events, tasks, placements → approve → apply
         •       Placements route information to existing records (events, profiles, friends, pantry, etc.)
@@ -251,3 +273,7 @@ model line (Lorenzo = Haiku; Sonnet value stale/unverified), and the
 _repair_and_parse_json universality claim (plan-importer only) were
 corrected against the live code, surfaced by the Phase G1 diagnosis pass.
 Two known deviations/debts logged inline at Rule 4 and Rule 19.
+        •       July 1 2026: added Rules 21 (session helper shallow-merge wipes
+sibling keys) and 22 (merge-based generate no longer prunes stale
+suggested_meals), surfaced by the Step 4 confirm-mirror diagnosis + fix pass;
+also filed as TRACKER_Known_Issues.md KI-001 / KI-002.
