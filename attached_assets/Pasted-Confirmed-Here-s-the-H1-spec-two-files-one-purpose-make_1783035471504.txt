@@ -1,0 +1,36 @@
+Confirmed. Here’s the H1 spec — two files, one purpose (make Step 5 exist and be reachable).
+
+Pre-flight checklist (Rule 14):
+
+	•	Files touched: 2 — render_meal_wizard_step5.py (new) and render_meal_wizard_step4.py (add one link). Plus app.py for two new routes — technically 3 files, all directly serving the same single purpose (make Step 5 exist and reachable), not separate fixes.
+	•	JS-in-f-strings: yes, the day-picker uses fetch() — Rule 7 applies, no raw \n.
+	•	Forms: no <form> posting to /frol-wizard — not FROL, not applicable.
+	•	Root cause: n/a, this is new build, not a fix.
+	•	Data shape: one new scalar session key, confirmed_shopping_day (string, e.g. "Wednesday") — safe under Rule 21’s shallow merge, no nested structure.
+	•	Multi-file: yes, sequenced below as one instruction because Step 5 has no purpose without the link, and the link has no destination without Step 5.
+
+Read claud.md first and paste back all rules, then tell me which apply to this task.
+
+Build H1 — Step 5 skeleton (shopping day) + Step 4→5 link. This is the FIRST of three planned Phase H builds — do not add conflict detection or the John’s-note field, those are separate future instructions (Rule 17).
+
+1. New file render_meal_wizard_step5.py:
+
+	•	render_step5() returns an HTML fragment: a day-picker, Monday through Sunday (7 buttons/options), showing confirmed_shopping_day from the current session as selected if already set.
+	•	Tapping a day does a fetch() POST to /meal-wizard-step5-save with {"day": "<DayName>"}, then updates the selected state in place — no full page reload (match the async pattern already used in render_meal_wizard_step4.py’s s4Keep/s4Change, not a full reload).
+	•	No conflict detection UI, no notes field, no “Continue” button yet — those come later. This screen does exactly one thing: pick and save a day.
+
+2. New routes in app.py:
+
+	•	GET /meal-wizard-step5 (elif chain, matching existing /meal-wizard-step4 pattern) → calls render_step5().
+	•	POST /meal-wizard-step5-save (elif chain) → reads {"day": ...} from JSON body, calls update_meal_wizard_session({"confirmed_shopping_day": day}), returns success JSON. Register this path in the local _JSON_PATHS set inside do_POST (~line 3536) or the form-parser will silently eat the body.
+
+3. One-line addition to render_meal_wizard_step4.py:
+
+	•	On the locked-plan confirmation screen (after “Set This Plan”), add a link/button to /meal-wizard-step5. Forward navigation to a different step — Rule 20 does NOT apply here (that rule is only for same-page reloads).
+
+Validation (Rule 9, mandatory, do not skip):
+
+	•	py_compile all three touched files.
+	•	In-process smoke test: POST a day, confirm confirmed_shopping_day is set correctly, confirm no other session key changed.
+	•	This smoke test touches live session data — it MUST use mw_test_isolation as the literal first project import per Rule 10a, same as every Step 4 harness. An ad-hoc test that skips this is not acceptable (this is exactly what caused the Known Issues #10 incident — do not repeat it).
+	•	No existing verify harness covers Step 5 yet — building a full verify_meal_wizard_step5.py file is NOT required for H1; the isolated smoke test above is sufficient for this

@@ -702,8 +702,17 @@ def render_meal_wizard_step4(user: str, start_iso: str = None) -> str:
     has_lockable = _s4_has_lockable(confirmed)
 
     if locked_at:
+        # H1: once the plan is set, offer the forward step (shopping day).
+        # Forward navigation to a DIFFERENT page — Rule 20 does not apply.
         banner_text = "Your plan is set \u2014 showing on your homepage for this week."
-        banner_html = f'<div style="{_S4_BANNER}">{escape(banner_text)}</div>'
+        banner_html = (
+            f'<div style="{_S4_BANNER}">{escape(banner_text)}'
+            f'<div style="margin-top:10px;">'
+            f'<a href="/meal-wizard-step5" style="{_S4_LINK_BTN}">'
+            f'Next: pick your shopping day \u2192</a>'
+            f'</div>'
+            f'</div>'
+        )
     else:
         banner_html = ""
 

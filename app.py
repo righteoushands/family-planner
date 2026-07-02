@@ -255,6 +255,7 @@ from render_monica import render_monica_page, build_monica_context
 from render_wizards import render_wizards_page
 from render_meal_wizard import render_pantry_staples_page, render_meal_wizard_week_glance, render_meal_wizard_step2, render_meal_wizard_step3, render_meal_wizard_step4
 from render_meal_wizard_step4 import render_step4_slot_and_lock, CATEGORIES as _S4_CATEGORIES
+from render_meal_wizard_step5 import render_step5, _S5_DAYS
 from render_meal_wizard_step3 import _feast_in_window as _s3_feast_in_window, _has_sunday_batch as _s3_has_sunday_batch
 from render_meal_wizard_gen import wizard_target_slot_keys, parse_wizard_meal_response, build_wizard_meal_prompt, _WIZARD_GEN_SLOT_CAP
 from render_plan_importer import (
@@ -1346,6 +1347,16 @@ class Handler(BaseHTTPRequestHandler):
             return
         elif path == "/meal-wizard-step4":
             html = render_meal_wizard_step4(viewer)
+            self.send_response(200)
+            self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header("Pragma","no-cache")
+            self.end_headers()
+            try: self.wfile.write(html.encode())
+            except BrokenPipeError: pass
+            return
+        elif path == "/meal-wizard-step5":
+            html = render_step5(viewer)
             self.send_response(200)
             self.send_header("Content-Type","text/html; charset=utf-8")
             self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
@@ -3568,7 +3579,7 @@ class Handler(BaseHTTPRequestHandler):
 
         else:
             # /plan-import-apply reads its own raw JSON body — don't consume it with URL form parse
-            _JSON_PATHS = {"/plan-import-apply", "/plan-import-undo-placement", "/curriculum-save", "/curriculum-minutes", "/poetry-passage-save", "/meal-wizard-step3-save", "/meal-wizard-step4-confirm", "/meal-wizard-step4-remove", "/meal-wizard-step4-lock", "/meal-wizard-generate"}
+            _JSON_PATHS = {"/plan-import-apply", "/plan-import-undo-placement", "/curriculum-save", "/curriculum-minutes", "/poetry-passage-save", "/meal-wizard-step3-save", "/meal-wizard-step4-confirm", "/meal-wizard-step4-remove", "/meal-wizard-step4-lock", "/meal-wizard-generate", "/meal-wizard-step5-save"}
             if path in _JSON_PATHS:
                 data = {}
             else:
@@ -11019,6 +11030,33 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
                 try: self.wfile.write(json.dumps(_g_result).encode())
+                except BrokenPipeError: pass
+                return
+
+            elif path == "/meal-wizard-step5-save":
+                # H1: save the shopping day. JSON body (registered in
+                # _JSON_PATHS so the form-parser leaves it alone); read and
+                # parse the raw body like step3-save. Writes ONE scalar session
+                # key (confirmed_shopping_day) — safe under the shallow merge
+                # (Rule 21: no nested structure). Day is allowlisted against
+                # the same seven names the Step 5 picker renders.
+                _s5_cl  = int(self.headers.get("Content-Length","0") or 0)
+                _s5_raw = self.rfile.read(_s5_cl).decode("utf-8","ignore") if _s5_cl else ""
+                try:    _s5_payload = json.loads(_s5_raw)
+                except Exception: _s5_payload = {}
+                _s5_day = str(_s5_payload.get("day","") or "").strip()
+                if _s5_day not in _S5_DAYS:
+                    self.send_response(400)
+                    self.send_header("Content-Type","application/json")
+                    self.end_headers()
+                    try: self.wfile.write(b'{"ok":false,"error":"invalid day"}')
+                    except BrokenPipeError: pass
+                    return
+                update_meal_wizard_session({"confirmed_shopping_day": _s5_day})
+                self.send_response(200)
+                self.send_header("Content-Type","application/json")
+                self.end_headers()
+                try: self.wfile.write(b'{"ok":true}')
                 except BrokenPipeError: pass
                 return
 

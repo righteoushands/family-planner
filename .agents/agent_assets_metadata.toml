@@ -569,3 +569,9 @@ id = "hinxNzRzwnFSlyAeKy3aW"
 uri = "file://responses/phase_h_preflight_diagnosis_2026-07-02.md"
 type = "text"
 title = "Phase H pre-spec diagnosis — Step 5 shopping day facts"
+
+[[outputs]]
+id = "yHr-yoykWdlCIoyvMWRFk"
+uri = "file://responses/build_h1_step5_skeleton_2026-07-02.md"
+type = "text"
+title = "H1 Build Report — Step 5 Skeleton (Shopping Day)"
