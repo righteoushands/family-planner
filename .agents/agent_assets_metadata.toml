@@ -485,3 +485,9 @@ id = "a3IwpMWSTaVq2vV30HOpC"
 uri = "file://responses/claud_readback_gen_2026-07-02.md"
 type = "text"
 title = "Rule 15 read-back + render_meal_wizard_gen.py full paste"
+
+[[outputs]]
+id = "DCw5x_WCVChE5f61gyCt4"
+uri = "file://responses/categories_location_2026-07-02.md"
+type = "text"
+title = "CATEGORIES allowlist — one definition, one import, one unrelated homonym"
