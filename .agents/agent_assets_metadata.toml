@@ -521,3 +521,9 @@ id = "gP2o8GDAKSPYnF_pxh2g8"
 uri = "file://responses/step4_remove_fix_2026-07-02.md"
 type = "text"
 title = "Step 4 Change-revert fix"
+
+[[outputs]]
+id = "RijRB34sB0aaVwfK-igyk"
+uri = "file://responses/step4_smoke_compliance_check_2026-07-02.md"
+type = "text"
+title = "Smoke test compliance check"
