@@ -539,3 +539,9 @@ id = "TysSflNgY8S5yV7_QexZl"
 uri = "file://responses/session_data_report_2026-07-02.md"
 type = "text"
 title = "Session Data Report — 2026-07-02"
+
+[[outputs]]
+id = "ShXPPF5smhlmV_ByQNsz9"
+uri = "file://responses/verify_step4_remove_harness_2026-07-02.md"
+type = "text"
+title = "verify_meal_wizard_step4_remove.py — harness result"
