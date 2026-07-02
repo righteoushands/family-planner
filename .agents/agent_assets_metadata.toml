@@ -491,3 +491,9 @@ id = "DCw5x_WCVChE5f61gyCt4"
 uri = "file://responses/categories_location_2026-07-02.md"
 type = "text"
 title = "CATEGORIES allowlist — one definition, one import, one unrelated homonym"
+
+[[outputs]]
+id = "-LSzbg5Li1zoC07XK75OH"
+uri = "file://responses/g1c3a_multidish_gen_2026-07-02.md"
+type = "text"
+title = "G1c-3a complete — 63/63 PASS"

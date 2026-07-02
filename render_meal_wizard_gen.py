@@ -1,17 +1,20 @@
-"""Meal Wizard — Lorenzo week-generation data contract (G1c-1a / G1c-1b).
+"""Meal Wizard — Lorenzo week-generation data contract (G1c-1a / G1c-1b / G1c-3a).
 
 Pure, deterministic logic plus the generation prompt builder:
   1. wizard_target_slot_keys  — which empty "YYYY-MM-DD::slot" keys the
      generator should fill, never touching an already-confirmed meal (Rule 4).
-  2. parse_wizard_meal_response — map a model's JSON week into clean suggestion
-     entries, restricted to the target keys.
-  3. build_wizard_meal_prompt — assemble the one-pass generation prompt from the
-     wizard session (G1c-1b). Built as a list of lines joined with newline
-     (Rule 1/2/7). Family facts come from app_settings / the meal rules via the
-     Lorenzo helpers — NEVER hardcoded here (Rule 19).
+  2. parse_wizard_meal_response — map a model's dishes[] JSON week into clean
+     suggestion entries, restricted to the target keys (G1c-3a: new dishes[]
+     schema; validates each dish category against _DISH_CATEGORIES; drops
+     dishes with invalid/missing category; drops slots with zero valid dishes;
+     enforces single-dish cap for non-multi slots).
+  3. build_wizard_meal_prompt — assemble the one-pass generation prompt from
+     the wizard session (G1c-1b / G1c-3a). Built as a list of lines joined
+     with newline (Rule 1/2/7). Family facts come from app_settings / the meal
+     rules via the Lorenzo helpers — NEVER hardcoded here (Rule 19).
 
-This module makes no network call and no file writes; the live Sonnet call and
-the session write live in app.py's /meal-wizard-generate route (G1c-1b).
+This module makes no network call and no file writes; the live call and the
+session write live in app.py's /meal-wizard-generate route (G1c-1b).
 """
 
 from datetime import date, timedelta
@@ -31,6 +34,19 @@ _WIZARD_GEN_SLOT_CAP = 14  # conservative placeholder (2 meal types x 7 days).
 # point is 55. Tune this from the gen log once real stop_reason data exists.
 # Single source of truth — also imported by app.py and
 # render_meal_wizard_step4.py. Change once here. Added 2026-06-30.
+
+# Dish-category allowlist — mirrors render_meal_wizard_step4.CATEGORIES.
+# Cannot import directly: step4 already imports _WIZARD_GEN_SLOT_CAP from
+# this module, which would close a circular import cycle at load time.
+# TODO G1c-3a cleanup: move both constants to config.py so neither module
+# imports the other.
+_DISH_CATEGORIES = (
+    "main", "side", "soup", "bread", "salad", "appetizer", "dessert", "snack"
+)
+
+# Slot kinds that receive 2-3 dishes (one main + sides) from Lorenzo.
+# All other slot kinds receive exactly 1 dish with category "main".
+_MULTI_DISH_SLOTS = frozenset({"dinner", "feast_meal"})
 
 
 def wizard_target_slot_keys(session: dict) -> list:
@@ -64,12 +80,61 @@ def wizard_target_slot_keys(session: dict) -> list:
     return sorted(keys)
 
 
+def _parse_valid_dishes(raw_dishes, is_multi):
+    """Validate a raw dishes list against _DISH_CATEGORIES.
+
+    Rules (G1c-3a):
+    - Each dish must be a dict with a 'category' value present in
+      _DISH_CATEGORIES.  Invalid or missing category → dish dropped
+      (no defaulting to 'main').
+    - Each dish must have a non-empty 'name'.  Empty name → dish dropped.
+    - Non-multi slots: stop after the first valid dish (single-dish cap).
+      This enforces the cap in the parser itself, independent of the prompt.
+
+    Returns a list of clean dish dicts (possibly empty).
+    """
+    valid = []
+    for dish in (raw_dishes or []):
+        if not isinstance(dish, dict):
+            continue
+        cat = str(dish.get("category") or "").strip()
+        if cat not in _DISH_CATEGORIES:
+            continue
+        name = str(dish.get("name") or "").strip()
+        if not name:
+            continue
+        valid.append({
+            "category": cat,
+            "name": name,
+            "ingredients": str(dish.get("ingredients") or "").strip(),
+            "protein": str(dish.get("protein") or "").strip(),
+        })
+        if not is_multi:
+            break  # single-dish cap: stop after the first valid dish
+    return valid
+
+
 def parse_wizard_meal_response(text: str, target_keys) -> dict:
-    """Parse the model's JSON week and map it into suggestion entries,
-    keyed "YYYY-MM-DD::slot". Includes ONLY keys in target_keys (never a
-    confirmed slot, never an out-of-window date, never an unrequested slot
-    kind). Returns {} if nothing parses. Each entry mirrors a confirmed
-    entry minus the lock, tagged source 'lorenzo'."""
+    """Parse the model's dishes[] JSON week and map it into suggestion
+    entries, keyed "YYYY-MM-DD::slot". Includes ONLY keys in target_keys
+    (never a confirmed slot, never an out-of-window date, never an
+    unrequested slot kind). Returns {} if nothing parses.
+
+    Schema (G1c-3a — dishes[] replaces the old flat name/protein/ingredients):
+      {"meals": {"YYYY-MM-DD": {"slot": {
+          "dishes": [{"category":"...", "name":"...",
+                      "protein":"...", "ingredients":"..."}],
+          "note": "..."
+      }}}}
+
+    Validation:
+    - Each dish's 'category' must be in _DISH_CATEGORIES.  Invalid or missing
+      → dish dropped.  NOT defaulted to 'main'.
+    - Slots with zero valid dishes remaining are dropped entirely.
+    - Non-multi slots (anything other than dinner / feast_meal) that return
+      > 1 dish: first valid dish kept, rest discarded (enforced in parser,
+      not only in the prompt).
+    """
     candidates = []
     fence = re.search(r'```json\s*([\s\S]*?)\s*```', text)
     if fence:
@@ -101,26 +166,22 @@ def parse_wizard_meal_response(text: str, target_keys) -> dict:
             key = str(day_key) + "::" + str(slot_key)
             if key not in target:
                 continue
+            slot_name = str(slot_key)
+            is_multi = slot_name in _MULTI_DISH_SLOTS
             if isinstance(val, dict):
-                name = str(val.get("name", "") or "").strip()
-                protein = str(val.get("protein", "") or "").strip()
-                ingredients = str(val.get("ingredients", "") or "").strip()
-                note = str(val.get("note", "") or "").strip()
+                raw_dishes = val.get("dishes")
+                if not isinstance(raw_dishes, list):
+                    raw_dishes = []
+                top_note = str(val.get("note") or "").strip()
             else:
-                name = str(val or "").strip()
-                protein = ""
-                ingredients = ""
-                note = ""
-            if not name:
-                continue
+                raw_dishes = []
+                top_note = ""
+            valid_dishes = _parse_valid_dishes(raw_dishes, is_multi)
+            if not valid_dishes:
+                continue  # drop slot entirely — no valid dishes
             out[key] = {
-                "dishes": [{
-                    "category": "main",
-                    "name": name,
-                    "ingredients": ingredients,
-                    "protein": protein,
-                }],
-                "note": note,
+                "dishes": valid_dishes,
+                "note": top_note,
                 "source": "lorenzo",
                 "recipe_id": "",
                 "recipe_on_request": True,
@@ -132,21 +193,38 @@ def parse_wizard_meal_response(text: str, target_keys) -> dict:
 def build_wizard_meal_prompt(session: dict, target_keys: list) -> str:
     """Assemble the one-pass generation prompt from the wizard session.
     Returns a single string. Built as a list of lines joined with newline
-    (Rule 1/2/7 — no f-string backslash/quote hazards). Family-agnostic: any
-    family facts come from app_settings / the meal rules via the Lorenzo
-    helpers, never hardcoded (Rule 19). All inputs are fail-soft."""
+    (Rule 1/2/7 — no f-string backslash/quote hazards). Family-agnostic:
+    any family facts come from app_settings / the meal rules via the Lorenzo
+    helpers, never hardcoded (Rule 19). All inputs are fail-soft.
+
+    G1c-3a changes:
+    - Output schema updated to dishes[] (replacing flat name/protein/ingredients).
+    - dinner / feast_meal target keys annotated as multi-dish (2-3 dishes).
+    - All other target keys annotated as single-dish, category 'main'.
+    - Valid category values listed from _DISH_CATEGORIES (not hardcoded inline).
+    """
     session = session or {}
     keys = list(target_keys or [])
 
-    # Grouped "YYYY-MM-DD — slot" list. Keep the slot token RAW (not humanized)
-    # so the model echoes the exact slot key the parser matches against.
+    # Grouped "YYYY-MM-DD — slot" list with dish-count annotation.
+    # Keep the slot token RAW so the model echoes the exact key the parser
+    # matches against.  The annotation in brackets is instructional only.
     slot_lines = []
     for k in keys:
         if "::" in k:
             d_part, s_part = k.split("::", 1)
         else:
             d_part, s_part = k, ""
-        slot_lines.append("  - " + d_part + " — " + s_part)
+        if s_part in _MULTI_DISH_SLOTS:
+            slot_lines.append(
+                "  - " + d_part + " — " + s_part
+                + "  [multi-dish: 2-3 dishes, one main + sides]"
+            )
+        else:
+            slot_lines.append(
+                "  - " + d_part + " — " + s_part
+                + "  [single dish, category: main]"
+            )
     targets_block = "\n".join(slot_lines) if slot_lines else "  (none)"
 
     inventory = str(session.get("confirmed_inventory", "") or "").strip()
@@ -158,8 +236,8 @@ def build_wizard_meal_prompt(session: dict, target_keys: list) -> str:
         used_str = str(used).strip()
     complexity = str(session.get("confirmed_complexity", "normal") or "normal").strip()
 
-    # In-window confirmed meals — already decided by the mother; the model must
-    # plan a coherent week AROUND them, never fill or change them.
+    # In-window confirmed meals — already decided by the mother; the model
+    # must plan a coherent week AROUND them, never fill or change them.
     win = session.get("planning_window") or {}
     start = win.get("start_iso")
     end = win.get("end_iso")
@@ -175,12 +253,18 @@ def build_wizard_meal_prompt(session: dict, target_keys: list) -> str:
             if start and end and not (start <= c_date <= end):
                 continue
             _cv_dishes = slot_dishes(cv)
-            c_name = str((_cv_dishes[0].get("name", "") if _cv_dishes else "") or "").strip()
+            c_name = str(
+                (_cv_dishes[0].get("name", "") if _cv_dishes else "") or ""
+            ).strip()
             if c_name:
-                confirmed_lines.append("  - " + c_date + " — " + c_slot + ": " + c_name)
-    confirmed_block = "\n".join(confirmed_lines) if confirmed_lines else "  (none yet)"
+                confirmed_lines.append(
+                    "  - " + c_date + " — " + c_slot + ": " + c_name
+                )
+    confirmed_block = (
+        "\n".join(confirmed_lines) if confirmed_lines else "  (none yet)"
+    )
 
-    # Family-aware context, pulled (never hardcoded) via the Lorenzo helpers.
+    # Family-aware context pulled (never hardcoded) via the Lorenzo helpers.
     rules_str = _get_meal_constraints()
     if keys:
         win_start = start or keys[0].split("::", 1)[0]
@@ -190,16 +274,44 @@ def build_wizard_meal_prompt(session: dict, target_keys: list) -> str:
     recipes_str = _get_saved_recipes()
 
     has_dad_lunch = any(k.endswith("::dad_lunch") for k in keys)
+    categories_str = ", ".join(_DISH_CATEGORIES)
 
     lines = []
     lines.append("You are the meal planner for a Catholic homeschool family.")
-    lines.append("You are producing a DRAFT week of meals that the mother will review and edit. These are suggestions, not decisions — she has the final say.")
+    lines.append(
+        "You are producing a DRAFT week of meals that the mother will review "
+        "and edit. These are suggestions, not decisions — she has the final say."
+    )
     lines.append("")
-    lines.append("Fill EXACTLY these meal cells, and ONLY these:")
+    lines.append(
+        "Fill EXACTLY these meal cells, and ONLY these "
+        "(the annotation in brackets is for you — do not echo it):"
+    )
     lines.append(targets_block)
     lines.append("Do not add any day or meal type that is not in this list.")
     lines.append("")
-    lines.append("These meals are ALREADY decided — do NOT propose or change them; plan a coherent week around them:")
+    lines.append(
+        "Dish count rules:"
+    )
+    lines.append(
+        "  Multi-dish slots (dinner, feast_meal): provide 2 to 3 dishes — "
+        "one main plus one or two sides. Cap at 3 dishes total."
+    )
+    lines.append(
+        "  Single-dish slots (all others): provide exactly 1 dish "
+        "with category 'main'."
+    )
+    lines.append("")
+    lines.append(
+        "Valid category values — use these exact lowercase strings, "
+        "no others: " + categories_str
+    )
+    lines.append("Every dish must have a valid category from this list.")
+    lines.append("")
+    lines.append(
+        "These meals are ALREADY decided — do NOT propose or change them; "
+        "plan a coherent week around them:"
+    )
     lines.append(confirmed_block)
     lines.append("")
     lines.append("USE-SOON items — each MUST be used in at least one meal this week:")
@@ -208,17 +320,32 @@ def build_wizard_meal_prompt(session: dict, target_keys: list) -> str:
     lines.append("")
     lines.append("On-hand inventory (note the FORM — fresh / canned / frozen / dried):")
     lines.append("  " + (inventory if inventory else "(none recorded)"))
-    lines.append("Respect the form exactly: if an item is canned, do not plan a dish that needs it fresh, and vice versa; treat the canned/frozen form as usable as-is.")
-    # TEMPORARY soft-guard, prompt-only — no real inventory depletion exists yet.
+    lines.append(
+        "Respect the form exactly: if an item is canned, do not plan a dish "
+        "that needs it fresh; treat the canned/frozen form as usable as-is."
+    )
+    # TEMPORARY soft-guard, prompt-only — no real inventory depletion yet.
     # Revisit/remove when structured inventory lands (TRACKER 40/44). Added 2026-06-30.
-    lines.append("The already-decided meals above draw from this same on-hand list.")
-    lines.append("Some on-hand items are a single package or a small fresh amount. Do not propose a new dish that relies on a limited fresh or perishable item that an already-decided meal already uses — treat that item as spent.")
+    lines.append(
+        "The already-decided meals above draw from this same on-hand list."
+    )
+    lines.append(
+        "Some on-hand items are a single package or a small fresh amount. "
+        "Do not propose a new dish that relies on a limited fresh or perishable "
+        "item that an already-decided meal already uses — treat that item as spent."
+    )
     lines.append("")
     lines.append("Do NOT repeat a main protein already used this week:")
     lines.append("  " + (used_str if used_str else "(none yet)"))
-    lines.append("Rotate proteins across the days you plan (no protein twice unless unavoidable).")
+    lines.append(
+        "Rotate proteins across the days you plan "
+        "(no protein twice unless unavoidable)."
+    )
     lines.append("")
-    lines.append("Standing meal rules — follow exactly, including any meatless-Friday / liturgical rules:")
+    lines.append(
+        "Standing meal rules — follow exactly, "
+        "including any meatless-Friday / liturgical rules:"
+    )
     lines.append(rules_str)
     lines.append("")
     lines.append("Calendar for the week (keep meals quick on busy days):")
@@ -227,15 +354,41 @@ def build_wizard_meal_prompt(session: dict, target_keys: list) -> str:
     lines.append("Effort level for this week: " + complexity + " — match it.")
     if recipes_str:
         lines.append("")
-        lines.append("Recipes already on hand (prefer dishes the family already has a recipe for):")
+        lines.append(
+            "Recipes already on hand "
+            "(prefer dishes the family already has a recipe for):"
+        )
         lines.append(recipes_str)
     if has_dad_lunch:
         lines.append("")
-        lines.append("The dad-lunch slot must NEVER be the same as that day's family dinner; he prefers meat over salad or rice.")
+        lines.append(
+            "The dad-lunch slot must NEVER be the same as that day's family "
+            "dinner; he prefers meat over salad or rice."
+        )
     lines.append("")
-    lines.append("Suggest real, makeable dishes. You may include meals that need a few shopping items, but never claim an ingredient is on hand unless it is in the inventory above.")
+    lines.append(
+        "Suggest real, makeable dishes. You may include meals that need a few "
+        "shopping items, but never claim an ingredient is on hand unless it is "
+        "in the inventory above."
+    )
     lines.append("")
-    lines.append("Return ONLY a JSON object, no prose before or after, in EXACTLY this shape:")
-    lines.append('{"meals": {"YYYY-MM-DD": {"slot": {"name": "...", "protein": "...", "ingredients": "...", "note": "..."}}}}')
-    lines.append("Include only the date/slot cells listed above. protein = the single main protein, or empty string if meatless. ingredients = brief comma-separated list. note = optional, <= 8 words.")
+    lines.append(
+        "Return ONLY a JSON object, no prose before or after, "
+        "in EXACTLY this shape:"
+    )
+    lines.append(
+        '{"meals": {"YYYY-MM-DD": {"slot": {'
+        '"dishes": [{"category": "...", "name": "...", '
+        '"protein": "...", "ingredients": "..."}], '
+        '"note": "..."}}}}'
+    )
+    lines.append(
+        "dishes is a list. "
+        "Multi-dish slots (dinner, feast_meal): 2-3 items. "
+        "Single-dish slots: exactly 1 item with category 'main'. "
+        "note is optional, top-level per slot, <= 8 words. "
+        "protein = the single main protein for that dish, or empty string if "
+        "meatless. ingredients = brief comma-separated list."
+    )
+    lines.append("Include only the date/slot cells listed above.")
     return "\n".join(lines)
