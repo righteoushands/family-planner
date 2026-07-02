@@ -479,3 +479,9 @@ id = "SQYx-eOjdbAGID06KtgBu"
 uri = "file://responses/project_state_update_session2_2026-07-01.md"
 type = "text"
 title = "PROJECT_STATE.md updated — session 2"
+
+[[outputs]]
+id = "a3IwpMWSTaVq2vV30HOpC"
+uri = "file://responses/claud_readback_gen_2026-07-02.md"
+type = "text"
+title = "Rule 15 read-back + render_meal_wizard_gen.py full paste"
