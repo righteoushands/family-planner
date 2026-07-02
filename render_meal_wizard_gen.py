@@ -26,6 +26,7 @@ from render_lorenzo import (
     _get_calendar_this_week,
     _get_saved_recipes,
 )
+from config import MEAL_DISH_CATEGORIES as _DISH_CATEGORIES
 from data_helpers import slot_dishes
 
 
@@ -35,14 +36,10 @@ _WIZARD_GEN_SLOT_CAP = 14  # conservative placeholder (2 meal types x 7 days).
 # Single source of truth — also imported by app.py and
 # render_meal_wizard_step4.py. Change once here. Added 2026-06-30.
 
-# Dish-category allowlist — mirrors render_meal_wizard_step4.CATEGORIES.
-# Cannot import directly: step4 already imports _WIZARD_GEN_SLOT_CAP from
-# this module, which would close a circular import cycle at load time.
-# TODO G1c-3a cleanup: move both constants to config.py so neither module
-# imports the other.
-_DISH_CATEGORIES = (
-    "main", "side", "soup", "bread", "salad", "appetizer", "dessert", "snack"
-)
+# _DISH_CATEGORIES is imported from config (MEAL_DISH_CATEGORIES) — single
+# canonical definition shared with render_meal_wizard_step4 via config.py.
+# Circular-import issue resolved in G1c-3a cleanup: config imports nothing
+# from render_meal_wizard_gen or render_meal_wizard_step4.
 
 # Slot kinds that receive 2-3 dishes (one main + sides) from Lorenzo.
 # All other slot kinds receive exactly 1 dish with category "main".

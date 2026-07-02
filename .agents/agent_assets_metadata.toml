@@ -497,3 +497,9 @@ id = "-LSzbg5Li1zoC07XK75OH"
 uri = "file://responses/g1c3a_multidish_gen_2026-07-02.md"
 type = "text"
 title = "G1c-3a complete — 63/63 PASS"
+
+[[outputs]]
+id = "KkJsHq_aX-t5c4OavxjZA"
+uri = "file://responses/categories_consolidation_2026-07-02.md"
+type = "text"
+title = "CATEGORIES consolidation + live Lorenzo call"

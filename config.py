@@ -70,6 +70,16 @@ MEAL_HISTORY_FILE        = "data/meal_history.json"
 # the live session file (Rule 10). Unset in production -> the live path below.
 MEAL_WIZARD_SESSION_FILE = os.environ.get("MEAL_WIZARD_SESSION_FILE") or "data/meal_wizard_session.json"
 
+# Single canonical dish-category allowlist — used by render_meal_wizard_step4
+# (UI <select> options) and render_meal_wizard_gen (prompt + response parser).
+# Defined here to break the circular import that existed when step4 and gen
+# each defined a local copy (step4 imports _WIZARD_GEN_SLOT_CAP from gen;
+# gen previously mirrored step4's tuple to avoid closing the cycle).
+# Consolidated as part of G1c-3a cleanup. Change the list once here only.
+MEAL_DISH_CATEGORIES = (
+    "main", "side", "soup", "bread", "salad", "appetizer", "dessert", "snack"
+)
+
 # ── Validation sets ──────────────────────────────────────────────────────────
 VALID_PRIORITIES = {"HIGH", "MEDIUM", "LOW"}
 VALID_STATUSES   = {"active", "done", "inactive"}

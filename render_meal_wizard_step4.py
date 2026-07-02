@@ -35,10 +35,9 @@ from data_helpers import load_meal_wizard_session, get_merged_calendar_events, s
 from render_meals import format_dish_list
 from render_liturgical import get_day_info
 from render_meal_wizard_gen import wizard_target_slot_keys, _WIZARD_GEN_SLOT_CAP
+from config import MEAL_DISH_CATEGORIES as CATEGORIES
 
 _HEADING_FONT = "'Cormorant Garamond', serif"
-
-CATEGORIES = ("main", "side", "soup", "bread", "salad", "appetizer", "dessert", "snack")
 
 _S4_TITLE = "Plan This Week\u2019s Meals"
 
