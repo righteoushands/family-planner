@@ -503,3 +503,9 @@ id = "KkJsHq_aX-t5c4OavxjZA"
 uri = "file://responses/categories_consolidation_2026-07-02.md"
 type = "text"
 title = "CATEGORIES consolidation + live Lorenzo call"
+
+[[outputs]]
+id = "ojW7kq_MZlP8fURApUnE6"
+uri = "file://responses/project_state_regen_2026-07-02.md"
+type = "text"
+title = "PROJECT_STATE.md regeneration report"
