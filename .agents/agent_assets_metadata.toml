@@ -533,3 +533,9 @@ id = "iCp-OQ8EUmR7oEVMg9V-8"
 uri = "file://responses/session_file_hash_check_2026-07-02.md"
 type = "text"
 title = "Session file hash check"
+
+[[outputs]]
+id = "TysSflNgY8S5yV7_QexZl"
+uri = "file://responses/session_data_report_2026-07-02.md"
+type = "text"
+title = "Session Data Report — 2026-07-02"
