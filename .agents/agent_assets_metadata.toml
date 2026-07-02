@@ -527,3 +527,9 @@ id = "RijRB34sB0aaVwfK-igyk"
 uri = "file://responses/step4_smoke_compliance_check_2026-07-02.md"
 type = "text"
 title = "Smoke test compliance check"
+
+[[outputs]]
+id = "iCp-OQ8EUmR7oEVMg9V-8"
+uri = "file://responses/session_file_hash_check_2026-07-02.md"
+type = "text"
+title = "Session file hash check"
