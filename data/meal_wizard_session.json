@@ -40,21 +40,6 @@
       "recipe_on_request": true,
       "skip_shopping": false
     },
-    "2026-07-01::johns_lunch": {
-      "dishes": [
-        {
-          "category": "main",
-          "name": "Packed Rotisserie Chicken & Sourdough Sandwich with Grapes",
-          "ingredients": "rotisserie chicken, sourdough bread, shredded cheese, carrots, green grapes",
-          "protein": "rotisserie chicken"
-        }
-      ],
-      "source": "manual",
-      "locked": true,
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
-    },
     "2026-07-01::snacks": {
       "dishes": [
         {
@@ -82,6 +67,90 @@
           "category": "bread",
           "name": "Garlic bread",
           "ingredients": "",
+          "protein": ""
+        }
+      ],
+      "source": "manual",
+      "locked": true,
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-01::lunch": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Rotisserie Chicken Tacos",
+          "ingredients": "rotisserie chicken, tortillas, shredded cheese, salsa verde, refried beans",
+          "protein": "rotisserie chicken"
+        },
+        {
+          "category": "bread",
+          "name": "Garlic bread",
+          "ingredients": "",
+          "protein": ""
+        },
+        {
+          "category": "dessert",
+          "name": "Ice cream",
+          "ingredients": "",
+          "protein": ""
+        },
+        {
+          "category": "salad",
+          "name": "Egg salad",
+          "ingredients": "",
+          "protein": ""
+        }
+      ],
+      "source": "manual",
+      "locked": true,
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-01::dinner": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Ground Beef Pasta with Spaghetti Sauce",
+          "ingredients": "2 lbs cooked ground beef, jar spaghetti sauce, petite diced tomatoes, rotini, shredded cheese",
+          "protein": "ground beef"
+        }
+      ],
+      "source": "manual",
+      "locked": true,
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-01::johns_lunch": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Packed Rotisserie Chicken & Sourdough Sandwich with Grapes",
+          "ingredients": "rotisserie chicken, sourdough bread, shredded cheese, carrots, green grapes",
+          "protein": "rotisserie chicken"
+        },
+        {
+          "category": "snack",
+          "name": "Nuts",
+          "ingredients": "",
+          "protein": ""
+        }
+      ],
+      "source": "manual",
+      "locked": true,
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-01::dessert": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Chocolate Cake",
+          "ingredients": "chocolate cake mix, eggs, oil, water, sugar",
           "protein": ""
         }
       ],
@@ -110,6 +179,12 @@
           "name": "Packed Rotisserie Chicken & Sourdough Sandwich with Grapes",
           "ingredients": "rotisserie chicken, sourdough bread, shredded cheese, carrots, green grapes",
           "protein": "rotisserie chicken"
+        },
+        {
+          "category": "snack",
+          "name": "Nuts",
+          "ingredients": "",
+          "protein": ""
         }
       ]
     },
@@ -132,6 +207,12 @@
           "name": "Ice cream",
           "ingredients": "",
           "protein": ""
+        },
+        {
+          "category": "salad",
+          "name": "Egg salad",
+          "ingredients": "",
+          "protein": ""
         }
       ]
     },
@@ -139,12 +220,12 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Overnight Oats with Blueberries and Honey",
-          "ingredients": "rolled oats, whole milk, blueberries, honey, chia seeds, ground flax seeds",
-          "protein": ""
+          "name": "Scrambled Eggs with Toast",
+          "ingredients": "eggs, whole milk, butter, sourdough bread, salt, pepper",
+          "protein": "eggs"
         }
       ],
-      "note": "Prep night before; Lauren counseling day",
+      "note": "Quick before counseling; kids help",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -170,12 +251,12 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Grilled Cheese on Sourdough with Canned Tomato Soup",
-          "ingredients": "sourdough bread, shredded cheese, butter, canned crushed tomatoes, white onion, seasoning",
-          "protein": ""
+          "name": "Bacon, Egg & Cheese on Sourdough",
+          "ingredients": "raw bacon, eggs, shredded cheese, sourdough bread",
+          "protein": "eggs"
         }
       ],
-      "note": "Meatless midday; simple post-workout lunch",
+      "note": "Use bacon before it turns",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -186,11 +267,11 @@
         {
           "category": "main",
           "name": "Cajun Sausages with Wild Rice and Sautéed Mixed Vegetables",
-          "ingredients": "four Cajun sausages, parboiled rice, frozen mixed vegetables, white onion, butter, seasoning",
-          "protein": "Cajun sausage"
+          "ingredients": "four Cajun sausages, parboiled rice, frozen mixed vegetables, butter, salt, pepper, Cajun seasoning",
+          "protein": "cajun sausage"
         }
       ],
-      "note": "John on leave; family dinner; moderate carb",
+      "note": "New protein; Lauren solo with kids",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -200,12 +281,12 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Canned Peaches with Yogurt",
-          "ingredients": "canned peaches, whole milk yogurt, honey",
+          "name": "Canned Peaches with Ice Cream Cones",
+          "ingredients": "canned peaches, ice cream cones, honey",
           "protein": ""
         }
       ],
-      "note": "Anniversary treat; no shopping needed",
+      "note": "No-bake; celebrate anniversary simply",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -215,12 +296,12 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Carrots with Peanut Butter & Orange Slices",
-          "ingredients": "carrots, peanut butter, oranges",
+          "name": "Yogurt with Fresh Berries and Honey",
+          "ingredients": "whole milk yogurt, strawberries, blueberries, honey",
           "protein": ""
         }
       ],
-      "note": "Whole food; pre-counseling energy",
+      "note": "Easy; anniversary treat for kids",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -244,33 +325,23 @@
           "ingredients": "2 lbs cooked ground beef, jar spaghetti sauce, petite diced tomatoes, rotini, shredded cheese",
           "protein": "ground beef"
         }
-      ],
-      "note": "Use cooked ground beef; quick before date night",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
+      ]
     },
     "2026-07-01::dessert": {
       "dishes": [
         {
           "category": "main",
-          "name": "Fresh Strawberries & Blueberries with Yogurt",
-          "ingredients": "strawberries, blueberries, whole milk yogurt, honey",
+          "name": "Chocolate Cake",
+          "ingredients": "chocolate cake mix, eggs, oil, water, sugar",
           "protein": ""
         }
-      ],
-      "note": "Simple; John's birthday treat at home",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
+      ]
     }
   },
   "used_proteins": [
     "eggs",
-    "rotisserie chicken",
-    "ground beef"
+    "ground beef",
+    "rotisserie chicken"
   ],
   "plan_locked_at": "2026-06-30"
 }

@@ -1,8 +1,8 @@
 # PROJECT_STATE.md — Sancta Familia
 Technical snapshot of the current codebase. Read at the start of future
 sessions for a fast orientation. Generated 2026-07-01 from a **full live-codebase
-re-scan** (every count below re-derived from source on this date, not carried
-forward from the prior snapshot).
+re-scan**; updated same date (session 2) for Step 4 category-UX work. Changed
+file counts re-derived from source; all other counts carried forward.
 
 > Counts as of this snapshot (all derived from the current source): **99
 > exact-match + 16 prefix (`startswith`) GET routes** in `do_GET`; **206
@@ -27,8 +27,10 @@ forward from the prior snapshot).
 > Section 7 (Rules 10a & 20 now documented).
 >
 > **Files touched this session:** `render_meal_wizard_gen.py`,
-> `render_meal_wizard_step4.py`, `app.py`, `data_helpers.py`, `render_meals.py`,
-> `config.py`, `data/mw_test_isolation.py`, `data/verify_rule10a_badorder_fixture.py`.
+> `render_meal_wizard_step4.py` (**+153 lines** this session — category pre-selection
+> on Change/revert, row-1 "main" default for entry state), `app.py`, `data_helpers.py`,
+> `render_meals.py`, `config.py`, `data/mw_test_isolation.py`,
+> `data/verify_rule10a_badorder_fixture.py`.
 
 ---
 
@@ -454,7 +456,7 @@ keep modules under 800 lines where possible — many predate that target).
 - **render_morning_anchor.py** — 652 — morning/evening anchor blocks + this-day-in-history
 - **render_mom_profile.py** — 649 — Mom profile page
 - **render_plan_quarter.py** — 641 — quarter plan page
-- **render_meal_wizard_step4.py** — 630 — **Phase G: Meal Wizard Step 4** (per-day slot rows; empty slots get a name textarea + collapsible ingredients textarea + protein input + Keep; reads suggestions/entries via `slot_dishes()`; "Generate my week with Lorenzo" button; confirm/remove/lock write-loop JS in `_S4_JS`)
+- **render_meal_wizard_step4.py** — 783 — **Phase G: Meal Wizard Step 4** (per-day slot rows; empty slots get a name textarea + collapsible ingredients textarea + protein input + Keep; reads suggestions/entries via `slot_dishes()`; "Generate my week with Lorenzo" button; confirm/remove/lock write-loop JS in `_S4_JS`). **Category UX (session 2):** on Change/revert each dish's stored category is pre-selected; row 1 in entry-state defaults to "main" (fresh empty slot and Lorenzo suggestion's first dish); rows 2+ and the `#s4-dish-template` keep the blank placeholder.
 - **render_gregory.py** — 617 — Father Gregory companion page + context builder
 - **render_coach.py** — 599 — Coach companion page + context builder
 - **render_meal_wizard.py** — 596 — pantry staples page, week-glance, Step 2 (`render_meal_wizard_step2`, `_s2_field`); **re-exports `render_meal_wizard_step3` and `render_meal_wizard_step4`**
@@ -490,7 +492,7 @@ keep modules under 800 lines where possible — many predate that target).
 - **render_companions.py** — 54 — companions index page
 
 ### 4b. Non-render modules
-- **app.py** — 12343 ⚠️ — HTTP server, `do_GET`/`do_POST` routers, auth gate, AI dispatch
+- **app.py** — 12379 ⚠️ — HTTP server, `do_GET`/`do_POST` routers, auth gate, AI dispatch
 - **data_helpers.py** — 3376 ⚠️ — sole JSON read/write layer (see Section 5)
 - **daily_schedule_engine.py** — 2642 ⚠️ — daily schedule building, task classification/carryover, `CHILDREN`
 - **ui_helpers.py** — 1801 ⚠️ — shared HTML chrome, nav, `html_page`, escaping helpers
@@ -816,7 +818,7 @@ June 28 2026 doc corrections (Rule 3, the AI-calls model line, and the
 
 ## Phase G confirmation checklist (Meal Wizard Step 4 + dishes[] + Rule 10a)
 
-- ✅ `render_meal_wizard_step4.py` exists (**630 lines**) and defines `render_meal_wizard_step4`
+- ✅ `render_meal_wizard_step4.py` exists (**783 lines**) and defines `render_meal_wizard_step4`
 - ✅ `render_meal_wizard_gen.py` exists (**241 lines**) — Lorenzo week generator backing `/meal-wizard-generate`
 - ✅ `render_meal_wizard.py` re-exports both: `render_meal_wizard_step3` and `render_meal_wizard_step4`
 - ✅ GET `/meal-wizard-step4` present in `do_GET`; Step 3's "Save and continue" links to it
