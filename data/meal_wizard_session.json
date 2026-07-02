@@ -2,17 +2,13 @@
   "confirmed_inventory": "Fridge:\n2 pounds of cooked ground beef\nrotisserie chicken\nraw bacon\ntwo romaine lettuce\nthree green bell peppers\none bag of fresh green beans\none bag of brussels sprouts\ngreen grapes\nblueberries\nstrawberries\ngreen beans (canned)\nshredded cheese\nwhole milk yogurt\nsourdough bread\nfrench fries\nrefried beans\ncarrots\neggs\nleftover Chick-fil-A macaroni cheese \nground flax seeds\nChia seeds\n2 pounds of raw chicken\nfour patties of hamburger\n2 pounds of raw ground beef\nkimchi\ntwo dozen eggs\n2% milk\nwhole milk\nsoy milk\napples\noranges\nDiet Coke\nSprite\nbeer\nwine\n\nFreezer:\nmixed vegetables\nfrench fries\npulled pork one pound\nfour Cajun sausages\ncorn\nham hock\ntwo pizzas\none bag of spinach\ntwo pie crust\n\nPantry:\ntwo white onions\nsix small sweet potatoes\nbag of parboiled rice\nbag of small red potatoes\nbaking mix for pancakes and waffles\ncrispix cereal\ncoffee\nrotini\npasta\nwide egg noodles\ncan of evaporated milk\npumpkin  (canned)\nfruit cocktail  (canned)\npeaches  (canned)\npork and beans  (canned)\npear slices  (canned)\nvegetable soup  (canned)\nsweet peas  (canned)\ncream of mushroom soup  (canned)\nsliced carrots  (canned)\npetite diced tomatoes  (canned)\ncrushed tomatoes purée  (canned)\ngreen beans  (canned)\n1 pink salmon  (canned)\nwhole corn  (canned)\n3 cans of tuna\n3 cans of sardines\nsalsa Verde\njars of spaghetti sauce\nhoney\nfruit cocktail cups\npeanut butter\nbox of macaroni and cheese\nbox of small pasta shells\nrolled oats\nchocolate cake mix\nsugar\ncones for ice cream\nbreadcrumbs\npopcorn kernels\nbags of movie popcorn\ndried mixed beans\nsmall bag of mashed potatoes\npearl barley\ntwo more boxes of macaroni and cheese\nbag of red lentils\ntwo to go containers of mashed potatoes\nlinguine\ntwo loaf of breads\nhamburger buns\ntortillas\nquinoa\ncoconut oil\nfew dates\nunsweet coconut flakes\ndifferent packets of seasoning\nincluding taco and chili and gumbo and meatloaf spaghetti brown gravy\n flour\nsugar\nunsweetened cocoa\nbrown sugar\npowdered milk\nmolasses\nbakers yeast\nregular yeast\ngelatin",
   "use_soon_items": "",
   "confirmed_what_to_plan": [
-    "breakfast",
     "lunch",
-    "dinner",
-    "johns_lunch",
-    "snacks",
-    "dessert"
+    "dinner"
   ],
   "confirmed_complexity": "normal",
   "planning_window": {
-    "start_iso": "2026-07-01",
-    "end_iso": "2026-07-02"
+    "start_iso": "2026-07-02",
+    "end_iso": "2026-07-08"
   },
   "confirmed_meals": {
     "2026-06-29::breakfast": {
@@ -159,6 +155,54 @@
       "recipe_id": "",
       "recipe_on_request": true,
       "skip_shopping": false
+    },
+    "2026-07-02::dinner": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Brined Roast Chicken",
+          "ingredients": "whole rotisserie chicken (fresh), kosher salt, sugar, water, garlic, herbs",
+          "protein": "chicken"
+        },
+        {
+          "category": "side",
+          "name": "Roasted Fresh Green Beans",
+          "ingredients": "fresh green beans, olive oil, garlic powder, salt, pepper",
+          "protein": ""
+        },
+        {
+          "category": "side",
+          "name": "Small Red Potatoes (Roasted)",
+          "ingredients": "small red potatoes, olive oil, salt, pepper, seasoning packets",
+          "protein": ""
+        }
+      ],
+      "source": "manual",
+      "locked": true,
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-02::lunch": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Leftover Ground Beef Pasta Thermos",
+          "ingredients": "leftover ground beef pasta, spaghetti sauce, rotini",
+          "protein": "ground beef"
+        },
+        {
+          "category": "bread",
+          "name": "Bread",
+          "ingredients": "",
+          "protein": ""
+        }
+      ],
+      "source": "manual",
+      "locked": true,
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
     }
   },
   "suggested_meals": {
@@ -251,31 +295,39 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Bacon, Egg & Cheese on Sourdough",
-          "ingredients": "raw bacon, eggs, shredded cheese, sourdough bread",
-          "protein": "eggs"
+          "name": "Leftover Ground Beef Pasta Thermos",
+          "ingredients": "leftover ground beef pasta, spaghetti sauce, rotini",
+          "protein": "ground beef"
+        },
+        {
+          "category": "bread",
+          "name": "Bread",
+          "ingredients": "",
+          "protein": ""
         }
-      ],
-      "note": "Use bacon before it turns",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
+      ]
     },
     "2026-07-02::dinner": {
       "dishes": [
         {
           "category": "main",
-          "name": "Cajun Sausages with Wild Rice and Sautéed Mixed Vegetables",
-          "ingredients": "four Cajun sausages, parboiled rice, frozen mixed vegetables, butter, salt, pepper, Cajun seasoning",
-          "protein": "cajun sausage"
+          "name": "Brined Roast Chicken",
+          "ingredients": "whole rotisserie chicken (fresh), kosher salt, sugar, water, garlic, herbs",
+          "protein": "chicken"
+        },
+        {
+          "category": "side",
+          "name": "Roasted Fresh Green Beans",
+          "ingredients": "fresh green beans, olive oil, garlic powder, salt, pepper",
+          "protein": ""
+        },
+        {
+          "category": "side",
+          "name": "Small Red Potatoes (Roasted)",
+          "ingredients": "small red potatoes, olive oil, salt, pepper, seasoning packets",
+          "protein": ""
         }
-      ],
-      "note": "New protein; Lauren solo with kids",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
+      ]
     },
     "2026-07-02::dessert": {
       "dishes": [
@@ -336,12 +388,259 @@
           "protein": ""
         }
       ]
+    },
+    "2026-07-03::lunch": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Roast Chicken Tacos (Leftover Rotisserie)",
+          "ingredients": "leftover rotisserie chicken, flour tortillas, shredded cheese, salsa verde, refried beans",
+          "protein": "rotisserie chicken"
+        }
+      ],
+      "note": "Quick leftover lunch; busy morning with PT",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-03::dinner": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Cajun Sausages with Wild Rice",
+          "ingredients": "four Cajun sausages (frozen), parboiled rice, chicken broth, butter, salt, pepper",
+          "protein": "cajun sausage"
+        },
+        {
+          "category": "side",
+          "name": "Sautéed Fresh Green Beans",
+          "ingredients": "fresh green beans, butter, garlic powder, salt, pepper",
+          "protein": ""
+        },
+        {
+          "category": "side",
+          "name": "Sliced Apples and Green Grapes",
+          "ingredients": "apples, green grapes",
+          "protein": ""
+        }
+      ],
+      "note": "Cajun sausages from freezer; easy prep",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-04::lunch": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Hamburgers on Buns",
+          "ingredients": "four hamburger patties, hamburger buns, shredded cheese, romaine lettuce, salsa verde",
+          "protein": "beef"
+        }
+      ],
+      "note": "Fourth of July cookout lunch",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-04::dinner": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Pulled Pork Sandwiches",
+          "ingredients": "one pound pulled pork (frozen, thawed), two loaf bread or hamburger buns, salsa verde, shredded cheese",
+          "protein": "pork"
+        },
+        {
+          "category": "side",
+          "name": "French Fries (Frozen, Baked)",
+          "ingredients": "frozen french fries, salt, pepper",
+          "protein": ""
+        },
+        {
+          "category": "side",
+          "name": "Pork and Beans (Canned, Heated)",
+          "ingredients": "canned pork and beans, brown sugar, butter",
+          "protein": ""
+        }
+      ],
+      "note": "Independence Day; easy festive spread",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-05::lunch": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Lentil Soup (Batch)",
+          "ingredients": "red lentils, canned diced tomatoes, carrots, white onion, cumin, garlic, salt, pepper",
+          "protein": ""
+        }
+      ],
+      "note": "Sunday post-Mass simple lunch; batch made",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-05::dinner": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Spinach Pie (Frozen Crust)",
+          "ingredients": "two frozen pie crusts, frozen spinach (thawed/drained), eggs, shredded cheese, white onion, salt, pepper",
+          "protein": "eggs"
+        },
+        {
+          "category": "side",
+          "name": "Roasted Brussels Sprouts",
+          "ingredients": "brussels sprouts, olive oil, garlic powder, salt, pepper",
+          "protein": ""
+        },
+        {
+          "category": "side",
+          "name": "Canned Peaches",
+          "ingredients": "canned peaches",
+          "protein": ""
+        }
+      ],
+      "note": "Sunday batch cook day; meatless legume-based",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-06::lunch": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Tuna Salad on Sourdough",
+          "ingredients": "canned tuna, sourdough bread, mayo, Dijon mustard, celery (carrots subbed), salt, pepper",
+          "protein": "tuna"
+        }
+      ],
+      "note": "Fish protein; uses pantry tuna",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-06::dinner": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Ground Beef Pasta with Spaghetti Sauce",
+          "ingredients": "2 lbs raw ground beef, jar spaghetti sauce, canned diced tomatoes, rotini pasta, salt, pepper",
+          "protein": "beef"
+        },
+        {
+          "category": "side",
+          "name": "Canned Green Beans (Heated)",
+          "ingredients": "canned green beans, butter, garlic powder, salt",
+          "protein": ""
+        },
+        {
+          "category": "salad",
+          "name": "Romaine Salad with Green Grapes",
+          "ingredients": "romaine lettuce, green grapes, olive oil, salt, pepper",
+          "protein": ""
+        }
+      ],
+      "note": "Higher-carb pasta; uses fresh ground beef",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-07::lunch": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Leftover Ground Beef Pasta Thermos",
+          "ingredients": "leftover ground beef pasta, spaghetti sauce",
+          "protein": "beef"
+        }
+      ],
+      "note": "Tuesday leftovers day; Bible Study morning",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-07::dinner": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Sheet Pan Chicken Thighs with Sweet Potatoes",
+          "ingredients": "2 lbs raw chicken (thighs or pieces), six small sweet potatoes (halved), olive oil, garlic powder, salt, pepper, seasoning packet",
+          "protein": "chicken"
+        },
+        {
+          "category": "side",
+          "name": "Sautéed Frozen Mixed Vegetables",
+          "ingredients": "frozen mixed vegetables, butter, salt, pepper, garlic powder",
+          "protein": ""
+        }
+      ],
+      "note": "Thursday lifting day; higher-carb sweet potato",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-08::lunch": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Sardine Sandwiches",
+          "ingredients": "canned sardines in olive oil, sourdough bread, mayo, Dijon mustard, lemon juice, salt, pepper",
+          "protein": "sardines"
+        }
+      ],
+      "note": "Friday meatless lunch; sardines on hand",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-08::dinner": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Baked Salmon (Canned Pink Salmon Patties)",
+          "ingredients": "canned pink salmon, egg, breadcrumbs, flour, Old Bay seasoning, coconut oil for pan, salt, pepper",
+          "protein": "salmon"
+        },
+        {
+          "category": "side",
+          "name": "Parboiled Rice",
+          "ingredients": "parboiled rice, butter, salt, water",
+          "protein": ""
+        },
+        {
+          "category": "side",
+          "name": "Frozen Corn (Heated)",
+          "ingredients": "frozen corn, butter, salt, pepper",
+          "protein": ""
+        }
+      ],
+      "note": "Friday fish; Date Night — kids eat early",
+      "source": "lorenzo",
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
     }
   },
   "used_proteins": [
     "eggs",
     "ground beef",
-    "rotisserie chicken"
+    "rotisserie chicken",
+    "chicken"
   ],
   "plan_locked_at": "2026-06-30"
 }
