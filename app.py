@@ -10899,15 +10899,22 @@ class Handler(BaseHTTPRequestHandler):
                     except BrokenPipeError: pass
                     return
                 _s4r_meals = load_meal_wizard_session().get("confirmed_meals") or {}
+                # Capture confirmed dishes BEFORE popping so the reverted entry
+                # affordance can pre-fill from what Lauren actually confirmed,
+                # not from suggested_meals (which may be fewer dishes or empty).
+                _s4r_prior_entry  = _s4r_meals.get(_s4r_date + "::" + _s4r_slot) or {}
+                _s4r_prior_dishes = (_s4r_prior_entry.get("dishes")
+                                     if isinstance(_s4r_prior_entry, dict) else None)
                 _s4r_meals.pop(_s4r_date + "::" + _s4r_slot, None)
                 update_meal_wizard_session({
                     "confirmed_meals": _s4r_meals,
                     "used_proteins":   recompute_used_proteins(_s4r_meals),
                 })
                 # No-reload swap: return the reverted slot row (entry affordance,
-                # carrying any standing Lorenzo suggestion) + lock control so the
-                # client patches just that row in place.
-                _s4r_frag = render_step4_slot_and_lock(_s4r_date, _s4r_slot)
+                # pre-filled from prior confirmed dishes when they existed, else
+                # falling back to any standing Lorenzo suggestion) + lock control.
+                _s4r_frag = render_step4_slot_and_lock(_s4r_date, _s4r_slot,
+                                                       revert_dishes=_s4r_prior_dishes)
                 self.send_response(200)
                 self.send_header("Content-Type","application/json")
                 self.end_headers()

@@ -515,3 +515,9 @@ id = "4vk1bR5gdUOf-bsYu0wOZ"
 uri = "file://responses/step4_remove_diagnosis_2026-07-02.md"
 type = "text"
 title = "Step 4 remove — diagnosis"
+
+[[outputs]]
+id = "gP2o8GDAKSPYnF_pxh2g8"
+uri = "file://responses/step4_remove_fix_2026-07-02.md"
+type = "text"
+title = "Step 4 Change-revert fix"

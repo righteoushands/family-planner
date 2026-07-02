@@ -609,20 +609,30 @@ def _s4_lock_control_html(has_lockable: bool) -> str:
     )
 
 
-def render_step4_slot_and_lock(date_iso: str, slot_key: str) -> dict:
+def render_step4_slot_and_lock(date_iso: str, slot_key: str,
+                               revert_dishes=None) -> dict:
     """Re-render ONE slot row plus the lock control from the CURRENT session, so
     Keep/Change can patch just that row (and the lock button) in place — no full
     page reload. The session stays the single source of truth: this reuses
     _s4_slot_block / _s4_lock_control_html and never reconstructs markup in JS.
-    On a reverted (Change) slot the entry affordance carries any standing Lorenzo
-    suggestion, exactly as a full page load would render it."""
+
+    revert_dishes: optional list of dish dicts captured from confirmed_meals
+    BEFORE the slot was popped (by the /meal-wizard-step4-remove handler). When
+    provided and non-empty, the entry affordance pre-fills from those dishes
+    instead of suggested_meals — so a confirmed multi-dish slot reverts showing
+    exactly what Lauren had confirmed, not just what Lorenzo originally suggested.
+    Falls back to suggested_meals when None or empty (no prior confirmed entry)."""
     session = load_meal_wizard_session() or {}
     confirmed = session.get("confirmed_meals") or {}
     suggested = session.get("suggested_meals") or {}
     label = dict(_S4_SLOT_ORDER).get(slot_key, slot_key)
     full = date_iso + "::" + slot_key
+    if revert_dishes:
+        effective_suggestion = {"dishes": revert_dishes}
+    else:
+        effective_suggestion = suggested.get(full)
     slot_html = _s4_slot_block(date_iso, slot_key, label,
-                               confirmed.get(full), suggested.get(full))
+                               confirmed.get(full), effective_suggestion)
     lockable = _s4_has_lockable(confirmed)
     return {
         "slot_html": slot_html,
