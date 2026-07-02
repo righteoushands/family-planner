@@ -557,3 +557,9 @@ id = "wcgcxTrD5SE-3RK_vP2u5"
 uri = "file://responses/mw_session_field_diagnosis_2026-07-02.md"
 type = "text"
 title = "Meal wizard session field list — diagnosis"
+
+[[outputs]]
+id = "En8kOCOH7jn6ZDoSoU_DH"
+uri = "file://responses/verify_runner_diagnosis_2026-07-02.md"
+type = "text"
+title = "Diagnosis — verify harness runner mechanism (none exists)"
