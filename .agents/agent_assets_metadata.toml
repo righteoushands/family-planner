@@ -563,3 +563,9 @@ id = "En8kOCOH7jn6ZDoSoU_DH"
 uri = "file://responses/verify_runner_diagnosis_2026-07-02.md"
 type = "text"
 title = "Diagnosis — verify harness runner mechanism (none exists)"
+
+[[outputs]]
+id = "hinxNzRzwnFSlyAeKy3aW"
+uri = "file://responses/phase_h_preflight_diagnosis_2026-07-02.md"
+type = "text"
+title = "Phase H pre-spec diagnosis — Step 5 shopping day facts"
