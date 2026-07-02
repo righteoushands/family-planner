@@ -551,3 +551,9 @@ id = "1qRJM4Gxb5Ls2shH54uUg"
 uri = "file://responses/project_state_regen_rev2_2026-07-02.md"
 type = "text"
 title = "PROJECT_STATE.md — Regen rev 2 change summary"
+
+[[outputs]]
+id = "wcgcxTrD5SE-3RK_vP2u5"
+uri = "file://responses/mw_session_field_diagnosis_2026-07-02.md"
+type = "text"
+title = "Meal wizard session field list — diagnosis"
