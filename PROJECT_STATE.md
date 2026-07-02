@@ -1,6 +1,6 @@
 # PROJECT_STATE.md — Sancta Familia
 
-Technical snapshot of the current codebase. **Full re-scan 2026-07-02** — every line count
+Technical snapshot of the current codebase. **Full re-scan 2026-07-02 (rev 2)** — every line count
 confirmed by running `wc -l` live; no number carried forward from a prior session.
 
 ---
@@ -143,7 +143,7 @@ POST routing uses `elif path == "…"` chains. One prefix match (`/quest`). Five
 | `/calendar-config-save`, `/calendar-save-config` | route alias → same handler |
 | `/family-schedule-save`, `/settings-schedule-save` | route alias → same handler |
 
-**`_JSON_PATHS`** — local set in `do_POST` (~line 3571) that tells the form-parser
+**`_JSON_PATHS`** — local set in `do_POST` (line 3571) that tells the form-parser
 to skip urlencoded parsing and leave the body for `json.loads`. Current members (10):
 `/plan-import-apply`, `/plan-import-undo-placement`, `/curriculum-save`,
 `/curriculum-minutes`, `/poetry-passage-save`, `/meal-wizard-step3-save`,
@@ -190,12 +190,12 @@ to skip urlencoded parsing and leave the body for `json.loads`. Current members 
 
 ---
 
-## Section 3 — Core modules (line counts confirmed live 2026-07-02)
+## Section 3 — Core modules (line counts confirmed live 2026-07-02 rev 2)
 
 | File | Lines | Role |
 |---|---|---|
-| `app.py` | **12,379** | Entry point, HTTP handler (`do_GET` line 773, `do_POST` line 2268), top-level imports at lines 6–264 |
-| `data_helpers.py` | **3,376** | Only file that reads/writes JSON; 220 functions/classes; every feature area has loaders/savers here |
+| `app.py` | **12,386** | Entry point, HTTP handler (`do_GET` line 773, `do_POST` line 2268), top-level imports at lines 6–264 |
+| `data_helpers.py` | **3,376** | Only file that reads/writes JSON; every feature area has loaders/savers here |
 | `config.py` | **191** | All file paths + domain constants; no imports from render_* or data_helpers |
 | `daily_schedule_engine.py` | **2,642** | Schedule logic, `CHILDREN` tuple, task completion |
 | `ui_helpers.py` | **1,801** | `html_page()`, form parsers, shared HTML utilities |
@@ -293,7 +293,7 @@ VAN_ROLE_B = "Bin & Organization Lead"
 
 ---
 
-## Section 5 — render_*.py modules (line counts confirmed live 2026-07-02)
+## Section 5 — render_*.py modules (line counts confirmed live 2026-07-02 rev 2)
 
 | File | Lines | Description |
 |---|---|---|
@@ -352,7 +352,7 @@ VAN_ROLE_B = "Bin & Organization Lead"
 | `render_goals.py` | **237** | Goal system data helpers |
 | `render_schedule_support.py` | **226** | Family schedule engine, now/next strip, timeline; split from render_schedule to avoid circular imports |
 | `render_memory_book.py` | **210** | Family memory book — memorable moments saved from Lucy conversations |
-| `render_meal_wizard_step4.py` | **782** | Meal Wizard Step 4 — day-card display, write loop (s4Keep/s4Change/s4Lock/s4Generate), Lorenzo generation trigger; `CATEGORIES` = `config.MEAL_DISH_CATEGORIES` (G1c-3a); `_WIZARD_GEN_SLOT_CAP` imported from render_meal_wizard_gen |
+| `render_meal_wizard_step4.py` | **792** | Meal Wizard Step 4 — day-card display, write loop (s4Keep/s4Change/s4Lock/s4Generate), Lorenzo generation trigger; `CATEGORIES` = `config.MEAL_DISH_CATEGORIES` (G1c-3a); `_WIZARD_GEN_SLOT_CAP` imported from render_meal_wizard_gen; `render_step4_slot_and_lock(date_iso, slot_key, revert_dishes=None)` — optional `revert_dishes` pre-fills the reverted entry affordance from the prior confirmed dishes instead of suggested_meals (added 2026-07-02) |
 | `render_frol_pdf.py` | **177** | FROL printable PDF — 7-page landscape Letter, one weekday per page |
 | `render_wizards.py` | **99** | Wizards hub page — static list of family wizards as tappable cards |
 
@@ -529,6 +529,18 @@ into one human string.
 walks every entry via `slot_dishes()`, collects each dish's `protein` (deduped,
 lowercased, first-seen order).
 
+### `/meal-wizard-step4-remove` handler (app.py line 10878)
+
+Idempotent removal of one confirmed meal (the "Change this meal" backing op).
+Validates date + slot (400 on bad input). Before popping, captures the prior
+confirmed entry's `dishes` list as `_s4r_prior_dishes`. After the pop + session
+write, calls `render_step4_slot_and_lock(date, slot, revert_dishes=_s4r_prior_dishes)`.
+Returns `{"ok": true, "slot_html": "…", "lock_html": "…", "lockable": bool}`.
+
+The `revert_dishes` parameter ensures that when Lauren manually added dishes beyond
+what Lorenzo suggested, those extra dishes pre-fill the reverted entry affordance —
+they are not silently dropped because `suggested_meals` only had the original draft.
+
 ### `render_meal_wizard_gen.py` exports
 
 | Name | Type | Purpose |
@@ -545,13 +557,14 @@ lowercased, first-seen order).
 
 ## Section 9 — Verification harnesses (`data/verify_*.py`)
 
-All harnesses are offline (no network, no live writes). Rule 10a requires the
-isolation guard to be the **literal first import** — before data_helpers, config,
-or any render_*.
+All harnesses run in-process against an isolated temp session file (Rule 10a).
+`mw_test_isolation` must be the **literal first project import** — before
+`config`, `data_helpers`, or any `render_*` — or it raises `ImportError` at
+import time (mechanical enforcement, not procedural).
 
 | File | Lines | Covers |
 |---|---|---|
-| `data/mw_test_isolation.py` | **141** | Isolation guard — raises at import if config/data_helpers loaded first; env-var override for MEAL_WIZARD_SESSION_FILE and MEAL_PLAN_DIR |
+| `data/mw_test_isolation.py` | **141** | Isolation guard — raises at import if config/data_helpers loaded first; env-var override for `MEAL_WIZARD_SESSION_FILE` and `MEAL_PLAN_DIR`; `assert_isolated()`, `start_server()` |
 | `data/verify_rule10a_badorder_fixture.py` | **50** | Deliberately-broken fixture proving the guard fires on wrong import order |
 | `data/verify_phase_a.py` | **290** | Phase A: data layer helpers |
 | `data/verify_phase_b.py` | **333** | Phase B: meal plan save/load |
@@ -560,17 +573,18 @@ or any render_*.
 | `data/verify_phase_e.py` | **237** | Phase E: Step 2 (inventory entry) |
 | `data/verify_phase_f.py` | **244** | Phase F: Step 3 (planning selection) |
 | `data/verify_phase_g.py` | **173** | Phase G: Step 4 integration |
-| `data/verify_meal_wizard_g1a.py` | **224** | G1a: generation session contract |
+| `data/verify_meal_wizard_g1a.py` | **224** | G1a: confirm/remove/protein logic against session helpers (snapshot+restore pattern — predates mw_test_isolation) |
 | `data/verify_meal_wizard_gen.py` | **296** | G1c-1a + G1c-3a: generation data contract, dishes[] schema, truncation/drop tests (63 checks) |
 | `data/verify_meal_wizard_step3.py` | **228** | Step 3 render checks |
 | `data/verify_meal_wizard_step4.py` | **177** | Step 4 read-only screen checks |
-| `data/verify_meal_wizard_step4_lock.py` | **307** | Step 4 lock + homepage gating |
-| `data/verify_meal_wizard_step4_writeloop.py` | **273** | Step 4 write loop (confirm/remove/guards) |
-| `data/verify_meal_wizard_dish_join.py` | **101** | dish join / format_dish_list helpers |
+| `data/verify_meal_wizard_step4_lock.py` | **307** | Step 4 lock + homepage gating (authenticated HTTP round-trip via in-process server) |
+| `data/verify_meal_wizard_step4_writeloop.py` | **273** | Step 4 write loop: confirm/remove/guards, no-reload DOM contract, prefill lock rendering |
+| `data/verify_meal_wizard_step4_remove.py` | **276** | `/meal-wizard-step4-remove` route: bad-input 400s, idempotent absent-slot 200, mixed-origin revert (Lauren-only dish survives), no-reload contract (slot_html + lock_html), sha256 integrity assertion on live session file before+after (added 2026-07-02) |
+| `data/verify_meal_wizard_dish_join.py` | **101** | dish join / `format_dish_list` helpers |
 | `data/verify_generate_midcall_race.py` | **163** | mid-call race condition guard (session merge) |
 | `data/verify_generate_wipes_mirror.py` | **143** | confirms generate no longer wipes mirror entries |
 | `data/verify_mirror_neighbor_untouched.py` | **120** | confirms neighbor slots unaffected by confirm |
-| `data/verify_task_42.py` | **141** | Task 42 regression |
+| `data/verify_task_42.py` | **145** | Task 42 regression |
 
 ---
 
@@ -589,17 +603,15 @@ shared JSON-repair helper exists elsewhere.
 
 ---
 
-## Section 11 — What changed from the prior PROJECT_STATE.md (2026-07-01)
+## Section 11 — What changed from the prior PROJECT_STATE.md (2026-07-02 rev 1)
 
-| Item | Prior file said | Live scan 2026-07-02 |
+| Item | Prior file said | Live scan 2026-07-02 rev 2 |
 |---|---|---|
-| `render_meal_wizard_gen.py` lines | **241** | **391** |
-| `render_meal_wizard_step4.py` lines | **783** | **782** |
-| `config.py` lines | **182** | **191** |
-| `CATEGORIES` in step4 | defined locally at line 41 | `from config import MEAL_DISH_CATEGORIES as CATEGORIES` |
-| `_DISH_CATEGORIES` in gen | defined locally (with TODO to consolidate) | `from config import MEAL_DISH_CATEGORIES as _DISH_CATEGORIES` |
-| `MEAL_DISH_CATEGORIES` in config | not present | **new** — added 2026-07-02 (G1c-3a single-source cleanup) |
-| Generation prompt/parser | "normalizes Lorenzo's flat JSON into dishes[]" | prompt now requests dishes[] directly; parser reads `val.get("dishes")`; no flat→dishes compat shim |
-| `data_helpers.py` lines | not listed | **3,376** |
-| `render_misc.py` lines | not listed | **5,976** |
-| All render_*.py line counts | partially carried from prior sessions | all re-derived from live `wc -l` this scan |
+| `app.py` lines | **12,379** | **12,386** (+7 lines: `/meal-wizard-step4-remove` handler gains `_s4r_prior_entry` + `_s4r_prior_dishes` capture lines + `revert_dishes=` kwarg in render call) |
+| `render_meal_wizard_step4.py` lines | **782** | **792** (+10 lines: `render_step4_slot_and_lock` gains `revert_dishes=None` parameter + branch + updated docstring) |
+| `render_meal_wizard_step4.py` description | no mention of `revert_dishes` | added: `render_step4_slot_and_lock(date_iso, slot_key, revert_dishes=None)` — optional param pre-fills reverted entry from prior confirmed dishes |
+| `/meal-wizard-step4-remove` handler notes | not separately documented | added to §8: documents `_s4r_prior_dishes` capture, `revert_dishes=` call, mixed-origin behaviour |
+| `data/verify_meal_wizard_step4_remove.py` | **not present** | **new — 276 lines**: dedicated harness for the remove route; `mw_test_isolation` first import (Rule 10a); sha256 integrity assertion; mixed-origin case |
+| `data/verify_task_42.py` lines | **141** | **145** |
+| Section 9 description | "All harnesses are offline (no network, no live writes)" | updated to clarify Rule 10a mechanical enforcement via `ImportError` at import time |
+| `verify_meal_wizard_g1a.py` description | "G1a: generation session contract" | clarified: confirm/remove/protein logic, snapshot+restore pattern (predates mw_test_isolation) |

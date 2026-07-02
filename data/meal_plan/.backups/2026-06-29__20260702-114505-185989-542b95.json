@@ -4,7 +4,7 @@
   "generated": false,
   "days": {
     "Monday": {
-      "breakfast": "",
+      "breakfast": "Eggs and museli",
       "lunch": "",
       "dinner": "",
       "dessert": "",
@@ -13,48 +13,48 @@
     },
     "Tuesday": {
       "breakfast": "",
-      "lunch": "",
-      "dinner": "",
+      "lunch": "Egg Salad Finger Sandwiches with Fruit",
+      "dinner": "Brined Roast Chicken with Roasted Green Beans and Red Potatoes",
       "dessert": "",
       "snacks": "",
       "dad_lunch": ""
     },
     "Wednesday": {
       "breakfast": "",
-      "lunch": "",
-      "dinner": "",
+      "lunch": "Leftover Roast Chicken Rice Bowl",
+      "dinner": "Shredded Chicken Tacos (Date Night — kids eat from leftovers)",
       "dessert": "",
       "snacks": "",
       "dad_lunch": ""
     },
     "Thursday": {
       "breakfast": "",
-      "lunch": "",
-      "dinner": "",
+      "lunch": "Ground Beef Pasta with Spaghetti Sauce\nRomaine salad",
+      "dinner": "Cajun Sausages with Wild Rice and Sautéed Mixed Vegetables",
       "dessert": "",
       "snacks": "",
       "dad_lunch": ""
     },
     "Friday": {
       "breakfast": "",
-      "lunch": "",
-      "dinner": "",
+      "lunch": "Sardine Sandwiches with Carrots and Fruit",
+      "dinner": "Spinach Pie with Canned Green Beans",
       "dessert": "",
       "snacks": "",
       "dad_lunch": ""
     },
     "Saturday": {
       "breakfast": "",
-      "lunch": "",
-      "dinner": "",
+      "lunch": "Tuna Salad on Bread with Fruit Cocktail",
+      "dinner": "Fourth of July Cookout — Hamburgers, Pulled Pork, and Corn on the Cob",
       "dessert": "",
       "snacks": "",
       "dad_lunch": ""
     },
     "Sunday": {
       "breakfast": "",
-      "lunch": "",
-      "dinner": "",
+      "lunch": "Ziplock Buffet — Leftover Cookout Plates",
+      "dinner": "Lentil Soup (Batch) with Bread",
       "dessert": "",
       "snacks": "",
       "dad_lunch": ""

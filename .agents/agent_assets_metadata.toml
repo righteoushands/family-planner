@@ -545,3 +545,9 @@ id = "ShXPPF5smhlmV_ByQNsz9"
 uri = "file://responses/verify_step4_remove_harness_2026-07-02.md"
 type = "text"
 title = "verify_meal_wizard_step4_remove.py — harness result"
+
+[[outputs]]
+id = "1qRJM4Gxb5Ls2shH54uUg"
+uri = "file://responses/project_state_regen_rev2_2026-07-02.md"
+type = "text"
+title = "PROJECT_STATE.md — Regen rev 2 change summary"
