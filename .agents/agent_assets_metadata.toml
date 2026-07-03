@@ -617,3 +617,9 @@ id = "iqj9XUs99Z1qDVm4sc6ZR"
 uri = "file://responses/project_state_rev3_regeneration_2026-07-03.md"
 type = "text"
 title = "PROJECT_STATE.md Rev 3 — Full Live Re-Scan + Six Confirmations"
+
+[[outputs]]
+id = "yX2BqH4Idxmu3lZNcqaCC"
+uri = "file://responses/push_attempt2_report_2026-07-03.md"
+type = "text"
+title = "Push Attempt 2 — Hash Compare, Ancestry Gate, Same Auth Failure"
