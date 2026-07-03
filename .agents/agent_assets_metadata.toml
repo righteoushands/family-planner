@@ -575,3 +575,9 @@ id = "yHr-yoykWdlCIoyvMWRFk"
 uri = "file://responses/build_h1_step5_skeleton_2026-07-02.md"
 type = "text"
 title = "H1 Build Report — Step 5 Skeleton (Shopping Day)"
+
+[[outputs]]
+id = "SESJIGXiXM92_ZxCapC5H"
+uri = "file://responses/h1_verification_report_full_2026-07-03.md"
+type = "text"
+title = "H1 Verification Report — Full (raw output, diffs, read-back)"
