@@ -62,7 +62,7 @@ _S4_DAY_CARD = ("background:var(--warm-white,#fff);border:1px solid var(--border
                 "border-radius:var(--radius-md,12px);padding:0 0 12px;margin-bottom:14px;"
                 "overflow:hidden;")
 _S4_DAY_HEADER = ("font-family:" + _HEADING_FONT + ";font-size:1.15em;font-weight:600;"
-                  "color:var(--ink);margin:0;padding:12px 16px 2px;")
+                  "margin:0;padding:12px 16px 2px;")
 _S4_SEASON_DOT = ("display:inline-block;width:10px;height:10px;border-radius:50%;"
                   "margin-right:8px;vertical-align:middle;")
 _S4_SEASON_LABEL = "color:var(--ink-muted);font-size:0.82em;padding:0 16px 8px;"
@@ -499,7 +499,7 @@ def _s4_day_card(d: date, day_events: list, to_plan, confirmed: dict,
     season_color = _s4_safe_color(info.get("season_color"), "#888")
 
     header = (
-        f'<h3 style="{_S4_DAY_HEADER}">'
+        f'<h3 style="{_S4_DAY_HEADER}color:{season_color};">'
         f'<span style="{_S4_SEASON_DOT}background:{season_color};"></span>'
         f'{weekday} \u2014 {date_label}</h3>'
     )

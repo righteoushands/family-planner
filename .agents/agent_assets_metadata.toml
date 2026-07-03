@@ -587,3 +587,9 @@ id = "R_b0w6uYdUTOXaX7IH0vc"
 uri = "file://responses/diagnosis_step4_day_header_contrast_2026-07-03.md"
 type = "text"
 title = "Diagnosis — Step 4 Day-Header vs Meal-Text Styling"
+
+[[outputs]]
+id = "gV5_8BHzpl2QIT8Ow3vYQ"
+uri = "file://responses/build_step4_day_header_season_color_2026-07-03.md"
+type = "text"
+title = "Build Report — Step 4 Day Headers in Season Color"
