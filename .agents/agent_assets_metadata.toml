@@ -605,3 +605,9 @@ id = "dk2Ei2hLEJgChfAa6Y2bo"
 uri = "file://responses/push_attempt_report_2026-07-03.md"
 type = "text"
 title = "Push Attempt Report — Ancestry Check + Auth Failure"
+
+[[outputs]]
+id = "nMZh6ubB2Oc5S9mXNsbLD"
+uri = "file://responses/diagnosis_push_confirmation_2026-07-03.md"
+type = "text"
+title = "Diagnosis — Push Confirmation: GitHub Now Equals Local Main"
