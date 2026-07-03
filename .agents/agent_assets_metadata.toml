@@ -599,3 +599,9 @@ id = "CF1yGD5ih8MoOgqG1poUf"
 uri = "file://responses/diagnosis_git_remote_state_2026-07-03.md"
 type = "text"
 title = "Diagnosis — Git Remote State & GitHub Push Readiness"
+
+[[outputs]]
+id = "dk2Ei2hLEJgChfAa6Y2bo"
+uri = "file://responses/push_attempt_report_2026-07-03.md"
+type = "text"
+title = "Push Attempt Report — Ancestry Check + Auth Failure"
