@@ -611,3 +611,9 @@ id = "nMZh6ubB2Oc5S9mXNsbLD"
 uri = "file://responses/diagnosis_push_confirmation_2026-07-03.md"
 type = "text"
 title = "Diagnosis — Push Confirmation: GitHub Now Equals Local Main"
+
+[[outputs]]
+id = "iqj9XUs99Z1qDVm4sc6ZR"
+uri = "file://responses/project_state_rev3_regeneration_2026-07-03.md"
+type = "text"
+title = "PROJECT_STATE.md Rev 3 — Full Live Re-Scan + Six Confirmations"

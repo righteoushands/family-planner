@@ -1,3 +1,149 @@
+# PROJECT_STATE.md REGENERATION — rev 3, full live re-scan (2026-07-03)
+## Every number below comes from wc -l / grep -n run TODAY. Nothing carried from rev 2.
+
+---
+
+## PART 0 — claud.md READ-BACK (Rule 15): every rule, pasted back
+
+**Python 3.11 hard rules — never violate these**
+1. No backslashes inside f-strings
+2. No nested quotes inside f-strings — use a variable outside the f-string instead
+3. All GET routing uses elif chains in do_GET; POST routing in do_POST ALSO uses
+   elif chains (verified June 28 2026). ONE exception: the multipart recipe
+   routes (/recipe-save, /recipe-import) share an `elif path in (...)` outer
+   block with nested `if` inner blocks only to share upload-parsing setup —
+   never copy that pattern for ordinary routes. [CORRECTED June 28 2026: the
+   old standalone-if claim was wrong; code wins.]
+4. Never put import statements inside if blocks or functions [KNOWN DEVIATION:
+   several live do_POST handlers use inline imports; new code = module top]
+5. All file writes use safe_save_json (tmp + os.replace) — never open(f,'w')
+6. No walrus operator (:=)
+7. Never a raw newline escape inside a JS string within a Python string
+   literal — the browser must receive the escape sequence, not a raw newline
+8. multipart/form-data: sniff Content-Type in do_POST; cgi.FieldStorage for
+   multipart; empty POST data → check Content-Type first
+9. py_compile is syntax-only: in-process smoke test after it, then run the
+   relevant existing verify harness for the area touched and paste the result
+10. Test fixtures must never write to live data; temp copies only; restore
+    from backup after any test that touches data files
+10a. ISOLATION MUST BE STRUCTURAL — mw_test_isolation (or equivalent) as the
+    literal FIRST project import; guard raises on live paths;
+    snapshot/restore-after is NOT equivalent to never touching live data
+11. Never double-escape HTML entities — escape() exactly once
+12. Rule 7 applies to ALL files with JS embedded in Python (render_schedule,
+    render_timeblock, render_lucy, render_lorenzo, etc.)
+13. FROL nested-form addendum — any form in a section body posting to
+    /frol-wizard suppresses Save and Continue; confirm every new form's action
+14. PRE-FLIGHT CHECKLIST — (1) file count listed, unknown = diagnose first;
+    (2) JS-in-f-strings flagged; (3) forms checked against /frol-wizard;
+    (4) root cause confirmed, never assumed; (5) multi-file work split into
+    single-purpose instructions; (6) data-shape changes confirmed
+    before/after explicitly
+15. CLAUD.MD READ-BACK REQUIRED — every session: read, paste back every rule,
+    identify which apply; if unable, stop and ask Lauren to re-paste
+16. MAGNIFICA HUMANITAS DESIGN PRINCIPLES — never an optimization engine;
+    persons, not projects. (1) Tool not authority — suggestions never
+    prescriptions; (2) companions serve real relationships, never replace
+    them; (3) AI supports thinking, never replaces it; (4) transparency about
+    what AI is — no theological claims with personal authority; prayer texts
+    from verified Catholic sources only; (5) language of grace not
+    performance — no gamification, streaks, shaming scores; a hard day is
+    never failure; (6) subsidiarity — Lauren is always the authority;
+    (7) formation in digital wisdom — JP finishes high school able to plan
+    his day without the app. Every feature answers yes to at least one of
+    the four questions (truth / learning / closeness / justice and peace)
+    and harms none.
+17. ONE FIX PER INSTRUCTION — no bundling; sequential single-purpose phases
+    with compile check + report between each
+18. AUGUST 15TH BUILD PLAN IS THE PRIORITY FILTER — off-plan requests flagged
+    first; new ideas post-September; scope cut first, never quality
+19. BUILD FOR A FUTURE SECOND FAMILY — no hardcoded family specifics; config
+    in app_settings.json; all data I/O through data_helpers.py [KNOWN DEBT:
+    build_lorenzo_context roster]
+20. PRESERVE SCROLL ON SAME-PAGE RELOADS — sessionStorage scrollY
+    save/restore for same-page reload navigations; forward navigations
+    exempt; render_meal_wizard_step4.py is the reference implementation
+21. SESSION HELPER SHALLOW-MERGE — update_meal_wizard_session merges only at
+    top level; nested keys must be read-fresh → merged → written, snapshot
+    immediately before the write [KNOWN DEVIATION July 1 2026: step 4
+    confirm-mirror; fixed]
+22. MERGE-BASED GENERATE NO LONGER PRUNES — stale suggested_meals accumulate,
+    render-gated (inert) except the re-entry edge; logged not fixed;
+    KI-001/KI-002
+
+**Named sections also read:** People; Data file patterns; Route patterns
+(_JSON_PATHS is local to do_POST); Anchor-tag navigation; AI calls (models
+not uniform; _repair_and_parse_json is plan-importer-only); Change
+discipline (additive only; known-issues tracker lives OUTSIDE the repo);
+FROL form-bypass trap; Current major features; DOC CORRECTION LOG.
+
+**Rules that apply to THIS task (PROJECT_STATE.md full re-scan regeneration):**
+- **15** — this read-back.
+- **14 item 4 (root cause confirmed, never assumed)** — the whole task IS
+  this rule: every line count re-run with wc -l, every anchor re-run with
+  grep -n, nothing reused from the rev-2 doc or the H1 report.
+- **Change discipline** — only PROJECT_STATE.md (documentation) was
+  rewritten; zero code files touched; no behavior changed.
+- **17 (one fix per instruction)** — one artifact regenerated, nothing else.
+- Code rules (1–13, 19–22) not triggered — no code edited. (Rule 3/21/22
+  FACTS are re-documented inside the regenerated doc, but no code changed.)
+
+---
+
+## PART 1 — THE SIX CONFIRMATIONS (all against live code, today)
+
+**1. render_meal_wizard_step5.py** — **133 lines** (wc -l).
+Signature confirmed at **line 85**: `def render_step5(user: str) -> str:`
+`_S5_DAYS` (Monday–Sunday list) at **line 29**.
+
+**2. app.py** — **12,424 lines** total (was 12,386 at rev 2; +38 = the Step 5
+additions themselves). The four Step 5 anchors, confirmed by fresh grep -n:
+- import `from render_meal_wizard_step5 import render_step5, _S5_DAYS` → **line 258**
+- GET `elif path == "/meal-wizard-step5":` → **line 1358**
+- `_JSON_PATHS` set containing `/meal-wizard-step5-save` → **line 3582** (11 members)
+- POST `elif path == "/meal-wizard-step5-save":` → **line 11036**
+
+Honest note on "they will have shifted": they have NOT shifted — these four
+numbers are identical to the H1 report because no app.py edit has landed
+since H1 (the header fix touched only render_meal_wizard_step4.py, and the
+report files live in responses/). I did not reuse the old numbers — the
+grep was run fresh today and happens to agree. What DID shift inside app.py
+relative to rev 2's other anchors: do_GET 773→774, do_POST 2268→2279,
+_JSON_PATHS 3571→3582, step4-remove handler 10878→10889,
+_repair_and_parse_json ~8412→8458.
+
+**3. render_meal_wizard_step4.py** — **801 lines** (was 792 at rev 2; +9).
+Day-header color change confirmed present at current line numbers:
+- **Line 64**: `_S4_DAY_HEADER = ("font-family:" + _HEADING_FONT + ";font-size:1.15em;font-weight:600;` `"margin:0;padding:12px 16px 2px;")` — **no `color:` property remains** (the old `color:var(--ink);` is gone; verified by reading lines 60–75).
+- **Line 499**: `season_color = _s4_safe_color(info.get("season_color"), "#888")`
+- **Line 502**: `f'<h3 style="{_S4_DAY_HEADER}color:{season_color};">'` — the h3 interpolates the sanitized season color.
+
+**4. data/meal_wizard_session.json** — `confirmed_shopping_day` **IS present
+as a live key**, value `"Saturday"` (from H1 testing). All 10 keys currently
+in the file (sorted): `confirmed_complexity`, `confirmed_inventory`,
+`confirmed_meals`, `confirmed_shopping_day`, `confirmed_what_to_plan`,
+`plan_locked_at`, `planning_window`, `suggested_meals`, `use_soon_items`,
+`used_proteins`.
+
+**5. verify_meal_wizard_step5.py** — **does NOT exist**. Checked both repo
+root and data/ — `ls` reports no such file in either location. Correct per
+H1 scope (standing harness was explicitly deferred; still an offered
+follow-up, not built).
+
+**6. Git state** — `git rev-parse main` = **ba20274ab6a60657179511515903ea4468a1da95**
+(recorded in the doc header; this is the post-push-confirmation checkpoint).
+
+**Bonus finding from the full scan (this is why full re-scans beat
+incremental patching):** two render modules existed on disk but were missing
+from BOTH prior PROJECT_STATE revisions — `render_seasons.py` (147 lines,
+Phase F season-detection helper, pure module) and `render_companions.py`
+(54 lines, the /companions page, routed at app.py line 1277). Both are now
+in Section 5.
+
+---
+
+## PART 2 — THE FULL REGENERATED PROJECT_STATE.md (rev 3), verbatim
+
 # PROJECT_STATE.md — Sancta Familia
 
 Technical snapshot of the current codebase. **Full re-scan 2026-07-03 (rev 3)** — every line count
