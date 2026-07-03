@@ -8,7 +8,7 @@
       "lunch": "",
       "dinner": "",
       "dessert": "",
-      "snacks": "Pre-existing Snack",
+      "snacks": "",
       "dad_lunch": ""
     },
     "Tuesday": {
@@ -20,20 +20,20 @@
       "dad_lunch": ""
     },
     "Wednesday": {
-      "breakfast": "",
-      "lunch": "Leftover Roast Chicken Rice Bowl",
-      "dinner": "Shredded Chicken Tacos (Date Night — kids eat from leftovers)",
-      "dessert": "",
-      "snacks": "",
-      "dad_lunch": ""
+      "breakfast": "Pancakes with Fresh Fruit",
+      "lunch": "Rotisserie Chicken Tacos with Garlic bread, Ice cream and Egg salad",
+      "dinner": "Ground Beef Pasta with Spaghetti Sauce",
+      "dessert": "Chocolate Cake",
+      "snacks": "Apple Slices with Peanut Butter & Green Grapes",
+      "dad_lunch": "Packed Rotisserie Chicken & Sourdough Sandwich with Grapes with Nuts"
     },
     "Thursday": {
       "breakfast": "",
-      "lunch": "Ground Beef Pasta with Spaghetti Sauce\nRomaine salad",
-      "dinner": "Cajun Sausages with Wild Rice and Sautéed Mixed Vegetables",
+      "lunch": "Leftover Ground Beef Pasta Thermos with Bread",
+      "dinner": "Brined Roast Chicken with Roasted Fresh Green Beans and Small Red Potatoes (Roasted)",
       "dessert": "",
       "snacks": "",
-      "dad_lunch": ""
+      "dad_lunch": "Leftover Ground Beef Pasta Thermos with Garlic bread"
     },
     "Friday": {
       "breakfast": "",

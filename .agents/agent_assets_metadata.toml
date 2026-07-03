@@ -581,3 +581,9 @@ id = "SESJIGXiXM92_ZxCapC5H"
 uri = "file://responses/h1_verification_report_full_2026-07-03.md"
 type = "text"
 title = "H1 Verification Report — Full (raw output, diffs, read-back)"
+
+[[outputs]]
+id = "R_b0w6uYdUTOXaX7IH0vc"
+uri = "file://responses/diagnosis_step4_day_header_contrast_2026-07-03.md"
+type = "text"
+title = "Diagnosis — Step 4 Day-Header vs Meal-Text Styling"

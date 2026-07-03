@@ -7,7 +7,7 @@
   ],
   "confirmed_complexity": "normal",
   "planning_window": {
-    "start_iso": "2026-07-02",
+    "start_iso": "2026-07-03",
     "end_iso": "2026-07-08"
   },
   "confirmed_meals": {
@@ -196,6 +196,69 @@
           "name": "Bread",
           "ingredients": "",
           "protein": ""
+        }
+      ],
+      "source": "manual",
+      "locked": true,
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-03::lunch": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Ground Beef Tacos",
+          "ingredients": "cooked ground beef, tortillas, shredded cheese, salsa verde, refried beans",
+          "protein": "ground beef"
+        },
+        {
+          "category": "side",
+          "name": "Macaroni and cheese",
+          "ingredients": "",
+          "protein": ""
+        }
+      ],
+      "source": "manual",
+      "locked": true,
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-03::dinner": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Pulled Pork over Parboiled Rice",
+          "ingredients": "frozen pulled pork (thawed), parboiled rice, brown gravy packet, petite diced tomatoes",
+          "protein": "pulled pork"
+        },
+        {
+          "category": "side",
+          "name": "Canned Green Beans (Heated)",
+          "ingredients": "canned green beans, butter, salt, garlic powder",
+          "protein": ""
+        },
+        {
+          "category": "side",
+          "name": "Fresh Fruit Bowl",
+          "ingredients": "green grapes, strawberries, blueberries",
+          "protein": ""
+        }
+      ],
+      "source": "manual",
+      "locked": true,
+      "recipe_id": "",
+      "recipe_on_request": true,
+      "skip_shopping": false
+    },
+    "2026-07-04::lunch": {
+      "dishes": [
+        {
+          "category": "main",
+          "name": "Sardine Sandwiches",
+          "ingredients": "canned sardines, mayo, Dijon mustard, lemon juice, sourdough bread, romaine lettuce",
+          "protein": "sardines"
         }
       ],
       "source": "manual",
@@ -393,81 +456,66 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Roast Chicken Tacos (Leftover Rotisserie)",
-          "ingredients": "leftover rotisserie chicken, flour tortillas, shredded cheese, salsa verde, refried beans",
-          "protein": "rotisserie chicken"
+          "name": "Ground Beef Tacos",
+          "ingredients": "cooked ground beef, tortillas, shredded cheese, salsa verde, refried beans",
+          "protein": "ground beef"
+        },
+        {
+          "category": "side",
+          "name": "Macaroni and cheese",
+          "ingredients": "",
+          "protein": ""
         }
-      ],
-      "note": "Quick leftover lunch; busy morning with PT",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
+      ]
     },
     "2026-07-03::dinner": {
       "dishes": [
         {
           "category": "main",
-          "name": "Cajun Sausages with Wild Rice",
-          "ingredients": "four Cajun sausages (frozen), parboiled rice, chicken broth, butter, salt, pepper",
-          "protein": "cajun sausage"
+          "name": "Pulled Pork over Parboiled Rice",
+          "ingredients": "frozen pulled pork (thawed), parboiled rice, brown gravy packet, petite diced tomatoes",
+          "protein": "pulled pork"
         },
         {
           "category": "side",
-          "name": "Sautéed Fresh Green Beans",
-          "ingredients": "fresh green beans, butter, garlic powder, salt, pepper",
+          "name": "Canned Green Beans (Heated)",
+          "ingredients": "canned green beans, butter, salt, garlic powder",
           "protein": ""
         },
         {
           "category": "side",
-          "name": "Sliced Apples and Green Grapes",
-          "ingredients": "apples, green grapes",
+          "name": "Fresh Fruit Bowl",
+          "ingredients": "green grapes, strawberries, blueberries",
           "protein": ""
         }
-      ],
-      "note": "Cajun sausages from freezer; easy prep",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
+      ]
     },
     "2026-07-04::lunch": {
       "dishes": [
         {
           "category": "main",
-          "name": "Hamburgers on Buns",
-          "ingredients": "four hamburger patties, hamburger buns, shredded cheese, romaine lettuce, salsa verde",
-          "protein": "beef"
+          "name": "Sardine Sandwiches",
+          "ingredients": "canned sardines, mayo, Dijon mustard, lemon juice, sourdough bread, romaine lettuce",
+          "protein": "sardines"
         }
-      ],
-      "note": "Fourth of July cookout lunch",
-      "source": "lorenzo",
-      "recipe_id": "",
-      "recipe_on_request": true,
-      "skip_shopping": false
+      ]
     },
     "2026-07-04::dinner": {
       "dishes": [
         {
           "category": "main",
-          "name": "Pulled Pork Sandwiches",
-          "ingredients": "one pound pulled pork (frozen, thawed), two loaf bread or hamburger buns, salsa verde, shredded cheese",
-          "protein": "pork"
+          "name": "Frozen Pizza (Two Pizzas)",
+          "ingredients": "two frozen pizzas, shredded cheese",
+          "protein": "mixed"
         },
         {
-          "category": "side",
-          "name": "French Fries (Frozen, Baked)",
-          "ingredients": "frozen french fries, salt, pepper",
-          "protein": ""
-        },
-        {
-          "category": "side",
-          "name": "Pork and Beans (Canned, Heated)",
-          "ingredients": "canned pork and beans, brown sugar, butter",
+          "category": "salad",
+          "name": "Romaine Salad with Carrots",
+          "ingredients": "romaine lettuce, shredded carrots, green grapes, olive oil, honey",
           "protein": ""
         }
       ],
-      "note": "Independence Day; easy festive spread",
+      "note": "Independence Day — easy festive night",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -477,12 +525,12 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Lentil Soup (Batch)",
-          "ingredients": "red lentils, canned diced tomatoes, carrots, white onion, cumin, garlic, salt, pepper",
-          "protein": ""
+          "name": "Rotisserie Chicken Tacos",
+          "ingredients": "rotisserie chicken shredded, tortillas, shredded cheese, salsa verde, refried beans",
+          "protein": "rotisserie chicken"
         }
       ],
-      "note": "Sunday post-Mass simple lunch; batch made",
+      "note": "Quick post-Mass lunch; use rotisserie chicken",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -492,24 +540,24 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Spinach Pie (Frozen Crust)",
-          "ingredients": "two frozen pie crusts, frozen spinach (thawed/drained), eggs, shredded cheese, white onion, salt, pepper",
-          "protein": "eggs"
+          "name": "Brined Roast Chicken",
+          "ingredients": "2 lbs raw chicken, kosher salt, sugar, garlic, water brine, olive oil, pepper",
+          "protein": "chicken"
         },
         {
           "category": "side",
-          "name": "Roasted Brussels Sprouts",
-          "ingredients": "brussels sprouts, olive oil, garlic powder, salt, pepper",
+          "name": "Roasted Small Red Potatoes",
+          "ingredients": "small red potatoes, olive oil, garlic powder, salt, pepper",
           "protein": ""
         },
         {
           "category": "side",
-          "name": "Canned Peaches",
-          "ingredients": "canned peaches",
+          "name": "Sautéed Fresh Green Beans",
+          "ingredients": "fresh green beans, butter, garlic, salt, pepper",
           "protein": ""
         }
       ],
-      "note": "Sunday batch cook day; meatless legume-based",
+      "note": "Sunday anchor roast; batch-cook block post-Mass",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -519,12 +567,12 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Tuna Salad on Sourdough",
-          "ingredients": "canned tuna, sourdough bread, mayo, Dijon mustard, celery (carrots subbed), salt, pepper",
-          "protein": "tuna"
+          "name": "Lentil Soup",
+          "ingredients": "red lentils, canned diced tomatoes, carrots, white onion, garlic, cumin, chicken broth",
+          "protein": "lentils"
         }
       ],
-      "note": "Fish protein; uses pantry tuna",
+      "note": "Batch soup from Sunday cook block",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -534,24 +582,18 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Ground Beef Pasta with Spaghetti Sauce",
-          "ingredients": "2 lbs raw ground beef, jar spaghetti sauce, canned diced tomatoes, rotini pasta, salt, pepper",
-          "protein": "beef"
+          "name": "Cajun Sausages with Wild Rice",
+          "ingredients": "four Cajun sausages (frozen, thawed), parboiled rice, onion, green bell pepper, gumbo seasoning packet",
+          "protein": "Cajun sausage"
         },
         {
           "category": "side",
-          "name": "Canned Green Beans (Heated)",
-          "ingredients": "canned green beans, butter, garlic powder, salt",
-          "protein": ""
-        },
-        {
-          "category": "salad",
-          "name": "Romaine Salad with Green Grapes",
-          "ingredients": "romaine lettuce, green grapes, olive oil, salt, pepper",
+          "name": "Sautéed Frozen Mixed Vegetables",
+          "ingredients": "frozen mixed vegetables, butter, garlic powder, salt, pepper",
           "protein": ""
         }
       ],
-      "note": "Higher-carb pasta; uses fresh ground beef",
+      "note": "Higher-carb Monday; thaw sausages morning",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -561,12 +603,12 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Leftover Ground Beef Pasta Thermos",
-          "ingredients": "leftover ground beef pasta, spaghetti sauce",
-          "protein": "beef"
+          "name": "Leftover Cajun Sausage and Rice Bowl",
+          "ingredients": "leftover Cajun sausage, leftover rice, mixed vegetables, hot sauce",
+          "protein": "Cajun sausage"
         }
       ],
-      "note": "Tuesday leftovers day; Bible Study morning",
+      "note": "Leftovers day; Bible Study morning",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -576,18 +618,18 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Sheet Pan Chicken Thighs with Sweet Potatoes",
-          "ingredients": "2 lbs raw chicken (thighs or pieces), six small sweet potatoes (halved), olive oil, garlic powder, salt, pepper, seasoning packet",
-          "protein": "chicken"
+          "name": "Ground Beef Pasta with Spaghetti Sauce",
+          "ingredients": "2 lbs raw ground beef, jar of spaghetti sauce, canned diced tomatoes, rotini pasta, salt, pepper",
+          "protein": "ground beef"
         },
         {
-          "category": "side",
-          "name": "Sautéed Frozen Mixed Vegetables",
-          "ingredients": "frozen mixed vegetables, butter, salt, pepper, garlic powder",
+          "category": "salad",
+          "name": "Romaine Salad",
+          "ingredients": "romaine lettuce, shredded cheese, olive oil, salt, pepper",
           "protein": ""
         }
       ],
-      "note": "Thursday lifting day; higher-carb sweet potato",
+      "note": "Tuesday lifting day; higher-carb pasta",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -597,12 +639,12 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Sardine Sandwiches",
-          "ingredients": "canned sardines in olive oil, sourdough bread, mayo, Dijon mustard, lemon juice, salt, pepper",
-          "protein": "sardines"
+          "name": "Spinach Pie",
+          "ingredients": "frozen pie crust, frozen spinach (thawed), eggs, feta cheese (need to purchase), white onion",
+          "protein": "eggs"
         }
       ],
-      "note": "Friday meatless lunch; sardines on hand",
+      "note": "Date night; kids eat spinach pie",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -612,24 +654,24 @@
       "dishes": [
         {
           "category": "main",
-          "name": "Baked Salmon (Canned Pink Salmon Patties)",
-          "ingredients": "canned pink salmon, egg, breadcrumbs, flour, Old Bay seasoning, coconut oil for pan, salt, pepper",
-          "protein": "salmon"
+          "name": "Hamburgers on Buns",
+          "ingredients": "four hamburger patties, hamburger buns, shredded cheese, romaine lettuce, condiments",
+          "protein": "hamburger"
         },
         {
           "category": "side",
-          "name": "Parboiled Rice",
-          "ingredients": "parboiled rice, butter, salt, water",
+          "name": "French Fries (Frozen)",
+          "ingredients": "frozen french fries, salt, ketchup",
           "protein": ""
         },
         {
           "category": "side",
-          "name": "Frozen Corn (Heated)",
-          "ingredients": "frozen corn, butter, salt, pepper",
+          "name": "Fresh Fruit",
+          "ingredients": "apples, oranges, strawberries",
           "protein": ""
         }
       ],
-      "note": "Friday fish; Date Night — kids eat early",
+      "note": "Date night out; kids' easy dinner",
       "source": "lorenzo",
       "recipe_id": "",
       "recipe_on_request": true,
@@ -640,7 +682,10 @@
     "eggs",
     "ground beef",
     "rotisserie chicken",
-    "chicken"
+    "chicken",
+    "pulled pork",
+    "sardines"
   ],
-  "plan_locked_at": "2026-07-02"
+  "plan_locked_at": "2026-07-03",
+  "confirmed_shopping_day": "Saturday"
 }
